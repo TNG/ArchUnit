@@ -162,7 +162,7 @@ class GivenClassesThatInternal implements GivenClassesThat {
 
     @Override
     public GivenClassesConjunction haveSimpleNameNotStartingWith(String prefix) {
-        return givenWith(ClassesThatPredicates.haveSimpleNameNotStartingWith(prefix));
+        return givenWith(SyntaxPredicates.haveSimpleNameNotStartingWith(prefix));
     }
 
     @Override
@@ -172,7 +172,7 @@ class GivenClassesThatInternal implements GivenClassesThat {
 
     @Override
     public GivenClassesConjunction haveSimpleNameNotContaining(String infix) {
-        return givenWith(ClassesThatPredicates.haveSimpleNameNotContaining(infix));
+        return givenWith(SyntaxPredicates.haveSimpleNameNotContaining(infix));
     }
 
     @Override
@@ -182,7 +182,7 @@ class GivenClassesThatInternal implements GivenClassesThat {
 
     @Override
     public GivenClassesConjunction haveSimpleNameNotEndingWith(String suffix) {
-        return givenWith(ClassesThatPredicates.haveSimpleNameNotEndingWith(suffix));
+        return givenWith(SyntaxPredicates.haveSimpleNameNotEndingWith(suffix));
     }
 
     @Override
@@ -192,7 +192,7 @@ class GivenClassesThatInternal implements GivenClassesThat {
 
     @Override
     public GivenClassesConjunction haveNameNotMatching(String regex) {
-        return givenWith(ClassesThatPredicates.haveNameNotMatching(regex));
+        return givenWith(SyntaxPredicates.haveNameNotMatching(regex));
     }
 
     @Override
@@ -267,72 +267,72 @@ class GivenClassesThatInternal implements GivenClassesThat {
 
     @Override
     public GivenClassesConjunction arePublic() {
-        return givenWith(ClassesThatPredicates.arePublic());
+        return givenWith(SyntaxPredicates.arePublic());
     }
 
     @Override
     public GivenClassesConjunction areNotPublic() {
-        return givenWith(ClassesThatPredicates.areNotPublic());
+        return givenWith(SyntaxPredicates.areNotPublic());
     }
 
     @Override
     public GivenClassesConjunction areProtected() {
-        return givenWith(ClassesThatPredicates.areProtected());
+        return givenWith(SyntaxPredicates.areProtected());
     }
 
     @Override
     public GivenClassesConjunction areNotProtected() {
-        return givenWith(ClassesThatPredicates.areNotProtected());
+        return givenWith(SyntaxPredicates.areNotProtected());
     }
 
     @Override
     public GivenClassesConjunction arePackagePrivate() {
-        return givenWith(ClassesThatPredicates.arePackagePrivate());
+        return givenWith(SyntaxPredicates.arePackagePrivate());
     }
 
     @Override
     public GivenClassesConjunction areNotPackagePrivate() {
-        return givenWith(ClassesThatPredicates.areNotPackagePrivate());
+        return givenWith(SyntaxPredicates.areNotPackagePrivate());
     }
 
     @Override
     public GivenClassesConjunction arePrivate() {
-        return givenWith(ClassesThatPredicates.arePrivate());
+        return givenWith(SyntaxPredicates.arePrivate());
     }
 
     @Override
     public GivenClassesConjunction areNotPrivate() {
-        return givenWith(ClassesThatPredicates.areNotPrivate());
+        return givenWith(SyntaxPredicates.areNotPrivate());
     }
 
     @Override
     public GivenClassesConjunction haveFullyQualifiedName(String name) {
-        return givenWith(ClassesThatPredicates.haveFullyQualifiedName(name));
+        return givenWith(SyntaxPredicates.haveFullyQualifiedName(name));
     }
 
     @Override
     public GivenClassesConjunction dontHaveFullyQualifiedName(String name) {
-        return givenWith(ClassesThatPredicates.dontHaveFullyQualifiedName(name));
+        return givenWith(SyntaxPredicates.dontHaveFullyQualifiedName(name));
     }
 
     @Override
     public GivenClassesConjunction haveSimpleName(String name) {
-        return givenWith(ClassesThatPredicates.haveSimpleName(name));
+        return givenWith(SyntaxPredicates.haveSimpleName(name));
     }
 
     @Override
     public GivenClassesConjunction dontHaveSimpleName(String name) {
-        return givenWith(ClassesThatPredicates.dontHaveSimpleName(name));
+        return givenWith(SyntaxPredicates.dontHaveSimpleName(name));
     }
 
     @Override
     public GivenClassesConjunction haveModifier(JavaModifier modifier) {
-        return givenWith(ClassesThatPredicates.haveModifier(modifier));
+        return givenWith(SyntaxPredicates.haveModifier(modifier));
     }
 
     @Override
     public GivenClassesConjunction dontHaveModifier(JavaModifier modifier) {
-        return givenWith(ClassesThatPredicates.dontHaveModifier(modifier));
+        return givenWith(SyntaxPredicates.dontHaveModifier(modifier));
     }
 
     private GivenClassesInternal givenWith(DescribedPredicate<? super JavaClass> predicate) {

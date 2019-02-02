@@ -400,7 +400,6 @@ public abstract class RandomSyntaxTestBase {
                     "No ParametersProvider found for %s with parameterTypes %s", methodName, types));
         }
 
-        @SuppressWarnings("unchecked")
         Parameter get(String methodName, TypeToken<?> type) {
             for (SpecificParameterProvider provider : singleParameterProviders) {
                 if (provider.canHandle(type.getRawType())) {
@@ -665,6 +664,33 @@ public abstract class RandomSyntaxTestBase {
                     .add("value", value)
                     .add("description", description)
                     .toString();
+        }
+    }
+
+    protected static class SingleStringReplacement implements DescriptionReplacement {
+
+        private final String search;
+
+        private final String replacement;
+
+        public SingleStringReplacement(String search, String replacement) {
+            this.search = search;
+            this.replacement = replacement;
+        }
+
+        @Override
+        public boolean applyTo(String currentToken, List<String> currentDescription) {
+            if (currentToken.contains(search)) {
+                currentDescription.add(currentToken.replace(search, replacement));
+                return true;
+            }
+
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "{/" + search + "/" + replacement + "/}";
         }
     }
 }

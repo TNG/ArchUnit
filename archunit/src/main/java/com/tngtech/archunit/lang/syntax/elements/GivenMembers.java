@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TNG Technology Consulting GmbH
+ * Copyright 2019 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,9 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<MEMBER> {
+
+    @PublicAPI(usage = ACCESS)
+    MembersThat<GivenMembersConjunction<MEMBER>> that();
 
     @Override
     @PublicAPI(usage = ACCESS)

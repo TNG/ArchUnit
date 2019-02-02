@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 TNG Technology Consulting GmbH
+ * Copyright 2019 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,21 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
         super(factory, priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
     }
 
+    @Override
+    public GivenMembersThatInternal<MEMBER> that() {
+        return new GivenMembersThatInternal<>(this, currentPredicate());
+    }
+
+    @Override
+    public GivenMembersThatInternal<MEMBER> and() {
+        return new GivenMembersThatInternal<>(this, currentPredicate().thatANDs());
+    }
+
+    @Override
+    public GivenMembersThatInternal<MEMBER> or() {
+        return new GivenMembersThatInternal<>(this, currentPredicate().thatORs());
+    }
+
     static class GivenMembersInternal extends AbstractGivenMembersInternal<JavaMember, GivenMembersInternal> {
 
         GivenMembersInternal(Priority priority, ClassesTransformer<JavaMember> classesTransformer) {
@@ -79,7 +94,6 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
         private static class GivenMembersFactory implements AbstractGivenObjects.Factory<JavaMember, GivenMembersInternal> {
 
             @Override
-            @SuppressWarnings("unchecked")
             public GivenMembersInternal create(
                     Priority priority,
                     ClassesTransformer<JavaMember> classesTransformer,

@@ -35,7 +35,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchConditions.fullyQualifiedName;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-class ClassesThatPredicates {
+class SyntaxPredicates {
     static DescribedPredicate<HasName> haveNameNotMatching(String regex) {
         return have(not(nameMatching(regex)).as("name not matching '%s'", regex));
     }
