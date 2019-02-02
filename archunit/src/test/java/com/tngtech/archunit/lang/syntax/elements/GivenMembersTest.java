@@ -1,5 +1,6 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
@@ -144,7 +146,7 @@ public class GivenMembersTest {
     }
 
     @DataProvider
-    public static Object[][] restricted_rule_starts() {
+    public static Object[][] restricted_property_rule_starts() {
         ImmutableList.Builder<Object[]> data = ImmutableList.<Object[]>builder().add(
                 $(described(members().that().haveName(FIELD_A)), ImmutableSet.of(FIELD_A)),
                 $(described(codeUnits().that().haveName(FIELD_A)), ImmutableSet.of()),
@@ -337,7 +339,6 @@ public class GivenMembersTest {
                         return membersThat.areNotMetaAnnotatedWith(GET_TYPE.is(equivalentTo(MetaAnnotation.class)));
                     }
                 }));
-
         return data.build().toArray(new Object[0][]);
     }
 
@@ -367,14 +368,95 @@ public class GivenMembersTest {
     }
 
     @Test
-    @UseDataProvider("restricted_rule_starts")
-    public void predicates(DescribedRuleStart conjunction, Set<String> expectedMessages) {
+    @UseDataProvider("restricted_property_rule_starts")
+    public void property_predicates(DescribedRuleStart conjunction, Set<String> expectedMessages) {
         EvaluationResult result = conjunction.should(new ArchCondition<JavaMember>("condition text") {
             @Override
             public void check(JavaMember item, ConditionEvents events) {
                 events.add(SimpleConditionEvent.violated(item, formatMember(item)));
             }
         }).evaluate(importClasses(ClassWithVariousMembers.class, A.class, B.class, C.class, MetaAnnotation.class));
+
+        assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMessages);
+    }
+
+    @DataProvider
+    public static Object[][] restricted_declaration_rule_starts() {
+        return ImmutableList.<Object[]>builder().add(
+                declaredInDataPoints(
+                        new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
+                            @Override
+                            public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
+                                return membersThat.areDeclaredIn(ClassWithVariousMembers.class);
+                            }
+                        },
+                        new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
+                            @Override
+                            public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
+                                return membersThat.areNotDeclaredIn(ClassWithVariousMembers.class);
+                            }
+                        }
+                )).add(
+                declaredInDataPoints(
+                        new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
+                            @Override
+                            public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
+                                return membersThat.areDeclaredIn(ClassWithVariousMembers.class.getName());
+                            }
+                        },
+                        new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
+                            @Override
+                            public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
+                                return membersThat.areNotDeclaredIn(ClassWithVariousMembers.class.getName());
+                            }
+                        }
+                )).add(
+                declaredInDataPoints(
+                        new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
+                            @Override
+                            public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
+                                return membersThat.areDeclaredInClassesThat(equivalentTo(ClassWithVariousMembers.class));
+                            }
+                        },
+                        new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
+                            @Override
+                            public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
+                                return membersThat.areDeclaredInClassesThat(not(equivalentTo(ClassWithVariousMembers.class)));
+                            }
+                        }
+                )).build().toArray(new Object[0][]);
+    }
+
+    private static Object[][] declaredInDataPoints(
+            Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>> makeDeclaredInClassWithVariousMembers,
+            Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>> makeNotDeclaredInClassWithVariousMembers) {
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        Function<MembersThat, GivenMembersConjunction<?>> areDeclaredInClass = (Function) makeDeclaredInClassWithVariousMembers;
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        Function<MembersThat, GivenMembersConjunction<?>> areNotDeclaredInClass = (Function) makeNotDeclaredInClassWithVariousMembers;
+        return $$(
+                $(described(areDeclaredInClass.apply(members().that())), ALL_MEMBER_DESCRIPTIONS),
+                $(described(areDeclaredInClass.apply(fields().that())), ALL_FIELD_DESCRIPTIONS),
+                $(described(areDeclaredInClass.apply(codeUnits().that())), ALL_CODE_UNIT_DESCRIPTIONS),
+                $(described(areDeclaredInClass.apply(methods().that())), ALL_METHOD_DESCRIPTIONS),
+                $(described(areDeclaredInClass.apply(constructors().that())), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(described(areNotDeclaredInClass.apply(members().that())), ALL_OTHER_MEMBER_DESCRIPTIONS),
+                $(described(areNotDeclaredInClass.apply(fields().that())), ALL_OTHER_FIELD_DESCRIPTIONS),
+                $(described(areNotDeclaredInClass.apply(codeUnits().that())), ALL_OTHER_CODE_UNIT_DESCRIPTIONS),
+                $(described(areNotDeclaredInClass.apply(methods().that())), ALL_OTHER_METHOD_DESCRIPTIONS),
+                $(described(areNotDeclaredInClass.apply(constructors().that())), ALL_OTHER_CONSTRUCTOR_DESCRIPTIONS));
+    }
+
+    @Test
+    @UseDataProvider("restricted_declaration_rule_starts")
+    public void declaration_predicates(DescribedRuleStart conjunction, Set<String> expectedMessages) {
+        EvaluationResult result = conjunction.should(new ArchCondition<JavaMember>("condition text") {
+            @Override
+            public void check(JavaMember item, ConditionEvents events) {
+                events.add(SimpleConditionEvent.violated(item, formatMember(item)));
+            }
+        }).evaluate(importClasses(ClassWithVariousMembers.class, OtherClassWithMembers.class));
 
         assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMessages);
     }
@@ -564,6 +646,24 @@ public class GivenMembersTest {
 
         int methodD() {
             return 0;
+        }
+    }
+
+    private static Set<String> ALL_OTHER_FIELD_DESCRIPTIONS = ImmutableSet.of("otherField");
+    private static Set<String> ALL_OTHER_METHOD_DESCRIPTIONS = ImmutableSet.of("otherMethod()");
+    private static Set<String> ALL_OTHER_CONSTRUCTOR_DESCRIPTIONS = ImmutableSet.of("<init>(java.io.Serializable)");
+    private static Set<String> ALL_OTHER_CODE_UNIT_DESCRIPTIONS =
+            union(ALL_OTHER_METHOD_DESCRIPTIONS, ALL_OTHER_CONSTRUCTOR_DESCRIPTIONS);
+    private static Set<String> ALL_OTHER_MEMBER_DESCRIPTIONS =
+            union(ALL_OTHER_CODE_UNIT_DESCRIPTIONS, ALL_OTHER_FIELD_DESCRIPTIONS);
+
+    static class OtherClassWithMembers {
+        String otherField;
+
+        public OtherClassWithMembers(Serializable other) {
+        }
+
+        void otherMethod() {
         }
     }
 
