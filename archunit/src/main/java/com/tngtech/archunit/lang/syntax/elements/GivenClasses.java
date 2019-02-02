@@ -22,6 +22,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface GivenClasses extends GivenObjects<JavaClass> {
+
     @PublicAPI(usage = ACCESS)
     ClassesShould should();
 

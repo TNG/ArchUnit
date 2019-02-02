@@ -21,31 +21,4 @@ public class RandomClassesSyntaxTest extends RandomSyntaxTestBase {
             return new RandomSyntaxSeed<>(GivenClasses.class, ArchRuleDefinition.noClasses(), "no classes");
         }
     }
-
-    private static class SingleStringReplacement implements DescriptionReplacement {
-
-        private final String search;
-
-        private final String replacement;
-
-        private SingleStringReplacement(String search, String replacement) {
-            this.search = search;
-            this.replacement = replacement;
-        }
-
-        @Override
-        public boolean applyTo(String currentToken, List<String> currentDescription) {
-            if (currentToken.contains(search)) {
-                currentDescription.add(currentToken.replace(search, replacement));
-                return true;
-            }
-
-            return false;
-        }
-
-        @Override
-        public String toString() {
-            return getClass().getSimpleName() + "{/" + search + "/" + replacement + "/}";
-        }
-    }
 }

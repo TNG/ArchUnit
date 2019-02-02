@@ -27,7 +27,7 @@ import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF>>
         implements GivenObjects<T>, GivenConjunction<T> {
 
-    private final Factory<T, SELF> factory;
+    final Factory<T, SELF> factory;
     final Priority priority;
     private final ClassesTransformer<T> classesTransformer;
     final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition;
