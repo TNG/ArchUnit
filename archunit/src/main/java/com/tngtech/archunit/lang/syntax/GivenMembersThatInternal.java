@@ -19,6 +19,7 @@ import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersConjunction;
@@ -26,6 +27,7 @@ import com.tngtech.archunit.lang.syntax.elements.MembersThat;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
@@ -170,6 +172,35 @@ public class GivenMembersThatInternal<MEMBER extends JavaMember> implements Memb
     @Override
     public GivenMembersConjunction<MEMBER> areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return givenWith(are(not(metaAnnotatedWith(predicate))));
+    }
+
+    @Override
+    public GivenMembersConjunction<MEMBER> areDeclaredIn(Class<?> javaClass) {
+        return givenWith(are(declaredIn(javaClass)));
+    }
+
+    @Override
+    public GivenMembersConjunction<MEMBER> areNotDeclaredIn(Class<?> javaClass) {
+        return givenWith(are(not(declaredIn(javaClass))));
+    }
+
+    @Override
+    public GivenMembersConjunction<MEMBER> areDeclaredIn(String className) {
+        return givenWith(are(declaredIn(className)));
+    }
+
+    @Override
+    public GivenMembersConjunction<MEMBER> areNotDeclaredIn(String className) {
+        return givenWith(are(not(declaredIn(className))));
+    }
+
+    @Override
+    public GivenMembersConjunction<MEMBER> areDeclaredInClassesThat(DescribedPredicate<JavaClass> predicate) {
+        return givenWith(are(declaredInClassesThat(predicate)));
+    }
+
+    private DescribedPredicate<JavaMember> declaredInClassesThat(DescribedPredicate<JavaClass> predicate) {
+        return declaredIn(predicate).as("declared in classes that %s", predicate.getDescription());
     }
 
     private AbstractGivenMembersInternal<MEMBER, ?> givenWith(DescribedPredicate<? super MEMBER> predicate) {

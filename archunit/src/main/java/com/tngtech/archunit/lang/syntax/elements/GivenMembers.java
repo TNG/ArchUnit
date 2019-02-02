@@ -18,14 +18,33 @@ package com.tngtech.archunit.lang.syntax.elements;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<MEMBER> {
 
+    /**
+     * Allows to restrict the set of members under consideration. E.g.
+     * <br><br>
+     * <code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#haveName(String) haveName("foo")}
+     * </code>
+     *
+     * @return A syntax element, which can be used to restrict the members under consideration
+     */
     @PublicAPI(usage = ACCESS)
     MembersThat<GivenMembersConjunction<MEMBER>> that();
 
+    /**
+     * Allows to restrict the set of members under consideration. E.g.
+     * <br><br>
+     * <code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that(DescribedPredicate) that(haveName("foo"))}
+     * </code>
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     GivenMembersConjunction<MEMBER> that(DescribedPredicate<? super MEMBER> predicate);

@@ -20,8 +20,10 @@ import java.lang.annotation.Annotation;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -262,4 +264,109 @@ public interface MembersThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+
+    /**
+     * Matches members declared within the supplied class.
+     * <br><br>
+     * E.g. <code>someField</code> in
+     *
+     * <pre><code>
+     * class Example {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * will be matched by
+     * <pre><code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areDeclaredIn(Class) areDeclaredIn(Example.class)}
+     * </code></pre>
+     *
+     * @param javaClass A class that members have to be declared in to match
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areDeclaredIn(Class<?> javaClass);
+
+    /**
+     * Matches members not declared within the supplied class.
+     * <br><br>
+     * E.g. <code>someField</code> in
+     *
+     * <pre><code>
+     * class Example {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * will not be matched by
+     * <pre><code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areNotDeclaredIn(Class) areNotDeclaredIn(Example.class)}
+     * </code></pre>
+     *
+     * @param javaClass A class that members must not be declared in to match
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotDeclaredIn(Class<?> javaClass);
+
+    /**
+     * Matches members declared within a class of the supplied class name.
+     * <br><br>
+     * E.g. <code>someField</code> in
+     *
+     * <pre><code>
+     * class Example {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * will be matched by
+     * <pre><code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areDeclaredIn(String) areDeclaredIn(Example.class.getName())}
+     * </code></pre>
+     *
+     * @param className Fully qualified name of a class that members have to be declared in to match
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areDeclaredIn(String className);
+
+    /**
+     * Matches members not declared within a class of the supplied class name.
+     * <br><br>
+     * E.g. <code>someField</code> in
+     *
+     * <pre><code>
+     * class Example {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * will not be matched by
+     * <pre><code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areNotDeclaredIn(String) areNotDeclaredIn(Example.class.getName())}
+     * </code></pre>
+     *
+     * @param className Fully qualified name of a class that members must not be declared in to match
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotDeclaredIn(String className);
+
+    /**
+     * Matches members declared within a class matching the supplied predicate.
+     * <br><br>
+     * E.g. <code>someField</code> in
+     *
+     * <pre><code>
+     * class Example {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * will be matched by
+     * <pre><code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areDeclaredInClassesThat(DescribedPredicate) areDeclaredInClassesThat(areSubTypeOf(Object.class))}
+     * </code></pre>
+     *
+     * @param predicate A predicate which matches classes where members have to be declared in
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areDeclaredInClassesThat(DescribedPredicate<JavaClass> predicate);
 }
