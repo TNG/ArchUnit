@@ -16,12 +16,17 @@ public class RandomMembersSyntaxTest extends RandomSyntaxTestBase {
     @DataProvider
     public static List<List<?>> random_rules() {
         return FluentIterable
-                .from(createRandomRules(givenMembersSeed()))
-                .append(createRandomRules(givenFieldsSeed()))
-                .append(createRandomRules(givenCodeUnitsSeed()))
-                .append(createRandomRules(givenMethodsSeed()))
-                .append(createRandomRules(givenConstructorsSeed()))
+                .from(createRandomMemberRules(givenMembersSeed()))
+                .append(createRandomMemberRules(givenFieldsSeed()))
+                .append(createRandomMemberRules(givenCodeUnitsSeed()))
+                .append(createRandomMemberRules(givenMethodsSeed()))
+                .append(createRandomMemberRules(givenConstructorsSeed()))
                 .toList();
+    }
+
+    private static List<List<?>> createRandomMemberRules(RandomSyntaxSeed<?> givenMembersSeed) {
+        return createRandomRules(givenMembersSeed,
+                new SingleStringReplacement("meta annotated", "meta-annotated"));
     }
 
     @SuppressWarnings("rawtypes")
@@ -33,7 +38,6 @@ public class RandomMembersSyntaxTest extends RandomSyntaxTestBase {
         }
     }
 
-    @SuppressWarnings("rawtypes")
     private static RandomSyntaxSeed<GivenFields> givenFieldsSeed() {
         if (random.nextBoolean()) {
             return new RandomSyntaxSeed<>(GivenFields.class, ArchRuleDefinition.fields(), "fields");
@@ -51,7 +55,6 @@ public class RandomMembersSyntaxTest extends RandomSyntaxTestBase {
         }
     }
 
-    @SuppressWarnings("rawtypes")
     private static RandomSyntaxSeed<GivenMethods> givenMethodsSeed() {
         if (random.nextBoolean()) {
             return new RandomSyntaxSeed<>(GivenMethods.class, ArchRuleDefinition.methods(), "methods");
@@ -60,7 +63,6 @@ public class RandomMembersSyntaxTest extends RandomSyntaxTestBase {
         }
     }
 
-    @SuppressWarnings("rawtypes")
     private static RandomSyntaxSeed<GivenConstructors> givenConstructorsSeed() {
         if (random.nextBoolean()) {
             return new RandomSyntaxSeed<>(GivenConstructors.class, ArchRuleDefinition.constructors(), "constructors");

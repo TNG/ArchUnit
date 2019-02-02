@@ -178,7 +178,7 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
 
     @Override
     public ClassesShouldConjunction haveNameNotMatching(String regex) {
-        return shouldWith(ClassesThatPredicates.haveNameNotMatching(regex));
+        return shouldWith(SyntaxPredicates.haveNameNotMatching(regex));
     }
 
     @Override
@@ -188,7 +188,7 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
 
     @Override
     public ClassesShouldConjunction haveSimpleNameNotStartingWith(String prefix) {
-        return shouldWith(ClassesThatPredicates.haveSimpleNameNotStartingWith(prefix));
+        return shouldWith(SyntaxPredicates.haveSimpleNameNotStartingWith(prefix));
     }
 
     @Override
@@ -198,7 +198,7 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
 
     @Override
     public ClassesShouldConjunction haveSimpleNameNotContaining(String infix) {
-        return shouldWith(ClassesThatPredicates.haveSimpleNameNotContaining(infix));
+        return shouldWith(SyntaxPredicates.haveSimpleNameNotContaining(infix));
     }
 
     @Override
@@ -208,7 +208,7 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
 
     @Override
     public ClassesShouldConjunction haveSimpleNameNotEndingWith(String suffix) {
-        return shouldWith(ClassesThatPredicates.haveSimpleNameNotEndingWith(suffix));
+        return shouldWith(SyntaxPredicates.haveSimpleNameNotEndingWith(suffix));
     }
 
     @Override
@@ -283,72 +283,72 @@ class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConju
 
     @Override
     public ClassesShouldConjunction arePublic() {
-        return shouldWith(ClassesThatPredicates.arePublic());
+        return shouldWith(SyntaxPredicates.arePublic());
     }
 
     @Override
     public ClassesShouldConjunction areNotPublic() {
-        return shouldWith(ClassesThatPredicates.areNotPublic());
+        return shouldWith(SyntaxPredicates.areNotPublic());
     }
 
     @Override
     public ClassesShouldConjunction areProtected() {
-        return shouldWith(ClassesThatPredicates.areProtected());
+        return shouldWith(SyntaxPredicates.areProtected());
     }
 
     @Override
     public ClassesShouldConjunction areNotProtected() {
-        return shouldWith(ClassesThatPredicates.areNotProtected());
+        return shouldWith(SyntaxPredicates.areNotProtected());
     }
 
     @Override
     public ClassesShouldConjunction arePackagePrivate() {
-        return shouldWith(ClassesThatPredicates.arePackagePrivate());
+        return shouldWith(SyntaxPredicates.arePackagePrivate());
     }
 
     @Override
     public ClassesShouldConjunction areNotPackagePrivate() {
-        return shouldWith(ClassesThatPredicates.areNotPackagePrivate());
+        return shouldWith(SyntaxPredicates.areNotPackagePrivate());
     }
 
     @Override
     public ClassesShouldConjunction arePrivate() {
-        return shouldWith(ClassesThatPredicates.arePrivate());
+        return shouldWith(SyntaxPredicates.arePrivate());
     }
 
     @Override
     public ClassesShouldConjunction areNotPrivate() {
-        return shouldWith(ClassesThatPredicates.areNotPrivate());
+        return shouldWith(SyntaxPredicates.areNotPrivate());
     }
 
     @Override
     public ClassesShouldConjunction haveFullyQualifiedName(String name) {
-        return shouldWith(ClassesThatPredicates.haveFullyQualifiedName(name));
+        return shouldWith(SyntaxPredicates.haveFullyQualifiedName(name));
     }
 
     @Override
     public ClassesShouldConjunction dontHaveFullyQualifiedName(String name) {
-        return shouldWith(ClassesThatPredicates.dontHaveFullyQualifiedName(name));
+        return shouldWith(SyntaxPredicates.dontHaveFullyQualifiedName(name));
     }
 
     @Override
     public ClassesShouldConjunction haveSimpleName(String name) {
-        return shouldWith(ClassesThatPredicates.haveSimpleName(name));
+        return shouldWith(SyntaxPredicates.haveSimpleName(name));
     }
 
     @Override
     public ClassesShouldConjunction dontHaveSimpleName(String name) {
-        return shouldWith(ClassesThatPredicates.dontHaveSimpleName(name));
+        return shouldWith(SyntaxPredicates.dontHaveSimpleName(name));
     }
 
     @Override
     public ClassesShouldConjunction haveModifier(JavaModifier modifier) {
-        return shouldWith(ClassesThatPredicates.haveModifier(modifier));
+        return shouldWith(SyntaxPredicates.haveModifier(modifier));
     }
 
     @Override
     public ClassesShouldConjunction dontHaveModifier(JavaModifier modifier) {
-        return shouldWith(ClassesThatPredicates.dontHaveModifier(modifier));
+        return shouldWith(SyntaxPredicates.dontHaveModifier(modifier));
     }
 
     @Override
