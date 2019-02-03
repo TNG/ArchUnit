@@ -119,8 +119,8 @@ public class TestUtils {
         return ImportTestUtils.simpleImportedClasses();
     }
 
-    static JavaAnnotation javaAnnotationFrom(Annotation annotation) {
-        return ImportTestUtils.javaAnnotationFrom(annotation);
+    static JavaAnnotation javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass) {
+        return ImportTestUtils.javaAnnotationFrom(annotation, annotatedClass);
     }
 
     public static FieldAccessTarget targetFrom(JavaField javaField) {

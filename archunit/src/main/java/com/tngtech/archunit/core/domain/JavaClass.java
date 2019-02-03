@@ -672,6 +672,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         result.addAll(methodParameterDependenciesToSelf());
         result.addAll(throwsDeclarationDependenciesToSelf());
         result.addAll(constructorParameterDependenciesToSelf());
+        result.addAll(annotationDependenciesToSelf());
         return result.build();
     }
 
@@ -757,6 +758,14 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaConstructor>> getConstructorsWithThrowsDeclarationTypeOfSelf() {
         return memberDependenciesOnClass.getConstructorsWithThrowsDeclarationTypeOfClass();
+    }
+
+    /**
+     * @return {@link JavaAnnotation} of all imported classes that have the type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaAnnotation> getAnnotationsWithTypeOfSelf() {
+        return memberDependenciesOnClass.getAnnotationsWithTypeOfClass();
     }
 
     /**
@@ -905,7 +914,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 context.getMethodsWithReturnType(this),
                 context.getMethodThrowsDeclarationsOfType(this),
                 context.getConstructorsWithParameterOfType(this),
-                context.getConstructorThrowsDeclarationsOfType(this));
+                context.getConstructorThrowsDeclarationsOfType(this),
+                context.getAnnotationsOfType(this));
         return new CompletionProcess();
     }
 
@@ -1025,6 +1035,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         for (JavaAnnotation annotation : annotations) {
             result.add(Dependency.fromAnnotation(annotated, annotation, this));
             result.addAll(annotationParametersDependencies(annotation, annotated));
+            result.addAll(annotationDependencies(annotation.getType()));
         }
         return result.build();
     }
@@ -1094,6 +1105,15 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         return result;
     }
 
+    private Iterable<? extends Dependency> annotationDependenciesToSelf() {
+        Set<Dependency> result = new HashSet<>();
+        for (JavaAnnotation annotation : getAnnotationsWithTypeOfSelf()) {
+            // TODO see what to fill with
+            result.add(Dependency.fromAnnotation(null, annotation, null));
+        }
+        return result;
+    }
+
     private Set<JavaAccess<?>> filterNoSelfAccess(Set<? extends JavaAccess<?>> accesses) {
         Set<JavaAccess<?>> result = new HashSet<>();
         for (JavaAccess<?> access : accesses) {
@@ -1125,6 +1145,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         private final Set<ThrowsDeclaration<JavaMethod>> methodsWithThrowsDeclarationTypeOfClass;
         private final Set<JavaConstructor> constructorsWithParameterTypeOfClass;
         private final Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass;
+        private final Set<JavaAnnotation> annotationsWithTypeOfClass;
 
         MemberDependenciesOnClass(
                 Set<JavaField> fieldsWithTypeOfClass,
@@ -1132,7 +1153,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 Set<JavaMethod> methodsWithReturnTypeOfClass,
                 Set<ThrowsDeclaration<JavaMethod>> methodsWithThrowsDeclarationTypeOfClass,
                 Set<JavaConstructor> constructorsWithParameterTypeOfClass,
-                Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass) {
+                Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass,
+                Set<JavaAnnotation> annotationsWithTypeOfClass) {
 
             this.fieldsWithTypeOfClass = ImmutableSet.copyOf(fieldsWithTypeOfClass);
             this.methodsWithParameterTypeOfClass = ImmutableSet.copyOf(methodsWithParameterTypeOfClass);
@@ -1140,6 +1162,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
             this.methodsWithThrowsDeclarationTypeOfClass = ImmutableSet.copyOf(methodsWithThrowsDeclarationTypeOfClass);
             this.constructorsWithParameterTypeOfClass = ImmutableSet.copyOf(constructorsWithParameterTypeOfClass);
             this.constructorsWithThrowsDeclarationTypeOfClass = ImmutableSet.copyOf(constructorsWithThrowsDeclarationTypeOfClass);
+            this.annotationsWithTypeOfClass= ImmutableSet.copyOf(annotationsWithTypeOfClass);
         }
 
         Set<JavaField> getFieldsWithTypeOfClass() {
@@ -1168,6 +1191,10 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
 
         Set<ThrowsDeclaration<? extends JavaCodeUnit>> getThrowsDeclarationsWithTypeOfClass() {
             return union(methodsWithThrowsDeclarationTypeOfClass, constructorsWithThrowsDeclarationTypeOfClass);
+        }
+
+        Set<JavaAnnotation> getAnnotationsWithTypeOfClass() {
+            return annotationsWithTypeOfClass;
         }
     }
 

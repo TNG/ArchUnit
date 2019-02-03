@@ -19,7 +19,10 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.domain.properties.HasAnnotations;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 
@@ -65,12 +68,14 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  *   someAnnotation.as(SomeAnnotation.class).type(); // --&gt; returns String.class
  * </code></pre>
  */
-public final class JavaAnnotation implements HasType {
+public final class JavaAnnotation implements HasType, HasOwner<JavaClass> {
     private final JavaClass type;
+    private final JavaClass owner;
     private final Map<String, Object> values;
 
     JavaAnnotation(JavaAnnotationBuilder builder) {
         this.type = checkNotNull(builder.getType());
+        this.owner = checkNotNull(builder.getOwner());
         this.values = checkNotNull(builder.getValues());
     }
 
@@ -88,6 +93,11 @@ public final class JavaAnnotation implements HasType {
     @PublicAPI(usage = ACCESS)
     public JavaClass getRawType() {
         return type;
+    }
+
+    @Override
+    public JavaClass getOwner() {
+        return owner;
     }
 
     /**
@@ -128,4 +138,6 @@ public final class JavaAnnotation implements HasType {
     public <A extends Annotation> A as(Class<A> annotationType) {
         return AnnotationProxy.of(annotationType, this);
     }
+
+    public interface JavaAnnotatedElement extends HasAnnotations, HasDescription {}
 }

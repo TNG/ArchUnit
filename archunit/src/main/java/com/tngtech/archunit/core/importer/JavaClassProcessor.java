@@ -612,13 +612,13 @@ class JavaClassProcessor extends ClassVisitor {
 
         private class ArrayValueBuilder extends DomainBuilders.JavaAnnotationBuilder.ValueBuilder {
             @Override
-            public Optional<Object> build(ClassesByTypeName importedClasses) {
+            public Optional<Object> build(JavaClass owner, ClassesByTypeName importedClasses) {
                 Optional<Class<?>> componentType = determineComponentType(importedClasses);
                 if (!componentType.isPresent()) {
                     return Optional.absent();
                 }
 
-                return Optional.of(toArray(componentType.get(), buildValues(importedClasses)));
+                return Optional.of(toArray(componentType.get(), buildValues(owner, importedClasses)));
             }
 
             @SuppressWarnings({"unchecked", "rawtypes"}) // NOTE: We assume the component type matches the list
@@ -643,10 +643,10 @@ class JavaClassProcessor extends ClassVisitor {
                 return values.toArray((Object[]) Array.newInstance(componentType, values.size()));
             }
 
-            private List<Object> buildValues(ClassesByTypeName importedClasses) {
+            private List<Object> buildValues(JavaClass owner, ClassesByTypeName importedClasses) {
                 List<Object> result = new ArrayList<>();
                 for (DomainBuilders.JavaAnnotationBuilder.ValueBuilder value : values) {
-                    result.addAll(value.build(importedClasses).asSet());
+                    result.addAll(value.build(owner, importedClasses).asSet());
                 }
                 return result;
             }
@@ -715,7 +715,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static DomainBuilders.JavaAnnotationBuilder.ValueBuilder javaEnumBuilder(final String desc, final String value) {
         return new DomainBuilders.JavaAnnotationBuilder.ValueBuilder() {
             @Override
-            public Optional<Object> build(ClassesByTypeName importedClasses) {
+            public Optional<Object> build(JavaClass owner, ClassesByTypeName importedClasses) {
                 return Optional.<Object>of(
                         new DomainBuilders.JavaEnumConstantBuilder()
                                 .withDeclaringClass(importedClasses.get(Type.getType(desc).getClassName()))
@@ -738,7 +738,7 @@ class JavaClassProcessor extends ClassVisitor {
                             public DomainBuilders.JavaAnnotationBuilder.ValueBuilder apply(final Object input) {
                                 return new DomainBuilders.JavaAnnotationBuilder.ValueBuilder() {
                                     @Override
-                                    public Optional<Object> build(ClassesByTypeName importedClasses) {
+                                    public Optional<Object> build(JavaClass owner, ClassesByTypeName importedClasses) {
                                         return Optional.<Object>of(importedClasses.get(((Type) input).getClassName()));
                                     }
                                 };

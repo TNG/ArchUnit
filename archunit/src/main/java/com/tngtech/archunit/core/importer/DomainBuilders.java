@@ -54,6 +54,7 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
@@ -66,10 +67,10 @@ public final class DomainBuilders {
     private DomainBuilders() {
     }
 
-    static Map<String, JavaAnnotation> buildAnnotations(Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
+    static Map<String, JavaAnnotation> buildAnnotations(JavaClass owner, Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
         ImmutableMap.Builder<String, JavaAnnotation> result = ImmutableMap.builder();
         for (JavaAnnotationBuilder annotationBuilder : annotations) {
-            JavaAnnotation javaAnnotation = annotationBuilder.build(importedClasses);
+            JavaAnnotation javaAnnotation = annotationBuilder.build(owner, importedClasses);
             result.put(javaAnnotation.getRawType().getName(), javaAnnotation);
         }
         return result.build();
@@ -156,7 +157,7 @@ public final class DomainBuilders {
         }
 
         public Supplier<Map<String, JavaAnnotation>> getAnnotations() {
-            return Suppliers.memoize(new AnnotationsSupplier(annotations, importedClasses));
+            return Suppliers.memoize(new AnnotationsSupplier(owner, annotations, importedClasses));
         }
 
         public String getDescriptor() {
@@ -179,17 +180,19 @@ public final class DomainBuilders {
         }
 
         private static class AnnotationsSupplier implements Supplier<Map<String, JavaAnnotation>> {
+            private final JavaClass owner;
             private final Set<JavaAnnotationBuilder> annotations;
             private final ClassesByTypeName importedClasses;
 
-            AnnotationsSupplier(Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
+            AnnotationsSupplier(JavaClass owner, Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
+                this.owner = owner;
                 this.annotations = annotations;
                 this.importedClasses = importedClasses;
             }
 
             @Override
             public Map<String, JavaAnnotation> get() {
-                return buildAnnotations(annotations, importedClasses);
+                return buildAnnotations(owner, annotations, importedClasses);
             }
         }
     }
@@ -281,23 +284,25 @@ public final class DomainBuilders {
         @Override
         JavaMethod construct(JavaMethodBuilder builder, final ClassesByTypeName importedClasses) {
             if (annotationDefaultValueBuilder.isPresent()) {
-                annotationDefaultValue = Suppliers.memoize(new DefaultValueSupplier(annotationDefaultValueBuilder.get(), importedClasses));
+                annotationDefaultValue = Suppliers.memoize(new DefaultValueSupplier(getOwner(), annotationDefaultValueBuilder.get(), importedClasses));
             }
             return DomainObjectCreationContext.createJavaMethod(builder);
         }
 
         private static class DefaultValueSupplier implements Supplier<Optional<Object>> {
+            private final JavaClass owner;
             private final ValueBuilder valueBuilder;
             private final ClassesByTypeName importedClasses;
 
-            DefaultValueSupplier(ValueBuilder valueBuilder, ClassesByTypeName importedClasses) {
+            DefaultValueSupplier(JavaClass owner, ValueBuilder valueBuilder, ClassesByTypeName importedClasses) {
+                this.owner = owner;
                 this.valueBuilder = valueBuilder;
                 this.importedClasses = importedClasses;
             }
 
             @Override
             public Optional<Object> get() {
-                return valueBuilder.build(importedClasses);
+                return valueBuilder.build(owner, importedClasses);
             }
         }
     }
@@ -386,9 +391,10 @@ public final class DomainBuilders {
     }
 
     @Internal
-    public static final class JavaAnnotationBuilder {
+    public static final class JavaAnnotationBuilder implements BuilderWithBuildParameter<JavaClass, JavaAnnotation> {
         private JavaType type;
         private final Map<String, ValueBuilder> values = new HashMap<>();
+        private JavaClass owner;
         private ClassesByTypeName importedClasses;
 
         JavaAnnotationBuilder() {
@@ -408,11 +414,6 @@ public final class DomainBuilders {
             return this;
         }
 
-        JavaAnnotation build(ClassesByTypeName importedClasses) {
-            this.importedClasses = importedClasses;
-            return DomainObjectCreationContext.createJavaAnnotation(this);
-        }
-
         public JavaClass getType() {
             return importedClasses.get(type.getName());
         }
@@ -420,7 +421,7 @@ public final class DomainBuilders {
         public Map<String, Object> getValues() {
             ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
             for (Map.Entry<String, ValueBuilder> entry : values.entrySet()) {
-                Optional<Object> value = entry.getValue().build(importedClasses);
+                Optional<Object> value = entry.getValue().build(owner, importedClasses);
                 if (value.isPresent()) {
                     result.put(entry.getKey(), value.get());
                 }
@@ -437,13 +438,24 @@ public final class DomainBuilders {
             }
         }
 
+        public JavaClass getOwner() {
+            return owner;
+        }
+
+        @Override
+        public JavaAnnotation build(JavaClass owner, ClassesByTypeName importedClasses) {
+            this.importedClasses = importedClasses;
+            this.owner = owner;
+            return DomainObjectCreationContext.createJavaAnnotation(this);
+        }
+
         abstract static class ValueBuilder {
-            abstract Optional<Object> build(ClassesByTypeName importedClasses);
+            abstract Optional<Object> build(JavaClass owner, ClassesByTypeName importedClasses);
 
             static ValueBuilder ofFinished(final Object value) {
                 return new ValueBuilder() {
                     @Override
-                    Optional<Object> build(ClassesByTypeName importedClasses) {
+                    Optional<Object> build(JavaClass owner, ClassesByTypeName importedClasses) {
                         return Optional.of(value);
                     }
                 };
@@ -452,8 +464,8 @@ public final class DomainBuilders {
             static ValueBuilder from(final JavaAnnotationBuilder builder) {
                 return new ValueBuilder() {
                     @Override
-                    Optional<Object> build(ClassesByTypeName importedClasses) {
-                        return Optional.<Object>of(builder.build(importedClasses));
+                    Optional<Object> build(JavaClass owner, ClassesByTypeName importedClasses) {
+                        return Optional.<Object>of(builder.build(owner, importedClasses));
                     }
                 };
             }

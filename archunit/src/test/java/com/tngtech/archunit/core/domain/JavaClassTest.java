@@ -417,7 +417,7 @@ public class JavaClassTest {
 
     @Test
     public void direct_dependencies_from_self_by_annotation() {
-        JavaClass javaClass = importClasses(ClassWithAnnotationDependencies.class, OnClass.class)
+        JavaClass javaClass = importClasses(ClassWithAnnotationDependencies.class, MetaAnnotated.class)
                 .get(ClassWithAnnotationDependencies.class);
 
         assertThat(javaClass.getDirectDependenciesFromSelf())
@@ -441,11 +441,16 @@ public class JavaClassTest {
                         .from(ClassWithAnnotationDependencies.class)
                         .to(WithType.class)
                         .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(MetaAnnotation.class)
+                        .inLineNumber(0))
                 .areAtLeastOne(annotationMemberOfTypeDependency()
                         .from(ClassWithAnnotationDependencies.class)
                         .to(B.class)
                         .inLineNumber(0))
         ;
+        // TODO test that annotation dependencies do not lead to a infinite loop
     }
 
     @Test
@@ -514,6 +519,39 @@ public class JavaClassTest {
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.BException.class)
                         .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_annotation() {
+        JavaClass javaClass = importClasses(ClassWithAnnotationDependencies.class, OnClass.class)
+                .get(ClassWithAnnotationDependencies.class);
+
+        assertThat(javaClass.getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnClass.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnField.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnConstructor.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnMethod.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(WithType.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+        ;
     }
 
     @Test
@@ -1219,6 +1257,7 @@ public class JavaClassTest {
     @WithNestedAnnotations(
             nested = @WithType(type = B.class)
     )
+    @MetaAnnotated
     public class ClassWithAnnotationDependencies {
         @OnField
         Object field;
@@ -1242,5 +1281,12 @@ public class JavaClassTest {
     @interface WithType { Class<?> type(); }
     @interface WithNestedAnnotations {
         WithType nested();
+    }
+
+    @interface MetaAnnotation {
+    }
+
+    @MetaAnnotation
+    @interface MetaAnnotated {
     }
 }

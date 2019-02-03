@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -208,6 +209,11 @@ class ClassGraphCreator implements ImportContext {
         return memberDependenciesByTarget.getConstructorThrowsDeclarationsOfType(javaClass);
     }
 
+    @Override
+    public Set<JavaAnnotation> getAnnotationsOfType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getAnnotationsOfType(javaClass);
+    }
+
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
     B accessBuilderFrom(B builder, AccessRecord<T> record) {
         return builder
@@ -264,7 +270,9 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
-        return buildAnnotations(importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
+        Map<String, JavaAnnotation> annotations = buildAnnotations(owner, importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
+        memberDependenciesByTarget.registerAnnotations(annotations.values());
+        return annotations;
     }
 
     @Override
@@ -287,6 +295,7 @@ class ClassGraphCreator implements ImportContext {
         private final SetMultimap<JavaClass, ThrowsDeclaration<JavaMethod>> methodsThrowsDeclarationDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaConstructor> constructorParameterTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, ThrowsDeclaration<JavaConstructor>> constructorThrowsDeclarationDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaAnnotation> annotationTypeDependencies = HashMultimap.create();
 
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
@@ -317,6 +326,9 @@ class ClassGraphCreator implements ImportContext {
             }
         }
 
+        void registerAnnotations(Collection<JavaAnnotation> annotations) {
+        }
+
         Set<JavaField> getFieldsOfType(JavaClass javaClass) {
             return fieldTypeDependencies.get(javaClass);
         }
@@ -339,6 +351,10 @@ class ClassGraphCreator implements ImportContext {
 
         Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
             return constructorThrowsDeclarationDependencies.get(javaClass);
+        }
+
+        Set<JavaAnnotation> getAnnotationsOfType(JavaClass javaClass) {
+            return annotationTypeDependencies.get(javaClass);
         }
     }
 }
