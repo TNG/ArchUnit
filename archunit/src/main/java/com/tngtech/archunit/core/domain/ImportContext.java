@@ -57,5 +57,7 @@ public interface ImportContext {
 
     Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass);
 
+    Set<JavaAnnotation> getAnnotationsOfType(JavaClass javaClass);
+
     JavaClass resolveClass(String fullyQualifiedClassName);
 }
