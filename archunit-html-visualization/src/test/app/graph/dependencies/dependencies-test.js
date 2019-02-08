@@ -555,23 +555,6 @@ describe('Dependencies', () => {
     .to('com.tngtech.SomeInterface')
     .build();
 
-  it('can jump the dependencies of a specific node to their positions', () => {
-    const root = new Root(jsonRootForMoveTest, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesForMoveTest, root);
-    dependencies.recreateVisible();
-
-    const draggedNode = 'com.tngtech.SomeClass1';
-    const filter = d => d.from === draggedNode || d.to === draggedNode;
-    const jumpedDependencies = dependencies._getVisibleDependencies().filter(filter);
-    const notJumpedDependences = dependencies._getVisibleDependencies().filter(d => !filter(d));
-
-    dependencies._jumpSpecificDependenciesToTheirPositions(root.getByName(draggedNode));
-
-    const mapDependenciesToHasJumped = dependencies => dependencies.map(d => d._view.hasJumpedToPosition);
-    expect(mapDependenciesToHasJumped(jumpedDependencies)).to.not.include(false);
-    expect(mapDependenciesToHasJumped(notJumpedDependences)).to.not.include(true);
-  });
-
   it('can move all dependencies to their positions', () => {
     const root = new Root(jsonRootForMoveTest, null, () => Promise.resolve());
     const dependencies = new Dependencies(jsonDependenciesForMoveTest, root);

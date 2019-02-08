@@ -264,9 +264,8 @@ const init = (View) => {
     createListener() {
       return {
         onDrag: (node) => {
-          // FIXME: Bad naming, what's 'specific'??
-          this._jumpSpecificDependenciesToTheirPositions(node);
-          // FIXME: Only refresh participating dependencies?
+          this._getVisibleDependencies().filter(d => node.isPredecessorOfNodeOrItself(d.originNode) || node.isPredecessorOfNodeOrItself(d.targetNode))
+            .forEach(d => d.jumpToPosition());
           this._getVisibleDependencies().forEach(d => d.refresh())
         },
         onFold: node => this._updateNodeFold(node),
@@ -274,10 +273,6 @@ const init = (View) => {
         onLayoutChanged: () => this._moveAllToTheirPositions(),
         onNodesFocused: () => this._getVisibleDependencies().forEach(d => d.onNodesFocused())
       }
-    }
-
-    _getDependenciesWithAtLeastOneEndNodeWithinOrTo(node) {
-      return this._getVisibleDependencies().filter(d => node.isPredecessorOfNodeOrItself(d.originNode) || node.isPredecessorOfNodeOrItself(d.targetNode));
     }
 
     getDependenciesDirectlyWithinNode(node) {
@@ -307,10 +302,6 @@ const init = (View) => {
 
     _updateViewsOnVisibleDependenciesChanged(dependenciesBefore) {
       arrayDifference(dependenciesBefore, this._getVisibleDependencies()).forEach(d => d.hide());
-    }
-
-    _jumpSpecificDependenciesToTheirPositions(node) {
-      this._getDependenciesWithAtLeastOneEndNodeWithinOrTo(node).forEach(d => d.jumpToPosition());
     }
 
     _moveAllToTheirPositions() {
