@@ -36,16 +36,12 @@ const init = (transitionDuration) => {
       return this._svgElementForDependencies.domElement;
     }
 
-    get svgElementForChildren() {
-      return this._svgElementForChildren.domElement;
-    }
-
     detachFromParent() {
       this._svgElement.detachFromParent();
     }
 
     getTextWidth() {
-      return this._text.domElement.getComputedTextLength();
+      return this._text.textWidth;
     }
 
     updateNodeType(nodeType) {

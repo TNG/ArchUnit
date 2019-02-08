@@ -32,10 +32,6 @@ const init = (transitionDuration) => {
       return this._svgElementForDependencies;
     }
 
-    get svgElementForChildren() {
-      return this._svgElementForChildren;
-    }
-
     jumpToPosition(position, directionVector) {
       const container = d3.select('#container').node();
 

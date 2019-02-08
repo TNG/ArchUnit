@@ -288,10 +288,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       this._listeners.forEach(listener => listener.onNodesFocused(focusedChildNode));
     }
 
-    get svgElementForChildren() {
-      return this._view.svgElementForChildren;
-    }
-
     get svgElementForDependencies() {
       return this._view.svgElementForDependencies;
     }
@@ -522,10 +518,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       } else {
         return ownPredecessor.liesInFrontOf(otherPredecessor) ? ownPredecessor.nodeShape.overlapsWith(otherNode.nodeShape) : otherPredecessor.nodeShape.overlapsWith(this.nodeShape);
       }
-    }
-
-    get svgElementForChildren() {
-      return this._view.svgElementForChildren;
     }
 
     get svgElementForDependencies() {

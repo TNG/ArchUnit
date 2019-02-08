@@ -79,6 +79,10 @@ const SvgSelection = class extends D3Element {
     return new Transition(this.get().transition().duration(duration));
   }
 
+  get textWidth() {
+    return this.domElement.getComputedTextLength();
+  }
+
   static fromDom(domElement) {
     return new SvgSelection(d3.select(domElement));
   }
