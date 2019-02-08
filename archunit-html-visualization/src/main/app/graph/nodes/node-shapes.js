@@ -97,6 +97,10 @@ const NodeCircle = class extends NodeShape {
     this.absoluteCircle = new CircleWithFixablePosition(x, y, r, this._node.getFullName());
   }
 
+  containsPoint(vector) {
+    return this.absoluteCircle.containsPoint(vector);
+  }
+
   get absoluteShape() {
     return this.absoluteCircle;
   }

@@ -60,6 +60,10 @@ const Circle = class extends Shape {
     return Vector.between(this, otherCircle).length() <= (this.r + otherCircle.r);
   }
 
+  containsPoint(vector) {
+    return Vector.between(this.position, vector).length() <= this.r;
+  }
+
   static from(vector, r) {
     return new Circle(Vector.from(vector), r);
   }

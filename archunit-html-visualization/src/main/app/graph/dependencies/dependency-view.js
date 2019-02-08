@@ -19,8 +19,7 @@ const init = (DetailedView, transitionDuration) => {
   const createPromiseOnEndOfTransition = (transition, transitionRunner) => {
     if (transition.empty()) {
       return Promise.resolve();
-    }
-    else {
+    } else {
       return new Promise(resolve => transitionRunner(transition).on('end', resolve));
     }
   };
@@ -30,7 +29,7 @@ const init = (DetailedView, transitionDuration) => {
       this._dependency = dependency;
 
       this._svgElement =
-        d3.select(this._dependency.endNodeInForeground.svgElementForDependencies)
+        d3.select(this._dependency.containerEndNode.svgElementForDependencies)
           .append('g')
           .attr('id', dependency.toString())
           .style('visibility', 'hidden')
@@ -50,10 +49,10 @@ const init = (DetailedView, transitionDuration) => {
         fun => callForAllViews(view => fun(view._detailedView)), getDetailedDependencies);
     }
 
-    onEndNodeInForegroundChanged() {
-      //TODO: maybe only change if the end node has really change --> performance
+    onContainerEndNodeChanged() {
       d3.select(this._svgElement).remove();
-      this._dependency.endNodeInForeground.svgElementForDependencies.appendChild(this._svgElement);
+      this._dependency.containerEndNode.svgElementForDependencies.appendChild(this._svgElement);
+      this._dependency.onContainerEndNodeApplied();
     }
 
     _createDetailedView(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {

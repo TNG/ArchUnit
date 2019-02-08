@@ -46,7 +46,6 @@ const init = (transitionDuration) => {
     focus() {
       d3.select(this._svgElement).remove();
       this._node.getParent().svgElementForChildren.appendChild(this._svgElement);
-      this._node.shiftLayerToEnd();
     }
 
     getTextWidth() {

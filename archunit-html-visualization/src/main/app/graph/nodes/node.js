@@ -3,6 +3,7 @@
 const predicates = require('../infrastructure/predicates');
 const {NodeCircle, RootRect} = require('./node-shapes');
 const {buildFilterGroup} = require('../filter');
+const sortTopological = require('../infrastructure/graph-algorithms').sortTopological;
 
 const nodeTypes = require('./node-types.json');
 
@@ -534,14 +535,102 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
      */
     _drag(dx, dy) {
       this._root.doNextAndWaitFor(() => {
-        this._focus();
         this.nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
+        this._focus();
         this._listeners.forEach(listener => listener.onDrag(this));
       });
     }
 
     _focus() {
-      this._view.focus();
+      const dependenciesWithinParent = this._root.getDependenciesDirectlyWithinNode(this.getParent())
+        .map(d => ({
+          dependency: d,
+          siblingContainingOrigin: d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.getParent() === this.getParent()),
+          siblingContainingTarget: d.targetNode.getSelfOrFirstPredecessorMatching(pred => pred.getParent() === this.getParent())
+        }));
+
+      const getDependentNodesWithDependenciesOf = node => {
+        const dependenciesFromNode = dependenciesWithinParent.filter(d => d.siblingContainingOrigin === node);
+        const dependenciesToNode = dependenciesWithinParent.filter(d => d.siblingContainingTarget === node);
+
+        const nodesWithDependencies = new Map();
+        const dependentNodes = dependenciesFromNode.map(d => d.siblingContainingTarget)
+          .concat(dependenciesToNode.map(d => d.siblingContainingOrigin));
+        dependentNodes.forEach(node => nodesWithDependencies.set(node, []));
+
+        dependenciesFromNode.forEach(d => nodesWithDependencies.get(d.siblingContainingTarget).push(d));
+        dependenciesToNode.forEach(d => nodesWithDependencies.get(d.siblingContainingOrigin).push(d));
+        return nodesWithDependencies;
+      };
+
+      const descendantsOfEachNode = new Map();
+
+      const dependentNodesWithDependencies = getDependentNodesWithDependenciesOf(this);
+      const dependentNodesOfThis = [...dependentNodesWithDependencies.keys()];
+
+      descendantsOfEachNode.set(this, dependentNodesOfThis);
+      dependentNodesOfThis.forEach(node => descendantsOfEachNode.set(node, []));
+
+      const getEndPointOfDependencyBelongingToNode = (dependency, node) => {
+        if (dependency.siblingContainingOrigin === node) {
+          return dependency.dependency.visualData.startPoint;
+        } else if (dependency.siblingContainingTarget === node) {
+          return dependency.dependency.visualData.endPoint;
+        } else {
+          throw new Error('the node must be one the predecessor in the current node of one of the end nodes of the dependency');
+        }
+      };
+
+      dependentNodesOfThis.forEach((node1, i) =>
+        dependentNodesOfThis.slice(i + 1).forEach(node2 => {
+          if (node1.nodeShape.overlapsWith(node2.nodeShape)) {
+            const dependencies1 = dependentNodesWithDependencies.get(node1);
+            const dependencies2 = dependentNodesWithDependencies.get(node2);
+
+            if (dependencies1.some(d => node2.nodeShape.containsPoint(getEndPointOfDependencyBelongingToNode(d, node1)))) {
+              descendantsOfEachNode.get(node1).push(node2);
+            } else if (dependencies2.some(d => node1.nodeShape.containsPoint(getEndPointOfDependencyBelongingToNode(d, node2)))) {
+              descendantsOfEachNode.get(node2).push(node1);
+            }
+          }
+        }));
+
+      const nodesInDrawOrder = sortTopological(this, node => descendantsOfEachNode.get(node));
+      const nodesToFocusSet = new Set(nodesInDrawOrder);
+
+      const otherChildren = this._parent._originalChildren.filter(c => !nodesToFocusSet.has(c));
+      otherChildren.sort((c1, c2) => c1._layerWithinParentNode - c2._layerWithinParentNode);
+      otherChildren.forEach((c, i) => c._layerWithinParentNode = i);
+      const sum = this._parent._originalChildren.length;
+      nodesInDrawOrder.forEach((n, i) => n._layerWithinParentNode = sum - i - 1);
+
+      nodesInDrawOrder.reverse().forEach(node => node._view.focus());
+
+      const nodeOverlapsDependencyEndPointButIsNotSibling = (siblingContainingEndNode, node, point) =>
+        !siblingContainingEndNode !== node && node.nodeShape.containsPoint(point);
+
+      dependenciesWithinParent.forEach(d => {
+        const siblingOverlappingStartNode = new Set(this.getParent()._filteredChildren.filter(c =>
+          nodeOverlapsDependencyEndPointButIsNotSibling(d.siblingContainingOrigin, c, d.dependency.visualData.startPoint)));
+        const siblingOverlappingEndNode = new Set(this.getParent()._filteredChildren.filter(c =>
+          nodeOverlapsDependencyEndPointButIsNotSibling(d.siblingContainingTarget, c, d.dependency.visualData.endPoint)));
+
+        const endNodes = [d.siblingContainingOrigin, d.siblingContainingTarget];
+
+        const nodeOverlapsBothEndPointsAndLiesInBetween = () => [...siblingOverlappingStartNode].some(n => siblingOverlappingEndNode.has(n) &&
+          endNodes.some(e => e._layerWithinParentNode > n._layerWithinParentNode)
+          && endNodes.some(e => e._layerWithinParentNode < n._layerWithinParentNode));
+        const nodeOverlapsOneEndPointAndLiesInFrontOfTheOverlappedNodeButBehindTheOther = () =>
+          [...siblingOverlappingStartNode].some(n => n._layerWithinParentNode > d.siblingContainingOrigin._layerWithinParentNode && n._layerWithinParentNode < d.siblingContainingTarget._layerWithinParentNode)
+          || [...siblingOverlappingEndNode].some(n => n._layerWithinParentNode > d.siblingContainingTarget._layerWithinParentNode && n._layerWithinParentNode < d.siblingContainingOrigin._layerWithinParentNode);
+
+        if (nodeOverlapsBothEndPointsAndLiesInBetween() || nodeOverlapsOneEndPointAndLiesInFrontOfTheOverlappedNodeButBehindTheOther()) {
+          d.dependency.containerEndNode = d.dependency.calcEndNodeInBackground();
+        } else {
+          d.dependency.containerEndNode = d.dependency.calcEndNodeInForeground();
+        }
+      });
+
       this._parent._focus(this);
     }
 

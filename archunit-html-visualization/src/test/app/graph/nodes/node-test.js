@@ -1281,6 +1281,7 @@ describe('Inner node or leaf', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
     root.getNodesWithDependencies = () => new Map();
+    root.getDependenciesDirectlyWithinNode = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     root.relayoutCompletely();
@@ -1317,6 +1318,7 @@ describe('Inner node or leaf', () => {
     });
     root.getLinks = () => [];
     root.getNodesWithDependencies = () => new Map();
+    root.getDependenciesDirectlyWithinNode = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     root.relayoutCompletely();
@@ -1358,6 +1360,7 @@ describe('Inner node or leaf', () => {
     });
     root.getLinks = () => [];
     root.getNodesWithDependencies = () => new Map();
+    root.getDependenciesDirectlyWithinNode = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     root.relayoutCompletely();
@@ -1401,6 +1404,7 @@ describe('Inner node or leaf', () => {
     });
     root.getLinks = () => [];
     root.getNodesWithDependencies = () => new Map();
+    root.getDependenciesDirectlyWithinNode = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     root.relayoutCompletely();
@@ -1437,6 +1441,7 @@ describe('Inner node or leaf', () => {
     });
     root.getLinks = () => [];
     root.getNodesWithDependencies = () => new Map();
+    root.getDependenciesDirectlyWithinNode = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     root.relayoutCompletely();
@@ -1472,6 +1477,7 @@ describe('Inner node or leaf', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
+    root.getDependenciesDirectlyWithinNode = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     root.relayoutCompletely();
@@ -1502,6 +1508,7 @@ describe('Inner node or leaf', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
+    root.getDependenciesDirectlyWithinNode = () => [];
     const listenerStub = stubs.NodeListenerStub();
     root.addListener(listenerStub);
     root.relayoutCompletely();

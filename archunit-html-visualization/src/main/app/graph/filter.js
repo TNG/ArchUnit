@@ -1,5 +1,7 @@
 'use strict';
 
+const sortTopological = require('./infrastructure/graph-algorithms').sortTopological;
+
 const matchAll = () => true;
 
 const FilterPrecondition = class {
@@ -171,7 +173,8 @@ const FilterCollection = class {
   }
 
   updateFilter(filterKey) {
-    const topologicalOrdered = sortTopological(this, this.getFilter(filterKey));
+    const topologicalOrdered = sortTopological(this.getFilter(filterKey),
+      filter => [...filter.dependentFilterKeys].map(dependentFilterKey => this.getFilter(dependentFilterKey)));
     topologicalOrdered.forEach(filter => {
       this._getFilterGroup(filter.filterGroupKey).runFilter(filter.key);
     });
@@ -179,48 +182,6 @@ const FilterCollection = class {
     //TODO: maybe apply only changed and maybe store topological order
     [...this._filterGroups.values()].forEach(v => v.applyFilters());
   }
-};
-
-const sortTopological = (filterCollection, filter) => {
-  const nodeMap = new Map();
-
-  const Node = class {
-    constructor(filter) {
-      nodeMap.set(filter.totalKey, this);
-      this._filter = filter;
-      this._predecessors = [];
-      this._descendants = [...this._filter.dependentFilterKeys].map(k => {
-        if (nodeMap.has(k)) {
-          return nodeMap.get(k);
-        }
-        else {
-          return new Node(filterCollection.getFilter(k));
-        }
-      });
-      this._descendants.forEach(d => d.addPredecessor(this));
-    }
-
-    addPredecessor(pred) {
-      this._predecessors.push(pred);
-    }
-  };
-
-  const root = new Node(filter);
-  const topo = [];
-
-  const queue = [root];
-  while (queue.length > 0) {
-    const next = queue.shift();
-    topo.push(next._filter);
-    next._descendants.forEach(d => d._predecessors.splice(d._predecessors.indexOf(next), 1));
-    next._descendants.filter(d => d._predecessors.length === 0).forEach(d => queue.push(d));
-
-    if (next._descendants.length !== 0 && queue.length === 0) {
-      throw new Error('the graph is cyclic');
-    }
-  }
-
-  return topo;
 };
 
 const buildFilterGroup = (key, objectToFilter) => {

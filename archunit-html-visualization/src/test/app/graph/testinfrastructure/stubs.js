@@ -88,6 +88,9 @@ const DependencyViewStub = class {
     };
     this.onEndNodeInForegroundChanged = () => {
     };
+
+    this.onContainerEndNodeChanged = () => {
+    };
   }
 };
 

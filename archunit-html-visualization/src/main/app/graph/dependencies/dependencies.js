@@ -263,7 +263,7 @@ const init = (View) => {
 
     createListener() {
       return {
-        onDrag: node => {
+        onDrag: (node) => {
           // FIXME: Bad naming, what's 'specific'??
           this._jumpSpecificDependenciesToTheirPositions(node);
           // FIXME: Only refresh participating dependencies?
@@ -272,13 +272,16 @@ const init = (View) => {
         onFold: node => this._updateNodeFold(node),
         onInitialFold: node => this._setNodeFold(node),
         onLayoutChanged: () => this._moveAllToTheirPositions(),
-        onNodesFocused: childOfTheRootWithFocusedNodes =>
-          this._getDependenciesWithAtLeastOneEndNodeWithinOrTo(childOfTheRootWithFocusedNodes).forEach(d => d.onNodesFocused())
+        onNodesFocused: () => this._getVisibleDependencies().forEach(d => d.onNodesFocused())
       }
     }
 
     _getDependenciesWithAtLeastOneEndNodeWithinOrTo(node) {
       return this._getVisibleDependencies().filter(d => node.isPredecessorOfNodeOrItself(d.originNode) || node.isPredecessorOfNodeOrItself(d.targetNode));
+    }
+
+    getDependenciesDirectlyWithinNode(node) {
+      return this._getVisibleDependencies().filter(d => d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.isPredecessorOfNodeOrItself(d.targetNode)) === node && d.originNode !== node && d.targetNode !== node);
     }
 
     recreateVisible() {

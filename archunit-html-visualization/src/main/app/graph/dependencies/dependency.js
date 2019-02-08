@@ -19,24 +19,25 @@ const init = (View) => {
   };
 
   const VisualData = class {
-    constructor(listener) {
+    constructor(listener, dependency) {
       this._listener = listener;
+      this._dependency = dependency;
       this.startPoint = {};
       this.endPoint = {};
       this.mustShareNodes = false;
     }
 
-    jumpToPosition(absVisualStartNode, absVisualEndNode, absReferencePosition) {
-      this._recalculate(absVisualStartNode, absVisualEndNode, absReferencePosition);
+    jumpToPosition(absVisualStartNode, absVisualEndNode) {
+      this._recalculate(absVisualStartNode, absVisualEndNode);
       this._listener.onJumpedToPosition();
     }
 
-    moveToPosition(absVisualStartNode, absVisualEndNode, absReferencePosition) {
-      this._recalculate(absVisualStartNode, absVisualEndNode, absReferencePosition);
+    moveToPosition(absVisualStartNode, absVisualEndNode) {
+      this._recalculate(absVisualStartNode, absVisualEndNode);
       return this._listener.onMovedToPosition();
     }
 
-    _recalculate(absVisualStartNode, absVisualEndNode, absoluteReferencePosition) {
+    _recalculate(absVisualStartNode, absVisualEndNode) {
       const lineDiff = 20;
       const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode);
       const nodes = [absVisualStartNode, absVisualEndNode].sort((a, b) => a.r - b.r);
@@ -63,8 +64,12 @@ const init = (View) => {
       this.startPoint = vectors.add(absVisualStartNode, startDirectionVector);
       this.endPoint = vectors.add(absVisualEndNode, endDirectionVector);
 
-      this.relativeStartPoint = Vector.between(absoluteReferencePosition, this.startPoint);
-      this.relativeEndPoint = Vector.between(absoluteReferencePosition, this.endPoint);
+      this.recalculateRelativePoints();
+    }
+
+    recalculateRelativePoints() {
+      this.relativeStartPoint = Vector.between(this._dependency.containerEndNode.nodeShape.absoluteShape.position, this.startPoint);
+      this.relativeEndPoint = Vector.between(this._dependency.containerEndNode.nodeShape.absoluteShape.position, this.endPoint);
     }
   };
 
@@ -128,24 +133,38 @@ const init = (View) => {
   const GroupedDependency = class extends ElementaryDependency {
     constructor(originNode, targetNode, type, isViolation, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies) {
       super(originNode, targetNode, type, '', '', isViolation);
-      this._endNodeInForeground = this._calcEndNodeInForeground();
+      this._containerEndNode = this.calcEndNodeInForeground();
       this._view = new View(svgContainerForDetailedDependencies, this, callForAllViews, () =>
         getDetailedDependencies(this.originNode.getFullName(), this.targetNode.getFullName()));
       this._isVisible = true;
       this.visualData = new VisualData({
         onJumpedToPosition: () => this._view.jumpToPositionAndShowIfVisible(),
         onMovedToPosition: () => this._view.moveToPositionAndShowIfVisible()
-      });
+      }, this);
+      this._containerEndNodeHasChanged = false;
     }
 
-    get endNodeInForeground() {
-      return this._endNodeInForeground;
+    onContainerEndNodeApplied() {
+      this._containerEndNodeHasChanged = false;
+    }
+
+    get containerEndNode() {
+      return this._containerEndNode;
+    }
+
+    set containerEndNode(value) {
+      if (this._containerEndNode !== value) {
+        this._containerEndNodeHasChanged = true;
+        this._containerEndNode = value;
+        this.visualData.recalculateRelativePoints();
+      }
     }
 
     onNodesFocused() {
-      this._endNodeInForeground = this._calcEndNodeInForeground();
-      this._view.onEndNodeInForegroundChanged();
-      this.jumpToPosition();
+      if (this._containerEndNodeHasChanged) {
+        this._view.onContainerEndNodeChanged();
+        this.jumpToPosition();
+      }
     }
 
     withTypeAndViolation(type, isViolation) {
@@ -154,8 +173,12 @@ const init = (View) => {
       return this;
     }
 
-    _calcEndNodeInForeground() {
+    calcEndNodeInForeground() {
       return argMax([this._originNode, this._targetNode], (node1, node2) => node1.liesInFrontOf(node2));
+    }
+
+    calcEndNodeInBackground() {
+      return argMax([this._originNode, this._targetNode], (node1, node2) => !node1.liesInFrontOf(node2));
     }
 
     hasDetailedDescription() {
@@ -163,11 +186,11 @@ const init = (View) => {
     }
 
     jumpToPosition() {
-      this.visualData.jumpToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle, this._endNodeInForeground.nodeShape.absoluteShape.position);
+      this.visualData.jumpToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle);
     }
 
     moveToPosition() {
-      return this.visualData.moveToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle, this._endNodeInForeground.nodeShape.absoluteShape.position); //TODO: create getter for position
+      return this.visualData.moveToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle); //TODO: create getter for position
     }
 
     hide() {
