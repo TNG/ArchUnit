@@ -59,6 +59,14 @@ const SvgSelection = class extends D3Element {
     return new SvgSelection(group);
   }
 
+  addCircle() {
+    return new SvgSelection(this.get().append('circle'));
+  }
+
+  addText(text) {
+    return new SvgSelection(this.get().append('text').text(text));
+  }
+
   createTransitionWithDuration(duration) {
     return new Transition(this.get().transition().duration(duration));
   }

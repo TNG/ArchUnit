@@ -10,24 +10,20 @@ const init = (transitionDuration) => {
   const createPromiseOnEndAndInterruptOfTransition = (transition, transitionRunner) =>
     new Promise(resolve => transitionRunner(transition).on('interrupt', () => resolve()).on('end', resolve));
 
-  const View = class {
+  class View {
     constructor(
       {nodeName, fullNodeName},
       {onClick, onDrag, onCtrlClick}) {
 
-      this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-')).domElement;
+      this._realSvgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
+      this._svgElement = this._realSvgElement.domElement;
 
-      this._circle = d3.select(this._svgElement)
-        .append('circle')
-        .node();
+      this._circle = this._realSvgElement.addCircle().domElement;
 
-      this._text = d3.select(this._svgElement)
-        .append('text')
-        .text(nodeName)
-        .node();
+      this._text = this._realSvgElement.addText(nodeName).domElement;
 
-      this._svgElementForChildren = d3.select(this._svgElement).append('g').node();
-      this._svgElementForDependencies = d3.select(this._svgElement).append('g').node();
+      this._svgElementForChildren = this._realSvgElement.addGroup().domElement;
+      this._svgElementForDependencies = this._realSvgElement.addGroup().domElement;
 
       this._onDrag(onDrag);
       this._onClick(onClick, onCtrlClick);
@@ -111,7 +107,7 @@ const init = (transitionDuration) => {
       const drag = d3.drag().on('drag', () => handler(d3.event.dx, d3.event.dy));
       d3.select(this._svgElement).call(drag);
     }
-  };
+  }
 
   return View;
 };

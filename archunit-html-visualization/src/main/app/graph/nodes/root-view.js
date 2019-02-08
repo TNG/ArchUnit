@@ -7,7 +7,7 @@ const init = (transitionDuration) => {
   const createPromiseOnEndOfTransition = (transition, transitionRunner) =>
     new Promise(resolve => transitionRunner(transition).on('interrupt', () => resolve()).on('end', resolve));
 
-  const View = class {
+  class View {
     constructor(parentSvgElement, node) {
       this._svgElement = d3.select(parentSvgElement)
         .append('g')
@@ -58,7 +58,7 @@ const init = (transitionDuration) => {
 
     updateNodeType() {
     }
-  };
+  }
 
   return View;
 };
