@@ -71,8 +71,8 @@ const init = (transitionDuration) => {
     }
 
     setRadius(r, textOffset) {
-      d3.select(this._circle.domElement).attr('r', r);
-      d3.select(this._text.domElement).attr('dy', textOffset);
+      this._circle.radius = r;
+      this._text.offsetY = textOffset;
     }
 
     startMoveToPosition(position) {
