@@ -56,12 +56,6 @@ const init = (transitionDuration) => {
       this._svgElement.show();
     }
 
-    showIfVisible(node) {
-      if (node.isVisible()) {
-        this.show();
-      }
-    }
-
     jumpToPosition(position) {
       d3.select(this._svgElement.domElement).attr('transform', `translate(${position.x}, ${position.y})`);
     }

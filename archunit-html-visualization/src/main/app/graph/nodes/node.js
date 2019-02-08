@@ -500,7 +500,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
             this._view.setRadius(this.nodeShape.getRadius(), this._text.getY());
             this._listeners.forEach(listener => listener.onDrag(this));
           },
-          onMovedToPosition: () => this._view.moveToPosition(this.nodeShape.relativePosition).then(() => this._view.showIfVisible(this)),
+          onMovedToPosition: () => this._view.moveToPosition(this.nodeShape.relativePosition).then(() => this._view.show()),
           onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeShape.relativePosition)
         });
 
