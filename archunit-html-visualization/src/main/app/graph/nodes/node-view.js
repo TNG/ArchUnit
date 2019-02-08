@@ -44,8 +44,8 @@ const init = (transitionDuration) => {
       return this._text.textWidth;
     }
 
-    updateNodeType(nodeType) {
-      d3.select(this._svgElement.domElement).attr('class', nodeType);
+    updateNodeType(cssClasses) {
+      this._svgElement.cssClasses = cssClasses;
     }
 
     hide() {

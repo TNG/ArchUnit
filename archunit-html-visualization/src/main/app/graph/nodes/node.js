@@ -142,9 +142,9 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       callback();
     }
 
-    _getClass() {
+    _getClasses() {
       const foldableStyle = this._isLeaf() ? "not-foldable" : "foldable";
-      return `node ${this._description.type} ${foldableStyle}`;
+      return ['node', this._description.type, foldableStyle];
     }
 
     // FIXME: Only used by tests
@@ -184,7 +184,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
     }
 
     _updateViewOnCurrentChildrenChanged() {
-      this._view.updateNodeType(this._getClass());
+      this._view.updateNodeType(this._getClasses());
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._hide());
       this.getCurrentChildren().forEach(child => child._isVisible = true);
     }

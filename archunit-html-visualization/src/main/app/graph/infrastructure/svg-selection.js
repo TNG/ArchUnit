@@ -71,6 +71,10 @@ const SvgSelection = class extends D3Element {
     this.domElement.appendChild(svgSelection.domElement)
   }
 
+  set cssClasses(cssClasses) {
+    this.get().attr('class', cssClasses.join(' '));
+  }
+
   detachFromParent() {
     d3.select(this.domElement).remove();
   }
