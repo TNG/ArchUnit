@@ -1,11 +1,11 @@
 'use strict';
 
-const {svgSelect} = require('./infrastructure/gui-elements');
+const svg = require('./infrastructure/gui-elements').svg;
 
 const init = (transitionDuration) => {
   const View = class {
-    constructor(svg) {
-      this._svgElement = svgSelect(svg);
+    constructor(svgElement) {
+      this._svgElement = svg.select(svgElement);
       this._svgElement.dimension = {width: 0, height: 0};
       this._translater = this._svgElement.addGroup({
         id: 'translater'

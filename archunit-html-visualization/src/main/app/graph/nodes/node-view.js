@@ -1,6 +1,7 @@
 'use strict';
 
 const d3 = require('d3');
+const svg = require('../infrastructure/gui-elements').svg;
 
 const init = (transitionDuration) => {
   const createPromiseOnEndOfTransition = (transition, transitionRunner) =>
@@ -14,8 +15,7 @@ const init = (transitionDuration) => {
       {nodeName, fullNodeName},
       {onClick, onDrag, onCtrlClick}) {
 
-      this._svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      this._svgElement.setAttribute('id', fullNodeName.replace(/\\$/g, '.-'));
+      this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-')).domElement;
 
       this._circle = d3.select(this._svgElement)
         .append('circle')
