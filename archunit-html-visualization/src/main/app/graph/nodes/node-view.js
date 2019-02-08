@@ -61,8 +61,12 @@ const init = (transitionDuration) => {
     }
 
     changeRadius(r, textOffset) {
-      const radiusPromise = createPromiseOnEndOfTransition(d3.select(this._circle.domElement).transition().duration(transitionDuration), t => t.attr('r', r));
-      const textPromise = createPromiseOnEndOfTransition(d3.select(this._text.domElement).transition().duration(transitionDuration), t => t.attr('dy', textOffset));
+      const radiusPromise = this._circle.createTransitionWithDuration(transitionDuration)
+        .step(svgSelection => svgSelection.radius = r)
+        .finish();
+      const textPromise = this._text.createTransitionWithDuration(transitionDuration)
+        .step(svgSelection => svgSelection.offsetY = textOffset)
+        .finish();
       return Promise.all([radiusPromise, textPromise]);
     }
 

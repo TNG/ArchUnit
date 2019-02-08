@@ -12,7 +12,15 @@ const D3Element = class {
   }
 
   translate({x, y}) {
-    return this._d3Select.attr('transform', `translate(${x}, ${y})`);
+    return this.get().attr('transform', `translate(${x}, ${y})`);
+  }
+
+  set radius(radius) {
+    this.get().attr('r', radius);
+  }
+
+  set offsetY(offset) {
+    this.get().attr('dy', offset);
   }
 };
 
