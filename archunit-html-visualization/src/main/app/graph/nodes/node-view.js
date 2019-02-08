@@ -17,27 +17,27 @@ const init = (transitionDuration) => {
 
       this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
 
-      this._circle = this._svgElement.addCircle().domElement;
+      this._circle = this._svgElement.addCircle();
 
-      this._text = this._svgElement.addText(nodeName).domElement;
+      this._text = this._svgElement.addText(nodeName);
 
-      this._svgElementForChildren = this._svgElement.addGroup().domElement;
-      this._svgElementForDependencies = this._svgElement.addGroup().domElement;
+      this._svgElementForChildren = this._svgElement.addGroup();
+      this._svgElementForDependencies = this._svgElement.addGroup();
 
       this._onDrag(onDrag);
       this._onClick(onClick, onCtrlClick);
     }
 
     addChildView(childView) {
-      this._svgElementForChildren.appendChild(childView._svgElement.domElement)
+      this._svgElementForChildren.domElement.appendChild(childView._svgElement.domElement)
     }
 
     get svgElementForDependencies() {
-      return this._svgElementForDependencies;
+      return this._svgElementForDependencies.domElement;
     }
 
     get svgElementForChildren() {
-      return this._svgElementForChildren;
+      return this._svgElementForChildren.domElement;
     }
 
     detachFromParent() {
@@ -45,7 +45,7 @@ const init = (transitionDuration) => {
     }
 
     getTextWidth() {
-      return this._text.getComputedTextLength();
+      return this._text.domElement.getComputedTextLength();
     }
 
     updateNodeType(nodeType) {
@@ -71,14 +71,14 @@ const init = (transitionDuration) => {
     }
 
     changeRadius(r, textOffset) {
-      const radiusPromise = createPromiseOnEndOfTransition(d3.select(this._circle).transition().duration(transitionDuration), t => t.attr('r', r));
-      const textPromise = createPromiseOnEndOfTransition(d3.select(this._text).transition().duration(transitionDuration), t => t.attr('dy', textOffset));
+      const radiusPromise = createPromiseOnEndOfTransition(d3.select(this._circle.domElement).transition().duration(transitionDuration), t => t.attr('r', r));
+      const textPromise = createPromiseOnEndOfTransition(d3.select(this._text.domElement).transition().duration(transitionDuration), t => t.attr('dy', textOffset));
       return Promise.all([radiusPromise, textPromise]);
     }
 
     setRadius(r, textOffset) {
-      d3.select(this._circle).attr('r', r);
-      d3.select(this._text).attr('dy', textOffset);
+      d3.select(this._circle.domElement).attr('r', r);
+      d3.select(this._text.domElement).attr('dy', textOffset);
     }
 
     startMoveToPosition(position) {

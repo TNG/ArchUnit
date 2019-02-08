@@ -529,7 +529,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
     }
 
     get svgElementForDependencies() {
-      return this._view._svgElementForDependencies;
+      return this._view.svgElementForDependencies;
     }
 
     liesInFrontOf(otherNode) {
