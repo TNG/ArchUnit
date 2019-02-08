@@ -11,7 +11,6 @@ const init = (transitionDuration) => {
     constructor(parentSvgElement, node) {
       this._svgElement = d3.select(parentSvgElement)
         .append('g')
-        .data([node])
         .attr('id', node.getFullName().replace(/\\$/g, '.-'))
         .node();
 

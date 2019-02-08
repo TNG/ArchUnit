@@ -15,7 +15,6 @@ const init = (transitionDuration) => {
 
       this._svgElement = d3.select(this._node.getParent().svgElementForChildren)
         .append('g')
-        .data([node])
         .attr('id', node.getFullName().replace(/\\$/g, '.-'))
         .node();
 
@@ -97,8 +96,7 @@ const init = (transitionDuration) => {
       const onClick = event => {
         if (event.ctrlKey || event.altKey) {
           ctrlHandler();
-        }
-        else {
+        } else {
           handler();
         }
         return false;
