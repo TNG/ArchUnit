@@ -57,7 +57,7 @@ const init = (transitionDuration) => {
     }
 
     jumpToPosition(position) {
-      d3.select(this._svgElement.domElement).attr('transform', `translate(${position.x}, ${position.y})`);
+      this._svgElement.translate(position);
     }
 
     changeRadius(r, textOffset) {
