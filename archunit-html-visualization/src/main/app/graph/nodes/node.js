@@ -482,9 +482,15 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           fullNodeName: this.getFullName(),
           nodeType: this._description.type
         }, {
-          onClick: () => this._changeFoldIfInnerNodeAndRelayout(),
-          onDrag: (dx, dy) => this._drag(dx, dy),
-          onCtrlClick: () => this._root._addNodeToExcludeFilter(this.getFullName())
+          clickHandler: event => {
+            if (event.ctrlKey || event.altKey) {
+              this._root._addNodeToExcludeFilter(this.getFullName());
+            } else {
+              this._changeFoldIfInnerNodeAndRelayout()
+            }
+            return false;
+          },
+          dragHandler: (dx, dy) => this._drag(dx, dy)
         });
 
       this._matchesFilter = new Map();

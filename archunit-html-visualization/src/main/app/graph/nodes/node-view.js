@@ -1,19 +1,12 @@
 'use strict';
 
-const d3 = require('d3');
 const svg = require('../infrastructure/gui-elements').svg;
 
 const init = (transitionDuration) => {
-  const createPromiseOnEndOfTransition = (transition, transitionRunner) =>
-    new Promise(resolve => transitionRunner(transition).on('end', resolve));
-
-  const createPromiseOnEndAndInterruptOfTransition = (transition, transitionRunner) =>
-    new Promise(resolve => transitionRunner(transition).on('interrupt', () => resolve()).on('end', resolve));
-
   class View {
     constructor(
       {nodeName, fullNodeName, nodeType},
-      {onClick, onDrag, onCtrlClick}) {
+      {clickHandler, dragHandler}) {
 
       this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
       this._svgElement.cssClasses = ['node', nodeType];
@@ -25,8 +18,8 @@ const init = (transitionDuration) => {
       this._svgElementForChildren = this._svgElement.addGroup();
       this._svgElementForDependencies = this._svgElement.addGroup();
 
-      this._onDrag(onDrag);
-      this._onClick(onClick, onCtrlClick);
+      this._onDrag(dragHandler);
+      this._onClick(clickHandler);
     }
 
     addChildView(childView) {
@@ -93,15 +86,7 @@ const init = (transitionDuration) => {
         .finish();
     }
 
-    _onClick(handler, ctrlHandler) {
-      const clickHandler = event => {
-        if (event.ctrlKey || event.altKey) {
-          ctrlHandler();
-        } else {
-          handler();
-        }
-        return false;
-      };
+    _onClick(clickHandler) {
       this._circle.onClick(clickHandler);
       this._text.onClick(clickHandler);
     }
