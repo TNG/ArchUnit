@@ -142,11 +142,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       callback();
     }
 
-    _getClasses() {
-      const foldableStyle = this._isLeaf() ? "not-foldable" : "foldable";
-      return ['node', this._description.type, foldableStyle];
-    }
-
     // FIXME: Only used by tests
     getSelfAndDescendants() {
       return [this, ...this._getDescendants()];
@@ -184,7 +179,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
     }
 
     _updateViewOnCurrentChildrenChanged() {
-      this._view.updateNodeType(this._getClasses());
+      this._view.foldable = !this._isLeaf();
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._hide());
       this.getCurrentChildren().forEach(child => child._isVisible = true);
     }
@@ -484,7 +479,8 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       this._view = new NodeView(
         {
           nodeName: this.getName(),
-          fullNodeName: this.getFullName()
+          fullNodeName: this.getFullName(),
+          nodeType: this._description.type
         }, {
           onClick: () => this._changeFoldIfInnerNodeAndRelayout(),
           onDrag: (dx, dy) => this._drag(dx, dy),

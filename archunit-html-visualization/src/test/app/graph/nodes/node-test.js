@@ -210,7 +210,7 @@ describe('Root', () => {
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
       expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
-      expect(nodeWithChangedCssClass._view.cssClass).to.contain(' not-foldable');
+      expect(nodeWithChangedCssClass._view.cssClass).to.contain(' unfoldable');
     });
   });
 
@@ -254,7 +254,7 @@ describe('Root', () => {
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
       expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
-      expect(nodeWithChangedCssClass._view.cssClass).to.contain(' not-foldable');
+      expect(nodeWithChangedCssClass._view.cssClass).to.contain(' unfoldable');
     });
   });
 
@@ -295,7 +295,7 @@ describe('Root', () => {
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
       expect(root._view.cssClass).to.not.contain(' foldable');
-      expect(root._view.cssClass).to.contain(' not-foldable');
+      expect(root._view.cssClass).to.contain(' unfoldable');
     });
   });
 
@@ -341,7 +341,7 @@ describe('Root', () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(nodeWithChangedCssClass._view.cssClass).to.contain(' foldable');
-      expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' not-foldable');
+      expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' unfoldable');
     });
   });
 
@@ -546,7 +546,7 @@ describe('Root', () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-      expect(classWithChangedCssClass._view.cssClass).to.contain(' not-foldable');
+      expect(classWithChangedCssClass._view.cssClass).to.contain(' unfoldable');
       expect(classWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
     });
   });
@@ -628,9 +628,9 @@ describe('Root', () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(pkgWithChangedCssClass._view.cssClass).to.contain(' foldable');
-      expect(pkgWithChangedCssClass._view.cssClass).to.not.contain(' not-foldable');
+      expect(pkgWithChangedCssClass._view.cssClass).to.not.contain(' unfoldable');
       expect(classWithChangedCssClass._view.cssClass).to.contain(' foldable');
-      expect(classWithChangedCssClass._view.cssClass).to.not.contain(' not-foldable');
+      expect(classWithChangedCssClass._view.cssClass).to.not.contain(' unfoldable');
     });
   });
 
@@ -730,7 +730,7 @@ describe('Root', () => {
       expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-      expect(interfaceWithChangedCssClass._view.cssClass).to.contain(' not-foldable');
+      expect(interfaceWithChangedCssClass._view.cssClass).to.contain(' unfoldable');
       expect(interfaceWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
     });
   });
@@ -775,7 +775,7 @@ describe('Root', () => {
       expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
       expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
       expect(nodeWithChangedCssClass._view.cssClass).to.contain(' foldable');
-      expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' not-foldable');
+      expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' unfoldable');
     });
   });
 
@@ -1705,8 +1705,8 @@ describe('Node', () => {
     const root = new Root(jsonRoot, null, () => Promise.resolve());
 
     expect(root._getClass()).to.contain(' foldable');
-    expect(root._getClass()).not.to.contain(' not-foldable');
-    expect(root.getCurrentChildren()[0]._getClass()).to.contain(' not-foldable');
+    expect(root._getClass()).not.to.contain(' unfoldable');
+    expect(root.getCurrentChildren()[0]._getClass()).to.contain(' unfoldable');
     expect(root.getCurrentChildren()[0]._getClass()).not.to.contain(' foldable');
   });
 });

@@ -95,6 +95,14 @@ const SvgSelection = class extends D3Element {
     this.get().attr('class', cssClasses.join(' '));
   }
 
+  addCssClass(cssClass) {
+    this.domElement.classList.add(cssClass);
+  }
+
+  removeCssClasses(cssClasses) {
+    this.domElement.classList.remove(cssClasses);
+  }
+
   show() {
     this.get().style('visibility', 'inherit');
   }

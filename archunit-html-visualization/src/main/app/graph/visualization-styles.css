@@ -28,7 +28,7 @@ circle {
     cursor: pointer;
 }
 
-.not-foldable {
+.unfoldable {
     cursor: default;
 }
 

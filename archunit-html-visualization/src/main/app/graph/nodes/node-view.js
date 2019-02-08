@@ -12,10 +12,11 @@ const init = (transitionDuration) => {
 
   class View {
     constructor(
-      {nodeName, fullNodeName},
+      {nodeName, fullNodeName, nodeType},
       {onClick, onDrag, onCtrlClick}) {
 
       this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
+      this._svgElement.cssClasses = ['node', nodeType];
 
       this._circle = this._svgElement.addCircle();
 
@@ -44,8 +45,13 @@ const init = (transitionDuration) => {
       return this._text.textWidth;
     }
 
-    updateNodeType(cssClasses) {
-      this._svgElement.cssClasses = cssClasses;
+    set foldable(foldable) {
+      this._svgElement.removeCssClasses(['foldable', 'unfoldable']);
+      if (foldable) {
+        this._svgElement.addCssClass('foldable');
+      } else {
+        this._svgElement.addCssClass('unfoldable');
+      }
     }
 
     hide() {
