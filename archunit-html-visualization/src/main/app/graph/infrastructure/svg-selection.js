@@ -71,6 +71,10 @@ const SvgSelection = class extends D3Element {
     this.domElement.appendChild(svgSelection.domElement)
   }
 
+  detachFromParent() {
+    d3.select(this.domElement).remove();
+  }
+
   createTransitionWithDuration(duration) {
     return new Transition(this.get().transition().duration(duration));
   }

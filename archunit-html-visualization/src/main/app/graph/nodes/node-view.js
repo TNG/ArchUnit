@@ -41,7 +41,7 @@ const init = (transitionDuration) => {
     }
 
     detachFromParent() {
-      d3.select(this._svgElement.domElement).remove();
+      this._svgElement.detachFromParent();
     }
 
     getTextWidth() {
