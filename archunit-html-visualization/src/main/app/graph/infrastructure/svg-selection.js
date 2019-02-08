@@ -71,10 +71,6 @@ const SvgSelection = class extends D3Element {
     this.domElement.appendChild(svgSelection.domElement)
   }
 
-  set cssClasses(cssClasses) {
-    this.get().attr('class', cssClasses.join(' '));
-  }
-
   detachFromParent() {
     d3.select(this.domElement).remove();
   }
@@ -85,6 +81,18 @@ const SvgSelection = class extends D3Element {
 
   get textWidth() {
     return this.domElement.getComputedTextLength();
+  }
+
+  set cssClasses(cssClasses) {
+    this.get().attr('class', cssClasses.join(' '));
+  }
+
+  show() {
+    this.get().style('visibility', 'inherit');
+  }
+
+  hide() {
+    this.get().style('visibility', 'hidden');
   }
 
   static fromDom(domElement) {

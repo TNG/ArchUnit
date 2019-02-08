@@ -49,11 +49,11 @@ const init = (transitionDuration) => {
     }
 
     hide() {
-      d3.select(this._svgElement.domElement).style('visibility', 'hidden');
+      this._svgElement.hide();
     }
 
     show() {
-      d3.select(this._svgElement.domElement).style('visibility', 'inherit');
+      this._svgElement.show();
     }
 
     showIfVisible(node) {
