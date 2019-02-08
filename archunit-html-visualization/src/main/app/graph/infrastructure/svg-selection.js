@@ -103,6 +103,14 @@ const SvgSelection = class extends D3Element {
     this.get().style('visibility', 'hidden');
   }
 
+  onClick(clickHandler) {
+    this.domElement.onclick = clickHandler;
+  }
+
+  onDrag(dragHandler) {
+    this.get().call(d3.drag().on('drag', () => dragHandler(d3.event.dx, d3.event.dy)));
+  }
+
   static fromDom(domElement) {
     return new SvgSelection(d3.select(domElement));
   }

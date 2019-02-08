@@ -88,7 +88,7 @@ const init = (transitionDuration) => {
     }
 
     _onClick(handler, ctrlHandler) {
-      const onClick = event => {
+      const clickHandler = event => {
         if (event.ctrlKey || event.altKey) {
           ctrlHandler();
         } else {
@@ -96,13 +96,12 @@ const init = (transitionDuration) => {
         }
         return false;
       };
-      d3.select(this._svgElement.domElement).select('circle').node().onclick = onClick;
-      d3.select(this._svgElement.domElement).select('text').node().onclick = onClick;
+      this._circle.onClick(clickHandler);
+      this._text.onClick(clickHandler);
     }
 
     _onDrag(handler) {
-      const drag = d3.drag().on('drag', () => handler(d3.event.dx, d3.event.dy));
-      d3.select(this._svgElement.domElement).call(drag);
+      this._svgElement.onDrag(handler);
     }
   }
 
