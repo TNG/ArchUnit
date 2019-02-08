@@ -10,13 +10,12 @@ const init = (transitionDuration) => {
     new Promise(resolve => transitionRunner(transition).on('interrupt', () => resolve()).on('end', resolve));
 
   const View = class {
-    constructor(node, onClick, onDrag, onCtrlClick) {
-      this._node = node;
+    constructor(
+      {nodeName, fullNodeName},
+      {onClick, onDrag, onCtrlClick}) {
 
-      this._svgElement = d3.select(this._node.getParent().svgElementForChildren)
-        .append('g')
-        .attr('id', node.getFullName().replace(/\\$/g, '.-'))
-        .node();
+      this._svgElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      this._svgElement.setAttribute('id', fullNodeName.replace(/\\$/g, '.-'));
 
       this._circle = d3.select(this._svgElement)
         .append('circle')
@@ -24,7 +23,7 @@ const init = (transitionDuration) => {
 
       this._text = d3.select(this._svgElement)
         .append('text')
-        .text(node.getName())
+        .text(nodeName)
         .node();
 
       this._svgElementForChildren = d3.select(this._svgElement).append('g').node();
@@ -32,6 +31,10 @@ const init = (transitionDuration) => {
 
       this._onDrag(onDrag);
       this._onClick(onClick, onCtrlClick);
+    }
+
+    addChildView(childView) {
+      this._svgElementForChildren.appendChild(childView._svgElement)
     }
 
     get svgElementForDependencies() {
@@ -42,9 +45,8 @@ const init = (transitionDuration) => {
       return this._svgElementForChildren;
     }
 
-    focus() {
+    detachFromParent() {
       d3.select(this._svgElement).remove();
-      this._node.getParent().svgElementForChildren.appendChild(this._svgElement);
     }
 
     getTextWidth() {

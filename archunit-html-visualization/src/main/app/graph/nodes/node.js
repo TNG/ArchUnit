@@ -242,7 +242,9 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           onRimPositionChanged: () => onSizeExpanded(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight)
         });
 
-      this._originalChildren = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this, this));
+      const children = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this, this));
+      children.forEach(child => this._view.addChildView(child._view));
+      this._originalChildren = children;
       this._setFilteredChildren(this._originalChildren);
 
       this._filterGroup =
@@ -483,8 +485,15 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       this._root = root;
       this._parent = parent;
 
-      this._view = new NodeView(this, () => this._changeFoldIfInnerNodeAndRelayout(), (dx, dy) => this._drag(dx, dy),
-        () => this._root._addNodeToExcludeFilter(this.getFullName()));
+      this._view = new NodeView(
+        {
+          nodeName: this.getName(),
+          fullNodeName: this.getFullName()
+        }, {
+          onClick: () => this._changeFoldIfInnerNodeAndRelayout(),
+          onDrag: (dx, dy) => this._drag(dx, dy),
+          onCtrlClick: () => this._root._addNodeToExcludeFilter(this.getFullName())
+        });
 
       this._matchesFilter = new Map();
       this.nodeShape = new NodeCircle(this,
@@ -499,7 +508,9 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeShape.relativePosition)
         });
 
-      this._originalChildren = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this._root, this));
+      const children = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this._root, this));
+      children.forEach(child => this._view.addChildView(child._view));
+      this._originalChildren = children;
       this._setFilteredChildren(this._originalChildren);
     }
 
@@ -604,7 +615,11 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       const sum = this._parent._originalChildren.length;
       nodesInDrawOrder.forEach((n, i) => n._layerWithinParentNode = sum - i - 1);
 
-      nodesInDrawOrder.reverse().forEach(node => node._view.focus());
+      // FIXME: A node should only know itself and its children, not siblings
+      nodesInDrawOrder.reverse().forEach(node => {
+        node._view.detachFromParent();
+        this.getParent()._view.addChildView(node._view);
+      });
 
       const nodeOverlapsDependencyEndPointButIsNotSibling = (siblingContainingEndNode, node, point) =>
         !siblingContainingEndNode !== node && node.nodeShape.containsPoint(point);
