@@ -76,7 +76,9 @@ const init = (transitionDuration) => {
     }
 
     startMoveToPosition(position) {
-      return createPromiseOnEndAndInterruptOfTransition(d3.select(this._svgElement.domElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${position.x}, ${position.y})`));
+      return this._svgElement.createTransitionWithDuration(transitionDuration)
+        .step(svgSelection => svgSelection.translate(position))
+        .finish();
     }
 
     moveToPosition(position) {
