@@ -25,7 +25,7 @@ const init = (transitionDuration) => {
     }
 
     addChildView(childView) {
-      this._svgElementForChildren.appendChild(childView._svgElement)
+      this._svgElementForChildren.appendChild(childView._svgElement.domElement)
     }
 
     get svgElementForDependencies() {
