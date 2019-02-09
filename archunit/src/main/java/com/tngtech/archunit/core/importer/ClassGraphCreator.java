@@ -327,6 +327,9 @@ class ClassGraphCreator implements ImportContext {
         }
 
         void registerAnnotations(Collection<JavaAnnotation> annotations) {
+            for (JavaAnnotation annotation : annotations) {
+                annotationTypeDependencies.put(annotation.getType(), annotation);
+            }
         }
 
         Set<JavaField> getFieldsOfType(JavaClass javaClass) {
