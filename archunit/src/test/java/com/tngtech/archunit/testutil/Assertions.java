@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -43,9 +44,12 @@ import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldsAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaMemberAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaMembersAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
@@ -89,6 +93,26 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaPackagesAssertion(javaPackages);
     }
 
+    public static JavaMemberAssertion<?, ?> assertThat(JavaMember member) {
+        return new JavaMemberAssertion<>(member, JavaMemberAssertion.class);
+    }
+
+    public static JavaCodeUnitAssertion<?, ?> assertThat(JavaCodeUnit codeUnit) {
+        return new JavaCodeUnitAssertion<>(codeUnit, JavaCodeUnitAssertion.class);
+    }
+
+    public static JavaMethodAssertion assertThat(JavaMethod method) {
+        return new JavaMethodAssertion(method);
+    }
+
+    public static JavaConstructorAssertion assertThat(JavaConstructor constructor) {
+        return new JavaConstructorAssertion(constructor);
+    }
+
+    public static JavaMembersAssertion assertThatMembers(Iterable<? extends JavaMember> members) {
+        return new JavaMembersAssertion(members);
+    }
+
     public static JavaMethodsAssertion assertThatMethods(Iterable<JavaMethod> methods) {
         return new JavaMethodsAssertion(methods);
     }
@@ -111,14 +135,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaFieldAssertion assertThat(JavaField field) {
         return new JavaFieldAssertion(field);
-    }
-
-    public static JavaMethodAssertion assertThat(JavaMethod method) {
-        return new JavaMethodAssertion(method);
-    }
-
-    public static JavaConstructorAssertion assertThat(JavaConstructor constructor) {
-        return new JavaConstructorAssertion(constructor);
     }
 
     public static JavaEnumConstantAssertion assertThat(JavaEnumConstant enumConstant) {
