@@ -26,7 +26,6 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentCaptor;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
@@ -42,10 +41,6 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 public class GivenClassesThatTest {
     @Rule
@@ -644,29 +639,29 @@ public class GivenClassesThatTest {
         return GET_NAME.is(equalTo(type.getName()));
     }
 
-    private Evaluator filterResultOf(GivenClassesConjunction givenClasses) {
-        return new Evaluator(givenClasses);
+    private Evaluator<JavaClass> filterResultOf(GivenClassesConjunction givenClasses) {
+        return new Evaluator<>(JavaClass.class, givenClasses);
     }
 
-    private class Evaluator {
-        private final GivenClassesConjunction givenClasses;
+    static class Evaluator<T> {
+        private final GivenConjunction<T> givenObjects;
 
-        Evaluator(GivenClassesConjunction givenClasses) {
-            this.givenClasses = givenClasses;
+        @SuppressWarnings("unused")
+        Evaluator(Class<T> justForTyping, GivenConjunction<T> givenObjects) {
+            this.givenObjects = givenObjects;
         }
 
-        public List<JavaClass> on(Class<?>... toCheck) {
+        public List<T> on(Class<?>... toCheck) {
+            final List<T> result = new ArrayList<>();
             JavaClasses classes = importClassesWithContext(toCheck);
-            ArchCondition<JavaClass> condition = spy(new ArchCondition<JavaClass>("ignored") {
+            ArchCondition<T> condition = new ArchCondition<T>("ignored") {
                 @Override
-                public void check(JavaClass item, ConditionEvents events) {
+                public void check(T item, ConditionEvents events) {
+                    result.add(item);
                 }
-            });
-            givenClasses.should(condition).check(classes);
-
-            ArgumentCaptor<JavaClass> classesCaptor = ArgumentCaptor.forClass(JavaClass.class);
-            verify(condition, atLeast(0)).check(classesCaptor.capture(), any(ConditionEvents.class));
-            return classesCaptor.getAllValues();
+            };
+            givenObjects.should(condition).check(classes);
+            return result;
         }
     }
 

@@ -18,10 +18,12 @@ package com.tngtech.archunit.lang.syntax;
 import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersConjunction;
 import com.tngtech.archunit.lang.syntax.elements.MembersThat;
 
@@ -195,11 +197,21 @@ public class GivenMembersThatInternal<MEMBER extends JavaMember> implements Memb
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areDeclaredInClassesThat(DescribedPredicate<JavaClass> predicate) {
+    public GivenMembersConjunction<MEMBER> areDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return givenWith(are(declaredInClassesThat(predicate)));
     }
 
-    private DescribedPredicate<JavaMember> declaredInClassesThat(DescribedPredicate<JavaClass> predicate) {
+    @Override
+    public ClassesThat<GivenMembersConjunction<MEMBER>> areDeclaredInClassesThat() {
+        return new MembersDeclaredInClassesThat<>(new Function<DescribedPredicate<? super JavaClass>, GivenMembersConjunction<MEMBER>>() {
+            @Override
+            public GivenMembersConjunction<MEMBER> apply(DescribedPredicate<? super JavaClass> predicate) {
+                return givenWith(are(declaredInClassesThat(predicate)));
+            }
+        });
+    }
+
+    private DescribedPredicate<JavaMember> declaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return declaredIn(predicate).as("declared in classes that %s", predicate.getDescription());
     }
 

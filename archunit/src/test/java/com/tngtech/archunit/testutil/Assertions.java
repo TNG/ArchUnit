@@ -98,6 +98,18 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaClassesAssertion(javaClasses);
     }
 
+    public static JavaMemberAssertion<?, ?> assertThat(JavaMember member) {
+        return new JavaMemberAssertion<>(member, JavaMemberAssertion.class);
+    }
+
+    public static JavaCodeUnitAssertion<?, ?> assertThat(JavaCodeUnit codeUnit) {
+        return new JavaCodeUnitAssertion<>(codeUnit, JavaCodeUnitAssertion.class);
+    }
+
+    public static JavaMembersAssertion assertThatMembers(Iterable<? extends JavaMember> members) {
+        return new JavaMembersAssertion(members);
+    }
+
     public static JavaClassesAssertion assertThat(JavaClass[] javaClasses) {
         return new JavaClassesAssertion(javaClasses);
     }
@@ -112,14 +124,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaFieldAssertion assertThat(JavaField field) {
         return new JavaFieldAssertion(field);
-    }
-
-    public static JavaMethodAssertion assertThat(JavaMethod method) {
-        return new JavaMethodAssertion(method);
-    }
-
-    public static JavaConstructorAssertion assertThat(JavaConstructor constructor) {
-        return new JavaConstructorAssertion(constructor);
     }
 
     public static JavaEnumConstantAssertion assertThat(JavaEnumConstant enumConstant) {
@@ -329,44 +333,107 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class JavaFieldAssertion extends AbstractObjectAssert<JavaFieldAssertion, JavaField> {
+    public static class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssertion, List<JavaMember>> {
+        private JavaMembersAssertion(Iterable<? extends JavaMember> javaMembers) {
+            super(sort(javaMembers), JavaMembersAssertion.class);
+        }
+
+        private static List<JavaMember> sort(Iterable<? extends JavaMember> actual) {
+            List<JavaMember> result = newArrayList(actual);
+            Collections.sort(result, new Comparator<JavaMember>() {
+                @Override
+                public int compare(JavaMember o1, JavaMember o2) {
+                    return o1.getFullName().compareTo(o2.getFullName());
+                }
+            });
+            return result;
+        }
+
+        public <M extends Member & AnnotatedElement> void matchInAnyOrder(Collection<M> expectedMembers) {
+            assertThat(actual).as("Actual JavaMembers").hasSameSizeAs(expectedMembers);
+            List<M> sorted = sort(expectedMembers);
+            for (int i = 0; i < sorted.size(); i++) {
+                assertThat(actual.get(i).getName()).as("Sorted member number " + i).isEqualTo(getExpectedNameOf(sorted.get(i)));
+                assertThat(actual.get(i)).isEquivalentTo(sorted.get(i));
+            }
+        }
+
+        private <M extends Member & AnnotatedElement> List<M> sort(Collection<M> expectedMembers) {
+            List<M> sorted = new ArrayList<>(expectedMembers);
+            Collections.sort(sorted, new Comparator<M>() {
+                @Override
+                public int compare(M o1, M o2) {
+                    return getExpectedFullNameOf(o1).compareTo(getExpectedFullNameOf(o2));
+                }
+            });
+            return sorted;
+        }
+
+        public void matchInAnyOrderMembersOf(Class<?>... classes) {
+            Set<Member> members = new HashSet<>();
+            for (Class<?> clazz : classes) {
+                members.addAll(ImmutableSet.copyOf(clazz.getDeclaredFields()));
+                members.addAll(ImmutableSet.copyOf(clazz.getDeclaredMethods()));
+                members.addAll(ImmutableSet.copyOf(clazz.getDeclaredConstructors()));
+            }
+
+            matchCasted(members);
+        }
+
+        // We know this is compatible since every Member also implements AnnotatedElement
+        // Unfortunately the Java type system does not make it easy here
+        @SuppressWarnings("rawtypes")
+        private void matchCasted(Set<Member> members) {
+            matchInAnyOrder((Set) members);
+        }
+    }
+
+    public static class JavaMemberAssertion<T extends JavaMember, SELF extends JavaMemberAssertion<T, SELF>>
+            extends AbstractObjectAssert<SELF, T> {
+        private JavaMemberAssertion(T javaMember, Class<SELF> selfType) {
+            super(javaMember, selfType);
+        }
+
+        public <M extends Member & AnnotatedElement> void isEquivalentTo(M member) {
+            assertEquivalent(actual, member);
+            String expectedName = getExpectedNameOf(member);
+            assertThat(actual.getName()).isEqualTo(expectedName);
+            assertThat(actual.getFullName()).isEqualTo(getExpectedFullNameOf(member));
+        }
+
+    }
+
+    private static String getExpectedNameOf(Member member) {
+        return member instanceof Constructor ? CONSTRUCTOR_NAME : member.getName();
+    }
+
+    public static class JavaCodeUnitAssertion<T extends JavaCodeUnit, SELF extends JavaCodeUnitAssertion<T, SELF>>
+            extends JavaMemberAssertion<T, SELF> {
+        private JavaCodeUnitAssertion(T javaMember, Class<SELF> selfType) {
+            super(javaMember, selfType);
+        }
+
+        public void isEquivalentTo(Method method) {
+            super.isEquivalentTo(method);
+            assertThat(actual.getParameters()).matches(method.getParameterTypes());
+            assertThat(actual.getReturnType()).matches(method.getReturnType());
+        }
+
+        public void isEquivalentTo(Constructor<?> constructor) {
+            super.isEquivalentTo(constructor);
+            assertThat(actual.getParameters()).matches(constructor.getParameterTypes());
+            assertThat(actual.getReturnType()).matches(void.class);
+        }
+    }
+
+    public static class JavaFieldAssertion extends JavaMemberAssertion<JavaField, JavaFieldAssertion> {
         private JavaFieldAssertion(JavaField javaField) {
             super(javaField, JavaFieldAssertion.class);
         }
 
         public void isEquivalentTo(Field field) {
-            assertEquivalent(actual, field);
-            assertThat(actual.getName()).isEqualTo(field.getName());
-            assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(field, field.getName()));
+            super.isEquivalentTo(field);
             assertThat(actual.getType()).matches(field.getType());
-        }
-    }
-
-    public static class JavaMethodAssertion extends AbstractObjectAssert<JavaMethodAssertion, JavaMethod> {
-        private JavaMethodAssertion(JavaMethod javaMethod) {
-            super(javaMethod, JavaMethodAssertion.class);
-        }
-
-        public void isEquivalentTo(Method method) {
-            assertEquivalent(actual, method);
-            assertThat(actual.getName()).isEqualTo(method.getName());
-            assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(method, method.getName()));
-            assertThat(actual.getParameters()).matches(method.getParameterTypes());
-            assertThat(actual.getReturnType()).matches(method.getReturnType());
-        }
-    }
-
-    public static class JavaConstructorAssertion extends AbstractObjectAssert<JavaConstructorAssertion, JavaConstructor> {
-        private JavaConstructorAssertion(JavaConstructor javaConstructor) {
-            super(javaConstructor, JavaConstructorAssertion.class);
-        }
-
-        public void isEquivalentTo(Constructor<?> constructor) {
-            assertEquivalent(actual, constructor);
-            assertThat(actual.getName()).isEqualTo(CONSTRUCTOR_NAME);
-            assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(constructor, CONSTRUCTOR_NAME));
-            assertThat(actual.getParameters()).matches(constructor.getParameterTypes());
-            assertThat(actual.getReturnType()).matches(void.class);
         }
     }
 
@@ -395,8 +462,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class ThrowsDeclarationAssertion extends AbstractObjectAssert<ThrowsDeclarationAssertion, ThrowsDeclaration> {
-        private ThrowsDeclarationAssertion(ThrowsDeclaration throwsDeclaration) {
+    public static class ThrowsDeclarationAssertion extends AbstractObjectAssert<ThrowsDeclarationAssertion, ThrowsDeclaration<?>> {
+        private ThrowsDeclarationAssertion(ThrowsDeclaration<?> throwsDeclaration) {
             super(throwsDeclaration, ThrowsDeclarationAssertion.class);
         }
 
@@ -407,7 +474,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
     }
 
     public static class ThrowsClauseAssertion extends
-            AbstractIterableAssert<ThrowsClauseAssertion, ThrowsClause<?>, ThrowsDeclaration, ObjectAssert<ThrowsDeclaration>> {
+            AbstractIterableAssert<ThrowsClauseAssertion, ThrowsClause<?>, ThrowsDeclaration<?>, ObjectAssert<ThrowsDeclaration<?>>> {
         private ThrowsClauseAssertion(ThrowsClause<?> throwsClause) {
             super(throwsClause, ThrowsClauseAssertion.class);
         }
@@ -420,8 +487,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         @Override
-        protected ObjectAssert<ThrowsDeclaration> toAssert(ThrowsDeclaration value, String description) {
-            return new ObjectAssertFactory<ThrowsDeclaration>().createAssert(value).as(description);
+        protected ObjectAssert<ThrowsDeclaration<?>> toAssert(ThrowsDeclaration<?> value, String description) {
+            return new ObjectAssertFactory<ThrowsDeclaration<?>>().createAssert(value).as(description);
         }
     }
 
@@ -433,39 +500,53 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     private static <T extends Member> void assertModifiersMatch(JavaMember javaMember, T member) {
         assertThat(javaMember.getModifiers().contains(ABSTRACT))
-                .as("member is abstract")
+                .as("member %s is abstract", javaMember.getFullName())
                 .isEqualTo(Modifier.isAbstract(member.getModifiers()));
         assertThat(javaMember.getModifiers().contains(FINAL))
-                .as("member is final")
+                .as("member %s is final", javaMember.getFullName())
                 .isEqualTo(Modifier.isFinal(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(NATIVE))
-                .as("member is native")
-                .isEqualTo(Modifier.isNative(member.getModifiers()));
         assertThat(javaMember.getModifiers().contains(PRIVATE))
-                .as("member is private")
+                .as("member %s is private", javaMember.getFullName())
                 .isEqualTo(Modifier.isPrivate(member.getModifiers()));
         assertThat(javaMember.getModifiers().contains(PROTECTED))
-                .as("member is protected")
+                .as("member %s is protected", javaMember.getFullName())
                 .isEqualTo(Modifier.isProtected(member.getModifiers()));
         assertThat(javaMember.getModifiers().contains(PUBLIC))
-                .as("member is public")
+                .as("member %s is public", javaMember.getFullName())
                 .isEqualTo(Modifier.isPublic(member.getModifiers()));
         assertThat(javaMember.getModifiers().contains(STATIC))
-                .as("member is static")
+                .as("member %s is static", javaMember.getFullName())
                 .isEqualTo(Modifier.isStatic(member.getModifiers()));
+
+        if (javaMember instanceof JavaCodeUnit) {
+            assertCodeUnitModifiers(javaMember, member);
+        }
+
+        if (javaMember instanceof JavaField) {
+            assertFieldModifiers(javaMember, member);
+        }
+    }
+
+    private static <T extends Member> void assertCodeUnitModifiers(JavaMember javaMember, T member) {
+        assertThat(javaMember.getModifiers().contains(NATIVE))
+                .as("member %s is native", javaMember.getFullName())
+                .isEqualTo(Modifier.isNative(member.getModifiers()));
         assertThat(javaMember.getModifiers().contains(SYNCHRONIZED))
-                .as("member is synchronized")
+                .as("member %s is synchronized", javaMember.getFullName())
                 .isEqualTo(Modifier.isSynchronized(member.getModifiers()));
+    }
+
+    private static <T extends Member> void assertFieldModifiers(JavaMember javaMember, T member) {
         assertThat(javaMember.getModifiers().contains(TRANSIENT))
-                .as("member is transient")
+                .as("member %s is transient", javaMember.getFullName())
                 .isEqualTo(Modifier.isTransient(member.getModifiers()));
         assertThat(javaMember.getModifiers().contains(VOLATILE))
-                .as("member is volatile")
+                .as("member %s is volatile", javaMember.getFullName())
                 .isEqualTo(Modifier.isVolatile(member.getModifiers()));
     }
 
-    private static <T extends Member & AnnotatedElement> String getExpectedNameOf(T member, String name) {
-        String base = member.getDeclaringClass().getName() + "." + name;
+    private static <T extends Member & AnnotatedElement> String getExpectedFullNameOf(T member) {
+        String base = member.getDeclaringClass().getName() + "." + getExpectedNameOf(member);
         if (member instanceof Method) {
             return base + expectedParametersOf(((Method) member).getParameterTypes());
         }

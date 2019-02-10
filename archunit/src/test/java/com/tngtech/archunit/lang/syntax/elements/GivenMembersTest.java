@@ -424,6 +424,20 @@ public class GivenMembersTest {
                                 return membersThat.areDeclaredInClassesThat(not(equivalentTo(ClassWithVariousMembers.class)));
                             }
                         }
+                )).add(
+                declaredInDataPoints(
+                        new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
+                            @Override
+                            public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
+                                return membersThat.areDeclaredInClassesThat().areAssignableTo(ClassWithVariousMembers.class);
+                            }
+                        },
+                        new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
+                            @Override
+                            public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
+                                return membersThat.areDeclaredInClassesThat().areNotAssignableTo(ClassWithVariousMembers.class);
+                            }
+                        }
                 )).build().toArray(new Object[0][]);
     }
 
