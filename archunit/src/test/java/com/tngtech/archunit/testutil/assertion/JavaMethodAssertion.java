@@ -7,7 +7,7 @@ import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.assertion.JavaMembersAssertion.assertEquivalent;
-import static com.tngtech.archunit.testutil.assertion.JavaMembersAssertion.getExpectedNameOf;
+import static com.tngtech.archunit.testutil.assertion.JavaMemberAssertion.getExpectedNameOf;
 
 public class JavaMethodAssertion extends AbstractObjectAssert<JavaMethodAssertion, JavaMethod> {
     public JavaMethodAssertion(JavaMethod javaMethod) {

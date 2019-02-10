@@ -368,5 +368,25 @@ public interface MembersThat<CONJUNCTION> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION areDeclaredInClassesThat(DescribedPredicate<JavaClass> predicate);
+    CONJUNCTION areDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Allows to restrict the set of members under consideration by the class they are declared in
+     * <br><br>
+     * E.g. <code>someField</code> in
+     *
+     * <pre><code>
+     * class Example {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * will be matched by
+     * <pre><code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areDeclaredInClassesThat() areDeclaredInClassesThat()}.{@link ClassesThat#areAssignableTo(Class) areAssignableTo(Object.class)}
+     * </code></pre>
+     *
+     * @return A syntax element that allows restricting where members are declared in
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesThat<CONJUNCTION> areDeclaredInClassesThat();
 }

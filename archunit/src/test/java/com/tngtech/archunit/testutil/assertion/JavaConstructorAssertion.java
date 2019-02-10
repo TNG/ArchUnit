@@ -4,9 +4,10 @@ import java.lang.reflect.Constructor;
 
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import org.assertj.core.api.AbstractObjectAssert;
-import org.assertj.core.api.Assertions;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.assertion.JavaMemberAssertion.getExpectedNameOf;
 
 public class JavaConstructorAssertion extends AbstractObjectAssert<JavaConstructorAssertion, JavaConstructor> {
     public JavaConstructorAssertion(JavaConstructor javaConstructor) {
@@ -15,9 +16,9 @@ public class JavaConstructorAssertion extends AbstractObjectAssert<JavaConstruct
 
     public void isEquivalentTo(Constructor<?> constructor) {
         JavaMembersAssertion.assertEquivalent(actual, constructor);
-        Assertions.assertThat(actual.getName()).isEqualTo(CONSTRUCTOR_NAME);
-        Assertions.assertThat(actual.getFullName()).isEqualTo(JavaMembersAssertion.getExpectedNameOf(constructor, CONSTRUCTOR_NAME));
-        com.tngtech.archunit.testutil.Assertions.assertThat(actual.getParameters()).matches(constructor.getParameterTypes());
-        com.tngtech.archunit.testutil.Assertions.assertThat(actual.getReturnType()).matches(void.class);
+        assertThat(actual.getName()).isEqualTo(CONSTRUCTOR_NAME);
+        assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(constructor, CONSTRUCTOR_NAME));
+        assertThat(actual.getParameters()).matches(constructor.getParameterTypes());
+        assertThat(actual.getReturnType()).matches(void.class);
     }
 }
