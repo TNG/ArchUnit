@@ -39,6 +39,7 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.dependOnClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -133,4 +134,21 @@ public final class GeneralCodingRules {
     @PublicAPI(usage = ACCESS)
     public static final ArchRule NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING =
             noClasses().should(USE_JAVA_UTIL_LOGGING);
+
+    /**
+     * For information about checking this condition, refer to {@link GeneralCodingRules}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final ArchCondition<JavaClass> USE_JODATIME =
+            dependOnClassesThat(resideInAPackage("org.joda.time"))
+                    .as("use JodaTime");
+
+    /**
+     * Modern Java projects use the [java.time] API instead of the JodaTime library
+     * <br>
+     * For information about checking this rule, refer to {@link GeneralCodingRules}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final ArchRule NO_CLASSES_SHOULD_USE_JODATIME =
+            noClasses().should(USE_JODATIME).because("modern Java projects use the [java.time] API instead");
 }
