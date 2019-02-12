@@ -27,6 +27,10 @@ public class ClassViolatingCodingRules {
         }
     }
 
+    public org.joda.time.DateTime jodaTimeIsBad() { // Violates rule not to use the JodaTime library
+      return org.joda.time.DateTime.now();
+    }
+
     public void thisIsOkay() {
         throw new SomeCustomException();
     }

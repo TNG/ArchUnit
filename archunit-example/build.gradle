@@ -16,6 +16,8 @@ ext.moduleName = 'com.tngtech.archunit.example'
                 //       so to run any test we need to choose a full implementation provider
                 compile 'org.apache.geronimo.specs:geronimo-ejb_3.1_spec:1.0'
                 compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.0'
+                // NOTE: using an old version of JodaTime that is compatible with Java7, Java8, and above
+                compile 'joda-time:joda-time:2.0'
 
                 testCompile project(path: ':archunit')
             }
