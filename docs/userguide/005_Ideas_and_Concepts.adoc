@@ -50,9 +50,9 @@ Once a rule is composed, imported Java classes can be checked against it:
 
 [source,java,options="nowrap"]
 ----
-JavaClasses classes = new ClassFileImporter().importPackage("com.myapp");
+JavaClasses importedClasses = new ClassFileImporter().importPackage("com.myapp");
 ArchRule rule = // define the rule
-rule.check(classes);
+rule.check(importedClasses);
 ----
 
 The syntax ArchUnit provides is fully extensible and can thus be adjusted to almost any

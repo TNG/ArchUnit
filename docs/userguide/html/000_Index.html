@@ -789,7 +789,7 @@ object of type <code>ArchRule</code> can now be evaluated against a set of impor
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">myRule.check(classes);</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">myRule.check(importedClasses);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -799,13 +799,13 @@ object of type <code>ArchRule</code> can now be evaluated against a set of impor
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@Test
 public void Services_should_only_be_accessed_by_Controllers() {
-    JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");
+    JavaClasses importedClasses = new ClassFileImporter().importPackages("com.mycompany.myapp");
 
     ArchRule myRule = classes()
         .that().resideInAPackage("..service..")
         .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");
 
-    myRule.check(classes);
+    myRule.check(importedClasses);
 }</code></pre>
 </div>
 </div>
@@ -857,9 +857,9 @@ class MyArchitectureTest {
     val rule_as_field = ArchRuleDefinition.noClasses().should()...
 
     @ArchTest
-    fun rule_as_method(classes: JavaClasses) {
+    fun rule_as_method(importedClasses: JavaClasses) {
         val rule = ArchRuleDefinition.noClasses().should()...
-        rule.check(classes)
+        rule.check(importedClasses)
     }
 }</code></pre>
 </div>
@@ -1062,9 +1062,9 @@ provide valuable suggestions on the possibilities the syntax offers.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackage("com.myapp");
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses importedClasses = new ClassFileImporter().importPackage("com.myapp");
 ArchRule rule = // define the rule
-rule.check(classes);</code></pre>
+rule.check(importedClasses);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1394,7 +1394,7 @@ mentioned before:</p>
     .that().resideInAPackage("..service..")
     .should().accessClassesThat().resideInAPackage("..controller..");
 
-rule.check(classes);</code></pre>
+rule.check(importedClasses);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1426,7 +1426,7 @@ predicates and conditions:</p>
     .should().accessClassesThat().resideInAPackage("..controller..")
     .orShould().accessClassesThat().resideInAPackage("..ui..")
 
-rule.check(classes);</code></pre>
+rule.check(importedClasses);</code></pre>
 </div>
 </div>
 </div>
@@ -1903,27 +1903,27 @@ This mainly tackles the problem of caching classes between test runs and to remo
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@Test
 public void rule1() {
-    JavaClasses classes = new ClassFileImporter().importClasspath();
+    JavaClasses importedClasses = new ClassFileImporter().importClasspath();
 
     ArchRule rule = classes()...
 
-    rule.check(classes);
+    rule.check(importedClasses);
 }
 
 @Test
 public void rule2() {
-    JavaClasses classes = new ClassFileImporter().importClasspath();
+    JavaClasses importedClasses = new ClassFileImporter().importClasspath();
 
     ArchRule rule = classes()...
 
-    rule.check(classes);
+    rule.check(importedClasses);
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>For bigger projects, this will have a significant performance impact, since the import can take
 a noticeable amount of time. Also rules will always be checked against the imported classes, thus
-the explicit call of <code>check(classes)</code> is bloat and error prone (i.e. it can be forgotten).</p>
+the explicit call of <code>check(importedClasses)</code> is bloat and error prone (i.e. it can be forgotten).</p>
 </div>
 <div class="sect2">
 <h3 id="_junit_4_5_support"><a class="anchor" href="#_junit_4_5_support"></a>9.1. JUnit 4 &amp; 5 Support</h3>
