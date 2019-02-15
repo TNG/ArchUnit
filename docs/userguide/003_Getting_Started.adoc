@@ -55,7 +55,7 @@ object of type `ArchRule` can now be evaluated against a set of imported classes
 
 [source,java,options="nowrap"]
 ----
-myRule.check(classes);
+myRule.check(importedClasses);
 ----
 
 Thus the complete example could look like
@@ -64,13 +64,13 @@ Thus the complete example could look like
 ----
 @Test
 public void Services_should_only_be_accessed_by_Controllers() {
-    JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");
+    JavaClasses importedClasses = new ClassFileImporter().importPackages("com.mycompany.myapp");
 
     ArchRule myRule = classes()
         .that().resideInAPackage("..service..")
         .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");
 
-    myRule.check(classes);
+    myRule.check(importedClasses);
 }
 ----
 
@@ -115,9 +115,9 @@ class MyArchitectureTest {
     val rule_as_field = ArchRuleDefinition.noClasses().should()...
 
     @ArchTest
-    fun rule_as_method(classes: JavaClasses) {
+    fun rule_as_method(importedClasses: JavaClasses) {
         val rule = ArchRuleDefinition.noClasses().should()...
-        rule.check(classes)
+        rule.check(importedClasses)
     }
 }
 ----

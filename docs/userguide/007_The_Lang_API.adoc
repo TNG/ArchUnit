@@ -46,7 +46,7 @@ ArchRule rule = ArchRuleDefinition.noClasses()
     .that().resideInAPackage("..service..")
     .should().accessClassesThat().resideInAPackage("..controller..");
 
-rule.check(classes);
+rule.check(importedClasses);
 ----
 
 The only difference to colloquial language, are the ".." in the package notation,
@@ -76,7 +76,7 @@ noClasses()
     .should().accessClassesThat().resideInAPackage("..controller..")
     .orShould().accessClassesThat().resideInAPackage("..ui..")
 
-rule.check(classes);
+rule.check(importedClasses);
 ----
 
 === Creating Custom Rules
@@ -251,6 +251,7 @@ mentioned in the sections above, this is the identity transformation, passing cl
 as they are. However, one can supply any custom transformation to express a rule about a
 different type of input object. For example:
 
+// FIXME: This example is obsolete once the members API is merged
 [source,java,options="nowrap"]
 ----
 ClassesTransformer<JavaField> fields = new AbstractClassesTransformer<JavaField>("fields") {
