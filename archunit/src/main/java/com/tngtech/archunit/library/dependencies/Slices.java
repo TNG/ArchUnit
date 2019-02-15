@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,6 +33,7 @@ import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.syntax.PredicateAggregator;
@@ -59,7 +61,7 @@ import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
  * in a different slice.<br>
  * The resulting {@link ClassesTransformer} can be used to specify an {@link ArchRule} on slices.
  */
-public final class Slices implements DescribedIterable<Slice> {
+public final class Slices implements DescribedIterable<Slice>, CanOverrideDescription<Slices> {
     private final Iterable<Slice> slices;
     private final String description;
 
@@ -77,6 +79,7 @@ public final class Slices implements DescribedIterable<Slice> {
         return slices.iterator();
     }
 
+    @Override
     public Slices as(String description) {
         return new Slices(slices, description);
     }
@@ -93,13 +96,14 @@ public final class Slices implements DescribedIterable<Slice> {
      * against {@code 'com.some.company.service.hello.something'} as 'Slice hello'.
      *
      * @param pattern The naming pattern, e.g. 'Slice $1'
-     * @return The same slices with adjusted naming for each single slice
+     * @return <b>New</b> (equivalent) slices with adjusted description for each single slice
      */
     public Slices namingSlices(String pattern) {
+        List<Slice> newSlices = new ArrayList<>();
         for (Slice slice : slices) {
-            slice.as(pattern);
+            newSlices.add(slice.as(pattern));
         }
-        return this;
+        return new Slices(newSlices, description);
     }
 
     /**
@@ -168,7 +172,7 @@ public final class Slices implements DescribedIterable<Slice> {
         public Slices transform(JavaClasses classes) {
             Slices slices = new Creator(classes).matching(packageIdentifier);
             if (namingPattern.isPresent()) {
-                slices.namingSlices(namingPattern.get());
+                slices = slices.namingSlices(namingPattern.get());
             }
             if (predicate.isPresent()) {
                 slices = new Slices(Guava.Iterables.filter(slices, predicate.get()));

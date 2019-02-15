@@ -20,6 +20,13 @@ import com.tngtech.archunit.PublicAPI;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface CanOverrideDescription<SELF> {
+    /**
+     * Allows to adjust the description of this object. Note that this method will not modify the current object,
+     * but instead return a new object with adjusted description.
+     *
+     * @param newDescription The description the result of this method will hold
+     * @return A <b>new</b> equivalent object with adjusted description
+     */
     @PublicAPI(usage = ACCESS)
     SELF as(String newDescription);
 }

@@ -30,6 +30,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class Slice extends ForwardingSet<JavaClass> implements HasDescription, CanOverrideDescription<Slice> {
@@ -38,12 +39,18 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
     private final Set<JavaClass> classes;
 
     private Slice(List<String> matchingGroups, Set<JavaClass> classes) {
-        this.matchingGroups = matchingGroups;
-        this.description = new Description("Slice " + Joiner.on(" - ").join(ascendingCaptures(matchingGroups)));
+        this(matchingGroups,
+                new Description("Slice " + Joiner.on(" - ").join(ascendingCaptures(matchingGroups))),
+                classes);
+    }
+
+    private Slice(List<String> matchingGroups, Description description, Set<JavaClass> classes) {
+        this.matchingGroups = checkNotNull(matchingGroups);
+        this.description = checkNotNull(description);
         this.classes = ImmutableSet.copyOf(classes);
     }
 
-    private List<String> ascendingCaptures(List<String> matchingGroups) {
+    private static List<String> ascendingCaptures(List<String> matchingGroups) {
         List<String> result = new ArrayList<>();
         for (int i = 1; i <= matchingGroups.size(); i++) {
             result.add("$" + i);
@@ -72,8 +79,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
      */
     @Override
     public Slice as(String pattern) {
-        description = new Description(pattern);
-        return this;
+        return new Slice(matchingGroups, new Description(pattern), classes);
     }
 
     @PublicAPI(usage = ACCESS)
