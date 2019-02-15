@@ -118,7 +118,7 @@ public final class Locations {
     private static Collection<Location> getResourceLocations(ClassLoader loader, NormalizedResourceName resourceName, Iterable<URL> classpath) {
         try {
             Set<Location> result = newHashSet(Locations.of(list(loader.getResources(resourceName.toString()))));
-            if (result.isEmpty()) {
+            if (result.isEmpty() && !resourceName.belongsToClassFile()) {
                 return findMissedClassesDueToLackOfPackageEntry(classpath, resourceName);
             }
             return result;
@@ -140,6 +140,7 @@ public final class Locations {
      */
     private static Collection<Location> findMissedClassesDueToLackOfPackageEntry(
             Iterable<URL> classpath, NormalizedResourceName resourceName) {
+
         Set<Location> result = new HashSet<>();
         for (Location location : archiveLocationsOf(classpath)) {
             if (containsEntryWithPrefix(location, resourceName)) {
