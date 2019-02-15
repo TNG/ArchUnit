@@ -6,7 +6,9 @@ import java.util.Set;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,6 +20,9 @@ public class JavaClassesTest {
             SomeClass.class.getName(), SOME_CLASS,
             SomeOtherClass.class.getName(), SOME_OTHER_CLASS);
     public static final JavaClasses ALL_CLASSES = new JavaClasses(BY_TYPE_NAME, "classes");
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void restriction_on_classes_should_filter_the_elements() {
@@ -75,6 +80,16 @@ public class JavaClassesTest {
         JavaClasses classes = JavaClasses.of(given);
 
         assertThat(classes.size()).as("classes.size()").isEqualTo(given.size());
+    }
+
+    @Test
+    public void trying_to_get_a_missing_class_causes_IllegalArgumentException() {
+        JavaClasses classes = JavaClasses.of(ImmutableSet.of(importClassWithContext(Object.class)));
+
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("JavaClasses do not contain JavaClass of type java.lang.String");
+
+        classes.get(String.class);
     }
 
     private DescribedPredicate<JavaClass> haveTheNameOf(final Class<?> clazz) {
