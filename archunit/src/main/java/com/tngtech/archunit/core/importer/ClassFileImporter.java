@@ -44,8 +44,9 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.singletonList;
 
 /**
- * The central API to import {@link JavaClasses}. Supports various types of {@link Location}, e.g. {@link Path},
- * {@link JarFile} or {@link URL}. The {@link Location}s that are scanned, can be filtered by passing any number of
+ * The central API to import {@link JavaClasses} from compiled Java class files.
+ * Supports various types of {@link Location}, e.g. {@link Path},
+ * {@link JarFile} or {@link URL}. The {@link Location Locations} that are scanned, can be filtered by passing any number of
  * {@link ImportOption} to {@link #withImportOption(ImportOption)}, which will then be <b>AND</b>ed (compare
  * {@link ImportOptions}).
  * <br><br>
@@ -92,14 +93,20 @@ public final class ClassFileImporter {
         this.importOptions = importOptions;
     }
 
+    /**
+     * Allows filtering the class files to import by their {@link Location} (i.e. URI). Note that
+     * this object will not be modified, but instead a copy with adjusted behavior will be returned.
+     *
+     * @param option Defines which class file {@link Location} to import
+     * @return A {@link ClassFileImporter} which filters the specified class file URIs
+     */
     @PublicAPI(usage = ACCESS)
     public ClassFileImporter withImportOption(ImportOption option) {
         return new ClassFileImporter(importOptions.with(option));
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
+     * Converts the given {@link String} to a {@link Path} and delegates to {@link #importPaths(Collection)}.
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPath(String path) {
@@ -107,8 +114,7 @@ public final class ClassFileImporter {
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
+     * Delegates to {@link #importPaths(Collection)}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPath(Path path) {
@@ -116,8 +122,8 @@ public final class ClassFileImporter {
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
+     * Converts the given {@link String Strings} to {@link Path Paths} and delegates to
+     * {@link #importPaths(Collection)}.
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPaths(String... paths) {
@@ -129,8 +135,7 @@ public final class ClassFileImporter {
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
+     * Delegates to {@link #importPaths(Collection)}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPaths(Path... paths) {
@@ -138,6 +143,10 @@ public final class ClassFileImporter {
     }
 
     /**
+     * Imports all class files at the given {@link Path file paths}. If a {@link Path} refers to a single
+     * class file, that file is imported. If a path refers to a directory,
+     * all class files from that directory as well as sub directories will be imported.
+     * <br><br>
      * For information about the impact of the imported classes on the evaluation of rules,
      * as well as configuration and details, refer to {@link ClassFileImporter}.
      */
@@ -160,8 +169,7 @@ public final class ClassFileImporter {
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
+     * Delegates to {@link #importJars(Iterable)}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importJars(JarFile... jarFiles) {
@@ -169,6 +177,12 @@ public final class ClassFileImporter {
     }
 
     /**
+     * Imports all Java class files in the given {@link JarFile JAR files}. To import just parts of JAR archives,
+     * it is possible to refer to those classes by {@link URL} (compare {@link #importLocations(Collection)}).<br>
+     * For example to import the folder <code>/com/my/subfolder</code> within <code>/path/to/some.jar</code>
+     * it is possible to use the URL
+     * <pre><code>jar:file:///path/to/some.jar!/com/my/subfolder</code></pre>
+     * <br>
      * For information about the impact of the imported classes on the evaluation of rules,
      * as well as configuration and details, refer to {@link ClassFileImporter}.
      */
@@ -183,7 +197,7 @@ public final class ClassFileImporter {
 
     /**
      * Imports packages via {@link Locations#ofPackage(String)}
-     * <br>
+     * <br><br>
      * For information about the impact of the imported classes on the evaluation of rules,
      * as well as configuration and details, refer to {@link ClassFileImporter}.
      */
@@ -198,7 +212,7 @@ public final class ClassFileImporter {
 
     /**
      * Imports packages via {@link Locations#ofPackage(String)}
-     * <br>
+     * <br><br>
      * For information about the impact of the imported classes on the evaluation of rules,
      * as well as configuration and details, refer to {@link ClassFileImporter}.
      */
@@ -208,10 +222,7 @@ public final class ClassFileImporter {
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
-     *
-     * @see #importPackagesOf(Collection)
+     * Delegates to {@link #importPackagesOf(Collection)}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPackagesOf(Class<?>... classes) {
@@ -220,9 +231,6 @@ public final class ClassFileImporter {
 
     /**
      * Takes the packages of the supplied classes and delegates to {@link #importPackages(String...)}
-     * <br>
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPackagesOf(Collection<Class<?>> classes) {
@@ -235,11 +243,9 @@ public final class ClassFileImporter {
 
     /**
      * Imports classes from the whole classpath without archives (JARs or JRTs).
-     * <br>
+     * <br><br>
      * For information about the impact of the imported classes on the evaluation of rules,
      * as well as configuration and details, refer to {@link ClassFileImporter}.
-     *
-     * @return Imported classes
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importClasspath() {
@@ -247,6 +253,10 @@ public final class ClassFileImporter {
     }
 
     /**
+     * Imports classes from the whole classpath considering the supplied {@link ImportOptions}.<br>
+     * Note that ArchUnit does not distinguish between the classpath and the modulepath for Java &gt;= 9,
+     * thus all classes from the classpath or the modulepath will be considered.
+     * <br><br>
      * For information about the impact of the imported classes on the evaluation of rules,
      * as well as configuration and details, refer to {@link ClassFileImporter}.
      */
@@ -256,8 +266,7 @@ public final class ClassFileImporter {
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
+     * Delegates to {@link #importClasses(Collection)}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClass importClass(Class<?> clazz) {
@@ -265,8 +274,7 @@ public final class ClassFileImporter {
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
+     * Delegates to {@link #importClasses(Collection)}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importClasses(Class<?>... classes) {
@@ -274,6 +282,8 @@ public final class ClassFileImporter {
     }
 
     /**
+     * Imports the class files of the supplied classes from the classpath / modulepath.
+     * <br><br>
      * For information about the impact of the imported classes on the evaluation of rules,
      * as well as configuration and details, refer to {@link ClassFileImporter}.
      */
@@ -287,8 +297,8 @@ public final class ClassFileImporter {
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
+     * Converts the supplied {@link URL} to {@link Location} and delegates to
+     * {@link #importLocations(Collection)}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importUrl(URL url) {
@@ -296,8 +306,8 @@ public final class ClassFileImporter {
     }
 
     /**
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
+     * Converts the supplied {@link URL URLs} to {@link Location locations} and delegates to
+     * {@link #importLocations(Collection)}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importUrls(Collection<URL> urls) {
@@ -305,6 +315,16 @@ public final class ClassFileImporter {
     }
 
     /**
+     * Imports all class files at the given {@link Location locations}. The behavior will depend on the type of {@link Location},
+     * i.e. the target of the underlying URI:
+     * <ul>
+     *     <li>a single class file =&lt; that file will be imported</li>
+     *     <li>a directory =&lt; all class files from that directory as well as sub directories will be imported</li>
+     *     <li>a JAR file =&lt; all class files from that archive will be imported</li>
+     *     <li>a JAR URI representing a class (e.g. '<code>jar:file:///some.jar!/some/MyClass.class</code>') =&lt; that file will be imported</li>
+     *     <li>a JAR URI representing a folder (e.g. '<code>jar:file:///some.jar!/some/pkg</code>') =&lt; all class files from that folder as well as
+     *     sub folders within the JAR archive will be imported</li>
+     * </ul>
      * For information about the impact of the imported classes on the evaluation of rules,
      * as well as configuration and details, refer to {@link ClassFileImporter}.
      */

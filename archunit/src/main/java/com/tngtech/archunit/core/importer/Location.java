@@ -47,9 +47,13 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.list;
 
 /**
- * Handles various forms of location, from where classes can be imported, in a consistent way. Any location
- * will be treated like an {@link URI}, thus there won't be any platform dependent file separator problems,
- * or similar.
+ * Handles various forms of location from where classes can be imported in a consistent way. Any location
+ * will be treated like an {@link URI}, thus there will not be any platform dependent file separator problems.<br><br>
+ * Examples for locations could be
+ * <ul>
+ *     <li><code>file:///home/someuser/workspace/myproject/target/classes/myproject/Foo.class</code></li>
+ *     <li><code>jar:file:///home/someuser/.m2/repository/myproject/foolib.jar!/myproject/Foo.class</code></li>
+ * </ul>
  */
 public abstract class Location {
     private static final InitialConfiguration<Set<Factory>> factories = new InitialConfiguration<>();

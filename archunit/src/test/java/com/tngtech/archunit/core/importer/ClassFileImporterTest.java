@@ -1724,6 +1724,15 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void imports_urls_of_folders() throws Exception {
+        File testexamplesFolder = new File(new File(urlOf(getClass()).toURI()).getParentFile(), "testexamples");
+
+        JavaClasses javaClasses = new ClassFileImporter().importUrl(testexamplesFolder.toURI().toURL());
+
+        assertThatClasses(javaClasses).contain(SomeClass.class, OtherClass.class);
+    }
+
+    @Test
     public void imports_urls_of_jars() {
         Set<URL> urls = newHashSet(urlOf(Test.class), urlOf(RunWith.class));
         assumeTrue("We can't completely ensure that this will always be taken from a JAR file, though it's very likely",
