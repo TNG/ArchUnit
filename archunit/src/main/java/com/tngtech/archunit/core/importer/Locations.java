@@ -32,6 +32,10 @@ import static com.google.common.collect.Sets.newHashSet;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.list;
 
+/**
+ * Represents a set of {@link Location locations} of Java class files. Also offers methods to derive concrete locations (i.e. URIs) from
+ * higher level concepts like packages or the classpath.
+ */
 public final class Locations {
     private static final InitialConfiguration<LocationResolver> locationResolver = new InitialConfiguration<>();
 
@@ -42,6 +46,14 @@ public final class Locations {
     private Locations() {
     }
 
+    /**
+     * Directly converts the passed URLs to {@link Location locations}. URLs can be of class files
+     * as well as directories. They can also be JAR URLs of class files
+     * (e.g. <code>jar:file:///some.jar!/some/Example.class</code>) or folders within JAR files.
+     *
+     * @param urls URLs to directly convert to {@link Location locations}
+     * @return {@link Location Locations} representing the passed URLs
+     */
     @PublicAPI(usage = ACCESS)
     public static Set<Location> of(Iterable<URL> urls) {
         ImmutableSet.Builder<Location> result = ImmutableSet.builder();
@@ -52,10 +64,10 @@ public final class Locations {
     }
 
     /**
-     * All locations in the classpath that match the supplied package.
+     * All {@link Location locations} in the classpath that match the supplied package.
      *
      * @param pkg the package to look for within the classpath
-     * @return Locations of all paths that match the supplied package
+     * @return {@link Location Locations} of all paths that match the supplied package
      */
     @PublicAPI(usage = ACCESS)
     public static Set<Location> ofPackage(String pkg) {
@@ -66,11 +78,24 @@ public final class Locations {
         return result.build();
     }
 
+    /**
+     * Set of {@link Location locations} where the class file of the supplied class can be found.<br>
+     * Note that this is really a set, since the same (or in bad cases a different version of the same) class
+     * might be found within the classpath several times.
+     *
+     * @param clazz A {@link Class} to import
+     * @return {@link Location Locations} of the respective class file within the classpath
+     */
     @PublicAPI(usage = ACCESS)
     public static Set<Location> ofClass(Class<?> clazz) {
         return getLocationsOf(asResourceName(clazz.getName()) + ".class");
     }
 
+    /**
+     * @return All classes that can be found within the classpath. Note that ArchUnit does not distinguish between
+     * the classpath and the modulepath, thus for Java &gt;= 9 all locations of class files from the
+     * modulepath with be returned as well.
+     */
     @PublicAPI(usage = ACCESS)
     public static Set<Location> inClassPath() {
         ImmutableSet.Builder<Location> result = ImmutableSet.builder();
