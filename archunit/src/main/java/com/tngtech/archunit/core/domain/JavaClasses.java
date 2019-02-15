@@ -30,7 +30,7 @@ import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverrideDescription<JavaClasses> {
@@ -90,8 +90,10 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
 
     @PublicAPI(usage = ACCESS)
     public JavaClass get(String typeName) {
-        return checkNotNull(classes.get(typeName), "%s don't contain %s of type %s",
+        checkArgument(classes.containsKey(typeName), "%s do not contain %s of type %s",
                 getClass().getSimpleName(), JavaClass.class.getSimpleName(), typeName);
+
+        return classes.get(typeName);
     }
 
     static JavaClasses of(Iterable<JavaClass> classes) {
