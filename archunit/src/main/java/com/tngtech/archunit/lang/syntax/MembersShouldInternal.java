@@ -21,13 +21,13 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 
-class MembersShouldInternal extends ObjectsShouldInternal<JavaMember> {
+class MembersShouldInternal<MEMBER extends JavaMember> extends ObjectsShouldInternal<MEMBER> {
 
     MembersShouldInternal(
-            ClassesTransformer<? extends JavaMember> classesTransformer,
+            ClassesTransformer<? extends MEMBER> classesTransformer,
             Priority priority,
-            ArchCondition<JavaMember> condition,
-            Function<ArchCondition<JavaMember>, ArchCondition<JavaMember>> prepareCondition) {
+            ArchCondition<MEMBER> condition,
+            Function<ArchCondition<MEMBER>, ArchCondition<MEMBER>> prepareCondition) {
 
         super(classesTransformer, priority, condition, prepareCondition);
     }

@@ -61,6 +61,21 @@ class GivenFieldsInternal extends AbstractGivenMembersInternal<JavaField, GivenF
         return new FieldsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaField>forSubType(), prepareCondition);
     }
 
+    @Override
+    public GivenFieldsThatInternal that() {
+        return new GivenFieldsThatInternal(this, currentPredicate());
+    }
+
+    @Override
+    public GivenFieldsThatInternal and() {
+        return new GivenFieldsThatInternal(this, currentPredicate().thatANDs());
+    }
+
+    @Override
+    public GivenFieldsThatInternal or() {
+        return new GivenFieldsThatInternal(this, currentPredicate().thatORs());
+    }
+
     private static class GivenFieldsFactory implements Factory<JavaField, GivenFieldsInternal> {
         @Override
         public GivenFieldsInternal create(

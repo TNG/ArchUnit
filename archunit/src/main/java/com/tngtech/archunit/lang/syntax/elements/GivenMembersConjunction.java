@@ -32,9 +32,9 @@ public interface GivenMembersConjunction<MEMBER extends JavaMember> extends Give
     GivenMembersConjunction<MEMBER> or(DescribedPredicate<? super MEMBER> predicate);
 
     @PublicAPI(usage = ACCESS)
-    MembersThat<GivenMembersConjunction<MEMBER>> and();
+    MembersThat<? extends GivenMembersConjunction<MEMBER>> and();
 
     @PublicAPI(usage = ACCESS)
-    MembersThat<GivenMembersConjunction<MEMBER>> or();
+    MembersThat<? extends GivenMembersConjunction<MEMBER>> or();
 
 }
