@@ -76,6 +76,12 @@ abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF
         return with(currentPredicate().thatORs().add(predicate));
     }
 
+    @SuppressWarnings("unchecked")
+        // By convention SELF is always our own type
+    SELF self() {
+        return (SELF) this;
+    }
+
     PredicateAggregator<T> currentPredicate() {
         return relevantObjectsPredicates;
     }

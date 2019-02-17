@@ -497,7 +497,7 @@ public class GivenMembersTest {
         };
     }
 
-    private static ArchCondition<JavaMember> beAnnotatedWith(final Class<? extends Annotation> annotationType) {
+    static ArchCondition<JavaMember> beAnnotatedWith(final Class<? extends Annotation> annotationType) {
         return new ArchCondition<JavaMember>("be annotated with @%s", annotationType.getSimpleName()) {
             @Override
             public void check(JavaMember member, ConditionEvents events) {
@@ -514,11 +514,11 @@ public class GivenMembersTest {
         return member.getFullName().replaceAll("^[^(]*\\.", "");
     }
 
-    private static DescribedRuleStart described(GivenMembersConjunction<?> conjunction) {
+    static DescribedRuleStart described(GivenMembersConjunction<?> conjunction) {
         return new DescribedRuleStart(conjunction);
     }
 
-    private static class DescribedRuleStart {
+    static class DescribedRuleStart {
         private final GivenMembersConjunction<?> conjunction;
 
         DescribedRuleStart(GivenMembersConjunction<?> conjunction) {

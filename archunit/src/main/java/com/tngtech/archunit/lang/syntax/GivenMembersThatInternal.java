@@ -24,7 +24,6 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
-import com.tngtech.archunit.lang.syntax.elements.GivenMembersConjunction;
 import com.tngtech.archunit.lang.syntax.elements.MembersThat;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
@@ -37,175 +36,181 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-public class GivenMembersThatInternal<MEMBER extends JavaMember> implements MembersThat<GivenMembersConjunction<MEMBER>> {
-    private final AbstractGivenMembersInternal<MEMBER, ?> givenMembers;
-    private final PredicateAggregator<MEMBER> currentPredicate;
+public class GivenMembersThatInternal<
+        MEMBER extends JavaMember,
+        CONJUNCTION extends AbstractGivenMembersInternal<MEMBER, CONJUNCTION>
+        >
+        implements MembersThat<CONJUNCTION> {
 
-    GivenMembersThatInternal(AbstractGivenMembersInternal<MEMBER, ?> givenMembers, PredicateAggregator<MEMBER> currentPredicate) {
+    final CONJUNCTION givenMembers;
+    final PredicateAggregator<MEMBER> currentPredicate;
+
+    GivenMembersThatInternal(
+            CONJUNCTION givenMembers, PredicateAggregator<MEMBER> currentPredicate) {
         this.givenMembers = givenMembers;
         this.currentPredicate = currentPredicate;
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> haveName(String name) {
+    public CONJUNCTION haveName(String name) {
         return givenWith(have(name(name)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> dontHaveName(String name) {
+    public CONJUNCTION dontHaveName(String name) {
         return givenWith(dont(have(name(name))));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> haveNameMatching(String regex) {
+    public CONJUNCTION haveNameMatching(String regex) {
         return givenWith(have(nameMatching(regex)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> haveNameNotMatching(String regex) {
+    public CONJUNCTION haveNameNotMatching(String regex) {
         return givenWith(SyntaxPredicates.haveNameNotMatching(regex));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> arePublic() {
+    public CONJUNCTION arePublic() {
         return givenWith(SyntaxPredicates.arePublic());
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotPublic() {
+    public CONJUNCTION areNotPublic() {
         return givenWith(SyntaxPredicates.areNotPublic());
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areProtected() {
+    public CONJUNCTION areProtected() {
         return givenWith(SyntaxPredicates.areProtected());
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotProtected() {
+    public CONJUNCTION areNotProtected() {
         return givenWith(SyntaxPredicates.areNotProtected());
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> arePackagePrivate() {
+    public CONJUNCTION arePackagePrivate() {
         return givenWith(SyntaxPredicates.arePackagePrivate());
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotPackagePrivate() {
+    public CONJUNCTION areNotPackagePrivate() {
         return givenWith(SyntaxPredicates.areNotPackagePrivate());
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> arePrivate() {
+    public CONJUNCTION arePrivate() {
         return givenWith(SyntaxPredicates.arePrivate());
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotPrivate() {
+    public CONJUNCTION areNotPrivate() {
         return givenWith(SyntaxPredicates.areNotPrivate());
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> haveModifier(JavaModifier modifier) {
+    public CONJUNCTION haveModifier(JavaModifier modifier) {
         return givenWith(SyntaxPredicates.haveModifier(modifier));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> dontHaveModifier(JavaModifier modifier) {
+    public CONJUNCTION dontHaveModifier(JavaModifier modifier) {
         return givenWith(SyntaxPredicates.dontHaveModifier(modifier));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public CONJUNCTION areAnnotatedWith(Class<? extends Annotation> annotationType) {
         return givenWith(are(annotatedWith(annotationType)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public CONJUNCTION areNotAnnotatedWith(Class<? extends Annotation> annotationType) {
         return givenWith(are(not(annotatedWith(annotationType))));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areAnnotatedWith(String annotationTypeName) {
+    public CONJUNCTION areAnnotatedWith(String annotationTypeName) {
         return givenWith(are(annotatedWith(annotationTypeName)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotAnnotatedWith(String annotationTypeName) {
+    public CONJUNCTION areNotAnnotatedWith(String annotationTypeName) {
         return givenWith(are(not(annotatedWith(annotationTypeName))));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public CONJUNCTION areAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return givenWith(are(annotatedWith(predicate)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public CONJUNCTION areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return givenWith(are(not(annotatedWith(predicate))));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public CONJUNCTION areMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
         return givenWith(are(metaAnnotatedWith(annotationType)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public CONJUNCTION areNotMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
         return givenWith(are(not(metaAnnotatedWith(annotationType))));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areMetaAnnotatedWith(String annotationTypeName) {
+    public CONJUNCTION areMetaAnnotatedWith(String annotationTypeName) {
         return givenWith(are(metaAnnotatedWith(annotationTypeName)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotMetaAnnotatedWith(String annotationTypeName) {
+    public CONJUNCTION areNotMetaAnnotatedWith(String annotationTypeName) {
         return givenWith(are(not(metaAnnotatedWith(annotationTypeName))));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public CONJUNCTION areMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return givenWith(are(metaAnnotatedWith(predicate)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public CONJUNCTION areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return givenWith(are(not(metaAnnotatedWith(predicate))));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areDeclaredIn(Class<?> javaClass) {
+    public CONJUNCTION areDeclaredIn(Class<?> javaClass) {
         return givenWith(are(declaredIn(javaClass)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotDeclaredIn(Class<?> javaClass) {
+    public CONJUNCTION areNotDeclaredIn(Class<?> javaClass) {
         return givenWith(are(not(declaredIn(javaClass))));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areDeclaredIn(String className) {
+    public CONJUNCTION areDeclaredIn(String className) {
         return givenWith(are(declaredIn(className)));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areNotDeclaredIn(String className) {
+    public CONJUNCTION areNotDeclaredIn(String className) {
         return givenWith(are(not(declaredIn(className))));
     }
 
     @Override
-    public GivenMembersConjunction<MEMBER> areDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+    public CONJUNCTION areDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return givenWith(are(declaredInClassesThat(predicate)));
     }
 
     @Override
-    public ClassesThat<GivenMembersConjunction<MEMBER>> areDeclaredInClassesThat() {
-        return new MembersDeclaredInClassesThat<>(new Function<DescribedPredicate<? super JavaClass>, GivenMembersConjunction<MEMBER>>() {
+    public ClassesThat<CONJUNCTION> areDeclaredInClassesThat() {
+        return new MembersDeclaredInClassesThat<>(new Function<DescribedPredicate<? super JavaClass>, CONJUNCTION>() {
             @Override
-            public GivenMembersConjunction<MEMBER> apply(DescribedPredicate<? super JavaClass> predicate) {
+            public CONJUNCTION apply(DescribedPredicate<? super JavaClass> predicate) {
                 return givenWith(are(declaredInClassesThat(predicate)));
             }
         });
@@ -215,7 +220,7 @@ public class GivenMembersThatInternal<MEMBER extends JavaMember> implements Memb
         return declaredIn(predicate).as("declared in classes that %s", predicate.getDescription());
     }
 
-    private AbstractGivenMembersInternal<MEMBER, ?> givenWith(DescribedPredicate<? super MEMBER> predicate) {
+    private CONJUNCTION givenWith(DescribedPredicate<? super MEMBER> predicate) {
         return givenMembers.with(currentPredicate.add(predicate));
     }
 }

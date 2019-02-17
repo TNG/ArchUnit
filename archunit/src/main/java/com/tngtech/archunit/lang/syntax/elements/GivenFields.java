@@ -22,6 +22,9 @@ import com.tngtech.archunit.core.domain.JavaField;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface GivenFields extends GivenMembers<JavaField> {
+    @Override
+    @PublicAPI(usage = ACCESS)
+    FieldsThat<? extends GivenFieldsConjunction> that();
 
     @Override
     @PublicAPI(usage = ACCESS)
