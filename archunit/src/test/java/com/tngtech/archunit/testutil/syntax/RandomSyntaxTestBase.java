@@ -42,10 +42,17 @@ public abstract class RandomSyntaxTestBase {
     protected static final Random random = new Random();
     private static final int NUMBER_OF_RULES_TO_BUILD = 1000;
 
-    public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed, DescriptionReplacement... replacements) {
+    public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed,
+            DescriptionReplacement... replacements) {
+        return createRandomRules(seed, MethodChoiceStrategy.chooseAllArchUnitSyntaxMethods(), replacements);
+    }
+
+    public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed,
+            MethodChoiceStrategy methodChoiceStrategy,
+            DescriptionReplacement... replacements) {
         List<List<?>> result = new ArrayList<>();
         for (int i = 0; i < NUMBER_OF_RULES_TO_BUILD; i++) {
-            SyntaxSpec<?> spec = new SyntaxSpec<>(seed, ExpectedDescription.from(seed, replacements));
+            SyntaxSpec<?> spec = new SyntaxSpec<>(seed, methodChoiceStrategy, ExpectedDescription.from(seed, replacements));
             result.add(ImmutableList.of(spec.getActualArchRule(), spec.getExpectedDescription()));
         }
         return result;
@@ -84,9 +91,9 @@ public abstract class RandomSyntaxTestBase {
         private final ExpectedDescription expectedDescription;
         private final ArchRule actualArchRule;
 
-        SyntaxSpec(RandomSyntaxSeed<T> seed, ExpectedDescription expectedDescription) {
+        SyntaxSpec(RandomSyntaxSeed<T> seed, MethodChoiceStrategy methodChoiceStrategy, ExpectedDescription expectedDescription) {
             this.expectedDescription = expectedDescription;
-            Step firstStep = new PartialStep(expectedDescription, seed.getType(), seed.getValue());
+            Step firstStep = new PartialStep(methodChoiceStrategy, expectedDescription, seed.getType(), seed.getValue());
             LOG.debug("Starting from {}", firstStep);
             try {
                 LastStep result = firstStep.continueSteps(0, MAX_STEPS);
@@ -182,25 +189,29 @@ public abstract class RandomSyntaxTestBase {
     private static class PartialStep extends Step {
         private static final ParameterProvider parameterProvider = new ParameterProvider();
 
+        private final MethodChoiceStrategy methodChoiceStrategy;
         final Method method;
         final Parameters parameters;
 
-        <T> PartialStep(ExpectedDescription expectedDescription, Class<T> type, T currentValue) {
-            this(expectedDescription, new TypedValue(type, currentValue),
-                    chooseRandomMethod(type).get());
+        <T> PartialStep(MethodChoiceStrategy methodChoiceStrategy, ExpectedDescription expectedDescription, TypeToken<T> type, T currentValue) {
+            this(methodChoiceStrategy, expectedDescription, new TypedValue(type, currentValue),
+                    methodChoiceStrategy.choose(type).get());
         }
 
-        private PartialStep(ExpectedDescription expectedDescription, TypedValue currentValue, Method method) {
-            this(expectedDescription, currentValue, method, getParametersFor(method));
+        private PartialStep(MethodChoiceStrategy methodChoiceStrategy, ExpectedDescription expectedDescription, TypedValue currentValue,
+                Method method) {
+            this(methodChoiceStrategy, expectedDescription, currentValue, method, getParametersFor(method));
         }
 
         private PartialStep(
+                MethodChoiceStrategy methodChoiceStrategy,
                 ExpectedDescription expectedDescription,
                 TypedValue currentValue,
                 Method method,
                 Parameters parameters) {
 
             super(expectedDescription, currentValue);
+            this.methodChoiceStrategy = methodChoiceStrategy;
             this.method = method;
             this.parameters = parameters;
             expectedDescription.add(getDescription());
@@ -220,45 +231,26 @@ public abstract class RandomSyntaxTestBase {
                 throw new IllegalStateException("Creating rule was not finished within " + maxSteps + " steps");
             }
 
-            TypedValue nextValue = new TypedValue(returnType(method, currentValue.value),
+            TypedValue nextValue = new TypedValue(returnType(method, currentValue),
                     invoke(method, currentValue.value, parameters.getValues()));
             checkState(nextValue.value != null,
                     "Invoking %s() on %s returned null (%s.java:0)",
                     method.getName(), currentValue.value, currentValue.value.getClass().getSimpleName());
 
-            Optional<Method> method = chooseRandomMethod(nextValue.type);
+            Optional<Method> method = methodChoiceStrategy.choose(nextValue.type);
             Step nextStep = method.isPresent() && shouldNotFinish(nextValue)
-                    ? new PartialStep(expectedDescription, nextValue, method.get(), getParametersFor(method.get()))
+                    ? new PartialStep(methodChoiceStrategy, expectedDescription, nextValue, method.get(), getParametersFor(method.get()))
                     : new LastStep(expectedDescription, nextValue);
             LOG.debug("Next step is {}", nextStep);
             return nextStep.continueSteps(currentStepCount + 1, maxSteps);
         }
 
         private boolean shouldNotFinish(TypedValue nextValue) {
-            return !ArchRule.class.isAssignableFrom(nextValue.type) || random.nextBoolean();
+            return !ArchRule.class.isAssignableFrom(nextValue.getRawType()) || random.nextBoolean();
         }
 
-        private Class<?> returnType(Method method, Object value) {
-            return TypeToken.of(value.getClass()).resolveType(method.getGenericReturnType()).getRawType();
-        }
-
-        private static Optional<Method> chooseRandomMethod(Class<?> clazz) {
-            List<Method> methods = getPossibleMethodCandidates(clazz);
-            methods.removeAll(asList(ArchRule.class.getMethods()));
-            return !methods.isEmpty()
-                    ? Optional.of(methods.get(random.nextInt(methods.size())))
-                    : Optional.<Method>absent();
-        }
-
-        private static List<Method> getPossibleMethodCandidates(Class<?> clazz) {
-            List<Method> result = new ArrayList<>();
-            if (clazz.isInterface()) {
-                result.addAll(asList(clazz.getDeclaredMethods()));
-            }
-            for (Class<?> i : clazz.getInterfaces()) {
-                result.addAll(getPossibleMethodCandidates(i));
-            }
-            return result;
+        private TypeToken<?> returnType(Method method, TypedValue value) {
+            return value.type.resolveType(method.getGenericReturnType());
         }
 
         public String getDescription() {
@@ -277,8 +269,8 @@ public abstract class RandomSyntaxTestBase {
     private static class LastStep extends Step {
         private LastStep(ExpectedDescription expectedDescription, TypedValue currentValue) {
             super(expectedDescription, currentValue);
-            checkArgument(ArchRule.class.isAssignableFrom(currentValue.type),
-                    "Type %s must be assignable to ArchRule", currentValue.type.getName());
+            checkArgument(ArchRule.class.isAssignableFrom(currentValue.getRawType()),
+                    "Type %s must be assignable to ArchRule", currentValue.getRawType().getName());
         }
 
         @Override
@@ -299,13 +291,17 @@ public abstract class RandomSyntaxTestBase {
     }
 
     private static class TypedValue {
-        private final Class<?> type;
+        private final TypeToken<?> type;
         private final Object value;
 
         // NOTE: type != value.getClass(), i.e. it's important what exactly the interface method returned
-        private TypedValue(Class<?> type, Object value) {
+        private TypedValue(TypeToken<?> type, Object value) {
             this.type = type;
             this.value = value;
+        }
+
+        Class<?> getRawType() {
+            return type.getRawType();
         }
 
         @Override
@@ -326,7 +322,8 @@ public abstract class RandomSyntaxTestBase {
                             return new Parameter("AnnotationType", "@AnnotationType");
                         } else if (methodName.toLowerCase().contains("assign")
                                 || methodName.toLowerCase().contains("implement")
-                                || methodName.toLowerCase().contains("declared")) {
+                                || methodName.toLowerCase().contains("declared")
+                                || methodName.toLowerCase().contains("type")) {
                             return new Parameter("some.Type", "some.Type");
                         } else if (methodName.equals("be") || methodName.equals("notBe")) {
                             return new Parameter("some.Type", "some.Type");

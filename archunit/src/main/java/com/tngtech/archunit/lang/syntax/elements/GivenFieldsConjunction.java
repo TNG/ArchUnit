@@ -15,14 +15,26 @@
  */
 package com.tngtech.archunit.lang.syntax.elements;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaField;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
 public interface GivenFieldsConjunction extends GivenMembersConjunction<JavaField> {
+    @Override
+    @PublicAPI(usage = ACCESS)
+    FieldsThat<? extends GivenFieldsConjunction> and();
 
     @Override
+    @PublicAPI(usage = ACCESS)
+    FieldsThat<? extends GivenFieldsConjunction> or();
+
+    @Override
+    @PublicAPI(usage = ACCESS)
     GivenFieldsConjunction and(DescribedPredicate<? super JavaField> predicate);
 
     @Override
+    @PublicAPI(usage = ACCESS)
     GivenFieldsConjunction or(DescribedPredicate<? super JavaField> predicate);
 }

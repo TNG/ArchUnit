@@ -42,18 +42,23 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
     }
 
     @Override
-    public GivenMembersThatInternal<MEMBER> that() {
-        return new GivenMembersThatInternal<>(this, currentPredicate());
+    public GivenMembersThatInternal<MEMBER, SELF> that() {
+        return new GivenMembersThatInternal<>(self(), currentPredicate());
     }
 
     @Override
-    public GivenMembersThatInternal<MEMBER> and() {
-        return new GivenMembersThatInternal<>(this, currentPredicate().thatANDs());
+    public GivenMembersThatInternal<MEMBER, SELF> and() {
+        return new GivenMembersThatInternal<>(self(), currentPredicate().thatANDs());
     }
 
     @Override
-    public GivenMembersThatInternal<MEMBER> or() {
-        return new GivenMembersThatInternal<>(this, currentPredicate().thatORs());
+    public GivenMembersThatInternal<MEMBER, SELF> or() {
+        return new GivenMembersThatInternal<>(self(), currentPredicate().thatORs());
+    }
+
+    @Override
+    public ArchRule should(ArchCondition<? super MEMBER> condition) {
+        return new MembersShouldInternal<>(finishedClassesTransformer(), priority, condition.<MEMBER>forSubType(), this.prepareCondition);
     }
 
     static class GivenMembersInternal extends AbstractGivenMembersInternal<JavaMember, GivenMembersInternal> {
@@ -84,11 +89,6 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
                 Optional<String> overriddenDescription) {
 
             super(factory, priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
-        }
-
-        @Override
-        public ArchRule should(ArchCondition<? super JavaMember> condition) {
-            return new MembersShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMember>forSubType(), prepareCondition);
         }
 
         private static class GivenMembersFactory implements AbstractGivenObjects.Factory<JavaMember, GivenMembersInternal> {

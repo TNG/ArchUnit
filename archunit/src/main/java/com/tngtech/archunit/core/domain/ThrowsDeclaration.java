@@ -98,6 +98,7 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
      * <pre><code>void method() throws SomeException {...}</code></pre>
      * the {@link JavaClass} representing <code>SomeException</code> will be returned
      */
+    @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass getType() {
         return type;

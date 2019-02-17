@@ -34,7 +34,7 @@ public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<ME
      * @return A syntax element, which can be used to restrict the members under consideration
      */
     @PublicAPI(usage = ACCESS)
-    MembersThat<GivenMembersConjunction<MEMBER>> that();
+    MembersThat<? extends GivenMembersConjunction<MEMBER>> that();
 
     /**
      * Allows to restrict the set of members under consideration. E.g.
