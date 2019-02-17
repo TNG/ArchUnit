@@ -180,6 +180,14 @@ class ExamplesIntegrationTest {
                         .setting().field(ClassViolatingCodingRules.class, "log")
                         .inLine(9));
 
+        expectFailures.ofRule("no classes should use JodaTime, because modern Java projects use the [java.time] API instead")
+                .by(callFromMethod(ClassViolatingCodingRules.class, "jodaTimeIsBad")
+                        .toMethod(org.joda.time.DateTime.class, "now")
+                        .inLine(31)
+                        .asDependency())
+                .by(method(ClassViolatingCodingRules.class, "jodaTimeIsBad")
+                        .withReturnType(org.joda.time.DateTime.class));
+
         expectFailures.ofRule("no classes should access standard streams and no classes should throw generic exceptions");
         expectAccessToStandardStreams(expectFailures);
         expectThrownGenericExceptions(expectFailures);
