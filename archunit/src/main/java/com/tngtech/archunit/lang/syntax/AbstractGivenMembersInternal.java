@@ -42,18 +42,18 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
     }
 
     @Override
-    public GivenMembersThatInternal<MEMBER, SELF> that() {
-        return new GivenMembersThatInternal<>(self(), currentPredicate());
+    public MembersThatInternal<MEMBER, SELF> that() {
+        return new MembersThatInternal<>(self(), currentPredicate());
     }
 
     @Override
-    public GivenMembersThatInternal<MEMBER, SELF> and() {
-        return new GivenMembersThatInternal<>(self(), currentPredicate().thatANDs());
+    public MembersThatInternal<MEMBER, SELF> and() {
+        return new MembersThatInternal<>(self(), currentPredicate().thatANDs());
     }
 
     @Override
-    public GivenMembersThatInternal<MEMBER, SELF> or() {
-        return new GivenMembersThatInternal<>(self(), currentPredicate().thatORs());
+    public MembersThatInternal<MEMBER, SELF> or() {
+        return new MembersThatInternal<>(self(), currentPredicate().thatORs());
     }
 
     @Override

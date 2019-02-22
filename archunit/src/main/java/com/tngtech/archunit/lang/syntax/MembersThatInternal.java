@@ -36,7 +36,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-public class GivenMembersThatInternal<
+public class MembersThatInternal<
         MEMBER extends JavaMember,
         CONJUNCTION extends AbstractGivenMembersInternal<MEMBER, CONJUNCTION>
         >
@@ -45,7 +45,7 @@ public class GivenMembersThatInternal<
     final CONJUNCTION givenMembers;
     final PredicateAggregator<MEMBER> currentPredicate;
 
-    GivenMembersThatInternal(
+    MembersThatInternal(
             CONJUNCTION givenMembers, PredicateAggregator<MEMBER> currentPredicate) {
         this.givenMembers = givenMembers;
         this.currentPredicate = currentPredicate;

@@ -23,10 +23,10 @@ import com.tngtech.archunit.lang.syntax.elements.FieldsThat;
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.type;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-public class GivenFieldsThatInternal extends GivenMembersThatInternal<JavaField, GivenFieldsInternal>
+public class FieldsThatInternal extends MembersThatInternal<JavaField, GivenFieldsInternal>
         implements FieldsThat<GivenFieldsInternal> {
 
-    GivenFieldsThatInternal(GivenFieldsInternal givenFields, PredicateAggregator<JavaField> currentPredicate) {
+    FieldsThatInternal(GivenFieldsInternal givenFields, PredicateAggregator<JavaField> currentPredicate) {
         super(givenFields, currentPredicate);
     }
 
