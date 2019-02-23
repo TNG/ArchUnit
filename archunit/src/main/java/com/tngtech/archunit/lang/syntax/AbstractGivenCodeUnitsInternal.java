@@ -41,6 +41,21 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
         super(factory, priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
     }
 
+    @Override
+    public CodeUnitsThatInternal<MEMBER, SELF> that() {
+        return new CodeUnitsThatInternal<>(self(), currentPredicate());
+    }
+
+    @Override
+    public CodeUnitsThatInternal<MEMBER, SELF> and() {
+        return new CodeUnitsThatInternal<>(self(), currentPredicate().thatANDs());
+    }
+
+    @Override
+    public CodeUnitsThatInternal<MEMBER, SELF> or() {
+        return new CodeUnitsThatInternal<>(self(), currentPredicate().thatORs());
+    }
+
     static class GivenCodeUnitsInternal extends AbstractGivenCodeUnitsInternal<JavaCodeUnit, GivenCodeUnitsInternal> {
 
         GivenCodeUnitsInternal(Priority priority, ClassesTransformer<JavaCodeUnit> classesTransformer) {

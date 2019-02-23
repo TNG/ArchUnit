@@ -475,7 +475,7 @@ public class GivenMembersTest {
         assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMessages);
     }
 
-    private void assertViolation(EvaluationResult result) {
+    static void assertViolation(EvaluationResult result) {
         assertThat(result.hasViolation()).as("result has violation").isTrue();
     }
 
@@ -510,7 +510,7 @@ public class GivenMembersTest {
         };
     }
 
-    private static String formatMember(JavaMember member) {
+    static String formatMember(JavaMember member) {
         return member.getFullName().replaceAll("^[^(]*\\.", "");
     }
 

@@ -335,7 +335,9 @@ public abstract class RandomSyntaxTestBase {
                 .add(new SpecificParameterProvider(String[].class) {
                     @Override
                     Parameter get(String methodName, TypeToken<?> type) {
-                        return new Parameter(new String[]{"one", "two"}, "['one', 'two']");
+                        return methodName.toLowerCase().contains("type") ?
+                                new Parameter(new String[]{"first.Type", "second.Type"}, "[first.Type, second.Type]") :
+                                new Parameter(new String[]{"one", "two"}, "['one', 'two']");
                     }
                 })
                 .add(new SpecificParameterProvider(Class.class) {
