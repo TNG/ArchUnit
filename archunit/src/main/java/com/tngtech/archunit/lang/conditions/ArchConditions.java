@@ -88,7 +88,7 @@ import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicate
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
-import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.parameterTypes;
+import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static java.util.Arrays.asList;
 
@@ -160,7 +160,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> callMethod(Class<?> owner, String methodName, Class<?>... parameterTypes) {
         return callMethodWhere(JavaCall.Predicates.target(owner(type(owner)))
                 .and(JavaCall.Predicates.target(name(methodName)))
-                .and(JavaCall.Predicates.target(parameterTypes(parameterTypes))))
+                .and(JavaCall.Predicates.target(rawParameterTypes(parameterTypes))))
                 .as("call method %s", Formatters.formatMethodSimple(
                         owner.getSimpleName(), methodName, namesOf(parameterTypes)));
     }
@@ -169,7 +169,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> callMethod(String ownerName, String methodName, String... parameterTypeNames) {
         return callMethodWhere(JavaCall.Predicates.target(With.<JavaClass>owner(name(ownerName)))
                 .and(JavaCall.Predicates.target(name(methodName)))
-                .and(JavaCall.Predicates.target(parameterTypes(parameterTypeNames))))
+                .and(JavaCall.Predicates.target(rawParameterTypes(parameterTypeNames))))
                 .as("call method %s", Formatters.formatMethodSimple(
                         ensureSimpleName(ownerName), methodName, asList(parameterTypeNames)));
     }
@@ -193,7 +193,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> callConstructor(Class<?> owner, Class<?>... parameterTypes) {
         return callConstructorWhere(JavaCall.Predicates.target(owner(type(owner)))
                 .and(JavaCall.Predicates.target(name(CONSTRUCTOR_NAME)))
-                .and(JavaCall.Predicates.target(parameterTypes(parameterTypes))))
+                .and(JavaCall.Predicates.target(rawParameterTypes(parameterTypes))))
                 .as("call constructor %s", Formatters.formatMethodSimple(
                         owner.getSimpleName(), CONSTRUCTOR_NAME, namesOf(parameterTypes)));
     }
@@ -202,7 +202,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> callConstructor(String ownerName, String... parameterTypeNames) {
         return callConstructorWhere(JavaCall.Predicates.target(With.<JavaClass>owner(name(ownerName)))
                 .and(JavaCall.Predicates.target(name(CONSTRUCTOR_NAME)))
-                .and(JavaCall.Predicates.target(parameterTypes(parameterTypeNames))))
+                .and(JavaCall.Predicates.target(rawParameterTypes(parameterTypeNames))))
                 .as("call constructor %s", Formatters.formatMethodSimple(
                         ensureSimpleName(ownerName), CONSTRUCTOR_NAME, asList(parameterTypeNames)));
     }

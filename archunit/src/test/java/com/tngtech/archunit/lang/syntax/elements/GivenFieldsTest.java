@@ -20,8 +20,10 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.beAnnotatedWith;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.described;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.formatMember;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,14 +64,6 @@ public class GivenFieldsTest {
         }).evaluate(importClasses(ClassWithVariousMembers.class));
 
         assertThat(result.getFailureReport().getDetails()).containsOnly(FIELD_A);
-    }
-
-    private void assertViolation(EvaluationResult result) {
-        assertThat(result.hasViolation()).as("result has violation").isTrue();
-    }
-
-    private static String formatMember(JavaMember member) {
-        return member.getFullName().replaceAll("^[^(]*\\.", "");
     }
 
     private static final String FIELD_A = "fieldA";
