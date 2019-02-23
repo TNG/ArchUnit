@@ -14,7 +14,7 @@ import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
-import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.parameterTypes;
+import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.testobjects.TestObjects.CALLER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -29,7 +29,7 @@ public class ClassCallsCodeUnitConditionTest {
     public void call_with_correct_name_and_params_matches() {
         ConditionEvents events = checkCondition(
                 callMethodWhere(target(name(TargetClass.appendStringMethod))
-                        .and(target(parameterTypes(TargetClass.appendStringParams)))
+                        .and(target(rawParameterTypes(TargetClass.appendStringParams)))
                         .and(target(owner(type(TargetClass.class))))));
 
         assertThat(events).containNoViolation();
@@ -38,7 +38,7 @@ public class ClassCallsCodeUnitConditionTest {
     @Test
     public void call_without_argument_doesnt_match() {
         ConditionEvents events = checkCondition(callMethodWhere(
-                target(parameterTypes(new Class[0]))
+                target(rawParameterTypes(new Class[0]))
                         .and(target(name(TargetClass.appendStringMethod))
                                 .and(target(owner(type(TargetClass.class)))))));
 
@@ -49,7 +49,7 @@ public class ClassCallsCodeUnitConditionTest {
     public void call_with_wrong_method_name_doesnt_match() {
         ConditionEvents events = checkCondition(
                 callMethodWhere(target(name("wrong"))
-                        .and(target(parameterTypes(TargetClass.appendStringParams)))
+                        .and(target(rawParameterTypes(TargetClass.appendStringParams)))
                         .and(target(owner(type(TargetClass.class))))));
 
         assertThat(events).haveOneViolationMessageContaining(VIOLATION_MESSAGE_PARTS);

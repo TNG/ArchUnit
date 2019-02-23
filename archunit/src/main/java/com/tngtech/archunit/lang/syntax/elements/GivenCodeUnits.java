@@ -25,5 +25,9 @@ public interface GivenCodeUnits<CODE_UNIT extends JavaCodeUnit> extends GivenMem
 
     @Override
     @PublicAPI(usage = ACCESS)
+    CodeUnitsThat<? extends GivenCodeUnitsConjunction<CODE_UNIT>> that();
+
+    @Override
+    @PublicAPI(usage = ACCESS)
     GivenCodeUnitsConjunction<CODE_UNIT> that(DescribedPredicate<? super CODE_UNIT> predicate);
 }
