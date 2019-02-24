@@ -116,7 +116,7 @@ public class PublicAPIRules {
 
             private boolean equivalentMethod(JavaMethod method, String name, Class<?>... paramTypes) {
                 return method.getName().equals(name) &&
-                        method.getParameters().getNames().equals(JavaClass.namesOf(paramTypes));
+                        method.getRawParameterTypes().getNames().equals(JavaClass.namesOf(paramTypes));
             }
 
             private boolean enumMethod(JavaMethod methodToCheck, String name, Class<?>... paramTypes) {
@@ -216,7 +216,7 @@ public class PublicAPIRules {
 
             private boolean isPublicAPISuperMethod(JavaMethod candidate, JavaMethod methodToCheck) {
                 return candidate.getName().equals(methodToCheck.getName()) &&
-                        candidate.getParameters().equals(methodToCheck.getParameters()) &&
+                        candidate.getRawParameterTypes().equals(methodToCheck.getRawParameterTypes()) &&
                         candidate.isAnnotatedWith(PublicAPI.class);
             }
         };

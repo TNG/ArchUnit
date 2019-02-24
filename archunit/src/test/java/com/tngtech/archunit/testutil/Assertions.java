@@ -198,7 +198,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
                     @Override
                     public boolean matches(JavaAccess<?> access) {
                         return to(targetClass, CONSTRUCTOR_NAME).matches(access) &&
-                                ((ConstructorCallTarget) access.getTarget()).getParameters().getNames().equals(paramTypeNames);
+                                ((ConstructorCallTarget) access.getTarget()).getRawParameterTypes().getNames().equals(paramTypeNames);
                     }
                 };
             }
@@ -416,6 +416,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         public void isEquivalentTo(Method method) {
             super.isEquivalentTo(method);
             assertThat(actual.getParameters()).matches(method.getParameterTypes());
+            assertThat(actual.getRawParameterTypes()).matches(method.getParameterTypes());
             assertThat(actual.getReturnType()).matches(method.getReturnType());
             assertThat(actual.getRawReturnType()).matches(method.getReturnType());
         }
@@ -423,6 +424,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         public void isEquivalentTo(Constructor<?> constructor) {
             super.isEquivalentTo(constructor);
             assertThat(actual.getParameters()).matches(constructor.getParameterTypes());
+            assertThat(actual.getRawParameterTypes()).matches(constructor.getParameterTypes());
             assertThat(actual.getReturnType()).matches(void.class);
             assertThat(actual.getRawReturnType()).matches(void.class);
         }

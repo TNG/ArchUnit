@@ -243,7 +243,7 @@ public class TestUtils {
             for (T call : callsFromSelf) {
                 if (call.getTargetOwner().isEquivalentTo(targetOwner) &&
                         call.getTarget().getName().equals(methodName) &&
-                        call.getTarget().getParameters().getNames().equals(paramNames)) {
+                        call.getTarget().getRawParameterTypes().getNames().equals(paramNames)) {
                     return call;
                 }
             }

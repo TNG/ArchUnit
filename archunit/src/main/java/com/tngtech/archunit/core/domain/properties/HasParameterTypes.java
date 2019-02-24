@@ -30,9 +30,15 @@ import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaClassList.GET_NAMES;
 
 public interface HasParameterTypes {
-    // FIXME: We should add 'ParameterTypes getParameterTypes()' instead, this is bad semantics -> ParameterTypes can then also support generics in the future.
+    /**
+     * @deprecated Use {@link #getRawParameterTypes()} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     JavaClassList getParameters();
+
+    @PublicAPI(usage = ACCESS)
+    JavaClassList getRawParameterTypes();
 
     final class Predicates {
         private Predicates() {
@@ -77,7 +83,7 @@ public interface HasParameterTypes {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasParameterTypes> rawParameterTypes(final List<String> typeNames) {
-            return new ParameterTypesPredicate(equalTo(typeNames).onResultOf(GET_NAMES)
+            return new RawParameterTypesPredicate(equalTo(typeNames).onResultOf(GET_NAMES)
                     .as("[%s]", formatMethodParameterTypeNames(typeNames)));
         }
 
@@ -87,29 +93,29 @@ public interface HasParameterTypes {
         @Deprecated
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasParameterTypes> parameterTypes(final DescribedPredicate<JavaClassList> predicate) {
-            return adjustDeprecatedDescription(new ParameterTypesPredicate(predicate));
+            return adjustDeprecatedDescription(new RawParameterTypesPredicate(predicate));
         }
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasParameterTypes> rawParameterTypes(final DescribedPredicate<List<JavaClass>> predicate) {
-            return new ParameterTypesPredicate(predicate);
+            return new RawParameterTypesPredicate(predicate);
         }
 
         private static DescribedPredicate<HasParameterTypes> adjustDeprecatedDescription(DescribedPredicate<HasParameterTypes> predicate) {
             return predicate.as(predicate.getDescription().replace("raw parameter", "parameter"));
         }
 
-        private static class ParameterTypesPredicate extends DescribedPredicate<HasParameterTypes> {
+        private static class RawParameterTypesPredicate extends DescribedPredicate<HasParameterTypes> {
             private final DescribedPredicate<? super JavaClassList> predicate;
 
-            ParameterTypesPredicate(DescribedPredicate<? super JavaClassList> predicate) {
+            RawParameterTypesPredicate(DescribedPredicate<? super JavaClassList> predicate) {
                 super("raw parameter types " + predicate.getDescription());
                 this.predicate = predicate;
             }
 
             @Override
             public boolean apply(HasParameterTypes input) {
-                return predicate.apply(input.getParameters());
+                return predicate.apply(input.getRawParameterTypes());
             }
         }
     }

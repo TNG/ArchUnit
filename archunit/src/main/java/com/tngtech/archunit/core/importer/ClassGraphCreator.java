@@ -291,7 +291,7 @@ class ClassGraphCreator implements ImportContext {
 
         void registerMethods(Set<JavaMethod> methods) {
             for (JavaMethod method : methods) {
-                for (JavaClass parameter : method.getParameters()) {
+                for (JavaClass parameter : method.getRawParameterTypes()) {
                     methodParameterTypeDependencies.put(parameter, method);
                 }
                 methodReturnTypeDependencies.put(method.getRawReturnType(), method);
@@ -303,7 +303,7 @@ class ClassGraphCreator implements ImportContext {
 
         void registerConstructors(Set<JavaConstructor> constructors) {
             for (JavaConstructor constructor : constructors) {
-                for (JavaClass parameter : constructor.getParameters()) {
+                for (JavaClass parameter : constructor.getRawParameterTypes()) {
                     constructorParameterTypeDependencies.put(parameter, constructor);
                 }
                 for (ThrowsDeclaration<JavaConstructor> throwsDeclaration : constructor.getThrowsClause()) {
