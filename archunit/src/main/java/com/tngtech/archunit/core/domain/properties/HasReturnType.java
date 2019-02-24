@@ -25,8 +25,15 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 
 public interface HasReturnType {
+    /**
+     * @deprecated Use {@link #getRawReturnType()} instead.
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     JavaClass getReturnType();
+
+    @PublicAPI(usage = ACCESS)
+    JavaClass getRawReturnType();
 
     final class Predicates {
         private Predicates() {
@@ -87,7 +94,7 @@ public interface HasReturnType {
         public static final ChainableFunction<HasReturnType, JavaClass> GET_RAW_RETURN_TYPE = new ChainableFunction<HasReturnType, JavaClass>() {
             @Override
             public JavaClass apply(HasReturnType input) {
-                return input.getReturnType();
+                return input.getRawReturnType();
             }
         };
 

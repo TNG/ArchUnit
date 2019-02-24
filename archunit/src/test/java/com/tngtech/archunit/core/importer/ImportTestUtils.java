@@ -121,7 +121,7 @@ public class ImportTestUtils {
         return result.build();
     }
 
-    static JavaClass javaClassFor(Class<?> owner) {
+    private static JavaClass javaClassFor(Class<?> owner) {
         return new DomainBuilders.JavaClassBuilder()
                 .withType(JavaType.From.name(owner.getName()))
                 .withInterface(owner.isInterface())
@@ -234,7 +234,7 @@ public class ImportTestUtils {
         return new DomainBuilders.ConstructorCallTargetBuilder()
                 .withOwner(target.getOwner())
                 .withParameters(target.getParameters())
-                .withReturnType(target.getReturnType())
+                .withReturnType(target.getRawReturnType())
                 .withConstructor(Suppliers.ofInstance(Optional.of(target)))
                 .build();
     }
@@ -253,7 +253,7 @@ public class ImportTestUtils {
                 .withOwner(target.getOwner())
                 .withName(target.getName())
                 .withParameters(target.getParameters())
-                .withReturnType(target.getReturnType())
+                .withReturnType(target.getRawReturnType())
                 .withMethods(resolveSupplier)
                 .build();
     }
