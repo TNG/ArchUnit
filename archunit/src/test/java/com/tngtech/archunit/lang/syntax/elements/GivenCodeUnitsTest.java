@@ -16,6 +16,7 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
@@ -49,7 +50,7 @@ public class GivenCodeUnitsTest {
     }
 
     @DataProvider
-    public static Object[][] restricted_property_rule_starts() {
+    public static Object[][] restricted_parameter_types_rule_starts() {
         return testForEach(
                 described(codeUnits().that().haveRawParameterTypes(String.class)),
                 described(codeUnits().that().haveRawParameterTypes(String.class.getName())),
@@ -57,8 +58,8 @@ public class GivenCodeUnitsTest {
     }
 
     @Test
-    @UseDataProvider("restricted_property_rule_starts")
-    public void property_predicates(DescribedRuleStart ruleStart) {
+    @UseDataProvider("restricted_parameter_types_rule_starts")
+    public void parameter_types_predicates(DescribedRuleStart ruleStart) {
         EvaluationResult result = ruleStart.should(new ArchCondition<JavaMember>("condition text") {
             @Override
             public void check(JavaMember item, ConditionEvents events) {
@@ -67,6 +68,27 @@ public class GivenCodeUnitsTest {
         }).evaluate(importClasses(ClassWithVariousMembers.class));
 
         assertThat(result.getFailureReport().getDetails()).containsOnly(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG);
+    }
+
+    @DataProvider
+    public static Object[][] restricted_return_type_rule_starts() {
+        return testForEach(
+                described(codeUnits().that().haveRawReturnType(String.class)),
+                described(codeUnits().that().haveRawReturnType(String.class.getName())),
+                described(codeUnits().that().haveRawReturnType(equivalentTo(String.class))));
+    }
+
+    @Test
+    @UseDataProvider("restricted_return_type_rule_starts")
+    public void return_type_predicates(DescribedRuleStart ruleStart) {
+        EvaluationResult result = ruleStart.should(new ArchCondition<JavaMember>("condition text") {
+            @Override
+            public void check(JavaMember item, ConditionEvents events) {
+                events.add(SimpleConditionEvent.violated(item, formatMember(item)));
+            }
+        }).evaluate(importClasses(ClassWithVariousMembers.class));
+
+        assertThat(result.getFailureReport().getDetails()).containsOnly(METHOD_ONE_ARG, METHOD_THREE_ARGS);
     }
 
     private static DescribedPredicate<List<JavaClass>> oneParameterOfType(final Class<?> type) {
@@ -107,14 +129,16 @@ public class GivenCodeUnitsTest {
         ClassWithVariousMembers(String stringParam, Object objectParam, List<?> listParam, int intParam) {
         }
 
-        private void method(String stringParam) {
+        private String method(String stringParam) {
+            return null;
         }
 
         @A
         protected void method(String stringParam, Object objectParam) {
         }
 
-        public void method(String stringParam, Object objectParam, List<?> listParam) {
+        public String method(String stringParam, Object objectParam, List<?> listParam) {
+            return null;
         }
 
         void method(String stringParam, Object objectParam, List<?> listParam, int intParam) {
