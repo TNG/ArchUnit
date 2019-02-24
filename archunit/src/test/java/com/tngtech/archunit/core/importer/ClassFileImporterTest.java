@@ -542,11 +542,11 @@ public class ClassFileImporterTest {
     public void imports_methods_with_correct_return_types() throws Exception {
         Set<JavaCodeUnit> methods = classesIn("testexamples/methodimport").getCodeUnits();
 
-        assertThat(findAnyByName(methods, "createString").getReturnType())
+        assertThat(findAnyByName(methods, "createString").getRawReturnType())
                 .as("Return type of method 'createString'").matches(String.class);
-        assertThat(findAnyByName(methods, "consume").getReturnType())
+        assertThat(findAnyByName(methods, "consume").getRawReturnType())
                 .as("Return type of method 'consume'").matches(void.class);
-        assertThat(findAnyByName(methods, "createSerializable").getReturnType())
+        assertThat(findAnyByName(methods, "createSerializable").getRawReturnType())
                 .as("Return type of method 'createSerializable'").matches(Serializable.class);
     }
 
@@ -1263,7 +1263,7 @@ public class ClassFileImporterTest {
                 .withOwner(subClassWithCalledMethod)
                 .withName(expectedSuperClassMethod.getName())
                 .withParameters(expectedSuperClassMethod.getParameters())
-                .withReturnType(expectedSuperClassMethod.getReturnType())
+                .withReturnType(expectedSuperClassMethod.getRawReturnType())
                 .withMethods(Suppliers.ofInstance(Collections.singleton(expectedSuperClassMethod)))
                 .build();
         assertThatCall(getOnlyByCaller(calls, callSuperClassMethod))
@@ -1457,7 +1457,7 @@ public class ClassFileImporterTest {
 
         MethodCallTarget target = getOnlyElement(classThatCallsMethodReturningArray.getMethodCallsFromSelf()).getTarget();
         assertThat(target.getOwner()).matches(CallsMethodReturningArray.SomeEnum.class);
-        assertThat(target.getReturnType()).matches(CallsMethodReturningArray.SomeEnum[].class);
+        assertThat(target.getRawReturnType()).matches(CallsMethodReturningArray.SomeEnum[].class);
     }
 
     @Test
@@ -1982,7 +1982,7 @@ public class ClassFileImporterTest {
     }
 
     private JavaClass returnTypeOf(Set<JavaMethodCall> calls, String name) {
-        return findAnyByName(calls, name).getTarget().getReturnType();
+        return findAnyByName(calls, name).getTarget().getRawReturnType();
     }
 
     private JavaFieldAccess getOnly(Set<JavaFieldAccess> fieldAccesses, String name, AccessType accessType) {

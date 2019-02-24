@@ -655,7 +655,7 @@ class JavaClassProcessor extends ClassVisitor {
             }
 
             private Optional<Class<?>> determineComponentTypeFromReturnValue(Optional<JavaMethod> method) {
-                String name = method.get().getReturnType().getName();
+                String name = method.get().getRawReturnType().getName();
                 Optional<Class<?>> result = AnnotationTypeConversion.tryConvert(name);
                 if (result.isPresent()) {
                     return Optional.<Class<?>>of(result.get().getComponentType());

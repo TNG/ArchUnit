@@ -82,8 +82,17 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         return getThrowsClause().getTypes();
     }
 
+    /**
+     * @deprecated Use {@link #getRawReturnType()} instead.
+     */
     @Override
+    @Deprecated
     public JavaClass getReturnType() {
+        return getRawReturnType();
+    }
+
+    @Override
+    public JavaClass getRawReturnType() {
         return returnType;
     }
 
@@ -149,7 +158,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
                 new ChainableFunction<JavaCodeUnit, JavaClass>() {
                     @Override
                     public JavaClass apply(JavaCodeUnit input) {
-                        return input.getReturnType();
+                        return input.getRawReturnType();
                     }
                 };
 

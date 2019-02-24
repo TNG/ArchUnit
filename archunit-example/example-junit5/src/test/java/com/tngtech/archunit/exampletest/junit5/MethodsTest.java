@@ -55,9 +55,9 @@ public class MethodsTest {
         return new ArchCondition<JavaMethod>("return type " + type.getName()) {
             @Override
             public void check(JavaMethod method, ConditionEvents events) {
-                boolean typeMatches = method.getReturnType().isAssignableTo(type);
+                boolean typeMatches = method.getRawReturnType().isAssignableTo(type);
                 String message = String.format("%s returns %s in %s",
-                        method.getFullName(), method.getReturnType().getName(),
+                        method.getFullName(), method.getRawReturnType().getName(),
                         formatLocation(method.getOwner(), 0));
                 events.add(new SimpleConditionEvent(method, typeMatches, message));
             }

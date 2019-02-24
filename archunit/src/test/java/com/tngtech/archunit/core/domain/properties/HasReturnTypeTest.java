@@ -70,6 +70,11 @@ public class HasReturnTypeTest {
         return new HasReturnType() {
             @Override
             public JavaClass getReturnType() {
+                return getRawReturnType();
+            }
+
+            @Override
+            public JavaClass getRawReturnType() {
                 return javaClass;
             }
         };

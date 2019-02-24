@@ -417,12 +417,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
             super.isEquivalentTo(method);
             assertThat(actual.getParameters()).matches(method.getParameterTypes());
             assertThat(actual.getReturnType()).matches(method.getReturnType());
+            assertThat(actual.getRawReturnType()).matches(method.getReturnType());
         }
 
         public void isEquivalentTo(Constructor<?> constructor) {
             super.isEquivalentTo(constructor);
             assertThat(actual.getParameters()).matches(constructor.getParameterTypes());
             assertThat(actual.getReturnType()).matches(void.class);
+            assertThat(actual.getRawReturnType()).matches(void.class);
         }
     }
 

@@ -71,14 +71,14 @@ public class JavaClassTest {
     public void finds_array_type() {
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("anArray");
 
-        assertThat(method.getReturnType().isArray()).isTrue();
+        assertThat(method.getRawReturnType().isArray()).isTrue();
     }
 
     @Test
     public void finds_non_array_type() {
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("notAnArray");
 
-        assertThat(method.getReturnType().isArray()).isFalse();
+        assertThat(method.getRawReturnType().isArray()).isFalse();
     }
 
     @Test
