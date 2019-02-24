@@ -30,7 +30,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -367,7 +367,7 @@ public class ShouldClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areAnnotatedWith_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
@@ -378,7 +378,7 @@ public class ShouldClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotAnnotatedWith_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
@@ -433,7 +433,7 @@ public class ShouldClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areMetaAnnotatedWith_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
@@ -445,7 +445,7 @@ public class ShouldClassesThatTest {
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areNotMetaAnnotatedWith_predicate(ClassesShouldThat noClassesShouldThatRuleStart) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
@@ -970,7 +970,7 @@ public class ShouldClassesThatTest {
     @Test
     @UseDataProvider("classes_should_only_that_rule_starts")
     public void only_areAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyThatRuleStart.areAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
@@ -981,7 +981,7 @@ public class ShouldClassesThatTest {
     @Test
     @UseDataProvider("classes_should_only_that_rule_starts")
     public void only_areNotAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyThatRuleStart.areNotAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
@@ -1036,7 +1036,7 @@ public class ShouldClassesThatTest {
     @Test
     @UseDataProvider("classes_should_only_that_rule_starts")
     public void only_areMetaAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyThatRuleStart.areMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
@@ -1048,7 +1048,7 @@ public class ShouldClassesThatTest {
     @Test
     @UseDataProvider("classes_should_only_that_rule_starts")
     public void only_areNotMetaAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyThatRuleStart) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyThatRuleStart.areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
@@ -1387,7 +1387,7 @@ public class ShouldClassesThatTest {
     }
 
     private static class ClassHavingMethodParameterOfTypeString {
-        @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
+        @SuppressWarnings({"unused"})
         void call(String string) {
         }
     }

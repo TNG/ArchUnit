@@ -1391,7 +1391,7 @@ public class ClassesShouldTest {
         return new DescribedPredicate<JavaAnnotation>("@" + type.getSimpleName()) {
             @Override
             public boolean apply(JavaAnnotation input) {
-                return input.getType().getName().equals(type.getName());
+                return input.getRawType().getName().equals(type.getName());
             }
         };
     }

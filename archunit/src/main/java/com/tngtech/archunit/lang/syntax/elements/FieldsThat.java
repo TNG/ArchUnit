@@ -25,7 +25,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 public interface FieldsThat<CONJUNCTION extends GivenFieldsConjunction> extends MembersThat<CONJUNCTION> {
 
     /**
-     * Matches fields by their type. Take for example
+     * Matches fields by their raw type. Take for example
      *
      * <pre><code>
      * class Example {
@@ -35,16 +35,16 @@ public interface FieldsThat<CONJUNCTION extends GivenFieldsConjunction> extends 
      *
      * Then <code>someField</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#haveType(Class) haveType(String.class)}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#haveRawType(Class) haveRawType(String.class)}</code></pre>
      *
      * @param type Type matching fields must have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION haveType(Class<?> type);
+    CONJUNCTION haveRawType(Class<?> type);
 
     /**
-     * Matches fields by the fully qualified name of their type. Take for example
+     * Matches fields by the fully qualified name of their raw type. Take for example
      *
      * <pre><code>
      * class Example {
@@ -54,16 +54,16 @@ public interface FieldsThat<CONJUNCTION extends GivenFieldsConjunction> extends 
      *
      * Then <code>someField</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#haveType(String) haveType(String.class.getName())}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#haveRawType(String) haveRawType(String.class.getName())}</code></pre>
      *
      * @param typeName Name of type matching fields must have
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION haveType(String typeName);
+    CONJUNCTION haveRawType(String typeName);
 
     /**
-     * Matches fields where the type of those fields matches the given predicate. Take for example
+     * Matches fields where the raw type of those fields matches the given predicate. Take for example
      *
      * <pre><code>
      * class Example {
@@ -73,11 +73,11 @@ public interface FieldsThat<CONJUNCTION extends GivenFieldsConjunction> extends 
      *
      * Then <code>someField</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#haveType(DescribedPredicate) haveType(assignableTo(Serializable.class))}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#haveRawType(DescribedPredicate) haveRawType(assignableTo(Serializable.class))}</code></pre>
      *
      * @param predicate A predicate determining which types of fields match
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION haveType(DescribedPredicate<? super JavaClass> predicate);
+    CONJUNCTION haveRawType(DescribedPredicate<? super JavaClass> predicate);
 }

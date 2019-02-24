@@ -58,7 +58,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private final Optional<Source> source;
@@ -187,7 +187,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     @Override
     public boolean isMetaAnnotatedWith(String typeName) {
         for (JavaAnnotation annotation : annotations.get().values()) {
-            if (annotation.getType().isAnnotatedWith(typeName) || annotation.getType().isMetaAnnotatedWith(typeName)) {
+            if (annotation.getRawType().isAnnotatedWith(typeName) || annotation.getRawType().isMetaAnnotatedWith(typeName)) {
                 return true;
             }
         }
@@ -851,7 +851,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
     private Set<Dependency> fieldDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaField field : nonPrimitive(getFields(), GET_TYPE)) {
+        for (JavaField field : nonPrimitive(getFields(), GET_RAW_TYPE)) {
             result.add(Dependency.fromField(field));
         }
         return result.build();

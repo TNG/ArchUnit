@@ -113,7 +113,7 @@ public abstract class JavaMember implements
     @Override
     public boolean isMetaAnnotatedWith(String typeName) {
         for (JavaAnnotation annotation : annotations.get().values()) {
-            if (annotation.getType().isAnnotatedWith(typeName) || annotation.getType().isMetaAnnotatedWith(typeName)) {
+            if (annotation.getRawType().isAnnotatedWith(typeName) || annotation.getRawType().isMetaAnnotatedWith(typeName)) {
                 return true;
             }
         }

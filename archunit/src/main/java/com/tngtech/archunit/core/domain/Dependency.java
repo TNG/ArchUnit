@@ -76,7 +76,7 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
     }
 
     static Dependency fromField(JavaField field) {
-        return createDependencyFromJavaMember(field, "has type", field.getType());
+        return createDependencyFromJavaMember(field, "has type", field.getRawType());
     }
 
     static Dependency fromReturnType(JavaMethod method) {
@@ -88,7 +88,7 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
     }
 
     static Dependency fromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
-        return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getType());
+        return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
     private static Dependency createDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {

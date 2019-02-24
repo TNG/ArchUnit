@@ -34,7 +34,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
@@ -290,13 +290,13 @@ public class GivenMembersTest {
                 new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
                     @Override
                     public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
-                        return membersThat.areAnnotatedWith(GET_TYPE.is(equivalentTo(A.class)));
+                        return membersThat.areAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class)));
                     }
                 },
                 new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
                     @Override
                     public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
-                        return membersThat.areNotAnnotatedWith(GET_TYPE.is(equivalentTo(A.class)));
+                        return membersThat.areNotAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class)));
                     }
                 }));
 
@@ -330,13 +330,13 @@ public class GivenMembersTest {
                 new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
                     @Override
                     public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
-                        return membersThat.areMetaAnnotatedWith(GET_TYPE.is(equivalentTo(MetaAnnotation.class)));
+                        return membersThat.areMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class)));
                     }
                 },
                 new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {
                     @Override
                     public GivenMembersConjunction<?> apply(MembersThat<GivenMembersConjunction<?>> membersThat) {
-                        return membersThat.areNotMetaAnnotatedWith(GET_TYPE.is(equivalentTo(MetaAnnotation.class)));
+                        return membersThat.areNotMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class)));
                     }
                 }));
         return data.build().toArray(new Object[0][]);
@@ -493,7 +493,7 @@ public class GivenMembersTest {
         return new DescribedPredicate<JavaMember>("are no fields with type " + type.getSimpleName()) {
             @Override
             public boolean apply(JavaMember member) {
-                return !(member instanceof JavaField) || !((JavaField) member).getType().isEquivalentTo(type);
+                return !(member instanceof JavaField) || !((JavaField) member).getRawType().isEquivalentTo(type);
             }
         };
     }

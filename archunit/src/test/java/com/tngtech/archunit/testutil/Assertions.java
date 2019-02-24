@@ -379,7 +379,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void matches(Class<?> clazz) {
-            assertThat(actual.getType()).as("Type of " + actual)
+            assertThat(actual.getRawType()).as("Type of " + actual)
                     .matches(clazz);
         }
     }

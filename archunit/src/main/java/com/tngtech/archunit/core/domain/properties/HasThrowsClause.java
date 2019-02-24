@@ -31,7 +31,7 @@ import static com.tngtech.archunit.core.domain.Formatters.formatThrowsDeclaratio
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaClassList.GET_NAMES;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>> {
     @PublicAPI(usage = ACCESS)
@@ -69,7 +69,7 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(DescribedPredicate<? super JavaClass> predicate) {
-            DescribedPredicate<ThrowsDeclaration<?>> declarationPredicate = GET_TYPE.is(predicate).forSubType();
+            DescribedPredicate<ThrowsDeclaration<?>> declarationPredicate = GET_RAW_TYPE.is(predicate).forSubType();
             return throwsClause(anyElementThat(declarationPredicate)).as("throws clause containing type " + predicate.getDescription());
         }
 

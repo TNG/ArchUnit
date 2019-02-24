@@ -46,9 +46,9 @@ class AnnotationProxy {
     }
 
     public static <A extends Annotation> A of(Class<A> annotationType, JavaAnnotation toProxy) {
-        checkArgument(annotationType.getName().equals(toProxy.getType().getName()),
+        checkArgument(annotationType.getName().equals(toProxy.getRawType().getName()),
                 "Requested annotation type %s is incompatible with %s of type %s",
-                annotationType.getSimpleName(), JavaAnnotation.class.getSimpleName(), toProxy.getType().getSimpleName());
+                annotationType.getSimpleName(), JavaAnnotation.class.getSimpleName(), toProxy.getRawType().getSimpleName());
 
         return newProxy(annotationType, toProxy);
     }
@@ -96,7 +96,7 @@ class AnnotationProxy {
         }
 
         @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        public Object invoke(Object proxy, Method method, Object[] args) {
             MethodKey key = MethodKey.of(method);
             if (handlersByMethod.containsKey(key)) {
                 return handlersByMethod.get(key).handle(proxy, method, args);
@@ -198,7 +198,7 @@ class AnnotationProxy {
             // JavaAnnotation#getType() will return the type name of a Class<? extends Annotation>
             @SuppressWarnings("unchecked")
             Class<? extends Annotation> type = (Class<? extends Annotation>)
-                    JavaType.From.javaClass(input.getType()).resolveClass(classLoader);
+                    JavaType.From.javaClass(input.getRawType()).resolveClass(classLoader);
             return AnnotationProxy.of(type, input);
         }
 
@@ -279,7 +279,7 @@ class AnnotationProxy {
 
         @Override
         public Object handle(Object proxy, Method method, Object[] args) {
-            return String.format("@%s(%s)", toProxy.getType().getName(), propertyStrings());
+            return String.format("@%s(%s)", toProxy.getRawType().getName(), propertyStrings());
         }
 
         private String propertyStrings() {
