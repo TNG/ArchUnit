@@ -4,11 +4,7 @@ import java.util.List;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaMember;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.DescribedRuleStart;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -25,7 +21,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.beAnnotatedWith;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.described;
-import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.formatMember;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.everythingViolationPrintMemberName;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -60,12 +56,8 @@ public class GivenCodeUnitsTest {
     @Test
     @UseDataProvider("restricted_parameter_types_rule_starts")
     public void parameter_types_predicates(DescribedRuleStart ruleStart) {
-        EvaluationResult result = ruleStart.should(new ArchCondition<JavaMember>("condition text") {
-            @Override
-            public void check(JavaMember item, ConditionEvents events) {
-                events.add(SimpleConditionEvent.violated(item, formatMember(item)));
-            }
-        }).evaluate(importClasses(ClassWithVariousMembers.class));
+        EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
+                .evaluate(importClasses(ClassWithVariousMembers.class));
 
         assertThat(result.getFailureReport().getDetails()).containsOnly(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG);
     }
@@ -81,14 +73,28 @@ public class GivenCodeUnitsTest {
     @Test
     @UseDataProvider("restricted_return_type_rule_starts")
     public void return_type_predicates(DescribedRuleStart ruleStart) {
-        EvaluationResult result = ruleStart.should(new ArchCondition<JavaMember>("condition text") {
-            @Override
-            public void check(JavaMember item, ConditionEvents events) {
-                events.add(SimpleConditionEvent.violated(item, formatMember(item)));
-            }
-        }).evaluate(importClasses(ClassWithVariousMembers.class));
+        EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
+                .evaluate(importClasses(ClassWithVariousMembers.class));
 
         assertThat(result.getFailureReport().getDetails()).containsOnly(METHOD_ONE_ARG, METHOD_THREE_ARGS);
+    }
+
+    @DataProvider
+    public static Object[][] restricted_throwable_type_rule_starts() {
+        return testForEach(
+                described(codeUnits().that().declareThrowableOfType(FirstException.class)),
+                described(codeUnits().that().declareThrowableOfType(FirstException.class.getName())),
+                described(codeUnits().that().declareThrowableOfType(equivalentTo(FirstException.class))));
+    }
+
+    @Test
+    @UseDataProvider("restricted_throwable_type_rule_starts")
+    public void throwable_type_predicates(DescribedRuleStart ruleStart) {
+        EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
+                .evaluate(importClasses(ClassWithVariousMembers.class));
+
+        assertThat(result.getFailureReport().getDetails())
+                .containsOnly(METHOD_ONE_ARG, METHOD_THREE_ARGS, CONSTRUCTOR_ONE_ARG, CONSTRUCTOR_THREE_ARGS);
     }
 
     private static DescribedPredicate<List<JavaClass>> oneParameterOfType(final Class<?> type) {
@@ -114,30 +120,30 @@ public class GivenCodeUnitsTest {
         };
     }
 
-    @SuppressWarnings({"unused"})
+    @SuppressWarnings({"unused", "RedundantThrows"})
     private static class ClassWithVariousMembers {
-        private ClassWithVariousMembers(String stringParam) {
+        private ClassWithVariousMembers(String stringParam) throws FirstException {
         }
 
         @A
-        protected ClassWithVariousMembers(String stringParam, Object objectParam) {
+        protected ClassWithVariousMembers(String stringParam, Object objectParam) throws SecondException {
         }
 
-        public ClassWithVariousMembers(String stringParam, Object objectParam, List<?> listParam) {
+        public ClassWithVariousMembers(String stringParam, Object objectParam, List<?> listParam) throws FirstException, SecondException {
         }
 
         ClassWithVariousMembers(String stringParam, Object objectParam, List<?> listParam, int intParam) {
         }
 
-        private String method(String stringParam) {
+        private String method(String stringParam) throws FirstException {
             return null;
         }
 
         @A
-        protected void method(String stringParam, Object objectParam) {
+        protected void method(String stringParam, Object objectParam) throws SecondException {
         }
 
-        public String method(String stringParam, Object objectParam, List<?> listParam) {
+        public String method(String stringParam, Object objectParam, List<?> listParam) throws FirstException, SecondException {
             return null;
         }
 
@@ -146,5 +152,11 @@ public class GivenCodeUnitsTest {
     }
 
     private @interface A {
+    }
+
+    private static class FirstException extends Exception {
+    }
+
+    private static class SecondException extends Exception {
     }
 }
