@@ -21,7 +21,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 
-class ConstructorsShouldInternal extends ObjectsShouldInternal<JavaConstructor> {
+class ConstructorsShouldInternal extends CodeUnitsShouldInternal<JavaConstructor> {
 
     ConstructorsShouldInternal(
             ClassesTransformer<? extends JavaConstructor> classesTransformer,

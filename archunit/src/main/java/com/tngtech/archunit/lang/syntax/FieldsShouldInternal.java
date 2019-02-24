@@ -21,7 +21,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 
-class FieldsShouldInternal extends ObjectsShouldInternal<JavaField> {
+class FieldsShouldInternal extends MembersShouldInternal<JavaField> {
 
     FieldsShouldInternal(
             ClassesTransformer<? extends JavaField> classesTransformer,

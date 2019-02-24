@@ -20,13 +20,14 @@ import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenFields;
 import com.tngtech.archunit.lang.syntax.elements.GivenFieldsConjunction;
 
-class GivenFieldsInternal extends AbstractGivenMembersInternal<JavaField, GivenFieldsInternal> implements GivenFields, GivenFieldsConjunction {
+class GivenFieldsInternal
+        extends AbstractGivenMembersInternal<JavaField, GivenFieldsInternal>
+        implements GivenFields, GivenFieldsConjunction {
 
     GivenFieldsInternal(Priority priority, ClassesTransformer<JavaField> classesTransformer) {
         this(priority, classesTransformer, Functions.<ArchCondition<JavaField>>identity());
@@ -57,7 +58,7 @@ class GivenFieldsInternal extends AbstractGivenMembersInternal<JavaField, GivenF
     }
 
     @Override
-    public ArchRule should(ArchCondition<? super JavaField> condition) {
+    public FieldsShouldInternal should(ArchCondition<? super JavaField> condition) {
         return new FieldsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaField>forSubType(), prepareCondition);
     }
 
