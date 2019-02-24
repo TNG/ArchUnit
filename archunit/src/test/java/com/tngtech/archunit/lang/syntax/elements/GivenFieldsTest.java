@@ -3,11 +3,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.util.List;
 import java.util.Map;
 
-import com.tngtech.archunit.core.domain.JavaMember;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.DescribedRuleStart;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -23,7 +19,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.beAnnotatedWith;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.described;
-import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.formatMember;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.everythingViolationPrintMemberName;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,12 +52,8 @@ public class GivenFieldsTest {
     @Test
     @UseDataProvider("restricted_property_rule_starts")
     public void property_predicates(DescribedRuleStart ruleStart) {
-        EvaluationResult result = ruleStart.should(new ArchCondition<JavaMember>("condition text") {
-            @Override
-            public void check(JavaMember item, ConditionEvents events) {
-                events.add(SimpleConditionEvent.violated(item, formatMember(item)));
-            }
-        }).evaluate(importClasses(ClassWithVariousMembers.class));
+        EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
+                .evaluate(importClasses(ClassWithVariousMembers.class));
 
         assertThat(result.getFailureReport().getDetails()).containsOnly(FIELD_A);
     }

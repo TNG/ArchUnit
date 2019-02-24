@@ -22,12 +22,16 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.ThrowsClause;
+import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.Formatters.formatThrowsDeclarationTypeNames;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaClassList.GET_NAMES;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 
 public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>> {
     @PublicAPI(usage = ACCESS)
@@ -43,8 +47,8 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(final String... types) {
-            return throwsClauseWithTypes(ImmutableList.copyOf(types));
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(final String... typeNames) {
+            return throwsClauseWithTypes(ImmutableList.copyOf(typeNames));
         }
 
         @PublicAPI(usage = ACCESS)
@@ -54,14 +58,30 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClause(final DescribedPredicate<ThrowsClause<?>> predicate) {
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(final Class<?> type) {
+            return throwsClauseContainingType(type.getName());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(final String typeName) {
+            return throwsClauseContainingType(name(typeName).as(typeName));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(DescribedPredicate<? super JavaClass> predicate) {
+            DescribedPredicate<ThrowsDeclaration<?>> declarationPredicate = GET_TYPE.is(predicate).forSubType();
+            return throwsClause(anyElementThat(declarationPredicate)).as("throws clause containing type " + predicate.getDescription());
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClause(final DescribedPredicate<? super ThrowsClause<?>> predicate) {
             return new ThrowsTypesPredicate(predicate);
         }
 
         private static class ThrowsTypesPredicate extends DescribedPredicate<HasThrowsClause<?>> {
-            private final DescribedPredicate<ThrowsClause<?>> predicate;
+            private final DescribedPredicate<? super ThrowsClause<?>> predicate;
 
-            ThrowsTypesPredicate(DescribedPredicate<ThrowsClause<?>> predicate) {
+            ThrowsTypesPredicate(DescribedPredicate<? super ThrowsClause<?>> predicate) {
                 super("throws types " + predicate.getDescription());
                 this.predicate = predicate;
             }

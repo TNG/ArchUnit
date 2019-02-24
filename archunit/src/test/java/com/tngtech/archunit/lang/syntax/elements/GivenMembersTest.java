@@ -370,12 +370,8 @@ public class GivenMembersTest {
     @Test
     @UseDataProvider("restricted_property_rule_starts")
     public void property_predicates(DescribedRuleStart conjunction, Set<String> expectedMessages) {
-        EvaluationResult result = conjunction.should(new ArchCondition<JavaMember>("condition text") {
-            @Override
-            public void check(JavaMember item, ConditionEvents events) {
-                events.add(SimpleConditionEvent.violated(item, formatMember(item)));
-            }
-        }).evaluate(importClasses(ClassWithVariousMembers.class, A.class, B.class, C.class, MetaAnnotation.class));
+        EvaluationResult result = conjunction.should(everythingViolationPrintMemberName())
+                .evaluate(importClasses(ClassWithVariousMembers.class, A.class, B.class, C.class, MetaAnnotation.class));
 
         assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMessages);
     }
@@ -465,18 +461,23 @@ public class GivenMembersTest {
     @Test
     @UseDataProvider("restricted_declaration_rule_starts")
     public void declaration_predicates(DescribedRuleStart conjunction, Set<String> expectedMessages) {
-        EvaluationResult result = conjunction.should(new ArchCondition<JavaMember>("condition text") {
-            @Override
-            public void check(JavaMember item, ConditionEvents events) {
-                events.add(SimpleConditionEvent.violated(item, formatMember(item)));
-            }
-        }).evaluate(importClasses(ClassWithVariousMembers.class, OtherClassWithMembers.class));
+        EvaluationResult result = conjunction.should(everythingViolationPrintMemberName())
+                .evaluate(importClasses(ClassWithVariousMembers.class, OtherClassWithMembers.class));
 
         assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMessages);
     }
 
     static void assertViolation(EvaluationResult result) {
         assertThat(result.hasViolation()).as("result has violation").isTrue();
+    }
+
+    static ArchCondition<JavaMember> everythingViolationPrintMemberName() {
+        return new ArchCondition<JavaMember>("condition text") {
+            @Override
+            public void check(JavaMember item, ConditionEvents events) {
+                events.add(SimpleConditionEvent.violated(item, formatMember(item)));
+            }
+        };
     }
 
     @SafeVarargs
@@ -510,7 +511,7 @@ public class GivenMembersTest {
         };
     }
 
-    static String formatMember(JavaMember member) {
+    private static String formatMember(JavaMember member) {
         return member.getFullName().replaceAll("^[^(]*\\.", "");
     }
 
