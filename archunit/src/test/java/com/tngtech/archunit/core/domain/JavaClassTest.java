@@ -127,7 +127,7 @@ public class JavaClassTest {
     @Test
     public void Array_class_has_default_package() {
         JavaClass arrayType = importClassWithContext(Arrays.class)
-                .getMethod("toString", Object[].class).getParameters().get(0);
+                .getMethod("toString", Object[].class).getRawParameterTypes().get(0);
 
         assertThat(arrayType.getPackageName()).isEmpty();
     }
@@ -308,7 +308,7 @@ public class JavaClassTest {
             public boolean matches(JavaCodeUnit value) {
                 return value.getOwner().isEquivalentTo(owner) &&
                         value.getName().equals(methodName) &&
-                        value.getParameters().getNames().equals(ImmutableList.of(paramType.getName()));
+                        value.getRawParameterTypes().getNames().equals(ImmutableList.of(paramType.getName()));
             }
         };
     }

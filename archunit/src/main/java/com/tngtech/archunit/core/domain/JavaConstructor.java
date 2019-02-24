@@ -89,10 +89,10 @@ public final class JavaConstructor extends JavaCodeUnit {
         public Constructor<?> get() {
             Class<?> reflectedOwner = getOwner().reflect();
             try {
-                return reflectedOwner.getDeclaredConstructor(reflect(getParameters()));
+                return reflectedOwner.getDeclaredConstructor(reflect(getRawParameterTypes()));
             } catch (NoSuchMethodException e) {
                 throw new InconsistentClassPathException(
-                        "Can't resolve constructor " + formatMethod(reflectedOwner.getName(), getName(), getParameters()), e);
+                        "Can't resolve constructor " + formatMethod(reflectedOwner.getName(), getName(), getRawParameterTypes()), e);
             }
         }
     }

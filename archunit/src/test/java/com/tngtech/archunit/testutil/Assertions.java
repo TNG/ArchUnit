@@ -217,7 +217,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
                     @Override
                     public boolean matches(JavaAccess<?> access) {
                         return to(targetClass, CONSTRUCTOR_NAME).matches(access) &&
-                                ((ConstructorCallTarget) access.getTarget()).getParameters().getNames().equals(paramTypeNames);
+                                ((ConstructorCallTarget) access.getTarget()).getRawParameterTypes().getNames().equals(paramTypeNames);
                     }
                 };
             }
