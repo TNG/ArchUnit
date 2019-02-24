@@ -243,7 +243,7 @@ public class ImportTestUtils {
         return new DomainBuilders.FieldAccessTargetBuilder()
                 .withOwner(field.getOwner())
                 .withName(field.getName())
-                .withType(field.getType())
+                .withType(field.getRawType())
                 .withField(Suppliers.ofInstance(Optional.of(field)))
                 .build();
     }
@@ -316,7 +316,7 @@ public class ImportTestUtils {
                 .uniqueIndex(new Function<JavaAnnotation, String>() {
                     @Override
                     public String apply(JavaAnnotation input) {
-                        return input.getType().getName();
+                        return input.getRawType().getName();
                     }
                 });
     }

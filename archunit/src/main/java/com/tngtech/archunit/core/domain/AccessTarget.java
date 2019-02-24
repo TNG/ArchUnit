@@ -37,6 +37,7 @@ import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
+import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
@@ -227,8 +228,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Represents an {@link AccessTarget} where the target is a field. For further elaboration about the necessity to distinguish
      * {@link FieldAccessTarget FieldAccessTarget} from {@link JavaField}, refer to the documentation at {@link AccessTarget}.
      */
-    // NOTE: JDK 1.7 u80 seems to have a bug here, if we import HasType, the compile will fail???
-    public static final class FieldAccessTarget extends AccessTarget implements com.tngtech.archunit.core.domain.properties.HasType {
+    public static final class FieldAccessTarget extends AccessTarget implements HasType {
         private final JavaClass type;
         private final Supplier<Optional<JavaField>> field;
 
@@ -238,8 +238,17 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             this.field = Suppliers.memoize(builder.getField());
         }
 
+        /**
+         * @deprecated Use {@link #getRawType()} instead
+         */
         @Override
+        @Deprecated
         public JavaClass getType() {
+            return getRawType();
+        }
+
+        @Override
+        public JavaClass getRawType() {
             return type;
         }
 

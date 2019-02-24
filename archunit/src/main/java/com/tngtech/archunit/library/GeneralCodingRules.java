@@ -35,7 +35,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPac
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
@@ -122,7 +122,7 @@ public final class GeneralCodingRules {
     @PublicAPI(usage = ACCESS)
     public static final ArchCondition<JavaClass> USE_JAVA_UTIL_LOGGING =
             setFieldWhere(resideInAPackage("java.util.logging..")
-                    .onResultOf(Get.<JavaFieldAccess, FieldAccessTarget>target().then(GET_TYPE)))
+                    .onResultOf(Get.<JavaFieldAccess, FieldAccessTarget>target().then(GET_RAW_TYPE)))
                     .as("use java.util.logging");
 
     /**
