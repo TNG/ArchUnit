@@ -296,8 +296,17 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             this.returnType = builder.getReturnType();
         }
 
+        /**
+         * @deprecated Use {@link #getRawParameterTypes()} instead
+         */
         @Override
+        @Deprecated
         public JavaClassList getParameters() {
+            return getRawParameterTypes();
+        }
+
+        @Override
+        public JavaClassList getRawParameterTypes() {
             return DomainObjectCreationContext.createJavaClassList(parameters);
         }
 

@@ -54,10 +54,10 @@ import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
-import static com.tngtech.archunit.core.domain.JavaCodeUnit.Functions.GET_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
 
 public class JavaClass implements HasName, HasAnnotations, HasModifiers {
@@ -417,7 +417,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
     private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
         for (T codeUnit : codeUnits) {
-            if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getParameters().getNames())) {
+            if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getRawParameterTypes().getNames())) {
                 return Optional.of(codeUnit);
             }
         }
@@ -859,7 +859,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
     private Set<Dependency> returnTypeDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaMethod method : nonPrimitive(getMethods(), GET_RETURN_TYPE)) {
+        for (JavaMethod method : nonPrimitive(getMethods(), GET_RAW_RETURN_TYPE)) {
             result.add(Dependency.fromReturnType(method));
         }
         return result.build();
@@ -868,7 +868,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Set<Dependency> methodParameterDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaMethod method : getMethods()) {
-            for (JavaClass parameter : nonPrimitive(method.getParameters())) {
+            for (JavaClass parameter : nonPrimitive(method.getRawParameterTypes())) {
                 result.add(Dependency.fromParameter(method, parameter));
             }
         }
@@ -888,7 +888,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private Set<Dependency> constructorParameterDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaConstructor constructor : getConstructors()) {
-            for (JavaClass parameter : nonPrimitive(constructor.getParameters())) {
+            for (JavaClass parameter : nonPrimitive(constructor.getRawParameterTypes())) {
                 result.add(Dependency.fromParameter(constructor, parameter));
             }
         }

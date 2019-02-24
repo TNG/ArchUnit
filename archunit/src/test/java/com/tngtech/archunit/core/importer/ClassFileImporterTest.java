@@ -1273,7 +1273,7 @@ public class ClassFileImporterTest {
         MethodCallTarget expectedSuperClassCall = new MethodCallTargetBuilder()
                 .withOwner(subClassWithCalledMethod)
                 .withName(expectedSuperClassMethod.getName())
-                .withParameters(expectedSuperClassMethod.getParameters())
+                .withParameters(expectedSuperClassMethod.getRawParameterTypes())
                 .withReturnType(expectedSuperClassMethod.getRawReturnType())
                 .withMethods(Suppliers.ofInstance(Collections.singleton(expectedSuperClassMethod)))
                 .build();
@@ -1448,7 +1448,7 @@ public class ClassFileImporterTest {
         // NOTE: There is no java.lang.reflect.Method InterfaceD.implementMe(), because the method is inherited
         assertThat(callToInterface.getTarget().getName()).isEqualTo(InterfaceD.implementMe);
         assertThat(callToInterface.getTarget().getOwner()).isEqualTo(diamondPeakInterface);
-        assertThat(callToInterface.getTarget().getParameters()).isEmpty();
+        assertThat(callToInterface.getTarget().getRawParameterTypes()).isEmpty();
         assertThat(callToInterface.getTarget().resolve()).extracting("fullName")
                 .containsOnly(
                         diamondLeftInterface.getMethod(InterfaceB.implementMe).getFullName(),
@@ -1970,7 +1970,7 @@ public class ClassFileImporterTest {
 
     private Constructor<?> reflect(JavaConstructor javaConstructor) {
         try {
-            return javaConstructor.getOwner().reflect().getConstructor(asClasses(javaConstructor.getParameters()));
+            return javaConstructor.getOwner().reflect().getConstructor(asClasses(javaConstructor.getRawParameterTypes()));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -1982,14 +1982,14 @@ public class ClassFileImporterTest {
 
     private Method reflect(JavaMethod javaMethod) {
         try {
-            return javaMethod.getOwner().reflect().getMethod(javaMethod.getName(), asClasses(javaMethod.getParameters()));
+            return javaMethod.getOwner().reflect().getMethod(javaMethod.getName(), asClasses(javaMethod.getRawParameterTypes()));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
 
     private JavaClassList targetParametersOf(Set<JavaMethodCall> calls, String name) {
-        return findAnyByName(calls, name).getTarget().getParameters();
+        return findAnyByName(calls, name).getTarget().getRawParameterTypes();
     }
 
     private JavaClass returnTypeOf(Set<JavaMethodCall> calls, String name) {

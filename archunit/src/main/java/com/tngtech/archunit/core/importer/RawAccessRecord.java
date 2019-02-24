@@ -100,7 +100,6 @@ class RawAccessRecord {
             return name;
         }
 
-        @SuppressWarnings("unchecked")
         public List<String> getParameters() {
             return parameters;
         }
@@ -140,7 +139,7 @@ class RawAccessRecord {
 
         public boolean is(JavaCodeUnit method) {
             return getName().equals(method.getName())
-                    && getParameters().equals(method.getParameters().getNames())
+                    && getParameters().equals(method.getRawParameterTypes().getNames())
                     && getDeclaringClassName().equals(method.getOwner().getName());
         }
     }

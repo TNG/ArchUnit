@@ -233,7 +233,7 @@ public class ImportTestUtils {
     public static AccessTarget.ConstructorCallTarget targetFrom(JavaConstructor target) {
         return new DomainBuilders.ConstructorCallTargetBuilder()
                 .withOwner(target.getOwner())
-                .withParameters(target.getParameters())
+                .withParameters(target.getRawParameterTypes())
                 .withReturnType(target.getRawReturnType())
                 .withConstructor(Suppliers.ofInstance(Optional.of(target)))
                 .build();
@@ -252,7 +252,7 @@ public class ImportTestUtils {
         return new DomainBuilders.MethodCallTargetBuilder()
                 .withOwner(target.getOwner())
                 .withName(target.getName())
-                .withParameters(target.getParameters())
+                .withParameters(target.getRawParameterTypes())
                 .withReturnType(target.getRawReturnType())
                 .withMethods(resolveSupplier)
                 .build();

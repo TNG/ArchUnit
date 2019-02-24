@@ -81,6 +81,11 @@ public class HasParameterTypesTest {
         return new HasParameterTypes() {
             @Override
             public JavaClassList getParameters() {
+                return getRawParameterTypes();
+            }
+
+            @Override
+            public JavaClassList getRawParameterTypes() {
                 return javaClassList(parameters);
             }
         };
