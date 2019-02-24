@@ -18,6 +18,10 @@ public class HasTypeTest {
     @DataProvider
     public static Object[][] type_predicates() {
         return testForEach(
+                HasType.Predicates.rawType(String.class),
+                HasType.Predicates.rawType(String.class.getName()),
+                HasType.Predicates.rawType(equivalentTo(String.class)),
+
                 HasType.Predicates.type(String.class),
                 HasType.Predicates.type(String.class.getName()),
                 HasType.Predicates.type(equivalentTo(String.class)));
@@ -35,6 +39,11 @@ public class HasTypeTest {
 
     @Test
     public void predicate_description() {
+        assertThat(HasType.Predicates.rawType(String.class).getDescription()).isEqualTo("raw type " + String.class.getName());
+        assertThat(HasType.Predicates.rawType(String.class.getName()).getDescription()).isEqualTo("raw type " + String.class.getName());
+        assertThat(HasType.Predicates.rawType(equivalentTo(String.class)).getDescription())
+                .isEqualTo("raw type equivalent to " + String.class.getName());
+
         assertThat(HasType.Predicates.type(String.class).getDescription()).isEqualTo("type " + String.class.getName());
         assertThat(HasType.Predicates.type(String.class.getName()).getDescription()).isEqualTo("type " + String.class.getName());
         assertThat(HasType.Predicates.type(equivalentTo(String.class)).getDescription()).isEqualTo("type equivalent to " + String.class.getName());
@@ -42,6 +51,7 @@ public class HasTypeTest {
 
     @Test
     public void function_getType() {
+        assertThat(HasType.Functions.GET_RAW_TYPE.apply(newHasType(String.class))).matches(String.class);
         assertThat(HasType.Functions.GET_TYPE.apply(newHasType(String.class))).matches(String.class);
     }
 
@@ -49,6 +59,11 @@ public class HasTypeTest {
         return new HasType() {
             @Override
             public JavaClass getType() {
+                return getRawType();
+            }
+
+            @Override
+            public JavaClass getRawType() {
                 return importClassWithContext(owner);
             }
         };

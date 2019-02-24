@@ -20,7 +20,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.lang.syntax.elements.FieldsThat;
 
-import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.type;
+import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
 public class FieldsThatInternal extends MembersThatInternal<JavaField, GivenFieldsInternal>
@@ -31,17 +31,17 @@ public class FieldsThatInternal extends MembersThatInternal<JavaField, GivenFiel
     }
 
     @Override
-    public GivenFieldsInternal haveType(Class<?> type) {
-        return givenMembers.with(currentPredicate.add(have(type(type))));
+    public GivenFieldsInternal haveRawType(Class<?> type) {
+        return givenMembers.with(currentPredicate.add(have(rawType(type))));
     }
 
     @Override
-    public GivenFieldsInternal haveType(String typeName) {
-        return givenMembers.with(currentPredicate.add(have(type(typeName))));
+    public GivenFieldsInternal haveRawType(String typeName) {
+        return givenMembers.with(currentPredicate.add(have(rawType(typeName))));
     }
 
     @Override
-    public GivenFieldsInternal haveType(DescribedPredicate<? super JavaClass> predicate) {
-        return givenMembers.with(currentPredicate.add(have(type(predicate))));
+    public GivenFieldsInternal haveRawType(DescribedPredicate<? super JavaClass> predicate) {
+        return givenMembers.with(currentPredicate.add(have(rawType(predicate))));
     }
 }

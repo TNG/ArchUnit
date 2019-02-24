@@ -249,7 +249,7 @@ public class PublicAPIRules {
         return new DescribedPredicate<JavaAnnotation>("@%s(usage = %s)", PublicAPI.class.getSimpleName(), INHERITANCE) {
             @Override
             public boolean apply(JavaAnnotation input) {
-                return input.getType().isEquivalentTo(PublicAPI.class) &&
+                return input.getRawType().isEquivalentTo(PublicAPI.class) &&
                         input.as(PublicAPI.class).usage() == INHERITANCE;
             }
         };

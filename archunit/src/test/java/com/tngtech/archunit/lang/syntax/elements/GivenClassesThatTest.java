@@ -36,7 +36,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContex
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.expectInvalidSyntaxUsageForRetentionSource;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -315,7 +315,7 @@ public class GivenClassesThatTest {
 
     @Test
     public void areAnnotatedWith_predicate() {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
         List<JavaClass> classes = filterResultOf(classes().that().areAnnotatedWith(hasNamePredicate))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
@@ -324,7 +324,7 @@ public class GivenClassesThatTest {
 
     @Test
     public void areNotAnnotatedWith_predicate() {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
         List<JavaClass> classes = filterResultOf(classes().that().areNotAnnotatedWith(hasNamePredicate))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
@@ -365,7 +365,7 @@ public class GivenClassesThatTest {
 
     @Test
     public void areMetaAnnotatedWith_predicate() {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
         List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(hasNamePredicate))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
@@ -374,7 +374,7 @@ public class GivenClassesThatTest {
 
     @Test
     public void areNotMetaAnnotatedWith_predicate() {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
         List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 

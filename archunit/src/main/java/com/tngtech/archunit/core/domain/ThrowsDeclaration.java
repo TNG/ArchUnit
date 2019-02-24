@@ -94,13 +94,22 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
     }
 
     /**
+     * @deprecated Use {@link #getRawType()} instead
+     */
+    @Override
+    @Deprecated
+    public JavaClass getType() {
+        return getRawType();
+    }
+
+    /**
      * @return The type of this {@link ThrowsDeclaration}, e.g. for a method
      * <pre><code>void method() throws SomeException {...}</code></pre>
      * the {@link JavaClass} representing <code>SomeException</code> will be returned
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaClass getType() {
+    public JavaClass getRawType() {
         return type;
     }
 
@@ -117,7 +126,7 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ThrowsDeclaration other = (ThrowsDeclaration) obj;
+        final ThrowsDeclaration<?> other = (ThrowsDeclaration<?>) obj;
         return Objects.equals(this.getLocation(), other.getLocation())
                 && Objects.equals(this.type, other.type);
     }

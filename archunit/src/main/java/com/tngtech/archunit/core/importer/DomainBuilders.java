@@ -69,7 +69,7 @@ public final class DomainBuilders {
         ImmutableMap.Builder<String, JavaAnnotation> result = ImmutableMap.builder();
         for (JavaAnnotationBuilder annotationBuilder : annotations) {
             JavaAnnotation javaAnnotation = annotationBuilder.build(importedClasses);
-            result.put(javaAnnotation.getType().getName(), javaAnnotation);
+            result.put(javaAnnotation.getRawType().getName(), javaAnnotation);
         }
         return result.build();
     }
@@ -314,7 +314,6 @@ public final class DomainBuilders {
             return this;
         }
 
-        @SuppressWarnings("unchecked")
         JavaClassBuilder withType(JavaType javaType) {
             this.javaType = javaType;
             return this;

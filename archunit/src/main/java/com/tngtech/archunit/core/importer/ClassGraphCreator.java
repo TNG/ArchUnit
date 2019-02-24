@@ -285,7 +285,7 @@ class ClassGraphCreator implements ImportContext {
 
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
-                fieldTypeDependencies.put(field.getType(), field);
+                fieldTypeDependencies.put(field.getRawType(), field);
             }
         }
 
@@ -296,7 +296,7 @@ class ClassGraphCreator implements ImportContext {
                 }
                 methodReturnTypeDependencies.put(method.getRawReturnType(), method);
                 for (ThrowsDeclaration<JavaMethod> throwsDeclaration : method.getThrowsClause()) {
-                    methodsThrowsDeclarationDependencies.put(throwsDeclaration.getType(), throwsDeclaration);
+                    methodsThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
                 }
             }
         }
@@ -307,7 +307,7 @@ class ClassGraphCreator implements ImportContext {
                     constructorParameterTypeDependencies.put(parameter, constructor);
                 }
                 for (ThrowsDeclaration<JavaConstructor> throwsDeclaration : constructor.getThrowsClause()) {
-                    constructorThrowsDeclarationDependencies.put(throwsDeclaration.getType(), throwsDeclaration);
+                    constructorThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
                 }
             }
         }

@@ -30,7 +30,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public interface CanBeAnnotated {
     @PublicAPI(usage = ACCESS)
@@ -78,7 +78,7 @@ public interface CanBeAnnotated {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> annotatedWith(final String annotationTypeName) {
-            DescribedPredicate<HasType> typeNameMatches = GET_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
+            DescribedPredicate<HasType> typeNameMatches = GET_RAW_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
             return annotatedWith(typeNameMatches.as("@" + ensureSimpleName(annotationTypeName)));
         }
 
@@ -110,7 +110,7 @@ public interface CanBeAnnotated {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(final String annotationTypeName) {
-            DescribedPredicate<HasType> typeNameMatches = GET_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
+            DescribedPredicate<HasType> typeNameMatches = GET_RAW_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
             return metaAnnotatedWith(typeNameMatches.as("@" + ensureSimpleName(annotationTypeName)));
         }
 
@@ -152,7 +152,7 @@ public interface CanBeAnnotated {
         @PublicAPI(usage = ACCESS)
         public static boolean isMetaAnnotatedWith(Collection<JavaAnnotation> annotations, DescribedPredicate<? super JavaAnnotation> predicate) {
             for (JavaAnnotation annotation : annotations) {
-                if (annotation.getType().isAnnotatedWith(predicate) || annotation.getType().isMetaAnnotatedWith(predicate)) {
+                if (annotation.getRawType().isAnnotatedWith(predicate) || annotation.getRawType().isMetaAnnotatedWith(predicate)) {
                     return true;
                 }
             }

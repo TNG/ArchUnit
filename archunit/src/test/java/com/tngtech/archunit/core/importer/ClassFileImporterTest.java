@@ -331,14 +331,14 @@ public class ClassFileImporterTest {
     public void imports_primitive_fields() throws Exception {
         Set<JavaField> fields = classesIn("testexamples/primitivefieldimport").getFields();
 
-        assertThat(findAnyByName(fields, "aBoolean").getType()).matches(boolean.class);
-        assertThat(findAnyByName(fields, "anInt").getType()).matches(int.class);
-        assertThat(findAnyByName(fields, "aByte").getType()).matches(byte.class);
-        assertThat(findAnyByName(fields, "aChar").getType()).matches(char.class);
-        assertThat(findAnyByName(fields, "aShort").getType()).matches(short.class);
-        assertThat(findAnyByName(fields, "aLong").getType()).matches(long.class);
-        assertThat(findAnyByName(fields, "aFloat").getType()).matches(float.class);
-        assertThat(findAnyByName(fields, "aDouble").getType()).matches(double.class);
+        assertThat(findAnyByName(fields, "aBoolean").getRawType()).matches(boolean.class);
+        assertThat(findAnyByName(fields, "anInt").getRawType()).matches(int.class);
+        assertThat(findAnyByName(fields, "aByte").getRawType()).matches(byte.class);
+        assertThat(findAnyByName(fields, "aChar").getRawType()).matches(char.class);
+        assertThat(findAnyByName(fields, "aShort").getRawType()).matches(short.class);
+        assertThat(findAnyByName(fields, "aLong").getRawType()).matches(long.class);
+        assertThat(findAnyByName(fields, "aFloat").getRawType()).matches(float.class);
+        assertThat(findAnyByName(fields, "aDouble").getRawType()).matches(double.class);
     }
 
     // NOTE: This provokes the scenario where the target type can't be determined uniquely due to a diamond
@@ -419,7 +419,7 @@ public class ClassFileImporterTest {
 
         JavaField field = findAnyByName(classes.getFields(), "stringAnnotatedField");
         JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithStringValue.class.getName());
-        assertThat(annotation.getType()).isEqualTo(classes.get(FieldAnnotationWithStringValue.class));
+        assertThat(annotation.getRawType()).isEqualTo(classes.get(FieldAnnotationWithStringValue.class));
         assertThat(annotation.get("value").get()).isEqualTo("something");
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("stringAnnotatedField"));
@@ -566,7 +566,7 @@ public class ClassFileImporterTest {
 
         JavaMethod method = findAnyByName(clazz.getMethods(), stringAnnotatedMethod);
         JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
-        assertThat(annotation.getType()).matches(MethodAnnotationWithStringValue.class);
+        assertThat(annotation.getRawType()).matches(MethodAnnotationWithStringValue.class);
 
         JavaAnnotation annotationByName = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
         assertThat(annotationByName).isEqualTo(annotation);
@@ -670,7 +670,7 @@ public class ClassFileImporterTest {
         JavaClass clazz = classesIn("testexamples/annotatedclassimport").get(ClassWithOneAnnotation.class);
 
         JavaAnnotation annotation = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
-        assertThat(annotation.getType()).matches(SimpleAnnotation.class);
+        assertThat(annotation.getRawType()).matches(SimpleAnnotation.class);
 
         JavaAnnotation annotationByName = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
         assertThat(annotationByName).isEqualTo(annotation);
@@ -1213,7 +1213,7 @@ public class ClassFileImporterTest {
         FieldAccessTarget expectedSuperClassFieldAccess = new FieldAccessTargetBuilder()
                 .withOwner(subClassWithAccessedField)
                 .withName(field.getName())
-                .withType(field.getType())
+                .withType(field.getRawType())
                 .withField(Suppliers.ofInstance(Optional.of(field)))
                 .build();
         assertThatAccess(getOnly(accesses, "field", GET))

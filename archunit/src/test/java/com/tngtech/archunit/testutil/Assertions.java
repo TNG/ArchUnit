@@ -437,6 +437,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
         public void isEquivalentTo(Field field) {
             super.isEquivalentTo(field);
+            assertThat(actual.getRawType()).matches(field.getType());
             assertThat(actual.getType()).matches(field.getType());
         }
     }
@@ -472,7 +473,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void matches(Class<?> clazz) {
-            assertThat(actual.getType()).as("Type of " + actual)
+            assertThat(actual.getRawType()).as("Type of " + actual)
                     .matches(clazz);
         }
     }
@@ -568,7 +569,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
     private static Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
         List<Annotation> converted = new ArrayList<>();
         for (JavaAnnotation annotation : annotations) {
-            converted.add(annotation.as((Class) annotation.getType().reflect()));
+            converted.add(annotation.as((Class) annotation.getRawType().reflect()));
         }
         return propertiesOf(converted.toArray(new Annotation[0]));
     }

@@ -74,8 +74,17 @@ public final class JavaAnnotation implements HasType {
         this.values = checkNotNull(builder.getValues());
     }
 
+    /**
+     * @deprecated Use {@link #getRawType()} instead
+     */
     @Override
+    @Deprecated
     public JavaClass getType() {
+        return getRawType();
+    }
+
+    @Override
+    public JavaClass getRawType() {
         return type;
     }
 

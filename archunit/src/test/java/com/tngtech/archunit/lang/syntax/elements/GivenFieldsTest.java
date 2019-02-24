@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.beAnnotatedWith;
@@ -30,8 +30,8 @@ public class GivenFieldsTest {
     public void complex_field_syntax() {
         EvaluationResult result = fields()
                 .that().haveNameMatching("field(A|D)")
-                .and().haveType(String.class)
-                .or(GET_TYPE.is(type(List.class)))
+                .and().haveRawType(String.class)
+                .or(GET_RAW_TYPE.is(type(List.class)))
                 .should(beAnnotatedWith(A.class))
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
@@ -44,9 +44,9 @@ public class GivenFieldsTest {
     @DataProvider
     public static Object[][] restricted_property_rule_starts() {
         return testForEach(
-                described(fields().that().haveType(String.class)),
-                described(fields().that().haveType(String.class.getName())),
-                described(fields().that().haveType(equivalentTo(String.class))));
+                described(fields().that().haveRawType(String.class)),
+                described(fields().that().haveRawType(String.class.getName())),
+                described(fields().that().haveRawType(equivalentTo(String.class))));
     }
 
     @Test

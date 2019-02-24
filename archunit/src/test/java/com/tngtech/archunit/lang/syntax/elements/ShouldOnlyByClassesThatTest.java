@@ -30,7 +30,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFr
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -443,7 +443,7 @@ public class ShouldOnlyByClassesThatTest {
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
     public void areAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAnnotatedWith(hasNamePredicate))
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
@@ -455,7 +455,7 @@ public class ShouldOnlyByClassesThatTest {
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
     public void areNotAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAnnotatedWith(hasNamePredicate))
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
@@ -521,7 +521,7 @@ public class ShouldOnlyByClassesThatTest {
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
     public void areMetaAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
@@ -536,7 +536,7 @@ public class ShouldOnlyByClassesThatTest {
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
     public void areNotMetaAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
