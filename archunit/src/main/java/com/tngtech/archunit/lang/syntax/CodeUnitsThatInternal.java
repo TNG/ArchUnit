@@ -24,6 +24,7 @@ import com.tngtech.archunit.lang.syntax.elements.CodeUnitsThat;
 
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
+import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predicates.throwsClauseContainingType;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
 class CodeUnitsThatInternal<
@@ -39,34 +40,53 @@ class CodeUnitsThatInternal<
 
     @Override
     public CONJUNCTION haveRawParameterTypes(Class<?>... parameterTypes) {
-        return givenMembers.with(currentPredicate.add(have(rawParameterTypes(parameterTypes))));
+        return withPredicate(have(rawParameterTypes(parameterTypes)));
     }
 
     @Override
     public CONJUNCTION haveRawParameterTypes(String... parameterTypeNames) {
-        return givenMembers.with(currentPredicate.add(have(rawParameterTypes(parameterTypeNames))));
+        return withPredicate(have(rawParameterTypes(parameterTypeNames)));
     }
 
     @Override
     public CONJUNCTION haveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate) {
-        return givenMembers.with(currentPredicate.add(have(rawParameterTypes(predicate))));
+        return withPredicate(have(rawParameterTypes(predicate)));
     }
 
     @Override
     public CONJUNCTION haveRawReturnType(Class<?> type) {
-        return givenMembers.with(currentPredicate.add(have(rawReturnType(type))));
+        return withPredicate(have(rawReturnType(type)));
 
     }
 
     @Override
     public CONJUNCTION haveRawReturnType(String typeName) {
-        return givenMembers.with(currentPredicate.add(have(rawReturnType(typeName))));
+        return withPredicate(have(rawReturnType(typeName)));
 
     }
 
     @Override
     public CONJUNCTION haveRawReturnType(DescribedPredicate<JavaClass> predicate) {
-        return givenMembers.with(currentPredicate.add(have(rawReturnType(predicate))));
+        return withPredicate(have(rawReturnType(predicate)));
 
+    }
+
+    @Override
+    public CONJUNCTION declareThrowableOfType(Class<? extends Throwable> type) {
+        return withPredicate(throwsClauseContainingType(type).as("declare throwable of type " + type.getName()));
+    }
+
+    @Override
+    public CONJUNCTION declareThrowableOfType(String typeName) {
+        return withPredicate(throwsClauseContainingType(typeName).as("declare throwable of type " + typeName));
+    }
+
+    @Override
+    public CONJUNCTION declareThrowableOfType(DescribedPredicate<JavaClass> predicate) {
+        return withPredicate(throwsClauseContainingType(predicate).as("declare throwable of type " + predicate.getDescription()));
+    }
+
+    private CONJUNCTION withPredicate(DescribedPredicate<? super CODE_UNIT> predicate) {
+        return givenMembers.with(currentPredicate.add(predicate));
     }
 }

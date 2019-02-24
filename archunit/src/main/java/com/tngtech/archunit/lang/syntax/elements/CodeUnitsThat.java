@@ -104,7 +104,7 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
     CONJUNCTION haveRawReturnType(Class<?> type);
 
     /**
-     * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified raw return type name.
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified fully qualified raw return type name.
      * Take for example
      * <pre><code>
      * class Example {
@@ -140,4 +140,61 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawReturnType(DescribedPredicate<JavaClass> predicate);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that declare a {@link Throwable} of the specified type in their throws clause.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     void someMethod() throws FirstException, SecondException {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(Class)  declareThrowableOfType(FirstException.class)}</code></pre>
+     *
+     * @param type Type of a declared {@link Throwable} to match {@link JavaCodeUnit JavaCodeUnits} against
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION declareThrowableOfType(Class<? extends Throwable> type);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that declare a {@link Throwable} of the specified fully qualified type name in their throws clause.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     void someMethod() throws FirstException, SecondException {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(String)  declareThrowableOfType(FirstException.class.getName())}</code></pre>
+     *
+     * @param typeName Fully qualified name of a type of a declared {@link Throwable} to match {@link JavaCodeUnit JavaCodeUnits} against
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION declareThrowableOfType(String typeName);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that declare a {@link Throwable} which matches the given predicate.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     void someMethod() throws FirstException, SecondException {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(DescribedPredicate)  declareThrowableOfType(nameStartingWith("First"))}</code></pre>
+     *
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their declared {@link Throwable}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION declareThrowableOfType(DescribedPredicate<JavaClass> predicate);
 }
