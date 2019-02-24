@@ -40,7 +40,7 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      *
      * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawParameterTypes(Class[])  haveRawParameterTypes(String.class, int.class)}</code></pre>
      *
-     * @param parameterTypes Types to match {@link JavaCodeUnit JavaCodeUnits} against
+     * @param parameterTypes Parameter types to match {@link JavaCodeUnit JavaCodeUnits} against
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
@@ -83,4 +83,61 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified raw return types.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     String someMethod() {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(Class)  haveRawReturnType(String.class)}</code></pre>
+     *
+     * @param type Return type to match {@link JavaCodeUnit JavaCodeUnits} against
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveRawReturnType(Class<?> type);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified raw return type name.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     String someMethod() {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(String)  haveRawReturnType(String.class.getName())}</code></pre>
+     *
+     * @param typeName Fully qualified name of a return type to match {@link JavaCodeUnit JavaCodeUnits} against
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveRawReturnType(String typeName);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that have raw return types matching the given predicate.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     String someMethod() {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(DescribedPredicate)  haveRawReturnType(assignableTo(Serializable.class))}</code></pre>
+     *
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their raw return types
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveRawReturnType(DescribedPredicate<JavaClass> predicate);
 }
