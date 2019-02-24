@@ -20,7 +20,6 @@ import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembers;
@@ -57,7 +56,7 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
     }
 
     @Override
-    public ArchRule should(ArchCondition<? super MEMBER> condition) {
+    public MembersShouldInternal<MEMBER> should(ArchCondition<? super MEMBER> condition) {
         return new MembersShouldInternal<>(finishedClassesTransformer(), priority, condition.<MEMBER>forSubType(), this.prepareCondition);
     }
 

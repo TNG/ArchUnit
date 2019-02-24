@@ -20,8 +20,9 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.syntax.elements.MembersShouldConjunction;
 
-class MembersShouldInternal<MEMBER extends JavaMember> extends ObjectsShouldInternal<MEMBER> {
+class MembersShouldInternal<MEMBER extends JavaMember> extends ObjectsShouldInternal<MEMBER> implements MembersShouldConjunction<MEMBER> {
 
     MembersShouldInternal(
             ClassesTransformer<? extends MEMBER> classesTransformer,
@@ -30,5 +31,23 @@ class MembersShouldInternal<MEMBER extends JavaMember> extends ObjectsShouldInte
             Function<ArchCondition<MEMBER>, ArchCondition<MEMBER>> prepareCondition) {
 
         super(classesTransformer, priority, condition, prepareCondition);
+    }
+
+    private MembersShouldInternal<MEMBER> copyWithNewCondition(ArchCondition<? super MEMBER> newCondition) {
+        return new MembersShouldInternal<>(classesTransformer, priority, newCondition.<MEMBER>forSubType(), prepareCondition);
+    }
+
+    @Override
+    public MembersShouldConjunction<MEMBER> andShould(ArchCondition<? super MEMBER> condition) {
+        return copyWithNewCondition(conditionAggregator
+                .thatANDsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should"))
+                .add(condition));
+    }
+
+    @Override
+    public MembersShouldConjunction<MEMBER> orShould(ArchCondition<? super MEMBER> condition) {
+        return copyWithNewCondition(conditionAggregator
+                .thatORsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should"))
+                .add(condition));
     }
 }

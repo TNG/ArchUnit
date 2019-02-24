@@ -20,13 +20,13 @@ import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenMethods;
 import com.tngtech.archunit.lang.syntax.elements.GivenMethodsConjunction;
 
-class GivenMethodsInternal extends AbstractGivenCodeUnitsInternal<JavaMethod, GivenMethodsInternal>
+class GivenMethodsInternal
+        extends AbstractGivenCodeUnitsInternal<JavaMethod, GivenMethodsInternal>
         implements GivenMethods, GivenMethodsConjunction {
 
     GivenMethodsInternal(Priority priority, ClassesTransformer<JavaMethod> classesTransformer) {
@@ -58,7 +58,7 @@ class GivenMethodsInternal extends AbstractGivenCodeUnitsInternal<JavaMethod, Gi
     }
 
     @Override
-    public ArchRule should(ArchCondition<? super JavaMethod> condition) {
+    public MethodsShouldInternal should(ArchCondition<? super JavaMethod> condition) {
         return new MethodsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMethod>forSubType(), prepareCondition);
     }
 

@@ -20,7 +20,6 @@ import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnits;
@@ -87,8 +86,8 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
         }
 
         @Override
-        public ArchRule should(ArchCondition<? super JavaCodeUnit> condition) {
-            return new CodeUnitsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaCodeUnit>forSubType(), prepareCondition);
+        public CodeUnitsShouldInternal<JavaCodeUnit> should(ArchCondition<? super JavaCodeUnit> condition) {
+            return new CodeUnitsShouldInternal<>(finishedClassesTransformer(), priority, condition.<JavaCodeUnit>forSubType(), prepareCondition);
         }
 
         private static class GivenCodeUnitsFactory implements Factory<JavaCodeUnit, GivenCodeUnitsInternal> {
