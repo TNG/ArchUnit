@@ -285,7 +285,8 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget} and in particular the
      * documentation at {@link MethodCallTarget#resolve() MethodCallTarget.resolve()}.
      */
-    public abstract static class CodeUnitCallTarget extends AccessTarget implements HasParameterTypes, HasReturnType, HasThrowsClause {
+    public abstract static class CodeUnitCallTarget extends AccessTarget
+            implements HasParameterTypes, HasReturnType, HasThrowsClause<CodeUnitCallTarget> {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
@@ -300,8 +301,17 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return DomainObjectCreationContext.createJavaClassList(parameters);
         }
 
+        /**
+         * @deprecated Use {@link #getRawReturnType()} instead.
+         */
         @Override
+        @Deprecated
         public JavaClass getReturnType() {
+            return getRawReturnType();
+        }
+
+        @Override
+        public JavaClass getRawReturnType() {
             return returnType;
         }
 

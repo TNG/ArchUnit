@@ -80,7 +80,7 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
     }
 
     static Dependency fromReturnType(JavaMethod method) {
-        return createDependencyFromJavaMember(method, "has return type", method.getReturnType());
+        return createDependencyFromJavaMember(method, "has return type", method.getRawReturnType());
     }
 
     static Dependency fromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {

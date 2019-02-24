@@ -294,7 +294,7 @@ class ClassGraphCreator implements ImportContext {
                 for (JavaClass parameter : method.getParameters()) {
                     methodParameterTypeDependencies.put(parameter, method);
                 }
-                methodReturnTypeDependencies.put(method.getReturnType(), method);
+                methodReturnTypeDependencies.put(method.getRawReturnType(), method);
                 for (ThrowsDeclaration<JavaMethod> throwsDeclaration : method.getThrowsClause()) {
                     methodsThrowsDeclarationDependencies.put(throwsDeclaration.getType(), throwsDeclaration);
                 }
