@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.lang.syntax;
+package com.tngtech.archunit.lang.syntax.elements;
 
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ClassesTransformer;
-import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.ArchRule;
 
-class MethodsShouldInternal extends CodeUnitsShouldInternal<JavaMethod> {
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-    MethodsShouldInternal(
-            ClassesTransformer<? extends JavaMethod> classesTransformer,
-            Priority priority,
-            ArchCondition<JavaMethod> condition,
-            Function<ArchCondition<JavaMethod>, ArchCondition<JavaMethod>> prepareCondition) {
+public interface MembersShouldConjunction<MEMBER extends JavaMember> extends ArchRule {
+    @PublicAPI(usage = ACCESS)
+    MembersShouldConjunction<MEMBER> andShould(ArchCondition<? super MEMBER> condition);
 
-        super(classesTransformer, priority, condition, prepareCondition);
-    }
+    @PublicAPI(usage = ACCESS)
+    MembersShouldConjunction<MEMBER> orShould(ArchCondition<? super MEMBER> condition);
 }

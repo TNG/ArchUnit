@@ -20,7 +20,6 @@ import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.GivenConstructors;
@@ -58,7 +57,7 @@ class GivenConstructorsInternal extends AbstractGivenCodeUnitsInternal<JavaConst
     }
 
     @Override
-    public ArchRule should(ArchCondition<? super JavaConstructor> condition) {
+    public ConstructorsShouldInternal should(ArchCondition<? super JavaConstructor> condition) {
         return new ConstructorsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaConstructor>forSubType(), prepareCondition);
     }
 
