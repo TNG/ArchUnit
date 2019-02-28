@@ -115,3 +115,8 @@ dependencies {
    testCompile 'com.tngtech.archunit:archunit:0.9.3'
 }
 ----
+
+=== Maven Plugin
+
+There exists a Maven plugin by Société Générale to run ArchUnit rules straight from Maven. For
+more information visit their GitHub repo: https://github.com/societe-generale/arch-unit-maven-plugin
