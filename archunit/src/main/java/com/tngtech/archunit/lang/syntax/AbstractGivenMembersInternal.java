@@ -56,6 +56,11 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
     }
 
     @Override
+    public MembersShouldInternal<MEMBER> should() {
+        return new MembersShouldInternal<>(finishedClassesTransformer(), priority, this.prepareCondition);
+    }
+
+    @Override
     public MembersShouldInternal<MEMBER> should(ArchCondition<? super MEMBER> condition) {
         return new MembersShouldInternal<>(finishedClassesTransformer(), priority, condition.<MEMBER>forSubType(), this.prepareCondition);
     }

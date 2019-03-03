@@ -18,6 +18,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.lang.ArchCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -37,4 +38,10 @@ public interface GivenMembersConjunction<MEMBER extends JavaMember> extends Give
     @PublicAPI(usage = ACCESS)
     MembersThat<? extends GivenMembersConjunction<MEMBER>> or();
 
+    @Override
+    @PublicAPI(usage = ACCESS)
+    MembersShouldConjunction<MEMBER> should(ArchCondition<? super MEMBER> condition);
+
+    @PublicAPI(usage = ACCESS)
+    MembersShould<MembersShouldConjunction<MEMBER>> should();
 }

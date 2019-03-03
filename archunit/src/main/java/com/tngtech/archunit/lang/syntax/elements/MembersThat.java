@@ -39,7 +39,7 @@ public interface MembersThat<CONJUNCTION> {
     CONJUNCTION haveName(String name);
 
     /**
-     * Matches members that don't have a certain name (i.e. field name, method name or {@link JavaConstructor#CONSTRUCTOR_NAME}).
+     * Matches members that do not have a certain name (i.e. field name, method name or {@link JavaConstructor#CONSTRUCTOR_NAME}).
      *
      * @param name The member name
      * @return A syntax conjunction element, which can be completed to form a full rule
