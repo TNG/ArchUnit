@@ -1,5 +1,7 @@
 package com.tngtech.archunit.exampletest.junit5;
 
+import java.sql.SQLException;
+
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 
@@ -13,9 +15,6 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
-import java.sql.SQLException;
-
-import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -52,7 +51,7 @@ public class DaoRulesTest {
                     if (method.getThrowsClause().containsType(exception)) {
                         String message = String.format("%s throws %s in %s",
                                 method.getFullName(), exception.getName(),
-                                formatLocation(method.getOwner(), 0));
+                                method.getOccurrence());
                         events.add(SimpleConditionEvent.violated(method, message));
                     }
                 }

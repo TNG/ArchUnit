@@ -14,14 +14,14 @@ public class ExpectedClass {
 
         public ExpectedMessage notBeing(Class<?> desiredClass) {
             String expectedMessage = String.format(
-                    "class %s is not %s in (%s.java:0)",
+                    "Class <%s> is not %s in (%s.java:0)",
                     clazz.getName(), desiredClass.getName(), clazz.getSimpleName());
             return new ExpectedMessage(expectedMessage);
         }
 
         public ExpectedMessage being(Class<?> desiredClass) {
             String expectedMessage = String.format(
-                    "class %s is %s in (%s.java:0)",
+                    "Class <%s> is %s in (%s.java:0)",
                     clazz.getName(), desiredClass.getName(), clazz.getSimpleName());
             return new ExpectedMessage(expectedMessage);
         }
