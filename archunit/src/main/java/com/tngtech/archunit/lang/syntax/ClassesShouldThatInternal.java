@@ -29,7 +29,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
-import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -42,7 +42,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-class ClassesShouldThatInternal implements ClassesShouldThat, ClassesShouldConjunction {
+class ClassesShouldThatInternal implements ClassesThat<ClassesShouldConjunction>, ClassesShouldConjunction {
     private final ClassesShouldInternal classesShould;
     private final PredicateAggregator<JavaClass> predicateAggregator;
     private final Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>> createCondition;

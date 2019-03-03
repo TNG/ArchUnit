@@ -27,7 +27,7 @@ public interface GivenClasses extends GivenObjects<JavaClass> {
     ClassesShould should();
 
     @PublicAPI(usage = ACCESS)
-    GivenClassesThat that();
+    ClassesThat<GivenClassesConjunction> that();
 
     @Override
     GivenClassesConjunction that(DescribedPredicate<? super JavaClass> predicate);

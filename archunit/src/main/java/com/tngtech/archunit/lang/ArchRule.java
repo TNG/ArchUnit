@@ -33,7 +33,6 @@ import com.tngtech.archunit.lang.extension.ArchUnitExtensions;
 import com.tngtech.archunit.lang.extension.EvaluatedRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
-import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 
@@ -46,7 +45,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * To define a rule, use one of the factory methods within {@link ArchRuleDefinition}, for example
  * <br><br><pre><code>
  * ArchRule rule = {@link ArchRuleDefinition#noClasses()}.{@link GivenClasses#that() that()}.{@link ClassesThat#resideInAPackage(String) resideInAPackage("..svc..")}
- *                     .{@link GivenClasses#should() should()}.{@link ClassesShould#accessClassesThat() accessClassesThat()}.{@link ClassesShouldThat#resideInAPackage(String) resideInAPackage("..ui..")};
+ *                     .{@link GivenClasses#should() should()}.{@link ClassesShould#accessClassesThat() accessClassesThat()}.{@link ClassesThat#resideInAPackage(String) resideInAPackage("..ui..")};
  * rule.check(importedJavaClasses);
  * </code></pre>
  * <br>

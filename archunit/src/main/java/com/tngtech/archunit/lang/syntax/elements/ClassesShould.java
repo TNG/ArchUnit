@@ -810,13 +810,13 @@ public interface ClassesShould {
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
-     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing which classes should be accessed
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat accessClassesThat();
+    ClassesThat<ClassesShouldConjunction> accessClassesThat();
 
     /**
      * Asserts that all classes selected by this rule access certain classes (compare {@link #onlyAccessClassesThat(DescribedPredicate)}.<br>
@@ -837,13 +837,13 @@ public interface ClassesShould {
      * E.g.
      * <p>
      * <pre><code>
-     * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing which classes should only be accessed
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat onlyAccessClassesThat();
+    ClassesThat<ClassesShouldConjunction> onlyAccessClassesThat();
 
     /**
      * Asserts that all classes selected by this rule ONLY access certain classes (compare {@link #accessClassesThat(DescribedPredicate)}).<br>
@@ -864,13 +864,13 @@ public interface ClassesShould {
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
-     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #dependOnClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #dependOnClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing to which classes a dependency should exist
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat dependOnClassesThat();
+    ClassesThat<ClassesShouldConjunction> dependOnClassesThat();
 
     /**
      * Asserts that all classes selected by this rule depend on certain classes.<br>
@@ -891,13 +891,13 @@ public interface ClassesShould {
      * E.g.
      * <p>
      * <pre><code>
-     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing to which classes a dependency should only exist
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat onlyDependOnClassesThat();
+    ClassesThat<ClassesShouldConjunction> onlyDependOnClassesThat();
 
     /**
      * Asserts that all classes selected by this rule ONLY depend on certain classes (compare {@link #dependOnClassesThat(DescribedPredicate)}).<br>
@@ -927,13 +927,13 @@ public interface ClassesShould {
      * Asserts that only certain classes depend on the classes selected by this rule.<br>
      * <br>E.g.
      * <pre><code>
-     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyHaveDependentClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyHaveDependentClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing from which classes a dependency to these classes may exist
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat onlyHaveDependentClassesThat();
+    ClassesThat<ClassesShouldConjunction> onlyHaveDependentClassesThat();
 
     /**
      * Asserts that only certain classes depend on the classes selected by this rule.<br>
