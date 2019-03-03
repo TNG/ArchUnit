@@ -66,7 +66,6 @@ import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_C
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
-import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_TO_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CALLS_FROM_SELF;
@@ -742,6 +741,10 @@ public final class ArchConditions {
         return new NumberOfElementsCondition(predicate);
     }
 
+    private static String createClassMessage(JavaClass javaClass, String message) {
+        return javaClass.getDescription() + " " + message + " in " + javaClass.getOccurrence();
+    }
+
     private static class HaveOnlyFinalFieldsCondition extends ArchCondition<JavaClass> {
         HaveOnlyFinalFieldsCondition() {
             super("have only final fields");
@@ -751,10 +754,8 @@ public final class ArchConditions {
         public void check(JavaClass javaClass, ConditionEvents events) {
             SortedSet<String> notFinalFieldNames = getNonFinalFieldNamesOf(javaClass);
             boolean satisfied = notFinalFieldNames.isEmpty();
-            String message = String.format("class %s %s in %s",
-                    javaClass.getName(),
-                    satisfied ? "doesn't have any non-final fields" : "has non-final fields " + notFinalFieldNames,
-                    formatLocation(javaClass, 0));
+            String message = createClassMessage(javaClass,
+                    satisfied ? "doesn't have any non-final fields" : "has non-final fields " + notFinalFieldNames);
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
 
@@ -778,14 +779,11 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = annotatedWith.apply(item);
-            String message = String.format("class %s is %s%s in %s",
-                    item.getName(),
-                    satisfied ? "" : "not ",
-                    annotatedWith.getDescription(),
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = annotatedWith.apply(javaClass);
+            String message = createClassMessage(javaClass,
+                    (satisfied ? "is " : "is not ") + annotatedWith.getDescription());
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -798,16 +796,13 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = implement.apply(item);
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = implement.apply(javaClass);
             String description = satisfied
                     ? implement.getDescription().replace("implement", "implements")
                     : implement.getDescription().replace("implement", "doesn't implement");
-            String message = String.format("class %s %s in %s",
-                    item.getName(),
-                    description,
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+            String message = createClassMessage(javaClass, description);
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -817,13 +812,11 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean isInterface = item.isInterface();
-            String message = String.format("class %s is %s interface in %s",
-                    item.getName(),
-                    isInterface ? "an" : "not an",
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, isInterface, message));
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean isInterface = javaClass.isInterface();
+            String message = createClassMessage(javaClass,
+                    (isInterface ? "is an" : "is not an") + " interface");
+            events.add(new SimpleConditionEvent(javaClass, isInterface, message));
         }
     }
 
@@ -864,14 +857,11 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = assignable.apply(item);
-            String message = String.format("class %s is %s%s in %s",
-                    item.getName(),
-                    satisfied ? "" : "not ",
-                    assignable.getDescription(),
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = assignable.apply(javaClass);
+            String message = createClassMessage(javaClass,
+                    (satisfied ? "is " : "is not ") + assignable.getDescription());
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -886,11 +876,8 @@ public final class ArchConditions {
         @Override
         public void check(JavaClass javaClass, ConditionEvents events) {
             boolean itemEquivalentToClazz = javaClass.getName().equals(className);
-            String message = String.format("class %s %s %s in %s",
-                    javaClass.getName(),
-                    itemEquivalentToClazz ? "is" : "is not",
-                    className,
-                    formatLocation(javaClass, 0));
+            String message = createClassMessage(javaClass,
+                    (itemEquivalentToClazz ? "is " : "is not ") + className);
             events.add(new SimpleConditionEvent(javaClass, itemEquivalentToClazz, message));
         }
     }
@@ -906,14 +893,11 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass clazz, ConditionEvents events) {
-            boolean satisfied = haveFullyQualifiedName.apply(clazz);
-            String message = String.format("class %s %s fully qualified name '%s' in %s",
-                    clazz.getName(),
-                    satisfied ? "has" : "doesn't have",
-                    name,
-                    formatLocation(clazz, 0));
-            events.add(new SimpleConditionEvent(clazz, satisfied, message));
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = haveFullyQualifiedName.apply(javaClass);
+            String message = createClassMessage(javaClass,
+                    String.format("%s fully qualified name '%s'", satisfied ? "has" : "doesn't have", name));
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -928,14 +912,11 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = haveSimpleName.apply(item);
-            String message = String.format("class %s %s simple name '%s' in %s",
-                    item.getName(),
-                    satisfied ? "has" : "doesn't have",
-                    name,
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = haveSimpleName.apply(javaClass);
+            String message = createClassMessage(javaClass,
+                    String.format("%s simple name '%s'", satisfied ? "has" : "doesn't have", name));
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -950,14 +931,14 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = predicate.apply(item);
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = predicate.apply(javaClass);
             String message = String.format("simple name of %s %s with '%s' in %s",
-                    item.getName(),
+                    javaClass.getName(),
                     satisfied ? "starts" : "doesn't start",
                     prefix,
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+                    javaClass.getOccurrence());
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -972,14 +953,14 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = predicate.apply(item);
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = predicate.apply(javaClass);
             String message = String.format("simple name of %s %s '%s' in %s",
-                    item.getName(),
+                    javaClass.getName(),
                     satisfied ? "contains" : "doesn't contain",
                     infix,
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+                    javaClass.getOccurrence());
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -994,14 +975,14 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = predicate.apply(item);
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = predicate.apply(javaClass);
             String message = String.format("simple name of %s %s with '%s' in %s",
-                    item.getName(),
+                    javaClass.getName(),
                     satisfied ? "ends" : "doesn't end",
                     suffix,
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+                    javaClass.getOccurrence());
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -1016,14 +997,11 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = haveNameMatching.apply(item);
-            String message = String.format("class %s %s '%s' in %s",
-                    item.getName(),
-                    satisfied ? "matches" : "doesn't match",
-                    regex,
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = haveNameMatching.apply(javaClass);
+            String message = createClassMessage(javaClass,
+                    String.format("%s '%s'", satisfied ? "matches" : "doesn't match", regex));
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -1036,14 +1014,11 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = resideInAPackage.apply(item);
-            String message = String.format("class %s %s %s in %s",
-                    item.getName(),
-                    satisfied ? "does" : "doesn't",
-                    resideInAPackage.getDescription(),
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = resideInAPackage.apply(javaClass);
+            String message = createClassMessage(javaClass,
+                    (satisfied ? "does " : "doesn't ") + resideInAPackage.getDescription());
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
@@ -1062,14 +1037,11 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            boolean satisfied = haveModifier.apply(item);
-            String message = String.format("class %s %s modifier %s in %s",
-                    item.getName(),
-                    satisfied ? "has" : "doesn't have",
-                    modifier,
-                    formatLocation(item, 0));
-            events.add(new SimpleConditionEvent(item, satisfied, message));
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean satisfied = haveModifier.apply(javaClass);
+            String message = createClassMessage(javaClass,
+                    (satisfied ? "has" : "doesn't have") + " modifier " + modifier);
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 }

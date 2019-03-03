@@ -32,6 +32,7 @@ import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasDescriptor;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOccurrence;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMemberBuilder;
@@ -41,13 +42,16 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public abstract class JavaMember implements
-        HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass>, HasDescription {
+        HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass>, HasDescription, HasOccurrence {
+
     private final String name;
     private final String descriptor;
     private final Supplier<Map<String, JavaAnnotation>> annotations;
     private final JavaClass owner;
+    private final Occurrence occurrence;
     private final Set<JavaModifier> modifiers;
 
     JavaMember(JavaMemberBuilder<?, ?> builder) {
@@ -55,6 +59,7 @@ public abstract class JavaMember implements
         this.descriptor = checkNotNull(builder.getDescriptor());
         this.annotations = builder.getAnnotations();
         this.owner = checkNotNull(builder.getOwner());
+        this.occurrence = new Occurrence(owner);
         this.modifiers = checkNotNull(builder.getModifiers());
     }
 
@@ -112,12 +117,7 @@ public abstract class JavaMember implements
 
     @Override
     public boolean isMetaAnnotatedWith(String typeName) {
-        for (JavaAnnotation annotation : annotations.get().values()) {
-            if (annotation.getRawType().isAnnotatedWith(typeName) || annotation.getRawType().isMetaAnnotatedWith(typeName)) {
-                return true;
-            }
-        }
-        return false;
+        return isMetaAnnotatedWith(GET_RAW_TYPE.then(GET_NAME).is(equalTo(typeName)));
     }
 
     @Override
@@ -128,6 +128,11 @@ public abstract class JavaMember implements
     @Override
     public JavaClass getOwner() {
         return owner;
+    }
+
+    @Override
+    public Occurrence getOccurrence() {
+        return occurrence;
     }
 
     @Override

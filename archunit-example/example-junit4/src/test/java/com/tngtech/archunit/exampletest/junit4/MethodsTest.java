@@ -21,7 +21,6 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
@@ -61,7 +60,7 @@ public class MethodsTest {
                 boolean typeMatches = method.getRawReturnType().isAssignableTo(type);
                 String message = String.format("%s returns %s in %s",
                         method.getFullName(), method.getRawReturnType().getName(),
-                        formatLocation(method.getOwner(), 0));
+                        method.getOccurrence());
                 events.add(new SimpleConditionEvent(method, typeMatches, message));
             }
         };
