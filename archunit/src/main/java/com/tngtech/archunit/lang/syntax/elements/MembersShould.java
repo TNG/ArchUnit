@@ -360,4 +360,23 @@ public interface MembersShould<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION beDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Allows to assert that members are declared within a certain class.
+     * <br><br>
+     * E.g.
+     * <pre><code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#should() should()}.{@link MembersShould#beDeclaredInClassesThat() beDeclaredInClassesThat()}.{@link ClassesThat#areAssignableTo(Class) areAssignableTo(Example.class)}
+     * </code></pre>
+     * would be violated by <code>someField</code> in
+     *
+     * <pre><code>
+     * class AnyOther {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * @return A syntax element that allows restricting where members are declared in
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesThat<CONJUNCTION> beDeclaredInClassesThat();
 }
