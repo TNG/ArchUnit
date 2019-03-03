@@ -481,10 +481,10 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> accessClassesThat() {
-        return new ClassesShouldThatInternal(this, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
+        return new ClassesThatInternal<>(new Function<PredicateAggregator<JavaClass>, ClassesShouldConjunction>() {
             @Override
-            public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> predicate) {
-                return ArchConditions.accessClassesThat(predicate);
+            public ClassesShouldConjunction apply(PredicateAggregator<JavaClass> predicate) {
+                return addCondition(ArchConditions.accessClassesThat(predicate.get()));
             }
         });
     }
@@ -496,10 +496,10 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> onlyAccessClassesThat() {
-        return new ClassesShouldThatInternal(this, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
+        return new ClassesThatInternal<>(new Function<PredicateAggregator<JavaClass>, ClassesShouldConjunction>() {
             @Override
-            public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> predicate) {
-                return ArchConditions.onlyAccessClassesThat(predicate);
+            public ClassesShouldConjunction apply(PredicateAggregator<JavaClass> predicate) {
+                return addCondition(ArchConditions.onlyAccessClassesThat(predicate.get()));
             }
         });
     }
@@ -511,10 +511,10 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> dependOnClassesThat() {
-        return new ClassesShouldThatInternal(this, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
+        return new ClassesThatInternal<>(new Function<PredicateAggregator<JavaClass>, ClassesShouldConjunction>() {
             @Override
-            public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> predicate) {
-                return ArchConditions.dependOnClassesThat(predicate);
+            public ClassesShouldConjunction apply(PredicateAggregator<JavaClass> predicate) {
+                return addCondition(ArchConditions.dependOnClassesThat(predicate.get()));
             }
         });
     }
@@ -526,10 +526,10 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> onlyDependOnClassesThat() {
-        return new ClassesShouldThatInternal(this, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
+        return new ClassesThatInternal<>(new Function<PredicateAggregator<JavaClass>, ClassesShouldConjunction>() {
             @Override
-            public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> predicate) {
-                return ArchConditions.onlyDependOnClassesThat(predicate);
+            public ClassesShouldConjunction apply(PredicateAggregator<JavaClass> predicate) {
+                return addCondition(ArchConditions.onlyDependOnClassesThat(predicate.get()));
             }
         });
     }
@@ -546,10 +546,10 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> onlyHaveDependentClassesThat() {
-        return new ClassesShouldThatInternal(this, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
+        return new ClassesThatInternal<>(new Function<PredicateAggregator<JavaClass>, ClassesShouldConjunction>() {
             @Override
-            public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> predicate) {
-                return ArchConditions.onlyHaveDependentClassesThat(predicate);
+            public ClassesShouldConjunction apply(PredicateAggregator<JavaClass> predicate) {
+                return addCondition(ArchConditions.onlyHaveDependentClassesThat(predicate.get()));
             }
         });
     }
@@ -574,7 +574,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         return addCondition(ArchConditions.containNumberOfElements(predicate));
     }
 
-    ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {
+    private ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {
         return new ClassesShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
     }
 

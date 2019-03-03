@@ -40,6 +40,10 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     private final Function<PredicateAggregator<JavaClass>, CONJUNCTION> addPredicate;
     private final PredicateAggregator<JavaClass> currentPredicate;
 
+    ClassesThatInternal(Function<PredicateAggregator<JavaClass>, CONJUNCTION> addPredicate) {
+        this(addPredicate, new PredicateAggregator<JavaClass>());
+    }
+
     ClassesThatInternal(Function<PredicateAggregator<JavaClass>, CONJUNCTION> addPredicate, PredicateAggregator<JavaClass> predicate) {
         this.addPredicate = addPredicate;
         this.currentPredicate = predicate;
