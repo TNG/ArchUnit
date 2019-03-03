@@ -27,6 +27,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.MembersShould;
 import com.tngtech.archunit.lang.syntax.elements.MembersShouldConjunction;
 
@@ -210,6 +211,16 @@ class MembersShouldInternal<MEMBER extends JavaMember> extends ObjectsShouldInte
     @Override
     public MembersShouldConjunction<MEMBER> beDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(ArchConditions.beDeclaredInClassesThat(predicate));
+    }
+
+    @Override
+    public ClassesThat<MembersShouldConjunction<MEMBER>> beDeclaredInClassesThat() {
+        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, MembersShouldConjunction<MEMBER>>() {
+            @Override
+            public MembersShouldConjunction<MEMBER> apply(DescribedPredicate<? super JavaClass> predicate) {
+                return addCondition(ArchConditions.beDeclaredInClassesThat(predicate));
+            }
+        });
     }
 
     private MembersShouldInternal<MEMBER> copyWithNewCondition(ArchCondition<? super MEMBER> newCondition) {

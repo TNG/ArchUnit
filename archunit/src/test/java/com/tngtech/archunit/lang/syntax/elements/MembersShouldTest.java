@@ -363,6 +363,20 @@ public class MembersShouldTest {
                                 return membersShould.beDeclaredInClassesThat(not(equivalentTo(ClassWithVariousMembers.class)));
                             }
                         }
+                )).add(
+                declaredInDataPoints(
+                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
+                            @Override
+                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
+                                return membersShould.beDeclaredInClassesThat().areAssignableTo(ClassWithVariousMembers.class);
+                            }
+                        },
+                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
+                            @Override
+                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
+                                return membersShould.beDeclaredInClassesThat().areNotAssignableTo(ClassWithVariousMembers.class);
+                            }
+                        }
                 )).build().toArray(new Object[0][]);
     }
 
