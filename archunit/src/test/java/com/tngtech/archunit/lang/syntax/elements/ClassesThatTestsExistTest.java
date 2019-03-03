@@ -28,7 +28,7 @@ public class ClassesThatTestsExistTest {
                 Set<Method> testMethods = getMethodsStartingWith(entry.getElement(), testClass);
                 assertThat(testMethods.size())
                         .as("Number of tests in %s to cover %s.%s(..)", testClass.getSimpleName(),
-                                ClassesShouldThat.class.getSimpleName(), entry.getElement())
+                                ClassesThat.class.getSimpleName(), entry.getElement())
                         .isGreaterThanOrEqualTo(entry.getCount());
             }
         }

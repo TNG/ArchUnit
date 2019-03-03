@@ -24,9 +24,9 @@ import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
-import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
 class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesInternal>
         implements GivenClasses, GivenClassesConjunction {
@@ -58,17 +58,17 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
     }
 
     @Override
-    public GivenClassesThat and() {
+    public ClassesThat<GivenClassesConjunction> and() {
         return new GivenClassesThatInternal(this, currentPredicate().thatANDs());
     }
 
     @Override
-    public GivenClassesThat or() {
+    public ClassesThat<GivenClassesConjunction> or() {
         return new GivenClassesThatInternal(this, currentPredicate().thatORs());
     }
 
     @Override
-    public GivenClassesThat that() {
+    public ClassesThat<GivenClassesConjunction> that() {
         return new GivenClassesThatInternal(this, currentPredicate());
     }
 
