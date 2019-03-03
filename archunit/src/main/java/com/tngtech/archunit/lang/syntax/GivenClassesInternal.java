@@ -31,6 +31,14 @@ import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
 class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesInternal>
         implements GivenClasses, GivenClassesConjunction {
 
+    private final Function<PredicateAggregator<JavaClass>, GivenClassesConjunction> addPredicateToThis =
+            new Function<PredicateAggregator<JavaClass>, GivenClassesConjunction>() {
+                @Override
+                public GivenClassesConjunction apply(PredicateAggregator<JavaClass> input) {
+                    return with(input);
+                }
+            };
+
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer) {
         this(priority, classesTransformer, Functions.<ArchCondition<JavaClass>>identity());
     }
@@ -59,17 +67,17 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
 
     @Override
     public ClassesThat<GivenClassesConjunction> and() {
-        return new GivenClassesThatInternal(this, currentPredicate().thatANDs());
+        return new ClassesThatInternal<>(addPredicateToThis, currentPredicate().thatANDs());
     }
 
     @Override
     public ClassesThat<GivenClassesConjunction> or() {
-        return new GivenClassesThatInternal(this, currentPredicate().thatORs());
+        return new ClassesThatInternal<>(addPredicateToThis, currentPredicate().thatORs());
     }
 
     @Override
     public ClassesThat<GivenClassesConjunction> that() {
-        return new GivenClassesThatInternal(this, currentPredicate());
+        return new ClassesThatInternal<>(addPredicateToThis, currentPredicate());
     }
 
     @Override
