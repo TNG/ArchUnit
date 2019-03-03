@@ -21,7 +21,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
-import com.tngtech.archunit.lang.syntax.elements.ClassesShouldThat;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.OnlyBeAccessedSpecification;
 
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
@@ -40,7 +40,7 @@ class OnlyBeAccessedSpecificationInternal implements OnlyBeAccessedSpecification
     }
 
     @Override
-    public ClassesShouldThat byClassesThat() {
+    public ClassesThat<ClassesShouldConjunction> byClassesThat() {
         return new ClassesShouldThatInternal(classesShould, new Function<DescribedPredicate<JavaClass>, ArchCondition<JavaClass>>() {
             @Override
             public ArchCondition<JavaClass> apply(DescribedPredicate<JavaClass> predicate) {

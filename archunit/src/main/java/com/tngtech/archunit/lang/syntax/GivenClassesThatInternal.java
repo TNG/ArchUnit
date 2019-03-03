@@ -21,8 +21,8 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
-import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -36,7 +36,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-class GivenClassesThatInternal implements GivenClassesThat {
+class GivenClassesThatInternal implements ClassesThat<GivenClassesConjunction> {
     private final GivenClassesInternal givenClasses;
     private final PredicateAggregator<JavaClass> currentPredicate;
 
