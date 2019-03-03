@@ -66,7 +66,7 @@ public class GivenClassShouldTest {
                 .haveFailingRuleText("the class %s should not have fully qualified name '%s'",
                         SomeClass.class.getName(), SomeClass.class.getName())
                 .containFailureDetail(
-                        String.format("class %s has fully qualified name '%s' in %s",
+                        String.format("Class <%s> has fully qualified name '%s' in %s",
                                 quote(SomeClass.class.getName()),
                                 quote(SomeClass.class.getName()),
                                 locationPattern(SomeClass.class)))
@@ -95,7 +95,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), SomeClass.class.getName())
                 .haveFailingRuleText("no class %s should have fully qualified name '%s'",
                         SomeClass.class.getName(), SomeClass.class.getName())
-                .containFailureDetail(String.format("class %s has fully qualified name '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has fully qualified name '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(SomeClass.class.getName()),
                         locationPattern(SomeClass.class)))
@@ -124,7 +124,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), SomeClass.class.getSimpleName())
                 .haveFailingRuleText("the class %s should not have simple name '%s'",
                         SomeClass.class.getName(), SomeClass.class.getSimpleName())
-                .containFailureDetail(String.format("class %s has simple name '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has simple name '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(SomeClass.class.getSimpleName()),
                         locationPattern(SomeClass.class)))
@@ -153,7 +153,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), SomeClass.class.getSimpleName())
                 .haveFailingRuleText("no class %s should have simple name '%s'",
                         SomeClass.class.getName(), SomeClass.class.getSimpleName())
-                .containFailureDetail(String.format("class %s has simple name '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has simple name '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(SomeClass.class.getSimpleName()),
                         locationPattern(SomeClass.class)))
@@ -185,7 +185,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), regex)
                 .haveFailingRuleText("the class %s should have name not matching '%s'",
                         SomeClass.class.getName(), regex)
-                .containFailureDetail(String.format("class %s matches '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> matches '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(regex),
                         locationPattern(SomeClass.class)))
@@ -217,7 +217,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), regex)
                 .haveFailingRuleText("no class %s should have name matching '%s'",
                         SomeClass.class.getName(), regex)
-                .containFailureDetail(String.format("class %s matches '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> matches '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(regex),
                         locationPattern(SomeClass.class)))
@@ -362,7 +362,7 @@ public class GivenClassShouldTest {
     @DataProvider
     public static Object[][] theClass_should_haveSimpleNameEndingWith_rules() {
         String simpleName = SomeClass.class.getSimpleName();
-        String suffix = simpleName.substring(1, simpleName.length());
+        String suffix = simpleName.substring(1);
 
         return $$(
                 $(theClass(SomeClass.class).should().haveSimpleNameEndingWith(suffix),
@@ -380,7 +380,7 @@ public class GivenClassShouldTest {
     @UseDataProvider("theClass_should_haveSimpleNameEndingWith_rules")
     public void theClass_should_haveSimpleNameEndingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String simpleName = SomeClass.class.getSimpleName();
-        String suffix = simpleName.substring(1, simpleName.length());
+        String suffix = simpleName.substring(1);
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
                 .haveSuccessfulRuleText("the class %s should have simple name ending with '%s'",
                         SomeClass.class.getName(), suffix)
@@ -397,7 +397,7 @@ public class GivenClassShouldTest {
     public static Object[][] noClass_should_haveSimpleNameEndingWith_rules() {
 
         String simpleName = SomeClass.class.getSimpleName();
-        String suffix = simpleName.substring(1, simpleName.length());
+        String suffix = simpleName.substring(1);
         return $$(
                 $(noClass(SomeClass.class).should().haveSimpleNameNotEndingWith(suffix),
                         noClass(SomeClass.class).should().haveSimpleNameEndingWith(suffix)),
@@ -414,7 +414,7 @@ public class GivenClassShouldTest {
     @UseDataProvider("noClass_should_haveSimpleNameEndingWith_rules")
     public void noClass_should_haveSimpleNameEndingWith(ArchRule satisfiedRule, ArchRule unsatisfiedRule) {
         String simpleName = SomeClass.class.getSimpleName();
-        String suffix = simpleName.substring(1, simpleName.length());
+        String suffix = simpleName.substring(1);
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
                 .haveSuccessfulRuleText("no class %s should have simple name not ending with '%s'",
                         SomeClass.class.getName(), suffix)
@@ -451,7 +451,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), thePackage)
                 .haveFailingRuleText("the class %s should reside outside of package '%s'",
                         SomeClass.class.getName(), thePackage)
-                .containFailureDetail(String.format("class %s doesn't reside outside of package '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> doesn't reside outside of package '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(thePackage),
                         locationPattern(SomeClass.class)))
@@ -483,7 +483,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), thePackage)
                 .haveFailingRuleText("no class %s should reside in a package '%s'",
                         SomeClass.class.getName(), thePackage)
-                .containFailureDetail(String.format("class %s does reside in a package '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> does reside in a package '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(thePackage),
                         locationPattern(SomeClass.class)))
@@ -521,7 +521,7 @@ public class GivenClassShouldTest {
                 .haveFailingRuleText("the class %s should reside outside of packages ['%s']",
                         SomeClass.class.getName(),
                         Joiner.on("', '").join(packageIdentifiers))
-                .containFailureDetail(String.format("class %s doesn't reside outside of packages \\['%s'\\] in %s",
+                .containFailureDetail(String.format("Class <%s> doesn't reside outside of packages \\['%s'\\] in %s",
                         quote(SomeClass.class.getName()),
                         quote(Joiner.on("', '").join(packageIdentifiers)),
                         locationPattern(SomeClass.class)))
@@ -559,7 +559,7 @@ public class GivenClassShouldTest {
                 .haveFailingRuleText("no class %s should reside in any package ['%s']",
                         SomeClass.class.getName(),
                         Joiner.on("', '").join(packageIdentifiers))
-                .containFailureDetail(String.format("class %s does reside in any package \\['%s'\\] in %s",
+                .containFailureDetail(String.format("Class <%s> does reside in any package \\['%s'\\] in %s",
                         quote(SomeClass.class.getName()),
                         quote(Joiner.on("', '").join(packageIdentifiers)),
                         locationPattern(SomeClass.class)))
@@ -588,7 +588,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName())
                 .haveFailingRuleText("the class %s should not be public",
                         SomeClass.class.getName())
-                .containFailureDetail(String.format("class %s has modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> has modifier %s in %s",
                         quote(SomeClass.class.getName()),
                         quote(JavaModifier.PUBLIC.name()),
                         locationPattern(SomeClass.class)))
@@ -617,7 +617,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName())
                 .haveFailingRuleText("no class %s should be public",
                         SomeClass.class.getName())
-                .containFailureDetail(String.format("class %s has modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> has modifier %s in %s",
                         quote(SomeClass.class.getName()),
                         quote(JavaModifier.PUBLIC.name()),
                         locationPattern(SomeClass.class)))
@@ -646,7 +646,7 @@ public class GivenClassShouldTest {
                         PrivateClass.class.getName())
                 .haveFailingRuleText("the class %s should not be private",
                         PrivateClass.class.getName())
-                .containFailureDetail(String.format("class %s has modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> has modifier %s in %s",
                         quote(PrivateClass.class.getName()),
                         quote(JavaModifier.PRIVATE.name()),
                         locationPattern(GivenClassShouldTest.class)))
@@ -675,7 +675,7 @@ public class GivenClassShouldTest {
                         PrivateClass.class.getName())
                 .haveFailingRuleText("no class %s should be private",
                         PrivateClass.class.getName())
-                .containFailureDetail(String.format("class %s has modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> has modifier %s in %s",
                         quote(PrivateClass.class.getName()),
                         quote(JavaModifier.PRIVATE.name()),
                         locationPattern(GivenClassShouldTest.class)))
@@ -704,7 +704,7 @@ public class GivenClassShouldTest {
                         ClassWithFinalFields.class.getName())
                 .haveFailingRuleText("the class %s should have only final fields",
                         ClassWithNonFinalFields.class.getName())
-                .containFailureDetail(String.format("class %s has non-final fields \\[integerField, stringField\\] in %s",
+                .containFailureDetail(String.format("Class <%s> has non-final fields \\[integerField, stringField\\] in %s",
                         quote(ClassWithNonFinalFields.class.getName()),
                         locationPattern(GivenClassShouldTest.class)))
                 .doNotContainFailureDetail(quote(ClassWithFinalFields.class.getName()));
@@ -732,7 +732,7 @@ public class GivenClassShouldTest {
                         ClassWithNonFinalFields.class.getName())
                 .haveFailingRuleText("no class %s should have only final fields",
                         ClassWithFinalFields.class.getName())
-                .containFailureDetail(String.format("class %s doesn't have any non-final fields in %s",
+                .containFailureDetail(String.format("Class <%s> doesn't have any non-final fields in %s",
                         quote(ClassWithFinalFields.class.getName()),
                         locationPattern(GivenClassShouldTest.class)))
                 .doNotContainFailureDetail(quote(ClassWithNonFinalFields.class.getName()));
@@ -761,7 +761,7 @@ public class GivenClassShouldTest {
                         ProtectedClass.class.getName())
                 .haveFailingRuleText("the class %s should not be protected",
                         ProtectedClass.class.getName())
-                .containFailureDetail(String.format("class %s has modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> has modifier %s in %s",
                         quote(ProtectedClass.class.getName()),
                         quote(JavaModifier.PROTECTED.name()),
                         locationPattern(GivenClassShouldTest.class)))
@@ -790,7 +790,7 @@ public class GivenClassShouldTest {
                         ProtectedClass.class.getName())
                 .haveFailingRuleText("no class %s should be protected",
                         ProtectedClass.class.getName())
-                .containFailureDetail(String.format("class %s has modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> has modifier %s in %s",
                         quote(ProtectedClass.class.getName()),
                         quote(JavaModifier.PROTECTED.name()),
                         locationPattern(GivenClassShouldTest.class)))
@@ -819,9 +819,9 @@ public class GivenClassShouldTest {
                         PackagePrivateClass.class.getName())
                 .haveFailingRuleText("the class %s should not be package private",
                         PackagePrivateClass.class.getName())
-                .containFailureDetail(String.format("class %s doesn't have modifier %s in %s "
-                                + "and class %s doesn't have modifier %s in %s "
-                                + "and class %s doesn't have modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> doesn't have modifier %s in %s "
+                                + "and Class <%s> doesn't have modifier %s in %s "
+                                + "and Class <%s> doesn't have modifier %s in %s",
                         quote(PackagePrivateClass.class.getName()),
                         quote(JavaModifier.PRIVATE.name()),
                         locationPattern(GivenClassShouldTest.class),
@@ -856,9 +856,9 @@ public class GivenClassShouldTest {
                         PackagePrivateClass.class.getName())
                 .haveFailingRuleText("no class %s should be package private",
                         PackagePrivateClass.class.getName())
-                .containFailureDetail(String.format("class %s doesn't have modifier %s in %s "
-                                + "and class %s doesn't have modifier %s in %s "
-                                + "and class %s doesn't have modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> doesn't have modifier %s in %s "
+                                + "and Class <%s> doesn't have modifier %s in %s "
+                                + "and Class <%s> doesn't have modifier %s in %s",
                         quote(PackagePrivateClass.class.getName()),
                         quote(JavaModifier.PRIVATE.name()),
                         locationPattern(GivenClassShouldTest.class),
@@ -893,7 +893,7 @@ public class GivenClassShouldTest {
                         PublicClass.class.getName(), PUBLIC)
                 .haveFailingRuleText("the class %s should not have modifier %s",
                         PublicClass.class.getName(), PUBLIC)
-                .containFailureDetail(String.format("class %s has modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> has modifier %s in %s",
                         quote(PublicClass.class.getName()),
                         quote(JavaModifier.PUBLIC.name()),
                         locationPattern(GivenClassShouldTest.class)))
@@ -922,7 +922,7 @@ public class GivenClassShouldTest {
                         PublicClass.class.getName(), PUBLIC)
                 .haveFailingRuleText("no class %s should have modifier %s",
                         PublicClass.class.getName(), PUBLIC)
-                .containFailureDetail(String.format("class %s has modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> has modifier %s in %s",
                         quote(PublicClass.class.getName()),
                         quote(JavaModifier.PUBLIC.name()),
                         locationPattern(GivenClassShouldTest.class)))
@@ -951,7 +951,7 @@ public class GivenClassShouldTest {
                         SomeAnnotatedClass.class.getName(), RuntimeRetentionAnnotation.class.getSimpleName())
                 .haveFailingRuleText("the class %s should not be annotated with @%s",
                         SomeAnnotatedClass.class.getName(), RuntimeRetentionAnnotation.class.getSimpleName())
-                .containFailureDetail(String.format("class %s is annotated with @%s in %s",
+                .containFailureDetail(String.format("Class <%s> is annotated with @%s in %s",
                         quote(SomeAnnotatedClass.class.getName()),
                         quote(RuntimeRetentionAnnotation.class.getSimpleName()),
                         locationPattern(GivenClassShouldTest.class)))
@@ -980,7 +980,7 @@ public class GivenClassShouldTest {
                         SomeAnnotatedClass.class.getName(), RuntimeRetentionAnnotation.class.getSimpleName())
                 .haveFailingRuleText("no class %s should be annotated with @%s",
                         SomeAnnotatedClass.class.getName(), RuntimeRetentionAnnotation.class.getSimpleName())
-                .containFailureDetail(String.format("class %s is annotated with @%s in %s",
+                .containFailureDetail(String.format("Class <%s> is annotated with @%s in %s",
                         quote(SomeAnnotatedClass.class.getName()),
                         quote(RuntimeRetentionAnnotation.class.getSimpleName()),
                         locationPattern(GivenClassShouldTest.class)))
@@ -1009,7 +1009,7 @@ public class GivenClassShouldTest {
                         ArrayList.class.getName(), Collection.class.getName())
                 .haveFailingRuleText("the class %s should not implement %s",
                         ArrayList.class.getName(), Collection.class.getName())
-                .containFailureDetail(String.format("class %s implements %s in %s",
+                .containFailureDetail(String.format("Class <%s> implements %s in %s",
                         quote(ArrayList.class.getName()),
                         quote(Collection.class.getName()),
                         locationPattern(ArrayList.class)))
@@ -1038,7 +1038,7 @@ public class GivenClassShouldTest {
                         ArrayList.class.getName(), Collection.class.getName())
                 .haveFailingRuleText("no class %s should implement %s",
                         ArrayList.class.getName(), Collection.class.getName())
-                .containFailureDetail(String.format("class %s implements %s in %s",
+                .containFailureDetail(String.format("Class <%s> implements %s in %s",
                         quote(ArrayList.class.getName()),
                         quote(Collection.class.getName()),
                         locationPattern(ArrayList.class)))
@@ -1067,7 +1067,7 @@ public class GivenClassShouldTest {
                         List.class.getName(), Collection.class.getName())
                 .haveFailingRuleText("the class %s should not be assignable to %s",
                         List.class.getName(), Collection.class.getName())
-                .containFailureDetail(String.format("class %s is assignable to %s in %s",
+                .containFailureDetail(String.format("Class <%s> is assignable to %s in %s",
                         quote(List.class.getName()),
                         quote(Collection.class.getName()),
                         locationPattern(List.class)))
@@ -1096,7 +1096,7 @@ public class GivenClassShouldTest {
                         List.class.getName(), Collection.class.getName())
                 .haveFailingRuleText("no class %s should be assignable to %s",
                         List.class.getName(), Collection.class.getName())
-                .containFailureDetail(String.format("class %s is assignable to %s in %s",
+                .containFailureDetail(String.format("Class <%s> is assignable to %s in %s",
                         quote(List.class.getName()),
                         quote(Collection.class.getName()),
                         locationPattern(List.class)))
@@ -1125,7 +1125,7 @@ public class GivenClassShouldTest {
                         Collection.class.getName(), List.class.getName())
                 .haveFailingRuleText("the class %s should not be assignable from %s",
                         Collection.class.getName(), List.class.getName())
-                .containFailureDetail(String.format("class %s is assignable from %s in %s",
+                .containFailureDetail(String.format("Class <%s> is assignable from %s in %s",
                         quote(Collection.class.getName()),
                         quote(List.class.getName()),
                         locationPattern(Collection.class)))
@@ -1154,7 +1154,7 @@ public class GivenClassShouldTest {
                         Collection.class.getName(), List.class.getName())
                 .haveFailingRuleText("no class %s should be assignable from %s",
                         Collection.class.getName(), List.class.getName())
-                .containFailureDetail(String.format("class %s is assignable from %s in %s",
+                .containFailureDetail(String.format("Class <%s> is assignable from %s in %s",
                         quote(Collection.class.getName()),
                         quote(List.class.getName()),
                         locationPattern(Collection.class)))

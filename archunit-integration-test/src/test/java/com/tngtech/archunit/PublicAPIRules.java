@@ -3,7 +3,6 @@ package com.tngtech.archunit;
 import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructor;
@@ -139,18 +138,17 @@ public class PublicAPIRules {
         return declaredIn(resideInAPackage(packageIdentifier).as("class in '%s'", packageIdentifier));
     }
 
-    // TODO: Would be a nice feature, to record the line numbers of members as well
     private static ArchCondition<JavaMember> notBePublic() {
         return new ArchCondition<JavaMember>("not be public") {
             @Override
-            public void check(JavaMember item, ConditionEvents events) {
-                boolean satisfied = !item.getModifiers().contains(PUBLIC);
-                events.add(new SimpleConditionEvent(item, satisfied,
+            public void check(JavaMember member, ConditionEvents events) {
+                boolean satisfied = !member.getModifiers().contains(PUBLIC);
+                events.add(new SimpleConditionEvent(member, satisfied,
                         String.format("member %s.%s is %spublic in %s",
-                                item.getOwner().getName(),
-                                item.getName(),
+                                member.getOwner().getName(),
+                                member.getName(),
                                 satisfied ? "not " : "",
-                                Formatters.formatLocation(item.getOwner(), 0))));
+                                member.getOccurrence())));
             }
         };
     }

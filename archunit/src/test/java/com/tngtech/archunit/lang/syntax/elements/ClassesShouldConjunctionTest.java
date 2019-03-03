@@ -108,7 +108,7 @@ public class ClassesShouldConjunctionTest {
     }
 
     private String doesntHaveFqnMessage(Class<?> clazz, Class<?> expectedFqn) {
-        return String.format("class %s doesn't have fully qualified name '%s' in (%s.java:0)",
+        return String.format("Class <%s> doesn't have fully qualified name '%s' in (%s.java:0)",
                 clazz.getName(), expectedFqn.getName(), locationOf(clazz).getSimpleName());
     }
 
@@ -139,11 +139,11 @@ public class ClassesShouldConjunctionTest {
                         "no classes should access classes that have fully qualified name '%s' and should have fully qualified name '%s'",
                         Wrong.class.getName(), OtherWrong.class.getName()));
         assertThat(report.getDetails()).usingElementComparator(matchesRegex())
-                .containsOnly(otherWrongCallsWrongRegex() + " and " + classHasFullNameRegex(OtherWrong.class));
+                .containsOnly(classHasFullNameRegex(OtherWrong.class) + " and " + otherWrongCallsWrongRegex());
     }
 
     private String classHasFullNameRegex(Class<?> clazz) {
-        return String.format("class %s has fully qualified name '%s' in %s",
+        return String.format("Class <%s> has fully qualified name '%s' in %s",
                 quote(clazz.getName()), quote(clazz.getName()), locationPattern(locationOf(clazz)));
     }
 

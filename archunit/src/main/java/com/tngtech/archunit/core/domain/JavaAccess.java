@@ -22,27 +22,29 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOccurrence;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 
 public abstract class JavaAccess<TARGET extends AccessTarget>
-        implements HasName, HasDescription, HasOwner<JavaCodeUnit> {
+        implements HasName, HasDescription, HasOwner<JavaCodeUnit>, HasOccurrence {
 
     private final JavaCodeUnit origin;
     private final TARGET target;
     private final int lineNumber;
     private final int hashCode;
+    private final Occurrence occurrence;
 
     JavaAccess(DomainBuilders.JavaAccessBuilder<TARGET, ?> builder) {
         this.origin = checkNotNull(builder.getOrigin());
         this.target = checkNotNull(builder.getTarget());
         this.lineNumber = builder.getLineNumber();
         this.hashCode = Objects.hash(origin.getFullName(), target.getFullName(), lineNumber);
+        occurrence = new Occurrence(getOriginOwner(), lineNumber);
     }
 
     @Override
@@ -81,6 +83,11 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     }
 
     @Override
+    public Occurrence getOccurrence() {
+        return occurrence;
+    }
+
+    @Override
     public int hashCode() {
         return hashCode;
     }
@@ -112,8 +119,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     @Override
     public String getDescription() {
         String description = origin.getDescription() + " " + descriptionVerb() + " " + getTarget().getDescription();
-        String location = formatLocation(getOriginOwner(), getLineNumber());
-        return description + " in " + location;
+        return description + " in " + getOccurrence();
     }
 
     protected abstract String descriptionVerb();

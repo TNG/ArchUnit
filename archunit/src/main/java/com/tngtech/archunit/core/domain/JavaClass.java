@@ -35,6 +35,7 @@ import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -44,6 +45,7 @@ import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOccurrence;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -60,8 +62,9 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
-public class JavaClass implements HasName, HasAnnotations, HasModifiers {
+public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifiers, HasDescription, HasOccurrence {
     private final Optional<Source> source;
+    private final Occurrence occurrence;
     private final JavaType javaType;
     private JavaPackage javaPackage;
     private final boolean isInterface;
@@ -102,6 +105,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         isEnum = builder.isEnum();
         modifiers = checkNotNull(builder.getModifiers());
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
+        occurrence = new Occurrence(this);
         javaPackage = JavaPackage.simple(this);
     }
 
@@ -111,8 +115,24 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
+    public Occurrence getOccurrence() {
+        return occurrence;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Class <" + getName() + ">";
+    }
+
+    @Override
     public String getName() {
         return javaType.getName();
+    }
+
+    @Override
+    public String getFullName() {
+        return getName();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -186,12 +206,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
 
     @Override
     public boolean isMetaAnnotatedWith(String typeName) {
-        for (JavaAnnotation annotation : annotations.get().values()) {
-            if (annotation.getRawType().isAnnotatedWith(typeName) || annotation.getRawType().isMetaAnnotatedWith(typeName)) {
-                return true;
-            }
-        }
-        return false;
+        return isMetaAnnotatedWith(GET_RAW_TYPE.then(GET_NAME).is(equalTo(typeName)));
     }
 
     @Override

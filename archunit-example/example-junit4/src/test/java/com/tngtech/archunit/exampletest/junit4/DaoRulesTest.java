@@ -1,5 +1,7 @@
 package com.tngtech.archunit.exampletest.junit4;
 
+import java.sql.SQLException;
+
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 
@@ -12,13 +14,9 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.sql.SQLException;
-
-import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -50,12 +48,12 @@ public class DaoRulesTest {
     private static ArchCondition<JavaClass> notContainMethodsThrowing(final Class<? extends Exception> exception) {
         return new ArchCondition<JavaClass>("not contain methods throwing " + exception.getName()) {
             @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                for (JavaMethod method : item.getMethods()) {
+            public void check(JavaClass javaClass, ConditionEvents events) {
+                for (JavaMethod method : javaClass.getMethods()) {
                     if (method.getThrowsClause().containsType(exception)) {
                         String message = String.format("%s throws %s in %s",
                                 method.getFullName(), exception.getName(),
-                                formatLocation(method.getOwner(), 0));
+                                javaClass.getOccurrence());
                         events.add(SimpleConditionEvent.violated(method, message));
                     }
                 }
