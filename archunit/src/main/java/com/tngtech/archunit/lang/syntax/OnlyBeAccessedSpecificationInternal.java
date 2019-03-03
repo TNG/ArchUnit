@@ -40,10 +40,10 @@ class OnlyBeAccessedSpecificationInternal implements OnlyBeAccessedSpecification
 
     @Override
     public ClassesThat<ClassesShouldConjunction> byClassesThat() {
-        return new ClassesThatInternal<>(new Function<PredicateAggregator<JavaClass>, ClassesShouldConjunction>() {
+        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, ClassesShouldConjunction>() {
             @Override
-            public ClassesShouldConjunction apply(PredicateAggregator<JavaClass> predicate) {
-                return classesShould.addCondition(ArchConditions.onlyBeAccessedByClassesThat(predicate.get()));
+            public ClassesShouldConjunction apply(DescribedPredicate<? super JavaClass> predicate) {
+                return classesShould.addCondition(ArchConditions.onlyBeAccessedByClassesThat(predicate));
             }
         });
     }

@@ -24,6 +24,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
@@ -37,16 +38,10 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
 class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
-    private final Function<PredicateAggregator<JavaClass>, CONJUNCTION> addPredicate;
-    private final PredicateAggregator<JavaClass> currentPredicate;
+    private final Function<DescribedPredicate<? super JavaClass>, CONJUNCTION> addPredicate;
 
-    ClassesThatInternal(Function<PredicateAggregator<JavaClass>, CONJUNCTION> addPredicate) {
-        this(addPredicate, new PredicateAggregator<JavaClass>());
-    }
-
-    ClassesThatInternal(Function<PredicateAggregator<JavaClass>, CONJUNCTION> addPredicate, PredicateAggregator<JavaClass> predicate) {
-        this.addPredicate = addPredicate;
-        this.currentPredicate = predicate;
+    ClassesThatInternal(Function<DescribedPredicate<? super JavaClass>, CONJUNCTION> addPredicate) {
+        this.addPredicate = checkNotNull(addPredicate);
     }
 
     @Override
@@ -340,6 +335,6 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     }
 
     private CONJUNCTION givenWith(DescribedPredicate<? super JavaClass> predicate) {
-        return addPredicate.apply(currentPredicate.add(predicate));
+        return addPredicate.apply(predicate);
     }
 }
