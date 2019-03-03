@@ -66,417 +66,417 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesShouldConjunction be(final Class<?> clazz) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.be(clazz)));
+        return addCondition(ArchConditions.be(clazz));
     }
 
     @Override
     public ClassesShouldConjunction notBe(final Class<?> clazz) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBe(clazz)));
+        return addCondition(ArchConditions.notBe(clazz));
     }
 
     @Override
     public ClassesShouldConjunction be(String className) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.be(className)));
+        return addCondition(ArchConditions.be(className));
     }
 
     @Override
     public ClassesShouldConjunction notBe(String className) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBe(className)));
+        return addCondition(ArchConditions.notBe(className));
     }
 
     @Override
     public ClassesShouldConjunction haveFullyQualifiedName(final String name) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveFullyQualifiedName(name)));
+        return addCondition(ArchConditions.haveFullyQualifiedName(name));
     }
 
     @Override
     public ClassesShouldConjunction notHaveFullyQualifiedName(String name) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notHaveFullyQualifiedName(name)));
+        return addCondition(ArchConditions.notHaveFullyQualifiedName(name));
     }
 
     @Override
     public ClassesShouldConjunction haveSimpleName(String name) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleName(name)));
+        return addCondition(ArchConditions.haveSimpleName(name));
     }
 
     @Override
     public ClassesShouldConjunction notHaveSimpleName(String name) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notHaveSimpleName(name)));
+        return addCondition(ArchConditions.notHaveSimpleName(name));
     }
 
     @Override
     public ClassesShouldConjunction haveSimpleNameStartingWith(String prefix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameStartingWith(prefix)));
+        return addCondition(ArchConditions.haveSimpleNameStartingWith(prefix));
     }
 
     @Override
     public ClassesShouldConjunction haveSimpleNameNotStartingWith(String prefix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameNotStartingWith(prefix)));
+        return addCondition(ArchConditions.haveSimpleNameNotStartingWith(prefix));
     }
 
     @Override
     public ClassesShouldConjunction haveSimpleNameContaining(String infix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameContaining(infix)));
+        return addCondition(ArchConditions.haveSimpleNameContaining(infix));
     }
 
     @Override
     public ClassesShouldConjunction haveSimpleNameNotContaining(String infix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameNotContaining(infix)));
+        return addCondition(ArchConditions.haveSimpleNameNotContaining(infix));
     }
 
     @Override
     public ClassesShouldConjunction haveSimpleNameEndingWith(String suffix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameEndingWith(suffix)));
+        return addCondition(ArchConditions.haveSimpleNameEndingWith(suffix));
     }
 
     @Override
     public ClassesShouldConjunction haveSimpleNameNotEndingWith(String suffix) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveSimpleNameNotEndingWith(suffix)));
+        return addCondition(ArchConditions.haveSimpleNameNotEndingWith(suffix));
     }
 
     @Override
     public ClassesShouldConjunction haveNameMatching(String regex) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveNameMatching(regex)));
+        return addCondition(ArchConditions.haveNameMatching(regex));
     }
 
     @Override
     public ClassesShouldConjunction haveNameNotMatching(String regex) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveNameNotMatching(regex)));
+        return addCondition(ArchConditions.haveNameNotMatching(regex));
     }
 
     @Override
     public ClassesShouldConjunction resideInAPackage(String packageIdentifier) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.resideInAPackage(packageIdentifier)));
+        return addCondition(ArchConditions.resideInAPackage(packageIdentifier));
     }
 
     @Override
     public ClassesShouldConjunction resideInAnyPackage(String... packageIdentifiers) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.resideInAnyPackage(packageIdentifiers)));
+        return addCondition(ArchConditions.resideInAnyPackage(packageIdentifiers));
     }
 
     @Override
     public ClassesShouldConjunction resideOutsideOfPackage(String packageIdentifier) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.resideOutsideOfPackage(packageIdentifier)));
+        return addCondition(ArchConditions.resideOutsideOfPackage(packageIdentifier));
     }
 
     @Override
     public ClassesShouldConjunction resideOutsideOfPackages(String... packageIdentifiers) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.resideOutsideOfPackages(packageIdentifiers)));
+        return addCondition(ArchConditions.resideOutsideOfPackages(packageIdentifiers));
     }
 
     @Override
     public ClassesShouldConjunction bePublic() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.bePublic()));
+        return addCondition(ArchConditions.bePublic());
     }
 
     @Override
     public ClassesShouldConjunction notBePublic() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBePublic()));
+        return addCondition(ArchConditions.notBePublic());
     }
 
     @Override
     public ClassesShouldConjunction beProtected() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beProtected()));
+        return addCondition(ArchConditions.beProtected());
     }
 
     @Override
     public ClassesShouldConjunction notBeProtected() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeProtected()));
+        return addCondition(ArchConditions.notBeProtected());
     }
 
     @Override
     public ClassesShouldConjunction bePackagePrivate() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.bePackagePrivate()));
+        return addCondition(ArchConditions.bePackagePrivate());
     }
 
     @Override
     public ClassesShouldConjunction notBePackagePrivate() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBePackagePrivate()));
+        return addCondition(ArchConditions.notBePackagePrivate());
     }
 
     @Override
     public ClassesShouldConjunction bePrivate() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.bePrivate()));
+        return addCondition(ArchConditions.bePrivate());
     }
 
     @Override
     public ClassesShouldConjunction notBePrivate() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBePrivate()));
+        return addCondition(ArchConditions.notBePrivate());
     }
 
     @Override
     public ClassesShouldConjunction haveOnlyFinalFields() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveOnlyFinalFields()));
+        return addCondition(ArchConditions.haveOnlyFinalFields());
     }
 
     @Override
     public ClassesShouldConjunction haveModifier(JavaModifier modifier) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.haveModifier(modifier)));
+        return addCondition(ArchConditions.haveModifier(modifier));
     }
 
     @Override
     public ClassesShouldConjunction notHaveModifier(JavaModifier modifier) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notHaveModifier(modifier)));
+        return addCondition(ArchConditions.notHaveModifier(modifier));
     }
 
     @Override
     public ClassesShouldConjunction beAnnotatedWith(Class<? extends Annotation> annotationType) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAnnotatedWith(annotationType)));
+        return addCondition(ArchConditions.beAnnotatedWith(annotationType));
     }
 
     @Override
     public ClassesShouldConjunction notBeAnnotatedWith(Class<? extends Annotation> annotationType) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeAnnotatedWith(annotationType)));
+        return addCondition(ArchConditions.notBeAnnotatedWith(annotationType));
     }
 
     @Override
     public ClassesShouldConjunction beAnnotatedWith(String annotationTypeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAnnotatedWith(annotationTypeName)));
+        return addCondition(ArchConditions.beAnnotatedWith(annotationTypeName));
     }
 
     @Override
     public ClassesShouldConjunction notBeAnnotatedWith(String annotationTypeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeAnnotatedWith(annotationTypeName)));
+        return addCondition(ArchConditions.notBeAnnotatedWith(annotationTypeName));
     }
 
     @Override
     public ClassesShouldConjunction beAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAnnotatedWith(predicate)));
+        return addCondition(ArchConditions.beAnnotatedWith(predicate));
     }
 
     @Override
     public ClassesShouldConjunction notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeAnnotatedWith(predicate)));
+        return addCondition(ArchConditions.notBeAnnotatedWith(predicate));
     }
 
     @Override
     public ClassesShouldConjunction beMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beMetaAnnotatedWith(annotationType)));
+        return addCondition(ArchConditions.beMetaAnnotatedWith(annotationType));
     }
 
     @Override
     public ClassesShouldConjunction notBeMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeMetaAnnotatedWith(annotationType)));
+        return addCondition(ArchConditions.notBeMetaAnnotatedWith(annotationType));
     }
 
     @Override
     public ClassesShouldConjunction beMetaAnnotatedWith(String annotationTypeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beMetaAnnotatedWith(annotationTypeName)));
+        return addCondition(ArchConditions.beMetaAnnotatedWith(annotationTypeName));
     }
 
     @Override
     public ClassesShouldConjunction notBeMetaAnnotatedWith(String annotationTypeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeMetaAnnotatedWith(annotationTypeName)));
+        return addCondition(ArchConditions.notBeMetaAnnotatedWith(annotationTypeName));
     }
 
     @Override
     public ClassesShouldConjunction beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beMetaAnnotatedWith(predicate)));
+        return addCondition(ArchConditions.beMetaAnnotatedWith(predicate));
     }
 
     @Override
     public ClassesShouldConjunction notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeMetaAnnotatedWith(predicate)));
+        return addCondition(ArchConditions.notBeMetaAnnotatedWith(predicate));
     }
 
     @Override
     public ClassesShouldConjunction implement(Class<?> type) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.implement(type)));
+        return addCondition(ArchConditions.implement(type));
     }
 
     @Override
     public ClassesShouldConjunction notImplement(Class<?> type) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notImplement(type)));
+        return addCondition(ArchConditions.notImplement(type));
     }
 
     @Override
     public ClassesShouldConjunction implement(String typeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.implement(typeName)));
+        return addCondition(ArchConditions.implement(typeName));
     }
 
     @Override
     public ClassesShouldConjunction notImplement(String typeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notImplement(typeName)));
+        return addCondition(ArchConditions.notImplement(typeName));
     }
 
     @Override
     public ClassesShouldConjunction implement(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.implement(predicate)));
+        return addCondition(ArchConditions.implement(predicate));
     }
 
     @Override
     public ClassesShouldConjunction notImplement(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notImplement(predicate)));
+        return addCondition(ArchConditions.notImplement(predicate));
     }
 
     @Override
     public ClassesShouldConjunction beAssignableTo(Class<?> type) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAssignableTo(type)));
+        return addCondition(ArchConditions.beAssignableTo(type));
     }
 
     @Override
     public ClassesShouldConjunction notBeAssignableTo(Class<?> type) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeAssignableTo(type)));
+        return addCondition(ArchConditions.notBeAssignableTo(type));
     }
 
     @Override
     public ClassesShouldConjunction beAssignableTo(String typeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAssignableTo(typeName)));
+        return addCondition(ArchConditions.beAssignableTo(typeName));
     }
 
     @Override
     public ClassesShouldConjunction notBeAssignableTo(String typeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeAssignableTo(typeName)));
+        return addCondition(ArchConditions.notBeAssignableTo(typeName));
     }
 
     @Override
     public ClassesShouldConjunction beAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAssignableTo(predicate)));
+        return addCondition(ArchConditions.beAssignableTo(predicate));
     }
 
     @Override
     public ClassesShouldConjunction notBeAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeAssignableTo(predicate)));
+        return addCondition(ArchConditions.notBeAssignableTo(predicate));
     }
 
     @Override
     public ClassesShouldConjunction beAssignableFrom(Class<?> type) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAssignableFrom(type)));
+        return addCondition(ArchConditions.beAssignableFrom(type));
     }
 
     @Override
     public ClassesShouldConjunction notBeAssignableFrom(Class<?> type) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeAssignableFrom(type)));
+        return addCondition(ArchConditions.notBeAssignableFrom(type));
     }
 
     @Override
     public ClassesShouldConjunction beAssignableFrom(String typeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAssignableFrom(typeName)));
+        return addCondition(ArchConditions.beAssignableFrom(typeName));
     }
 
     @Override
     public ClassesShouldConjunction notBeAssignableFrom(String typeName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeAssignableFrom(typeName)));
+        return addCondition(ArchConditions.notBeAssignableFrom(typeName));
     }
 
     @Override
     public ClassesShouldConjunction beAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beAssignableFrom(predicate)));
+        return addCondition(ArchConditions.beAssignableFrom(predicate));
     }
 
     @Override
     public ClassesShouldConjunction notBeAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeAssignableFrom(predicate)));
+        return addCondition(ArchConditions.notBeAssignableFrom(predicate));
     }
 
     @Override
     public ClassesShouldConjunction accessField(Class<?> owner, String fieldName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessField(owner, fieldName)));
+        return addCondition(ArchConditions.accessField(owner, fieldName));
     }
 
     @Override
     public ClassesShouldConjunction getField(Class<?> owner, String fieldName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.getField(owner, fieldName)));
+        return addCondition(ArchConditions.getField(owner, fieldName));
     }
 
     @Override
     public ClassesShouldConjunction setField(Class<?> owner, String fieldName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.setField(owner, fieldName)));
+        return addCondition(ArchConditions.setField(owner, fieldName));
     }
 
     @Override
     public ClassesShouldConjunction accessField(String ownerName, String fieldName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessField(ownerName, fieldName)));
+        return addCondition(ArchConditions.accessField(ownerName, fieldName));
     }
 
     @Override
     public ClassesShouldConjunction getField(String ownerName, String fieldName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.getField(ownerName, fieldName)));
+        return addCondition(ArchConditions.getField(ownerName, fieldName));
     }
 
     @Override
     public ClassesShouldConjunction setField(String ownerName, String fieldName) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.setField(ownerName, fieldName)));
+        return addCondition(ArchConditions.setField(ownerName, fieldName));
     }
 
     @Override
     public ClassesShouldConjunction accessFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessFieldWhere(predicate)));
+        return addCondition(ArchConditions.accessFieldWhere(predicate));
     }
 
     @Override
     public ClassesShouldConjunction onlyAccessFieldsThat(DescribedPredicate<? super JavaField> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyAccessFieldsThat(predicate)));
+        return addCondition(ArchConditions.onlyAccessFieldsThat(predicate));
     }
 
     @Override
     public ClassesShouldConjunction getFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.getFieldWhere(predicate)));
+        return addCondition(ArchConditions.getFieldWhere(predicate));
     }
 
     @Override
     public ClassesShouldConjunction setFieldWhere(DescribedPredicate<? super JavaFieldAccess> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.setFieldWhere(predicate)));
+        return addCondition(ArchConditions.setFieldWhere(predicate));
     }
 
     @Override
     public ClassesShouldConjunction callMethod(Class<?> owner, String methodName, Class<?>[] parameterTypes) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callMethod(owner, methodName, parameterTypes)));
+        return addCondition(ArchConditions.callMethod(owner, methodName, parameterTypes));
     }
 
     @Override
     public ClassesShouldConjunction callMethod(String ownerName, String methodName, String... parameterTypeNames) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callMethod(ownerName, methodName, parameterTypeNames)));
+        return addCondition(ArchConditions.callMethod(ownerName, methodName, parameterTypeNames));
     }
 
     @Override
     public ClassesShouldConjunction callMethodWhere(DescribedPredicate<? super JavaMethodCall> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callMethodWhere(predicate)));
+        return addCondition(ArchConditions.callMethodWhere(predicate));
     }
 
     @Override
     public ClassesShouldConjunction onlyCallMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyCallMethodsThat(predicate)));
+        return addCondition(ArchConditions.onlyCallMethodsThat(predicate));
     }
 
     @Override
     public ClassesShouldConjunction callConstructor(Class<?> owner, Class<?>[] parameterTypes) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callConstructor(owner, parameterTypes)));
+        return addCondition(ArchConditions.callConstructor(owner, parameterTypes));
     }
 
     @Override
     public ClassesShouldConjunction callConstructor(String ownerName, String... parameterTypeNames) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callConstructor(ownerName, parameterTypeNames)));
+        return addCondition(ArchConditions.callConstructor(ownerName, parameterTypeNames));
     }
 
     @Override
     public ClassesShouldConjunction callConstructorWhere(DescribedPredicate<? super JavaConstructorCall> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callConstructorWhere(predicate)));
+        return addCondition(ArchConditions.callConstructorWhere(predicate));
     }
 
     @Override
     public ClassesShouldConjunction onlyCallConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyCallConstructorsThat(predicate)));
+        return addCondition(ArchConditions.onlyCallConstructorsThat(predicate));
     }
 
     @Override
     public ClassesShouldConjunction accessTargetWhere(DescribedPredicate<? super JavaAccess<?>> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessTargetWhere(predicate)));
+        return addCondition(ArchConditions.accessTargetWhere(predicate));
     }
 
     @Override
     public ClassesShouldConjunction onlyAccessMembersThat(DescribedPredicate<? super JavaMember> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyAccessMembersThat(predicate)));
+        return addCondition(ArchConditions.onlyAccessMembersThat(predicate));
     }
 
     @Override
     public ClassesShouldConjunction callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.callCodeUnitWhere(predicate)));
+        return addCondition(ArchConditions.callCodeUnitWhere(predicate));
     }
 
     @Override
     public ClassesShouldConjunction onlyCallCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyCallCodeUnitsThat(predicate)));
+        return addCondition(ArchConditions.onlyCallCodeUnitsThat(predicate));
     }
 
     @Override
@@ -491,7 +491,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesShouldConjunction accessClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.accessClassesThat(predicate)));
+        return addCondition(ArchConditions.accessClassesThat(predicate));
     }
 
     @Override
@@ -506,7 +506,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesShouldConjunction onlyAccessClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyAccessClassesThat(predicate)));
+        return addCondition(ArchConditions.onlyAccessClassesThat(predicate));
     }
 
     @Override
@@ -521,7 +521,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesShouldConjunction dependOnClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.dependOnClassesThat(predicate)));
+        return addCondition(ArchConditions.dependOnClassesThat(predicate));
     }
 
     @Override
@@ -536,7 +536,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesShouldConjunction onlyDependOnClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyDependOnClassesThat(predicate)));
+        return addCondition(ArchConditions.onlyDependOnClassesThat(predicate));
     }
 
     @Override
@@ -556,29 +556,29 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesShouldConjunction onlyHaveDependentClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.onlyHaveDependentClassesThat(predicate)));
+        return addCondition(ArchConditions.onlyHaveDependentClassesThat(predicate));
     }
 
     @Override
     public ClassesShouldConjunction beInterfaces() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.beInterfaces()));
+        return addCondition(ArchConditions.beInterfaces());
     }
 
     @Override
     public ClassesShouldConjunction notBeInterfaces() {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.notBeInterfaces()));
+        return addCondition(ArchConditions.notBeInterfaces());
     }
 
     @Override
     public ClassesShouldConjunction containNumberOfElements(DescribedPredicate<Integer> predicate) {
-        return copyWithNewCondition(conditionAggregator.add(ArchConditions.containNumberOfElements(predicate)));
+        return addCondition(ArchConditions.containNumberOfElements(predicate));
     }
 
     ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {
         return new ClassesShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
     }
 
-    ClassesShouldInternal addCondition(ArchCondition<JavaClass> condition) {
+    ClassesShouldInternal addCondition(ArchCondition<? super JavaClass> condition) {
         return copyWithNewCondition(conditionAggregator.add(condition));
     }
 

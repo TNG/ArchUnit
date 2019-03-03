@@ -1387,7 +1387,7 @@ public class ClassesShouldTest {
         return result.getFailureReport().toString().replaceAll("\\r?\\n", FAILURE_REPORT_NEWLINE_MARKER);
     }
 
-    private static DescribedPredicate<JavaAnnotation> annotation(final Class<? extends Annotation> type) {
+    static DescribedPredicate<JavaAnnotation> annotation(final Class<? extends Annotation> type) {
         return new DescribedPredicate<JavaAnnotation>("@" + type.getSimpleName()) {
             @Override
             public boolean apply(JavaAnnotation input) {
