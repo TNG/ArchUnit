@@ -489,7 +489,7 @@ public class GivenMembersTest {
         return result.toSet();
     }
 
-    private DescribedPredicate<JavaMember> areNoFieldsWithType(final Class<?> type) {
+    static DescribedPredicate<JavaMember> areNoFieldsWithType(final Class<?> type) {
         return new DescribedPredicate<JavaMember>("are no fields with type " + type.getSimpleName()) {
             @Override
             public boolean apply(JavaMember member) {
@@ -540,83 +540,83 @@ public class GivenMembersTest {
         }
     }
 
-    private static Set<String> allMembersExcept(String... memberDescriptions) {
+    static Set<String> allMembersExcept(String... memberDescriptions) {
         return Sets.difference(
                 ALL_MEMBER_DESCRIPTIONS,
                 ImmutableSet.copyOf(memberDescriptions));
     }
 
-    private static Set<String> allCodeUnitsExcept(String... codeUnitDescriptions) {
+    static Set<String> allCodeUnitsExcept(String... codeUnitDescriptions) {
         return Sets.difference(
                 ALL_CODE_UNIT_DESCRIPTIONS,
                 ImmutableSet.copyOf(codeUnitDescriptions));
     }
 
-    private static Set<String> allFieldsExcept(String fieldDescription) {
+    static Set<String> allFieldsExcept(String fieldDescription) {
         return Sets.difference(ALL_FIELD_DESCRIPTIONS, singleton(fieldDescription));
     }
 
-    private static Set<String> allMethodsExcept(String methodDescription) {
+    static Set<String> allMethodsExcept(String methodDescription) {
         return Sets.difference(ALL_METHOD_DESCRIPTIONS, singleton(methodDescription));
     }
 
-    private static Set<String> allConstructorsExcept(String constructorDescription) {
+    static Set<String> allConstructorsExcept(String constructorDescription) {
         return Sets.difference(ALL_CONSTRUCTOR_DESCRIPTIONS, singleton(constructorDescription));
     }
 
-    private static final String FIELD_A = "fieldA";
-    private static final String FIELD_B = "fieldB";
-    private static final String FIELD_C = "fieldC";
-    private static final String FIELD_D = "fieldD";
-    private static final String METHOD_A = "methodA()";
-    private static final String METHOD_B = "methodB()";
-    private static final String METHOD_C = "methodC()";
-    private static final String METHOD_D = "methodD()";
-    private static final String CONSTRUCTOR_ONE_ARG = "<init>(java.lang.String)";
-    private static final String CONSTRUCTOR_TWO_ARGS = "<init>(java.lang.String, java.lang.Object)";
-    private static final String CONSTRUCTOR_THREE_ARGS = "<init>(java.lang.String, java.lang.Object, java.util.List)";
-    private static final String CONSTRUCTOR_FOUR_ARGS = "<init>(java.lang.String, java.lang.Object, java.util.List, int)";
+    static final String FIELD_A = "fieldA";
+    static final String FIELD_B = "fieldB";
+    static final String FIELD_C = "fieldC";
+    static final String FIELD_D = "fieldD";
+    static final String METHOD_A = "methodA()";
+    static final String METHOD_B = "methodB()";
+    static final String METHOD_C = "methodC()";
+    static final String METHOD_D = "methodD()";
+    static final String CONSTRUCTOR_ONE_ARG = "<init>(java.lang.String)";
+    static final String CONSTRUCTOR_TWO_ARGS = "<init>(java.lang.String, java.lang.Object)";
+    static final String CONSTRUCTOR_THREE_ARGS = "<init>(java.lang.String, java.lang.Object, java.util.List)";
+    static final String CONSTRUCTOR_FOUR_ARGS = "<init>(java.lang.String, java.lang.Object, java.util.List, int)";
 
-    private static final String FIELD_PUBLIC = FIELD_C;
-    private static final String METHOD_PUBLIC = METHOD_C;
-    private static final String CONSTRUCTOR_PUBLIC = CONSTRUCTOR_THREE_ARGS;
+    static final String FIELD_PUBLIC = FIELD_C;
+    static final String METHOD_PUBLIC = METHOD_C;
+    static final String CONSTRUCTOR_PUBLIC = CONSTRUCTOR_THREE_ARGS;
 
-    private static final String FIELD_PROTECTED = FIELD_B;
-    private static final String METHOD_PROTECTED = METHOD_B;
-    private static final String CONSTRUCTOR_PROTECTED = CONSTRUCTOR_TWO_ARGS;
+    static final String FIELD_PROTECTED = FIELD_B;
+    static final String METHOD_PROTECTED = METHOD_B;
+    static final String CONSTRUCTOR_PROTECTED = CONSTRUCTOR_TWO_ARGS;
 
-    private static final String FIELD_PACKAGE_PRIVATE = FIELD_D;
-    private static final String METHOD_PACKAGE_PRIVATE = METHOD_D;
-    private static final String CONSTRUCTOR_PACKAGE_PRIVATE = CONSTRUCTOR_FOUR_ARGS;
+    static final String FIELD_PACKAGE_PRIVATE = FIELD_D;
+    static final String METHOD_PACKAGE_PRIVATE = METHOD_D;
+    static final String CONSTRUCTOR_PACKAGE_PRIVATE = CONSTRUCTOR_FOUR_ARGS;
 
-    private static final String FIELD_PRIVATE = FIELD_A;
-    private static final String METHOD_PRIVATE = METHOD_A;
-    private static final String CONSTRUCTOR_PRIVATE = CONSTRUCTOR_ONE_ARG;
+    static final String FIELD_PRIVATE = FIELD_A;
+    static final String METHOD_PRIVATE = METHOD_A;
+    static final String CONSTRUCTOR_PRIVATE = CONSTRUCTOR_ONE_ARG;
 
-    private static final String FIELD_ANNOTATED_WITH_A = FIELD_A;
-    private static final String METHOD_ANNOTATED_WITH_A = METHOD_A;
-    private static final String CONSTRUCTOR_ANNOTATED_WITH_A = CONSTRUCTOR_ONE_ARG;
+    static final String FIELD_ANNOTATED_WITH_A = FIELD_A;
+    static final String METHOD_ANNOTATED_WITH_A = METHOD_A;
+    static final String CONSTRUCTOR_ANNOTATED_WITH_A = CONSTRUCTOR_ONE_ARG;
 
-    private static final String FIELD_ANNOTATED_WITH_B_AND_C = FIELD_B;
-    private static final String METHOD_ANNOTATED_WITH_B_AND_C = METHOD_B;
-    private static final String CONSTRUCTOR_ANNOTATED_WITH_B_AND_C = CONSTRUCTOR_TWO_ARGS;
+    static final String FIELD_ANNOTATED_WITH_B_AND_C = FIELD_B;
+    static final String METHOD_ANNOTATED_WITH_B_AND_C = METHOD_B;
+    static final String CONSTRUCTOR_ANNOTATED_WITH_B_AND_C = CONSTRUCTOR_TWO_ARGS;
 
-    private static final Set<String> ALL_FIELD_DESCRIPTIONS = ImmutableSet.of(
+    static final Set<String> ALL_FIELD_DESCRIPTIONS = ImmutableSet.of(
             FIELD_A, FIELD_B, FIELD_C, FIELD_D);
-    private static final Set<String> ALL_METHOD_DESCRIPTIONS = ImmutableSet.of(
+    static final Set<String> ALL_METHOD_DESCRIPTIONS = ImmutableSet.of(
             METHOD_A, METHOD_B, METHOD_C, METHOD_D);
-    private static final Set<String> ALL_CONSTRUCTOR_DESCRIPTIONS = ImmutableSet.of(
+    static final Set<String> ALL_CONSTRUCTOR_DESCRIPTIONS = ImmutableSet.of(
             CONSTRUCTOR_ONE_ARG,
             CONSTRUCTOR_TWO_ARGS,
             CONSTRUCTOR_THREE_ARGS,
             CONSTRUCTOR_FOUR_ARGS);
-    private static final Set<String> ALL_CODE_UNIT_DESCRIPTIONS =
+    static final Set<String> ALL_CODE_UNIT_DESCRIPTIONS =
             union(ALL_METHOD_DESCRIPTIONS, ALL_CONSTRUCTOR_DESCRIPTIONS);
-    private static final Set<String> ALL_MEMBER_DESCRIPTIONS =
+    static final Set<String> ALL_MEMBER_DESCRIPTIONS =
             union(ALL_CODE_UNIT_DESCRIPTIONS, ALL_FIELD_DESCRIPTIONS);
 
     @SuppressWarnings({"unused"})
-    private static class ClassWithVariousMembers {
+    static class ClassWithVariousMembers {
         @A
         private String fieldA;
         @B
@@ -664,14 +664,15 @@ public class GivenMembersTest {
         }
     }
 
-    private static Set<String> ALL_OTHER_FIELD_DESCRIPTIONS = ImmutableSet.of("otherField");
-    private static Set<String> ALL_OTHER_METHOD_DESCRIPTIONS = ImmutableSet.of("otherMethod()");
-    private static Set<String> ALL_OTHER_CONSTRUCTOR_DESCRIPTIONS = ImmutableSet.of("<init>(java.io.Serializable)");
-    private static Set<String> ALL_OTHER_CODE_UNIT_DESCRIPTIONS =
+    static Set<String> ALL_OTHER_FIELD_DESCRIPTIONS = ImmutableSet.of("otherField");
+    static Set<String> ALL_OTHER_METHOD_DESCRIPTIONS = ImmutableSet.of("otherMethod()");
+    static Set<String> ALL_OTHER_CONSTRUCTOR_DESCRIPTIONS = ImmutableSet.of("<init>(java.io.Serializable)");
+    static Set<String> ALL_OTHER_CODE_UNIT_DESCRIPTIONS =
             union(ALL_OTHER_METHOD_DESCRIPTIONS, ALL_OTHER_CONSTRUCTOR_DESCRIPTIONS);
-    private static Set<String> ALL_OTHER_MEMBER_DESCRIPTIONS =
+    static Set<String> ALL_OTHER_MEMBER_DESCRIPTIONS =
             union(ALL_OTHER_CODE_UNIT_DESCRIPTIONS, ALL_OTHER_FIELD_DESCRIPTIONS);
 
+    @SuppressWarnings("unused")
     static class OtherClassWithMembers {
         String otherField;
 
@@ -683,15 +684,15 @@ public class GivenMembersTest {
     }
 
     @MetaAnnotation
-    private @interface A {
+    @interface A {
     }
 
-    private @interface B {
+    @interface B {
     }
 
-    private @interface C {
+    @interface C {
     }
 
-    private @interface MetaAnnotation {
+    @interface MetaAnnotation {
     }
 }

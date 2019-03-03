@@ -50,6 +50,10 @@ public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<ME
     @PublicAPI(usage = ACCESS)
     GivenMembersConjunction<MEMBER> that(DescribedPredicate<? super MEMBER> predicate);
 
+    @PublicAPI(usage = ACCESS)
+    MembersShould<MembersShouldConjunction<MEMBER>> should();
+
     @Override
+    @PublicAPI(usage = ACCESS)
     MembersShouldConjunction<MEMBER> should(ArchCondition<? super MEMBER> condition);
 }
