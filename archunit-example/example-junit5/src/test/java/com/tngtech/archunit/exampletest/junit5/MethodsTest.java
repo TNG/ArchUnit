@@ -34,7 +34,7 @@ public class MethodsTest {
             methods()
                     .that(areDefinedInAPackage("..anticorruption..")).and(arePublic())
                     .should(returnType(WrappedResult.class))
-                    .because("we don't want to couple the client code directly to the return types of the encapsulated module");
+                    .because("we do not want to couple the client code directly to the return types of the encapsulated module");
 
     @ArchTest
     static ArchRule code_units_in_DAO_layer_should_not_be_Secured =

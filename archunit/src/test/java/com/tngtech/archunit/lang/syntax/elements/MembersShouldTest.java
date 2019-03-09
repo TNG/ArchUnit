@@ -93,7 +93,7 @@ public class MembersShouldTest {
         assertViolation(result);
         String failure = getOnlyElement(result.getFailureReport().getDetails());
         assertThat(failure)
-                .matches(String.format(".*Field .*%s.* doesn't have modifier PRIVATE.*", FIELD_D))
+                .matches(String.format(".*Field .*%s.* does not have modifier PRIVATE.*", FIELD_D))
                 .contains("and Field")
                 .matches(String.format(".*Field .*%s.* is not annotated with @B.*", FIELD_D));
     }

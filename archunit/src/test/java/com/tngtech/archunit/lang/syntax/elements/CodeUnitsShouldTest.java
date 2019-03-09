@@ -56,7 +56,7 @@ public class CodeUnitsShouldTest {
     @Test
     public void complex_code_unit_syntax() {
         EvaluationResult result = codeUnits()
-                .that(dontHaveParametersOfType(List.class))
+                .that(doNotHaveParametersOfType(List.class))
                 .should().beAnnotatedWith(A.class)
                 .andShould().beProtected()
                 .orShould().haveRawReturnType(String.class)
@@ -221,8 +221,8 @@ public class CodeUnitsShouldTest {
         assertThat(actualMembers).containsOnlyElementsOf(expectedMembers);
     }
 
-    private static DescribedPredicate<JavaCodeUnit> dontHaveParametersOfType(final Class<?> type) {
-        return new DescribedPredicate<JavaCodeUnit>("don't have parameters of type " + type.getSimpleName()) {
+    private static DescribedPredicate<JavaCodeUnit> doNotHaveParametersOfType(final Class<?> type) {
+        return new DescribedPredicate<JavaCodeUnit>("do not have parameters of type " + type.getSimpleName()) {
             @Override
             public boolean apply(JavaCodeUnit codeUnit) {
                 return !codeUnit.getRawParameterTypes().getNames().contains(type.getName());

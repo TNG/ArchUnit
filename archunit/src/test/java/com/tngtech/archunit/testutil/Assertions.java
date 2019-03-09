@@ -263,7 +263,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             contain(ImmutableSet.copyOf(classes));
         }
 
-        public void dontContain(Class<?>... classes) {
+        public void doNotContain(Class<?>... classes) {
             assertThat(actualNames()).doesNotContainAnyElementsOf(JavaClass.namesOf(classes));
         }
 

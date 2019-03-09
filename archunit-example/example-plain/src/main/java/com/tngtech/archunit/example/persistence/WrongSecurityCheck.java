@@ -18,7 +18,7 @@ public class WrongSecurityCheck {
         try (FileInputStream fileInput = new FileInputStream(new File("/some/magic/resource.cert"))) {
             certificate = CertificateFactory.getInstance("X509").generateCertificate(fileInput);
         } catch (CertificateException | IOException e) {
-            // we don't handle exceptions, because we're lazy ;-)
+            // we do not handle exceptions, because we're lazy ;-)
         }
     }
 }

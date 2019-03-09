@@ -155,17 +155,17 @@ public class GivenMembersTest {
                 $(described(methods().that().haveName("methodA")), ImmutableSet.of(METHOD_A)),
                 $(described(codeUnits().that().haveName(CONSTRUCTOR_NAME)), ALL_CONSTRUCTOR_DESCRIPTIONS),
                 $(described(constructors().that().haveName(CONSTRUCTOR_NAME)), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(described(members().that().dontHaveName(FIELD_A)), union(
+                $(described(members().that().doNotHaveName(FIELD_A)), union(
                         allFieldsExcept(FIELD_A),
                         ALL_CODE_UNIT_DESCRIPTIONS)),
-                $(described(codeUnits().that().dontHaveName(FIELD_A)), ALL_CODE_UNIT_DESCRIPTIONS),
-                $(described(fields().that().dontHaveName(FIELD_A)), allFieldsExcept(FIELD_A)),
-                $(described(codeUnits().that().dontHaveName("methodA")), union(
+                $(described(codeUnits().that().doNotHaveName(FIELD_A)), ALL_CODE_UNIT_DESCRIPTIONS),
+                $(described(fields().that().doNotHaveName(FIELD_A)), allFieldsExcept(FIELD_A)),
+                $(described(codeUnits().that().doNotHaveName("methodA")), union(
                         allMethodsExcept(METHOD_A),
                         ALL_CONSTRUCTOR_DESCRIPTIONS)),
-                $(described(methods().that().dontHaveName("methodA")), allMethodsExcept(METHOD_A)),
-                $(described(codeUnits().that().dontHaveName(CONSTRUCTOR_NAME)), ALL_METHOD_DESCRIPTIONS),
-                $(described(constructors().that().dontHaveName(CONSTRUCTOR_NAME)), ImmutableSet.of()),
+                $(described(methods().that().doNotHaveName("methodA")), allMethodsExcept(METHOD_A)),
+                $(described(codeUnits().that().doNotHaveName(CONSTRUCTOR_NAME)), ALL_METHOD_DESCRIPTIONS),
+                $(described(constructors().that().doNotHaveName(CONSTRUCTOR_NAME)), ImmutableSet.of()),
 
                 $(described(members().that().haveNameMatching("f.*A")), ImmutableSet.of(FIELD_A)),
                 $(described(codeUnits().that().haveNameMatching("f.*A")), ImmutableSet.of()),
@@ -252,13 +252,13 @@ public class GivenMembersTest {
                         METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
                 $(described(methods().that().haveModifier(PRIVATE)), ImmutableSet.of(METHOD_PRIVATE)),
                 $(described(constructors().that().haveModifier(PRIVATE)), ImmutableSet.of(CONSTRUCTOR_PRIVATE)),
-                $(described(members().that().dontHaveModifier(PRIVATE)),
+                $(described(members().that().doNotHaveModifier(PRIVATE)),
                         allMembersExcept(FIELD_PRIVATE, METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(described(fields().that().dontHaveModifier(PRIVATE)), allFieldsExcept(FIELD_PRIVATE)),
-                $(described(codeUnits().that().dontHaveModifier(PRIVATE)),
+                $(described(fields().that().doNotHaveModifier(PRIVATE)), allFieldsExcept(FIELD_PRIVATE)),
+                $(described(codeUnits().that().doNotHaveModifier(PRIVATE)),
                         allCodeUnitsExcept(METHOD_PRIVATE, CONSTRUCTOR_PRIVATE)),
-                $(described(methods().that().dontHaveModifier(PRIVATE)), allMethodsExcept(METHOD_PRIVATE)),
-                $(described(constructors().that().dontHaveModifier(PRIVATE)), allConstructorsExcept(CONSTRUCTOR_PRIVATE)));
+                $(described(methods().that().doNotHaveModifier(PRIVATE)), allMethodsExcept(METHOD_PRIVATE)),
+                $(described(constructors().that().doNotHaveModifier(PRIVATE)), allConstructorsExcept(CONSTRUCTOR_PRIVATE)));
 
         data.add(annotatedWithDataPoints(
                 new Function<MembersThat<GivenMembersConjunction<?>>, GivenMembersConjunction<?>>() {

@@ -152,6 +152,7 @@ public abstract class RandomSyntaxTestBase {
             return this;
         }
 
+        // FIXME: Once we remove the deprecated dont-methods, we can remove this special treatment
         @Override
         public String toString() {
             return Joiner.on(" ").join(description)
@@ -431,7 +432,7 @@ public abstract class RandomSyntaxTestBase {
                             "Up to now all methods with two parameters "
                                     + "dealing with fields have either %s or %s as their first parameter type and"
                                     + "%s as their second parameter type. "
-                                    + "If this doesn't hold anymore, please replace this with something more sophisticated",
+                                    + "If this does not hold anymore, please replace this with something more sophisticated",
                             Class.class.getName(), String.class.getName(), String.class.getName()));
                 }
             }

@@ -451,7 +451,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), thePackage)
                 .haveFailingRuleText("the class %s should reside outside of package '%s'",
                         SomeClass.class.getName(), thePackage)
-                .containFailureDetail(String.format("Class <%s> doesn't reside outside of package '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> does not reside outside of package '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(thePackage),
                         locationPattern(SomeClass.class)))
@@ -521,7 +521,7 @@ public class GivenClassShouldTest {
                 .haveFailingRuleText("the class %s should reside outside of packages ['%s']",
                         SomeClass.class.getName(),
                         Joiner.on("', '").join(packageIdentifiers))
-                .containFailureDetail(String.format("Class <%s> doesn't reside outside of packages \\['%s'\\] in %s",
+                .containFailureDetail(String.format("Class <%s> does not reside outside of packages \\['%s'\\] in %s",
                         quote(SomeClass.class.getName()),
                         quote(Joiner.on("', '").join(packageIdentifiers)),
                         locationPattern(SomeClass.class)))
@@ -732,7 +732,7 @@ public class GivenClassShouldTest {
                         ClassWithNonFinalFields.class.getName())
                 .haveFailingRuleText("no class %s should have only final fields",
                         ClassWithFinalFields.class.getName())
-                .containFailureDetail(String.format("Class <%s> doesn't have any non-final fields in %s",
+                .containFailureDetail(String.format("Class <%s> does not have any non-final fields in %s",
                         quote(ClassWithFinalFields.class.getName()),
                         locationPattern(GivenClassShouldTest.class)))
                 .doNotContainFailureDetail(quote(ClassWithNonFinalFields.class.getName()));
@@ -819,9 +819,9 @@ public class GivenClassShouldTest {
                         PackagePrivateClass.class.getName())
                 .haveFailingRuleText("the class %s should not be package private",
                         PackagePrivateClass.class.getName())
-                .containFailureDetail(String.format("Class <%s> doesn't have modifier %s in %s "
-                                + "and Class <%s> doesn't have modifier %s in %s "
-                                + "and Class <%s> doesn't have modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> does not have modifier %s in %s "
+                                + "and Class <%s> does not have modifier %s in %s "
+                                + "and Class <%s> does not have modifier %s in %s",
                         quote(PackagePrivateClass.class.getName()),
                         quote(JavaModifier.PRIVATE.name()),
                         locationPattern(GivenClassShouldTest.class),
@@ -856,9 +856,9 @@ public class GivenClassShouldTest {
                         PackagePrivateClass.class.getName())
                 .haveFailingRuleText("no class %s should be package private",
                         PackagePrivateClass.class.getName())
-                .containFailureDetail(String.format("Class <%s> doesn't have modifier %s in %s "
-                                + "and Class <%s> doesn't have modifier %s in %s "
-                                + "and Class <%s> doesn't have modifier %s in %s",
+                .containFailureDetail(String.format("Class <%s> does not have modifier %s in %s "
+                                + "and Class <%s> does not have modifier %s in %s "
+                                + "and Class <%s> does not have modifier %s in %s",
                         quote(PackagePrivateClass.class.getName()),
                         quote(JavaModifier.PRIVATE.name()),
                         locationPattern(GivenClassShouldTest.class),
