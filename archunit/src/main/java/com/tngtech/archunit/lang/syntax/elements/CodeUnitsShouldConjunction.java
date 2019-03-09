@@ -16,27 +16,26 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.lang.ArchCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface GivenCodeUnits<CODE_UNIT extends JavaCodeUnit> extends GivenMembers<CODE_UNIT> {
+public interface CodeUnitsShouldConjunction<CODE_UNIT extends JavaCodeUnit> extends MembersShouldConjunction<CODE_UNIT> {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    CodeUnitsThat<? extends GivenCodeUnitsConjunction<CODE_UNIT>> that();
+    CodeUnitsShouldConjunction<CODE_UNIT> andShould(ArchCondition<? super CODE_UNIT> condition);
 
     @Override
     @PublicAPI(usage = ACCESS)
-    GivenCodeUnitsConjunction<CODE_UNIT> that(DescribedPredicate<? super CODE_UNIT> predicate);
+    CodeUnitsShould<? extends CodeUnitsShouldConjunction<CODE_UNIT>> andShould();
 
     @Override
     @PublicAPI(usage = ACCESS)
-    CodeUnitsShould<? extends CodeUnitsShouldConjunction<CODE_UNIT>> should();
+    CodeUnitsShouldConjunction<CODE_UNIT> orShould(ArchCondition<? super CODE_UNIT> condition);
 
     @Override
     @PublicAPI(usage = ACCESS)
-    CodeUnitsShouldConjunction<CODE_UNIT> should(ArchCondition<? super CODE_UNIT> condition);
+    CodeUnitsShould<? extends CodeUnitsShouldConjunction<CODE_UNIT>> orShould();
 }

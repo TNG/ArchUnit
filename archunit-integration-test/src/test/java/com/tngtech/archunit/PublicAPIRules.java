@@ -14,6 +14,8 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer;
 
 import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
@@ -73,6 +75,20 @@ public class PublicAPIRules {
 
                     .as("all public classes not meant for inheritance should be final")
                     .because("users of ArchUnit should only inherit from intended classes, to preserve maintainability");
+
+    @ArchTest
+    public static final ArchRule only_entry_point_and_syntax_interfaces_should_be_public =
+            classes()
+                    .that().resideInAPackage("..syntax..")
+                    .and().haveNameNotMatching(".*" + ArchRuleDefinition.class.getSimpleName() + ".*")
+                    // FIXME: Remove this line once we throw the deprecated class out of the public API
+                    .and().dontHaveFullyQualifiedName(ClassesIdentityTransformer.class.getName())
+                    .and().areNotInterfaces()
+                    .and().areNotAnnotatedWith(Internal.class)
+                    .should().notBePublic()
+                    .as(String.format(
+                            "Only %s and interfaces within the ArchUnit syntax (..syntax..) should be public",
+                            ArchRuleDefinition.class.getSimpleName()));
 
     private static DescribedPredicate<JavaClass> publicAPI() {
         return annotatedWith(PublicAPI.class).<JavaClass>forSubType()

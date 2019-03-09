@@ -38,7 +38,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      *
      * Then <code>someMethod</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawParameterTypes(Class[])  haveRawParameterTypes(String.class, int.class)}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawParameterTypes(Class[]) haveRawParameterTypes(String.class, int.class)}</code></pre>
      *
      * @param parameterTypes Parameter types to match {@link JavaCodeUnit JavaCodeUnits} against
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -47,7 +47,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
     CONJUNCTION haveRawParameterTypes(Class<?>... parameterTypes);
 
     /**
-     * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified raw parameter type names.
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified fully qualified raw parameter type names.
      * Take for example
      * <pre><code>
      * class Example {
@@ -57,7 +57,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      *
      * Then <code>someMethod</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawParameterTypes(String[])  haveRawParameterTypes(String.class.getName(), int.class.getName())}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawParameterTypes(String[]) haveRawParameterTypes(String.class.getName(), int.class.getName())}</code></pre>
      *
      * @param parameterTypeNames Fully qualified names of parameter types to match {@link JavaCodeUnit JavaCodeUnits} against
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -76,7 +76,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      *
      * Then <code>someMethod</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawParameterTypes(DescribedPredicate)  haveRawParameterTypes(whereFirstTypeIs(String.class))}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawParameterTypes(DescribedPredicate) haveRawParameterTypes(whereFirstTypeIs(String.class))}</code></pre>
      *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their raw parameter types
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -95,7 +95,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      *
      * Then <code>someMethod</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(Class)  haveRawReturnType(String.class)}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(Class) haveRawReturnType(String.class)}</code></pre>
      *
      * @param type Return type to match {@link JavaCodeUnit JavaCodeUnits} against
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -114,7 +114,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      *
      * Then <code>someMethod</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(String)  haveRawReturnType(String.class.getName())}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(String) haveRawReturnType(String.class.getName())}</code></pre>
      *
      * @param typeName Fully qualified name of a return type to match {@link JavaCodeUnit JavaCodeUnits} against
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -133,7 +133,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      *
      * Then <code>someMethod</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(DescribedPredicate)  haveRawReturnType(assignableTo(Serializable.class))}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(DescribedPredicate) haveRawReturnType(assignableTo(Serializable.class))}</code></pre>
      *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their raw return types
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -152,7 +152,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      *
      * Then <code>someMethod</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(Class)  declareThrowableOfType(FirstException.class)}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(Class) declareThrowableOfType(FirstException.class)}</code></pre>
      *
      * @param type Type of a declared {@link Throwable} to match {@link JavaCodeUnit JavaCodeUnits} against
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -171,7 +171,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      *
      * Then <code>someMethod</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(String)  declareThrowableOfType(FirstException.class.getName())}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(String) declareThrowableOfType(FirstException.class.getName())}</code></pre>
      *
      * @param typeName Fully qualified name of a type of a declared {@link Throwable} to match {@link JavaCodeUnit JavaCodeUnits} against
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -190,7 +190,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      *
      * Then <code>someMethod</code> would be matched by
      *
-     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(DescribedPredicate)  declareThrowableOfType(nameStartingWith("First"))}</code></pre>
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(DescribedPredicate) declareThrowableOfType(nameStartingWith("First"))}</code></pre>
      *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their declared {@link Throwable}
      * @return A syntax conjunction element, which can be completed to form a full rule

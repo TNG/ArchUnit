@@ -1,9 +1,11 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Function;
@@ -23,6 +25,7 @@ import org.junit.runner.RunWith;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
@@ -412,8 +415,19 @@ public class MembersShouldTest {
     }
 
     private Set<String> parseMembers(List<String> details) {
-        String classesWithMembersRegex = String.format("(?:%s|%s)",
-                quote(ClassWithVariousMembers.class.getName()), quote(OtherClassWithMembers.class.getName()));
+        return parseMembers(ImmutableList.of(ClassWithVariousMembers.class, OtherClassWithMembers.class), details);
+    }
+
+    static Set<String> parseMembers(Class<?> possibleOwner, List<String> details) {
+        return parseMembers(ImmutableList.<Class<?>>of(possibleOwner), details);
+    }
+
+    static Set<String> parseMembers(List<Class<?>> possibleOwners, List<String> details) {
+        List<String> classNamePatterns = new ArrayList<>();
+        for (String className : namesOf(possibleOwners)) {
+            classNamePatterns.add(quote(className));
+        }
+        String classesWithMembersRegex = String.format("(?:%s)", Joiner.on("|").join(classNamePatterns));
         Set<String> result = new HashSet<>();
         for (String detail : details) {
             result.add(detail

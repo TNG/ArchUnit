@@ -40,7 +40,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-public class MembersDeclaredInClassesThat<MEMBER extends JavaMember, CONJUNCTION extends GivenMembersConjunction<MEMBER>>
+class MembersDeclaredInClassesThat<MEMBER extends JavaMember, CONJUNCTION extends GivenMembersConjunction<MEMBER>>
         implements ClassesThat<CONJUNCTION> {
     private final Function<DescribedPredicate<? super JavaClass>, CONJUNCTION> predicateAggregator;
 

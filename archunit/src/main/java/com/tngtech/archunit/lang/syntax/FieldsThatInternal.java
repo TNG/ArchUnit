@@ -23,7 +23,7 @@ import com.tngtech.archunit.lang.syntax.elements.FieldsThat;
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-public class FieldsThatInternal extends MembersThatInternal<JavaField, GivenFieldsInternal>
+class FieldsThatInternal extends MembersThatInternal<JavaField, GivenFieldsInternal>
         implements FieldsThat<GivenFieldsInternal> {
 
     FieldsThatInternal(GivenFieldsInternal givenFields, PredicateAggregator<JavaField> currentPredicate) {
