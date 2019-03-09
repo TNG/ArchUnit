@@ -2,6 +2,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -17,6 +18,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.areNoFieldsWithType;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
+import static com.tngtech.archunit.lang.syntax.elements.MembersShouldTest.parseMembers;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -54,15 +56,8 @@ public class FieldsShouldTest {
         EvaluationResult result = rule
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
-        assertThat(result.getFailureReport().getDetails()).containsOnly(
-                rawTypeFailureMessageFor(FIELD_B),
-                rawTypeFailureMessageFor(FIELD_C),
-                rawTypeFailureMessageFor(FIELD_D));
-    }
-
-    private String rawTypeFailureMessageFor(String fieldName) {
-        return String.format("Field <%s.%s> does not have raw type %s in (%s.java:0)",
-                ClassWithVariousMembers.class.getName(), fieldName, String.class.getName(), getClass().getSimpleName());
+        Set<String> actualFields = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
+        assertThat(actualFields).containsOnly(FIELD_B, FIELD_C, FIELD_D);
     }
 
     private static final String FIELD_A = "fieldA";

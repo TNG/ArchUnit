@@ -36,7 +36,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-public class MembersThatInternal<
+class MembersThatInternal<
         MEMBER extends JavaMember,
         CONJUNCTION extends AbstractGivenMembersInternal<MEMBER, CONJUNCTION>
         >
