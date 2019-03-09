@@ -11,11 +11,11 @@ class Parameter {
         this.description = description;
     }
 
-    public Object getValue() {
+    Object getValue() {
         return value;
     }
 
-    public String getDescription() {
+    String getDescription() {
         return description;
     }
 

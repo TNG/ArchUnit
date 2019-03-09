@@ -3,7 +3,6 @@ package com.tngtech.archunit.testutil.syntax;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ForwardingList;
 
@@ -16,15 +15,14 @@ class Parameters extends ForwardingList<Parameter> {
         this.description = description;
     }
 
-    Parameters(String methodName, List<Parameter> parameters) {
+    Parameters(List<Parameter> parameters) {
         this.parameters = parameters;
-        description = getDescription(methodName);
+        description = createDescription(parameters);
     }
 
-    private String getDescription(String methodName) {
+    private static String createDescription(Iterable<Parameter> parameters) {
         List<String> result = new ArrayList<>();
-        result.add(verbalize(methodName));
-        for (Parameter parameter : this) {
+        for (Parameter parameter : parameters) {
             result.add(parameter.getDescription());
         }
         return Joiner.on(" ").join(result);
@@ -38,7 +36,7 @@ class Parameters extends ForwardingList<Parameter> {
         return params;
     }
 
-    public String getDescription() {
+    String getDescription() {
         return description;
     }
 
@@ -49,9 +47,5 @@ class Parameters extends ForwardingList<Parameter> {
     @Override
     protected List<Parameter> delegate() {
         return parameters;
-    }
-
-    static String verbalize(String name) {
-        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name).replace("_", " ");
     }
 }
