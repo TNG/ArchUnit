@@ -1,19 +1,17 @@
 package com.tngtech.archunit.testutil.syntax;
 
-import com.google.common.reflect.TypeToken;
-
 public class RandomSyntaxSeed<T> {
-    private final TypeToken<T> type;
+    private final PropagatedType type;
     private final T value;
     private final String description;
 
     public RandomSyntaxSeed(Class<T> type, T value, String description) {
-        this.type = TypeToken.of(type);
+        this.type = new PropagatedType(type);
         this.value = value;
         this.description = description;
     }
 
-    public TypeToken<T> getType() {
+    public PropagatedType getType() {
         return type;
     }
 
