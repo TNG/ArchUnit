@@ -22,9 +22,10 @@ public class ExpectedConstructor {
         }
 
         public ExpectedMessage beingAnnotatedWith(Class<? extends Annotation> annotationType) {
-            return new ExpectedMessage(String.format("%s is annotated with @%s",
+            return new ExpectedMessage(String.format("Constructor <%s> is annotated with @%s in (%s.java:0)",
                     formatMethod(clazz.getName(), JavaConstructor.CONSTRUCTOR_NAME, JavaClass.namesOf(params)),
-                    annotationType.getSimpleName()));
+                    annotationType.getSimpleName(),
+                    clazz.getSimpleName()));
         }
     }
 }
