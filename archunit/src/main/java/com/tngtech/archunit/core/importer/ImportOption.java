@@ -40,34 +40,80 @@ public interface ImportOption {
 
     enum Predefined implements ImportOption {
         /**
-         * @see DontIncludeTests
+         * @deprecated Decided to consistently never use contractions -&gt; use {@link #DO_NOT_INCLUDE_TESTS}
          */
+        @Deprecated
         DONT_INCLUDE_TESTS {
-            private final DontIncludeTests dontIncludeTests = new DontIncludeTests();
+            private final DoNotIncludeTests doNotIncludeTests = new DoNotIncludeTests();
 
             @Override
             public boolean includes(Location location) {
-                return dontIncludeTests.includes(location);
+                return doNotIncludeTests.includes(location);
             }
         },
+        /**
+         * @deprecated Decided to consistently never use contractions -&gt; use {@link #DO_NOT_INCLUDE_JARS}
+         */
+        @Deprecated
         DONT_INCLUDE_JARS {
-            private final DontIncludeJars dontIncludeJars = new DontIncludeJars();
+            private final DoNotIncludeJars doNotIncludeJars = new DoNotIncludeJars();
 
             @Override
             public boolean includes(Location location) {
-                return dontIncludeJars.includes(location);
+                return doNotIncludeJars.includes(location);
+            }
+        },
+        /**
+         * @deprecated Decided to consistently never use contractions -&gt; use {@link #DO_NOT_INCLUDE_ARCHIVES}
+         */
+        @Deprecated
+        DONT_INCLUDE_ARCHIVES {
+            private final DoNotIncludeArchives doNotIncludeArchives = new DoNotIncludeArchives();
+
+            @Override
+            public boolean includes(Location location) {
+                return doNotIncludeArchives.includes(location);
+            }
+        },
+        DO_NOT_INCLUDE_TESTS {
+            private final DoNotIncludeTests doNotIncludeTests = new DoNotIncludeTests();
+
+            @Override
+            public boolean includes(Location location) {
+                return doNotIncludeTests.includes(location);
+            }
+        },
+        DO_NOT_INCLUDE_JARS {
+            private final DoNotIncludeJars doNotIncludeJars = new DoNotIncludeJars();
+
+            @Override
+            public boolean includes(Location location) {
+                return doNotIncludeJars.includes(location);
             }
         },
         /**
          * Since Java 9 there are JARs and JRTs, this will exclude both
          */
-        DONT_INCLUDE_ARCHIVES {
-            private final DontIncludeArchives dontIncludeArchives = new DontIncludeArchives();
+        DO_NOT_INCLUDE_ARCHIVES {
+            private final DoNotIncludeArchives doNotIncludeArchives = new DoNotIncludeArchives();
 
             @Override
             public boolean includes(Location location) {
-                return dontIncludeArchives.includes(location);
+                return doNotIncludeArchives.includes(location);
             }
+        }
+    }
+
+    /**
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link DoNotIncludeTests}
+     */
+    @Deprecated
+    final class DontIncludeTests implements ImportOption {
+        private final DoNotIncludeTests doNotIncludeTests = new DoNotIncludeTests();
+
+        @Override
+        public boolean includes(Location location) {
+            return doNotIncludeTests.includes(location);
         }
     }
 
@@ -77,7 +123,7 @@ public interface ImportOption {
      * Thus it is just a best guess, how tests can be identified,
      * in other environments, it might be necessary, to implement the correct {@link ImportOption} yourself.
      */
-    final class DontIncludeTests implements ImportOption {
+    final class DoNotIncludeTests implements ImportOption {
         private static final Pattern MAVEN_PATTERN = Pattern.compile(".*/target/test-classes/.*");
         private static final Pattern GRADLE_PATTERN = Pattern.compile(".*/build/classes/([^/]+/)?test/.*");
         private static final Pattern INTELLIJ_PATTERN = Pattern.compile(".*/out/test/classes/.*");
@@ -95,14 +141,40 @@ public interface ImportOption {
         }
     }
 
+    /**
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link DoNotIncludeJars}
+     */
+    @Deprecated
     final class DontIncludeJars implements ImportOption {
+        private final DoNotIncludeJars doNotIncludeJars = new DoNotIncludeJars();
+
+        @Override
+        public boolean includes(Location location) {
+            return doNotIncludeJars.includes(location);
+        }
+    }
+
+    final class DoNotIncludeJars implements ImportOption {
         @Override
         public boolean includes(Location location) {
             return !location.isJar();
         }
     }
 
+    /**
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link DoNotIncludeArchives}
+     */
+    @Deprecated
     final class DontIncludeArchives implements ImportOption {
+        private final DoNotIncludeArchives doNotIncludeArchives = new DoNotIncludeArchives();
+
+        @Override
+        public boolean includes(Location location) {
+            return doNotIncludeArchives.includes(location);
+        }
+    }
+
+    final class DoNotIncludeArchives implements ImportOption {
         @Override
         public boolean includes(Location location) {
             return !location.isArchive();

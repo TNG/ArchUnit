@@ -19,11 +19,11 @@ public class ExpectedNaming {
         }
 
         public ExpectedMessage notStartingWith(String prefix) {
-            return expectedSimpleName(String.format("doesn't start with '%s'", prefix));
+            return expectedSimpleName(String.format("does not start with '%s'", prefix));
         }
 
         public ExpectedMessage notEndingWith(String suffix) {
-            return expectedSimpleName(String.format("doesn't end with '%s'", suffix));
+            return expectedSimpleName(String.format("does not end with '%s'", suffix));
         }
 
         public ExpectedMessage containing(String infix) {

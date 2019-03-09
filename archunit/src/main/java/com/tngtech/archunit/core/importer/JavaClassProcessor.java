@@ -298,7 +298,7 @@ class JavaClassProcessor extends ClassVisitor {
             actualLineNumber = 0;
         }
 
-        // NOTE: ASM doesn't reliably visit this method, so if this method is skipped, line number 0 is recorded
+        // NOTE: ASM does not reliably visit this method, so if this method is skipped, line number 0 is recorded
         @Override
         public void visitLineNumber(int line, Label start) {
             LOG.trace("Examining line number {}", line);

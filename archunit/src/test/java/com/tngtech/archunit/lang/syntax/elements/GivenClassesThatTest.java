@@ -63,6 +63,14 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void doNotHaveFullyQualifiedName() {
+        List<JavaClass> classes = filterResultOf(classes().that().doNotHaveFullyQualifiedName(List.class.getName()))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+    }
+
+    @Test
     public void haveSimpleName() {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleName(List.class.getSimpleName()))
                 .on(List.class, String.class, Iterable.class);
@@ -73,6 +81,14 @@ public class GivenClassesThatTest {
     @Test
     public void dontHaveSimpleName() {
         List<JavaClass> classes = filterResultOf(classes().that().dontHaveSimpleName(List.class.getSimpleName()))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+    }
+
+    @Test
+    public void doNotHaveSimpleName() {
+        List<JavaClass> classes = filterResultOf(classes().that().doNotHaveSimpleName(List.class.getSimpleName()))
                 .on(List.class, String.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
@@ -256,6 +272,14 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void doNotHaveModifiers() {
+        List<JavaClass> classes = filterResultOf(classes().that().doNotHaveModifier(PRIVATE))
+                .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(getClass(), PackagePrivateClass.class, ProtectedClass.class);
+    }
+
+    @Test
     public void areAnnotatedWith_type() {
         List<JavaClass> classes = filterResultOf(classes().that().areAnnotatedWith(SomeAnnotation.class))
                 .on(AnnotatedClass.class, SimpleClass.class);
@@ -411,11 +435,19 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void dontImplement_rejects_non_interface_types() {
-        classes().that().dontImplement(Serializable.class);
+    public void doNotImplement_type() {
+        List<JavaClass> classes = filterResultOf(classes().that().doNotImplement(Collection.class))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
+    public void doNotImplement_rejects_non_interface_types() {
+        classes().that().doNotImplement(Serializable.class);
 
         expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
-        classes().that().dontImplement(AbstractList.class);
+        classes().that().doNotImplement(AbstractList.class);
     }
 
     @Test
@@ -440,6 +472,14 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void doNotImplement_typeName() {
+        List<JavaClass> classes = filterResultOf(classes().that().doNotImplement(Collection.class.getName()))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
     public void implement_predicate() {
         List<JavaClass> classes = filterResultOf(classes().that().implement(classWithNameOf(Collection.class)))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -455,6 +495,14 @@ public class GivenClassesThatTest {
     @Test
     public void dontImplement_predicate() {
         List<JavaClass> classes = filterResultOf(classes().that().dontImplement(classWithNameOf(Collection.class)))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+    }
+
+    @Test
+    public void doNotImplement_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().doNotImplement(classWithNameOf(Collection.class)))
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
@@ -610,7 +658,7 @@ public class GivenClassesThatTest {
     }
 
     /**
-     * We don't support operator precedence, like && and || does, we just aggregate as the predicates come.
+     * We do not support operator precedence, like && and || does, we just aggregate as the predicates come.
      * If someone really needs such precedence, he has to use custom predicates, like a.and(b.or(c)).
      */
     @Test

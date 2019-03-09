@@ -46,21 +46,21 @@ import static java.util.regex.Pattern.quote;
 
 public class ArchConditionsTest {
     @Test
-    public void never_call_method_where_target_owner_is_assignable_to() throws NoSuchMethodException {
+    public void never_call_method_where_target_owner_is_assignable_to() {
         JavaClass callingClass = importClassWithContext(CallingClass.class);
         AccessesSimulator simulateCall = simulateCall();
         JavaClass someClass = importClassWithContext(SomeClass.class);
-        JavaMethod dontCallMe = someClass.getMethod("dontCallMe");
-        JavaMethodCall callToDontCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(dontCallMe);
+        JavaMethod doNotCallMe = someClass.getMethod("doNotCallMe");
+        JavaMethodCall callTodoNotCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(doNotCallMe);
 
         ConditionEvents events =
-                check(never(callMethodWhere(target(name("dontCallMe"))
+                check(never(callMethodWhere(target(name("doNotCallMe"))
                         .and(target(owner(assignableTo(SomeSuperClass.class)))))), callingClass);
 
-        assertThat(events).containViolations(callToDontCallMe.getDescription());
+        assertThat(events).containViolations(callTodoNotCallMe.getDescription());
 
         events = new ConditionEvents();
-        never(callMethodWhere(target(name("dontCallMe")).and(target(owner(type(SomeSuperClass.class))))))
+        never(callMethodWhere(target(name("doNotCallMe")).and(target(owner(type(SomeSuperClass.class))))))
                 .check(callingClass, events);
         assertThat(events).containNoViolation();
     }
@@ -159,13 +159,13 @@ public class ArchConditionsTest {
 
     private static class CallingClass {
         void call() {
-            new SomeClass().dontCallMe();
+            new SomeClass().doNotCallMe();
             new SomeClass().callMe();
         }
     }
 
     private static class SomeClass extends SomeSuperClass {
-        void dontCallMe() {
+        void doNotCallMe() {
         }
 
         void callMe() {

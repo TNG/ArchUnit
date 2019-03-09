@@ -26,7 +26,7 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.MembersThat;
 
-import static com.tngtech.archunit.base.DescribedPredicate.dont;
+import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
@@ -57,8 +57,8 @@ class MembersThatInternal<
     }
 
     @Override
-    public CONJUNCTION dontHaveName(String name) {
-        return givenWith(dont(have(name(name))));
+    public CONJUNCTION doNotHaveName(String name) {
+        return givenWith(doNot(have(name(name))));
     }
 
     @Override
@@ -117,8 +117,8 @@ class MembersThatInternal<
     }
 
     @Override
-    public CONJUNCTION dontHaveModifier(JavaModifier modifier) {
-        return givenWith(SyntaxPredicates.dontHaveModifier(modifier));
+    public CONJUNCTION doNotHaveModifier(JavaModifier modifier) {
+        return givenWith(SyntaxPredicates.doNotHaveModifier(modifier));
     }
 
     @Override

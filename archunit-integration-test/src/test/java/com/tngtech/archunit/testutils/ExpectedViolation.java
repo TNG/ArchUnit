@@ -119,7 +119,7 @@ public class ExpectedViolation {
         }
 
         public MessageAssertionChain.Link notMatching(String packageIdentifier) {
-            return MessageAssertionChain.containsLine("Class <%s> doesn't reside in a package '%s' in (%s.java:0)",
+            return MessageAssertionChain.containsLine("Class <%s> does not reside in a package '%s' in (%s.java:0)",
                     clazz.getName(), packageIdentifier, clazz.getSimpleName());
         }
     }

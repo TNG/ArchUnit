@@ -34,7 +34,7 @@ class Cycle<T, ATTACHMENT> {
         validate(path);
     }
 
-    public List<Edge<T, ATTACHMENT>> getEdges() {
+    List<Edge<T, ATTACHMENT>> getEdges() {
         return path.getEdges();
     }
 
@@ -54,7 +54,7 @@ class Cycle<T, ATTACHMENT> {
     }
 
     private void throwNoCycleException(Path<T, ATTACHMENT> path) {
-        throw new IllegalArgumentException("The supplied edges don't form a cycle. Edges were " + path);
+        throw new IllegalArgumentException("The supplied edges do not form a cycle. Edges were " + path);
     }
 
     @Override
