@@ -47,6 +47,25 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
     CONJUNCTION haveRawParameterTypes(Class<?>... parameterTypes);
 
     /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that do not have the specified raw parameter types.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     void someMethod(String stringParam, int intParam) {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotHaveRawParameterTypes(Class[]) doNotHaveRawParameterTypes(String.class)}</code></pre>
+     *
+     * @param parameterTypes Parameter types matching {@link JavaCodeUnit JavaCodeUnits} may not have
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveRawParameterTypes(Class<?>... parameterTypes);
+
+    /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified fully qualified raw parameter type names.
      * Take for example
      * <pre><code>
@@ -64,6 +83,25 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawParameterTypes(String... parameterTypeNames);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that do not have the specified fully qualified raw parameter type names.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     void someMethod(String stringParam, int intParam) {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotHaveRawParameterTypes(String[]) doNotHaveRawParameterTypes(String.class.getName())}</code></pre>
+     *
+     * @param parameterTypeNames Fully qualified names of parameter types matching {@link JavaCodeUnit JavaCodeUnits} may not have
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveRawParameterTypes(String... parameterTypeNames);
 
     /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that have raw parameter types matching the given predicate.
@@ -85,6 +123,25 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
     CONJUNCTION haveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate);
 
     /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that do not have raw parameter types matching the given predicate.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     void someMethod(String stringParam, int intParam) {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotHaveRawParameterTypes(DescribedPredicate) doNotHaveRawParameterTypes(whereFirstTypeIs(int.class))}</code></pre>
+     *
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their raw parameter types
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate);
+
+    /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified raw return types.
      * Take for example
      * <pre><code>
@@ -102,6 +159,25 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawReturnType(Class<?> type);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that do not have the specified raw return types.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     String someMethod() {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotHaveRawReturnType(Class) doNotHaveRawReturnType(Object.class)}</code></pre>
+     *
+     * @param type Return type matching {@link JavaCodeUnit JavaCodeUnits} may not have
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveRawReturnType(Class<?> type);
 
     /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified fully qualified raw return type name.
@@ -123,6 +199,25 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
     CONJUNCTION haveRawReturnType(String typeName);
 
     /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that do not have the specified fully qualified raw return type name.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     String someMethod() {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotHaveRawReturnType(String) doNotHaveRawReturnType(Object.class.getName())}</code></pre>
+     *
+     * @param typeName Fully qualified name of a return type matching {@link JavaCodeUnit JavaCodeUnits} may not have
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveRawReturnType(String typeName);
+
+    /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that have raw return types matching the given predicate.
      * Take for example
      * <pre><code>
@@ -140,6 +235,25 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawReturnType(DescribedPredicate<JavaClass> predicate);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that do not have raw return types matching the given predicate.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     String someMethod() {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotHaveRawReturnType(DescribedPredicate) doNotHaveRawReturnType(assignableTo(List.class))}</code></pre>
+     *
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their raw return types
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveRawReturnType(DescribedPredicate<JavaClass> predicate);
 
     /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that declare a {@link Throwable} of the specified type in their throws clause.
@@ -161,6 +275,25 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
     CONJUNCTION declareThrowableOfType(Class<? extends Throwable> type);
 
     /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that do not declare a {@link Throwable} of the specified type in their throws clause.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     void someMethod() throws FirstException {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotDeclareThrowableOfType(Class) doNotDeclareThrowableOfType(SecondException.class)}</code></pre>
+     *
+     * @param type Type of a declared {@link Throwable} matching {@link JavaCodeUnit JavaCodeUnits} may not have
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotDeclareThrowableOfType(Class<? extends Throwable> type);
+
+    /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that declare a {@link Throwable} of the specified fully qualified type name in their throws clause.
      * Take for example
      * <pre><code>
@@ -180,6 +313,25 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
     CONJUNCTION declareThrowableOfType(String typeName);
 
     /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that do not declare a {@link Throwable} of the specified fully qualified type name in their throws clause.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     void someMethod() throws FirstException {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotDeclareThrowableOfType(String) doNotDeclareThrowableOfType(SecondException.class.getName())}</code></pre>
+     *
+     * @param typeName Fully qualified name of a type of a declared {@link Throwable} matching {@link JavaCodeUnit JavaCodeUnits} may not have
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotDeclareThrowableOfType(String typeName);
+
+    /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that declare a {@link Throwable} which matches the given predicate.
      * Take for example
      * <pre><code>
@@ -197,4 +349,23 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION declareThrowableOfType(DescribedPredicate<JavaClass> predicate);
+
+    /**
+     * Matches {@link JavaCodeUnit JavaCodeUnits} that do not declare a {@link Throwable} which matches the given predicate.
+     * Take for example
+     * <pre><code>
+     * class Example {
+     *     void someMethod() throws FirstException {...}
+     * }
+     * </code></pre>
+     *
+     * Then <code>someMethod</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotDeclareThrowableOfType(DescribedPredicate) doNotDeclareThrowableOfType(nameStartingWith("Second"))}</code></pre>
+     *
+     * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their declared {@link Throwable}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotDeclareThrowableOfType(DescribedPredicate<JavaClass> predicate);
 }
