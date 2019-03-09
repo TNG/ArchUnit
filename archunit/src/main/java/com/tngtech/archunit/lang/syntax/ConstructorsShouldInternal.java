@@ -21,7 +21,13 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 
-class ConstructorsShouldInternal extends CodeUnitsShouldInternal<JavaConstructor> {
+class ConstructorsShouldInternal extends AbstractCodeUnitsShouldInternal<JavaConstructor, ConstructorsShouldInternal> {
+
+    ConstructorsShouldInternal(ClassesTransformer<? extends JavaConstructor> classesTransformer, Priority priority,
+            Function<ArchCondition<JavaConstructor>, ArchCondition<JavaConstructor>> prepareCondition) {
+
+        super(classesTransformer, priority, prepareCondition);
+    }
 
     ConstructorsShouldInternal(
             ClassesTransformer<? extends JavaConstructor> classesTransformer,
@@ -30,5 +36,19 @@ class ConstructorsShouldInternal extends CodeUnitsShouldInternal<JavaConstructor
             Function<ArchCondition<JavaConstructor>, ArchCondition<JavaConstructor>> prepareCondition) {
 
         super(classesTransformer, priority, condition, prepareCondition);
+    }
+
+    private ConstructorsShouldInternal(
+            ClassesTransformer<? extends JavaConstructor> classesTransformer,
+            Priority priority,
+            ConditionAggregator<JavaConstructor> conditionAggregator,
+            Function<ArchCondition<JavaConstructor>, ArchCondition<JavaConstructor>> prepareCondition) {
+
+        super(classesTransformer, priority, conditionAggregator, prepareCondition);
+    }
+
+    @Override
+    ConstructorsShouldInternal copyWithNewCondition(ConditionAggregator<JavaConstructor> newCondition) {
+        return new ConstructorsShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
     }
 }

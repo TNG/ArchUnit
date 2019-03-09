@@ -55,6 +55,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOccurrence;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
+import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
@@ -91,6 +92,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
+import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static java.util.Arrays.asList;
 
@@ -794,6 +796,21 @@ public final class ArchConditions {
         return new DeclaredInCondition(declaredIn);
     }
 
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaField> haveRawType(Class<?> type) {
+        return new FieldTypeCondition(rawType(type));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaField> haveRawType(String typeName) {
+        return new FieldTypeCondition(rawType(typeName));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaField> haveRawType(DescribedPredicate<? super JavaClass> predicate) {
+        return new FieldTypeCondition(rawType(predicate));
+    }
+
     private static <T extends HasDescription & HasOccurrence> String createMessage(T object, String message) {
         return object.getDescription() + " " + message + " in " + object.getOccurrence();
     }
@@ -1111,6 +1128,22 @@ public final class ArchConditions {
             String message = createMessage(member,
                     (satisfied ? "is " : "is not ") + declaredIn.getDescription());
             events.add(new SimpleConditionEvent(member, satisfied, message));
+        }
+    }
+
+    private static class FieldTypeCondition extends ArchCondition<JavaField> {
+        private final DescribedPredicate<HasType> rawType;
+
+        FieldTypeCondition(DescribedPredicate<HasType> rawType) {
+            super(ArchPredicates.have(rawType).getDescription());
+            this.rawType = rawType;
+        }
+
+        @Override
+        public void check(JavaField field, ConditionEvents events) {
+            boolean satisfied = rawType.apply(field);
+            String message = createMessage(field, (satisfied ? "has " : "does not have ") + rawType.getDescription());
+            events.add(new SimpleConditionEvent(field, satisfied, message));
         }
     }
 }

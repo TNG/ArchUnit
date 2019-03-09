@@ -27,7 +27,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface MembersThat<CONJUNCTION> {
+public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
 
     /**
      * Matches members by their name (i.e. field name, method name or {@link JavaConstructor#CONSTRUCTOR_NAME}).

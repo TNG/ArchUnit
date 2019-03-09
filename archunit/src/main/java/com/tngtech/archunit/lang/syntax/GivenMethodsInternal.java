@@ -58,6 +58,11 @@ class GivenMethodsInternal
     }
 
     @Override
+    public MethodsShouldInternal should() {
+        return new MethodsShouldInternal(finishedClassesTransformer(), priority, prepareCondition);
+    }
+
+    @Override
     public MethodsShouldInternal should(ArchCondition<? super JavaMethod> condition) {
         return new MethodsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMethod>forSubType(), prepareCondition);
     }
