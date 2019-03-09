@@ -9,14 +9,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -27,12 +24,11 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
-import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -93,7 +89,8 @@ public abstract class RandomSyntaxTestBase {
 
         SyntaxSpec(RandomSyntaxSeed<T> seed, MethodChoiceStrategy methodChoiceStrategy, ExpectedDescription expectedDescription) {
             this.expectedDescription = expectedDescription;
-            Step firstStep = new PartialStep(methodChoiceStrategy, expectedDescription, seed.getType(), seed.getValue());
+            MethodCallChain methodCallChain = new MethodCallChain(methodChoiceStrategy, new TypedValue(seed.getType(), seed.getValue()));
+            Step firstStep = new PartialStep(expectedDescription, methodCallChain);
             LOG.debug("Starting from {}", firstStep);
             try {
                 LastStep result = firstStep.continueSteps(0, MAX_STEPS);
@@ -176,11 +173,11 @@ public abstract class RandomSyntaxTestBase {
 
     private abstract static class Step {
         final ExpectedDescription expectedDescription;
-        final TypedValue currentValue;
+        final MethodCallChain methodCallChain;
 
-        private Step(ExpectedDescription expectedDescription, TypedValue currentValue) {
+        private Step(ExpectedDescription expectedDescription, MethodCallChain methodCallChain) {
             this.expectedDescription = expectedDescription;
-            this.currentValue = currentValue;
+            this.methodCallChain = methodCallChain;
         }
 
         abstract LastStep continueSteps(int currentStepCount, int maxSteps);
@@ -189,30 +186,18 @@ public abstract class RandomSyntaxTestBase {
     private static class PartialStep extends Step {
         private static final ParameterProvider parameterProvider = new ParameterProvider();
 
-        private final MethodChoiceStrategy methodChoiceStrategy;
-        final Method method;
         final Parameters parameters;
 
-        <T> PartialStep(MethodChoiceStrategy methodChoiceStrategy, ExpectedDescription expectedDescription, TypeToken<T> type, T currentValue) {
-            this(methodChoiceStrategy, expectedDescription, new TypedValue(type, currentValue),
-                    methodChoiceStrategy.choose(type).get());
-        }
-
-        private PartialStep(MethodChoiceStrategy methodChoiceStrategy, ExpectedDescription expectedDescription, TypedValue currentValue,
-                Method method) {
-            this(methodChoiceStrategy, expectedDescription, currentValue, method, getParametersFor(method));
+        PartialStep(ExpectedDescription expectedDescription, MethodCallChain methodCallChain) {
+            this(expectedDescription, methodCallChain, getParametersFor(methodCallChain.getNextMethodCandidate()));
         }
 
         private PartialStep(
-                MethodChoiceStrategy methodChoiceStrategy,
                 ExpectedDescription expectedDescription,
-                TypedValue currentValue,
-                Method method,
+                MethodCallChain methodCallChain,
                 Parameters parameters) {
 
-            super(expectedDescription, currentValue);
-            this.methodChoiceStrategy = methodChoiceStrategy;
-            this.method = method;
+            super(expectedDescription, methodCallChain);
             this.parameters = parameters;
             expectedDescription.add(getDescription());
         }
@@ -231,26 +216,18 @@ public abstract class RandomSyntaxTestBase {
                 throw new IllegalStateException("Creating rule was not finished within " + maxSteps + " steps");
             }
 
-            TypedValue nextValue = new TypedValue(returnType(method, currentValue),
-                    invoke(method, currentValue.value, parameters.getValues()));
-            checkState(nextValue.value != null,
-                    "Invoking %s() on %s returned null (%s.java:0)",
-                    method.getName(), currentValue.value, currentValue.value.getClass().getSimpleName());
+            methodCallChain.invokeNextMethodCandidate(parameters);
 
-            Optional<Method> method = methodChoiceStrategy.choose(nextValue.type);
-            Step nextStep = method.isPresent() && shouldNotFinish(nextValue)
-                    ? new PartialStep(methodChoiceStrategy, expectedDescription, nextValue, method.get(), getParametersFor(method.get()))
-                    : new LastStep(expectedDescription, nextValue);
+            Step nextStep = methodCallChain.hasAnotherMethodCandidate() && shouldNotFinish(methodCallChain.getCurrentValue())
+                    ? new PartialStep(expectedDescription, methodCallChain)
+                    : new LastStep(expectedDescription, methodCallChain);
             LOG.debug("Next step is {}", nextStep);
+
             return nextStep.continueSteps(currentStepCount + 1, maxSteps);
         }
 
         private boolean shouldNotFinish(TypedValue nextValue) {
             return !ArchRule.class.isAssignableFrom(nextValue.getRawType()) || random.nextBoolean();
-        }
-
-        private TypeToken<?> returnType(Method method, TypedValue value) {
-            return value.type.resolveType(method.getGenericReturnType());
         }
 
         public String getDescription() {
@@ -259,18 +236,19 @@ public abstract class RandomSyntaxTestBase {
 
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("object", currentValue)
-                    .add("method", method)
+            return toStringHelper(this)
+                    .add("expectedDescription", expectedDescription)
+                    .add("methodCallChain", methodCallChain)
+                    .add("parameters", parameters)
                     .toString();
         }
     }
 
     private static class LastStep extends Step {
-        private LastStep(ExpectedDescription expectedDescription, TypedValue currentValue) {
-            super(expectedDescription, currentValue);
-            checkArgument(ArchRule.class.isAssignableFrom(currentValue.getRawType()),
-                    "Type %s must be assignable to ArchRule", currentValue.getRawType().getName());
+        private LastStep(ExpectedDescription expectedDescription, MethodCallChain methodCallChain) {
+            super(expectedDescription, methodCallChain);
+            checkArgument(ArchRule.class.isAssignableFrom(methodCallChain.getCurrentValue().getRawType()),
+                    "Type %s must be assignable to ArchRule", methodCallChain.getCurrentValue().getRawType().getName());
         }
 
         @Override
@@ -279,36 +257,14 @@ public abstract class RandomSyntaxTestBase {
         }
 
         ArchRule getResult() {
-            return (ArchRule) currentValue.value;
+            return (ArchRule) methodCallChain.getCurrentValue().getValue();
         }
 
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("currentValue", currentValue)
-                    .toString();
-        }
-    }
-
-    private static class TypedValue {
-        private final TypeToken<?> type;
-        private final Object value;
-
-        // NOTE: type != value.getClass(), i.e. it's important what exactly the interface method returned
-        private TypedValue(TypeToken<?> type, Object value) {
-            this.type = type;
-            this.value = value;
-        }
-
-        Class<?> getRawType() {
-            return type.getRawType();
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("type", type)
-                    .add("value", value)
+            return toStringHelper(this)
+                    .add("expectedDescription", expectedDescription)
+                    .add("methodCallChain", methodCallChain)
                     .toString();
         }
     }
@@ -446,9 +402,9 @@ public abstract class RandomSyntaxTestBase {
 
             private Parameters specificHandlingOfTwoParameterMethods(String methodName, List<TypeToken<?>> parameterTypes, Parameters parameters) {
                 checkKnownCase(parameterTypes);
-                String first = simpleNameFrom(parameters.parameters.get(0).value);
-                String params = first + "." + ParameterProvider.this.get(methodName, TypeToken.of(String.class)).value;
-                return parameters.withDescription(verbalize(methodName) + " " + params);
+                String first = simpleNameFrom(parameters.get(0).getValue());
+                String params = first + "." + ParameterProvider.this.get(methodName, TypeToken.of(String.class)).getValue();
+                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
             }
 
             private void checkKnownCase(List<TypeToken<?>> parameterTypes) {
@@ -524,8 +480,8 @@ public abstract class RandomSyntaxTestBase {
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
-                String params = createCallDetailsForClassArrayAtIndex(2, parameters.parameters.get(1).value, parameters);
-                return parameters.withDescription(verbalize(methodName) + " " + params);
+                String params = createCallDetailsForClassArrayAtIndex(2, parameters.get(1).getValue(), parameters);
+                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
             }
         }
 
@@ -537,8 +493,8 @@ public abstract class RandomSyntaxTestBase {
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
-                String params = createCallDetailsForStringArrayAtIndex(2, parameters.parameters.get(1).value, parameters);
-                return parameters.withDescription(verbalize(methodName) + " " + params);
+                String params = createCallDetailsForStringArrayAtIndex(2, parameters.get(1).getValue(), parameters);
+                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
             }
         }
 
@@ -551,7 +507,7 @@ public abstract class RandomSyntaxTestBase {
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForClassArrayAtIndex(1, CONSTRUCTOR_NAME, parameters);
-                return parameters.withDescription(verbalize(methodName) + " " + params);
+                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
             }
         }
 
@@ -564,13 +520,13 @@ public abstract class RandomSyntaxTestBase {
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForStringArrayAtIndex(1, CONSTRUCTOR_NAME, parameters);
-                return parameters.withDescription(verbalize(methodName) + " " + params);
+                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
             }
         }
 
         private String createCallDetailsForClassArrayAtIndex(int index, Object callTargetName, Parameters parameters) {
             List<String> simpleParamTypeNames = new ArrayList<>();
-            for (Class<?> param : (Class<?>[]) parameters.parameters.get(index).value) {
+            for (Class<?> param : (Class<?>[]) parameters.get(index).getValue()) {
                 simpleParamTypeNames.add(param.getSimpleName());
             }
             return createCallDetails(callTargetName, simpleParamTypeNames, parameters);
@@ -578,12 +534,12 @@ public abstract class RandomSyntaxTestBase {
 
         private String createCallDetailsForStringArrayAtIndex(int index, Object callTargetName, Parameters parameters) {
             // NOTE: For now strings are always simple word-like values, i.e. suitable simple names, adjust this when/if necessary
-            List<String> simpleParamTypeNames = asList((String[]) parameters.parameters.get(index).value);
+            List<String> simpleParamTypeNames = asList((String[]) parameters.get(index).getValue());
             return createCallDetails(callTargetName, simpleParamTypeNames, parameters);
         }
 
         private String createCallDetails(Object callTargetName, List<String> simpleParamTypeNames, Parameters parameters) {
-            String first = simpleNameFrom(parameters.parameters.get(0).value);
+            String first = simpleNameFrom(parameters.get(0).getValue());
             return String.format("%s.%s(%s)", first, callTargetName,
                     Joiner.on(", ").join(simpleParamTypeNames));
         }
@@ -602,68 +558,6 @@ public abstract class RandomSyntaxTestBase {
                 }
                 return new Parameters(methodName, params);
             }
-        }
-    }
-
-    private static String verbalize(String name) {
-        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name).replace("_", " ");
-    }
-
-    private static class Parameters {
-        private final List<Parameter> parameters;
-        private final String description;
-
-        private Parameters(List<Parameter> parameters, String description) {
-            this.parameters = parameters;
-            this.description = description;
-        }
-
-        private Parameters(String methodName, List<Parameter> parameters) {
-            this.parameters = parameters;
-            description = getDescription(methodName);
-        }
-
-        private String getDescription(String methodName) {
-            List<String> result = new ArrayList<>();
-            result.add(verbalize(methodName));
-            for (Parameter parameter : parameters) {
-                result.add(parameter.description);
-            }
-            return Joiner.on(" ").join(result);
-        }
-
-        Object[] getValues() {
-            Object[] params = new Object[parameters.size()];
-            for (int i = 0; i < parameters.size(); i++) {
-                params[i] = parameters.get(i).value;
-            }
-            return params;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        Parameters withDescription(String description) {
-            return new Parameters(parameters, description);
-        }
-    }
-
-    private static class Parameter {
-        private final Object value;
-        private final String description;
-
-        Parameter(Object value, String description) {
-            this.value = value;
-            this.description = description;
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("value", value)
-                    .add("description", description)
-                    .toString();
         }
     }
 

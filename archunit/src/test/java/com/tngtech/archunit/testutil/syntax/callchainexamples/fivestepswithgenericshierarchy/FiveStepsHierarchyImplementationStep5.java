@@ -1,0 +1,4 @@
+package com.tngtech.archunit.testutil.syntax.callchainexamples.fivestepswithgenericshierarchy;
+
+public class FiveStepsHierarchyImplementationStep5 implements FiveStepsInterfaceChildStep5 {
+}
