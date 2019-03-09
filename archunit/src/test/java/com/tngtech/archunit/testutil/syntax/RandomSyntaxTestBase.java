@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -231,7 +232,13 @@ public abstract class RandomSyntaxTestBase {
         }
 
         public String getDescription() {
-            return parameters.getDescription();
+            String methodText = verbalize(methodCallChain.getNextMethodCandidate().getName());
+            String parameterSuffix = !parameters.getDescription().isEmpty() ? " " + parameters.getDescription() : "";
+            return methodText + parameterSuffix;
+        }
+
+        static String verbalize(String name) {
+            return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, name).replace("_", " ");
         }
 
         @Override
@@ -404,7 +411,7 @@ public abstract class RandomSyntaxTestBase {
                 checkKnownCase(parameterTypes);
                 String first = simpleNameFrom(parameters.get(0).getValue());
                 String params = first + "." + ParameterProvider.this.get(methodName, TypeToken.of(String.class)).getValue();
-                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
+                return parameters.withDescription(params);
             }
 
             private void checkKnownCase(List<TypeToken<?>> parameterTypes) {
@@ -481,7 +488,7 @@ public abstract class RandomSyntaxTestBase {
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForClassArrayAtIndex(2, parameters.get(1).getValue(), parameters);
-                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
+                return parameters.withDescription(params);
             }
         }
 
@@ -494,7 +501,7 @@ public abstract class RandomSyntaxTestBase {
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForStringArrayAtIndex(2, parameters.get(1).getValue(), parameters);
-                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
+                return parameters.withDescription(params);
             }
         }
 
@@ -507,7 +514,7 @@ public abstract class RandomSyntaxTestBase {
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForClassArrayAtIndex(1, CONSTRUCTOR_NAME, parameters);
-                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
+                return parameters.withDescription(params);
             }
         }
 
@@ -520,7 +527,7 @@ public abstract class RandomSyntaxTestBase {
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
                 Parameters parameters = new SingleParametersProvider().get(methodName, parameterTypes);
                 String params = createCallDetailsForStringArrayAtIndex(1, CONSTRUCTOR_NAME, parameters);
-                return parameters.withDescription(Parameters.verbalize(methodName) + " " + params);
+                return parameters.withDescription(params);
             }
         }
 
@@ -556,7 +563,7 @@ public abstract class RandomSyntaxTestBase {
                 for (TypeToken<?> type : parameterTypes) {
                     params.add(ParameterProvider.this.get(methodName, type));
                 }
-                return new Parameters(methodName, params);
+                return new Parameters(params);
             }
         }
     }
