@@ -44,6 +44,25 @@ public interface FieldsThat<CONJUNCTION extends GivenFieldsConjunction> extends 
     CONJUNCTION haveRawType(Class<?> type);
 
     /**
+     * Matches fields that do not have the given raw type. Take for example
+     *
+     * <pre><code>
+     * class Example {
+     *     String someField;
+     * }
+     * </code></pre>
+     *
+     * Then <code>someField</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#doNotHaveRawType(Class) doNotHaveRawType(Object.class)}</code></pre>
+     *
+     * @param type Type matching fields must not have
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveRawType(Class<?> type);
+
+    /**
      * Matches fields by the fully qualified name of their raw type. Take for example
      *
      * <pre><code>
@@ -63,6 +82,25 @@ public interface FieldsThat<CONJUNCTION extends GivenFieldsConjunction> extends 
     CONJUNCTION haveRawType(String typeName);
 
     /**
+     * Matches fields that do not have the given fully qualified name of their raw type. Take for example
+     *
+     * <pre><code>
+     * class Example {
+     *     String someField;
+     * }
+     * </code></pre>
+     *
+     * Then <code>someField</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#doNotHaveRawType(String) doNotHaveRawType(Object.class.getName())}</code></pre>
+     *
+     * @param typeName Name of type matching fields must not have
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveRawType(String typeName);
+
+    /**
      * Matches fields where the raw type of those fields matches the given predicate. Take for example
      *
      * <pre><code>
@@ -80,4 +118,23 @@ public interface FieldsThat<CONJUNCTION extends GivenFieldsConjunction> extends 
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawType(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Matches fields where the raw type of those fields does not match the given predicate. Take for example
+     *
+     * <pre><code>
+     * class Example {
+     *     String someField;
+     * }
+     * </code></pre>
+     *
+     * Then <code>someField</code> would be matched by
+     *
+     * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#doNotHaveRawType(DescribedPredicate) doNotHaveRawType(assignableTo(List.class))}</code></pre>
+     *
+     * @param predicate A predicate determining which types of fields do not match
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveRawType(DescribedPredicate<? super JavaClass> predicate);
 }
