@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeArchives;
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars;
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
 import com.tngtech.archunit.core.importer.ImportOption.DontIncludeArchives;
 import com.tngtech.archunit.core.importer.ImportOption.DontIncludeJars;
 import com.tngtech.archunit.core.importer.ImportOption.DontIncludeTests;
@@ -19,6 +22,9 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DONT_INCLUDE_ARCHIVES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DONT_INCLUDE_JARS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DONT_INCLUDE_TESTS;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_JARS;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.crossProduct;
@@ -31,23 +37,23 @@ public class ImportOptionsTest {
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @DataProvider
-    public static Object[][] dont_include_tests() {
-        return testForEach(new DontIncludeTests(), DONT_INCLUDE_TESTS);
+    public static Object[][] do_not_include_tests() {
+        return testForEach(new DoNotIncludeTests(), DO_NOT_INCLUDE_TESTS, new DontIncludeTests(), DONT_INCLUDE_TESTS);
     }
 
     @Test
-    @UseDataProvider("dont_include_tests")
-    public void excludes_test_class(ImportOption dontIncludeTests) {
-        assertThat(dontIncludeTests.includes(locationOf(DontIncludeTests.class)))
+    @UseDataProvider("do_not_include_tests")
+    public void excludes_test_class(ImportOption doNotIncludeTests) {
+        assertThat(doNotIncludeTests.includes(locationOf(DoNotIncludeTests.class)))
                 .as("includes production location").isTrue();
 
-        assertThat(dontIncludeTests.includes(locationOf(getClass())))
+        assertThat(doNotIncludeTests.includes(locationOf(getClass())))
                 .as("includes test location").isFalse();
     }
 
     @DataProvider
     public static Object[][] folders() {
-        return crossProduct(dont_include_tests(), $$(
+        return crossProduct(do_not_include_tests(), $$(
                 // Gradle
                 $(new String[]{"build", "classes", "test"}, false),
                 $(new String[]{"build", "classes", "java", "test"}, false),
@@ -73,50 +79,50 @@ public class ImportOptionsTest {
     @Test
     @UseDataProvider("folders")
     public void detects_all_output_folder_structures(
-            ImportOption dontIncludeTests, String[] folderName, boolean expectedInclude) throws IOException {
+            ImportOption doNotIncludeTests, String[] folderName, boolean expectedInclude) throws IOException {
 
         File folder = temporaryFolder.newFolder(folderName);
         File targetFile = new File(folder, getClass().getSimpleName() + ".class");
         Files.copy(locationOf(getClass()).asURI().toURL().openStream(), targetFile.toPath());
 
-        assertThat(dontIncludeTests.includes(Location.of(targetFile.toPath())))
+        assertThat(doNotIncludeTests.includes(Location.of(targetFile.toPath())))
                 .as("includes location %s", targetFile.getAbsolutePath()).isEqualTo(expectedInclude);
     }
 
     @DataProvider
-    public static Object[][] dont_include_jars() {
-        return testForEach(new DontIncludeJars(), DONT_INCLUDE_JARS);
+    public static Object[][] do_not_include_jars() {
+        return testForEach(new DoNotIncludeJars(), DO_NOT_INCLUDE_JARS, new DontIncludeJars(), DONT_INCLUDE_JARS);
     }
 
     @Test
-    @UseDataProvider("dont_include_jars")
-    public void detects_Jars_correctly(ImportOption dontIncludeJars) {
-        assertThat(dontIncludeJars.includes(locationOf(getClass())))
+    @UseDataProvider("do_not_include_jars")
+    public void detects_Jars_correctly(ImportOption doNotIncludeJars) {
+        assertThat(doNotIncludeJars.includes(locationOf(getClass())))
                 .as("includes file location")
                 .isTrue();
-        assertThat(dontIncludeJars.includes(locationOf(Rule.class)))
+        assertThat(doNotIncludeJars.includes(locationOf(Rule.class)))
                 .as("includes Jar location")
                 .isFalse();
-        assertThat(dontIncludeJars.includes(locationOf(Object.class)))
+        assertThat(doNotIncludeJars.includes(locationOf(Object.class)))
                 .as("includes Jrt location")
                 .isTrue();
     }
 
     @DataProvider
-    public static Object[][] dont_include_archives() {
-        return testForEach(new DontIncludeArchives(), DONT_INCLUDE_ARCHIVES);
+    public static Object[][] do_not_include_archives() {
+        return testForEach(new DoNotIncludeArchives(), DO_NOT_INCLUDE_ARCHIVES, new DontIncludeArchives(), DONT_INCLUDE_ARCHIVES);
     }
 
     @Test
-    @UseDataProvider("dont_include_archives")
-    public void detects_archives_correctly(ImportOption dontIncludeArchives) {
-        assertThat(dontIncludeArchives.includes(locationOf(getClass())))
+    @UseDataProvider("do_not_include_archives")
+    public void detects_archives_correctly(ImportOption doNotIncludeArchives) {
+        assertThat(doNotIncludeArchives.includes(locationOf(getClass())))
                 .as("includes file location")
                 .isTrue();
-        assertThat(dontIncludeArchives.includes(locationOf(Rule.class)))
+        assertThat(doNotIncludeArchives.includes(locationOf(Rule.class)))
                 .as("includes Jar location")
                 .isFalse();
-        assertThat(dontIncludeArchives.includes(locationOf(Object.class)))
+        assertThat(doNotIncludeArchives.includes(locationOf(Object.class)))
                 .as("includes Jrt location")
                 .isFalse();
     }

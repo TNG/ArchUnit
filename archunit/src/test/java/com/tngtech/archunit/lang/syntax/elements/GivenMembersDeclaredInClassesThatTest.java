@@ -60,6 +60,14 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
+    public void doNotHaveFullyQualifiedName() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotHaveFullyQualifiedName(List.class.getName()))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(String.class, Iterable.class);
+    }
+
+    @Test
     public void haveSimpleName() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().haveSimpleName(List.class.getSimpleName()))
                 .on(List.class, String.class, Iterable.class);
@@ -70,6 +78,14 @@ public class GivenMembersDeclaredInClassesThatTest {
     @Test
     public void dontHaveSimpleName() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().dontHaveSimpleName(List.class.getSimpleName()))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(String.class, Iterable.class);
+    }
+
+    @Test
+    public void doNotHaveSimpleName() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotHaveSimpleName(List.class.getSimpleName()))
                 .on(List.class, String.class, Iterable.class);
 
         assertThatMembers(members).matchInAnyOrderMembersOf(String.class, Iterable.class);
@@ -253,6 +269,14 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
+    public void doNotHaveModifiers() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotHaveModifier(PRIVATE))
+                .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(getClass(), PackagePrivateClass.class, ProtectedClass.class);
+    }
+
+    @Test
     public void areAnnotatedWith_type() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areAnnotatedWith(SomeAnnotation.class))
                 .on(AnnotatedClass.class, SimpleClass.class);
@@ -408,11 +432,19 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
-    public void dontImplement_rejects_non_interface_types() {
-        classes().that().dontImplement(Serializable.class);
+    public void doNotImplement_type() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotImplement(Collection.class))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(List.class, Iterable.class);
+    }
+
+    @Test
+    public void doNotImplement_rejects_non_interface_types() {
+        classes().that().doNotImplement(Serializable.class);
 
         expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
-        classes().that().dontImplement(AbstractList.class);
+        classes().that().doNotImplement(AbstractList.class);
     }
 
     @Test
@@ -437,6 +469,14 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
+    public void doNotImplement_typeName() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotImplement(Collection.class.getName()))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(List.class, Iterable.class);
+    }
+
+    @Test
     public void implement_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().implement(classWithNameOf(Collection.class)))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -452,6 +492,14 @@ public class GivenMembersDeclaredInClassesThatTest {
     @Test
     public void dontImplement_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().dontImplement(classWithNameOf(Collection.class)))
+                .on(ArrayList.class, List.class, Iterable.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(List.class, Iterable.class);
+    }
+
+    @Test
+    public void doNotImplement_predicate() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotImplement(classWithNameOf(Collection.class)))
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThatMembers(members).matchInAnyOrderMembersOf(List.class, Iterable.class);
@@ -607,7 +655,7 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     /**
-     * We don't support operator precedence, like && and || does, we just aggregate as the predicates come.
+     * We do not support operator precedence, like && and || does, we just aggregate as the predicates come.
      * If someone really needs such precedence, he has to use custom predicates, like a.and(b.or(c)).
      */
     @Test

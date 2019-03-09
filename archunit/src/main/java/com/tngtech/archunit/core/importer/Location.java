@@ -105,7 +105,7 @@ public abstract class Location {
     @PublicAPI(usage = ACCESS)
     public abstract boolean isArchive();
 
-    // NOTE: URI behaves strange, if it is a JAR Uri, i.e. jar:file://.../some.jar!/, resolve doesn't work like expected
+    // NOTE: URI behaves strange, if it is a JAR Uri, i.e. jar:file://.../some.jar!/, resolve does not work like expected
     Location append(String relativeURI) {
         relativeURI = encodeIllegalCharacters(relativeURI);
         if (uri.toString().endsWith("/") && relativeURI.startsWith("/")) {

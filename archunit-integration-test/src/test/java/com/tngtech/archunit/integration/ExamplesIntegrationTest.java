@@ -750,7 +750,7 @@ class ExamplesIntegrationTest {
 
                 .ofRule("methods that reside in a package '..anticorruption..' and are public "
                         + String.format("should return type %s, ", WrappedResult.class.getName())
-                        + "because we don't want to couple the client code directly to the return types of the encapsulated module")
+                        + "because we do not want to couple the client code directly to the return types of the encapsulated module")
                 .by(ExpectedMethod.of(WithIllegalReturnType.class, "directlyReturnInternalType").returningType(InternalType.class))
                 .by(ExpectedMethod.of(WithIllegalReturnType.class, "otherIllegalMethod", String.class).returningType(int.class))
 

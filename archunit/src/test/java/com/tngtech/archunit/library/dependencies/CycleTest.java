@@ -12,7 +12,7 @@ public class CycleTest extends PathTest {
     @Test
     public void rejects_single_edge() {
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("don't form a cycle");
+        thrown.expectMessage("do not form a cycle");
 
         new Cycle<>(Lists.<Edge<String, String>>newArrayList(new SimpleEdge(randomNode(), randomNode())));
     }

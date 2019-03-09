@@ -108,7 +108,7 @@ public class ClassesShouldConjunctionTest {
     }
 
     private String doesntHaveFqnMessage(Class<?> clazz, Class<?> expectedFqn) {
-        return String.format("Class <%s> doesn't have fully qualified name '%s' in (%s.java:0)",
+        return String.format("Class <%s> does not have fully qualified name '%s' in (%s.java:0)",
                 clazz.getName(), expectedFqn.getName(), locationOf(clazz).getSimpleName());
     }
 

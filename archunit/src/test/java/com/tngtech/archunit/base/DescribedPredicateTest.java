@@ -8,8 +8,8 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
-import static com.tngtech.archunit.base.DescribedPredicate.doesnt;
-import static com.tngtech.archunit.base.DescribedPredicate.dont;
+import static com.tngtech.archunit.base.DescribedPredicate.doNot;
+import static com.tngtech.archunit.base.DescribedPredicate.doesNot;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.greaterThan;
 import static com.tngtech.archunit.base.DescribedPredicate.greaterThanOrEqualTo;
@@ -119,16 +119,16 @@ public class DescribedPredicateTest {
                         return not(input);
                     }
                 }),
-                $(new NotScenario("don't") {
+                $(new NotScenario("do not") {
                     @Override
                     <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
-                        return dont(input);
+                        return doNot(input);
                     }
                 }),
-                $(new NotScenario("doesn't") {
+                $(new NotScenario("does not") {
                     @Override
                     <T> DescribedPredicate<T> apply(DescribedPredicate<T> input) {
-                        return doesnt(input);
+                        return doesNot(input);
                     }
                 })
         );

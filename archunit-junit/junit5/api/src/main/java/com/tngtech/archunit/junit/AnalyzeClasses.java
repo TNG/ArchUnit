@@ -22,8 +22,8 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
-import com.tngtech.archunit.core.importer.ImportOption.DontIncludeJars;
-import com.tngtech.archunit.core.importer.ImportOption.DontIncludeTests;
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars;
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
 import com.tngtech.archunit.core.importer.ImportOptions;
 import org.junit.platform.commons.annotation.Testable;
 
@@ -34,8 +34,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 /**
  * Specifies which packages/locations should be scanned and tested when running a JUnit 5 test.
  * <br><br>
- * To ignore certain classes (e.g. classes in test scope) see {@link #importOptions()}, in particular {@link DontIncludeTests} and
- * {@link DontIncludeJars}.
+ * To ignore certain classes (e.g. classes in test scope) see {@link #importOptions()}, in particular {@link DoNotIncludeTests} and
+ * {@link DoNotIncludeJars}.
  * <br><br>
  * When checking rules, it is important to remember that all relevant information/classes need to be imported for the rules
  * to work. For example, if class A accesses class B and class B extends class C, but class B is not imported, then

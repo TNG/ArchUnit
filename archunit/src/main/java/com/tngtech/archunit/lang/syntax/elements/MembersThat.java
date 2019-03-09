@@ -45,7 +45,7 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontHaveName(String name);
+    CONJUNCTION doNotHaveName(String name);
 
     /**
      * Matches members with a name (i.e. field name, method name or {@link JavaConstructor#CONSTRUCTOR_NAME})
@@ -145,7 +145,7 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontHaveModifier(JavaModifier modifier);
+    CONJUNCTION doNotHaveModifier(JavaModifier modifier);
 
     /**
      * Matches members annotated with a certain type of annotation.

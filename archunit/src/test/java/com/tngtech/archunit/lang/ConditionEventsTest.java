@@ -36,7 +36,7 @@ public class ConditionEventsTest {
     @Test
     public void handleViolations_reports_only_violations_referring_to_the_correct_type() {
         ConditionEvents events = events(
-                SimpleConditionEvent.satisfied(new CorrectType("don't handle"), "I'm not violated"),
+                SimpleConditionEvent.satisfied(new CorrectType("do not handle"), "I'm not violated"),
                 SimpleConditionEvent.violated(new WrongType(), "I'm violated, but wrong type"),
                 SimpleConditionEvent.violated(new WrongSuperType(), "I'm violated, but wrong type"),
                 SimpleConditionEvent.violated(new CorrectType("handle type"), "I'm violated and correct type"),

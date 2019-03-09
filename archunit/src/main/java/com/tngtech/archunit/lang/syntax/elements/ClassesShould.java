@@ -51,7 +51,7 @@ public interface ClassesShould {
     ClassesShouldConjunction haveFullyQualifiedName(String name);
 
     /**
-     * Asserts that classes don't have a certain fully qualified class name.
+     * Asserts that classes do not have a certain fully qualified class name.
      *
      * @param name The fully qualified class name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -69,7 +69,7 @@ public interface ClassesShould {
     ClassesShouldConjunction haveSimpleName(String name);
 
     /**
-     * Asserts that classes don't have a certain simple class name.
+     * Asserts that classes do not have a certain simple class name.
      *
      * @param name The simple class name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -168,7 +168,7 @@ public interface ClassesShould {
     ClassesShouldConjunction resideInAnyPackage(String... packageIdentifiers);
 
     /**
-     * Asserts that classes don't reside in a package matching the supplied package identifier.
+     * Asserts that classes do not reside in a package matching the supplied package identifier.
      *
      * @param packageIdentifier A string identifying packages, for details see {@link PackageMatcher}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -177,7 +177,7 @@ public interface ClassesShould {
     ClassesShouldConjunction resideOutsideOfPackage(String packageIdentifier);
 
     /**
-     * Asserts that classes don't reside in a package matching any of the supplied package identifiers.
+     * Asserts that classes do not reside in a package matching any of the supplied package identifiers.
      *
      * @param packageIdentifiers Strings identifying packages, for details see {@link PackageMatcher}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -266,7 +266,7 @@ public interface ClassesShould {
     ClassesShouldConjunction haveModifier(JavaModifier modifier);
 
     /**
-     * Asserts that classes don't have a certain {@link JavaModifier} (e.g. {@link JavaModifier#ABSTRACT}).
+     * Asserts that classes do not have a certain {@link JavaModifier} (e.g. {@link JavaModifier#ABSTRACT}).
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
@@ -399,7 +399,7 @@ public interface ClassesShould {
     ClassesShouldConjunction implement(Class<?> type);
 
     /**
-     * Asserts that classes don't implement a certain interface. This is the negation of {@link #implement(Class)}.
+     * Asserts that classes do not implement a certain interface. This is the negation of {@link #implement(Class)}.
      *
      * @param type An interface imported classes should NOT implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -409,7 +409,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes implement a certain interface with the given type name. This is equivalent to
-     * {@link #implement(Class)}, but doesn't depend on having a certain type on the classpath.
+     * {@link #implement(Class)}, but does not depend on having a certain type on the classpath.
      *
      * @param typeName Name of an interface imported classes should implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -418,8 +418,8 @@ public interface ClassesShould {
     ClassesShouldConjunction implement(String typeName);
 
     /**
-     * Asserts that classes don't implement a certain interface with the given type name.
-     * This is equivalent to {@link #notImplement(Class)}, but doesn't depend on having a certain
+     * Asserts that classes do not implement a certain interface with the given type name.
+     * This is equivalent to {@link #notImplement(Class)}, but does not depend on having a certain
      * type on the classpath.
      *
      * @param typeName Name of an interface imported classes should NOT implement
@@ -440,7 +440,7 @@ public interface ClassesShould {
     ClassesShouldConjunction implement(DescribedPredicate<? super JavaClass> predicate);
 
     /**
-     * Asserts that classes don't implement a certain interface matching the given predicate.
+     * Asserts that classes do not implement a certain interface matching the given predicate.
      * This is the negation of {@link #implement(DescribedPredicate)}.
      *
      * @param predicate A predicate identifying an interface imported classes should NOT implement
@@ -475,7 +475,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes are assignable to a certain type with the given type name. This is equivalent to
-     * {@link #beAssignableTo(Class)}, but doesn't depend on having a certain type on the classpath.
+     * {@link #beAssignableTo(Class)}, but does not depend on having a certain type on the classpath.
      *
      * @param typeName Name of an upper type bound to match imported classes against (imported subtypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -485,7 +485,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes are not assignable to a certain type with the given type name.
-     * This is equivalent to {@link #notBeAssignableTo(Class)}, but doesn't depend on having a certain
+     * This is equivalent to {@link #notBeAssignableTo(Class)}, but does not depend on having a certain
      * type on the classpath.
      *
      * @param typeName Name of an upper type bound imported classes should NOT have
@@ -546,7 +546,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes are assignable from a certain type with the given type name. This is equivalent to
-     * {@link #beAssignableFrom(Class)}, but doesn't depend on having a certain type on the classpath.
+     * {@link #beAssignableFrom(Class)}, but does not depend on having a certain type on the classpath.
      *
      * @param typeName Name of a lower type bound to match imported classes against (imported supertypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -556,7 +556,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes are not assignable from a certain type with the given type name.
-     * This is equivalent to {@link #notBeAssignableFrom(Class)}, but doesn't depend on having a certain
+     * This is equivalent to {@link #notBeAssignableFrom(Class)}, but does not depend on having a certain
      * type on the classpath.
      *
      * @param typeName Name of a lower type bound imported classes should NOT have

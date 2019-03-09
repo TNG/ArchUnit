@@ -19,7 +19,7 @@ import com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer;
 
 import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
-import static com.tngtech.archunit.base.DescribedPredicate.dont;
+import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -52,7 +52,7 @@ public class PublicAPIRules {
     public static final ArchRule only_members_that_are_public_API_or_explicitly_marked_as_internal_are_accessible =
             members()
                     .that(are(withoutAPIMarking()))
-                    .and(dont(inheritPublicAPI()))
+                    .and(doNot(inheritPublicAPI()))
                     .and(are(relevantArchUnitMembers()))
 
                     .should(notBePublic())
@@ -82,7 +82,7 @@ public class PublicAPIRules {
                     .that().resideInAPackage("..syntax..")
                     .and().haveNameNotMatching(".*" + ArchRuleDefinition.class.getSimpleName() + ".*")
                     // FIXME: Remove this line once we throw the deprecated class out of the public API
-                    .and().dontHaveFullyQualifiedName(ClassesIdentityTransformer.class.getName())
+                    .and().doNotHaveFullyQualifiedName(ClassesIdentityTransformer.class.getName())
                     .and().areNotInterfaces()
                     .and().areNotAnnotatedWith(Internal.class)
                     .should().notBePublic()

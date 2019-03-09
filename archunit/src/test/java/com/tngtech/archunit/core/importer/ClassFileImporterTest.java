@@ -1857,7 +1857,7 @@ public class ClassFileImporterTest {
     }
 
     /**
-     * Compare {@link LocationsTest#locations_of_packages_within_JAR_URIs_that_dont_contain_package_folder()}
+     * Compare {@link LocationsTest#locations_of_packages_within_JAR_URIs_that_do_not_contain_package_folder()}
      */
     @Test
     public void imports_packages_even_if_jar_entry_for_package_is_missing() {

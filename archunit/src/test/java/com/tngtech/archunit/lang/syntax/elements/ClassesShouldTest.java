@@ -96,7 +96,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have fully qualified name '%s'", SomeClass.class.getName()))
-                .containsPattern(String.format("Class <%s> doesn't have fully qualified name '%s' in %s",
+                .containsPattern(String.format("Class <%s> does not have fully qualified name '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(SomeClass.class.getName()),
                         locationPattern(WrongNamedClass.class)))
@@ -139,7 +139,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name '%s'", SomeClass.class.getSimpleName()))
-                .containsPattern(String.format("Class <%s> doesn't have simple name '%s' in %s",
+                .containsPattern(String.format("Class <%s> does not have simple name '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(SomeClass.class.getSimpleName()),
                         locationPattern(WrongNamedClass.class)))
@@ -186,7 +186,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have name matching '%s'", regex))
-                .containsPattern(String.format("Class <%s> doesn't match '%s' in %s",
+                .containsPattern(String.format("Class <%s> does not match '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(regex),
                         locationPattern(WrongNamedClass.class)))
@@ -235,7 +235,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name starting with '%s'", prefix))
-                .containsPattern(String.format("simple name of %s doesn't start with '%s' in %s",
+                .containsPattern(String.format("simple name of %s does not start with '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(prefix),
                         locationPattern(WrongNamedClass.class)))
@@ -260,7 +260,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name containing '%s'", infix))
-                .containsPattern(String.format("simple name of %s doesn't contain '%s' in %s",
+                .containsPattern(String.format("simple name of %s does not contain '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(infix),
                         locationPattern(WrongNamedClass.class)))
@@ -335,7 +335,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name ending with '%s'", suffix))
-                .containsPattern(String.format("simple name of %s doesn't end with '%s' in %s",
+                .containsPattern(String.format("simple name of %s does not end with '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(suffix),
                         locationPattern(WrongNamedClass.class)))
@@ -562,9 +562,9 @@ public class ClassesShouldTest {
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should " + description)
                 .contains(String.format("Class <%s>", PackagePrivateClass.class.getName()))
-                .contains("doesn't have modifier " + PUBLIC)
-                .contains("doesn't have modifier " + PROTECTED)
-                .contains("doesn't have modifier " + PRIVATE)
+                .contains("does not have modifier " + PUBLIC)
+                .contains("does not have modifier " + PROTECTED)
+                .contains("does not have modifier " + PRIVATE)
                 .doesNotMatch(String.format(".*<%s>.* modifier.*", quote(PrivateClass.class.getName())));
     }
 
@@ -741,7 +741,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should implement %s", classToCheckAgainst.getName()))
-                .containsPattern(String.format("Class <%s> doesn't implement %s in %s",
+                .containsPattern(String.format("Class <%s> does not implement %s in %s",
                         quote(violating.getName()),
                         quote(classToCheckAgainst.getName()),
                         locationPattern(violating)));
@@ -1401,22 +1401,22 @@ public class ClassesShouldTest {
     }
 
     private String doesntResideInAPackagePatternFor(Class<?> clazz, String packageIdentifier) {
-        return String.format("Class <%s> doesn't reside in a package '%s' in %s",
+        return String.format("Class <%s> does not reside in a package '%s' in %s",
                 quote(clazz.getName()), quote(packageIdentifier), locationPattern(clazz));
     }
 
     private String doesntResideOutsideOfPackagePatternFor(Class<?> clazz, String packageIdentifier) {
-        return String.format("Class <%s> doesn't reside outside of package '%s' in %s",
+        return String.format("Class <%s> does not reside outside of package '%s' in %s",
                 quote(clazz.getName()), quote(packageIdentifier), locationPattern(clazz));
     }
 
     private String doesntResideInAnyPackagePatternFor(Class<?> clazz, String[] packageIdentifiers) {
-        return String.format("Class <%s> doesn't reside in any package \\['%s'\\] in %s",
+        return String.format("Class <%s> does not reside in any package \\['%s'\\] in %s",
                 quote(clazz.getName()), quote(Joiner.on("', '").join(packageIdentifiers)), locationPattern(clazz));
     }
 
     private String doesntResideOutsideOfPackagesPatternFor(Class<?> clazz, String[] packageIdentifiers) {
-        return String.format("Class <%s> doesn't reside outside of packages \\['%s'\\] in %s",
+        return String.format("Class <%s> does not reside outside of packages \\['%s'\\] in %s",
                 quote(clazz.getName()), quote(Joiner.on("', '").join(packageIdentifiers)), locationPattern(clazz));
     }
 

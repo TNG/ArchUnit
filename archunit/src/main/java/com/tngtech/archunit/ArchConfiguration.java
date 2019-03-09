@@ -39,9 +39,9 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * Allows access to configured properties in {@value ARCHUNIT_PROPERTIES_RESOURCE_NAME}.
  */
 public final class ArchConfiguration {
-    @Internal // {@value ...} doesn't work on non public constants outside of the package
+    @Internal // {@value ...} does not work on non public constants outside of the package
     public static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "/archunit.properties";
-    @Internal // {@value ...} doesn't work on non public constants outside of the package
+    @Internal // {@value ...} does not work on non public constants outside of the package
     public static final String RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH = "resolveMissingDependenciesFromClassPath";
     static final String CLASS_RESOLVER = "classResolver";
     static final String CLASS_RESOLVER_ARGS = "classResolver.args";
