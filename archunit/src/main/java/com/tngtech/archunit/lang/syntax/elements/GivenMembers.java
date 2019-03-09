@@ -50,9 +50,27 @@ public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<ME
     @PublicAPI(usage = ACCESS)
     GivenMembersConjunction<MEMBER> that(DescribedPredicate<? super MEMBER> predicate);
 
+    /**
+     * Allows to specify assertions for the set of members under consideration. E.g.
+     * <br><br>
+     * <code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#should() should()}.{@link MembersShould#haveName(String) haveName("foo")}
+     * </code>
+     *
+     * @return A syntax element, which can be used to restrict the members under consideration
+     */
     @PublicAPI(usage = ACCESS)
-    MembersShould<MembersShouldConjunction<MEMBER>> should();
+    MembersShould<? extends MembersShouldConjunction<MEMBER>> should();
 
+    /**
+     * Allows to specify assertions for the set of members under consideration. E.g.
+     * <br><br>
+     * <code>
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#should(ArchCondition) should(haveName("foo"))}
+     * </code>
+     *
+     * @return A syntax element, which can be used to restrict the members under consideration
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     MembersShouldConjunction<MEMBER> should(ArchCondition<? super MEMBER> condition);

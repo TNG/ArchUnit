@@ -43,5 +43,5 @@ public interface GivenMembersConjunction<MEMBER extends JavaMember> extends Give
     MembersShouldConjunction<MEMBER> should(ArchCondition<? super MEMBER> condition);
 
     @PublicAPI(usage = ACCESS)
-    MembersShould<MembersShouldConjunction<MEMBER>> should();
+    MembersShould<? extends MembersShouldConjunction<MEMBER>> should();
 }

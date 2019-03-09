@@ -25,7 +25,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
+public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>> extends MembersThat<CONJUNCTION> {
 
     /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified raw parameter types.

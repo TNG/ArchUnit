@@ -22,8 +22,11 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.syntax.AbstractMembersShouldInternal.MembersShouldInternal;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembers;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersConjunction;
+import com.tngtech.archunit.lang.syntax.elements.MembersShould;
+import com.tngtech.archunit.lang.syntax.elements.MembersShouldConjunction;
 
 abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF extends AbstractGivenMembersInternal<MEMBER, SELF>>
         extends AbstractGivenObjects<MEMBER, SELF>
@@ -55,16 +58,6 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
         return new MembersThatInternal<>(self(), currentPredicate().thatORs());
     }
 
-    @Override
-    public MembersShouldInternal<MEMBER> should() {
-        return new MembersShouldInternal<>(finishedClassesTransformer(), priority, this.prepareCondition);
-    }
-
-    @Override
-    public MembersShouldInternal<MEMBER> should(ArchCondition<? super MEMBER> condition) {
-        return new MembersShouldInternal<>(finishedClassesTransformer(), priority, condition.<MEMBER>forSubType(), this.prepareCondition);
-    }
-
     static class GivenMembersInternal extends AbstractGivenMembersInternal<JavaMember, GivenMembersInternal> {
 
         GivenMembersInternal(Priority priority, ClassesTransformer<JavaMember> classesTransformer) {
@@ -93,6 +86,16 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
                 Optional<String> overriddenDescription) {
 
             super(factory, priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
+        }
+
+        @Override
+        public MembersShouldConjunction<JavaMember> should(ArchCondition<? super JavaMember> condition) {
+            return new MembersShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMember>forSubType(), prepareCondition);
+        }
+
+        @Override
+        public MembersShould<? extends MembersShouldConjunction<JavaMember>> should() {
+            return new MembersShouldInternal(finishedClassesTransformer(), priority, prepareCondition);
         }
 
         private static class GivenMembersFactory implements AbstractGivenObjects.Factory<JavaMember, GivenMembersInternal> {

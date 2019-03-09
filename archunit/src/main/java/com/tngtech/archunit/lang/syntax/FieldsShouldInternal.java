@@ -15,13 +15,28 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
+import com.tngtech.archunit.lang.syntax.elements.FieldsShould;
+import com.tngtech.archunit.lang.syntax.elements.FieldsShouldConjunction;
 
-class FieldsShouldInternal extends MembersShouldInternal<JavaField> {
+class FieldsShouldInternal
+        extends AbstractMembersShouldInternal<JavaField, FieldsShouldInternal>
+        implements FieldsShould<FieldsShouldInternal>, FieldsShouldConjunction {
+
+    FieldsShouldInternal(
+            ClassesTransformer<? extends JavaField> classesTransformer,
+            Priority priority,
+            Function<ArchCondition<JavaField>, ArchCondition<JavaField>> prepareCondition) {
+
+        super(classesTransformer, priority, prepareCondition);
+    }
 
     FieldsShouldInternal(
             ClassesTransformer<? extends JavaField> classesTransformer,
@@ -30,5 +45,34 @@ class FieldsShouldInternal extends MembersShouldInternal<JavaField> {
             Function<ArchCondition<JavaField>, ArchCondition<JavaField>> prepareCondition) {
 
         super(classesTransformer, priority, condition, prepareCondition);
+    }
+
+    private FieldsShouldInternal(
+            ClassesTransformer<? extends JavaField> classesTransformer,
+            Priority priority,
+            ConditionAggregator<JavaField> conditionAggregator,
+            Function<ArchCondition<JavaField>, ArchCondition<JavaField>> prepareCondition) {
+
+        super(classesTransformer, priority, conditionAggregator, prepareCondition);
+    }
+
+    @Override
+    FieldsShouldInternal copyWithNewCondition(ConditionAggregator<JavaField> newCondition) {
+        return new FieldsShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
+    }
+
+    @Override
+    public FieldsShouldInternal haveRawType(Class<?> type) {
+        return addCondition(ArchConditions.haveRawType(type));
+    }
+
+    @Override
+    public FieldsShouldInternal haveRawType(String typeName) {
+        return addCondition(ArchConditions.haveRawType(typeName));
+    }
+
+    @Override
+    public FieldsShouldInternal haveRawType(DescribedPredicate<? super JavaClass> predicate) {
+        return addCondition(ArchConditions.haveRawType(predicate));
     }
 }

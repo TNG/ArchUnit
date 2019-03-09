@@ -31,17 +31,18 @@ import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.MembersShould;
 import com.tngtech.archunit.lang.syntax.elements.MembersShouldConjunction;
 
-class MembersShouldInternal<MEMBER extends JavaMember> extends ObjectsShouldInternal<MEMBER>
-        implements MembersShouldConjunction<MEMBER>, MembersShould<MembersShouldConjunction<MEMBER>> {
+abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF extends AbstractMembersShouldInternal<MEMBER, SELF>>
+        extends ObjectsShouldInternal<MEMBER>
+        implements MembersShouldConjunction<MEMBER>, MembersShould<SELF> {
 
-    MembersShouldInternal(
+    AbstractMembersShouldInternal(
             ClassesTransformer<? extends MEMBER> classesTransformer,
             Priority priority,
             Function<ArchCondition<MEMBER>, ArchCondition<MEMBER>> prepareCondition) {
         super(classesTransformer, priority, prepareCondition);
     }
 
-    MembersShouldInternal(
+    AbstractMembersShouldInternal(
             ClassesTransformer<? extends MEMBER> classesTransformer,
             Priority priority,
             ArchCondition<MEMBER> condition,
@@ -50,7 +51,7 @@ class MembersShouldInternal<MEMBER extends JavaMember> extends ObjectsShouldInte
         super(classesTransformer, priority, condition, prepareCondition);
     }
 
-    private MembersShouldInternal(
+    AbstractMembersShouldInternal(
             ClassesTransformer<? extends MEMBER> classesTransformer,
             Priority priority,
             ConditionAggregator<MEMBER> conditionAggregator,
@@ -59,207 +60,232 @@ class MembersShouldInternal<MEMBER extends JavaMember> extends ObjectsShouldInte
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> haveName(String name) {
+    public SELF haveName(String name) {
         return addCondition(ArchConditions.<JavaMember>haveName(name));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notHaveName(String name) {
+    public SELF notHaveName(String name) {
         return addCondition(ArchConditions.notHaveName(name));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> haveNameMatching(String regex) {
+    public SELF haveNameMatching(String regex) {
         return addCondition(ArchConditions.haveNameMatching(regex));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> haveNameNotMatching(String regex) {
+    public SELF haveNameNotMatching(String regex) {
         return addCondition(ArchConditions.haveNameNotMatching(regex));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> bePublic() {
+    public SELF bePublic() {
         return addCondition(ArchConditions.bePublic());
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBePublic() {
+    public SELF notBePublic() {
         return addCondition(ArchConditions.notBePublic());
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beProtected() {
+    public SELF beProtected() {
         return addCondition(ArchConditions.beProtected());
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBeProtected() {
+    public SELF notBeProtected() {
         return addCondition(ArchConditions.notBeProtected());
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> bePackagePrivate() {
+    public SELF bePackagePrivate() {
         return addCondition(ArchConditions.bePackagePrivate());
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBePackagePrivate() {
+    public SELF notBePackagePrivate() {
         return addCondition(ArchConditions.notBePackagePrivate());
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> bePrivate() {
+    public SELF bePrivate() {
         return addCondition(ArchConditions.bePrivate());
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBePrivate() {
+    public SELF notBePrivate() {
         return addCondition(ArchConditions.notBePrivate());
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> haveModifier(JavaModifier modifier) {
+    public SELF haveModifier(JavaModifier modifier) {
         return addCondition(ArchConditions.haveModifier(modifier));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notHaveModifier(JavaModifier modifier) {
+    public SELF notHaveModifier(JavaModifier modifier) {
         return addCondition(ArchConditions.notHaveModifier(modifier));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public SELF beAnnotatedWith(Class<? extends Annotation> annotationType) {
         return addCondition(ArchConditions.beAnnotatedWith(annotationType));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBeAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public SELF notBeAnnotatedWith(Class<? extends Annotation> annotationType) {
         return addCondition(ArchConditions.notBeAnnotatedWith(annotationType));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beAnnotatedWith(String annotationTypeName) {
+    public SELF beAnnotatedWith(String annotationTypeName) {
         return addCondition(ArchConditions.beAnnotatedWith(annotationTypeName));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBeAnnotatedWith(String annotationTypeName) {
+    public SELF notBeAnnotatedWith(String annotationTypeName) {
         return addCondition(ArchConditions.notBeAnnotatedWith(annotationTypeName));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public SELF beAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return addCondition(ArchConditions.beAnnotatedWith(predicate));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public SELF notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return addCondition(ArchConditions.notBeAnnotatedWith(predicate));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public SELF beMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
         return addCondition(ArchConditions.beMetaAnnotatedWith(annotationType));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBeMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+    public SELF notBeMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
         return addCondition(ArchConditions.notBeMetaAnnotatedWith(annotationType));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beMetaAnnotatedWith(String annotationTypeName) {
+    public SELF beMetaAnnotatedWith(String annotationTypeName) {
         return addCondition(ArchConditions.beMetaAnnotatedWith(annotationTypeName));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBeMetaAnnotatedWith(String annotationTypeName) {
+    public SELF notBeMetaAnnotatedWith(String annotationTypeName) {
         return addCondition(ArchConditions.notBeMetaAnnotatedWith(annotationTypeName));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public SELF beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return addCondition(ArchConditions.beMetaAnnotatedWith(predicate));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public SELF notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return addCondition(ArchConditions.notBeMetaAnnotatedWith(predicate));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beDeclaredIn(Class<?> javaClass) {
+    public SELF beDeclaredIn(Class<?> javaClass) {
         return addCondition(ArchConditions.beDeclaredIn(javaClass));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBeDeclaredIn(Class<?> javaClass) {
+    public SELF notBeDeclaredIn(Class<?> javaClass) {
         return addCondition(ArchConditions.notBeDeclaredIn(javaClass));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beDeclaredIn(String className) {
+    public SELF beDeclaredIn(String className) {
         return addCondition(ArchConditions.beDeclaredIn(className));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> notBeDeclaredIn(String className) {
+    public SELF notBeDeclaredIn(String className) {
         return addCondition(ArchConditions.notBeDeclaredIn(className));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> beDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+    public SELF beDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(ArchConditions.beDeclaredInClassesThat(predicate));
     }
 
     @Override
-    public ClassesThat<MembersShouldConjunction<MEMBER>> beDeclaredInClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, MembersShouldConjunction<MEMBER>>() {
+    public ClassesThat<SELF> beDeclaredInClassesThat() {
+        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, SELF>() {
             @Override
-            public MembersShouldConjunction<MEMBER> apply(DescribedPredicate<? super JavaClass> predicate) {
+            public SELF apply(DescribedPredicate<? super JavaClass> predicate) {
                 return addCondition(ArchConditions.beDeclaredInClassesThat(predicate));
             }
         });
     }
 
-    private MembersShouldInternal<MEMBER> copyWithNewCondition(ArchCondition<? super MEMBER> newCondition) {
-        return new MembersShouldInternal<>(classesTransformer, priority, newCondition.<MEMBER>forSubType(), prepareCondition);
+    private SELF copyWithNewCondition(ArchCondition<? super MEMBER> newCondition) {
+        return copyWithNewCondition(new ConditionAggregator<>(newCondition.<MEMBER>forSubType()));
     }
 
-    private MembersShouldInternal<MEMBER> addCondition(ArchCondition<? super MEMBER> condition) {
+    abstract SELF copyWithNewCondition(ConditionAggregator<MEMBER> newCondition);
+
+    SELF addCondition(ArchCondition<? super MEMBER> condition) {
         return copyWithNewCondition(conditionAggregator.add(condition));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> andShould(ArchCondition<? super MEMBER> condition) {
+    public SELF andShould(ArchCondition<? super MEMBER> condition) {
         return copyWithNewCondition(conditionAggregator
                 .thatANDsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should"))
                 .add(condition));
     }
 
     @Override
-    public MembersShould<MembersShouldConjunction<MEMBER>> andShould() {
-        return new MembersShouldInternal<>(
-                classesTransformer,
-                priority,
-                conditionAggregator.thatANDsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should")),
-                prepareCondition);
+    public SELF andShould() {
+        return copyWithNewCondition(conditionAggregator.thatANDsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should")));
     }
 
     @Override
-    public MembersShouldConjunction<MEMBER> orShould(ArchCondition<? super MEMBER> condition) {
+    public SELF orShould(ArchCondition<? super MEMBER> condition) {
         return copyWithNewCondition(conditionAggregator
                 .thatORsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should"))
                 .add(condition));
     }
 
     @Override
-    public MembersShould<MembersShouldConjunction<MEMBER>> orShould() {
-        return new MembersShouldInternal<>(
-                classesTransformer,
-                priority,
-                conditionAggregator.thatORsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should")),
-                prepareCondition);
+    public SELF orShould() {
+        return copyWithNewCondition(conditionAggregator.thatORsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should")));
+    }
+
+    static class MembersShouldInternal extends AbstractMembersShouldInternal<JavaMember, MembersShouldInternal> {
+
+        MembersShouldInternal(
+                ClassesTransformer<? extends JavaMember> classesTransformer,
+                Priority priority,
+                Function<ArchCondition<JavaMember>, ArchCondition<JavaMember>> prepareCondition) {
+            super(classesTransformer, priority, prepareCondition);
+        }
+
+        MembersShouldInternal(
+                ClassesTransformer<? extends JavaMember> classesTransformer,
+                Priority priority,
+                ArchCondition<JavaMember> condition,
+                Function<ArchCondition<JavaMember>, ArchCondition<JavaMember>> prepareCondition) {
+            super(classesTransformer, priority, condition, prepareCondition);
+        }
+
+        MembersShouldInternal(
+                ClassesTransformer<? extends JavaMember> classesTransformer,
+                Priority priority,
+                ConditionAggregator<JavaMember> conditionAggregator,
+                Function<ArchCondition<JavaMember>, ArchCondition<JavaMember>> prepareCondition) {
+            super(classesTransformer, priority, conditionAggregator, prepareCondition);
+        }
+
+        @Override
+        MembersShouldInternal copyWithNewCondition(ConditionAggregator<JavaMember> newCondition) {
+            return new MembersShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
+        }
     }
 }

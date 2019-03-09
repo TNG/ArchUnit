@@ -40,14 +40,14 @@ class ObjectsShouldInternal<T> implements ArchRule {
     ObjectsShouldInternal(ClassesTransformer<? extends T> classesTransformer,
             Priority priority,
             Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
-        this(classesTransformer, priority, new ConditionAggregator<>(AddMode.<T>and()), prepareCondition);
+        this(classesTransformer, priority, new ConditionAggregator<T>(), prepareCondition);
     }
 
     ObjectsShouldInternal(ClassesTransformer<? extends T> classesTransformer,
             Priority priority,
             ArchCondition<T> condition,
             Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
-        this(classesTransformer, priority, new ConditionAggregator<>(condition, AddMode.<T>and()), prepareCondition);
+        this(classesTransformer, priority, new ConditionAggregator<>(condition), prepareCondition);
     }
 
     ObjectsShouldInternal(ClassesTransformer<? extends T> classesTransformer,
@@ -111,12 +111,12 @@ class ObjectsShouldInternal<T> implements ArchRule {
         private final Optional<ArchCondition<T>> condition;
         private final AddMode<T> addMode;
 
-        ConditionAggregator(AddMode<T> addMode) {
-            this(Optional.<ArchCondition<T>>absent(), addMode);
+        ConditionAggregator() {
+            this(Optional.<ArchCondition<T>>absent(), AddMode.<T>and());
         }
 
-        ConditionAggregator(ArchCondition<T> condition, AddMode<T> addMode) {
-            this(Optional.of(condition), addMode);
+        ConditionAggregator(ArchCondition<T> condition) {
+            this(Optional.of(condition), AddMode.<T>and());
         }
 
         private ConditionAggregator(Optional<ArchCondition<T>> condition, AddMode<T> addMode) {
