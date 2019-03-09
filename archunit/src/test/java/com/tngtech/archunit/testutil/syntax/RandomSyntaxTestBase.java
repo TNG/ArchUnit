@@ -185,6 +185,7 @@ public abstract class RandomSyntaxTestBase {
     }
 
     private static class PartialStep extends Step {
+        private static final int LOW_NUMBER_OF_LEFT_STEPS = 5;
         private static final ParameterProvider parameterProvider = new ParameterProvider();
 
         final Parameters parameters;
@@ -219,7 +220,9 @@ public abstract class RandomSyntaxTestBase {
 
             methodCallChain.invokeNextMethodCandidate(parameters);
 
-            Step nextStep = methodCallChain.hasAnotherMethodCandidate() && shouldNotFinish(methodCallChain.getCurrentValue())
+            boolean shouldContinue = methodCallChain.hasAnotherMethodCandidate()
+                    && shouldContinue(methodCallChain.getCurrentValue(), maxSteps - currentStepCount);
+            Step nextStep = shouldContinue
                     ? new PartialStep(expectedDescription, methodCallChain)
                     : new LastStep(expectedDescription, methodCallChain);
             LOG.debug("Next step is {}", nextStep);
@@ -227,8 +230,11 @@ public abstract class RandomSyntaxTestBase {
             return nextStep.continueSteps(currentStepCount + 1, maxSteps);
         }
 
-        private boolean shouldNotFinish(TypedValue nextValue) {
-            return !ArchRule.class.isAssignableFrom(nextValue.getRawType()) || random.nextBoolean();
+        private boolean shouldContinue(TypedValue nextValue, int stepsLeft) {
+            if (!ArchRule.class.isAssignableFrom(nextValue.getRawType())) {
+                return true;
+            }
+            return random.nextBoolean() && stepsLeft > LOW_NUMBER_OF_LEFT_STEPS;
         }
 
         public String getDescription() {

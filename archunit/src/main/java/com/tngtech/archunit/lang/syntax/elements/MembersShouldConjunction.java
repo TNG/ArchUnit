@@ -27,11 +27,11 @@ public interface MembersShouldConjunction<MEMBER extends JavaMember> extends Arc
     MembersShouldConjunction<MEMBER> andShould(ArchCondition<? super MEMBER> condition);
 
     @PublicAPI(usage = ACCESS)
-    MembersShould<MembersShouldConjunction<MEMBER>> andShould();
+    MembersShould<? extends MembersShouldConjunction<MEMBER>> andShould();
 
     @PublicAPI(usage = ACCESS)
     MembersShouldConjunction<MEMBER> orShould(ArchCondition<? super MEMBER> condition);
 
     @PublicAPI(usage = ACCESS)
-    MembersShould<MembersShouldConjunction<MEMBER>> orShould();
+    MembersShould<? extends MembersShouldConjunction<MEMBER>> orShould();
 }

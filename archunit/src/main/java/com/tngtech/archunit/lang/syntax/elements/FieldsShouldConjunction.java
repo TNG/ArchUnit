@@ -16,33 +16,26 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.lang.ArchCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface GivenFieldsConjunction extends GivenMembersConjunction<JavaField> {
+public interface FieldsShouldConjunction extends MembersShouldConjunction<JavaField> {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    FieldsThat<?> and();
+    FieldsShouldConjunction andShould(ArchCondition<? super JavaField> condition);
 
     @Override
     @PublicAPI(usage = ACCESS)
-    FieldsThat<?> or();
+    FieldsShould<?> andShould();
 
     @Override
     @PublicAPI(usage = ACCESS)
-    GivenFieldsConjunction and(DescribedPredicate<? super JavaField> predicate);
+    FieldsShouldConjunction orShould(ArchCondition<? super JavaField> condition);
 
     @Override
     @PublicAPI(usage = ACCESS)
-    GivenFieldsConjunction or(DescribedPredicate<? super JavaField> predicate);
-
-    @Override
-    FieldsShouldConjunction should(ArchCondition<? super JavaField> condition);
-
-    @Override
-    FieldsShould<?> should();
+    FieldsShould<?> orShould();
 }

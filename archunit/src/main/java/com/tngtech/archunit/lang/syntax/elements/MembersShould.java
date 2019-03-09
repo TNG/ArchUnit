@@ -27,7 +27,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface MembersShould<CONJUNCTION> {
+public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> {
 
     /**
      * Asserts that members have a certain name (i.e. field name, method name or {@link JavaConstructor#CONSTRUCTOR_NAME}).

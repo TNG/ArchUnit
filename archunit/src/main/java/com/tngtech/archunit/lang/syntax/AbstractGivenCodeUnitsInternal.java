@@ -22,6 +22,7 @@ import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.syntax.AbstractCodeUnitsShouldInternal.CodeUnitsShouldInternal;
 import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnits;
 import com.tngtech.archunit.lang.syntax.elements.GivenCodeUnitsConjunction;
 
@@ -86,8 +87,13 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
         }
 
         @Override
-        public CodeUnitsShouldInternal<JavaCodeUnit> should(ArchCondition<? super JavaCodeUnit> condition) {
-            return new CodeUnitsShouldInternal<>(finishedClassesTransformer(), priority, condition.<JavaCodeUnit>forSubType(), prepareCondition);
+        public CodeUnitsShouldInternal should() {
+            return new CodeUnitsShouldInternal(finishedClassesTransformer(), priority, prepareCondition);
+        }
+
+        @Override
+        public CodeUnitsShouldInternal should(ArchCondition<? super JavaCodeUnit> condition) {
+            return new CodeUnitsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaCodeUnit>forSubType(), prepareCondition);
         }
 
         private static class GivenCodeUnitsFactory implements Factory<JavaCodeUnit, GivenCodeUnitsInternal> {
