@@ -30,7 +30,6 @@ import com.tngtech.archunit.example.SomeMediator;
 import com.tngtech.archunit.example.SomeOtherBusinessInterface;
 import com.tngtech.archunit.example.anticorruption.WithIllegalReturnType;
 import com.tngtech.archunit.example.anticorruption.WrappedResult;
-import com.tngtech.archunit.example.anticorruption.internal.InternalType;
 import com.tngtech.archunit.example.controller.SomeController;
 import com.tngtech.archunit.example.controller.SomeGuiController;
 import com.tngtech.archunit.example.controller.SomeUtility;
@@ -748,13 +747,13 @@ class ExamplesIntegrationTest {
                         com.tngtech.archunit.exampletest.junit4.MethodsTest.class,
                         com.tngtech.archunit.exampletest.junit5.MethodsTest.class)
 
-                .ofRule("methods that reside in a package '..anticorruption..' and are public "
-                        + String.format("should return type %s, ", WrappedResult.class.getName())
+                .ofRule("methods that are declared in classes that reside in a package '..anticorruption..' and are public "
+                        + String.format("should have raw return type %s, ", WrappedResult.class.getName())
                         + "because we do not want to couple the client code directly to the return types of the encapsulated module")
-                .by(ExpectedMethod.of(WithIllegalReturnType.class, "directlyReturnInternalType").returningType(InternalType.class))
-                .by(ExpectedMethod.of(WithIllegalReturnType.class, "otherIllegalMethod", String.class).returningType(int.class))
+                .by(ExpectedMethod.of(WithIllegalReturnType.class, "directlyReturnInternalType").toNotHaveRawReturnType(WrappedResult.class))
+                .by(ExpectedMethod.of(WithIllegalReturnType.class, "otherIllegalMethod", String.class).toNotHaveRawReturnType(WrappedResult.class))
 
-                .ofRule("no code units that reside in a package '..persistence..' "
+                .ofRule("no code units that are declared in classes that reside in a package '..persistence..' "
                         + "should be annotated with @" + Secured.class.getSimpleName())
                 .by(ExpectedConstructor.of(SomeJpa.class).beingAnnotatedWith(Secured.class))
                 .by(ExpectedMethod.of(OtherJpa.class, "getEntityManager").beingAnnotatedWith(Secured.class))
