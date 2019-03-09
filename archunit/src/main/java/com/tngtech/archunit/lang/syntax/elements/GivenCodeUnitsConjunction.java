@@ -18,6 +18,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.lang.ArchCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -38,4 +39,12 @@ public interface GivenCodeUnitsConjunction<CODE_UNIT extends JavaCodeUnit> exten
     @Override
     @PublicAPI(usage = ACCESS)
     GivenCodeUnitsConjunction<CODE_UNIT> or(DescribedPredicate<? super CODE_UNIT> predicate);
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    CodeUnitsShouldConjunction<CODE_UNIT> should(ArchCondition<? super CODE_UNIT> condition);
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    CodeUnitsShould<? extends CodeUnitsShouldConjunction<CODE_UNIT>> should();
 }

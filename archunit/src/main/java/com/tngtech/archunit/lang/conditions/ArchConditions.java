@@ -17,6 +17,7 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -48,14 +49,13 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOccurrence;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
-import com.tngtech.archunit.core.domain.properties.HasType;
+import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
@@ -78,6 +78,9 @@ import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_DIRECT_DE
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELD_ACCESSES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_METHOD_CALLS_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE_NAME;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
@@ -87,11 +90,15 @@ import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
+import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
+import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predicates.throwsClauseContainingType;
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static java.util.Arrays.asList;
@@ -430,7 +437,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasOccurrence> ArchCondition<HAS_NAME> haveName(final String name) {
-        return new NameCondition<>(name(name));
+        return new HaveConditionByPredicate<>(name(name));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -440,7 +447,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveFullyQualifiedName(final String name) {
-        return new NameCondition<>(fullyQualifiedName(name));
+        return new HaveConditionByPredicate<>(fullyQualifiedName(name));
     }
 
     @Internal
@@ -535,7 +542,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> haveModifier(
             final JavaModifier modifier) {
-        return new ModifierCondition<>(modifier);
+        return new HaveConditionByPredicate<>(modifier(modifier));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -595,7 +602,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             Class<? extends Annotation> type) {
-        return new AnnotatedCondition<>(HasAnnotations.Predicates.annotatedWith(type));
+        return new IsConditionByPredicate<>(annotatedWith(type));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -607,7 +614,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             String typeName) {
-        return new AnnotatedCondition<>(HasAnnotations.Predicates.annotatedWith(typeName));
+        return new IsConditionByPredicate<>(annotatedWith(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -619,7 +626,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             final DescribedPredicate<? super JavaAnnotation> predicate) {
-        return new AnnotatedCondition<>(HasAnnotations.Predicates.annotatedWith(predicate));
+        return new IsConditionByPredicate<>(annotatedWith(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -631,7 +638,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             Class<? extends Annotation> type) {
-        return new AnnotatedCondition<>(HasAnnotations.Predicates.metaAnnotatedWith(type));
+        return new IsConditionByPredicate<>(metaAnnotatedWith(type));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -643,7 +650,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             String typeName) {
-        return new AnnotatedCondition<>(HasAnnotations.Predicates.metaAnnotatedWith(typeName));
+        return new IsConditionByPredicate<>(metaAnnotatedWith(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -655,7 +662,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             final DescribedPredicate<? super JavaAnnotation> predicate) {
-        return new AnnotatedCondition<>(HasAnnotations.Predicates.metaAnnotatedWith(predicate));
+        return new IsConditionByPredicate<>(metaAnnotatedWith(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -696,7 +703,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(Class<?> type) {
-        return new AssignableCondition(JavaClass.Predicates.assignableTo(type));
+        return new IsConditionByPredicate<>(assignableTo(type));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -706,7 +713,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(String typeName) {
-        return new AssignableCondition(JavaClass.Predicates.assignableTo(typeName));
+        return new IsConditionByPredicate<>(assignableTo(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -716,7 +723,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
-        return new AssignableCondition(JavaClass.Predicates.assignableTo(predicate));
+        return new IsConditionByPredicate<>(assignableTo(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -726,7 +733,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(Class<?> type) {
-        return new AssignableCondition(JavaClass.Predicates.assignableFrom(type));
+        return new IsConditionByPredicate<>(assignableFrom(type));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -736,7 +743,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(String typeName) {
-        return new AssignableCondition(JavaClass.Predicates.assignableFrom(typeName));
+        return new IsConditionByPredicate<>(assignableFrom(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -746,7 +753,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
-        return new AssignableCondition(JavaClass.Predicates.assignableFrom(predicate));
+        return new IsConditionByPredicate<>(assignableFrom(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -771,7 +778,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> beDeclaredIn(Class<?> owner) {
-        return new DeclaredInCondition(ArchPredicates.be(declaredIn(owner)));
+        return new IsConditionByPredicate<>(declaredIn(owner));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -781,7 +788,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> beDeclaredIn(String ownerTypeName) {
-        return new DeclaredInCondition(ArchPredicates.be(declaredIn(ownerTypeName)));
+        return new IsConditionByPredicate<>(declaredIn(ownerTypeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -791,24 +798,71 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> beDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
-        DescribedPredicate<JavaMember> declaredIn = ArchPredicates.be(declaredIn(
-                predicate.as("classes that " + predicate.getDescription())));
-        return new DeclaredInCondition(declaredIn);
+        DescribedPredicate<JavaMember> declaredIn = declaredIn(
+                predicate.as("classes that " + predicate.getDescription()));
+        return new IsConditionByPredicate<>(declaredIn);
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaField> haveRawType(Class<?> type) {
-        return new FieldTypeCondition(rawType(type));
+        return new HaveConditionByPredicate<>(rawType(type));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaField> haveRawType(String typeName) {
-        return new FieldTypeCondition(rawType(typeName));
+        return new HaveConditionByPredicate<>(rawType(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaField> haveRawType(DescribedPredicate<? super JavaClass> predicate) {
-        return new FieldTypeCondition(rawType(predicate));
+        return new HaveConditionByPredicate<>(rawType(predicate));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> haveRawParameterTypes(Class<?>... parameterTypes) {
+        return new HaveConditionByPredicate<>(rawParameterTypes(parameterTypes));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> haveRawParameterTypes(String... parameterTypeNames) {
+        return new HaveConditionByPredicate<>(rawParameterTypes(parameterTypeNames));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> haveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate) {
+        return new HaveConditionByPredicate<>(rawParameterTypes(predicate));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> haveRawReturnType(Class<?> type) {
+        return new HaveConditionByPredicate<>(rawReturnType(type));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> haveRawReturnType(String typeName) {
+        return new HaveConditionByPredicate<>(rawReturnType(typeName));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> haveRawReturnType(DescribedPredicate<JavaClass> predicate) {
+        return new HaveConditionByPredicate<>(rawReturnType(predicate));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> declareThrowableOfType(Class<? extends Throwable> type) {
+        return declareThrowableOfType(equivalentTo(type).as(type.getName()));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> declareThrowableOfType(String typeName) {
+        return declareThrowableOfType(name(typeName).as(typeName));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> declareThrowableOfType(DescribedPredicate<? super JavaClass> predicate) {
+        DescribedPredicate<HasThrowsClause<?>> declareThrowableOfType = throwsClauseContainingType(predicate)
+                .as("declare throwable of type " + predicate.getDescription());
+        return new DeclareThrowableCondition(declareThrowableOfType);
     }
 
     private static <T extends HasDescription & HasOccurrence> String createMessage(T object, String message) {
@@ -825,7 +879,7 @@ public final class ArchConditions {
             SortedSet<String> notFinalFieldNames = getNonFinalFieldNamesOf(javaClass);
             boolean satisfied = notFinalFieldNames.isEmpty();
             String message = createMessage(javaClass,
-                    satisfied ? "doesn't have any non-final fields" : "has non-final fields " + notFinalFieldNames);
+                    satisfied ? "does not have any non-final fields" : "has non-final fields " + notFinalFieldNames);
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
 
@@ -837,24 +891,6 @@ public final class ArchConditions {
                 }
             }
             return notFinalFieldNames;
-        }
-    }
-
-    private static class AnnotatedCondition<HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence>
-            extends ArchCondition<HAS_ANNOTATIONS> {
-        private final DescribedPredicate<CanBeAnnotated> annotatedWith;
-
-        AnnotatedCondition(DescribedPredicate<CanBeAnnotated> annotatedWith) {
-            super(ArchPredicates.be(annotatedWith).getDescription());
-            this.annotatedWith = annotatedWith;
-        }
-
-        @Override
-        public void check(HAS_ANNOTATIONS hasAnnotations, ConditionEvents events) {
-            boolean satisfied = annotatedWith.apply(hasAnnotations);
-            String message = createMessage(hasAnnotations,
-                    (satisfied ? "is " : "is not ") + annotatedWith.getDescription());
-            events.add(new SimpleConditionEvent(hasAnnotations, satisfied, message));
         }
     }
 
@@ -871,7 +907,7 @@ public final class ArchConditions {
             boolean satisfied = implement.apply(javaClass);
             String description = satisfied
                     ? implement.getDescription().replace("implement", "implements")
-                    : implement.getDescription().replace("implement", "doesn't implement");
+                    : implement.getDescription().replace("implement", "does not implement");
             String message = createMessage(javaClass, description);
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
@@ -919,23 +955,6 @@ public final class ArchConditions {
         }
     }
 
-    private static class AssignableCondition extends ArchCondition<JavaClass> {
-        private final DescribedPredicate<JavaClass> assignable;
-
-        AssignableCondition(DescribedPredicate<JavaClass> assignable) {
-            super(ArchPredicates.be(assignable).getDescription());
-            this.assignable = assignable;
-        }
-
-        @Override
-        public void check(JavaClass javaClass, ConditionEvents events) {
-            boolean satisfied = assignable.apply(javaClass);
-            String message = createMessage(javaClass,
-                    (satisfied ? "is " : "is not ") + assignable.getDescription());
-            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
-        }
-    }
-
     private static class BeClassCondition extends ArchCondition<JavaClass> {
         private final String className;
 
@@ -953,23 +972,6 @@ public final class ArchConditions {
         }
     }
 
-    private static class NameCondition<HAS_NAME extends HasName & HasDescription & HasOccurrence> extends ArchCondition<HAS_NAME> {
-        private final DescribedPredicate<HasName> predicate;
-
-        NameCondition(DescribedPredicate<HasName> predicate) {
-            super("have " + predicate.getDescription());
-            this.predicate = predicate;
-        }
-
-        @Override
-        public void check(HAS_NAME hasName, ConditionEvents events) {
-            boolean satisfied = predicate.apply(hasName);
-            String message = createMessage(hasName,
-                    (satisfied ? "has " : "doesn't have ") + predicate.getDescription());
-            events.add(new SimpleConditionEvent(hasName, satisfied, message));
-        }
-    }
-
     private static class SimpleNameCondition extends ArchCondition<JavaClass> {
         private final DescribedPredicate<JavaClass> haveSimpleName;
         private final String name;
@@ -984,7 +986,7 @@ public final class ArchConditions {
         public void check(JavaClass javaClass, ConditionEvents events) {
             boolean satisfied = haveSimpleName.apply(javaClass);
             String message = createMessage(javaClass,
-                    String.format("%s simple name '%s'", satisfied ? "has" : "doesn't have", name));
+                    String.format("%s simple name '%s'", satisfied ? "has" : "does not have", name));
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
@@ -1004,7 +1006,7 @@ public final class ArchConditions {
             boolean satisfied = predicate.apply(javaClass);
             String message = String.format("simple name of %s %s with '%s' in %s",
                     javaClass.getName(),
-                    satisfied ? "starts" : "doesn't start",
+                    satisfied ? "starts" : "does not start",
                     prefix,
                     javaClass.getOccurrence());
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
@@ -1026,7 +1028,7 @@ public final class ArchConditions {
             boolean satisfied = predicate.apply(javaClass);
             String message = String.format("simple name of %s %s '%s' in %s",
                     javaClass.getName(),
-                    satisfied ? "contains" : "doesn't contain",
+                    satisfied ? "contains" : "does not contain",
                     infix,
                     javaClass.getOccurrence());
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
@@ -1048,7 +1050,7 @@ public final class ArchConditions {
             boolean satisfied = predicate.apply(javaClass);
             String message = String.format("simple name of %s %s with '%s' in %s",
                     javaClass.getName(),
-                    satisfied ? "ends" : "doesn't end",
+                    satisfied ? "ends" : "does not end",
                     suffix,
                     javaClass.getOccurrence());
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
@@ -1069,7 +1071,7 @@ public final class ArchConditions {
         public void check(HAS_NAME hasName, ConditionEvents events) {
             boolean satisfied = haveNameMatching.apply(hasName);
             String message = createMessage(hasName,
-                    String.format("%s '%s'", satisfied ? "matches" : "doesn't match", regex));
+                    String.format("%s '%s'", satisfied ? "matches" : "does not match", regex));
             events.add(new SimpleConditionEvent(hasName, satisfied, message));
         }
     }
@@ -1086,64 +1088,57 @@ public final class ArchConditions {
         public void check(JavaClass javaClass, ConditionEvents events) {
             boolean satisfied = resideInAPackage.apply(javaClass);
             String message = createMessage(javaClass,
-                    (satisfied ? "does " : "doesn't ") + resideInAPackage.getDescription());
+                    (satisfied ? "does " : "does not ") + resideInAPackage.getDescription());
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
-    private static class ModifierCondition<HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> extends ArchCondition<HAS_MODIFIERS> {
-        private final DescribedPredicate<HasModifiers> haveModifier;
-        private final JavaModifier modifier;
+    private static class IsConditionByPredicate<T extends HasDescription & HasOccurrence> extends ArchCondition<T> {
+        private final DescribedPredicate<T> predicate;
 
-        ModifierCondition(JavaModifier modifier) {
-            this(have(modifier(modifier)), modifier);
-        }
-
-        private ModifierCondition(DescribedPredicate<HasModifiers> haveModifier, JavaModifier modifier) {
-            super(haveModifier.getDescription());
-            this.haveModifier = haveModifier;
-            this.modifier = modifier;
+        private IsConditionByPredicate(DescribedPredicate<? super T> predicate) {
+            super(ArchPredicates.be(predicate).getDescription());
+            this.predicate = predicate.forSubType();
         }
 
         @Override
-        public void check(HAS_MODIFIERS hasModifiers, ConditionEvents events) {
-            boolean satisfied = haveModifier.apply(hasModifiers);
-            String message = createMessage(hasModifiers,
-                    (satisfied ? "has" : "doesn't have") + " modifier " + modifier);
-            events.add(new SimpleConditionEvent(hasModifiers, satisfied, message));
-        }
-    }
-
-    private static class DeclaredInCondition extends ArchCondition<JavaMember> {
-        private final DescribedPredicate<JavaMember> declaredIn;
-
-        private DeclaredInCondition(DescribedPredicate<JavaMember> declaredIn) {
-            super(declaredIn.getDescription());
-            this.declaredIn = declaredIn;
-        }
-
-        @Override
-        public void check(JavaMember member, ConditionEvents events) {
-            boolean satisfied = declaredIn.apply(member);
+        public void check(T member, ConditionEvents events) {
+            boolean satisfied = predicate.apply(member);
             String message = createMessage(member,
-                    (satisfied ? "is " : "is not ") + declaredIn.getDescription());
+                    (satisfied ? "is " : "is not ") + predicate.getDescription());
             events.add(new SimpleConditionEvent(member, satisfied, message));
         }
     }
 
-    private static class FieldTypeCondition extends ArchCondition<JavaField> {
-        private final DescribedPredicate<HasType> rawType;
+    private static class HaveConditionByPredicate<T extends HasDescription & HasOccurrence> extends ArchCondition<T> {
+        private final DescribedPredicate<T> rawType;
 
-        FieldTypeCondition(DescribedPredicate<HasType> rawType) {
+        HaveConditionByPredicate(DescribedPredicate<? super T> rawType) {
             super(ArchPredicates.have(rawType).getDescription());
-            this.rawType = rawType;
+            this.rawType = rawType.forSubType();
         }
 
         @Override
-        public void check(JavaField field, ConditionEvents events) {
-            boolean satisfied = rawType.apply(field);
-            String message = createMessage(field, (satisfied ? "has " : "does not have ") + rawType.getDescription());
-            events.add(new SimpleConditionEvent(field, satisfied, message));
+        public void check(T object, ConditionEvents events) {
+            boolean satisfied = rawType.apply(object);
+            String message = createMessage(object, (satisfied ? "has " : "does not have ") + rawType.getDescription());
+            events.add(new SimpleConditionEvent(object, satisfied, message));
+        }
+    }
+
+    private static class DeclareThrowableCondition extends ArchCondition<JavaCodeUnit> {
+        private final DescribedPredicate<HasThrowsClause<?>> declareThrowableOfType;
+
+        DeclareThrowableCondition(DescribedPredicate<HasThrowsClause<?>> declareThrowableOfType) {
+            super(declareThrowableOfType.getDescription());
+            this.declareThrowableOfType = declareThrowableOfType;
+        }
+
+        @Override
+        public void check(JavaCodeUnit codeUnit, ConditionEvents events) {
+            boolean satisfied = declareThrowableOfType.apply(codeUnit);
+            String message = createMessage(codeUnit, (satisfied ? "declares " : "does not declare ") + declareThrowableOfType.getDescription());
+            events.add(new SimpleConditionEvent(codeUnit, satisfied, message));
         }
     }
 }

@@ -23,6 +23,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface GivenFields extends GivenMembers<JavaField> {
+
     @Override
     @PublicAPI(usage = ACCESS)
     FieldsThat<?> that();
