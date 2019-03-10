@@ -16,6 +16,7 @@
 package com.tngtech.archunit.library.dependencies;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,22 +45,8 @@ import static com.tngtech.archunit.base.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
 
 /**
- * Basic collection of {@link Slice} for tests on dependencies of package slices, e.g. to avoid cycles.
- * Example to specify a {@link ClassesTransformer} to run {@link ArchRule ArchRules} against {@link Slices}:
- * <pre><code>
- * Slices.matching("some.pkg.(*)..")
- * </code></pre>
- * would group the packages
- * <ul>
- * <li><code>some.pkg.one.any</code></li>
- * <li><code>some.pkg.one.other</code></li>
- * </ul>
- * in the same slice, the package
- * <ul>
- * <li><code>some.pkg.two.any</code></li>
- * </ul>
- * in a different slice.<br>
- * The resulting {@link ClassesTransformer} can be used to specify an {@link ArchRule} on slices.
+ * Basic collection of {@link Slice} for tests of dependencies between different domain packages, e.g. to avoid cycles.
+ * Refer to {@link SlicesRuleDefinition} for further info on how to form an {@link ArchRule} to test slices.
  */
 public final class Slices implements DescribedIterable<Slice>, CanOverrideDescription<Slices> {
     private final Iterable<Slice> slices;
@@ -93,11 +80,15 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
      * Allows the naming of single slices, where back references to the matching pattern can be denoted by '$' followed
      * by capturing group number. <br>
      * E.g. {@code namingSlices("Slice $1")} would name a slice matching {@code '*..service.(*)..*'}
-     * against {@code 'com.some.company.service.hello.something'} as 'Slice hello'.
+     * against {@code 'com.some.company.service.hello.something'} as 'Slice hello'.<br>
+     * Likewise, if the slices were created by a {@link SliceAssignment} (compare
+     * {@link #assignedFrom(SliceAssignment)}),
+     * then the back reference refers to the n-th element of the identifier.
      *
      * @param pattern The naming pattern, e.g. 'Slice $1'
      * @return <b>New</b> (equivalent) slices with adjusted description for each single slice
      */
+    @PublicAPI(usage = ACCESS)
     public Slices namingSlices(String pattern) {
         List<Slice> newSlices = new ArrayList<>();
         for (Slice slice : slices) {
@@ -107,10 +98,63 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
     }
 
     /**
-     * @see Creator#matching(String)
+     * Supports partitioning a set of {@link JavaClasses} into different slices by matching the supplied
+     * package identifier. For identifier syntax, see {@link PackageMatcher}.<br>
+     * The slicing is done according to capturing groups (thus if none are contained in the identifier, no more than
+     * a single slice will be the result). For example
+     * <p>
+     * Suppose there are three classes:<br><br>
+     * {@code com.example.slice.one.SomeClass}<br>
+     * {@code com.example.slice.one.AnotherClass}<br>
+     * {@code com.example.slice.two.YetAnotherClass}<br><br>
+     * If slices are created by specifying<br><br>
+     * {@code Slices.of(classes).byMatching("..slice.(*)..")}<br><br>
+     * then the result will be two slices, the slice where the capturing group is 'one' and the slice where the
+     * capturing group is 'two'.
+     * </p>
+     *
+     * @param packageIdentifier The identifier to match against
+     * @return Slices partitioned according the supplied package identifier
      */
+    @PublicAPI(usage = ACCESS)
     public static Transformer matching(String packageIdentifier) {
-        return new Transformer(packageIdentifier, slicesMatchingDescription(packageIdentifier));
+        PackageMatchingSliceIdentifier sliceIdentifier = new PackageMatchingSliceIdentifier(packageIdentifier);
+        String description = "slices matching " + sliceIdentifier.getDescription();
+        return new Transformer(sliceIdentifier, description);
+    }
+
+    /**
+     * Supports partitioning a set of {@link JavaClasses} into different {@link Slices} by the supplied
+     * {@link SliceAssignment}. This is basically a mapping {@link JavaClass} -&gt; {@link SliceIdentifier},
+     * i.e. if the {@link SliceAssignment} returns the same
+     * {@link SliceIdentifier} for two classes they will end up in the same slice.
+     * A {@link JavaClass} will be ignored within the slices, if its {@link SliceIdentifier} is
+     * {@link SliceIdentifier#ignore()}. For example
+     * <p>
+     * Suppose there are four classes:<br><br>
+     * {@code com.somewhere.SomeClass}<br>
+     * {@code com.somewhere.AnotherClass}<br>
+     * {@code com.other.elsewhere.YetAnotherClass}<br>
+     * {@code com.randomly.anywhere.AndYetAnotherClass}<br><br>
+     * If slices are created by specifying<br><br>
+     * {@code Slices.of(classes).assignedFrom(customAssignment)}<br><br>
+     *
+     * and the {@code customAssignment} maps<br><br>
+     *
+     * {@code com.somewhere -> SliceIdentifier.of("somewhere")}<br>
+     * {@code com.other.elsewhere -> SliceIdentifier.of("elsewhere")}<br>
+     * {@code com.randomly -> SliceIdentifier.ignore()}<br><br>
+     * then the result will be two slices, identified by the single strings 'somewhere' (containing {@code SomeClass}
+     * and {@code AnotherClass}) and 'elsewhere' (containing {@code YetAnotherClass}). The class {@code AndYetAnotherClass}
+     * will be missing from all slices.
+     *
+     * @param sliceAssignment The assignment of {@link JavaClass} to {@link SliceIdentifier}
+     * @return Slices partitioned according the supplied assignment
+     */
+    @PublicAPI(usage = ACCESS)
+    public static Transformer assignedFrom(SliceAssignment sliceAssignment) {
+        String description = "slices assigned from " + sliceAssignment.getDescription();
+        return new Transformer(sliceAssignment, description);
     }
 
     /**
@@ -120,25 +164,25 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
      * @see Slices
      */
     public static class Transformer implements ClassesTransformer<Slice> {
-        private final String packageIdentifier;
+        private final SliceAssignment sliceAssignment;
         private final String description;
         private final Optional<String> namingPattern;
         private final SlicesPredicateAggregator predicate;
 
-        Transformer(String packageIdentifier, String description) {
-            this(packageIdentifier, description, new SlicesPredicateAggregator("that"));
+        Transformer(SliceAssignment sliceAssignment, String description) {
+            this(sliceAssignment, description, new SlicesPredicateAggregator("that"));
         }
 
-        private Transformer(String packageIdentifier, String description, SlicesPredicateAggregator predicate) {
-            this(packageIdentifier, description, Optional.<String>absent(), predicate);
+        private Transformer(SliceAssignment sliceAssignment, String description, SlicesPredicateAggregator predicate) {
+            this(sliceAssignment, description, Optional.<String>absent(), predicate);
         }
 
-        private Transformer(String packageIdentifier,
+        private Transformer(SliceAssignment sliceAssignment,
                 String description,
                 Optional<String> namingPattern,
                 SlicesPredicateAggregator predicate) {
 
-            this.packageIdentifier = checkNotNull(packageIdentifier);
+            this.sliceAssignment = checkNotNull(sliceAssignment);
             this.description = checkNotNull(description);
             this.namingPattern = checkNotNull(namingPattern);
             this.predicate = predicate;
@@ -152,12 +196,12 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         }
 
         private Transformer namingSlices(Optional<String> pattern) {
-            return new Transformer(packageIdentifier, description, pattern, predicate);
+            return new Transformer(sliceAssignment, description, pattern, predicate);
         }
 
         @Override
         public Transformer as(String description) {
-            return new Transformer(packageIdentifier, description, predicate).namingSlices(namingPattern);
+            return new Transformer(sliceAssignment, description, predicate).namingSlices(namingPattern);
         }
 
         public Slices of(JavaClasses classes) {
@@ -170,7 +214,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
 
         @Override
         public Slices transform(JavaClasses classes) {
-            Slices slices = new Creator(classes).matching(packageIdentifier);
+            Slices slices = createSlices(classes);
             if (namingPattern.isPresent()) {
                 slices = slices.namingSlices(namingPattern.get());
             }
@@ -180,10 +224,19 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
             return slices.as(getDescription());
         }
 
+        private Slices createSlices(JavaClasses classes) {
+            SliceBuilders sliceBuilders = new SliceBuilders();
+            for (JavaClass clazz : classes) {
+                List<String> identifierParts = sliceAssignment.getIdentifierOf(clazz).getParts();
+                sliceBuilders.add(identifierParts, clazz);
+            }
+            return new Slices(sliceBuilders.build());
+        }
+
         @Override
         public Slices.Transformer that(final DescribedPredicate<? super Slice> predicate) {
             String newDescription = this.predicate.joinDescription(getDescription(), predicate.getDescription());
-            return new Transformer(packageIdentifier, newDescription, namingPattern, this.predicate.add(predicate));
+            return new Transformer(sliceAssignment, newDescription, namingPattern, this.predicate.add(predicate));
         }
 
         @Override
@@ -192,11 +245,11 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         }
 
         Transformer thatANDsPredicates() {
-            return new Transformer(packageIdentifier, description, namingPattern, predicate.thatANDs());
+            return new Transformer(sliceAssignment, description, namingPattern, predicate.thatANDs());
         }
 
         Transformer thatORsPredicates() {
-            return new Transformer(packageIdentifier, description, namingPattern, predicate.thatORs());
+            return new Transformer(sliceAssignment, description, namingPattern, predicate.thatORs());
         }
     }
 
@@ -240,54 +293,12 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         }
     }
 
-    public static final class Creator {
-        private final JavaClasses classes;
-
-        private Creator(JavaClasses classes) {
-            this.classes = classes;
-        }
-
-        /**
-         * Supports partitioning a set of {@link JavaClasses} into different slices by matching the supplied
-         * package identifier. For identifier syntax, see {@link PackageMatcher}.<br>
-         * The slicing is done according to capturing groups (thus if none are contained in the identifier, no more than
-         * a single slice will be the result). For example
-         * <p>
-         * Suppose there are three classes:<br><br>
-         * {@code com.example.slice.one.SomeClass}<br>
-         * {@code com.example.slice.one.AnotherClass}<br>
-         * {@code com.example.slice.two.YetAnotherClass}<br><br>
-         * If slices are created by specifying<br><br>
-         * {@code Slices.of(classes).byMatching("..slice.(*)..")}<br><br>
-         * then the result will be two slices, the slice where the capturing group is 'one' and the slice where the
-         * capturing group is 'two'.
-         * </p>
-         *
-         * @param packageIdentifier The identifier to match against
-         * @return Slices partitioned according the supplied package identifier
-         */
-        @PublicAPI(usage = ACCESS)
-        public Slices matching(String packageIdentifier) {
-            SliceBuilders sliceBuilders = new SliceBuilders();
-            PackageMatcher matcher = PackageMatcher.of(packageIdentifier);
-            for (JavaClass clazz : classes) {
-                Optional<List<String>> groups = matcher.match(clazz.getPackageName()).transform(TO_GROUPS);
-                sliceBuilders.add(groups, clazz);
-            }
-            return new Slices(sliceBuilders.build()).as(slicesMatchingDescription(packageIdentifier));
-        }
-    }
-
-    private static String slicesMatchingDescription(String packageIdentifier) {
-        return String.format("slices matching '%s'", packageIdentifier);
-    }
-
     private static class SliceBuilders {
         private final Map<List<String>, Slice.Builder> sliceBuilders = new HashMap<>();
 
-        void add(Optional<List<String>> matchingGroups, JavaClass clazz) {
-            if (matchingGroups.isPresent()) {
-                put(matchingGroups.get(), clazz);
+        void add(List<String> identifierParts, JavaClass clazz) {
+            if (!identifierParts.isEmpty()) {
+                put(identifierParts, clazz);
             }
         }
 
@@ -304,6 +315,31 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
                 result.add(builder.build());
             }
             return result;
+        }
+    }
+
+    private static class PackageMatchingSliceIdentifier implements SliceAssignment {
+        private final String packageIdentifier;
+
+        private PackageMatchingSliceIdentifier(String packageIdentifier) {
+            this.packageIdentifier = checkNotNull(packageIdentifier);
+        }
+
+        @Override
+        public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
+            PackageMatcher matcher = PackageMatcher.of(packageIdentifier);
+            Optional<List<String>> result = matcher.match(javaClass.getPackageName()).transform(TO_GROUPS);
+            List<String> parts = result.or(Collections.<String>emptyList());
+            return parts.isEmpty() ? SliceIdentifier.ignore() : SliceIdentifier.of(parts);
+        }
+
+        @Override
+        public String getDescription() {
+            return slicesMatchingDescription(packageIdentifier);
+        }
+
+        private static String slicesMatchingDescription(String packageIdentifier) {
+            return "'" + packageIdentifier + "'";
         }
     }
 }

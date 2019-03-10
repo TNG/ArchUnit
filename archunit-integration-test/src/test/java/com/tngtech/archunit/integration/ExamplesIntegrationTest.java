@@ -443,12 +443,19 @@ class ExamplesIntegrationTest {
                 .by(cycleFromComplexSlice1To2())
                 .by(cycleFromComplexSlice1To2To3To5())
 
+                .ofRule("slices assigned from complex slice one or two should be free of cycles")
+                .by(cycleFromComplexSlice1To2("Complex-Cycle[One]", "Complex-Cycle[Two]"))
+
                 .toDynamicTests();
     }
 
     private static CyclicErrorMatcher cycleFromComplexSlice1To2() {
+        return cycleFromComplexSlice1To2("slice1 of complexcycles", "slice2 of complexcycles");
+    }
+
+    private static CyclicErrorMatcher cycleFromComplexSlice1To2(String sliceOneDescription, String sliceTwoDescription) {
         return cycle()
-                .from("slice1 of complexcycles")
+                .from(sliceOneDescription)
                 .by(callFromMethod(ClassOfMinimalCycleCallingSliceTwo.class, "callSliceTwo")
                         .toMethod(ClassOfMinimalCycleCallingSliceOne.class, "callSliceOne")
                         .inLine(9))
@@ -457,7 +464,7 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, "callSliceTwo")
                         .toConstructor(InstantiatedClassInSliceTwo.class)
                         .inLine(10))
-                .from("slice2 of complexcycles")
+                .from(sliceTwoDescription)
                 .by(inheritanceFrom(SliceTwoInheritingFromSliceOne.class)
                         .extending(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class))
                 .by(field(ClassOfMinimalCycleCallingSliceOne.class, "classInSliceOne")
