@@ -1763,6 +1763,40 @@ SlicesRuleDefinition.slices().matching("..myapp.(**)").should().notDependOnEachO
 SlicesRuleDefinition.slices().matching("..myapp.(**).service..").should().notDependOnEachOther()</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>If this constraint is too rigid, e.g. in legacy applications where the package structure is rather
+inconsistent, it is possible to further customize the slice creation. This can be done by specifying
+a mapping of <code>JavaClass</code> to <code>SliceIdentifier</code> where classes with the same <code>SliceIdentifier</code> will
+be sorted into the same slice. Consider this example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">SliceAssignment legacyPackageStructure = new SliceAssignment() {
+    // this will specify which classes belong together in the same slice
+    @Override
+    public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
+        if (javaClass.getPackageName().startsWith("com.oldapp")) {
+            return SliceIdentifier.of("Legacy");
+        }
+        if (javaClass.getName().contains(".esb.")) {
+            return SliceIdentifier.of("ESB");
+        }
+        // ... further custom mappings
+
+        // if the class does not match anything, we ignore it
+        return SliceIdentifier.ignore();
+    }
+
+    // this will be part of the rule description if the test fails
+    @Override
+    public String getDescription() {
+        return "legacy package structure";
+    }
+};
+
+SlicesRuleDefinition.slices().assignedFrom(legacyPackageStructure).should().beFreeOfCycles()</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_general_coding_rules"><a class="anchor" href="#_general_coding_rules"></a>8.3. General Coding Rules</h3>
