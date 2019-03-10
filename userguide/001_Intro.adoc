@@ -31,7 +31,7 @@ These modules contain the infrastructure to integrate with JUnit 5 and contain t
 infrastructure to cache imported classes between test runs.
 `archunit-junit5-api` contains the user API to write tests with ArchUnit's JUnit 5 support,
 `archunit-junit5-engine` contains the runtime engine to run those tests.
-`archunit-junit5-engine-api` contains API code for tools that want more detailes control
+`archunit-junit5-engine-api` contains API code for tools that want more detailed control
 over running ArchUnit JUnit 5 tests, in particular a `FieldSelector` which can be used to
 instruct the `ArchUnitTestEngine` to run a specific rule field (compare <<JUnit 4 & 5 Support>>).
 
