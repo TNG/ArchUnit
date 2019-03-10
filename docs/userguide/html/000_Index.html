@@ -498,12 +498,13 @@ h4 {
 </li>
 <li><a href="#_the_lang_api">7. The Lang API</a>
 <ul class="sectlevel2">
-<li><a href="#_composing_rules">7.1. Composing Rules</a></li>
-<li><a href="#_creating_custom_rules">7.2. Creating Custom Rules</a></li>
-<li><a href="#_predefined_predicates_and_conditions">7.3. Predefined Predicates and Conditions</a></li>
-<li><a href="#_rules_with_custom_concepts">7.4. Rules with Custom Concepts</a></li>
-<li><a href="#_controlling_the_rule_text">7.5. Controlling the Rule Text</a></li>
-<li><a href="#_ignoring_violations">7.6. Ignoring Violations</a></li>
+<li><a href="#_composing_class_rules">7.1. Composing Class Rules</a></li>
+<li><a href="#_composing_member_rules">7.2. Composing Member Rules</a></li>
+<li><a href="#_creating_custom_rules">7.3. Creating Custom Rules</a></li>
+<li><a href="#_predefined_predicates_and_conditions">7.4. Predefined Predicates and Conditions</a></li>
+<li><a href="#_rules_with_custom_concepts">7.5. Rules with Custom Concepts</a></li>
+<li><a href="#_controlling_the_rule_text">7.6. Controlling the Rule Text</a></li>
+<li><a href="#_ignoring_violations">7.7. Ignoring Violations</a></li>
 </ul>
 </li>
 <li><a href="#_the_library_api">8. The Library API</a>
@@ -1354,7 +1355,7 @@ some JAR / folder.</p>
 <h2 id="_the_lang_api"><a class="anchor" href="#_the_lang_api"></a>7. The Lang API</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_composing_rules"><a class="anchor" href="#_composing_rules"></a>7.1. Composing Rules</h3>
+<h3 id="_composing_class_rules"><a class="anchor" href="#_composing_class_rules"></a>7.1. Composing Class Rules</h3>
 <div class="paragraph">
 <p><a href="#_the_core_api">The Core API</a> is pretty powerful with regard to all the details from the bytecode
 that it provides to tests. However, tests written this way lack conciseness and fail to convey the
@@ -1439,7 +1440,26 @@ rule.check(importedClasses);</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_creating_custom_rules"><a class="anchor" href="#_creating_custom_rules"></a>7.2. Creating Custom Rules</h3>
+<h3 id="_composing_member_rules"><a class="anchor" href="#_composing_member_rules"></a>7.2. Composing Member Rules</h3>
+<div class="paragraph">
+<p>In addition to a predefined API to write rules about Java classes and their relations, there is
+an extended API to define rules for members of Java classes. This might be relevant for example,
+if methods in a certain context need to be annotated with a specific annotation or return
+types implementing a certain interface. The entry point is again <code>ArchRuleDefinition</code>, e.g.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchRule rule = ArchRuleDefinition.methods()
+    .that().arePublic()
+    .and().areDeclaredInClassesThat().resideInAPackage("..controller..")
+    .should().beAnnotatedWith(Secured.class);
+
+rule.check(importedClasses);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creating_custom_rules"><a class="anchor" href="#_creating_custom_rules"></a>7.3. Creating Custom Rules</h3>
 <div class="paragraph">
 <p>In fact, most architectural rules take the form</p>
 </div>
@@ -1506,7 +1526,7 @@ example above, it would be</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_predefined_predicates_and_conditions"><a class="anchor" href="#_predefined_predicates_and_conditions"></a>7.3. Predefined Predicates and Conditions</h3>
+<h3 id="_predefined_predicates_and_conditions"><a class="anchor" href="#_predefined_predicates_and_conditions"></a>7.4. Predefined Predicates and Conditions</h3>
 <div class="paragraph">
 <p>Often custom predicates and conditions like in the last section can be composed from
 predefined elements. ArchUnit&#8217;s basic convention for predicates is, that they are defined
@@ -1582,7 +1602,7 @@ ArchCondition&lt;JavaClass&gt; callEqualsOrHashCode = callEquals.or(callHashCode
 </div>
 </div>
 <div class="sect2">
-<h3 id="_rules_with_custom_concepts"><a class="anchor" href="#_rules_with_custom_concepts"></a>7.4. Rules with Custom Concepts</h3>
+<h3 id="_rules_with_custom_concepts"><a class="anchor" href="#_rules_with_custom_concepts"></a>7.5. Rules with Custom Concepts</h3>
 <div class="paragraph">
 <p>Earlier we stated, that most architectural rules take the form</p>
 </div>
@@ -1645,7 +1665,7 @@ all(businessModules).that(dealWithOrders).should(beIndependentOfPayment);</code>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_controlling_the_rule_text"><a class="anchor" href="#_controlling_the_rule_text"></a>7.5. Controlling the Rule Text</h3>
+<h3 id="_controlling_the_rule_text"><a class="anchor" href="#_controlling_the_rule_text"></a>7.6. Controlling the Rule Text</h3>
 <div class="paragraph">
 <p>If the rule is straight forward, the rule text that is created automatically should be
 sufficient in many cases. However, for rules that are not common knowledge, it is good practice
@@ -1671,7 +1691,7 @@ it is possible, to completely override the rule text:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_ignoring_violations"><a class="anchor" href="#_ignoring_violations"></a>7.6. Ignoring Violations</h3>
+<h3 id="_ignoring_violations"><a class="anchor" href="#_ignoring_violations"></a>7.7. Ignoring Violations</h3>
 <div class="paragraph">
 <p>In legacy projects there might be too many violations to fix at once. Nevertheless, that code
 should be covered completely by architecture tests, to ensure that no further violations will
