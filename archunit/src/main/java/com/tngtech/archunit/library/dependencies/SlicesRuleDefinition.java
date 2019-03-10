@@ -16,15 +16,38 @@
 package com.tngtech.archunit.library.dependencies;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
+import com.tngtech.archunit.library.dependencies.syntax.SlicesShould;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Allows to specify {@link ArchRule ArchRules} for "slices" of a code base. A slice is conceptually
+ * a cut through a code base according to business logic. Take for example
+ * <pre><code>
+ * com.mycompany.myapp.order
+ * com.mycompany.myapp.customer
+ * com.mycompany.myapp.user
+ * com.mycompany.myapp.authorization
+ * </code></pre>
+ * The top level packages under 'myapp' are composed according to different domain aspects. It is
+ * good practice, to keep such packages free of cycles, which is one capability that this class
+ * provides.<br>
+ * Consider
+ * <pre><code>
+ * {@link #slices() slices()}.{@link Slices#matching(String) matching("..myapp.(*)..")}.{@link GivenSlices#should() should()}.{@link SlicesShould#beFreeOfCycles() beFreeOfCycles()}
+ * </code></pre>
+ * Then this rule will assert, that the four slices of 'myapp' are free of cycles.
+ */
 public final class SlicesRuleDefinition {
     private SlicesRuleDefinition() {
     }
 
+    /**
+     * Entry point into {@link SlicesRuleDefinition}
+     */
     @PublicAPI(usage = ACCESS)
     public static Creator slices() {
         return new Creator();
@@ -34,9 +57,20 @@ public final class SlicesRuleDefinition {
         private Creator() {
         }
 
+        /**
+         * @see Slices#matching(String)
+         */
         @PublicAPI(usage = ACCESS)
         public GivenSlices matching(String packageIdentifier) {
             return new GivenSlicesInternal(Priority.MEDIUM, Slices.matching(packageIdentifier));
+        }
+
+        /**
+         * @see Slices#assignedFrom(SliceAssignment)
+         */
+        @PublicAPI(usage = ACCESS)
+        public GivenSlices assignedFrom(SliceAssignment assignment) {
+            return new GivenSlicesInternal(Priority.MEDIUM, Slices.assignedFrom(assignment));
         }
     }
 }

@@ -1,11 +1,14 @@
 package com.tngtech.archunit.exampletest.junit5;
 
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.example.cycle.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
 import com.tngtech.archunit.example.cycle.complexcycles.slice3.ClassCallingConstructorInSliceFive;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.library.dependencies.SliceAssignment;
+import com.tngtech.archunit.library.dependencies.SliceIdentifier;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -50,4 +53,30 @@ public class CyclicDependencyRulesTest {
                     .should().beFreeOfCycles()
                     .ignoreDependency(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, ClassCallingConstructorInSliceFive.class)
                     .ignoreDependency(resideInAPackage("..slice4.."), alwaysTrue());
+
+    @ArchTest
+    static final ArchRule no_cycles_in_freely_customized_slices =
+            slices().assignedFrom(inComplexSliceOneOrTwo())
+                    .namingSlices("$1[$2]")
+                    .should().beFreeOfCycles();
+
+    private static SliceAssignment inComplexSliceOneOrTwo() {
+        return new SliceAssignment() {
+            @Override
+            public String getDescription() {
+                return "complex slice one or two";
+            }
+
+            @Override
+            public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
+                if (javaClass.getPackageName().contains("complexcycles.slice1")) {
+                    return SliceIdentifier.of("Complex-Cycle", "One");
+                }
+                if (javaClass.getPackageName().contains("complexcycles.slice2")) {
+                    return SliceIdentifier.of("Complex-Cycle", "Two");
+                }
+                return SliceIdentifier.ignore();
+            }
+        };
+    }
 }
