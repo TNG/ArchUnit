@@ -50,6 +50,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
@@ -1388,7 +1389,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private class ReflectClassSupplier implements Supplier<Class<?>> {
         @Override
         public Class<?> get() {
-            return javaType.resolveClass(getClass().getClassLoader());
+            return javaType.resolveClass(getCurrentClassLoader(getClass()));
         }
     }
 }

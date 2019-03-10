@@ -36,6 +36,7 @@ import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.primitives.Primitives.allPrimitiveTypes;
+import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 
 @Internal
@@ -163,7 +164,7 @@ public interface JavaType {
 
             @Override
             public Class<?> resolveClass() {
-                return resolveClass(getClass().getClassLoader());
+                return resolveClass(getCurrentClassLoader(getClass()));
             }
 
             @Override
