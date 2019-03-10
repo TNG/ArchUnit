@@ -33,6 +33,19 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * A collection of {@link JavaClass JavaClasses} modelling some domain aspect of a code basis. This is conceptually
+ * a cut through a code base according to business logic. Take for example
+ * <pre><code>
+ * com.mycompany.myapp.order
+ * com.mycompany.myapp.customer
+ * com.mycompany.myapp.user
+ * com.mycompany.myapp.authorization
+ * </code></pre>
+ * The top level packages under 'myapp' could be considered slices according to different domain aspects.<br>
+ * Thus there could be a slice 'Order' housing all the classes from the {@code order} package, a slice 'Customer'
+ * housing all the classes from the {@code customer} package and so on.
+ */
 public final class Slice extends ForwardingSet<JavaClass> implements HasDescription, CanOverrideDescription<Slice> {
     private final List<String> matchingGroups;
     private Description description;
