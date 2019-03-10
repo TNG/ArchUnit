@@ -11,6 +11,8 @@ import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.junit.ClassCache.CacheClassFileImporter;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -42,10 +44,19 @@ public class ClassCacheConcurrencyTest {
     @InjectMocks
     private ClassCache cache = new ClassCache();
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(NUM_THREADS);
+    private ExecutorService executorService;
+
+    @Before
+    public void setUp() {
+        executorService = Executors.newFixedThreadPool(NUM_THREADS);
+    }
+
+    @After
+    public void tearDown() {
+        executorService.shutdown();
+    }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void concurrent_access() throws Exception {
         List<Future<?>> futures = new ArrayList<>();
         for (int i = 0; i < NUM_THREADS; i++) {
