@@ -30,6 +30,7 @@ import com.tngtech.archunit.core.InitialConfiguration;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static java.util.Collections.list;
 
 /**
@@ -112,7 +113,7 @@ public final class Locations {
     private static Set<Location> getLocationsOf(String resourceName) {
         UrlSource classpath = locationResolver.get().resolveClassPath();
         NormalizedResourceName normalizedResourceName = NormalizedResourceName.from(resourceName);
-        return ImmutableSet.copyOf(getResourceLocations(Locations.class.getClassLoader(), normalizedResourceName, classpath));
+        return ImmutableSet.copyOf(getResourceLocations(getCurrentClassLoader(Locations.class), normalizedResourceName, classpath));
     }
 
     private static Collection<Location> getResourceLocations(ClassLoader loader, NormalizedResourceName resourceName, Iterable<URL> classpath) {

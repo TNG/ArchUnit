@@ -25,6 +25,7 @@ import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 
 /**
  * A {@link ClassResolver} that tries to locate missing dependencies on the classpath.
@@ -43,7 +44,7 @@ public final class ClassResolverFromClasspath implements ClassResolver {
 
     @Override
     public Optional<JavaClass> tryResolve(String typeName) {
-        String typeFile = "/" + typeName.replace(".", "/") + ".class";
+        String typeFile = typeName.replace(".", "/") + ".class";
 
         Optional<URI> uri = tryGetUriOf(typeFile);
 
@@ -51,7 +52,7 @@ public final class ClassResolverFromClasspath implements ClassResolver {
     }
 
     private Optional<URI> tryGetUriOf(String typeFile) {
-        URL resource = getClass().getResource(typeFile);
+        URL resource = getCurrentClassLoader(getClass()).getResource(typeFile);
         if (resource == null) {
             return Optional.absent();
         }
