@@ -21,6 +21,9 @@ import java.util.Objects;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -57,6 +60,23 @@ public interface JavaType {
 
     @Internal
     final class From {
+        private static final LoadingCache<String, JavaType> typeCache = CacheBuilder.newBuilder().build(new CacheLoader<String, JavaType>() {
+            @Override
+            public JavaType load(String typeName) {
+                if (primitiveClassesByNameOrDescriptor.containsKey(typeName)) {
+                    return new PrimitiveType(Type.getType(primitiveClassesByNameOrDescriptor.get(typeName)).getClassName());
+                }
+                if (isArray(typeName)) {
+                    // NOTE: ASM uses the canonical name for arrays (i.e. java.lang.Object[]), but we want the class name,
+                    //       i.e. [Ljava.lang.Object;
+                    return new ArrayType(ensureCorrectArrayTypeName(typeName));
+                }
+                if (typeName.contains("/")) {
+                    return new ObjectType(Type.getType(typeName).getClassName());
+                }
+                return new ObjectType(typeName);
+            }
+        });
         private static final ImmutableMap<String, Class<?>> primitiveClassesByName =
                 Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
                     @Override
@@ -78,18 +98,7 @@ public interface JavaType {
                         .build();
 
         public static JavaType name(String typeName) {
-            if (primitiveClassesByNameOrDescriptor.containsKey(typeName)) {
-                return new PrimitiveType(Type.getType(primitiveClassesByNameOrDescriptor.get(typeName)).getClassName());
-            }
-            if (isArray(typeName)) {
-                // NOTE: ASM uses the canonical name for arrays (i.e. java.lang.Object[]), but we want the class name,
-                //       i.e. [Ljava.lang.Object;
-                return new ArrayType(ensureCorrectArrayTypeName(typeName));
-            }
-            if (typeName.contains("/")) {
-                return new ObjectType(Type.getType(typeName).getClassName());
-            }
-            return new ObjectType(typeName);
+            return typeCache.getUnchecked(typeName);
         }
 
         private static boolean isArray(String typeName) {
