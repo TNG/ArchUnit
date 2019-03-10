@@ -103,7 +103,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 this.record = record;
                 this.classes = classes;
                 targetOwner = this.classes.getOrResolve(record.target.owner.getName());
-                callerSupplier = createCallerSupplier(record, classes);
+                callerSupplier = createCallerSupplier(record.caller, classes);
             }
 
             @Override
@@ -113,12 +113,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public ConstructorCallTarget getTarget() {
-                Supplier<Optional<JavaConstructor>> constructorSupplier = new Supplier<Optional<JavaConstructor>>() {
-                    @Override
-                    public Optional<JavaConstructor> get() {
-                        return uniqueTargetIn(tryFindMatchingTargets(targetOwner.getAllConstructors(), record.target));
-                    }
-                };
+                Supplier<Optional<JavaConstructor>> constructorSupplier = new ConstructorTargetSupplier(targetOwner, record.target);
                 JavaClassList paramTypes = getArgumentTypesFrom(record.target.desc, classes);
                 JavaClass returnType = classes.getOrResolve(void.class.getName());
                 return new ConstructorCallTargetBuilder()
@@ -133,6 +128,21 @@ interface AccessRecord<TARGET extends AccessTarget> {
             public int getLineNumber() {
                 return record.lineNumber;
             }
+
+            private static class ConstructorTargetSupplier implements Supplier<Optional<JavaConstructor>> {
+                private final JavaClass targetOwner;
+                private final TargetInfo target;
+
+                ConstructorTargetSupplier(JavaClass targetOwner, TargetInfo target) {
+                    this.targetOwner = targetOwner;
+                    this.target = target;
+                }
+
+                @Override
+                public Optional<JavaConstructor> get() {
+                    return uniqueTargetIn(tryFindMatchingTargets(targetOwner.getAllConstructors(), target));
+                }
+            }
         }
 
         private static class RawMethodCallRecordProcessed implements AccessRecord<MethodCallTarget> {
@@ -145,7 +155,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 this.record = record;
                 this.classes = classes;
                 targetOwner = this.classes.getOrResolve(record.target.owner.getName());
-                callerSupplier = createCallerSupplier(record, classes);
+                callerSupplier = createCallerSupplier(record.caller, classes);
             }
 
             @Override
@@ -155,12 +165,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public MethodCallTarget getTarget() {
-                Supplier<Set<JavaMethod>> methodsSupplier = new Supplier<Set<JavaMethod>>() {
-                    @Override
-                    public Set<JavaMethod> get() {
-                        return tryFindMatchingTargets(targetOwner.getAllMethods(), record.target);
-                    }
-                };
+                Supplier<Set<JavaMethod>> methodsSupplier = new MethodTargetSupplier(targetOwner.getAllMethods(), record.target);
                 JavaClassList parameters = getArgumentTypesFrom(record.target.desc, classes);
                 JavaClass returnType = classes.getOrResolve(Type.getReturnType(record.target.desc).getClassName());
                 return new MethodCallTargetBuilder()
@@ -176,6 +181,21 @@ interface AccessRecord<TARGET extends AccessTarget> {
             public int getLineNumber() {
                 return record.lineNumber;
             }
+
+            private static class MethodTargetSupplier implements Supplier<Set<JavaMethod>> {
+                private final Set<JavaMethod> allMethods;
+                private final TargetInfo target;
+
+                MethodTargetSupplier(Set<JavaMethod> allMethods, TargetInfo target) {
+                    this.allMethods = allMethods;
+                    this.target = target;
+                }
+
+                @Override
+                public Set<JavaMethod> get() {
+                    return tryFindMatchingTargets(allMethods, target);
+                }
+            }
         }
 
         private static class RawFieldAccessRecordProcessed implements FieldAccessRecord {
@@ -188,7 +208,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 this.record = record;
                 this.classes = classes;
                 targetOwner = this.classes.getOrResolve(record.target.owner.getName());
-                callerSupplier = createCallerSupplier(record, classes);
+                callerSupplier = createCallerSupplier(record.caller, classes);
             }
 
             @Override
@@ -203,12 +223,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public FieldAccessTarget getTarget() {
-                Supplier<Optional<JavaField>> fieldSupplier = new Supplier<Optional<JavaField>>() {
-                    @Override
-                    public Optional<JavaField> get() {
-                        return uniqueTargetIn(tryFindMatchingTargets(targetOwner.getAllFields(), record.target));
-                    }
-                };
+                Supplier<Optional<JavaField>> fieldSupplier = new FieldTargetSupplier(targetOwner.getAllFields(), record.target);
                 JavaClass fieldType = classes.getOrResolve(Type.getType(record.target.desc).getClassName());
                 return new FieldAccessTargetBuilder()
                         .withOwner(targetOwner)
@@ -222,13 +237,28 @@ interface AccessRecord<TARGET extends AccessTarget> {
             public int getLineNumber() {
                 return record.lineNumber;
             }
+
+            private static class FieldTargetSupplier implements Supplier<Optional<JavaField>> {
+                private final Set<JavaField> allFields;
+                private final TargetInfo target;
+
+                FieldTargetSupplier(Set<JavaField> allFields, TargetInfo target) {
+                    this.allFields = allFields;
+                    this.target = target;
+                }
+
+                @Override
+                public Optional<JavaField> get() {
+                    return uniqueTargetIn(tryFindMatchingTargets(allFields, target));
+                }
+            }
         }
 
-        private static Supplier<JavaCodeUnit> createCallerSupplier(final RawAccessRecord record, final ImportedClasses classes) {
+        private static Supplier<JavaCodeUnit> createCallerSupplier(final CodeUnit caller, final ImportedClasses classes) {
             return Suppliers.memoize(new Supplier<JavaCodeUnit>() {
                 @Override
                 public JavaCodeUnit get() {
-                    return Factory.getCaller(record.caller, classes);
+                    return Factory.getCaller(caller, classes);
                 }
             });
         }
