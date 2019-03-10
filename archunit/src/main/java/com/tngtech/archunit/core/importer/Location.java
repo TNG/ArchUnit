@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -44,7 +46,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
-import static java.util.Collections.list;
 
 /**
  * Handles various forms of location from where classes can be imported in a consistent way. Any location
@@ -287,20 +288,24 @@ public abstract class Location {
         private Iterable<NormalizedResourceName> iterateJarFile(File fileOfJar) {
             ImmutableList.Builder<NormalizedResourceName> result = ImmutableList.builder();
             String prefix = uri.toString().replaceAll(".*!/", "");
-            for (JarEntry entry : list(newJarFile(fileOfJar).entries())) {
-                if (entry.getName().startsWith(prefix) && entry.getName().endsWith(".class")) {
-                    result.add(NormalizedResourceName.from(entry.getName()));
-                }
+            try (JarFile jarFile = new JarFile(fileOfJar)) {
+                result.addAll(readEntries(prefix, jarFile));
+            } catch (IOException e) {
+                throw new LocationException(e);
             }
             return result.build();
         }
 
-        private JarFile newJarFile(File file) {
-            try {
-                return new JarFile(file);
-            } catch (IOException e) {
-                throw new LocationException(e);
+        private List<NormalizedResourceName> readEntries(String prefix, JarFile jarFile) {
+            List<NormalizedResourceName> result = new ArrayList<>();
+            Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.getName().startsWith(prefix) && entry.getName().endsWith(".class")) {
+                    result.add(NormalizedResourceName.from(entry.getName()));
+                }
             }
+            return result;
         }
     }
 
