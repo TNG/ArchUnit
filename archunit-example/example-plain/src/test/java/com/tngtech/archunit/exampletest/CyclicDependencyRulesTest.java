@@ -1,9 +1,12 @@
 package com.tngtech.archunit.exampletest;
 
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.cycle.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
 import com.tngtech.archunit.example.cycle.complexcycles.slice3.ClassCallingConstructorInSliceFive;
+import com.tngtech.archunit.library.dependencies.SliceAssignment;
+import com.tngtech.archunit.library.dependencies.SliceIdentifier;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -73,5 +76,33 @@ public class CyclicDependencyRulesTest {
                 .ignoreDependency(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, ClassCallingConstructorInSliceFive.class)
                 .ignoreDependency(resideInAPackage("..slice4.."), alwaysTrue())
                 .check(classes);
+    }
+
+    @Test
+    public void no_cycles_in_freely_customized_slices() {
+        slices().assignedFrom(inComplexSliceOneOrTwo())
+                .namingSlices("$1[$2]")
+                .should().beFreeOfCycles()
+                .check(classes);
+    }
+
+    private SliceAssignment inComplexSliceOneOrTwo() {
+        return new SliceAssignment() {
+            @Override
+            public String getDescription() {
+                return "complex slice one or two";
+            }
+
+            @Override
+            public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
+                if (javaClass.getPackageName().contains("complexcycles.slice1")) {
+                    return SliceIdentifier.of("Complex-Cycle", "One");
+                }
+                if (javaClass.getPackageName().contains("complexcycles.slice2")) {
+                    return SliceIdentifier.of("Complex-Cycle", "Two");
+                }
+                return SliceIdentifier.ignore();
+            }
+        };
     }
 }

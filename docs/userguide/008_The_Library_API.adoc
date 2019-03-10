@@ -44,6 +44,39 @@ SlicesRuleDefinition.slices().matching("..myapp.(**)").should().notDependOnEachO
 SlicesRuleDefinition.slices().matching("..myapp.(**).service..").should().notDependOnEachOther()
 ----
 
+If this constraint is too rigid, e.g. in legacy applications where the package structure is rather
+inconsistent, it is possible to further customize the slice creation. This can be done by specifying
+a mapping of `JavaClass` to `SliceIdentifier` where classes with the same `SliceIdentifier` will
+be sorted into the same slice. Consider this example:
+
+[source,java,options="nowrap"]
+----
+SliceAssignment legacyPackageStructure = new SliceAssignment() {
+    // this will specify which classes belong together in the same slice
+    @Override
+    public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
+        if (javaClass.getPackageName().startsWith("com.oldapp")) {
+            return SliceIdentifier.of("Legacy");
+        }
+        if (javaClass.getName().contains(".esb.")) {
+            return SliceIdentifier.of("ESB");
+        }
+        // ... further custom mappings
+
+        // if the class does not match anything, we ignore it
+        return SliceIdentifier.ignore();
+    }
+
+    // this will be part of the rule description if the test fails
+    @Override
+    public String getDescription() {
+        return "legacy package structure";
+    }
+};
+
+SlicesRuleDefinition.slices().assignedFrom(legacyPackageStructure).should().beFreeOfCycles()
+----
+
 === General Coding Rules
 
 The Library API also offers a small set of coding rules that might be useful in various projects.
