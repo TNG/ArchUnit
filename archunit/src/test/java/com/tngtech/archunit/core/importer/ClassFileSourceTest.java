@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -78,7 +79,8 @@ public class ClassFileSourceTest {
         File dir = tempDir.newFolder();
         for (String file : givenFiles) {
             File newFile = new File(dir, file);
-            newFile.getParentFile().mkdirs();
+            File dirOfFile = newFile.getParentFile();
+            checkArgument(dirOfFile.exists() || dirOfFile.mkdirs(), "Cannot create %s", dirOfFile.getAbsolutePath());
             checkState(newFile.createNewFile());
         }
 
