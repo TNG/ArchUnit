@@ -55,6 +55,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.domain.properties.HasName;
@@ -323,6 +324,16 @@ public class ClassFileImporterTest {
         JavaClasses classes = new ClassFileImporter().importPackagesOf(File.class);
 
         assertThatClasses(classes).contain(File.class);
+    }
+
+    @Test
+    public void creates_JavaPackages_for_each_JavaClass() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(getClass());
+
+        JavaPackage javaPackage = classes.get(SomeClass.class).getPackage();
+
+        assertThat(javaPackage.containsClass(SomeEnum.class)).as("Package contains " + SomeEnum.class).isTrue();
+        assertThatClasses(javaPackage.getParent().get().getClasses()).contain(getClass());
     }
 
     @Test
@@ -1873,7 +1884,7 @@ public class ClassFileImporterTest {
         classes = classFileImporter.importUrl(independentClasspathRule.getOnlyUrl());
         assertThat(classes).extracting("name")
                 .containsAll(independentClasspathRule.getNamesOfClasses());
-        assertThat(classes).extracting("package")
+        assertThat(classes).extracting("packageName")
                 .containsAll(independentClasspathRule.getPackagesOfClasses());
 
         classes = classFileImporter.importPackages(packageToImport);

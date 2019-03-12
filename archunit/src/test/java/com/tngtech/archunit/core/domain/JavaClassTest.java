@@ -457,13 +457,14 @@ public class JavaClassTest {
 
     @Test
     public void function_getPackage() {
-        assertThat(JavaClass.Functions.GET_PACKAGE_NAME.apply(importClassWithContext(List.class)))
-                .as("result of GET_PACKAGE_NAME(clazz)")
-                .isEqualTo(List.class.getPackage().getName());
-
-        assertThat(JavaClass.Functions.GET_PACKAGE.apply(importClassWithContext(List.class)))
+        JavaClass javaClass = importClassWithContext(List.class);
+        assertThat(JavaClass.Functions.GET_PACKAGE.apply(javaClass))
                 .as("result of GET_PACKAGE(clazz)")
-                .isEqualTo(List.class.getPackage().getName());
+                .isEqualTo(javaClass.getPackage());
+
+        assertThat(JavaClass.Functions.GET_PACKAGE_NAME.apply(javaClass))
+                .as("result of GET_PACKAGE_NAME(clazz)")
+                .isEqualTo(javaClass.getPackageName());
     }
 
     @Test

@@ -63,6 +63,7 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 public class JavaClass implements HasName, HasAnnotations, HasModifiers {
     private final Optional<Source> source;
     private final JavaType javaType;
+    private JavaPackage javaPackage;
     private final boolean isInterface;
     private final boolean isEnum;
     private final Set<JavaModifier> modifiers;
@@ -101,6 +102,7 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         isEnum = builder.isEnum();
         modifiers = checkNotNull(builder.getModifiers());
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
+        javaPackage = JavaPackage.simple(this);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -118,15 +120,13 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
         return javaType.getSimpleName();
     }
 
-    /**
-     * Please use {@link #getPackageName()} instead. This name was chosen poorly since a method 'getPackage' should
-     * have returned an object, not a mere String. This method will be refactored in a future release to return
-     * an object.
-     */
-    @Deprecated
     @PublicAPI(usage = ACCESS)
-    public String getPackage() {
-        return getPackageName();
+    public JavaPackage getPackage() {
+        return javaPackage;
+    }
+
+    void setPackage(JavaPackage javaPackage) {
+        this.javaPackage = checkNotNull(javaPackage);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1047,14 +1047,13 @@ public class JavaClass implements HasName, HasAnnotations, HasModifiers {
             }
         };
 
-        /**
-         * @deprecated This was named poorly, 'getPackage' should return a real object, not a mere String.
-         * Compare notes on {@link #getPackage()}. This function will be refactored to return an object in a future release.
-         * Use {@link #GET_PACKAGE_NAME} instead.
-         */
-        @Deprecated
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<JavaClass, String> GET_PACKAGE = GET_PACKAGE_NAME;
+        public static final ChainableFunction<JavaClass, JavaPackage> GET_PACKAGE = new ChainableFunction<JavaClass, JavaPackage>() {
+            @Override
+            public JavaPackage apply(JavaClass input) {
+                return input.getPackage();
+            }
+        };
 
         @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaClass, Set<JavaFieldAccess>> GET_FIELD_ACCESSES_FROM_SELF =
