@@ -33,17 +33,21 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
+import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
@@ -61,6 +65,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
+import static com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion.sortByName;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static ConditionEventsAssert assertThat(ConditionEvents events) {
@@ -77,6 +82,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaClassesAssertion assertThatClasses(Iterable<JavaClass> javaClasses) {
         return new JavaClassesAssertion(javaClasses);
+    }
+
+    public static JavaPackagesAssertion assertThatPackages(Iterable<JavaPackage> javaPackages) {
+        return new JavaPackagesAssertion(javaPackages);
     }
 
     public static JavaMethodsAssertion assertThatMethods(Iterable<JavaMethod> methods) {
@@ -213,12 +222,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
         private static JavaClass[] sort(Iterable<JavaClass> actual) {
             JavaClass[] result = Iterables.toArray(actual, JavaClass.class);
-            Arrays.sort(result, new Comparator<JavaClass>() {
-                @Override
-                public int compare(JavaClass o1, JavaClass o2) {
-                    return o1.getName().compareTo(o2.getName());
-                }
-            });
+            sortByName(result);
             return result;
         }
 
@@ -279,7 +283,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
                     .isEqualTo(clazz.getName());
             assertThat(actual.getSimpleName()).as("Simple name of " + actual)
                     .isEqualTo(ensureArrayName(clazz.getSimpleName()));
-            assertThat(actual.getPackage()).as("Package of " + actual)
+            assertThat(actual.getPackage().getName()).as("Package of " + actual)
                     .isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
             assertThat(actual.getPackageName()).as("Package name of " + actual)
                     .isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
@@ -344,8 +348,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class ThrowsDeclarationAssertion extends AbstractObjectAssert<ThrowsDeclarationAssertion, ThrowsDeclaration> {
-        private ThrowsDeclarationAssertion(ThrowsDeclaration throwsDeclaration) {
+    public static class ThrowsDeclarationAssertion extends AbstractObjectAssert<ThrowsDeclarationAssertion, ThrowsDeclaration<?>> {
+        private ThrowsDeclarationAssertion(ThrowsDeclaration<?> throwsDeclaration) {
             super(throwsDeclaration, ThrowsDeclarationAssertion.class);
         }
 
@@ -356,7 +360,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
     }
 
     public static class ThrowsClauseAssertion extends
-            AbstractIterableAssert<ThrowsClauseAssertion, ThrowsClause<?>, ThrowsDeclaration, ObjectAssert<ThrowsDeclaration>> {
+            AbstractIterableAssert<ThrowsClauseAssertion, ThrowsClause<?>, ThrowsDeclaration<?>, ObjectAssert<ThrowsDeclaration<?>>> {
         private ThrowsClauseAssertion(ThrowsClause<?> throwsClause) {
             super(throwsClause, ThrowsClauseAssertion.class);
         }
@@ -369,8 +373,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         @Override
-        protected ObjectAssert<ThrowsDeclaration> toAssert(ThrowsDeclaration value, String description) {
-            return new ObjectAssertFactory<ThrowsDeclaration>().createAssert(value).as(description);
+        protected ObjectAssert<ThrowsDeclaration<?>> toAssert(ThrowsDeclaration<?> value, String description) {
+            return new ObjectAssertFactory<ThrowsDeclaration<?>>().createAssert(value).as(description);
         }
     }
 

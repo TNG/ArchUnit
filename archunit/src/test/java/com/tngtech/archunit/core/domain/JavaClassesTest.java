@@ -19,7 +19,7 @@ public class JavaClassesTest {
     private static final ImmutableMap<String, JavaClass> BY_TYPE_NAME = ImmutableMap.of(
             SomeClass.class.getName(), SOME_CLASS,
             SomeOtherClass.class.getName(), SOME_OTHER_CLASS);
-    public static final JavaClasses ALL_CLASSES = new JavaClasses(BY_TYPE_NAME, "classes");
+    public static final JavaClasses ALL_CLASSES = new JavaClasses(JavaPackage.from(BY_TYPE_NAME.values()), BY_TYPE_NAME);
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();

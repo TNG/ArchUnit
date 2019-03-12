@@ -2,12 +2,16 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.testutil.TransientCopyRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,13 +34,7 @@ public class ClassFileImporterSlowTest {
         assertThatClasses(classes).contain(ClassFileImporter.class, getClass());
         assertThatClasses(classes).dontContain(Rule.class); // Default doesn't import jars
 
-        classes = new ClassFileImporter().importClasspath(new ImportOptions().with(new ImportOption() {
-            @Override
-            public boolean includes(Location location) {
-                return !location.asURI().getScheme().equals("jrt") ||
-                        location.contains("java.base"); // Only import the base jdk classes
-            }
-        }));
+        classes = importJavaBase();
 
         assertThatClasses(classes).contain(ClassFileImporter.class, getClass(), Rule.class);
     }
@@ -87,5 +85,33 @@ public class ClassFileImporterSlowTest {
         JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName());
 
         assertThat(classes.get(JavaClass.class)).isNotNull();
+    }
+
+    @Test
+    public void creates_JavaPackages() {
+        JavaClasses javaClasses = importJavaBase();
+
+        JavaPackage defaultPackage = javaClasses.getDefaultPackage();
+
+        assertThat(defaultPackage.containsPackage("java"))
+                .as("Created default package contains 'java'").isTrue();
+
+        JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
+        assertThatClasses(javaPackage.getClasses()).contain(Object.class, String.class, Integer.class);
+        assertThatClasses(javaPackage.getAllClasses()).contain(Object.class, Annotation.class, Field.class);
+
+        assertThat(javaClasses.containPackage("java.util"))
+                .as("Classes contain package 'java.util'").isTrue();
+        assertThatClasses(javaClasses.getPackage("java.util").getClasses()).contain(List.class);
+    }
+
+    private JavaClasses importJavaBase() {
+        return new ClassFileImporter().importClasspath(new ImportOptions().with(new ImportOption() {
+            @Override
+            public boolean includes(Location location) {
+                return !location.asURI().getScheme().equals("jrt") ||
+                        location.contains("java.base"); // Only import the base jdk classes
+            }
+        }));
     }
 }
