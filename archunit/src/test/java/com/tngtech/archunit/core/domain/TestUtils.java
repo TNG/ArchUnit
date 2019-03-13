@@ -78,12 +78,12 @@ public class TestUtils {
     public static JavaClasses importClassesWithContext(Class<?>... classes) {
         JavaClasses importedHierarchy = importHierarchies(classes);
         final List<String> classNames = JavaClass.namesOf(classes);
-        return JavaClasses.of(importedHierarchy.that(new DescribedPredicate<JavaClass>(importedHierarchy.getDescription()) {
+        return importedHierarchy.that(new DescribedPredicate<JavaClass>(importedHierarchy.getDescription()) {
             @Override
             public boolean apply(JavaClass input) {
                 return classNames.contains(input.getName());
             }
-        }));
+        });
     }
 
     public static JavaMethodCallBuilder newMethodCallBuilder(JavaMethod origin, MethodCallTarget target, int lineNumber) {

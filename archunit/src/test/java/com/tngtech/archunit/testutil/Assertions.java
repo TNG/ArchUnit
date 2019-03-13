@@ -21,6 +21,7 @@ import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassList;
@@ -47,6 +48,8 @@ import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
+import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
+import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
@@ -143,6 +146,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
     @SuppressWarnings("unchecked") // covariant
     public static AccessesAssertion assertThatAccesses(Collection<? extends JavaAccess<?>> accesses) {
         return new AccessesAssertion((Collection<JavaAccess<?>>) accesses);
+    }
+
+    public static DependencyAssertion assertThatDependency(Dependency dependency) {
+        return new DependencyAssertion(dependency);
+    }
+
+    public static DependenciesAssertion assertThatDependencies(Iterable<Dependency> dependencies) {
+        return new DependenciesAssertion(dependencies);
     }
 
     public static ExpectedAccessCreation expectedAccess() {
