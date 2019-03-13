@@ -12,7 +12,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContex
 import static com.tngtech.archunit.core.domain.TestUtils.newMethodCallBuilder;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class JavaAccessTest {
     @Test
@@ -49,11 +49,12 @@ public class JavaAccessTest {
         DescribedPredicate<JavaAccess<?>> predicate =
                 JavaAccess.Predicates.origin(DescribedPredicate.<JavaCodeUnit>alwaysTrue().as("some text"));
 
-        assertThat(predicate.getDescription()).isEqualTo("origin some text");
-        assertThat(predicate.apply(anyAccess())).as("predicate matches").isTrue();
+        assertThat(predicate)
+                .hasDescription("origin some text")
+                .accepts(anyAccess());
 
         predicate = JavaAccess.Predicates.origin(DescribedPredicate.<JavaCodeUnit>alwaysFalse());
-        assertThat(predicate.apply(anyAccess())).as("predicate matches").isFalse();
+        assertThat(predicate).rejects(anyAccess());
     }
 
     private TestJavaAccess anyAccess() {
