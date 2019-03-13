@@ -13,8 +13,8 @@ import org.junit.runner.RunWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.TestUtils.throwsClause;
 import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predicates.throwsClauseContainingType;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class HasThrowsClauseTest {
@@ -22,31 +22,24 @@ public class HasThrowsClauseTest {
     public void predicate_throwsClauseWithTypes_by_type() {
         HasThrowsClause<?> hasThrowsClause = newHasThrowsClause(FirstException.class, SecondException.class);
 
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class, SecondException.class).apply(hasThrowsClause))
-                .as("predicate matches")
-                .isTrue();
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class).apply(hasThrowsClause)).as("predicate matches").isFalse();
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(SecondException.class).apply(hasThrowsClause)).as("predicate matches").isFalse();
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(Object.class).apply(hasThrowsClause)).as("predicate matches").isFalse();
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class, SecondException.class).getDescription())
-                .isEqualTo(String.format("throws types [%s, %s]", FirstException.class.getName(), SecondException.class.getName()));
+        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class, SecondException.class))
+                .accepts(hasThrowsClause)
+                .hasDescription(String.format("throws types [%s, %s]", FirstException.class.getName(), SecondException.class.getName()));
+        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class)).rejects(hasThrowsClause);
+        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(SecondException.class)).rejects(hasThrowsClause);
+        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(Object.class)).rejects(hasThrowsClause);
     }
 
     @Test
     public void predicate_throwsClauseWithTypes_by_type_name() {
         HasThrowsClause<?> hasThrowsClause = newHasThrowsClause(FirstException.class, SecondException.class);
 
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class.getName(), SecondException.class.getName())
-                .apply(hasThrowsClause))
-                .as("predicate matches").isTrue();
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class.getName()).apply(hasThrowsClause))
-                .as("predicate matches").isFalse();
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(SecondException.class.getName()).apply(hasThrowsClause))
-                .as("predicate matches").isFalse();
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(Object.class.getName()).apply(hasThrowsClause))
-                .as("predicate matches").isFalse();
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class.getName(), SecondException.class.getName()).getDescription())
-                .isEqualTo(String.format("throws types [%s, %s]", FirstException.class.getName(), SecondException.class.getName()));
+        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class.getName(), SecondException.class.getName()))
+                .accepts(hasThrowsClause)
+                .hasDescription(String.format("throws types [%s, %s]", FirstException.class.getName(), SecondException.class.getName()));
+        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class.getName())).rejects(hasThrowsClause);
+        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(SecondException.class.getName())).rejects(hasThrowsClause);
+        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(Object.class.getName())).rejects(hasThrowsClause);
     }
 
     @DataProvider
@@ -61,25 +54,21 @@ public class HasThrowsClauseTest {
     @Test
     @UseDataProvider("containing_type_cases")
     public void predicate_containing_type(DescribedPredicate<HasThrowsClause<?>> predicate) {
-        assertThat(predicate.apply(newHasThrowsClause(FirstException.class, SecondException.class)))
-                .as("predicate matches").isTrue();
-
-        assertThat(predicate.apply(newHasThrowsClause(IOException.class, SecondException.class)))
-                .as("predicate matches").isFalse();
-
-        assertThat(predicate.getDescription()).as("predicate description")
-                .isEqualTo("throws clause containing type " + FirstException.class.getName());
+        assertThat(predicate)
+                .accepts(newHasThrowsClause(FirstException.class, SecondException.class))
+                .rejects(newHasThrowsClause(IOException.class, SecondException.class))
+                .hasDescription("throws clause containing type " + FirstException.class.getName());
     }
 
     @Test
     public void predicate_on_parameters_by_Predicate() {
         HasThrowsClause<?> hasThrowsClause = newHasThrowsClause(FirstException.class, SecondException.class);
 
-        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysTrue()).apply(hasThrowsClause)).isTrue();
-        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysFalse()).apply(hasThrowsClause)).isFalse();
-
-        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysFalse().as("some text")).getDescription())
-                .isEqualTo("throws types some text");
+        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysTrue()))
+                .accepts(hasThrowsClause);
+        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysFalse().as("some text")))
+                .rejects(hasThrowsClause)
+                .hasDescription("throws types some text");
     }
 
     @SafeVarargs

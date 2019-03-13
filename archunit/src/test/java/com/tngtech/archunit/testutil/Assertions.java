@@ -16,6 +16,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -53,6 +54,7 @@ import com.tngtech.archunit.testutil.assertion.JavaMembersAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
+import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
@@ -79,6 +81,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static <T> org.assertj.guava.api.OptionalAssert<T> assertThat(Optional<T> optional) {
         return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
+    }
+
+    public static <T> DescribedPredicateAssertion<T> assertThat(DescribedPredicate<T> predicate) {
+        return new DescribedPredicateAssertion<>(predicate);
     }
 
     public static JavaClassAssertion assertThat(JavaClass javaClass) {

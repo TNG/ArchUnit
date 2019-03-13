@@ -158,26 +158,22 @@ public class AccessTargetTest {
     public void predicate_declaredIn() {
         JavaCall<?> call = simulateCall().from(Origin.class, "call").to(Target.class, "called");
 
-        assertThat(declaredIn(Target.class).apply(call.getTarget()))
-                .as("predicate matches").isTrue();
-        assertThat(declaredIn(Target.class.getName()).apply(call.getTarget()))
-                .as("predicate matches").isTrue();
-        assertThat(declaredIn(equivalentTo(Target.class)).apply(call.getTarget()))
-                .as("predicate matches").isTrue();
+        assertThat(declaredIn(Target.class))
+                .accepts(call.getTarget())
+                .hasDescription("declared in " + Target.class.getName());
+        assertThat(declaredIn(Target.class.getName()))
+                .accepts(call.getTarget())
+                .hasDescription("declared in " + Target.class.getName());;
+        assertThat(declaredIn(equivalentTo(Target.class).as("custom")))
+                .accepts(call.getTarget())
+                .hasDescription("declared in custom");
 
-        assertThat(declaredIn(Origin.class).apply(call.getTarget()))
-                .as("predicate matches").isFalse();
-        assertThat(declaredIn(Origin.class.getName()).apply(call.getTarget()))
-                .as("predicate matches").isFalse();
-        assertThat(declaredIn(equivalentTo(Origin.class)).apply(call.getTarget()))
-                .as("predicate matches").isFalse();
-
-        assertThat(declaredIn(Target.class).getDescription())
-                .as("description").isEqualTo("declared in " + Target.class.getName());
-        assertThat(declaredIn(Target.class.getName()).getDescription())
-                .as("description").isEqualTo("declared in " + Target.class.getName());
-        assertThat(declaredIn(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")).getDescription())
-                .as("description").isEqualTo("declared in custom");
+        assertThat(declaredIn(Origin.class))
+                .rejects(call.getTarget());
+        assertThat(declaredIn(Origin.class.getName()))
+                .rejects(call.getTarget());
+        assertThat(declaredIn(equivalentTo(Origin.class)))
+                .rejects(call.getTarget());
     }
 
     @Test
@@ -191,12 +187,10 @@ public class AccessTargetTest {
 
         simulateCall().from(Origin.class, "call").to(Target.class, "called");
 
-        assertThat(constructor().apply(constructorCall.getTarget()))
-                .as("predicate matches").isTrue();
-        assertThat(constructor().apply(methodCall.getTarget()))
-                .as("predicate matches").isFalse();
-        assertThat(constructor().getDescription())
-                .as("description").isEqualTo("constructor");
+        assertThat(constructor())
+                .accepts(constructorCall.getTarget())
+                .rejects(methodCall.getTarget())
+                .hasDescription("constructor");
     }
 
     private void assertDeclarations(CodeUnitCallTarget target, Class<?>... exceptionTypes) {

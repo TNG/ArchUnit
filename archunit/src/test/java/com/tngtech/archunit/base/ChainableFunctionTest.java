@@ -2,7 +2,7 @@ package com.tngtech.archunit.base;
 
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class ChainableFunctionTest {
     @Test
@@ -21,10 +21,9 @@ public class ChainableFunctionTest {
 
     @Test
     public void is() {
-        assertThat(parseInteger().is(greaterThan(7)).apply("7"))
-                .as("7 > 7").isFalse();
-        assertThat(parseInteger().is(greaterThan(7)).apply("8"))
-                .as("8 > 7").isTrue();
+        assertThat(parseInteger().is(greaterThan(7)))
+                .rejects("7")
+                .accepts("8");
     }
 
     private DescribedPredicate<Integer> greaterThan(final int number) {

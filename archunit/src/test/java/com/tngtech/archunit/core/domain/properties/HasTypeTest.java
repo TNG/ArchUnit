@@ -33,20 +33,21 @@ public class HasTypeTest {
         HasType matchingField = newHasType(String.class);
         HasType nonmatchingField = newHasType(Object.class);
 
-        assertThat(predicate.apply(matchingField)).as("predicate matches").isTrue();
-        assertThat(predicate.apply(nonmatchingField)).as("predicate matches").isFalse();
+        assertThat(predicate)
+                .accepts(matchingField)
+                .rejects(nonmatchingField);
     }
 
     @Test
     public void predicate_description() {
-        assertThat(HasType.Predicates.rawType(String.class).getDescription()).isEqualTo("raw type " + String.class.getName());
-        assertThat(HasType.Predicates.rawType(String.class.getName()).getDescription()).isEqualTo("raw type " + String.class.getName());
-        assertThat(HasType.Predicates.rawType(equivalentTo(String.class)).getDescription())
-                .isEqualTo("raw type equivalent to " + String.class.getName());
+        assertThat(HasType.Predicates.rawType(String.class)).hasDescription("raw type " + String.class.getName());
+        assertThat(HasType.Predicates.rawType(String.class.getName())).hasDescription("raw type " + String.class.getName());
+        assertThat(HasType.Predicates.rawType(equivalentTo(String.class)))
+                .hasDescription("raw type equivalent to " + String.class.getName());
 
-        assertThat(HasType.Predicates.type(String.class).getDescription()).isEqualTo("type " + String.class.getName());
-        assertThat(HasType.Predicates.type(String.class.getName()).getDescription()).isEqualTo("type " + String.class.getName());
-        assertThat(HasType.Predicates.type(equivalentTo(String.class)).getDescription()).isEqualTo("type equivalent to " + String.class.getName());
+        assertThat(HasType.Predicates.type(String.class)).hasDescription("type " + String.class.getName());
+        assertThat(HasType.Predicates.type(String.class.getName())).hasDescription("type " + String.class.getName());
+        assertThat(HasType.Predicates.type(equivalentTo(String.class))).hasDescription("type equivalent to " + String.class.getName());
     }
 
     @Test

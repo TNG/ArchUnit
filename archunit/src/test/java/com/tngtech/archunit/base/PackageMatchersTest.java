@@ -2,22 +2,22 @@ package com.tngtech.archunit.base;
 
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class PackageMatchersTest {
     @Test
     public void matches_any_package() {
-        PackageMatchers matchers = PackageMatchers.of("..match..", "..other..");
-
-        assertThat(matchers.apply("foo.match.bar")).isTrue();
-        assertThat(matchers.apply("foo.other.bar")).isTrue();
-        assertThat(matchers.apply("foo.match.other.bar")).isTrue();
-        assertThat(matchers.apply("foo.bar")).isFalse();
-        assertThat(matchers.apply("matc.hother")).isFalse();
+        assertThat(PackageMatchers.of("..match..", "..other.."))
+                .accepts("foo.match.bar")
+                .accepts("foo.other.bar")
+                .accepts("foo.match.other.bar")
+                .rejects("foo.bar")
+                .rejects("matc.hother");
     }
 
     @Test
     public void description() {
-        assertThat(PackageMatchers.of("..foo..", "..bar..").getDescription()).isEqualTo("matches any of ['..foo..', '..bar..']");
+        assertThat(PackageMatchers.of("..foo..", "..bar.."))
+                .hasDescription("matches any of ['..foo..', '..bar..']");
     }
 }
