@@ -664,8 +664,10 @@ public class JavaClassTest {
 
     @Test
     public void predicate_implement_descriptions() {
-        assertThat(implement(List.class)).hasDescription("implement " + List.class.getName());
-        assertThat(implement(List.class.getName())).hasDescription("implement " + List.class.getName());
+        assertThat(implement(List.class))
+                .hasDescription("implement " + List.class.getName());
+        assertThat(implement(List.class.getName()))
+                .hasDescription("implement " + List.class.getName());
         assertThat(implement(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")))
                 .hasDescription("implement custom");
     }

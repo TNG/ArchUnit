@@ -56,16 +56,16 @@ public class HasParameterTypesTest {
     public void predicate_on_parameters_by_Predicate() {
         HasParameterTypes hasParameterTypes = newHasParameterTypes(String.class, Serializable.class);
 
-        assertThat(rawParameterTypes(DescribedPredicate.<List<JavaClass>>alwaysTrue())).accepts(hasParameterTypes);
-        assertThat(rawParameterTypes(DescribedPredicate.<List<JavaClass>>alwaysFalse())).rejects(hasParameterTypes);
-
+        assertThat(rawParameterTypes(DescribedPredicate.<List<JavaClass>>alwaysTrue()))
+                .accepts(hasParameterTypes);
         assertThat(rawParameterTypes(DescribedPredicate.<List<JavaClass>>alwaysFalse().as("some text")))
+                .rejects(hasParameterTypes)
                 .hasDescription("raw parameter types some text");
 
-        assertThat(parameterTypes(DescribedPredicate.<JavaClassList>alwaysTrue())).accepts(hasParameterTypes);
-        assertThat(parameterTypes(DescribedPredicate.<JavaClassList>alwaysFalse())).rejects(hasParameterTypes);
-
+        assertThat(parameterTypes(DescribedPredicate.<JavaClassList>alwaysTrue()))
+                .accepts(hasParameterTypes);
         assertThat(parameterTypes(DescribedPredicate.<JavaClassList>alwaysFalse().as("some text")))
+                .rejects(hasParameterTypes)
                 .hasDescription("parameter types some text");
     }
 

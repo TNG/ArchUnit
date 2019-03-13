@@ -14,7 +14,6 @@ public class HasOwnerTest {
 
         assertThat(With.owner(startsWith("o"))).accepts(hasOwner);
         assertThat(With.owner(startsWith("w"))).rejects(hasOwner);
-
         assertThat(With.owner(startsWith("foo"))).hasDescription("owner starts with foo");
     }
 

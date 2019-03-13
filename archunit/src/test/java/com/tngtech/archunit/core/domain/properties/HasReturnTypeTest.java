@@ -47,16 +47,16 @@ public class HasReturnTypeTest {
     public void predicate_on_return_type_by_Predicate() {
         HasReturnType hasReturnTypeString = newHasReturnType(importClassWithContext(String.class));
 
-        assertThat(rawReturnType(DescribedPredicate.<JavaClass>alwaysTrue())).accepts(hasReturnTypeString);
-        assertThat(rawReturnType(DescribedPredicate.<JavaClass>alwaysFalse())).rejects(hasReturnTypeString);
-
+        assertThat(rawReturnType(DescribedPredicate.<JavaClass>alwaysTrue()))
+                .accepts(hasReturnTypeString);
         assertThat(rawReturnType(DescribedPredicate.<JavaClass>alwaysFalse().as("some text")))
+                .rejects(hasReturnTypeString)
                 .hasDescription("raw return type some text");
 
-        assertThat(returnType(DescribedPredicate.<JavaClass>alwaysTrue())).accepts(hasReturnTypeString);
-        assertThat(returnType(DescribedPredicate.<JavaClass>alwaysFalse())).rejects(hasReturnTypeString);
-
+        assertThat(returnType(DescribedPredicate.<JavaClass>alwaysTrue()))
+                .accepts(hasReturnTypeString);
         assertThat(returnType(DescribedPredicate.<JavaClass>alwaysFalse().as("some text")))
+                .rejects(hasReturnTypeString)
                 .hasDescription("return type some text");
     }
 

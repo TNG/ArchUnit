@@ -66,9 +66,8 @@ public class HasThrowsClauseTest {
 
         assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysTrue()))
                 .accepts(hasThrowsClause);
-        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysFalse()))
-                .rejects(hasThrowsClause);
         assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysFalse().as("some text")))
+                .rejects(hasThrowsClause)
                 .hasDescription("throws types some text");
     }
 

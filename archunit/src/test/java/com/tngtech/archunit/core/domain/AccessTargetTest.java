@@ -164,8 +164,9 @@ public class AccessTargetTest {
         assertThat(declaredIn(Target.class.getName()))
                 .accepts(call.getTarget())
                 .hasDescription("declared in " + Target.class.getName());;
-        assertThat(declaredIn(equivalentTo(Target.class)))
-                .accepts(call.getTarget());
+        assertThat(declaredIn(equivalentTo(Target.class).as("custom")))
+                .accepts(call.getTarget())
+                .hasDescription("declared in custom");
 
         assertThat(declaredIn(Origin.class))
                 .rejects(call.getTarget());
@@ -173,9 +174,6 @@ public class AccessTargetTest {
                 .rejects(call.getTarget());
         assertThat(declaredIn(equivalentTo(Origin.class)))
                 .rejects(call.getTarget());
-
-        assertThat(declaredIn(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")))
-                .hasDescription("declared in custom");
     }
 
     @Test

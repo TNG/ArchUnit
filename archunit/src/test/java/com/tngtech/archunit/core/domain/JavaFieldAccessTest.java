@@ -93,10 +93,8 @@ public class JavaFieldAccessTest {
     public void predicate_field_access_target_by_predicate() throws Exception {
         assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysTrue()))
                 .accepts(stringFieldAccess(GET));
-        assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysFalse()))
-                .rejects(stringFieldAccess(GET));
-
-        assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysTrue().as("any message")))
+        assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysFalse().as("any message")))
+                .rejects(stringFieldAccess(GET))
                 .hasDescription("target any message");
     }
 

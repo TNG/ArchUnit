@@ -80,14 +80,13 @@ public class JavaMemberTest {
         assertThat(declaredIn(SomeClass.class.getName()))
                 .accepts(field)
                 .hasDescription("declared in " + SomeClass.class.getName());
-        assertThat(declaredIn(equivalentTo(SomeClass.class))).accepts(field);
+        assertThat(declaredIn(equivalentTo(SomeClass.class).as("custom")))
+                .accepts(field)
+                .hasDescription("declared in custom");
 
         assertThat(declaredIn(getClass())).rejects(field);
         assertThat(declaredIn(getClass().getName())).rejects(field);
         assertThat(declaredIn(equivalentTo(getClass()))).rejects(field);
-
-        assertThat(declaredIn(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")))
-                .hasDescription("declared in custom");
     }
 
     private static JavaField importField(Class<?> owner, String name) {
