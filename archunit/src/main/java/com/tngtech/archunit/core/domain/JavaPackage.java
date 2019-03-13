@@ -132,6 +132,15 @@ public final class JavaPackage implements HasName {
     }
 
     /**
+     * @param clazz a {@link JavaClass}
+     * @return true if this package (directly) contains this {@link JavaClass}
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean containsClass(JavaClass clazz) {
+        return classes.contains(clazz);
+    }
+
+    /**
      * @param clazz a Java {@link Class}
      * @return true if this package (directly) contains a {@link JavaClass} equivalent to the supplied {@link Class}
      * @see #getClass(Class)
@@ -249,7 +258,7 @@ public final class JavaPackage implements HasName {
     }
 
     private Optional<JavaPackage> tryGetPackage(String packageName) {
-        Deque<String> packageParts = new LinkedList<>(Splitter.on(".").splitToList(packageName));
+        Deque<String> packageParts = new LinkedList<>(Splitter.on('.').splitToList(packageName));
         return tryGetPackage(this, packageParts);
     }
 
@@ -269,6 +278,66 @@ public final class JavaPackage implements HasName {
     private <T> T getValue(Optional<T> optional, String errorMessageTemplate, Object... messageParams) {
         checkArgument(optional.isPresent(), errorMessageTemplate, messageParams);
         return optional.get();
+    }
+
+    /**
+     * @return All {@link Dependency dependencies} that originate from a {@link JavaClass} within this package
+     * to a {@link JavaClass} outside of this package
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getClassDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaClass javaClass : getAllClasses()) {
+            addAllNonSelfDependencies(result, javaClass.getDirectDependenciesFromSelf());
+        }
+        return result.build();
+    }
+
+    /**
+     * @return All {@link Dependency dependencies} that originate from a {@link JavaClass} outside of this package
+     * to a {@link JavaClass} within this package
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getClassDependenciesToSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaClass javaClass : getAllClasses()) {
+            addAllNonSelfDependencies(result, javaClass.getDirectDependenciesToSelf());
+        }
+        return result.build();
+    }
+
+    private void addAllNonSelfDependencies(ImmutableSet.Builder<Dependency> result, Set<Dependency> dependencies) {
+        for (Dependency dependency : dependencies) {
+            if (!containsClass(dependency.getOriginClass()) || !containsClass(dependency.getTargetClass())) {
+                result.add(dependency);
+            }
+        }
+    }
+
+    /**
+     * @return All {@link JavaPackage packages} that this package has a dependency on. I.e. all {@link JavaPackage packages}
+     * that contain a class such that a class in this package depends on that class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaPackage> getPackageDependenciesFromSelf() {
+        ImmutableSet.Builder<JavaPackage> result = ImmutableSet.builder();
+        for (Dependency dependency : getClassDependenciesFromSelf()) {
+            result.add(dependency.getTargetClass().getPackage());
+        }
+        return result.build();
+    }
+
+    /**
+     * @return All {@link JavaPackage packages} that have a dependency on this package. I.e. all {@link JavaPackage packages}
+     * that contain a class that depends on a class in this package.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaPackage> getPackageDependenciesToSelf() {
+        ImmutableSet.Builder<JavaPackage> result = ImmutableSet.builder();
+        for (Dependency dependency : getClassDependenciesToSelf()) {
+            result.add(dependency.getOriginClass().getPackage());
+        }
+        return result.build();
     }
 
     /**

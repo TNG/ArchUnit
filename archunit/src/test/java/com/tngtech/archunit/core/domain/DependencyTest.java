@@ -1,13 +1,11 @@
 package com.tngtech.archunit.core.domain;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.properties.HasName;
-import org.assertj.core.api.AbstractBooleanAssert;
+import com.tngtech.archunit.testutil.Assertions;
+import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -135,7 +133,7 @@ public class DependencyTest {
     }
 
     private static DependencyAssertion assertThatDependency(Class<?> originClass, Class<?> targetClass) {
-        return new DependencyAssertion(createDependency(originClass, targetClass));
+        return Assertions.assertThatDependency(createDependency(originClass, targetClass));
     }
 
     private static Dependency createDependency(Class<?> originClass, Class<?> targetClass) {
@@ -169,83 +167,4 @@ public class DependencyTest {
         }
     }
 
-    private static class DependencyAssertion {
-        private final Dependency input;
-
-        DependencyAssertion(Dependency input) {
-            this.input = input;
-        }
-
-        DependencyAssertion matches(Class<?> originClass, Class<?> targetClass) {
-            for (AbstractBooleanAssert<?> dependencyAssert : dependencyMatches(originClass, targetClass)) {
-                dependencyAssert.isTrue();
-            }
-            return this;
-        }
-
-        DependencyAssertion doesntMatch(Class<?> originClass, Class<?> targetClass) {
-            for (AbstractBooleanAssert<?> dependencyAssert : dependencyMatches(originClass, targetClass)) {
-                dependencyAssert.isFalse();
-            }
-            return this;
-        }
-
-        private List<AbstractBooleanAssert<?>> dependencyMatches(Class<?> originClass, Class<?> targetClass) {
-            return ImmutableList.of(
-                    assertThat(dependency(originClass, targetClass).apply(input))
-                            .as("Dependency matches '%s.class' -> '%s.class'", originClass.getSimpleName(), targetClass.getSimpleName()),
-                    assertThat(dependency(originClass.getName(), targetClass.getName()).apply(input))
-                            .as("Dependency matches '%s.class' -> '%s.class'", originClass.getSimpleName(), targetClass.getSimpleName()),
-                    assertThat(dependency(
-                            HasName.Predicates.name(originClass.getName()),
-                            HasName.Predicates.name(targetClass.getName())).apply(input))
-                            .as("Dependency matches '%s.class' -> '%s.class'", originClass.getSimpleName(), targetClass.getSimpleName()));
-        }
-
-        DependencyAssertion matchesOrigin(Class<?> originClass) {
-            for (AbstractBooleanAssert<?> dependencyOriginAssert : dependencyMatchesOrigin(originClass)) {
-                dependencyOriginAssert.isTrue();
-            }
-            return this;
-        }
-
-        void doesntMatchOrigin(Class<?> originClass) {
-            for (AbstractBooleanAssert<?> dependencyOriginAssert : dependencyMatchesOrigin(originClass)) {
-                dependencyOriginAssert.isFalse();
-            }
-        }
-
-        private List<AbstractBooleanAssert<?>> dependencyMatchesOrigin(Class<?> originClass) {
-            return ImmutableList.of(
-                    assertThat(dependencyOrigin(originClass).apply(input))
-                            .as("Dependency origin matches '%s.class'", originClass.getSimpleName()),
-                    assertThat(dependencyOrigin(originClass.getName()).apply(input))
-                            .as("Dependency origin matches '%s.class'", originClass.getSimpleName()),
-                    assertThat(dependencyOrigin(HasName.Predicates.name(originClass.getName())).apply(input))
-                            .as("Dependency origin matches '%s.class'", originClass.getSimpleName()));
-        }
-
-        DependencyAssertion matchesTarget(Class<?> targetClass) {
-            for (AbstractBooleanAssert<?> dependencyTargetAssert : dependencyMatchesTarget(targetClass)) {
-                dependencyTargetAssert.isTrue();
-            }
-            return this;
-        }
-
-        void doesntMatchTarget(Class<?> targetClass) {
-            for (AbstractBooleanAssert<?> dependencyTargetAssert : dependencyMatchesTarget(targetClass)) {
-                dependencyTargetAssert.isFalse();
-            }
-        }
-
-        private List<AbstractBooleanAssert<?>> dependencyMatchesTarget(Class<?> targetClass) {
-            return ImmutableList.of(
-                    assertThat(dependencyTarget(targetClass).apply(input))
-                            .as("Dependency target matches '%s.class'", targetClass.getSimpleName()),
-                    assertThat(dependencyTarget(targetClass.getName()).apply(input))
-                            .as("Dependency target matches '%s.class'", targetClass.getSimpleName()),
-                    assertThat(dependencyTarget(HasName.Predicates.name(targetClass.getName())).apply(input))
-                            .as("Dependency target matches '%s.class'", targetClass.getSimpleName()));
-        }
-    }
 }
