@@ -9,7 +9,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class JavaMemberTest {
     @Test
@@ -74,26 +74,19 @@ public class JavaMemberTest {
     public void predicate_declaredIn() {
         JavaField field = importField(SomeClass.class, "someField");
 
-        assertThat(declaredIn(SomeClass.class).apply(field))
-                .as("predicate matches").isTrue();
-        assertThat(declaredIn(SomeClass.class.getName()).apply(field))
-                .as("predicate matches").isTrue();
-        assertThat(declaredIn(equivalentTo(SomeClass.class)).apply(field))
-                .as("predicate matches").isTrue();
+        assertThat(declaredIn(SomeClass.class))
+                .accepts(field)
+                .hasDescription("declared in " + SomeClass.class.getName());
+        assertThat(declaredIn(SomeClass.class.getName()))
+                .accepts(field)
+                .hasDescription("declared in " + SomeClass.class.getName());
+        assertThat(declaredIn(equivalentTo(SomeClass.class).as("custom")))
+                .accepts(field)
+                .hasDescription("declared in custom");
 
-        assertThat(declaredIn(getClass()).apply(field))
-                .as("predicate matches").isFalse();
-        assertThat(declaredIn(getClass().getName()).apply(field))
-                .as("predicate matches").isFalse();
-        assertThat(declaredIn(equivalentTo(getClass())).apply(field))
-                .as("predicate matches").isFalse();
-
-        assertThat(declaredIn(SomeClass.class).getDescription())
-                .as("description").isEqualTo("declared in " + SomeClass.class.getName());
-        assertThat(declaredIn(SomeClass.class.getName()).getDescription())
-                .as("description").isEqualTo("declared in " + SomeClass.class.getName());
-        assertThat(declaredIn(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")).getDescription())
-                .as("description").isEqualTo("declared in custom");
+        assertThat(declaredIn(getClass())).rejects(field);
+        assertThat(declaredIn(getClass().getName())).rejects(field);
+        assertThat(declaredIn(equivalentTo(getClass()))).rejects(field);
     }
 
     private static JavaField importField(Class<?> owner, String name) {

@@ -72,12 +72,12 @@ public class DependencyTest {
 
     @Test
     public void origin_predicates_descriptions() {
-        assertThat(dependencyOrigin(Origin.class).getDescription())
-                .isEqualTo(dependencyOrigin(Origin.class.getName()).getDescription())
-                .isEqualTo("origin " + Origin.class.getName());
+        assertThat(dependencyOrigin(Origin.class))
+                .hasSameDescriptionAs(dependencyOrigin(Origin.class.getName()))
+                .hasDescription("origin " + Origin.class.getName());
 
-        assertThat(dependencyOrigin(predicateWithDescription("foo")).getDescription())
-                .isEqualTo("origin foo");
+        assertThat(dependencyOrigin(predicateWithDescription("foo")))
+                .hasDescription("origin foo");
     }
 
     @Test
@@ -89,12 +89,12 @@ public class DependencyTest {
 
     @Test
     public void target_predicates_descriptions() {
-        assertThat(dependencyTarget(Target.class).getDescription())
-                .isEqualTo(dependencyTarget(Target.class.getName()).getDescription())
-                .isEqualTo("target " + Target.class.getName());
+        assertThat(dependencyTarget(Target.class))
+                .hasSameDescriptionAs(dependencyTarget(Target.class.getName()))
+                .hasDescription("target " + Target.class.getName());
 
-        assertThat(dependencyTarget(predicateWithDescription("foo")).getDescription())
-                .isEqualTo("target foo");
+        assertThat(dependencyTarget(predicateWithDescription("foo")))
+                .hasDescription("target foo");
     }
 
     @Test
@@ -107,12 +107,12 @@ public class DependencyTest {
 
     @Test
     public void dependency_predicates_descriptions() {
-        assertThat(dependency(Origin.class, Target.class).getDescription())
-                .isEqualTo(dependency(Origin.class.getName(), Target.class.getName()).getDescription())
-                .isEqualTo("dependency " + Origin.class.getName() + " -> " + Target.class.getName());
+        assertThat(dependency(Origin.class, Target.class))
+                .hasSameDescriptionAs(dependency(Origin.class.getName(), Target.class.getName()))
+                .hasDescription("dependency " + Origin.class.getName() + " -> " + Target.class.getName());
 
-        assertThat(dependency(predicateWithDescription("first"), predicateWithDescription("second")).getDescription())
-                .isEqualTo("dependency first -> second");
+        assertThat(dependency(predicateWithDescription("first"), predicateWithDescription("second")))
+                .hasDescription("dependency first -> second");
     }
 
     @Test
