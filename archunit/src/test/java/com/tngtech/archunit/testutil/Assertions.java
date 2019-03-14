@@ -1,29 +1,18 @@
 package com.tngtech.archunit.testutil;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -33,7 +22,6 @@ import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaAccess;
-import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
@@ -42,7 +30,6 @@ import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
-import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -52,6 +39,11 @@ import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaFieldsAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
@@ -63,23 +55,12 @@ import org.objectweb.asm.Type;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.tngtech.archunit.core.domain.Formatters.formatMethodParameterTypeNames;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodSimple;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT;
-import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
-import static com.tngtech.archunit.core.domain.JavaModifier.NATIVE;
-import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
-import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
-import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
-import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
-import static com.tngtech.archunit.core.domain.JavaModifier.SYNCHRONIZED;
-import static com.tngtech.archunit.core.domain.JavaModifier.TRANSIENT;
-import static com.tngtech.archunit.core.domain.JavaModifier.VOLATILE;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
-import static com.tngtech.archunit.testutil.TestUtils.invoke;
+import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static ConditionEventsAssert assertThat(ConditionEvents events) {
@@ -96,6 +77,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaClassesAssertion assertThatClasses(Iterable<JavaClass> javaClasses) {
         return new JavaClassesAssertion(javaClasses);
+    }
+
+    public static JavaMethodsAssertion assertThatMethods(Iterable<JavaMethod> methods) {
+        return new JavaMethodsAssertion(methods);
+    }
+
+    public static JavaFieldsAssertion assertThatFields(Iterable<JavaField> fields) {
+        return new JavaFieldsAssertion(fields);
     }
 
     public static JavaClassesAssertion assertThat(JavaClass[] javaClasses) {
@@ -255,8 +244,9 @@ public class Assertions extends org.assertj.core.api.Assertions {
             }
         }
 
-        public void contain(Class<?>... classes) {
+        public JavaClassesAssertion contain(Class<?>... classes) {
             contain(ImmutableSet.copyOf(classes));
+            return this;
         }
 
         public void dontContain(Class<?>... classes) {
@@ -329,47 +319,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class JavaFieldAssertion extends AbstractObjectAssert<JavaFieldAssertion, JavaField> {
-        private JavaFieldAssertion(JavaField javaField) {
-            super(javaField, JavaFieldAssertion.class);
-        }
-
-        public void isEquivalentTo(Field field) {
-            assertEquivalent(actual, field);
-            assertThat(actual.getName()).isEqualTo(field.getName());
-            assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(field, field.getName()));
-            assertThat(actual.getType()).matches(field.getType());
-        }
-    }
-
-    public static class JavaMethodAssertion extends AbstractObjectAssert<JavaMethodAssertion, JavaMethod> {
-        private JavaMethodAssertion(JavaMethod javaMethod) {
-            super(javaMethod, JavaMethodAssertion.class);
-        }
-
-        public void isEquivalentTo(Method method) {
-            assertEquivalent(actual, method);
-            assertThat(actual.getName()).isEqualTo(method.getName());
-            assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(method, method.getName()));
-            assertThat(actual.getParameters()).matches(method.getParameterTypes());
-            assertThat(actual.getReturnType()).matches(method.getReturnType());
-        }
-    }
-
-    public static class JavaConstructorAssertion extends AbstractObjectAssert<JavaConstructorAssertion, JavaConstructor> {
-        private JavaConstructorAssertion(JavaConstructor javaConstructor) {
-            super(javaConstructor, JavaConstructorAssertion.class);
-        }
-
-        public void isEquivalentTo(Constructor<?> constructor) {
-            assertEquivalent(actual, constructor);
-            assertThat(actual.getName()).isEqualTo(CONSTRUCTOR_NAME);
-            assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(constructor, CONSTRUCTOR_NAME));
-            assertThat(actual.getParameters()).matches(constructor.getParameterTypes());
-            assertThat(actual.getReturnType()).matches(void.class);
-        }
-    }
-
     public static class JavaEnumConstantAssertion extends AbstractObjectAssert<JavaEnumConstantAssertion, JavaEnumConstant> {
         private JavaEnumConstantAssertion(JavaEnumConstant enumConstant) {
             super(enumConstant, JavaEnumConstantAssertion.class);
@@ -422,187 +371,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
         @Override
         protected ObjectAssert<ThrowsDeclaration> toAssert(ThrowsDeclaration value, String description) {
             return new ObjectAssertFactory<ThrowsDeclaration>().createAssert(value).as(description);
-        }
-    }
-
-    private static <T extends Member & AnnotatedElement> void assertEquivalent(JavaMember javaMember, T member) {
-        assertThat(javaMember.getOwner().reflect()).isEqualTo(member.getDeclaringClass());
-        assertModifiersMatch(javaMember, member);
-        assertThat(propertiesOf(javaMember.getAnnotations())).isEqualTo(propertiesOf(member.getAnnotations()));
-    }
-
-    private static <T extends Member> void assertModifiersMatch(JavaMember javaMember, T member) {
-        assertThat(javaMember.getModifiers().contains(ABSTRACT))
-                .as("member is abstract")
-                .isEqualTo(Modifier.isAbstract(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(FINAL))
-                .as("member is final")
-                .isEqualTo(Modifier.isFinal(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(NATIVE))
-                .as("member is native")
-                .isEqualTo(Modifier.isNative(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(PRIVATE))
-                .as("member is private")
-                .isEqualTo(Modifier.isPrivate(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(PROTECTED))
-                .as("member is protected")
-                .isEqualTo(Modifier.isProtected(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(PUBLIC))
-                .as("member is public")
-                .isEqualTo(Modifier.isPublic(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(STATIC))
-                .as("member is static")
-                .isEqualTo(Modifier.isStatic(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(SYNCHRONIZED))
-                .as("member is synchronized")
-                .isEqualTo(Modifier.isSynchronized(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(TRANSIENT))
-                .as("member is transient")
-                .isEqualTo(Modifier.isTransient(member.getModifiers()));
-        assertThat(javaMember.getModifiers().contains(VOLATILE))
-                .as("member is volatile")
-                .isEqualTo(Modifier.isVolatile(member.getModifiers()));
-    }
-
-    private static <T extends Member & AnnotatedElement> String getExpectedNameOf(T member, String name) {
-        String base = member.getDeclaringClass().getName() + "." + name;
-        if (member instanceof Method) {
-            return base + expectedParametersOf(((Method) member).getParameterTypes());
-        }
-        if (member instanceof Constructor<?>) {
-            return base + expectedParametersOf(((Constructor<?>) member).getParameterTypes());
-        }
-        return base;
-    }
-
-    private static String expectedParametersOf(Class<?>[] parameterTypes) {
-        return String.format("(%s)", formatMethodParameterTypeNames(namesOf(parameterTypes)));
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
-        List<Annotation> converted = new ArrayList<>();
-        for (JavaAnnotation annotation : annotations) {
-            converted.add(annotation.as((Class) annotation.getType().reflect()));
-        }
-        return propertiesOf(converted.toArray(new Annotation[0]));
-    }
-
-    private static Set<Map<String, Object>> propertiesOf(Annotation[] annotations) {
-        Set<Map<String, Object>> result = new HashSet<>();
-        for (Annotation annotation : annotations) {
-            result.add(propertiesOf(annotation));
-        }
-        return result;
-    }
-
-    private static Map<String, Object> propertiesOf(Annotation annotation) {
-        Map<String, Object> props = new HashMap<>();
-        for (Method method : annotation.annotationType().getDeclaredMethods()) {
-            Object returnValue = invoke(method, annotation);
-            props.put(method.getName(), valueOf(returnValue));
-        }
-        return props;
-    }
-
-    private static Object valueOf(Object value) {
-        if (value instanceof Class) {
-            return new SimpleTypeReference(((Class<?>) value).getName());
-        }
-        if (value instanceof Class[]) {
-            return SimpleTypeReference.allOf((Class<?>[]) value);
-        }
-        if (value instanceof Enum) {
-            return new SimpleEnumConstantReference((Enum<?>) value);
-        }
-        if (value instanceof Enum[]) {
-            return SimpleEnumConstantReference.allOf((Enum<?>[]) value);
-        }
-        if (value instanceof Annotation) {
-            return propertiesOf((Annotation) value);
-        }
-        if (value instanceof Annotation[]) {
-            return propertiesOf((Annotation[]) value);
-        }
-        return value;
-    }
-
-    private static class SimpleTypeReference {
-        private final String typeName;
-
-        private SimpleTypeReference(String typeName) {
-            this.typeName = typeName;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(typeName);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            final SimpleTypeReference other = (SimpleTypeReference) obj;
-            return Objects.equals(this.typeName, other.typeName);
-        }
-
-        @Override
-        public String toString() {
-            return typeName;
-        }
-
-        static List<SimpleTypeReference> allOf(Class<?>[] value) {
-            ImmutableList.Builder<SimpleTypeReference> result = ImmutableList.builder();
-            for (Class<?> c : value) {
-                result.add(new SimpleTypeReference(c.getName()));
-            }
-            return result.build();
-        }
-    }
-
-    private static class SimpleEnumConstantReference {
-        private final SimpleTypeReference type;
-        private final String name;
-
-        SimpleEnumConstantReference(Enum<?> value) {
-            this.type = new SimpleTypeReference(value.getDeclaringClass().getName());
-            this.name = value.name();
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(type, name);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            final SimpleEnumConstantReference other = (SimpleEnumConstantReference) obj;
-            return Objects.equals(this.type, other.type)
-                    && Objects.equals(this.name, other.name);
-        }
-
-        @Override
-        public String toString() {
-            return type + "." + name;
-        }
-
-        static List<SimpleEnumConstantReference> allOf(Enum<?>[] values) {
-            ImmutableList.Builder<SimpleEnumConstantReference> result = ImmutableList.builder();
-            for (Enum<?> value : values) {
-                result.add(new SimpleEnumConstantReference(value));
-            }
-            return result.build();
         }
     }
 

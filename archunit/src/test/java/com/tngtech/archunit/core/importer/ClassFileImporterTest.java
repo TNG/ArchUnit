@@ -36,14 +36,12 @@ import com.google.common.collect.Sets;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
-import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -167,18 +165,17 @@ import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImpor
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.InterfaceToImport;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
-import com.tngtech.archunit.core.importer.testexamples.syntheticbridge.FooEnum;
-import com.tngtech.archunit.core.importer.testexamples.syntheticbridge.SwitchClass;
-import com.tngtech.archunit.core.importer.testexamples.syntheticbridge.SyntheticBridgeMethodsClass;
-import com.tngtech.archunit.core.importer.testexamples.syntheticbridge.SyntheticConstructor;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.constructors.SyntheticConstructor;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.covariantreturn.ChildReturningType;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.enums.EnumAsAlwaysWithSyntheticValuesField;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.generics.ConcreteSub;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.methods.CallerOfSyntheticMethod;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.methods.SyntheticMethodsClass;
 import com.tngtech.archunit.testutil.LogTestRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
 import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Condition;
-import org.assertj.core.api.HamcrestCondition;
-import org.assertj.core.api.iterable.Extractor;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -221,12 +218,12 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatFields;
+import static com.tngtech.archunit.testutil.Assertions.assertThatMethods;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.condition.AllOf.allOf;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assume.assumeTrue;
 
 public class ClassFileImporterTest {
@@ -1925,112 +1922,96 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    public void synthetic_bridge_methods() throws Exception {
-        final String prefix = "com.tngtech.archunit.core.importer.testexamples.syntheticbridge";
+    public void does_not_import_synthetic_methods_by_visibility() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(SyntheticMethodsClass.class);
 
-        final ImportedClasses javaClasses = classesIn("testexamples/syntheticbridge");
-
-        final JavaClass javaClassBase = javaClasses.get(SyntheticBridgeMethodsClass.class.getSuperclass());
-        assertThat(javaClassBase.getMethods())
+        Class<?> superclass = SyntheticMethodsClass.class.getSuperclass();
+        JavaClass javaClassBase = classes.get(superclass);
+        assertThatMethods(javaClassBase.getMethods())
                 .hasSize(5)
-                .extracting(extractFullName())
-                .contains(prefix + ".BasePackageProtected.privateMethod()")
-                .contains(prefix + ".BasePackageProtected.protectedMethod()")
-                .contains(prefix + ".BasePackageProtected.hashCode()")
-                .contains(prefix + ".BasePackageProtected.publicMethod()")
-                .contains(prefix + ".BasePackageProtected.packageProtectedMethod()");
+                .contain(superclass, "privateMethod")
+                .contain(superclass, "protectedMethod")
+                .contain(superclass, "publicMethod")
+                .contain(superclass, "packageProtectedMethod")
+                .contain(superclass, "hashCode");
 
-        final JavaClass javaClass = javaClasses.get(SyntheticBridgeMethodsClass.class);
-        assertThat(javaClass.getMethods())
-                .isEmpty();
+        assertThat(classes.get(SyntheticMethodsClass.class).getMethods())
+                .as("Methods of class that only inherits synthetic methods from parent").isEmpty();
+
+        JavaClass callerOfSynthetic = classes.get(CallerOfSyntheticMethod.class);
+        JavaMethodCall call = getOnlyElement(callerOfSynthetic.getMethodCallsFromSelf());
+        JavaMethod target = getOnlyElement(call.getTarget().resolve());
+        assertThat(target).isEquivalentTo(superclass, "publicMethod");
     }
 
     @Test
-    @Ignore
-    public void synthetic_constructor() throws Exception {
-        final String prefix = "com.tngtech.archunit.core.importer.testexamples.syntheticbridge";
+    public void does_not_import_synthetic_method_from_covariant_return_type() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(ChildReturningType.class);
+        JavaClass javaClass = classes.get(ChildReturningType.class);
 
-        final ImportedClasses javaClasses = classesIn("testexamples/syntheticbridge");
-        final JavaClass javaClass = javaClasses.get(SyntheticConstructor.class);
-        assertThat(javaClass.getConstructors())
-                .extracting(extractFullName())
-                .contains(prefix + ".SyntheticConstructor.<init>()")
-                .doesNotContain(prefix + ".SyntheticConstructor.<init>(" + prefix + ".SyntheticConstructor$1)")
-                .hasSize(1);
+        assertThat(javaClass.getMethods()).hasSize(1);
+        assertThatClasses(getClassDependencies(javaClass))
+                .contain(Integer.class)
+                .dontContain(Number.class);
     }
 
     @Test
-    public void synthetic_field() throws Exception {
-        final String prefix = "com.tngtech.archunit.core.importer.testexamples.syntheticbridge";
+    public void does_not_import_synthetic_method_from_generic_superclass_type_parameter() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(ConcreteSub.class);
+        JavaClass javaClass = classes.get(ConcreteSub.class);
 
-        final ImportedClasses javaClasses = classesIn("testexamples/syntheticbridge");
-        final JavaClass javaClass = javaClasses.get(FooEnum.class);
-        assertThat(javaClass.getFields())
-                .extracting(extractFullName())
-                .contains(prefix + ".FooEnum.X")
-                .contains(prefix + ".FooEnum.Y")
-                .contains(prefix + ".FooEnum.Z")
-                .doesNotContain(prefix + ".FooEnum.$VALUES")
-                .hasSize(3);
+        assertThat(javaClass.getMethods()).hasSize(2);
+        assertThatClasses(getClassDependencies(javaClass))
+                .contain(Integer.class)
+                .dontContain(Number.class);
+    }
+
+    // We want synthetic constructors, otherwise we lose constructor calls to private constructors
+    @Test
+    public void imports_synthetic_constructor() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(SyntheticConstructor.class);
+        JavaClass innerClass = classes.get(SyntheticConstructor.InnerClass.class);
+
+        assertThatClasses(getClassDependencies(innerClass))
+                .contain(SyntheticConstructor.class);
+
+        JavaConstructorCall callToPrivateConstructor = getOnlyElement(
+                getByTargetOwner(innerClass.getConstructorCallsFromSelf(), SyntheticConstructor.class));
+
+        assertThat(callToPrivateConstructor.getTarget().resolveConstructor())
+                .as("Constructor of %s could be resolved", SyntheticConstructor.class.getSimpleName())
+                .isPresent();
     }
 
     @Test
-    public void synthetic_class() throws Exception {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage(containsString("No object with name"));
+    public void handles_synthetic_members_of_enums() {
+        JavaClass enumWithSyntheticMembers = new ClassFileImporter().importClasses(EnumAsAlwaysWithSyntheticValuesField.class)
+                .get(EnumAsAlwaysWithSyntheticValuesField.class);
 
-        final ImportedClasses javaClasses = classesIn("testexamples/syntheticbridge");
-        javaClasses.get("com.tngtech.archunit.core.importer.testexamples.syntheticbridge.SyntheticConstructor$1");
+        // Ignore the synthetic field $VALUES
+        assertThatFields(enumWithSyntheticMembers.getFields())
+                .hasSize(3)
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "X")
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "Y")
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "Z");
+
+        assertThatMethods(enumWithSyntheticMembers.getMethods())
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "values")
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "valueOf", String.class);
     }
 
     @Test
-    public void synthetic_class_switch_map() throws Exception {
-        final String prefix = "com.tngtech.archunit.core.importer.testexamples.syntheticbridge";
+    public void does_not_import_synthetic_classes() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(SyntheticConstructor.class);
 
-        final ImportedClasses javaClasses = classesIn("testexamples/syntheticbridge");
-        final JavaClass javaClass = javaClasses.get(SwitchClass.class);
-
-        final JavaMethod doItMethod = javaClass.getMethod("doIt", FooEnum.class);
-        assertThat(doItMethod.getMethodCallsFromSelf())
-                .hasSize(1)
-                .extracting(ClassFileImporterTest.<MethodCallTarget>extractJavaCallTarget())
-                .extracting(extractFullName())
-                .contains(prefix + ".FooEnum.ordinal()");
-
-        assertThat(doItMethod.getFieldAccesses())
-                .hasSize(1)
-                .extracting(ClassFileImporterTest.<FieldAccessTarget>extractJavaAccessTarget())
-                .extracting(extractFullName())
-                .are(allOf(
-                        new HamcrestCondition<>(containsString("$SwitchMap$")),
-                        new HamcrestCondition<>(containsString("$FooEnum"))));
+        String syntheticClass = SyntheticConstructor.class.getName() + "$1";
+        assertThat(classes.contain(syntheticClass))
+                .as("classes contain synthetic class " + syntheticClass)
+                .isFalse();
     }
 
-    private static Extractor<HasName.AndFullName, String> extractFullName() {
-        return new Extractor<HasName.AndFullName, String>() {
-            @Override
-            public String extract(HasName.AndFullName input) {
-                return input.getFullName();
-            }
-        };
-    }
-
-    private static <T extends AccessTarget.CodeUnitCallTarget> Extractor<JavaCall<T>, T> extractJavaCallTarget() {
-        return new Extractor<JavaCall<T>, T>() {
-            @Override
-            public T extract(JavaCall<T> input) {
-                return input.getTarget();
-            }
-        };
-    }
-
-    private static <T extends AccessTarget> Extractor<JavaAccess<T>, T> extractJavaAccessTarget() {
-        return new Extractor<JavaAccess<T>, T>() {
-            @Override
-            public T extract(JavaAccess<T> input) {
-                return input.getTarget();
-            }
-        };
+    private Set<JavaClass> getClassDependencies(JavaClass javaClass) {
+        return targetsOfDependencies(javaClass.getDirectDependenciesFromSelf());
     }
 
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {
@@ -2182,6 +2163,14 @@ public class ClassFileImporterTest {
         Set<FieldAccessTarget> result = new HashSet<>();
         for (JavaFieldAccess access : fieldAccesses) {
             result.add(access.getTarget());
+        }
+        return result;
+    }
+
+    private Set<JavaClass> targetsOfDependencies(Set<Dependency> dependencies) {
+        Set<JavaClass> result = new HashSet<>();
+        for (Dependency access : dependencies) {
+            result.add(access.getTargetClass());
         }
         return result;
     }

@@ -1,10 +1,10 @@
-package com.tngtech.archunit.core.importer.testexamples.syntheticbridge;
+package com.tngtech.archunit.core.importer.testexamples.synthetic.constructors;
 
 public class SyntheticConstructor {
     private SyntheticConstructor() {
     }
 
-    class InnerClass {
+    public class InnerClass {
         InnerClass() {
             new SyntheticConstructor();
         }

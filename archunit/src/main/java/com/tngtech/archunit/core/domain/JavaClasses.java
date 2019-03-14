@@ -75,7 +75,7 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
 
     @PublicAPI(usage = ACCESS)
     public boolean contain(Class<?> reflectedType) {
-        return classes.containsKey(reflectedType.getName());
+        return contain(reflectedType.getName());
     }
 
     @PublicAPI(usage = ACCESS)
@@ -84,16 +84,21 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
     }
 
     @PublicAPI(usage = ACCESS)
-    public int size() {
-        return classes.size();
+    public boolean contain(String typeName) {
+        return classes.containsKey(typeName);
     }
 
     @PublicAPI(usage = ACCESS)
     public JavaClass get(String typeName) {
-        checkArgument(classes.containsKey(typeName), "%s do not contain %s of type %s",
+        checkArgument(contain(typeName), "%s do not contain %s of type %s",
                 getClass().getSimpleName(), JavaClass.class.getSimpleName(), typeName);
 
         return classes.get(typeName);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public int size() {
+        return classes.size();
     }
 
     static JavaClasses of(Iterable<JavaClass> classes) {
