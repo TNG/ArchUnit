@@ -42,7 +42,8 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(final Class<?>... types) {
+        @SafeVarargs
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(final Class<? extends Throwable>... types) {
             return throwsClauseWithTypes(namesOf(types));
         }
 
@@ -58,7 +59,7 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(final Class<?> type) {
+        public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(final Class<? extends Throwable> type) {
             return throwsClauseContainingType(type.getName());
         }
 
