@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core.importer.testexamples.syntheticbridge;
+package com.tngtech.archunit.core.importer.testexamples.synthetic.methods;
 
 class BasePackageProtected {
     @Override
@@ -16,5 +16,6 @@ class BasePackageProtected {
     }
 
     public void publicMethod() {
+        Called.call();
     }
 }

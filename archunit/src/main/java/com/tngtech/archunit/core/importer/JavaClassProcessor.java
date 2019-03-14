@@ -187,11 +187,7 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        if (importAborted()) {
-            return super.visitField(access, name, desc, signature, value);
-        }
-
-        if (isSyntheticMember(access)) {
+        if (importAborted() || isSyntheticMember(access)) {
             return super.visitField(access, name, desc, signature, value);
         }
 
@@ -206,11 +202,7 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (importAborted()) {
-            return super.visitMethod(access, name, desc, signature, exceptions);
-        }
-
-        if (isBridgeMethod(access) || (isSyntheticMember(access) && !CONSTRUCTOR_NAME.equals(name))) {
+        if (importAborted() || (isSyntheticMember(access) && !CONSTRUCTOR_NAME.equals(name))) {
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 
@@ -225,22 +217,13 @@ class JavaClassProcessor extends ClassVisitor {
                 .withParameters(typesFrom(methodType.getArgumentTypes()))
                 .withReturnType(JavaTypeImporter.importAsmType(methodType.getReturnType()))
                 .withDescriptor(desc)
-                .withThrowsClause(typesFrom(exceptions))
-                ;
+                .withThrowsClause(typesFrom(exceptions));
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);
     }
 
-    private boolean isBridgeMethod(int asmAccess) {
-        return modifierPresent(Opcodes.ACC_BRIDGE, asmAccess);
-    }
-
     private boolean isSyntheticMember(int asmAccess) {
-        return modifierPresent(Opcodes.ACC_SYNTHETIC, asmAccess);
-    }
-
-    private boolean modifierPresent(int modifierFlag, int asmAccess) {
-        return (modifierFlag & asmAccess) != 0;
+        return (Opcodes.ACC_SYNTHETIC & asmAccess) != 0;
     }
 
     private List<JavaType> typesFrom(Type[] asmTypes) {
