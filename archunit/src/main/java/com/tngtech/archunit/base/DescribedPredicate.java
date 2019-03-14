@@ -27,10 +27,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  * @param <T> The type of objects the predicate applies to
  */
 @PublicAPI(usage = INHERITANCE)
-public abstract class DescribedPredicate<T> {
+public abstract class DescribedPredicate<T> implements Predicate<T> {
     private final String description;
-
-    public abstract boolean apply(T input);
 
     public DescribedPredicate(String description, Object... params) {
         checkArgument(description != null, "Description must be set");
