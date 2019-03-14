@@ -71,12 +71,22 @@ public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssert
     public void matchInAnyOrderMembersOf(Class<?>... classes) {
         Set<Member> members = new HashSet<>();
         for (Class<?> clazz : classes) {
-            members.addAll(ImmutableSet.copyOf(clazz.getDeclaredFields()));
-            members.addAll(ImmutableSet.copyOf(clazz.getDeclaredMethods()));
-            members.addAll(ImmutableSet.copyOf(clazz.getDeclaredConstructors()));
+            members.addAll(filterNonSynthetic(clazz.getDeclaredFields()));
+            members.addAll(filterNonSynthetic(clazz.getDeclaredMethods()));
+            members.addAll(filterNonSynthetic(clazz.getDeclaredConstructors()));
         }
 
         matchCasted(members);
+    }
+
+    private static <T extends Member> Set<T> filterNonSynthetic(T[] members) {
+        ImmutableSet.Builder<T> result = ImmutableSet.builder();
+        for (T member : members) {
+            if (!member.isSynthetic()) {
+                result.add(member);
+            }
+        }
+        return result.build();
     }
 
     // We know this is compatible since every Member also implements AnnotatedElement

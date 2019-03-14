@@ -141,7 +141,6 @@ import static com.tngtech.archunit.testutils.ExpectedDependency.inheritanceFrom;
 import static com.tngtech.archunit.testutils.ExpectedDependency.method;
 import static com.tngtech.archunit.testutils.ExpectedLocation.javaClass;
 import static com.tngtech.archunit.testutils.ExpectedNaming.simpleNameOf;
-import static com.tngtech.archunit.testutils.ExpectedNaming.simpleNameOfAnonymousClassOf;
 import static com.tngtech.archunit.testutils.ExpectedViolation.clazz;
 import static com.tngtech.archunit.testutils.ExpectedViolation.javaPackageOf;
 import static com.tngtech.archunit.testutils.SliceDependencyErrorMatcher.sliceDependency;
@@ -789,7 +788,6 @@ class ExamplesIntegrationTest {
                 .by(simpleNameOf(SomeUtility.class).notEndingWith("Controller"))
                 .by(simpleNameOf(WronglyAnnotated.class).notEndingWith("Controller"))
                 .by(simpleNameOf(SomeEnum.class).notEndingWith("Controller"))
-                .by(simpleNameOfAnonymousClassOf(UseCaseOneThreeController.class).notEndingWith("Controller"))
 
                 .ofRule("classes that have simple name containing 'Controller' should reside in a package '..controller..'")
                 .by(javaClass(AbstractController.class).notResidingIn("..controller.."))
