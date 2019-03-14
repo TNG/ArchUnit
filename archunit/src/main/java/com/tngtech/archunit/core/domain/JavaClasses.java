@@ -31,31 +31,38 @@ import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContex
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverrideDescription<JavaClasses> {
     private final ImmutableMap<String, JavaClass> classes;
+    private final JavaPackage defaultPackage;
     private final String description;
 
-    private JavaClasses(Map<String, JavaClass> classes) {
-        this(classes, "classes");
+    JavaClasses(JavaPackage defaultPackage, Map<String, JavaClass> classes) {
+        this(defaultPackage, classes, "classes");
     }
 
-    JavaClasses(Map<String, JavaClass> classes, String description) {
+    private JavaClasses(JavaPackage defaultPackage, Map<String, JavaClass> classes, String description) {
         this.classes = ImmutableMap.copyOf(classes);
-        this.description = description;
+        this.defaultPackage = checkNotNull(defaultPackage);
+        this.description = checkNotNull(description);
     }
 
+    /**
+     * @param predicate a {@link DescribedPredicate} to determine which classes match
+     * @return {@link JavaClasses} matching the given predicate; the description will be adjusted according to the predicate's description
+     */
     @PublicAPI(usage = ACCESS)
     public JavaClasses that(DescribedPredicate<? super JavaClass> predicate) {
         Map<String, JavaClass> matchingElements = Guava.Maps.filterValues(classes, predicate);
         String newDescription = String.format("%s that %s", description, predicate.getDescription());
-        return new JavaClasses(matchingElements, newDescription);
+        return new JavaClasses(defaultPackage, matchingElements, newDescription);
     }
 
     @Override
     public JavaClasses as(String description) {
-        return new JavaClasses(classes, description);
+        return new JavaClasses(defaultPackage, classes, description);
     }
 
     @Override
@@ -73,27 +80,78 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
         return classes.values().iterator();
     }
 
+    /**
+     * @param reflectedType a Java {@link Class} object
+     * @return true, if an equivalent {@link JavaClass} is contained, false otherwise
+     * @see #get(Class)
+     * @see #contain(String)
+     */
     @PublicAPI(usage = ACCESS)
     public boolean contain(Class<?> reflectedType) {
         return contain(reflectedType.getName());
     }
 
+    /**
+     * @param reflectedType a Java {@link Class} object
+     * @return a {@link JavaClass} equivalent to the given type; throws an exception if there is no equivalent class
+     * @see #contain(Class)
+     * @see #get(String)
+     */
     @PublicAPI(usage = ACCESS)
     public JavaClass get(Class<?> reflectedType) {
         return get(reflectedType.getName());
     }
 
+    /**
+     * @param typeName a fully qualified name of a Java class
+     * @return true, if a {@link JavaClass} with the given name is contained, false otherwise
+     * @see #get(String)
+     * @see #contain(Class)
+     */
     @PublicAPI(usage = ACCESS)
     public boolean contain(String typeName) {
         return classes.containsKey(typeName);
     }
 
+    /**
+     * @param typeName a fully qualified name of a Java class
+     * @return a {@link JavaClass} with the given name; throws an exception if there is no class with the given name
+     * @see #contain(Class)
+     * @see #get(Class)
+     */
     @PublicAPI(usage = ACCESS)
     public JavaClass get(String typeName) {
         checkArgument(contain(typeName), "%s do not contain %s of type %s",
                 getClass().getSimpleName(), JavaClass.class.getSimpleName(), typeName);
 
         return classes.get(typeName);
+    }
+
+    /**
+     * @param packageName name of a package, may consist of several parts, e.g. {@code com.myapp.some.subpackage}
+     * @return true, if some package with this name is contained, false otherwise
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean containPackage(String packageName) {
+        return defaultPackage.containsPackage(packageName);
+    }
+
+    /**
+     * @param packageName name of a package, may consist of several parts, e.g. {@code com.myapp.some.subpackage}
+     * @return the package with the given name; throws an exception if the package does not exist
+     * @see #containPackage(String)
+     */
+    @PublicAPI(usage = ACCESS)
+    public JavaPackage getPackage(String packageName) {
+        return defaultPackage.getPackage(packageName);
+    }
+
+    /**
+     * @return the default package, i.e. the root of all packages. The default package name ist the empty string.
+     */
+    @PublicAPI(usage = ACCESS)
+    public JavaPackage getDefaultPackage() {
+        return defaultPackage;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -106,16 +164,25 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
         for (JavaClass clazz : classes) {
             mapping.put(clazz.getName(), clazz);
         }
-        return new JavaClasses(mapping);
+        return new JavaClasses(JavaPackage.from(classes), mapping);
     }
 
     static JavaClasses of(Map<String, JavaClass> classes, ImportContext importContext) {
         CompletionProcess completionProcess = new CompletionProcess(classes.values(), importContext);
-        for (JavaClass clazz : new JavaClasses(classes)) {
+        JavaPackage defaultPackage = JavaPackage.from(classes.values());
+        for (JavaClass clazz : classes.values()) {
+            setPackage(clazz, defaultPackage);
             completionProcess.completeClass(clazz);
         }
         completionProcess.finish();
-        return new JavaClasses(classes);
+        return new JavaClasses(defaultPackage, classes);
+    }
+
+    private static void setPackage(JavaClass clazz, JavaPackage defaultPackage) {
+        JavaPackage javaPackage = clazz.getPackageName().isEmpty()
+                ? defaultPackage
+                : defaultPackage.getPackage(clazz.getPackageName());
+        clazz.setPackage(javaPackage);
     }
 
     private static class CompletionProcess {
