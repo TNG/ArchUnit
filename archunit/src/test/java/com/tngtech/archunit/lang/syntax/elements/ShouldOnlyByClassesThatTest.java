@@ -1015,3 +1015,4 @@ public class ShouldOnlyByClassesThatTest {
     private static class ClassDependingViaImplementing implements InterfaceBeingDependedOnByImplementing {
     }
 }
+

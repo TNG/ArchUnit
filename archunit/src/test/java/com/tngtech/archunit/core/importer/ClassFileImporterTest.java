@@ -165,6 +165,12 @@ import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImpor
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.InterfaceToImport;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.constructors.SyntheticConstructor;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.covariantreturn.ChildReturningType;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.enums.EnumAsAlwaysWithSyntheticValuesField;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.generics.ConcreteSub;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.methods.CallerOfSyntheticMethod;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.methods.SyntheticMethodsClass;
 import com.tngtech.archunit.testutil.LogTestRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
 import org.apache.logging.log4j.Level;
@@ -172,6 +178,7 @@ import org.assertj.core.api.Condition;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -211,6 +218,8 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatFields;
+import static com.tngtech.archunit.testutil.Assertions.assertThatMethods;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
@@ -218,6 +227,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
 
 public class ClassFileImporterTest {
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
     @Rule
     public final OutsideOfClassPathRule outsideOfClassPath = new OutsideOfClassPathRule();
     @Rule
@@ -1910,6 +1921,99 @@ public class ClassFileImporterTest {
         assertThat(classes).isEmpty();
     }
 
+    @Test
+    public void does_not_import_synthetic_methods_by_visibility() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(SyntheticMethodsClass.class);
+
+        Class<?> superclass = SyntheticMethodsClass.class.getSuperclass();
+        JavaClass javaClassBase = classes.get(superclass);
+        assertThatMethods(javaClassBase.getMethods())
+                .hasSize(5)
+                .contain(superclass, "privateMethod")
+                .contain(superclass, "protectedMethod")
+                .contain(superclass, "publicMethod")
+                .contain(superclass, "packageProtectedMethod")
+                .contain(superclass, "hashCode");
+
+        assertThat(classes.get(SyntheticMethodsClass.class).getMethods())
+                .as("Methods of class that only inherits synthetic methods from parent").isEmpty();
+
+        JavaClass callerOfSynthetic = classes.get(CallerOfSyntheticMethod.class);
+        JavaMethodCall call = getOnlyElement(callerOfSynthetic.getMethodCallsFromSelf());
+        JavaMethod target = getOnlyElement(call.getTarget().resolve());
+        assertThat(target).isEquivalentTo(superclass, "publicMethod");
+    }
+
+    @Test
+    public void does_not_import_synthetic_method_from_covariant_return_type() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(ChildReturningType.class);
+        JavaClass javaClass = classes.get(ChildReturningType.class);
+
+        assertThat(javaClass.getMethods()).hasSize(1);
+        assertThatClasses(getClassDependencies(javaClass))
+                .contain(Integer.class)
+                .dontContain(Number.class);
+    }
+
+    @Test
+    public void does_not_import_synthetic_method_from_generic_superclass_type_parameter() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(ConcreteSub.class);
+        JavaClass javaClass = classes.get(ConcreteSub.class);
+
+        assertThat(javaClass.getMethods()).hasSize(2);
+        assertThatClasses(getClassDependencies(javaClass))
+                .contain(Integer.class)
+                .dontContain(Number.class);
+    }
+
+    // We want synthetic constructors, otherwise we lose constructor calls to private constructors
+    @Test
+    public void imports_synthetic_constructor() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(SyntheticConstructor.class);
+        JavaClass innerClass = classes.get(SyntheticConstructor.InnerClass.class);
+
+        assertThatClasses(getClassDependencies(innerClass))
+                .contain(SyntheticConstructor.class);
+
+        JavaConstructorCall callToPrivateConstructor = getOnlyElement(
+                getByTargetOwner(innerClass.getConstructorCallsFromSelf(), SyntheticConstructor.class));
+
+        assertThat(callToPrivateConstructor.getTarget().resolveConstructor())
+                .as("Constructor of %s could be resolved", SyntheticConstructor.class.getSimpleName())
+                .isPresent();
+    }
+
+    @Test
+    public void handles_synthetic_members_of_enums() {
+        JavaClass enumWithSyntheticMembers = new ClassFileImporter().importClasses(EnumAsAlwaysWithSyntheticValuesField.class)
+                .get(EnumAsAlwaysWithSyntheticValuesField.class);
+
+        // Ignore the synthetic field $VALUES
+        assertThatFields(enumWithSyntheticMembers.getFields())
+                .hasSize(3)
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "X")
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "Y")
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "Z");
+
+        assertThatMethods(enumWithSyntheticMembers.getMethods())
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "values")
+                .contain(EnumAsAlwaysWithSyntheticValuesField.class, "valueOf", String.class);
+    }
+
+    @Test
+    public void does_not_import_synthetic_classes() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(SyntheticConstructor.class);
+
+        String syntheticClass = SyntheticConstructor.class.getName() + "$1";
+        assertThat(classes.contain(syntheticClass))
+                .as("classes contain synthetic class " + syntheticClass)
+                .isFalse();
+    }
+
+    private Set<JavaClass> getClassDependencies(JavaClass javaClass) {
+        return targetsOfDependencies(javaClass.getDirectDependenciesFromSelf());
+    }
+
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {
         Set<Dependency> result = new HashSet<>();
         for (Dependency dependency : dependencies) {
@@ -2059,6 +2163,14 @@ public class ClassFileImporterTest {
         Set<FieldAccessTarget> result = new HashSet<>();
         for (JavaFieldAccess access : fieldAccesses) {
             result.add(access.getTarget());
+        }
+        return result;
+    }
+
+    private Set<JavaClass> targetsOfDependencies(Set<Dependency> dependencies) {
+        Set<JavaClass> result = new HashSet<>();
+        for (Dependency access : dependencies) {
+            result.add(access.getTargetClass());
         }
         return result;
     }
