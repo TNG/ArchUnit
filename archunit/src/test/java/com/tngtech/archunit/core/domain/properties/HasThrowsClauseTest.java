@@ -27,7 +27,7 @@ public class HasThrowsClauseTest {
                 .hasDescription(String.format("throws types [%s, %s]", FirstException.class.getName(), SecondException.class.getName()));
         assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(FirstException.class)).rejects(hasThrowsClause);
         assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(SecondException.class)).rejects(hasThrowsClause);
-        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(Object.class)).rejects(hasThrowsClause);
+        assertThat(HasThrowsClause.Predicates.throwsClauseWithTypes(RuntimeException.class)).rejects(hasThrowsClause);
     }
 
     @Test
