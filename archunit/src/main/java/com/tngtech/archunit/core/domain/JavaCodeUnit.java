@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -118,6 +119,22 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getConstructorCallsFromSelf() {
         return constructorCalls;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaCall<?>> getCallsFromSelf() {
+        return ImmutableSet.<JavaCall<?>>builder()
+                .addAll(getMethodCallsFromSelf())
+                .addAll(getConstructorCallsFromSelf())
+                .build();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaAccess<?>> getAccessesFromSelf() {
+        return ImmutableSet.<JavaAccess<?>>builder()
+                .addAll(getCallsFromSelf())
+                .addAll(getFieldAccesses())
+                .build();
     }
 
     @PublicAPI(usage = ACCESS)
