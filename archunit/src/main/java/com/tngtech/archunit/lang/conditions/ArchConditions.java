@@ -397,7 +397,8 @@ public final class ArchConditions {
         return new NeverCondition<>(condition);
     }
 
-    private static <T> ArchCondition<T> not(ArchCondition<T> condition) {
+    @PublicAPI(usage = ACCESS)
+    public static <T> ArchCondition<T> not(ArchCondition<T> condition) {
         return never(condition).as("not " + condition.getDescription());
     }
 
