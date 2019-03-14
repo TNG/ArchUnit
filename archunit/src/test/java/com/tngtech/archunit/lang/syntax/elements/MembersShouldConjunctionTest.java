@@ -1,12 +1,8 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
-import com.tngtech.archunit.core.domain.JavaMember;
-import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.FailureReport;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -15,7 +11,8 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.beDeclaredIn;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,10 +21,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MembersShouldConjunctionTest {
     @DataProvider
     public static Object[][] ORed_conditions() {
-        return testForEach(members()
-                .should(beDeclaredIn(RightOne.class))
-                .orShould(beDeclaredIn(RightTwo.class)));
-        // FIXME: Add cases for fluent versions
+        return testForEach(
+                members()
+                        .should(beDeclaredIn(RightOne.class))
+                        .orShould(beDeclaredIn(RightTwo.class)),
+                members()
+                        .should().beDeclaredIn(RightOne.class)
+                        .orShould().beDeclaredIn(RightTwo.class)
+        );
     }
 
     @Test
@@ -52,10 +53,14 @@ public class MembersShouldConjunctionTest {
 
     @DataProvider
     public static Object[][] ANDed_conditions() {
-        return testForEach(members()
-                .should(never(beDeclaredIn(WrongOne.class)))
-                .andShould(never(beDeclaredIn(WrongTwo.class))));
-        // FIXME: Add cases for fluent versions
+        return testForEach(
+                members()
+                        .should(not(beDeclaredIn(WrongOne.class)))
+                        .andShould(not(beDeclaredIn(WrongTwo.class))),
+                members()
+                        .should().notBeDeclaredIn(WrongOne.class)
+                        .andShould().notBeDeclaredIn(WrongTwo.class)
+        );
     }
 
     @Test
@@ -67,35 +72,27 @@ public class MembersShouldConjunctionTest {
         FailureReport report = result.getFailureReport();
         assertThat(report.toString())
                 .contains(String.format(
-                        "members should never be declared in %s and should never be declared in %s",
+                        "members should not be declared in %s and should not be declared in %s",
                         WrongOne.class.getName(), WrongTwo.class.getName()));
         assertThat(report.getDetails()).containsOnly(
-                isDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, WrongOne.class),
-                isDeclaredInMessage(WrongOne.class, "wrongMethod1", WrongOne.class),
-                isDeclaredInMessage(WrongTwo.class, CONSTRUCTOR_NAME, WrongTwo.class),
-                isDeclaredInMessage(WrongTwo.class, "wrongMethod2", WrongTwo.class));
+                isDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME),
+                isDeclaredInMessage(WrongOne.class, "wrongMethod1"),
+                isDeclaredInMessage(WrongTwo.class, CONSTRUCTOR_NAME),
+                isDeclaredInMessage(WrongTwo.class, "wrongMethod2"));
     }
 
-    private String isDeclaredInMessage(Class<?> clazz, String methodName, Class<?> expectedTarget) {
-        return String.format("%s.%s is declared in %s",
-                clazz.getSimpleName(), methodName, expectedTarget.getSimpleName());
+    private String isDeclaredInMessage(Class<?> clazz, String methodName) {
+        return message(clazz, methodName, "", clazz);
     }
 
     private String isNotDeclaredInMessage(Class<?> clazz, String methodName, Class<?> expectedTarget) {
-        return String.format("%s.%s is not declared in %s",
-                clazz.getSimpleName(), methodName, expectedTarget.getSimpleName());
+        return message(clazz, methodName, "not ", expectedTarget);
     }
 
-    private static ArchCondition<JavaMember> beDeclaredIn(final Class<?> clazz) {
-        return new ArchCondition<JavaMember>("be declared in " + clazz.getName()) {
-            @Override
-            public void check(JavaMember member, ConditionEvents events) {
-                boolean satisfied = member.getOwner().isEquivalentTo(clazz);
-                String message = String.format("%s.%s is %sdeclared in %s",
-                        member.getOwner().getSimpleName(), member.getName(), satisfied ? "" : "not ", clazz.getSimpleName());
-                events.add(new SimpleConditionEvent(member, satisfied, message));
-            }
-        };
+    private String message(Class<?> clazz, String methodName, String optionalNot, Class<?> expectedTarget) {
+        return String.format("%s <%s.%s()> is %sdeclared in %s in (%s.java:0)",
+                CONSTRUCTOR_NAME.equals(methodName) ? "Constructor" : "Method",
+                clazz.getName(), methodName, optionalNot, expectedTarget.getName(), getClass().getSimpleName());
     }
 
     @SuppressWarnings("unused")
