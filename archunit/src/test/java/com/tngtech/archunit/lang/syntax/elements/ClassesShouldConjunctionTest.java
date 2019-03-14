@@ -5,7 +5,6 @@ import java.util.Comparator;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.FailureReport;
-import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -13,6 +12,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThat;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.fullyQualifiedName;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.haveFullyQualifiedName;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locationPattern;
@@ -27,8 +30,8 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ORed_conditions() {
         return $$(
                 $(classes()
-                        .should().haveFullyQualifiedName(RightOne.class.getName())
-                        .orShould(ArchConditions.haveFullyQualifiedName(RightTwo.class.getName()))),
+                        .should(haveFullyQualifiedName(RightOne.class.getName()))
+                        .orShould(haveFullyQualifiedName(RightTwo.class.getName()))),
                 $(classes()
                         .should().haveFullyQualifiedName(RightOne.class.getName())
                         .orShould().haveFullyQualifiedName(RightTwo.class.getName())));
@@ -55,8 +58,8 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ORed_conditions_that() {
         return $$(
                 $(noClasses()
-                        .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
-                        .orShould(ArchConditions.haveFullyQualifiedName(Wrong.class.getName()))),
+                        .should(accessClassesThat(have(fullyQualifiedName(Wrong.class.getName()))))
+                        .orShould(haveFullyQualifiedName(Wrong.class.getName()))),
                 $(noClasses()
                         .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
                         .orShould().haveFullyQualifiedName(Wrong.class.getName())));
@@ -82,8 +85,8 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ANDed_conditions() {
         return $$(
                 $(classes()
-                        .should().haveFullyQualifiedName(RightOne.class.getName())
-                        .andShould(ArchConditions.haveFullyQualifiedName(RightTwo.class.getName()))),
+                        .should(haveFullyQualifiedName(RightOne.class.getName()))
+                        .andShould(haveFullyQualifiedName(RightTwo.class.getName()))),
                 $(classes()
                         .should().haveFullyQualifiedName(RightOne.class.getName())
                         .andShould().haveFullyQualifiedName(RightTwo.class.getName())));
@@ -120,8 +123,8 @@ public class ClassesShouldConjunctionTest {
     public static Object[][] ANDed_conditions_that() {
         return $$(
                 $(noClasses()
-                        .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
-                        .andShould(ArchConditions.haveFullyQualifiedName(OtherWrong.class.getName()))),
+                        .should(accessClassesThat(have(fullyQualifiedName(Wrong.class.getName()))))
+                        .andShould(haveFullyQualifiedName(OtherWrong.class.getName()))),
                 $(noClasses()
                         .should().accessClassesThat().haveFullyQualifiedName(Wrong.class.getName())
                         .andShould().haveFullyQualifiedName(OtherWrong.class.getName())));
