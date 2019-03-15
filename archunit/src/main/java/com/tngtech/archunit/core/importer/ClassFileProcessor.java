@@ -113,6 +113,21 @@ class ClassFileProcessor {
         public void registerEnclosingClass(String ownerName, String enclosingClassName) {
             importRecord.setEnclosingClass(ownerName, enclosingClassName);
         }
+
+        @Override
+        public void onSyntheticClass(String className) {
+            importRecord.markClassSynthetic(className);
+        }
+
+        @Override
+        public void onSyntheticField(String name, String desc) {
+            importRecord.markFieldSynthetic(ownerName, name, desc);
+        }
+
+        @Override
+        public void onSyntheticMethod(String name, String desc) {
+            importRecord.markMethodSynthetic(ownerName, name, desc);
+        }
     }
 
     private static class RecordAccessHandler implements AccessHandler {

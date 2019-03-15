@@ -21,8 +21,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -35,6 +37,7 @@ class ClassFileImportRecord {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportRecord.class);
 
     private final Map<String, JavaClass> classes = new HashMap<>();
+    private final SyntheticEncounters syntheticEncounters = new SyntheticEncounters();
 
     private final Map<String, String> superClassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
@@ -131,16 +134,16 @@ class ClassFileImportRecord {
         rawConstructorCallRecords.add(record);
     }
 
-    Set<RawAccessRecord.ForField> getRawFieldAccessRecords() {
-        return ImmutableSet.copyOf(rawFieldAccessRecords);
+    Iterable<RawAccessRecord.ForField> getRawFieldAccessRecords() {
+        return FluentIterable.from(rawFieldAccessRecords).filter(syntheticEncounters.doesNotContain());
     }
 
-    Set<RawAccessRecord> getRawMethodCallRecords() {
-        return ImmutableSet.copyOf(rawMethodCallRecords);
+    Iterable<RawAccessRecord> getRawMethodCallRecords() {
+        return FluentIterable.from(rawMethodCallRecords).filter(syntheticEncounters.doesNotContain());
     }
 
-    Set<RawAccessRecord> getRawConstructorCallRecords() {
-        return ImmutableSet.copyOf(rawConstructorCallRecords);
+    Iterable<RawAccessRecord> getRawConstructorCallRecords() {
+        return FluentIterable.from(rawConstructorCallRecords).filter(syntheticEncounters.doesNotContain());
     }
 
     void addAll(Collection<JavaClass> javaClasses) {
@@ -153,12 +156,10 @@ class ClassFileImportRecord {
         return classes;
     }
 
-    Set<RawAccessRecord> getAccessRecords() {
-        return ImmutableSet.<RawAccessRecord>builder()
-                .addAll(rawFieldAccessRecords)
-                .addAll(rawMethodCallRecords)
-                .addAll(rawConstructorCallRecords)
-                .build();
+    Iterable<RawAccessRecord> getAccessRecords() {
+        return FluentIterable.from(getRawMethodCallRecords())
+                .append(getRawConstructorCallRecords())
+                .append(getRawFieldAccessRecords());
     }
 
     Map<String, String> getSuperClassNamesBySubClass() {
@@ -167,6 +168,18 @@ class ClassFileImportRecord {
 
     SetMultimap<String, String> getInterfaceNamesBySubInterface() {
         return interfaceNamesByOwner;
+    }
+
+    void markClassSynthetic(String className) {
+        syntheticEncounters.registerClass(className);
+    }
+
+    void markFieldSynthetic(String ownerName, String fieldName, String descriptor) {
+        syntheticEncounters.registerField(ownerName, fieldName, descriptor);
+    }
+
+    void markMethodSynthetic(String ownerName, String methodName, String descriptor) {
+        syntheticEncounters.registerMethod(ownerName, methodName, descriptor);
     }
 
     // NOTE: ASM calls visitInnerClass and visitOuterClass several times, sometimes when the outer class is imported
@@ -195,6 +208,42 @@ class ClassFileImportRecord {
 
         public Optional<String> get(String ownerName) {
             return Optional.fromNullable(innerToOuter.get(ownerName));
+        }
+    }
+
+    private static class SyntheticEncounters {
+        private final Set<String> syntheticClasses = new HashSet<>();
+        private final Multimap<String, String> syntheticMembers = HashMultimap.create();
+        private final Predicate<RawAccessRecord> doesNotContain = new Predicate<RawAccessRecord>() {
+            @Override
+            public boolean apply(RawAccessRecord input) {
+                return !contains(input.target.owner.getName(), input.target.name, input.target.desc);
+            }
+        };
+
+        void registerClass(String className) {
+            syntheticClasses.add(className);
+        }
+
+        void registerField(String className, String fieldName, String descriptor) {
+            syntheticMembers.put(className, createLookup(fieldName, descriptor));
+        }
+
+        void registerMethod(String ownerName, String methodName, String descriptor) {
+            syntheticMembers.put(ownerName, createLookup(methodName, descriptor));
+        }
+
+        Predicate<RawAccessRecord> doesNotContain() {
+            return doesNotContain;
+        }
+
+        private boolean contains(String ownerName, String memberName, String descriptor) {
+            return syntheticClasses.contains(ownerName)
+                    || syntheticMembers.get(ownerName).contains(createLookup(memberName, descriptor));
+        }
+
+        private String createLookup(String fieldName, String descriptor) {
+            return fieldName + "|" + descriptor;
         }
     }
 }

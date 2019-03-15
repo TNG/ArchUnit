@@ -172,6 +172,8 @@ import com.tngtech.archunit.core.importer.testexamples.synthetic.enums.EnumAsAlw
 import com.tngtech.archunit.core.importer.testexamples.synthetic.generics.ConcreteSub;
 import com.tngtech.archunit.core.importer.testexamples.synthetic.methods.CallerOfSyntheticMethod;
 import com.tngtech.archunit.core.importer.testexamples.synthetic.methods.SyntheticMethodsClass;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.switchmap.ClassWithSwitch;
+import com.tngtech.archunit.core.importer.testexamples.synthetic.switchmap.EnumToBeSwitched;
 import com.tngtech.archunit.testutil.LogTestRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
 import org.apache.logging.log4j.Level;
@@ -219,6 +221,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatFields;
 import static com.tngtech.archunit.testutil.Assertions.assertThatMethods;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
@@ -2019,6 +2022,15 @@ public class ClassFileImporterTest {
         assertThat(classes.contain(syntheticClass))
                 .as("classes contain synthetic class " + syntheticClass)
                 .isFalse();
+    }
+
+    @Test
+    public void does_not_introduce_dependencies_to_synthetic_classes() {
+        JavaClass javaClass = new ClassFileImporter().importPackagesOf(ClassWithSwitch.class).get(ClassWithSwitch.class);
+
+        Set<Dependency> dependencies = withoutJavaLangTargets(javaClass.getDirectDependenciesFromSelf());
+        assertThatDependencies(dependencies)
+                .containOnly(ClassWithSwitch.class, EnumToBeSwitched.class);
     }
 
     private Set<JavaClass> getClassDependencies(JavaClass javaClass) {

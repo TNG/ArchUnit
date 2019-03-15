@@ -104,7 +104,10 @@ class JavaClassProcessor extends ClassVisitor {
             return;
         }
 
-        if (isSyntheticMember(access)) {
+        className = javaType.getName();
+        if (isSynthetic(access)) {
+            LOG.debug("Encountered synthetic class {}", className);
+            declarationHandler.onSyntheticClass(className);
             return;
         }
 
@@ -122,7 +125,6 @@ class JavaClassProcessor extends ClassVisitor {
                 .withEnum(opCodeForEnumIsPresent)
                 .withModifiers(JavaModifier.getModifiersForClass(access));
 
-        className = javaType.getName();
         declarationHandler.onNewClass(className, superClassName, interfaceNames);
     }
 
@@ -187,7 +189,15 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        if (importAborted() || isSyntheticMember(access)) {
+        if (importAborted()) {
+            return super.visitField(access, name, desc, signature, value);
+        }
+
+        LOG.debug("Analysing field {}.{}({})", className, name, desc);
+
+        if (isSynthetic(access)) {
+            LOG.debug("Encountered synthetic field {} [{}]", name, desc);
+            declarationHandler.onSyntheticField(name, desc);
             return super.visitField(access, name, desc, signature, value);
         }
 
@@ -202,11 +212,18 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (importAborted() || (isSyntheticMember(access) && !CONSTRUCTOR_NAME.equals(name))) {
+        if (importAborted()) {
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 
-        LOG.debug("Analysing method {}.{}:{}", className, name, desc);
+        LOG.debug("Analysing method {}.{}({})", className, name, desc);
+
+        if (isSynthetic(access) && !CONSTRUCTOR_NAME.equals(name)) {
+            LOG.debug("Encountered synthetic method {} [{}]", name, desc);
+            declarationHandler.onSyntheticMethod(name, desc);
+            return super.visitMethod(access, name, desc, signature, exceptions);
+        }
+
         accessHandler.setContext(new CodeUnit(name, namesOf(Type.getArgumentTypes(desc)), className));
 
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
@@ -222,7 +239,7 @@ class JavaClassProcessor extends ClassVisitor {
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);
     }
 
-    private boolean isSyntheticMember(int asmAccess) {
+    private boolean isSynthetic(int asmAccess) {
         return (Opcodes.ACC_SYNTHETIC & asmAccess) != 0;
     }
 
@@ -423,6 +440,12 @@ class JavaClassProcessor extends ClassVisitor {
         void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotations);
 
         void registerEnclosingClass(String ownerName, String enclosingClassName);
+
+        void onSyntheticClass(String className);
+
+        void onSyntheticField(String name, String desc);
+
+        void onSyntheticMethod(String name, String desc);
     }
 
     interface AccessHandler {
