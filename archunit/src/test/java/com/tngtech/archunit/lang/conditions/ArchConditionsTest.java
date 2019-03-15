@@ -12,11 +12,14 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Test;
 
+import java.sql.SQLException;
+
 import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.core.domain.TestUtils.importMethod;
 import static com.tngtech.archunit.core.domain.TestUtils.predicateWithDescription;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
@@ -29,6 +32,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWh
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.declareThrowableOfType;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsInAnyPackage;
@@ -111,6 +115,18 @@ public class ArchConditionsTest {
                 .hasDescription("only have dependents where custom")
                 .checking(accessedClass)
                 .containNoViolation();
+    }
+
+    @Test
+    public void declare_throwable_of_type() {
+        class Failure {
+            void method() {
+            }
+        }
+        assertThat(declareThrowableOfType(SQLException.class))
+                .hasDescription("declare throwable of type " + SQLException.class.getName())
+                .checking(importMethod(Failure.class, "method"))
+                .haveOneViolationMessageContaining("Method", "method()", "does not declare throwable of type " + SQLException.class.getName());
     }
 
     private ArchCondition<Object> conditionWithDescription(String description) {

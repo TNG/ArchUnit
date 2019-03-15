@@ -522,22 +522,22 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideInAPackage(final String packageIdentifier) {
-        return new PackageCondition(JavaClass.Predicates.resideInAPackage(packageIdentifier));
+        return new DoesConditionByPredicate(JavaClass.Predicates.resideInAPackage(packageIdentifier));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideInAnyPackage(String... packageIdentifiers) {
-        return new PackageCondition(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers));
+        return new DoesConditionByPredicate(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideOutsideOfPackage(String packageIdentifier) {
-        return new PackageCondition(JavaClass.Predicates.resideOutsideOfPackage(packageIdentifier));
+        return new DoesConditionByPredicate(JavaClass.Predicates.resideOutsideOfPackage(packageIdentifier));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideOutsideOfPackages(String... packageIdentifiers) {
-        return new PackageCondition(JavaClass.Predicates.resideOutsideOfPackages(packageIdentifiers));
+        return new DoesConditionByPredicate(JavaClass.Predicates.resideOutsideOfPackages(packageIdentifiers));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -863,7 +863,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaCodeUnit> declareThrowableOfType(DescribedPredicate<? super JavaClass> predicate) {
         DescribedPredicate<HasThrowsClause<?>> declareThrowableOfType = throwsClauseContainingType(predicate)
                 .as("declare throwable of type " + predicate.getDescription());
-        return new DeclareThrowableCondition(declareThrowableOfType);
+        return new DoesConditionByPredicate<>(declareThrowableOfType);
     }
 
     private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
@@ -1077,20 +1077,21 @@ public final class ArchConditions {
         }
     }
 
-    private static class PackageCondition extends ArchCondition<JavaClass> {
-        private final DescribedPredicate<JavaClass> resideInAPackage;
+    private static class DoesConditionByPredicate<T extends HasDescription & HasSourceCodeLocation>
+            extends ArchCondition<T> {
+        private final DescribedPredicate<? super T> predicate;
 
-        PackageCondition(DescribedPredicate<JavaClass> resideInAPackage) {
-            super(resideInAPackage.getDescription());
-            this.resideInAPackage = resideInAPackage;
+        DoesConditionByPredicate(DescribedPredicate<? super T> predicate) {
+            super(predicate.getDescription());
+            this.predicate = predicate;
         }
 
         @Override
-        public void check(JavaClass javaClass, ConditionEvents events) {
-            boolean satisfied = resideInAPackage.apply(javaClass);
-            String message = createMessage(javaClass,
-                    (satisfied ? "does " : "does not ") + resideInAPackage.getDescription());
-            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
+        public void check(T item, ConditionEvents events) {
+            boolean satisfied = predicate.apply(item);
+            String message = createMessage(item,
+                    (satisfied ? "does " : "does not ") + predicate.getDescription());
+            events.add(new SimpleConditionEvent(item, satisfied, message));
         }
     }
 
@@ -1124,22 +1125,6 @@ public final class ArchConditions {
             boolean satisfied = rawType.apply(object);
             String message = createMessage(object, (satisfied ? "has " : "does not have ") + rawType.getDescription());
             events.add(new SimpleConditionEvent(object, satisfied, message));
-        }
-    }
-
-    private static class DeclareThrowableCondition extends ArchCondition<JavaCodeUnit> {
-        private final DescribedPredicate<HasThrowsClause<?>> declareThrowableOfType;
-
-        DeclareThrowableCondition(DescribedPredicate<HasThrowsClause<?>> declareThrowableOfType) {
-            super(declareThrowableOfType.getDescription());
-            this.declareThrowableOfType = declareThrowableOfType;
-        }
-
-        @Override
-        public void check(JavaCodeUnit codeUnit, ConditionEvents events) {
-            boolean satisfied = declareThrowableOfType.apply(codeUnit);
-            String message = createMessage(codeUnit, (satisfied ? "declares " : "does not declare ") + declareThrowableOfType.getDescription());
-            events.add(new SimpleConditionEvent(codeUnit, satisfied, message));
         }
     }
 }
