@@ -104,10 +104,6 @@ class JavaClassProcessor extends ClassVisitor {
             return;
         }
 
-        if (isSyntheticMember(access)) {
-            return;
-        }
-
         ImmutableSet<String> interfaceNames = createInterfaceNames(interfaces);
         LOG.debug("Found interfaces {} on class '{}'", interfaceNames, name);
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
@@ -187,7 +183,7 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        if (importAborted() || isSyntheticMember(access)) {
+        if (importAborted()) {
             return super.visitField(access, name, desc, signature, value);
         }
 
@@ -202,7 +198,7 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (importAborted() || (isSyntheticMember(access) && !CONSTRUCTOR_NAME.equals(name))) {
+        if (importAborted()) {
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 
@@ -220,10 +216,6 @@ class JavaClassProcessor extends ClassVisitor {
                 .withThrowsClause(typesFrom(exceptions));
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);
-    }
-
-    private boolean isSyntheticMember(int asmAccess) {
-        return (Opcodes.ACC_SYNTHETIC & asmAccess) != 0;
     }
 
     private List<JavaType> typesFrom(Type[] asmTypes) {
