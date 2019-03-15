@@ -40,9 +40,11 @@ import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.testutil.assertion.ArchConditionAssertion;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
@@ -75,6 +77,10 @@ import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.pr
 import static com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion.sortByName;
 
 public class Assertions extends org.assertj.core.api.Assertions {
+    public static <T> ArchConditionAssertion<T> assertThat(ArchCondition<T> archCondition) {
+        return new ArchConditionAssertion<>(archCondition);
+    }
+
     public static ConditionEventsAssert assertThat(ConditionEvents events) {
         return new ConditionEventsAssert(events);
     }

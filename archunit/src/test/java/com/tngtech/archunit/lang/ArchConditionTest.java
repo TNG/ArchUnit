@@ -178,7 +178,7 @@ public class ArchConditionTest {
 
         ArchCondition<String> joined = combination.combine(one, two);
 
-        assertThat(joined.getDescription()).isEqualTo("one " + combination.joinWord + " two");
+        assertThat(joined).hasDescription("one " + combination.joinWord + " two");
     }
 
     @Test
