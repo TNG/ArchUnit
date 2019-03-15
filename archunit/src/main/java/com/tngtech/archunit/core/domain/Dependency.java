@@ -55,7 +55,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         this.targetClass = targetClass;
         this.lineNumber = lineNumber;
         this.description = description;
-        this.sourceCodeLocation = new SourceCodeLocation(originClass, lineNumber);
+        this.sourceCodeLocation = SourceCodeLocation.of(originClass, lineNumber);
     }
 
     static Dependency from(JavaAccess<?> access) {
