@@ -21,7 +21,7 @@ public class OtherJpa implements OtherDao {
 
     @Override
     public void testConnection() throws SQLException {
-        Connection conn = (Connection) entityManager.unwrap(java.sql.Connection.class);
+        Connection conn = entityManager.unwrap(Connection.class);
         conn.prepareStatement("SELECT 1 FROM DUAL");
     }
 
