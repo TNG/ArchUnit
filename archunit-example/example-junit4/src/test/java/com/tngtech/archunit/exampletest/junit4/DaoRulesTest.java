@@ -5,20 +5,16 @@ import java.sql.SQLException;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
-import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 
 @Category(Example.class)
 @RunWith(ArchUnitRunner.class)
@@ -42,22 +38,6 @@ public class DaoRulesTest {
 
     @ArchTest
     public static final ArchRule DAOs_must_not_throw_SQLException =
-            classes().that().haveNameMatching(".*Dao")
-                    .should(notContainMethodsThrowing(SQLException.class));
-
-    private static ArchCondition<JavaClass> notContainMethodsThrowing(final Class<? extends Exception> exception) {
-        return new ArchCondition<JavaClass>("not contain methods throwing " + exception.getName()) {
-            @Override
-            public void check(JavaClass javaClass, ConditionEvents events) {
-                for (JavaMethod method : javaClass.getMethods()) {
-                    if (method.getThrowsClause().containsType(exception)) {
-                        String message = String.format("%s throws %s in %s",
-                                method.getFullName(), exception.getName(),
-                                javaClass.getSourceCodeLocation());
-                        events.add(SimpleConditionEvent.violated(method, message));
-                    }
-                }
-            }
-        };
-    }
+            noMethods().that().areDeclaredInClassesThat().haveNameMatching(".*Dao")
+                    .should().declareThrowableOfType(SQLException.class);
 }

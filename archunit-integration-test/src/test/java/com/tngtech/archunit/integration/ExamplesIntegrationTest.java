@@ -547,8 +547,8 @@ class ExamplesIntegrationTest {
                         .toMethod(ServiceViolatingDaoRules.MyEntityManager.class, "persist", Object.class)
                         .inLine(27))
 
-                .ofRule("classes that have name matching '.*Dao' "
-                        + String.format("should not contain methods throwing %s", SQLException.class.getName()))
+                .ofRule("no methods that are declared in classes that have name matching '.*Dao' "
+                        + String.format("should declare throwable of type %s", SQLException.class.getName()))
                 .by(ExpectedMethod.of(OtherDao.class, "testConnection").throwsException(SQLException.class))
 
                 .toDynamicTests();
