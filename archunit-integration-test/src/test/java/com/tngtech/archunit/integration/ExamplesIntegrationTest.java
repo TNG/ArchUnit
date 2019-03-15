@@ -35,6 +35,7 @@ import com.tngtech.archunit.example.controller.SomeController;
 import com.tngtech.archunit.example.controller.SomeGuiController;
 import com.tngtech.archunit.example.controller.SomeUtility;
 import com.tngtech.archunit.example.controller.WronglyAnnotated;
+import com.tngtech.archunit.example.controller.one.SomeEnum;
 import com.tngtech.archunit.example.controller.one.UseCaseOneThreeController;
 import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
 import com.tngtech.archunit.example.controller.three.UseCaseThreeController;
@@ -138,6 +139,7 @@ import static com.tngtech.archunit.testutils.ExpectedDependency.inheritanceFrom;
 import static com.tngtech.archunit.testutils.ExpectedDependency.method;
 import static com.tngtech.archunit.testutils.ExpectedLocation.javaClass;
 import static com.tngtech.archunit.testutils.ExpectedNaming.simpleNameOf;
+import static com.tngtech.archunit.testutils.ExpectedNaming.simpleNameOfAnonymousClassOf;
 import static com.tngtech.archunit.testutils.ExpectedViolation.clazz;
 import static com.tngtech.archunit.testutils.ExpectedViolation.javaPackageOf;
 import static com.tngtech.archunit.testutils.SliceDependencyErrorMatcher.sliceDependency;
@@ -241,6 +243,9 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SomeController.class, "doSthController")
                         .toMethod(ServiceViolatingDaoRules.class, "doSthService")
                         .inLine(11))
+                .by(callFromMethod(SomeEnum.class, "values")
+                        .toMethod(SomeEnum[].class, "clone")
+                        .inLine(3))
 
                 .ofRule(String.format("classes that reside in a package '..controller..' should "
                                 + "only call constructors that are declared in a package '..controller..' or are annotated with @%s",
@@ -248,6 +253,9 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SomeGuiController.class, "callServiceLayer")
                         .toConstructor(ServiceHelper.class)
                         .inLine(7))
+                .by(callFromConstructor(UseCaseTwoController.class)
+                        .toConstructor(AbstractController.class)
+                        .inLine(6))
 
                 .ofRule(String.format("classes that reside in a package '..controller..' should "
                                 + "only call code units that are declared in a package '..controller..' or are annotated with @%s",
@@ -258,6 +266,12 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SomeGuiController.class, "callServiceLayer")
                         .toConstructor(ServiceHelper.class)
                         .inLine(7))
+                .by(callFromConstructor(UseCaseTwoController.class)
+                        .toConstructor(AbstractController.class)
+                        .inLine(6))
+                .by(callFromMethod(SomeEnum.class, "values")
+                        .toMethod(SomeEnum[].class, "clone")
+                        .inLine(3))
 
                 .ofRule(String.format("classes that reside in a package '..controller..' should "
                                 + "only access fields that are declared in a package '..controller..' or are annotated with @%s",
@@ -278,6 +292,12 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SomeGuiController.class, "callServiceLayer")
                         .getting().field(ServiceHelper.class, "insecure")
                         .inLine(10))
+                .by(callFromConstructor(UseCaseTwoController.class)
+                        .toConstructor(AbstractController.class)
+                        .inLine(6))
+                .by(callFromMethod(SomeEnum.class, "values")
+                        .toMethod(SomeEnum[].class, "clone")
+                        .inLine(3))
 
                 .toDynamicTests();
     }
@@ -761,6 +781,8 @@ class ExamplesIntegrationTest {
                 .by(simpleNameOf(InheritedControllerImpl.class).notEndingWith("Controller"))
                 .by(simpleNameOf(SomeUtility.class).notEndingWith("Controller"))
                 .by(simpleNameOf(WronglyAnnotated.class).notEndingWith("Controller"))
+                .by(simpleNameOf(SomeEnum.class).notEndingWith("Controller"))
+                .by(simpleNameOfAnonymousClassOf(UseCaseOneThreeController.class).notEndingWith("Controller"))
 
                 .ofRule("classes that have simple name containing 'Controller' should reside in a package '..controller..'")
                 .by(javaClass(AbstractController.class).notResidingIn("..controller.."))
@@ -997,18 +1019,18 @@ class ExamplesIntegrationTest {
                                         .described("Controller one calls Controller three")
                                         .by(callFromMethod(UseCaseOneThreeController.class, doSomethingOne)
                                                 .toConstructor(UseCaseThreeController.class)
-                                                .inLine(9))
+                                                .inLine(13))
                                         .by(callFromMethod(UseCaseOneThreeController.class, doSomethingOne)
                                                 .toMethod(UseCaseThreeController.class, doSomethingThree)
-                                                .inLine(9)))
+                                                .inLine(13)))
                                 .by(sliceDependency()
                                         .described("Controller two calls Controller one")
                                         .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                                 .toConstructor(UseCaseOneTwoController.class)
-                                                .inLine(9))
+                                                .inLine(10))
                                         .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                                 .toMethod(UseCaseOneTwoController.class, doSomethingOne)
-                                                .inLine(9)));
+                                                .inLine(10)));
 
         ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
                 .forTests(
@@ -1055,10 +1077,10 @@ class ExamplesIntegrationTest {
                         .described("Controller two calls Controller one")
                         .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .toConstructor(UseCaseOneTwoController.class)
-                                .inLine(9))
+                                .inLine(10))
                         .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .toMethod(UseCaseOneTwoController.class, doSomethingOne)
-                                .inLine(9)));
+                                .inLine(10)));
 
         return expectedTestFailures.toDynamicTests();
     }

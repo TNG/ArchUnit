@@ -48,8 +48,6 @@ import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
-import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
-import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
