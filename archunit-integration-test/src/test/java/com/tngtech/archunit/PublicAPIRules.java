@@ -164,7 +164,7 @@ public class PublicAPIRules {
                                 member.getOwner().getName(),
                                 member.getName(),
                                 satisfied ? "not " : "",
-                                member.getOccurrence())));
+                                member.getSourceCodeLocation())));
             }
         };
     }

@@ -16,11 +16,11 @@
 package com.tngtech.archunit.core.domain.properties;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.Occurrence;
+import com.tngtech.archunit.core.domain.SourceCodeLocation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface HasOccurrence {
+public interface HasSourceCodeLocation {
     @PublicAPI(usage = ACCESS)
-    Occurrence getOccurrence();
+    SourceCodeLocation getSourceCodeLocation();
 }

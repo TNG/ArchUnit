@@ -45,7 +45,7 @@ import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
-import com.tngtech.archunit.core.domain.properties.HasOccurrence;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -62,9 +62,9 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
-public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifiers, HasDescription, HasOccurrence {
+public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifiers, HasDescription, HasSourceCodeLocation {
     private final Optional<Source> source;
-    private final Occurrence occurrence;
+    private final SourceCodeLocation sourceCodeLocation;
     private final JavaType javaType;
     private JavaPackage javaPackage;
     private final boolean isInterface;
@@ -105,7 +105,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         isEnum = builder.isEnum();
         modifiers = checkNotNull(builder.getModifiers());
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
-        occurrence = new Occurrence(this);
+        sourceCodeLocation = new SourceCodeLocation(this);
         javaPackage = JavaPackage.simple(this);
     }
 
@@ -116,8 +116,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public Occurrence getOccurrence() {
-        return occurrence;
+    public SourceCodeLocation getSourceCodeLocation() {
+        return sourceCodeLocation;
     }
 
     @Override

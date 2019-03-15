@@ -26,7 +26,7 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.HasName;
-import com.tngtech.archunit.core.domain.properties.HasOccurrence;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -43,19 +43,19 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * <li>a class has a method/constructor with parameter/return type of another class</li>
  * </ul>
  */
-public class Dependency implements HasDescription, Comparable<Dependency>, HasOccurrence {
+public class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation {
     private final JavaClass originClass;
     private final JavaClass targetClass;
     private final int lineNumber;
     private final String description;
-    private final Occurrence occurrence;
+    private final SourceCodeLocation sourceCodeLocation;
 
     private Dependency(JavaClass originClass, JavaClass targetClass, int lineNumber, String description) {
         this.originClass = originClass;
         this.targetClass = targetClass;
         this.lineNumber = lineNumber;
         this.description = description;
-        occurrence = new Occurrence(originClass, lineNumber);
+        this.sourceCodeLocation = new SourceCodeLocation(originClass, lineNumber);
     }
 
     static Dependency from(JavaAccess<?> access) {
@@ -73,7 +73,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasOc
 
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetType + " " + targetDescription;
 
-        String description = dependencyDescription + " in " + origin.getOccurrence();
+        String description = dependencyDescription + " in " + origin.getSourceCodeLocation();
         return new Dependency(origin, targetSuperType, 0, description);
     }
 
@@ -97,7 +97,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasOc
         String originDescription = origin.getDescription();
         String targetDescription = bracketFormat(target.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
-        String description = dependencyDescription + " in " + origin.getOwner().getOccurrence();
+        String description = dependencyDescription + " in " + origin.getOwner().getSourceCodeLocation();
         return new Dependency(origin.getOwner(), target, 0, description);
     }
 
@@ -121,8 +121,8 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasOc
     }
 
     @Override
-    public Occurrence getOccurrence() {
-        return occurrence;
+    public SourceCodeLocation getSourceCodeLocation() {
+        return sourceCodeLocation;
     }
 
     @Override
