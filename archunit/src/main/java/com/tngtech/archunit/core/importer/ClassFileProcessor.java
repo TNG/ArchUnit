@@ -26,6 +26,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
+import com.tngtech.archunit.core.importer.RawAccessRecord.ConstructorTargetInfo;
 import com.tngtech.archunit.core.importer.RawAccessRecord.MethodTargetInfo;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
@@ -149,7 +150,7 @@ class ClassFileProcessor {
         public void handleMethodInstruction(String owner, String name, String desc) {
             LOG.debug("Found call of method {}.{}:{} in line {}", owner, name, desc, lineNumber);
             if (CONSTRUCTOR_NAME.equals(name)) {
-                TargetInfo target = new RawAccessRecord.ConstructorTargetInfo(owner, name, desc);
+                TargetInfo target = new ConstructorTargetInfo(owner, name, desc);
                 importRecord.registerConstructorCall(filled(new RawAccessRecord.Builder(), target).build());
             } else {
                 TargetInfo target = new MethodTargetInfo(owner, name, desc);

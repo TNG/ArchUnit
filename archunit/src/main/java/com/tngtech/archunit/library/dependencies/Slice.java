@@ -48,7 +48,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  */
 public final class Slice extends ForwardingSet<JavaClass> implements HasDescription, CanOverrideDescription<Slice> {
     private final List<String> matchingGroups;
-    private Description description;
+    private final Description description;
     private final Set<JavaClass> classes;
 
     private Slice(List<String> matchingGroups, Set<JavaClass> classes) {
