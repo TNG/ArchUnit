@@ -72,7 +72,7 @@ public class NeverConditionTest {
 
     @Test
     public void updates_description() {
-        assertThat(never(someCondition("anything")).getDescription()).isEqualTo("never anything");
+        assertThat(never(someCondition("anything"))).hasDescription("never anything");
     }
 
     @Test

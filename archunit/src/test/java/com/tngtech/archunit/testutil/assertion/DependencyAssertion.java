@@ -5,15 +5,15 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.properties.HasName;
-import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.AbstractBooleanAssert;
+import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DependencyAssertion extends AbstractAssert<DependencyAssertion, Dependency> {
+public class DependencyAssertion extends AbstractObjectAssert<DependencyAssertion, Dependency> {
     public DependencyAssertion(Dependency actual) {
         super(actual, DependencyAssertion.class);
     }
