@@ -32,7 +32,7 @@ import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasDescriptor;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
-import com.tngtech.archunit.core.domain.properties.HasOccurrence;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMemberBuilder;
@@ -45,13 +45,13 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public abstract class JavaMember implements
-        HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass>, HasDescription, HasOccurrence {
+        HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass>, HasDescription, HasSourceCodeLocation {
 
     private final String name;
     private final String descriptor;
     private final Supplier<Map<String, JavaAnnotation>> annotations;
     private final JavaClass owner;
-    private final Occurrence occurrence;
+    private final SourceCodeLocation sourceCodeLocation;
     private final Set<JavaModifier> modifiers;
 
     JavaMember(JavaMemberBuilder<?, ?> builder) {
@@ -59,7 +59,7 @@ public abstract class JavaMember implements
         this.descriptor = checkNotNull(builder.getDescriptor());
         this.annotations = builder.getAnnotations();
         this.owner = checkNotNull(builder.getOwner());
-        this.occurrence = new Occurrence(owner);
+        this.sourceCodeLocation = new SourceCodeLocation(owner);
         this.modifiers = checkNotNull(builder.getModifiers());
     }
 
@@ -131,8 +131,8 @@ public abstract class JavaMember implements
     }
 
     @Override
-    public Occurrence getOccurrence() {
-        return occurrence;
+    public SourceCodeLocation getSourceCodeLocation() {
+        return sourceCodeLocation;
     }
 
     @Override

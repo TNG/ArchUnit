@@ -52,7 +52,7 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
-import com.tngtech.archunit.core.domain.properties.HasOccurrence;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
@@ -437,12 +437,12 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_NAME extends HasName & HasDescription & HasOccurrence> ArchCondition<HAS_NAME> haveName(final String name) {
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> haveName(final String name) {
         return new HaveConditionByPredicate<>(name(name));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_NAME extends HasName & HasDescription & HasOccurrence> ArchCondition<HAS_NAME> notHaveName(String name) {
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> notHaveName(String name) {
         return not(ArchConditions.<HAS_NAME>haveName(name));
     }
 
@@ -510,13 +510,13 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_NAME extends HasName & HasDescription & HasOccurrence> ArchCondition<HAS_NAME> haveNameMatching(final String regex) {
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> haveNameMatching(final String regex) {
         final DescribedPredicate<HasName> haveNameMatching = have(nameMatching(regex));
         return new NameMatchingCondition<>(haveNameMatching, regex);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_NAME extends HasName & HasDescription & HasOccurrence> ArchCondition<HAS_NAME> haveNameNotMatching(String regex) {
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> haveNameNotMatching(String regex) {
         return not(ArchConditions.<HAS_NAME>haveNameMatching(regex)).as("have name not matching '%s'", regex);
     }
 
@@ -541,44 +541,44 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> haveModifier(
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> haveModifier(
             final JavaModifier modifier) {
         return new HaveConditionByPredicate<>(modifier(modifier));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> notHaveModifier(
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> notHaveModifier(
             final JavaModifier modifier) {
         return not(ArchConditions.<HAS_MODIFIERS>haveModifier(modifier));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> bePublic() {
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> bePublic() {
         return ArchConditions.<HAS_MODIFIERS>haveModifier(JavaModifier.PUBLIC).as("be public");
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> notBePublic() {
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> notBePublic() {
         return not(ArchConditions.<HAS_MODIFIERS>haveModifier(JavaModifier.PUBLIC)).as("not be public");
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> beProtected() {
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> beProtected() {
         return ArchConditions.<HAS_MODIFIERS>haveModifier(JavaModifier.PROTECTED).as("be protected");
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> notBeProtected() {
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> notBeProtected() {
         return not(ArchConditions.<HAS_MODIFIERS>haveModifier(JavaModifier.PROTECTED)).as("not be protected");
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> bePackagePrivate() {
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> bePackagePrivate() {
         return not(ArchConditions.<HAS_MODIFIERS>notBePackagePrivate()).as("be package private");
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> notBePackagePrivate() {
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> notBePackagePrivate() {
         return ArchConditions.<HAS_MODIFIERS>haveModifier(JavaModifier.PUBLIC)
                 .or(haveModifier(JavaModifier.PROTECTED))
                 .or(haveModifier(JavaModifier.PRIVATE))
@@ -586,12 +586,12 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> bePrivate() {
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> bePrivate() {
         return ArchConditions.<HAS_MODIFIERS>haveModifier(JavaModifier.PRIVATE).as("be private");
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasOccurrence> ArchCondition<HAS_MODIFIERS> notBePrivate() {
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> notBePrivate() {
         return not(ArchConditions.<HAS_MODIFIERS>haveModifier(JavaModifier.PRIVATE)).as("not be private");
     }
 
@@ -601,73 +601,73 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             Class<? extends Annotation> type) {
         return new IsConditionByPredicate<>(annotatedWith(type));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
             Class<? extends Annotation> type) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beAnnotatedWith(type));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             String typeName) {
         return new IsConditionByPredicate<>(annotatedWith(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
             String typeName) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beAnnotatedWith(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             final DescribedPredicate<? super JavaAnnotation> predicate) {
         return new IsConditionByPredicate<>(annotatedWith(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
             DescribedPredicate<? super JavaAnnotation> predicate) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beAnnotatedWith(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             Class<? extends Annotation> type) {
         return new IsConditionByPredicate<>(metaAnnotatedWith(type));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
             Class<? extends Annotation> type) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beMetaAnnotatedWith(type));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             String typeName) {
         return new IsConditionByPredicate<>(metaAnnotatedWith(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
             String typeName) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beMetaAnnotatedWith(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             final DescribedPredicate<? super JavaAnnotation> predicate) {
         return new IsConditionByPredicate<>(metaAnnotatedWith(predicate));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasOccurrence> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
+    public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
             DescribedPredicate<? super JavaAnnotation> predicate) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beMetaAnnotatedWith(predicate));
     }
@@ -866,8 +866,8 @@ public final class ArchConditions {
         return new DeclareThrowableCondition(declareThrowableOfType);
     }
 
-    private static <T extends HasDescription & HasOccurrence> String createMessage(T object, String message) {
-        return object.getDescription() + " " + message + " in " + object.getOccurrence();
+    private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
+        return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
     }
 
     private static class HaveOnlyFinalFieldsCondition extends ArchCondition<JavaClass> {
@@ -1009,7 +1009,7 @@ public final class ArchConditions {
                     javaClass.getName(),
                     satisfied ? "starts" : "does not start",
                     prefix,
-                    javaClass.getOccurrence());
+                    javaClass.getSourceCodeLocation());
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
@@ -1031,7 +1031,7 @@ public final class ArchConditions {
                     javaClass.getName(),
                     satisfied ? "contains" : "does not contain",
                     infix,
-                    javaClass.getOccurrence());
+                    javaClass.getSourceCodeLocation());
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
@@ -1053,12 +1053,12 @@ public final class ArchConditions {
                     javaClass.getName(),
                     satisfied ? "ends" : "does not end",
                     suffix,
-                    javaClass.getOccurrence());
+                    javaClass.getSourceCodeLocation());
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
         }
     }
 
-    private static class NameMatchingCondition<HAS_NAME extends HasName & HasDescription & HasOccurrence> extends ArchCondition<HAS_NAME> {
+    private static class NameMatchingCondition<HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> extends ArchCondition<HAS_NAME> {
         private final DescribedPredicate<HasName> haveNameMatching;
         private final String regex;
 
@@ -1094,7 +1094,7 @@ public final class ArchConditions {
         }
     }
 
-    private static class IsConditionByPredicate<T extends HasDescription & HasOccurrence> extends ArchCondition<T> {
+    private static class IsConditionByPredicate<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
         private final DescribedPredicate<T> predicate;
 
         private IsConditionByPredicate(DescribedPredicate<? super T> predicate) {
@@ -1111,7 +1111,7 @@ public final class ArchConditions {
         }
     }
 
-    private static class HaveConditionByPredicate<T extends HasDescription & HasOccurrence> extends ArchCondition<T> {
+    private static class HaveConditionByPredicate<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
         private final DescribedPredicate<T> rawType;
 
         HaveConditionByPredicate(DescribedPredicate<? super T> rawType) {

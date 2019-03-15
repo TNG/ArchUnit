@@ -53,7 +53,7 @@ public class DaoRulesTest {
                     if (method.getThrowsClause().containsType(exception)) {
                         String message = String.format("%s throws %s in %s",
                                 method.getFullName(), exception.getName(),
-                                javaClass.getOccurrence());
+                                javaClass.getSourceCodeLocation());
                         events.add(SimpleConditionEvent.violated(method, message));
                     }
                 }

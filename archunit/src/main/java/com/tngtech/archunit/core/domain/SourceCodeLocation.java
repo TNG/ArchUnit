@@ -25,29 +25,30 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 
 /**
- * Occurrence of an ArchUnit domain object. I.e. the location in the source code this domain object
- * is associated with.
+ * Location in the source code of an ArchUnit domain object.
  * <br><br>
- * E.g. considering a {@link JavaAccess} from <code>com.myapp.MyClass</code> line number 28
- * to another class <code>com.any.OtherClass</code>. Then the {@link Occurrence} would be
+ * Consider, e.g., a {@link JavaAccess} from <code>com.myapp.MyClass</code> line number 28
+ * to another class <code>com.any.OtherClass</code>. Then the {@link SourceCodeLocation} would be
  * <pre><code>com.myapp.MyClass.java:28</code></pre>
  * <br>
- * An {@link Occurrence} will always only be as precise as possible from the point of Java bytecode. E.g. a field
- * of class <code>com.myapp.MyClass</code> would always be
+ * An {@link SourceCodeLocation} will always only be as precise as possible from the point of Java bytecode.
+ * A field of a class, e.g., <code>com.myapp.MyClass</code> would always give
  * <pre><code>com.myapp.MyClass.java:0</code></pre>
  * since there is no way to precisely determine the line number of a {@link JavaField} from bytecode.
+ *
+ * @see #toString()
  */
 @PublicAPI(usage = ACCESS)
-public final class Occurrence {
+public final class SourceCodeLocation {
     private final JavaClass sourceClass;
     private final int lineNumber;
     private final String description;
 
-    Occurrence(JavaClass sourceClass) {
+    SourceCodeLocation(JavaClass sourceClass) {
         this(sourceClass, 0);
     }
 
-    Occurrence(JavaClass sourceClass, int lineNumber) {
+    SourceCodeLocation(JavaClass sourceClass, int lineNumber) {
         this.sourceClass = checkNotNull(sourceClass);
         this.lineNumber = lineNumber;
         checkArgument(lineNumber >= 0, "Line number must be non-negative but was " + lineNumber);
@@ -67,11 +68,16 @@ public final class Occurrence {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Occurrence other = (Occurrence) obj;
+        final SourceCodeLocation other = (SourceCodeLocation) obj;
         return Objects.equals(this.sourceClass, other.sourceClass)
                 && Objects.equals(this.lineNumber, other.lineNumber);
     }
 
+    /**
+     * @return "(${sourceClass.getSimpleName()}.java:${lineNumber})".
+     * This format is (at least by IntelliJ Idea) recognized as location, if it's the end of a line,
+     * thus enabling IDE support, to jump to a definition.
+     */
     @Override
     public String toString() {
         return description;
