@@ -105,7 +105,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         isEnum = builder.isEnum();
         modifiers = checkNotNull(builder.getModifiers());
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
-        sourceCodeLocation = new SourceCodeLocation(this);
+        sourceCodeLocation = SourceCodeLocation.of(this);
         javaPackage = JavaPackage.simple(this);
     }
 

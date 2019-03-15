@@ -44,7 +44,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         this.target = checkNotNull(builder.getTarget());
         this.lineNumber = builder.getLineNumber();
         this.hashCode = Objects.hash(origin.getFullName(), target.getFullName(), lineNumber);
-        this.sourceCodeLocation = new SourceCodeLocation(getOriginOwner(), lineNumber);
+        this.sourceCodeLocation = SourceCodeLocation.of(getOriginOwner(), lineNumber);
     }
 
     @Override

@@ -59,7 +59,7 @@ public abstract class JavaMember implements
         this.descriptor = checkNotNull(builder.getDescriptor());
         this.annotations = builder.getAnnotations();
         this.owner = checkNotNull(builder.getOwner());
-        this.sourceCodeLocation = new SourceCodeLocation(owner);
+        this.sourceCodeLocation = SourceCodeLocation.of(owner);
         this.modifiers = checkNotNull(builder.getModifiers());
     }
 
