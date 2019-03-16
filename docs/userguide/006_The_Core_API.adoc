@@ -101,6 +101,7 @@ skinparam class {
   BackgroundColor #white
 }
 
+class JavaPackage
 class JavaClass
 class JavaMember
 class JavaField
@@ -113,6 +114,7 @@ class JavaFieldAccess
 class JavaConstructorCall
 class JavaMethodCall
 
+JavaPackage *--* JavaClass : has
 JavaClass *-- JavaMember : has
 JavaMember <|-- JavaField : extends
 JavaMember <|-- JavaCodeUnit : extends
