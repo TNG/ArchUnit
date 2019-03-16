@@ -106,6 +106,7 @@ class JavaClass
 class JavaMember
 class JavaField
 class JavaCodeUnit
+class ThrowsClause
 class JavaConstructor
 class JavaMethod
 class JavaStaticInitializer
@@ -118,6 +119,7 @@ JavaPackage *--* JavaClass : has
 JavaClass *-- JavaMember : has
 JavaMember <|-- JavaField : extends
 JavaMember <|-- JavaCodeUnit : extends
+JavaCodeUnit *-left- ThrowsClause : has
 JavaCodeUnit <|-- JavaConstructor : extends
 JavaCodeUnit <|-- JavaMethod : extends
 JavaCodeUnit <|-- JavaStaticInitializer : extends
