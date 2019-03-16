@@ -1,5 +1,7 @@
 package com.tngtech.archunit.lang.conditions;
 
+import java.sql.SQLException;
+
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaCall;
@@ -11,8 +13,6 @@ import com.tngtech.archunit.core.domain.TestUtils.AccessesSimulator;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Test;
-
-import java.sql.SQLException;
 
 import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
@@ -120,6 +120,7 @@ public class ArchConditionsTest {
     @Test
     public void declare_throwable_of_type() {
         class Failure {
+            @SuppressWarnings("unused")
             void method() {
             }
         }
