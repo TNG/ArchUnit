@@ -417,7 +417,7 @@ public class JavaClassTest {
 
     @Test
     public void direct_dependencies_from_self_by_annotation() {
-        JavaClass javaClass = importClasses(ClassWithAnnotationDependencies.class, MetaAnnotated.class)
+        JavaClass javaClass = importClasses(ClassWithAnnotationDependencies.class)
                 .get(ClassWithAnnotationDependencies.class);
 
         assertThat(javaClass.getDirectDependenciesFromSelf())
@@ -437,12 +437,16 @@ public class JavaClassTest {
                         .from(ClassWithAnnotationDependencies.class)
                         .to(OnMethod.class)
                         .inLineNumber(0))
-                .areAtLeastOne(annotationTypeDependency()
+                .areAtLeastOne(annotationMemberOfTypeDependency()
                         .from(ClassWithAnnotationDependencies.class)
                         .to(WithType.class)
                         .inLineNumber(0))
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(B.class)
+                        .inLineNumber(0))
         ;
-        // TODO test meta annotations and member annotations
+        // TODO test meta annotations
         // TODO test that annotation dependencies do not lead to a infinite loop
     }
 
@@ -523,7 +527,46 @@ public class JavaClassTest {
                         .from(ClassWithAnnotationDependencies.class)
                         .to(OnClass.class)
                         .inLineNumber(0));
-        // TODO needs support for rest of annotations
+
+        javaClasses = importClasses(ClassWithAnnotationDependencies.class, OnField.class);
+
+        assertThat(javaClasses.get(OnField.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnField.class)
+                        .inLineNumber(0));
+
+        javaClasses = importClasses(ClassWithAnnotationDependencies.class, OnMethod.class);
+
+        assertThat(javaClasses.get(OnMethod.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnMethod.class)
+                        .inLineNumber(0));
+
+        javaClasses = importClasses(ClassWithAnnotationDependencies.class, OnConstructor.class);
+
+        assertThat(javaClasses.get(OnConstructor.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnConstructor.class)
+                        .inLineNumber(0));
+
+        javaClasses = importClasses(ClassWithAnnotationDependencies.class, WithType.class);
+
+        assertThat(javaClasses.get(WithType.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(WithType.class)
+                        .inLineNumber(0));
+
+        javaClasses = importClasses(ClassWithAnnotationDependencies.class, B.class);
+
+        assertThat(javaClasses.get(B.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(B.class)
+                        .inLineNumber(0));
     }
 
     @Test
@@ -878,7 +921,7 @@ public class JavaClassTest {
     }
 
     private static DependencyConditionCreation annotationTypeDependency() {
-        return new DependencyConditionCreation("has annotation");
+        return new DependencyConditionCreation("is annotated with");
     }
 
     private static DependencyConditionCreation annotationMemberOfTypeDependency() {
@@ -1227,7 +1270,9 @@ public class JavaClassTest {
 
     @OnClass
     @WithNestedAnnotations(
-            nested = @WithType(type = B.class)
+            nested = {
+                    @WithType(type = B.class)
+            }
     )
     @MetaAnnotated
     public class ClassWithAnnotationDependencies {
@@ -1252,9 +1297,10 @@ public class JavaClassTest {
     @interface OnMethodParam {}
     @interface WithType { Class<?> type(); }
     @interface WithNestedAnnotations {
-        WithType nested();
+        WithType[] nested();
     }
 
+    @MetaAnnotation
     @interface MetaAnnotation {
     }
 

@@ -54,7 +54,6 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
@@ -156,8 +155,8 @@ public final class DomainBuilders {
             return name;
         }
 
-        public Supplier<Map<String, JavaAnnotation>> getAnnotations() {
-            return Suppliers.memoize(new AnnotationsSupplier(owner, annotations, importedClasses));
+        public Map<String, JavaAnnotation> getAnnotations() {
+            return buildAnnotations(owner, annotations, importedClasses);
         }
 
         public String getDescriptor() {
@@ -177,23 +176,6 @@ public final class DomainBuilders {
             this.owner = owner;
             this.importedClasses = importedClasses;
             return construct(self(), importedClasses);
-        }
-
-        private static class AnnotationsSupplier implements Supplier<Map<String, JavaAnnotation>> {
-            private final JavaClass owner;
-            private final Set<JavaAnnotationBuilder> annotations;
-            private final ClassesByTypeName importedClasses;
-
-            AnnotationsSupplier(JavaClass owner, Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
-                this.owner = owner;
-                this.annotations = annotations;
-                this.importedClasses = importedClasses;
-            }
-
-            @Override
-            public Map<String, JavaAnnotation> get() {
-                return buildAnnotations(owner, annotations, importedClasses);
-            }
         }
     }
 
