@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.util.AbstractList;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -122,14 +121,6 @@ public class JavaClassTest {
         JavaClass anonymous = importClassWithContext(ClassWithInnerClass.Inner.class);
 
         assertThat(anonymous.getPackageName()).isEqualTo(getClass().getPackage().getName());
-    }
-
-    @Test
-    public void Array_class_has_default_package() {
-        JavaClass arrayType = importClassWithContext(Arrays.class)
-                .getMethod("toString", Object[].class).getRawParameterTypes().get(0);
-
-        assertThat(arrayType.getPackageName()).isEmpty();
     }
 
     @Test

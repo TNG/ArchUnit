@@ -47,17 +47,21 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * housing all the classes from the {@code customer} package and so on.
  */
 public final class Slice extends ForwardingSet<JavaClass> implements HasDescription, CanOverrideDescription<Slice> {
+    private final SliceAssignment sliceAssignment;
     private final List<String> matchingGroups;
     private final Description description;
     private final Set<JavaClass> classes;
 
-    private Slice(List<String> matchingGroups, Set<JavaClass> classes) {
-        this(matchingGroups,
+    private Slice(SliceAssignment sliceAssignment, List<String> matchingGroups, Set<JavaClass> classes) {
+        this(sliceAssignment,
+                matchingGroups,
                 new Description("Slice " + Joiner.on(" - ").join(ascendingCaptures(matchingGroups))),
                 classes);
     }
 
-    private Slice(List<String> matchingGroups, Description description, Set<JavaClass> classes) {
+    private Slice(SliceAssignment sliceAssignment, List<String> matchingGroups, Description description,
+            Set<JavaClass> classes) {
+        this.sliceAssignment = sliceAssignment;
         this.matchingGroups = checkNotNull(matchingGroups);
         this.description = checkNotNull(description);
         this.classes = ImmutableSet.copyOf(classes);
@@ -92,7 +96,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
      */
     @Override
     public Slice as(String pattern) {
-        return new Slice(matchingGroups, new Description(pattern), classes);
+        return new Slice(sliceAssignment, matchingGroups, new Description(pattern), classes);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -100,12 +104,17 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
         Set<Dependency> result = new HashSet<>();
         for (JavaClass javaClass : this) {
             for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
-                if (!contains(dependency.getTargetClass())) {
+                if (isNotToOwnSlice(dependency)) {
                     result.add(dependency);
                 }
             }
         }
         return result;
+    }
+
+    private boolean isNotToOwnSlice(Dependency dependency) {
+        List<String> dependencyIdentifier = sliceAssignment.getIdentifierOf(dependency.getTargetClass()).getParts();
+        return !dependencyIdentifier.equals(matchingGroups);
     }
 
     @Override
@@ -145,14 +154,16 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
 
     static class Builder {
         private final List<String> matchingGroups;
+        private final SliceAssignment sliceAssignment;
         private final Set<JavaClass> classes = new HashSet<>();
 
-        private Builder(List<String> matchingGroups) {
+        private Builder(List<String> matchingGroups, SliceAssignment sliceAssignment) {
             this.matchingGroups = matchingGroups;
+            this.sliceAssignment = sliceAssignment;
         }
 
-        static Builder from(List<String> matchingGroups) {
-            return new Builder(matchingGroups);
+        static Builder from(List<String> matchingGroups, SliceAssignment sliceAssignment) {
+            return new Builder(matchingGroups, sliceAssignment);
         }
 
         Builder addClass(JavaClass clazz) {
@@ -161,7 +172,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
         }
 
         Slice build() {
-            return new Slice(matchingGroups, classes);
+            return new Slice(sliceAssignment, matchingGroups, classes);
         }
     }
 }
