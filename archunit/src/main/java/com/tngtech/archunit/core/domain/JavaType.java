@@ -223,11 +223,11 @@ public interface JavaType {
             ObjectType(String fullName) {
                 super(fullName, ensureSimpleName(fullName), createPackage(fullName));
             }
+        }
 
-            private static String createPackage(String fullName) {
-                int packageEnd = fullName.lastIndexOf('.');
-                return packageEnd >= 0 ? fullName.substring(0, packageEnd) : "";
-            }
+        private static String createPackage(String fullName) {
+            int packageEnd = fullName.lastIndexOf('.');
+            return packageEnd >= 0 ? fullName.substring(0, packageEnd) : "";
         }
 
         private static class PrimitiveType extends AbstractType {
@@ -249,7 +249,12 @@ public interface JavaType {
 
         private static class ArrayType extends AbstractType {
             ArrayType(String fullName) {
-                super(fullName, createSimpleName(fullName), "");
+                super(fullName, createSimpleName(fullName), createPackageOfComponentType(fullName));
+            }
+
+            private static String createPackageOfComponentType(String fullName) {
+                String componentType = getCanonicalName(fullName).replace("[]", "");
+                return createPackage(componentType);
             }
 
             private static String createSimpleName(String fullName) {

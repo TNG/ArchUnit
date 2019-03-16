@@ -47,6 +47,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.testutil.assertion.ArchConditionAssertion;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
+import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
@@ -56,7 +57,6 @@ import com.tngtech.archunit.testutil.assertion.JavaMembersAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
-import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
@@ -321,9 +321,9 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(actual.getSimpleName()).as("Simple name of " + actual)
                     .isEqualTo(ensureArrayName(clazz.getSimpleName()));
             assertThat(actual.getPackage().getName()).as("Package of " + actual)
-                    .isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
+                    .isEqualTo(getExpectedPackageName(clazz));
             assertThat(actual.getPackageName()).as("Package name of " + actual)
-                    .isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
+                    .isEqualTo(getExpectedPackageName(clazz));
             assertThat(actual.getModifiers()).as("Modifiers of " + actual)
                     .isEqualTo(JavaModifier.getModifiersForClass(clazz.getModifiers()));
             assertThat(propertiesOf(actual.getAnnotations())).as("Annotations of " + actual)
@@ -627,7 +627,15 @@ public class Assertions extends org.assertj.core.api.Assertions {
         public void isEquivalentTo(Class<?> clazz) {
             assertThat(actual.getName()).as("name").isEqualTo(clazz.getName());
             assertThat(actual.getSimpleName()).as("simple name").isEqualTo(clazz.getSimpleName());
-            assertThat(actual.getPackageName()).as("package").isEqualTo(clazz.getPackage() != null ? clazz.getPackage().getName() : "");
+            String expectedPackageName = getExpectedPackageName(clazz);
+            assertThat(actual.getPackageName()).as("package").isEqualTo(expectedPackageName);
         }
+    }
+
+    private static String getExpectedPackageName(Class<?> clazz) {
+        if (!clazz.isArray()) {
+            return clazz.getPackage() != null ? clazz.getPackage().getName() : "";
+        }
+        return getExpectedPackageName(clazz.getComponentType());
     }
 }

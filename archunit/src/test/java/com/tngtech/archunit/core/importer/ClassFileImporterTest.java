@@ -85,6 +85,9 @@ import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.Cl
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.MethodAnnotationWithIntValue;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.MethodAnnotationWithStringValue;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.MethodAnnotationWithArrays;
+import com.tngtech.archunit.core.importer.testexamples.arrays.ClassAccessingOneDimensionalArray;
+import com.tngtech.archunit.core.importer.testexamples.arrays.ClassAccessingTwoDimensionalArray;
+import com.tngtech.archunit.core.importer.testexamples.arrays.ClassUsedInArray;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsExternalMethod;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsMethodReturningArray;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsOtherConstructor;
@@ -168,6 +171,9 @@ import com.tngtech.archunit.core.importer.testexamples.simpleimport.InterfaceToI
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
 import com.tngtech.archunit.testutil.LogTestRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Condition;
 import org.junit.After;
@@ -215,9 +221,11 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
 
+@RunWith(DataProviderRunner.class)
 public class ClassFileImporterTest {
     @Rule
     public final OutsideOfClassPathRule outsideOfClassPath = new OutsideOfClassPathRule();
@@ -323,6 +331,25 @@ public class ClassFileImporterTest {
 
         assertThat(javaPackage.containsClass(SomeEnum.class)).as("Package contains " + SomeEnum.class).isTrue();
         assertThatClasses(javaPackage.getParent().get().getClasses()).contain(getClass());
+    }
+
+    @DataProvider
+    public static Object[][] array_types() {
+        return testForEach(ClassAccessingOneDimensionalArray.class, ClassAccessingTwoDimensionalArray.class);
+    }
+
+    // we want to diverge from the Reflection API in this place, because it is way more useful for dependency checks,
+    // if com.some.SomeArray[].getPackageName() reports 'com.some' instead of '' (which would be ArchUnit's equivalent of null)
+    @Test
+    @UseDataProvider("array_types")
+    public void adds_package_of_component_type_to_arrays(Class<?> classAccessingArray) {
+        JavaClass javaClass = new ClassFileImporter().importPackagesOf(classAccessingArray)
+                .get(classAccessingArray);
+
+        JavaClass arrayType = getOnlyElement(javaClass.getFieldAccessesFromSelf()).getTarget().getRawType();
+
+        assertThat(arrayType.getPackageName()).isEqualTo(ClassUsedInArray.class.getPackage().getName());
+        assertThat(arrayType.getPackage().getName()).isEqualTo(ClassUsedInArray.class.getPackage().getName());
     }
 
     @Test

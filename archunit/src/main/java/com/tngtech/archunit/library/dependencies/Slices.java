@@ -225,10 +225,9 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         }
 
         private Slices createSlices(JavaClasses classes) {
-            SliceBuilders sliceBuilders = new SliceBuilders();
+            SliceBuilders sliceBuilders = new SliceBuilders(sliceAssignment);
             for (JavaClass clazz : classes) {
-                List<String> identifierParts = sliceAssignment.getIdentifierOf(clazz).getParts();
-                sliceBuilders.add(identifierParts, clazz);
+                sliceBuilders.add(clazz);
             }
             return new Slices(sliceBuilders.build());
         }
@@ -295,18 +294,22 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
 
     private static class SliceBuilders {
         private final Map<List<String>, Slice.Builder> sliceBuilders = new HashMap<>();
+        private final SliceAssignment sliceAssignment;
 
-        void add(List<String> identifierParts, JavaClass clazz) {
-            if (!identifierParts.isEmpty()) {
-                put(identifierParts, clazz);
-            }
+        SliceBuilders(SliceAssignment sliceAssignment) {
+            this.sliceAssignment = sliceAssignment;
         }
 
-        private void put(List<String> matchingGroups, JavaClass clazz) {
-            if (!sliceBuilders.containsKey(matchingGroups)) {
-                sliceBuilders.put(matchingGroups, Slice.Builder.from(matchingGroups));
+        void add(JavaClass clazz) {
+            List<String> identifierParts = sliceAssignment.getIdentifierOf(clazz).getParts();
+            if (identifierParts.isEmpty()) {
+                return;
             }
-            sliceBuilders.get(matchingGroups).addClass(clazz);
+
+            if (!sliceBuilders.containsKey(identifierParts)) {
+                sliceBuilders.put(identifierParts, Slice.Builder.from(identifierParts, sliceAssignment));
+            }
+            sliceBuilders.get(identifierParts).addClass(clazz);
         }
 
         Set<Slice> build() {
