@@ -38,13 +38,20 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION haveFullyQualifiedName(String name);
 
     /**
-     * Matches classes that don't have a certain fully qualified class name.
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotHaveFullyQualifiedName(String)}
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION dontHaveFullyQualifiedName(String name);
+
+    /**
+     * Matches classes that do not have a certain fully qualified class name.
      *
      * @param name The fully qualified class name
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontHaveFullyQualifiedName(String name);
+    CONJUNCTION doNotHaveFullyQualifiedName(String name);
 
     /**
      * Matches classes by their simple class name.
@@ -56,13 +63,20 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION haveSimpleName(String name);
 
     /**
-     * Matches classes that don't have a certain simple class name.
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotHaveSimpleName(String)}
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION dontHaveSimpleName(String name);
+
+    /**
+     * Matches classes that do not have a certain simple class name.
      *
      * @param name The simple class name
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontHaveSimpleName(String name);
+    CONJUNCTION doNotHaveSimpleName(String name);
 
     /**
      * Matches classes with a fully qualified class name matching a given regular expression.
@@ -245,12 +259,19 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION haveModifier(JavaModifier modifier);
 
     /**
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotHaveModifier(JavaModifier)}
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION dontHaveModifier(JavaModifier modifier);
+
+    /**
      * Matches classes not having a certain {@link JavaModifier} (e.g. {@link JavaModifier#ABSTRACT}).
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontHaveModifier(JavaModifier modifier);
+    CONJUNCTION doNotHaveModifier(JavaModifier modifier);
 
     /**
      * Matches classes annotated with a certain type of annotation.
@@ -380,17 +401,24 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION implement(Class<?> type);
 
     /**
-     * Matches classes that don't implement a certain interface. This is the negation of {@link #implement(Class)}.
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotImplement(Class)}
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION dontImplement(Class<?> type);
+
+    /**
+     * Matches classes that do not implement a certain interface. This is the negation of {@link #implement(Class)}.
      *
      * @param type An interface type matching classes must not implement
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontImplement(Class<?> type);
+    CONJUNCTION doNotImplement(Class<?> type);
 
     /**
      * Matches classes that implement a certain interface with the given type name. This is equivalent to
-     * {@link #implement(Class)}, but doesn't depend on having a certain type on the classpath.
+     * {@link #implement(Class)}, but does not depend on having a certain type on the classpath.
      *
      * @param typeName Name of an interface type matching classes must implement
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -399,15 +427,22 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION implement(String typeName);
 
     /**
-     * Matches classes that don't implement a certain interface with the given type name.
-     * This is equivalent to {@link #dontImplement(Class)}, but doesn't depend on having a certain
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotImplement(String)}
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION dontImplement(String typeName);
+
+    /**
+     * Matches classes that do not implement a certain interface with the given type name.
+     * This is equivalent to {@link #doNotImplement(Class)}, but does not depend on having a certain
      * type on the classpath.
      *
      * @param typeName Name of an interface type matching classes must not implement
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontImplement(String typeName);
+    CONJUNCTION doNotImplement(String typeName);
 
     /**
      * Matches classes that implement a certain interface matching the given predicate. For example, a call with
@@ -421,14 +456,21 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION implement(DescribedPredicate<? super JavaClass> predicate);
 
     /**
-     * Matches classes that don't implement a certain interface matching the given predicate.
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotImplement(DescribedPredicate)}
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION dontImplement(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Matches classes that do not implement a certain interface matching the given predicate.
      * This is the negation of {@link #implement(DescribedPredicate)}.
      *
      * @param predicate A predicate identifying interfaces matching classes must not implement
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontImplement(DescribedPredicate<? super JavaClass> predicate);
+    CONJUNCTION doNotImplement(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * Matches classes assignable to a certain type (compare {@link Class#isAssignableFrom(Class)} to terminology).
@@ -456,7 +498,7 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes assignable to a certain type with the given type name. This is equivalent to
-     * {@link #areAssignableTo(Class)}, but doesn't depend on having a certain type on the classpath.
+     * {@link #areAssignableTo(Class)}, but does not depend on having a certain type on the classpath.
      *
      * @param typeName Name of an upper type bound to match imported classes against (imported subtypes will match)
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -466,7 +508,7 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes not assignable to a certain type with the given type name.
-     * This is equivalent to {@link #areNotAssignableTo(Class)}, but doesn't depend on having a certain
+     * This is equivalent to {@link #areNotAssignableTo(Class)}, but does not depend on having a certain
      * type on the classpath.
      *
      * @param typeName Name of an upper type bound imported classes should NOT have
@@ -527,7 +569,7 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes assignable from a certain type with the given type name. This is equivalent to
-     * {@link #areAssignableFrom(Class)}, but doesn't depend on having a certain type on the classpath.
+     * {@link #areAssignableFrom(Class)}, but does not depend on having a certain type on the classpath.
      *
      * @param typeName Name of a lower type bound to match imported classes against (imported supertypes will match)
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -537,7 +579,7 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes not assignable from a certain type with the given type name.
-     * This is equivalent to {@link #areNotAssignableFrom(Class)}, but doesn't depend on having a certain
+     * This is equivalent to {@link #areNotAssignableFrom(Class)}, but does not depend on having a certain
      * type on the classpath.
      *
      * @param typeName Name of a lower type bound imported classes should NOT have
@@ -567,7 +609,6 @@ public interface ClassesThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAssignableFrom(DescribedPredicate<? super JavaClass> predicate);
-
 
     /**
      * Matches interfaces.

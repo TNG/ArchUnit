@@ -16,6 +16,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -31,6 +32,7 @@ import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -38,17 +40,23 @@ import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.testutil.assertion.ArchConditionAssertion;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldsAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaMemberAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaMembersAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
+import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
 import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
@@ -69,12 +77,20 @@ import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.pr
 import static com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion.sortByName;
 
 public class Assertions extends org.assertj.core.api.Assertions {
+    public static <T> ArchConditionAssertion<T> assertThat(ArchCondition<T> archCondition) {
+        return new ArchConditionAssertion<>(archCondition);
+    }
+
     public static ConditionEventsAssert assertThat(ConditionEvents events) {
         return new ConditionEventsAssert(events);
     }
 
     public static <T> org.assertj.guava.api.OptionalAssert<T> assertThat(Optional<T> optional) {
         return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
+    }
+
+    public static <T> DescribedPredicateAssertion<T> assertThat(DescribedPredicate<T> predicate) {
+        return new DescribedPredicateAssertion<>(predicate);
     }
 
     public static JavaClassAssertion assertThat(JavaClass javaClass) {
@@ -87,6 +103,26 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaPackagesAssertion assertThatPackages(Iterable<JavaPackage> javaPackages) {
         return new JavaPackagesAssertion(javaPackages);
+    }
+
+    public static JavaMemberAssertion<?, ?> assertThat(JavaMember member) {
+        return new JavaMemberAssertion<>(member, JavaMemberAssertion.class);
+    }
+
+    public static JavaCodeUnitAssertion<?, ?> assertThat(JavaCodeUnit codeUnit) {
+        return new JavaCodeUnitAssertion<>(codeUnit, JavaCodeUnitAssertion.class);
+    }
+
+    public static JavaMethodAssertion assertThat(JavaMethod method) {
+        return new JavaMethodAssertion(method);
+    }
+
+    public static JavaConstructorAssertion assertThat(JavaConstructor constructor) {
+        return new JavaConstructorAssertion(constructor);
+    }
+
+    public static JavaMembersAssertion assertThatMembers(Iterable<? extends JavaMember> members) {
+        return new JavaMembersAssertion(members);
     }
 
     public static JavaMethodsAssertion assertThatMethods(Iterable<JavaMethod> methods) {
@@ -111,14 +147,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaFieldAssertion assertThat(JavaField field) {
         return new JavaFieldAssertion(field);
-    }
-
-    public static JavaMethodAssertion assertThat(JavaMethod method) {
-        return new JavaMethodAssertion(method);
-    }
-
-    public static JavaConstructorAssertion assertThat(JavaConstructor constructor) {
-        return new JavaConstructorAssertion(constructor);
     }
 
     public static JavaEnumConstantAssertion assertThat(JavaEnumConstant enumConstant) {
@@ -201,7 +229,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
                     @Override
                     public boolean matches(JavaAccess<?> access) {
                         return to(targetClass, CONSTRUCTOR_NAME).matches(access) &&
-                                ((ConstructorCallTarget) access.getTarget()).getParameters().getNames().equals(paramTypeNames);
+                                ((ConstructorCallTarget) access.getTarget()).getRawParameterTypes().getNames().equals(paramTypeNames);
                     }
                 };
             }
@@ -262,7 +290,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return this;
         }
 
-        public void dontContain(Class<?>... classes) {
+        public void doNotContain(Class<?>... classes) {
             assertThat(actualNames()).doesNotContainAnyElementsOf(JavaClass.namesOf(classes));
         }
 
@@ -363,7 +391,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void matches(Class<?> clazz) {
-            assertThat(actual.getType()).as("Type of " + actual)
+            assertThat(actual.getRawType()).as("Type of " + actual)
                     .matches(clazz);
         }
     }

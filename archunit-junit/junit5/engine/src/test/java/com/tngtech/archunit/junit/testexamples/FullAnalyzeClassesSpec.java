@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.importer.ImportOption.DontIncludeJars;
-import com.tngtech.archunit.core.importer.ImportOption.DontIncludeTests;
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars;
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -23,7 +23,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
         packages = {"first.pkg", "second.pkg"},
         packagesOf = {Object.class, File.class},
         locations = {FirstLocationProvider.class, SecondLocationProvider.class},
-        importOptions = {DontIncludeTests.class, DontIncludeJars.class})
+        importOptions = {DoNotIncludeTests.class, DoNotIncludeJars.class})
 public class FullAnalyzeClassesSpec {
     @ArchTest
     public static final ArchRule irrelevant = classes().should(new ArchCondition<JavaClass>("exist") {

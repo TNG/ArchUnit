@@ -23,7 +23,7 @@ import com.tngtech.archunit.Internal;
 
 /**
  * NOTE: We keep Google Guava out of the public API and use the Gradle Shadow plugin to repackage the internally
- * used Guava classes. This ensures they don't clash with other versions of Guava we might encounter while
+ * used Guava classes. This ensures they do not clash with other versions of Guava we might encounter while
  * scanning classes from the classpath.
  */
 @Internal

@@ -30,7 +30,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFr
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -56,7 +56,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveFullyQualifiedName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void haveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveFullyQualifiedName(Foo.class.getName()))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -70,7 +70,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void dontHaveFullyQualifiedName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void dontHaveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.dontHaveFullyQualifiedName(Foo.class.getName()))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -82,7 +82,19 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveSimpleName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void doNotHaveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.doNotHaveFullyQualifiedName(Foo.class.getName()))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void haveSimpleName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveSimpleName(Foo.class.getSimpleName()))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -96,7 +108,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void dontHaveSimpleName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void dontHaveSimpleName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.dontHaveSimpleName(Foo.class.getSimpleName()))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -108,7 +120,19 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveNameMatching(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void doNotHaveSimpleName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.doNotHaveSimpleName(Foo.class.getSimpleName()))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void haveNameMatching(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveNameMatching(".*\\$Foo"))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -122,7 +146,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveNameNotMatching(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void haveNameNotMatching(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveNameNotMatching(".*\\$Foo"))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -134,7 +158,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveSimpleNameStartingWith(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void haveSimpleNameStartingWith(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveSimpleNameStartingWith("Fo"))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -148,7 +172,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveSimpleNameNotStartingWith(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void haveSimpleNameNotStartingWith(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveSimpleNameNotStartingWith("Fo"))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -161,7 +185,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveSimpleNameContaining(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void haveSimpleNameContaining(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveSimpleNameContaining("o"))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -175,7 +199,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveSimpleNameNotContaining(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void haveSimpleNameNotContaining(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveSimpleNameNotContaining("o"))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -188,7 +212,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveSimpleNameEndingWith(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void haveSimpleNameEndingWith(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveSimpleNameEndingWith("oo"))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -202,7 +226,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveSimpleNameNotEndingWith(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void haveSimpleNameNotEndingWith(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveSimpleNameNotEndingWith("oo"))
                 .on(ClassAccessedByFoo.class, Foo.class,
@@ -215,7 +239,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void resideInAPackage(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void resideInAPackage(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.resideInAPackage("..access.."))
                 .on(ClassAccessingOtherClass.class, ClassAlsoAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
@@ -225,7 +249,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void resideOutsideOfPackage(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void resideOutsideOfPackage(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.resideOutsideOfPackage("..access.."))
                 .on(ClassAccessingOtherClass.class, ClassAlsoAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
@@ -235,7 +259,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void resideInAnyPackage(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void resideInAnyPackage(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.resideInAnyPackage("..access..", "..otheraccess.."))
                 .on(ClassAccessingOtherClass.class, ClassAlsoAccessingOtherClass.class,
@@ -246,7 +270,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void resideOutsideOfPackages(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void resideOutsideOfPackages(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.resideOutsideOfPackages("..access..", "..otheraccess..")
         ).on(ClassAccessingOtherClass.class, ClassAlsoAccessingOtherClass.class,
@@ -258,7 +282,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void arePublic(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void arePublic(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.arePublic())
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -273,7 +297,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotPublic(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotPublic(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.areNotPublic())
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -286,7 +310,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areProtected(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areProtected(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.areProtected())
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -301,7 +325,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotProtected(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotProtected(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.areNotProtected())
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -314,7 +338,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void arePackagePrivate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void arePackagePrivate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.arePackagePrivate())
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -329,7 +353,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotPackagePrivate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotPackagePrivate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.areNotPackagePrivate())
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -342,7 +366,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void arePrivate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void arePrivate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.arePrivate())
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -357,7 +381,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotPrivate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotPrivate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.areNotPrivate())
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -370,7 +394,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void haveModifier(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void haveModifier(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.haveModifier(PRIVATE))
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -385,7 +409,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void dontHaveModifier(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void dontHaveModifier(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.dontHaveModifier(PRIVATE))
                 .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                         ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
@@ -398,7 +422,20 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areAnnotatedWith_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void doNotHaveModifier(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.doNotHaveModifier(PRIVATE))
+                .on(ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
+                        ClassAccessedByPackagePrivateClass.class, ClassAccessedByProtectedClass.class,
+                        PublicClass.class, PrivateClass.class,
+                        PackagePrivateClass.class, ProtectedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByPrivateClass.class, PrivateClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAnnotatedWith(SomeAnnotation.class))
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
@@ -409,7 +446,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotAnnotatedWith_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAnnotatedWith(SomeAnnotation.class))
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
@@ -420,7 +457,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areAnnotatedWith_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
@@ -431,7 +468,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotAnnotatedWith_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
@@ -442,8 +479,8 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+    public void areAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAnnotatedWith(hasNamePredicate))
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
@@ -454,8 +491,8 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+    public void areNotAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAnnotatedWith(hasNamePredicate))
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
@@ -466,7 +503,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areMetaAnnotatedWith_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areMetaAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areMetaAnnotatedWith(SomeAnnotation.class))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
@@ -480,7 +517,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotMetaAnnotatedWith_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotMetaAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotMetaAnnotatedWith(SomeAnnotation.class))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
@@ -493,7 +530,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areMetaAnnotatedWith_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areMetaAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
@@ -507,7 +544,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotMetaAnnotatedWith_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotMetaAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
@@ -520,8 +557,8 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areMetaAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+    public void areMetaAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
@@ -535,8 +572,8 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotMetaAnnotatedWith_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_TYPE.is(classWithNameOf(SomeAnnotation.class));
+    public void areNotMetaAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
@@ -549,7 +586,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void implement_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void implement_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.implement(SomeInterface.class))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -560,7 +597,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void dontImplement_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void dontImplement_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.dontImplement(SomeInterface.class))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -571,7 +608,18 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void implement_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void doNotImplement_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.doNotImplement(SomeInterface.class))
+                .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void implement_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.implement(SomeInterface.class.getName()))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -582,7 +630,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void dontImplement_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void dontImplement_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.dontImplement(SomeInterface.class.getName()))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -593,7 +641,18 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void implement_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void doNotImplement_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.doNotImplement(SomeInterface.class.getName()))
+                .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void implement_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.implement(classWithNameOf(SomeInterface.class)))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -604,7 +663,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void dontImplement_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void dontImplement_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.dontImplement(classWithNameOf(SomeInterface.class)))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -615,7 +674,18 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areAssignableTo_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void doNotImplement_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.doNotImplement(classWithNameOf(SomeInterface.class)))
+                .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areAssignableTo_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAssignableTo(SomeInterface.class))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -626,7 +696,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotAssignableTo_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotAssignableTo_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAssignableTo(SomeInterface.class))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -637,7 +707,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areAssignableTo_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areAssignableTo_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAssignableTo(SomeInterface.class.getName()))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -648,7 +718,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotAssignableTo_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotAssignableTo_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAssignableTo(SomeInterface.class.getName()))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -659,7 +729,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areAssignableTo_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areAssignableTo_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAssignableTo(classWithNameOf(SomeInterface.class)))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -670,7 +740,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotAssignableTo_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotAssignableTo_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAssignableTo(classWithNameOf(SomeInterface.class)))
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
@@ -681,7 +751,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areAssignableFrom_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areAssignableFrom_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAssignableFrom(ClassExtendingClass.class))
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
@@ -692,7 +762,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotAssignableFrom_type(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotAssignableFrom_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAssignableFrom(ClassExtendingClass.class))
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
@@ -704,7 +774,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areAssignableFrom_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areAssignableFrom_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAssignableFrom(ClassExtendingClass.class.getName()))
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
@@ -715,7 +785,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotAssignableFrom_typeName(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotAssignableFrom_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAssignableFrom(ClassExtendingClass.class.getName()))
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
@@ -727,7 +797,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areAssignableFrom_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areAssignableFrom_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAssignableFrom(classWithNameOf(ClassExtendingClass.class)))
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
@@ -738,7 +808,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotAssignableFrom_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotAssignableFrom_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAssignableFrom(classWithNameOf(ClassExtendingClass.class)))
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
@@ -750,7 +820,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areInterfaces_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areInterfaces_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areInterfaces())
                 .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
@@ -760,7 +830,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotInterfaces_predicate(ClassesShouldThat classesShouldOnlyBeBy) {
+    public void areNotInterfaces_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotInterfaces())
                 .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);

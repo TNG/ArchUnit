@@ -16,8 +16,8 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class CanBeAnnotatedTest {
     @Rule
@@ -25,33 +25,24 @@ public class CanBeAnnotatedTest {
 
     @Test
     public void matches_annotation_by_type() {
-        assertThat(annotatedWith(RuntimeRetentionAnnotation.class).apply(importClassWithContext(AnnotatedClass.class)))
-                .as("annotated class matches").isTrue();
-        assertThat(annotatedWith(RuntimeRetentionAnnotation.class.getName()).apply(importClassWithContext(AnnotatedClass.class)))
-                .as("annotated class matches").isTrue();
+        assertThat(annotatedWith(RuntimeRetentionAnnotation.class))
+                .accepts(importClassWithContext(AnnotatedClass.class))
+                .rejects(importClassWithContext(Object.class));
+        assertThat(annotatedWith(RuntimeRetentionAnnotation.class.getName()))
+                .accepts(importClassWithContext(AnnotatedClass.class))
+                .rejects(importClassWithContext(Object.class));
 
-        assertThat(annotatedWith(RuntimeRetentionAnnotation.class).apply(importClassWithContext(Object.class)))
-                .as("annotated class matches").isFalse();
-        assertThat(annotatedWith(RuntimeRetentionAnnotation.class.getName()).apply(importClassWithContext(Object.class)))
-                .as("annotated class matches").isFalse();
-
-        assertThat(annotatedWith(Rule.class).getDescription())
-                .isEqualTo("annotated with @Rule");
-        assertThat(annotatedWith(Rule.class.getName()).getDescription())
-                .isEqualTo("annotated with @Rule");
+        assertThat(annotatedWith(Rule.class)).hasDescription("annotated with @Rule");
+        assertThat(annotatedWith(Rule.class.getName())).hasDescription("annotated with @Rule");
     }
 
     @Test
     public void matches_annotation_by_predicate() {
-        assertThat(annotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue())
-                .apply(importClassWithContext(AnnotatedClass.class)))
-                .as("annotated class matches").isTrue();
-        assertThat(annotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse())
-                .apply(importClassWithContext(AnnotatedClass.class)))
-                .as("annotated class matches").isFalse();
-
-        assertThat(annotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue().as("Something")).getDescription())
-                .isEqualTo("annotated with Something");
+        assertThat(annotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .accepts(importClassWithContext(AnnotatedClass.class));
+        assertThat(annotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse().as("Something")))
+                .rejects(importClassWithContext(AnnotatedClass.class))
+                .hasDescription("annotated with Something");
     }
 
     /**
@@ -71,33 +62,26 @@ public class CanBeAnnotatedTest {
     public void matches_meta_annotation_by_type() {
         JavaClasses classes = importClassesWithContext(MetaAnnotatedClass.class, Object.class, MetaRuntimeRetentionAnnotation.class);
 
-        assertThat(metaAnnotatedWith(RuntimeRetentionAnnotation.class).apply(classes.get(MetaAnnotatedClass.class)))
-                .as("meta-annotated class matches").isTrue();
-        assertThat(metaAnnotatedWith(RuntimeRetentionAnnotation.class.getName()).apply(classes.get(MetaAnnotatedClass.class)))
-                .as("meta-annotated class matches").isTrue();
+        assertThat(metaAnnotatedWith(RuntimeRetentionAnnotation.class))
+                .accepts(classes.get(MetaAnnotatedClass.class))
+                .rejects(classes.get(Object.class));
+        assertThat(metaAnnotatedWith(RuntimeRetentionAnnotation.class.getName()))
+                .accepts(classes.get(MetaAnnotatedClass.class))
+                .rejects(classes.get(Object.class));
 
-        assertThat(metaAnnotatedWith(RuntimeRetentionAnnotation.class).apply(classes.get(Object.class)))
-                .as("meta-annotated class matches").isFalse();
-        assertThat(metaAnnotatedWith(RuntimeRetentionAnnotation.class.getName()).apply(classes.get(Object.class)))
-                .as("meta-annotated class matches").isFalse();
-
-        assertThat(metaAnnotatedWith(Rule.class).getDescription())
-                .isEqualTo("meta-annotated with @Rule");
-        assertThat(metaAnnotatedWith(Rule.class.getName()).getDescription())
-                .isEqualTo("meta-annotated with @Rule");
+        assertThat(metaAnnotatedWith(Rule.class)).hasDescription("meta-annotated with @Rule");
+        assertThat(metaAnnotatedWith(Rule.class.getName())).hasDescription("meta-annotated with @Rule");
     }
 
     @Test
     public void matches_meta_annotation_by_predicate() {
         JavaClass clazz = importClassesWithContext(MetaAnnotatedClass.class, MetaRuntimeRetentionAnnotation.class).get(MetaAnnotatedClass.class);
 
-        assertThat(metaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()).apply(clazz))
-                .as("meta-annotated class matches").isTrue();
-        assertThat(metaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()).apply(clazz))
-                .as("meta-annotated class matches").isFalse();
-
-        assertThat(metaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue().as("Something")).getDescription())
-                .isEqualTo("meta-annotated with Something");
+        assertThat(metaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .accepts(clazz);
+        assertThat(metaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse().as("Something")))
+                .rejects(clazz)
+                .hasDescription("meta-annotated with Something");
     }
 
     /**

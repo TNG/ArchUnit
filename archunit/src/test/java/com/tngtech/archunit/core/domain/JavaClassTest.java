@@ -71,14 +71,14 @@ public class JavaClassTest {
     public void finds_array_type() {
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("anArray");
 
-        assertThat(method.getReturnType().isArray()).isTrue();
+        assertThat(method.getRawReturnType().isArray()).isTrue();
     }
 
     @Test
     public void finds_non_array_type() {
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("notAnArray");
 
-        assertThat(method.getReturnType().isArray()).isFalse();
+        assertThat(method.getRawReturnType().isArray()).isFalse();
     }
 
     @Test
@@ -127,7 +127,7 @@ public class JavaClassTest {
     @Test
     public void Array_class_has_default_package() {
         JavaClass arrayType = importClassWithContext(Arrays.class)
-                .getMethod("toString", Object[].class).getParameters().get(0);
+                .getMethod("toString", Object[].class).getRawParameterTypes().get(0);
 
         assertThat(arrayType.getPackageName()).isEmpty();
     }
@@ -308,7 +308,7 @@ public class JavaClassTest {
             public boolean matches(JavaCodeUnit value) {
                 return value.getOwner().isEquivalentTo(owner) &&
                         value.getName().equals(methodName) &&
-                        value.getParameters().getNames().equals(ImmutableList.of(paramType.getName()));
+                        value.getRawParameterTypes().getNames().equals(ImmutableList.of(paramType.getName()));
             }
         };
     }
@@ -469,82 +469,80 @@ public class JavaClassTest {
 
     @Test
     public void predicate_withType() {
-        assertThat(type(Parent.class).apply(importClassWithContext(Parent.class)))
-                .as("type(Parent) matches JavaClass Parent").isTrue();
-        assertThat(type(Parent.class).apply(importClassWithContext(SuperClassWithFieldAndMethod.class)))
-                .as("type(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
+        assertThat(type(Parent.class))
+                .accepts(importClassWithContext(Parent.class))
+                .rejects(importClassWithContext(SuperClassWithFieldAndMethod.class));
 
-        assertThat(type(System.class).getDescription()).isEqualTo("type java.lang.System");
+        assertThat(type(System.class)).hasDescription("type java.lang.System");
     }
 
     @Test
     public void predicate_simpleName() {
-        assertThat(simpleName(Parent.class.getSimpleName()).apply(importClassWithContext(Parent.class)))
-                .as("simpleName(Parent) matches JavaClass Parent").isTrue();
-        assertThat(simpleName(Parent.class.getSimpleName()).apply(importClassWithContext(SuperClassWithFieldAndMethod.class)))
-                .as("simpleName(Parent) matches JavaClass SuperClassWithFieldAndMethod").isFalse();
+        assertThat(simpleName(Parent.class.getSimpleName()))
+                .accepts(importClassWithContext(Parent.class))
+                .rejects(importClassWithContext(SuperClassWithFieldAndMethod.class));
 
-        assertThat(simpleName("Simple").getDescription()).isEqualTo("simple name 'Simple'");
+        assertThat(simpleName("Simple")).hasDescription("simple name 'Simple'");
     }
 
     @Test
     public void predicate_simpleNameStartingWith() {
         JavaClass input = importClassWithContext(Parent.class);
-        assertThat(simpleNameStartingWith("P").apply(input)).isTrue();
-        assertThat(simpleNameStartingWith("Pa").apply(input)).isTrue();
-        assertThat(simpleNameStartingWith("PA").apply(input)).isFalse();
-        assertThat(simpleNameStartingWith(".P").apply(input)).isFalse();
-        assertThat(simpleNameStartingWith("").apply(input)).isTrue();
+        assertThat(simpleNameStartingWith("P")).accepts(input);
+        assertThat(simpleNameStartingWith("Pa")).accepts(input);
+        assertThat(simpleNameStartingWith("PA")).rejects(input);
+        assertThat(simpleNameStartingWith(".P")).rejects(input);
+        assertThat(simpleNameStartingWith("")).accepts(input);
 
-        assertThat(simpleNameStartingWith("wrong").apply(input)).isFalse();
+        assertThat(simpleNameStartingWith("wrong")).rejects(input);
 
         // Full match test
-        assertThat(simpleNameStartingWith(input.getName()).apply(input)).isFalse();
-        assertThat(simpleNameStartingWith(input.getName().substring(0, 2)).apply(input)).isFalse();
+        assertThat(simpleNameStartingWith(input.getName())).rejects(input);
+        assertThat(simpleNameStartingWith(input.getName().substring(0, 2))).rejects(input);
 
-        assertThat(simpleNameStartingWith("Prefix").getDescription()).isEqualTo("simple name starting with 'Prefix'");
+        assertThat(simpleNameStartingWith("Prefix")).hasDescription("simple name starting with 'Prefix'");
     }
 
     @Test
     public void predicate_simpleNameContaining() {
         JavaClass input = importClassWithContext(Parent.class);
 
-        assertThat(simpleNameContaining("Parent").apply(input)).isTrue();
-        assertThat(simpleNameContaining("Par").apply(input)).isTrue();
-        assertThat(simpleNameContaining("a").apply(input)).isTrue();
-        assertThat(simpleNameContaining("b").apply(input)).isFalse();
-        assertThat(simpleNameContaining("A").apply(input)).isFalse();
-        assertThat(simpleNameContaining("ent").apply(input)).isTrue();
-        assertThat(simpleNameContaining("Pent").apply(input)).isFalse();
-        assertThat(simpleNameContaining("aren").apply(input)).isTrue();
-        assertThat(simpleNameContaining("").apply(input)).isTrue();
+        assertThat(simpleNameContaining("Parent")).accepts(input);
+        assertThat(simpleNameContaining("Par")).accepts(input);
+        assertThat(simpleNameContaining("a")).accepts(input);
+        assertThat(simpleNameContaining("b")).rejects(input);
+        assertThat(simpleNameContaining("A")).rejects(input);
+        assertThat(simpleNameContaining("ent")).accepts(input);
+        assertThat(simpleNameContaining("Pent")).rejects(input);
+        assertThat(simpleNameContaining("aren")).accepts(input);
+        assertThat(simpleNameContaining("")).accepts(input);
 
         // Full match test
-        assertThat(simpleNameContaining(input.getName()).apply(input)).isFalse();
-        assertThat(simpleNameContaining(" ").apply(input)).isFalse();
-        assertThat(simpleNameContaining(".").apply(input)).isFalse();
+        assertThat(simpleNameContaining(input.getName())).rejects(input);
+        assertThat(simpleNameContaining(" ")).rejects(input);
+        assertThat(simpleNameContaining(".")).rejects(input);
 
-        assertThat(simpleNameContaining(".Parent").apply(input)).isFalse();
+        assertThat(simpleNameContaining(".Parent")).rejects(input);
 
-        assertThat(simpleNameContaining("Infix").getDescription()).isEqualTo("simple name containing 'Infix'");
+        assertThat(simpleNameContaining("Infix")).hasDescription("simple name containing 'Infix'");
     }
 
     @Test
     public void predicate_simpleNameEndingWith() {
         JavaClass input = importClassWithContext(Parent.class);
 
-        assertThat(simpleNameEndingWith("Parent").apply(input)).isTrue();
-        assertThat(simpleNameEndingWith("ent").apply(input)).isTrue();
-        assertThat(simpleNameEndingWith("").apply(input)).isTrue();
+        assertThat(simpleNameEndingWith("Parent")).accepts(input);
+        assertThat(simpleNameEndingWith("ent")).accepts(input);
+        assertThat(simpleNameEndingWith("")).accepts(input);
 
         // Full match test
-        assertThat(simpleNameEndingWith(input.getName()).apply(input)).isFalse();
-        assertThat(simpleNameEndingWith(" ").apply(input)).isFalse();
-        assertThat(simpleNameEndingWith(".").apply(input)).isFalse();
+        assertThat(simpleNameEndingWith(input.getName())).rejects(input);
+        assertThat(simpleNameEndingWith(" ")).rejects(input);
+        assertThat(simpleNameEndingWith(".")).rejects(input);
 
-        assertThat(simpleNameEndingWith(".Parent").apply(input)).isFalse();
+        assertThat(simpleNameEndingWith(".Parent")).rejects(input);
 
-        assertThat(simpleNameEndingWith("Suffix").getDescription()).isEqualTo("simple name ending with 'Suffix'");
+        assertThat(simpleNameEndingWith("Suffix")).hasDescription("simple name ending with 'Suffix'");
     }
 
     @Test
@@ -578,7 +576,7 @@ public class JavaClassTest {
                 .to(SuperClassWithFieldAndMethod.class)
                 .isFalse();
 
-        assertThat(assignableFrom(System.class).getDescription()).isEqualTo("assignable from java.lang.System");
+        assertThat(assignableFrom(System.class)).hasDescription("assignable from java.lang.System");
     }
 
     @Test
@@ -612,7 +610,7 @@ public class JavaClassTest {
                 .from(SuperClassWithFieldAndMethod.class)
                 .isTrue();
 
-        assertThat(assignableTo(System.class).getDescription()).isEqualTo("assignable to java.lang.System");
+        assertThat(assignableTo(System.class)).hasDescription("assignable to java.lang.System");
     }
 
     @DataProvider
@@ -629,7 +627,7 @@ public class JavaClassTest {
     @Test
     @UseDataProvider("implement_match_cases")
     public void predicate_implement_matches(DescribedPredicate<JavaClass> expectedMatch) {
-        assertThat(expectedMatch.apply(classWithHierarchy(ArrayList.class))).as("predicate matches").isTrue();
+        assertThat(expectedMatch).accepts(classWithHierarchy(ArrayList.class));
     }
 
     @Test
@@ -662,62 +660,62 @@ public class JavaClassTest {
     @Test
     @UseDataProvider("implement_mismatch_cases")
     public void predicate_implement_mismatches(DescribedPredicate<JavaClass> expectedMismatch) {
-        assertThat(expectedMismatch.apply(classWithHierarchy(ArrayList.class))).as("predicate matches").isFalse();
+        assertThat(expectedMismatch).rejects(classWithHierarchy(ArrayList.class));
     }
 
     @Test
     public void predicate_implement_descriptions() {
-        assertThat(implement(List.class).getDescription()).isEqualTo("implement " + List.class.getName());
-        assertThat(implement(List.class.getName()).getDescription()).isEqualTo("implement " + List.class.getName());
-        assertThat(implement(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")).getDescription())
-                .isEqualTo("implement custom");
+        assertThat(implement(List.class))
+                .hasDescription("implement " + List.class.getName());
+        assertThat(implement(List.class.getName()))
+                .hasDescription("implement " + List.class.getName());
+        assertThat(implement(DescribedPredicate.<JavaClass>alwaysTrue().as("custom")))
+                .hasDescription("implement custom");
     }
 
     @Test
     public void predicate_interfaces() {
-        assertThat(INTERFACES.apply(importClassWithContext(Serializable.class))).as("Predicate matches").isTrue();
-        assertThat(INTERFACES.apply(importClassWithContext(Object.class))).as("Predicate matches").isFalse();
-        assertThat(INTERFACES.getDescription()).isEqualTo("interfaces");
+        assertThat(INTERFACES)
+                .accepts(importClassWithContext(Serializable.class))
+                .rejects(importClassWithContext(Object.class))
+                .hasDescription("interfaces");
     }
 
     @Test
     public void predicate_reside_in_a_package() {
         JavaClass clazz = fakeClassWithPackage("some.arbitrary.pkg");
 
-        assertThat(resideInAPackage("some..pkg").apply(clazz)).as("package matches").isTrue();
+        assertThat(resideInAPackage("some..pkg")).accepts(clazz);
 
         clazz = fakeClassWithPackage("wrong.arbitrary.pkg");
 
-        assertThat(resideInAPackage("some..pkg").apply(clazz)).as("package matches").isFalse();
+        assertThat(resideInAPackage("some..pkg")).rejects(clazz);
 
-        assertThat(resideInAPackage("..any..").getDescription())
-                .isEqualTo("reside in a package '..any..'");
+        assertThat(resideInAPackage("..any..")).hasDescription("reside in a package '..any..'");
     }
 
     @Test
     public void predicate_reside_in_any_package() {
         JavaClass clazz = fakeClassWithPackage("some.arbitrary.pkg");
 
-        assertThat(resideInAnyPackage("any.thing", "some..pkg").apply(clazz)).as("package matches").isTrue();
+        assertThat(resideInAnyPackage("any.thing", "some..pkg")).accepts(clazz);
 
         clazz = fakeClassWithPackage("wrong.arbitrary.pkg");
 
-        assertThat(resideInAnyPackage("any.thing", "some..pkg").apply(clazz)).as("package matches").isFalse();
+        assertThat(resideInAnyPackage("any.thing", "some..pkg")).rejects(clazz);
 
-        assertThat(resideInAnyPackage("any.thing", "..any..").getDescription())
-                .isEqualTo("reside in any package ['any.thing', '..any..']");
+        assertThat(resideInAnyPackage("any.thing", "..any..")).hasDescription("reside in any package ['any.thing', '..any..']");
     }
 
     @Test
     public void predicate_equivalentTo() {
         JavaClass javaClass = importClasses(SuperClassWithFieldAndMethod.class, Parent.class).get(SuperClassWithFieldAndMethod.class);
 
-        assertThat(equivalentTo(SuperClassWithFieldAndMethod.class).apply(javaClass))
-                .as("predicate matches").isTrue();
-        assertThat(equivalentTo(Parent.class).apply(javaClass))
-                .as("predicate matches").isFalse();
-        assertThat(equivalentTo(Parent.class).getDescription())
-                .as("description").isEqualTo("equivalent to " + Parent.class.getName());
+        assertThat(equivalentTo(SuperClassWithFieldAndMethod.class))
+                .accepts(javaClass);
+        assertThat(equivalentTo(Parent.class))
+                .rejects(javaClass)
+                .hasDescription("equivalent to " + Parent.class.getName());
     }
 
     private JavaClass classWithHierarchy(Class<?> clazz) {

@@ -19,9 +19,10 @@ import static com.tngtech.archunit.core.domain.JavaFieldAccess.Predicates.access
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.Predicates.target;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static org.assertj.core.api.Assertions.assertThat;
+
 
 @RunWith(DataProviderRunner.class)
 public class JavaFieldAccessTest {
@@ -82,24 +83,19 @@ public class JavaFieldAccessTest {
     @Test
     @UseDataProvider("accessTypes")
     public void predicate_access_type(AccessType accessType) throws Exception {
-        assertThat(accessType(accessType).apply(stringFieldAccess(accessType)))
-                .as("Predicate matches").isTrue();
-        assertThat(accessType(accessType).apply(stringFieldAccess(not(accessType))))
-                .as("Predicate matches").isFalse();
-
-        assertThat(accessType(accessType).getDescription())
-                .as("Predicate description").isEqualTo("access type " + accessType);
+        assertThat(accessType(accessType))
+                .accepts(stringFieldAccess(accessType))
+                .rejects(stringFieldAccess(not(accessType)))
+                .hasDescription("access type " + accessType);
     }
 
     @Test
     public void predicate_field_access_target_by_predicate() throws Exception {
-        assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysTrue())
-                .apply(stringFieldAccess(GET))).as("Predicate matches").isTrue();
-        assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysFalse())
-                .apply(stringFieldAccess(GET))).as("Predicate matches").isFalse();
-
-        assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysTrue().as("any message"))
-                .getDescription()).as("description").isEqualTo("target any message");
+        assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysTrue()))
+                .accepts(stringFieldAccess(GET));
+        assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysFalse().as("any message")))
+                .rejects(stringFieldAccess(GET))
+                .hasDescription("target any message");
     }
 
     private AccessType not(AccessType accessType) {

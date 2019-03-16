@@ -20,16 +20,16 @@ public class HasNameTest {
         assertMatches("com.tngtech.SomeClass", ".*Clas").isFalse();
         assertMatches("com.tngtech.SomeClass", ".*\\.S.*s").isTrue();
 
-        assertThat(nameMatching(".*foo").getDescription()).isEqualTo("name matching '.*foo'");
+        assertThat(nameMatching(".*foo")).hasDescription("name matching '.*foo'");
     }
 
     @Test
     public void match_against_name() {
-        assertThat(name("some.Foo").apply(newHasName("some.Foo"))).isTrue();
-        assertThat(name("some.Foo").apply(newHasName("some.Fo"))).isFalse();
-        assertThat(name("Foo").apply(newHasName("some.Foo"))).isFalse();
-
-        assertThat(name("some.Foo").getDescription()).isEqualTo("name 'some.Foo'");
+        assertThat(name("some.Foo"))
+                .accepts(newHasName("some.Foo"))
+                .rejects(newHasName("some.Fo"))
+                .hasDescription("name 'some.Foo'");
+        assertThat(name("Foo")).rejects(newHasName("some.Foo"));
     }
 
     private AbstractBooleanAssert assertMatches(String input, String regex) {

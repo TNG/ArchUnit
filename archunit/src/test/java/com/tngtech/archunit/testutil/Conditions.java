@@ -26,7 +26,7 @@ public final class Conditions {
         return new Condition<JavaCodeUnit>() {
             @Override
             public boolean matches(JavaCodeUnit value) {
-                return name.equals(value.getName()) && namesOf(parameters).equals(value.getParameters().getNames());
+                return name.equals(value.getName()) && namesOf(parameters).equals(value.getRawParameterTypes().getNames());
             }
         }.as("matches signature <" + name + ", " + namesOf(parameters) + ">");
     }

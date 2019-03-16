@@ -54,7 +54,7 @@ public class LocationsTest {
      * Jar file didn't have an entry for the respective folder (e.g. java.io vs /java/io).
      */
     @Test
-    public void locations_of_packages_within_JAR_URIs_that_dont_contain_package_folder() throws Exception {
+    public void locations_of_packages_within_JAR_URIs_that_do_not_contain_package_folder() throws Exception {
         independentClasspathRule.configureClasspath();
 
         Set<Location> locations = Locations.ofPackage(independentClasspathRule.getIndependentTopLevelPackage());

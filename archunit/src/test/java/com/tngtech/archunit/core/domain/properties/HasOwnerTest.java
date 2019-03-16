@@ -12,10 +12,9 @@ public class HasOwnerTest {
     public void predicate_with_owner() {
         HasOwner<String> hasOwner = hasOwner("owner");
 
-        assertThat(With.owner(startsWith("o")).apply(hasOwner)).as("predicate matches").isTrue();
-        assertThat(With.owner(startsWith("w")).apply(hasOwner)).as("predicate matches").isFalse();
-
-        assertThat(With.owner(startsWith("foo")).getDescription()).isEqualTo("owner starts with foo");
+        assertThat(With.owner(startsWith("o"))).accepts(hasOwner);
+        assertThat(With.owner(startsWith("w"))).rejects(hasOwner);
+        assertThat(With.owner(startsWith("foo"))).hasDescription("owner starts with foo");
     }
 
     @Test

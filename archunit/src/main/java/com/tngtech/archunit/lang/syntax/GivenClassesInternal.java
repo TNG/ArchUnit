@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.base.Optional;
@@ -24,9 +25,9 @@ import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
+import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesConjunction;
-import com.tngtech.archunit.lang.syntax.elements.GivenClassesThat;
 
 class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesInternal>
         implements GivenClasses, GivenClassesConjunction {
@@ -58,23 +59,38 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
     }
 
     @Override
-    public GivenClassesThat and() {
-        return new GivenClassesThatInternal(this, currentPredicate().thatANDs());
+    public ClassesThat<GivenClassesConjunction> and() {
+        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, GivenClassesConjunction>() {
+            @Override
+            public GivenClassesConjunction apply(DescribedPredicate<? super JavaClass> input) {
+                return with(currentPredicate().thatANDs().add(input));
+            }
+        });
     }
 
     @Override
-    public GivenClassesThat or() {
-        return new GivenClassesThatInternal(this, currentPredicate().thatORs());
+    public ClassesThat<GivenClassesConjunction> or() {
+        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, GivenClassesConjunction>() {
+            @Override
+            public GivenClassesConjunction apply(DescribedPredicate<? super JavaClass> input) {
+                return with(currentPredicate().thatORs().add(input));
+            }
+        });
     }
 
     @Override
-    public GivenClassesThat that() {
-        return new GivenClassesThatInternal(this, currentPredicate());
+    public ClassesThat<GivenClassesConjunction> that() {
+        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, GivenClassesConjunction>() {
+            @Override
+            public GivenClassesConjunction apply(DescribedPredicate<? super JavaClass> input) {
+                return with(currentPredicate().add(input));
+            }
+        });
     }
 
     @Override
-    public ClassesShouldConjunction should(ArchCondition<JavaClass> condition) {
-        return new ClassesShouldInternal(finishedClassesTransformer(), priority, condition, prepareCondition);
+    public ClassesShouldConjunction should(ArchCondition<? super JavaClass> condition) {
+        return new ClassesShouldInternal(finishedClassesTransformer(), priority, condition.<JavaClass>forSubType(), prepareCondition);
     }
 
     private static class GivenClassesFactory implements Factory<JavaClass, GivenClassesInternal> {

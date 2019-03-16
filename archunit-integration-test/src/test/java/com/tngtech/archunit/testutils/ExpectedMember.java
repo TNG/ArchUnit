@@ -63,7 +63,7 @@ abstract class ExpectedMember {
 
     private List<String> getParameters(Object member) {
         return member instanceof HasParameterTypes ?
-                ((HasParameterTypes) member).getParameters().getNames() :
+                ((HasParameterTypes) member).getRawParameterTypes().getNames() :
                 emptyList();
     }
 

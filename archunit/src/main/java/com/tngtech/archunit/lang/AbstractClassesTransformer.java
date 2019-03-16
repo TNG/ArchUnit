@@ -67,4 +67,9 @@ public abstract class AbstractClassesTransformer<T> implements ClassesTransforme
             }
         };
     }
+
+    @Override
+    public String toString() {
+        return ClassesTransformer.class.getSimpleName() + "{" + getDescription() + "}";
+    }
 }

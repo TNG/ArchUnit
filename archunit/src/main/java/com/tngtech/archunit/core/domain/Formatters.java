@@ -21,7 +21,6 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Ints;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -127,22 +126,14 @@ public final class Formatters {
      * @param clazz      Class determining the location
      * @param lineNumber Line number of the location
      * @return Arguments formatted as "(${clazz.getSimpleName()}.java:${lineNumber})". This format is (at least
-     * by IntelliJ Idea) recognized as location, if it's the end of a failure line, thus enabling IDE support,
+     * by IntelliJ Idea) recognized as location, if it's the end of a failure line, thus enabling IDE support
      * to jump to a violation.
+     * @deprecated use {@link SourceCodeLocation}
+     * @see SourceCodeLocation
      */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static String formatLocation(JavaClass clazz, int lineNumber) {
-        Optional<String> recordedSourceFileName = clazz.getSource().isPresent()
-                ? clazz.getSource().get().getFileName()
-                : Optional.<String>absent();
-        String sourceFileName = recordedSourceFileName.isPresent() ? recordedSourceFileName.get() : guessSourceFileName(clazz);
-        return String.format(LOCATION_TEMPLATE, sourceFileName, lineNumber);
-    }
-
-    private static String guessSourceFileName(JavaClass location) {
-        while (location.getEnclosingClass().isPresent()) {
-            location = location.getEnclosingClass().get();
-        }
-        return location.getSimpleName() + ".java";
+        return SourceCodeLocation.of(clazz, lineNumber).toString();
     }
 }

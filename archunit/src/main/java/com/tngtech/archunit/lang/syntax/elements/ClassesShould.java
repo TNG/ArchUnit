@@ -51,7 +51,7 @@ public interface ClassesShould {
     ClassesShouldConjunction haveFullyQualifiedName(String name);
 
     /**
-     * Asserts that classes don't have a certain fully qualified class name.
+     * Asserts that classes do not have a certain fully qualified class name.
      *
      * @param name The fully qualified class name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -69,7 +69,7 @@ public interface ClassesShould {
     ClassesShouldConjunction haveSimpleName(String name);
 
     /**
-     * Asserts that classes don't have a certain simple class name.
+     * Asserts that classes do not have a certain simple class name.
      *
      * @param name The simple class name
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -168,7 +168,7 @@ public interface ClassesShould {
     ClassesShouldConjunction resideInAnyPackage(String... packageIdentifiers);
 
     /**
-     * Asserts that classes don't reside in a package matching the supplied package identifier.
+     * Asserts that classes do not reside in a package matching the supplied package identifier.
      *
      * @param packageIdentifier A string identifying packages, for details see {@link PackageMatcher}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -177,7 +177,7 @@ public interface ClassesShould {
     ClassesShouldConjunction resideOutsideOfPackage(String packageIdentifier);
 
     /**
-     * Asserts that classes don't reside in a package matching any of the supplied package identifiers.
+     * Asserts that classes do not reside in a package matching any of the supplied package identifiers.
      *
      * @param packageIdentifiers Strings identifying packages, for details see {@link PackageMatcher}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -266,7 +266,7 @@ public interface ClassesShould {
     ClassesShouldConjunction haveModifier(JavaModifier modifier);
 
     /**
-     * Asserts that classes don't have a certain {@link JavaModifier} (e.g. {@link JavaModifier#ABSTRACT}).
+     * Asserts that classes do not have a certain {@link JavaModifier} (e.g. {@link JavaModifier#ABSTRACT}).
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
@@ -399,7 +399,7 @@ public interface ClassesShould {
     ClassesShouldConjunction implement(Class<?> type);
 
     /**
-     * Asserts that classes don't implement a certain interface. This is the negation of {@link #implement(Class)}.
+     * Asserts that classes do not implement a certain interface. This is the negation of {@link #implement(Class)}.
      *
      * @param type An interface imported classes should NOT implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -409,7 +409,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes implement a certain interface with the given type name. This is equivalent to
-     * {@link #implement(Class)}, but doesn't depend on having a certain type on the classpath.
+     * {@link #implement(Class)}, but does not depend on having a certain type on the classpath.
      *
      * @param typeName Name of an interface imported classes should implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -418,8 +418,8 @@ public interface ClassesShould {
     ClassesShouldConjunction implement(String typeName);
 
     /**
-     * Asserts that classes don't implement a certain interface with the given type name.
-     * This is equivalent to {@link #notImplement(Class)}, but doesn't depend on having a certain
+     * Asserts that classes do not implement a certain interface with the given type name.
+     * This is equivalent to {@link #notImplement(Class)}, but does not depend on having a certain
      * type on the classpath.
      *
      * @param typeName Name of an interface imported classes should NOT implement
@@ -440,7 +440,7 @@ public interface ClassesShould {
     ClassesShouldConjunction implement(DescribedPredicate<? super JavaClass> predicate);
 
     /**
-     * Asserts that classes don't implement a certain interface matching the given predicate.
+     * Asserts that classes do not implement a certain interface matching the given predicate.
      * This is the negation of {@link #implement(DescribedPredicate)}.
      *
      * @param predicate A predicate identifying an interface imported classes should NOT implement
@@ -475,7 +475,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes are assignable to a certain type with the given type name. This is equivalent to
-     * {@link #beAssignableTo(Class)}, but doesn't depend on having a certain type on the classpath.
+     * {@link #beAssignableTo(Class)}, but does not depend on having a certain type on the classpath.
      *
      * @param typeName Name of an upper type bound to match imported classes against (imported subtypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -485,7 +485,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes are not assignable to a certain type with the given type name.
-     * This is equivalent to {@link #notBeAssignableTo(Class)}, but doesn't depend on having a certain
+     * This is equivalent to {@link #notBeAssignableTo(Class)}, but does not depend on having a certain
      * type on the classpath.
      *
      * @param typeName Name of an upper type bound imported classes should NOT have
@@ -546,7 +546,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes are assignable from a certain type with the given type name. This is equivalent to
-     * {@link #beAssignableFrom(Class)}, but doesn't depend on having a certain type on the classpath.
+     * {@link #beAssignableFrom(Class)}, but does not depend on having a certain type on the classpath.
      *
      * @param typeName Name of a lower type bound to match imported classes against (imported supertypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -556,7 +556,7 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes are not assignable from a certain type with the given type name.
-     * This is equivalent to {@link #notBeAssignableFrom(Class)}, but doesn't depend on having a certain
+     * This is equivalent to {@link #notBeAssignableFrom(Class)}, but does not depend on having a certain
      * type on the classpath.
      *
      * @param typeName Name of a lower type bound imported classes should NOT have
@@ -810,13 +810,13 @@ public interface ClassesShould {
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
-     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing which classes should be accessed
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat accessClassesThat();
+    ClassesThat<ClassesShouldConjunction> accessClassesThat();
 
     /**
      * Asserts that all classes selected by this rule access certain classes (compare {@link #onlyAccessClassesThat(DescribedPredicate)}.<br>
@@ -837,13 +837,13 @@ public interface ClassesShould {
      * E.g.
      * <p>
      * <pre><code>
-     * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing which classes should only be accessed
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat onlyAccessClassesThat();
+    ClassesThat<ClassesShouldConjunction> onlyAccessClassesThat();
 
     /**
      * Asserts that all classes selected by this rule ONLY access certain classes (compare {@link #accessClassesThat(DescribedPredicate)}).<br>
@@ -864,13 +864,13 @@ public interface ClassesShould {
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
-     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #dependOnClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #dependOnClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing to which classes a dependency should exist
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat dependOnClassesThat();
+    ClassesThat<ClassesShouldConjunction> dependOnClassesThat();
 
     /**
      * Asserts that all classes selected by this rule depend on certain classes.<br>
@@ -891,13 +891,13 @@ public interface ClassesShould {
      * E.g.
      * <p>
      * <pre><code>
-     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing to which classes a dependency should only exist
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat onlyDependOnClassesThat();
+    ClassesThat<ClassesShouldConjunction> onlyDependOnClassesThat();
 
     /**
      * Asserts that all classes selected by this rule ONLY depend on certain classes (compare {@link #dependOnClassesThat(DescribedPredicate)}).<br>
@@ -927,13 +927,13 @@ public interface ClassesShould {
      * Asserts that only certain classes depend on the classes selected by this rule.<br>
      * <br>E.g.
      * <pre><code>
-     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyHaveDependentClassesThat()}.{@link ClassesShouldThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyHaveDependentClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
      * @return A syntax element that allows choosing from which classes a dependency to these classes may exist
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat onlyHaveDependentClassesThat();
+    ClassesThat<ClassesShouldConjunction> onlyHaveDependentClassesThat();
 
     /**
      * Asserts that only certain classes depend on the classes selected by this rule.<br>

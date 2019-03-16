@@ -15,5 +15,7 @@
  */
 package com.tngtech.archunit.lang.syntax.elements;
 
-public interface ClassesShouldThat extends ClassesThat<ClassesShouldConjunction> {
+import com.tngtech.archunit.core.domain.JavaConstructor;
+
+public interface GivenConstructors extends GivenCodeUnits<JavaConstructor> {
 }

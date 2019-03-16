@@ -36,7 +36,7 @@ public interface OnlyBeAccessedSpecification<CONJUNCTION> {
      * @return A syntax element that allows restricting which classes the access should be from
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldThat byClassesThat();
+    ClassesThat<ClassesShouldConjunction> byClassesThat();
 
     /**
      * @param predicate Restricts which classes the access should be from

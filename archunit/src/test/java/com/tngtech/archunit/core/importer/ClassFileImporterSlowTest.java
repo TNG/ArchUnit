@@ -32,7 +32,7 @@ public class ClassFileImporterSlowTest {
         JavaClasses classes = new ClassFileImporter().importClasspath();
 
         assertThatClasses(classes).contain(ClassFileImporter.class, getClass());
-        assertThatClasses(classes).dontContain(Rule.class); // Default doesn't import jars
+        assertThatClasses(classes).doNotContain(Rule.class); // Default does not import jars
 
         classes = importJavaBase();
 
@@ -63,16 +63,16 @@ public class ClassFileImporterSlowTest {
     public void imports_jars() throws Exception {
         JavaClasses classes = new ClassFileImporter().importJar(jarFileOf(Rule.class));
         assertThatClasses(classes).contain(Rule.class);
-        assertThatClasses(classes).dontContain(Object.class, ImmutableList.class);
+        assertThatClasses(classes).doNotContain(Object.class, ImmutableList.class);
 
         classes = new ClassFileImporter().importJars(jarFileOf(Rule.class), jarFileOf(ImmutableList.class));
         assertThatClasses(classes).contain(Rule.class, ImmutableList.class);
-        assertThatClasses(classes).dontContain(Object.class);
+        assertThatClasses(classes).doNotContain(Object.class);
 
         classes = new ClassFileImporter().importJars(ImmutableList.of(
                 jarFileOf(Rule.class), jarFileOf(ImmutableList.class)));
         assertThatClasses(classes).contain(Rule.class, ImmutableList.class);
-        assertThatClasses(classes).dontContain(Object.class);
+        assertThatClasses(classes).doNotContain(Object.class);
     }
 
     @Test

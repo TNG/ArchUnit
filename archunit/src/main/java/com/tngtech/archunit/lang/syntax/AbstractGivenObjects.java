@@ -27,7 +27,7 @@ import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF>>
         implements GivenObjects<T>, GivenConjunction<T> {
 
-    private final Factory<T, SELF> factory;
+    final Factory<T, SELF> factory;
     final Priority priority;
     private final ClassesTransformer<T> classesTransformer;
     final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition;
@@ -74,6 +74,12 @@ abstract class AbstractGivenObjects<T, SELF extends AbstractGivenObjects<T, SELF
     @Override
     public SELF or(DescribedPredicate<? super T> predicate) {
         return with(currentPredicate().thatORs().add(predicate));
+    }
+
+    @SuppressWarnings("unchecked")
+        // By convention SELF is always our own type
+    SELF self() {
+        return (SELF) this;
     }
 
     PredicateAggregator<T> currentPredicate() {

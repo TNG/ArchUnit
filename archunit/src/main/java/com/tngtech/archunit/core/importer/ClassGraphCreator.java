@@ -285,29 +285,29 @@ class ClassGraphCreator implements ImportContext {
 
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
-                fieldTypeDependencies.put(field.getType(), field);
+                fieldTypeDependencies.put(field.getRawType(), field);
             }
         }
 
         void registerMethods(Set<JavaMethod> methods) {
             for (JavaMethod method : methods) {
-                for (JavaClass parameter : method.getParameters()) {
+                for (JavaClass parameter : method.getRawParameterTypes()) {
                     methodParameterTypeDependencies.put(parameter, method);
                 }
-                methodReturnTypeDependencies.put(method.getReturnType(), method);
+                methodReturnTypeDependencies.put(method.getRawReturnType(), method);
                 for (ThrowsDeclaration<JavaMethod> throwsDeclaration : method.getThrowsClause()) {
-                    methodsThrowsDeclarationDependencies.put(throwsDeclaration.getType(), throwsDeclaration);
+                    methodsThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
                 }
             }
         }
 
         void registerConstructors(Set<JavaConstructor> constructors) {
             for (JavaConstructor constructor : constructors) {
-                for (JavaClass parameter : constructor.getParameters()) {
+                for (JavaClass parameter : constructor.getRawParameterTypes()) {
                     constructorParameterTypeDependencies.put(parameter, constructor);
                 }
                 for (ThrowsDeclaration<JavaConstructor> throwsDeclaration : constructor.getThrowsClause()) {
-                    constructorThrowsDeclarationDependencies.put(throwsDeclaration.getType(), throwsDeclaration);
+                    constructorThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
                 }
             }
         }

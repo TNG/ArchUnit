@@ -45,8 +45,17 @@ public class JavaField extends JavaMember implements HasType {
         return getOwner().getName() + "." + getName();
     }
 
+    /**
+     * @deprecated Use {@link #getRawType()} instead
+     */
     @Override
+    @Deprecated
     public JavaClass getType() {
+        return getRawType();
+    }
+
+    @Override
+    public JavaClass getRawType() {
         return type;
     }
 

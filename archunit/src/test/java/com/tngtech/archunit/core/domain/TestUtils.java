@@ -41,9 +41,10 @@ public class TestUtils {
         return new JavaClassList(classes);
     }
 
-    public static ThrowsClause<?> throwsClause(Class<?>... types) {
-        List<JavaClass> importedTypes = ImmutableList.copyOf(new ClassFileImporter().importClasses(types));
-        JavaMethod irrelevantOwner = importedTypes.get(0).getMethod("toString");
+    @SafeVarargs
+    public static ThrowsClause<?> throwsClause(Class<? extends Throwable>... types) {
+        List<JavaClass> importedTypes = ImmutableList.copyOf(importClassesWithContext(types));
+        JavaMethod irrelevantOwner = importClassWithContext(Object.class).getMethod("toString");
         return ThrowsClause.from(irrelevantOwner, importedTypes);
     }
 
@@ -242,7 +243,7 @@ public class TestUtils {
             for (T call : callsFromSelf) {
                 if (call.getTargetOwner().isEquivalentTo(targetOwner) &&
                         call.getTarget().getName().equals(methodName) &&
-                        call.getTarget().getParameters().getNames().equals(paramNames)) {
+                        call.getTarget().getRawParameterTypes().getNames().equals(paramNames)) {
                     return call;
                 }
             }
