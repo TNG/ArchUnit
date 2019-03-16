@@ -449,10 +449,6 @@ public class JavaClassTest {
         assertThat(JavaClass.Functions.GET_SIMPLE_NAME.apply(importClassWithContext(List.class)))
                 .as("result of GET_SIMPLE_NAME(clazz)")
                 .isEqualTo(List.class.getSimpleName());
-
-        assertThat(JavaClass.Functions.SIMPLE_NAME.apply(importClassWithContext(List.class)))
-                .as("result of SIMPLE_NAME(clazz)")
-                .isEqualTo(List.class.getSimpleName());
     }
 
     @Test
