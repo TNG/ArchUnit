@@ -537,15 +537,6 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     }
 
     /**
-     * @deprecated Use {@link #getDirectDependenciesFromSelf()} instead
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public Set<Dependency> getDirectDependencies() {
-        return getDirectDependenciesFromSelf();
-    }
-
-    /**
      * Returns all dependencies originating directly from this class (i.e. not just from a superclass),
      * where a dependency can be
      * <ul>
@@ -1046,13 +1037,6 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 return input.getSimpleName();
             }
         };
-
-        /**
-         * @deprecated Violates the conventions for Functions.* that simply reflect class methods. Use {@link #GET_SIMPLE_NAME}
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<JavaClass, String> SIMPLE_NAME = GET_SIMPLE_NAME;
 
         @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaClass, String> GET_PACKAGE_NAME = new ChainableFunction<JavaClass, String>() {
