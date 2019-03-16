@@ -17,15 +17,37 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ClassesTransformer;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface GivenObjects<T> {
-    @PublicAPI(usage = ACCESS)
-    ArchRule should(ArchCondition<T> condition);
 
+    /**
+     * Allows to form a rule by passing a condition the objects under consideration must satisfy. E.g.
+     * <br><br>
+     * <code>
+     * {@link ArchRuleDefinition#all(ClassesTransformer) all(customObjects)}.{@link GivenObjects#should(ArchCondition) should(behaveAsExpected())}
+     * </code>
+     *
+     * @return An {@link ArchRule} which can be evaluated on imported {@link JavaClasses}
+     */
+    @PublicAPI(usage = ACCESS)
+    ArchRule should(ArchCondition<? super T> condition);
+
+    /**
+     * Allows to restrict the set of objects under consideration. E.g.
+     * <br><br>
+     * <code>
+     * {@link ArchRuleDefinition#all(ClassesTransformer) all(customObjects)}.{@link GivenObjects#that(DescribedPredicate) that(predicate)}
+     * </code>
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
     @PublicAPI(usage = ACCESS)
     GivenConjunction<T> that(DescribedPredicate<? super T> predicate);
 }

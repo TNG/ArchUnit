@@ -26,5 +26,5 @@ public interface GivenClass {
     ClassesShould should();
 
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction should(ArchCondition<JavaClass> condition);
+    ClassesShouldConjunction should(ArchCondition<? super JavaClass> condition);
 }

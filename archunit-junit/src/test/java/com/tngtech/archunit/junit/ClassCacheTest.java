@@ -36,7 +36,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-@SuppressWarnings("unchecked")
 @RunWith(DataProviderRunner.class)
 public class ClassCacheTest {
 
@@ -121,7 +120,7 @@ public class ClassCacheTest {
                 analyzeLocation(LocationOfClass.Provider.class));
 
         assertThatClasses(classes).contain(String.class);
-        assertThatClasses(classes).dontContain(getClass());
+        assertThatClasses(classes).doNotContain(getClass());
     }
 
     @Test

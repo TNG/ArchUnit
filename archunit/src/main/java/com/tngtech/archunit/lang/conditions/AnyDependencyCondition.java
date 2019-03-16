@@ -23,9 +23,6 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -50,12 +47,7 @@ public final class AnyDependencyCondition extends AnyAttributeMatchesCondition<D
             Function<JavaClass, ? extends Collection<Dependency>> javaClassToRelevantDependencies,
             DescribedPredicate<Dependency> ignorePredicate) {
 
-        super(description, new ArchCondition<Dependency>(conditionPredicate.getDescription()) {
-            @Override
-            public void check(Dependency item, ConditionEvents events) {
-                events.add(new SimpleConditionEvent(item, conditionPredicate.apply(item), item.getDescription()));
-            }
-        });
+        super(description, new DependencyCondition(conditionPredicate));
         this.conditionPredicate = checkNotNull(conditionPredicate);
         this.javaClassToRelevantDependencies = checkNotNull(javaClassToRelevantDependencies);
         this.ignorePredicate = checkNotNull(ignorePredicate);

@@ -26,9 +26,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 /**
  * A {@link ClassesTransformer} that simply returns the supplied collection of {@link JavaClass}
  * (i.e. the identity transformation)
+ *
+ * @deprecated There is no use for this as part of the ArchUnit API, since users should always use {@link ArchRuleDefinition#classes()}
  */
+@Deprecated
 public final class ClassesIdentityTransformer extends AbstractClassesTransformer<JavaClass> {
-    private ClassesIdentityTransformer() {
+    ClassesIdentityTransformer() {
         super("classes");
     }
 

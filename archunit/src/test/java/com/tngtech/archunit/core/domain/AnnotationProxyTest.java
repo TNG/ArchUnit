@@ -298,7 +298,7 @@ public class AnnotationProxyTest {
         return "@com.tngtech.archunit.core.domain.AnnotationProxyTest$SubAnnotation(value=" + formatter.apply(value) + ")";
     }
 
-    // NOTE: We don't want this value to be treated as a string by the formatter, and e.g. quoted -> Object
+    // NOTE: We do not want this value to be treated as a string by the formatter, and e.g. quoted -> Object
     private Object subAnnotationFormatter(final Function<Object, String> formatter, final String value) {
         return new Object() {
             @Override

@@ -112,12 +112,28 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return new GreaterThanOrEqualToPredicate<>(value);
     }
 
+    /**
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doesNot(DescribedPredicate)}
+     */
+    @Deprecated
     public static <T> DescribedPredicate<T> doesnt(final DescribedPredicate<T> predicate) {
         return not(predicate).as("doesn't %s", predicate.getDescription());
     }
 
+    /**
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNot(DescribedPredicate)}
+     */
+    @Deprecated
     public static <T> DescribedPredicate<T> dont(final DescribedPredicate<T> predicate) {
         return not(predicate).as("don't %s", predicate.getDescription());
+    }
+
+    public static <T> DescribedPredicate<T> doesNot(final DescribedPredicate<T> predicate) {
+        return not(predicate).as("does not %s", predicate.getDescription());
+    }
+
+    public static <T> DescribedPredicate<T> doNot(final DescribedPredicate<T> predicate) {
+        return not(predicate).as("do not %s", predicate.getDescription());
     }
 
     public static <T> DescribedPredicate<T> not(final DescribedPredicate<T> predicate) {

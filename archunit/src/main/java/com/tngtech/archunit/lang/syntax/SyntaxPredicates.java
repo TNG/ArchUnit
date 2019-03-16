@@ -21,6 +21,7 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
+import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
@@ -35,7 +36,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.conditions.ArchConditions.fullyQualifiedName;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
-class ClassesThatPredicates {
+class SyntaxPredicates {
     static DescribedPredicate<HasName> haveNameNotMatching(String regex) {
         return have(not(nameMatching(regex)).as("name not matching '%s'", regex));
     }
@@ -88,23 +89,47 @@ class ClassesThatPredicates {
         return have(fullyQualifiedName(name));
     }
 
+    /**
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotHaveFullyQualifiedName(String)}
+     */
+    @Deprecated
     static DescribedPredicate<HasName> dontHaveFullyQualifiedName(String name) {
         return dont(have(fullyQualifiedName(name)));
+    }
+
+    static DescribedPredicate<HasName> doNotHaveFullyQualifiedName(String name) {
+        return doNot(have(fullyQualifiedName(name)));
     }
 
     static DescribedPredicate<JavaClass> haveSimpleName(String name) {
         return have(simpleName(name));
     }
 
+    /**
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotHaveSimpleName(String)}
+     */
+    @Deprecated
     static DescribedPredicate<JavaClass> dontHaveSimpleName(String name) {
         return dont(have(simpleName(name)));
+    }
+
+    static DescribedPredicate<JavaClass> doNotHaveSimpleName(String name) {
+        return doNot(have(simpleName(name)));
     }
 
     static DescribedPredicate<HasModifiers> haveModifier(JavaModifier modifier) {
         return have(modifier(modifier));
     }
 
+    /**
+     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotHaveModifier(JavaModifier)}
+     */
+    @Deprecated
     static DescribedPredicate<HasModifiers> dontHaveModifier(JavaModifier modifier) {
         return dont(have(modifier(modifier)));
+    }
+
+    static DescribedPredicate<HasModifiers> doNotHaveModifier(JavaModifier modifier) {
+        return doNot(have(modifier(modifier)));
     }
 }

@@ -26,9 +26,9 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 
 /**
  * Represents a dependency of one Java class on another Java class. Such a dependency can occur by either of the
@@ -43,17 +43,19 @@ import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
  * <li>a class has a method/constructor with parameter/return type of another class</li>
  * </ul>
  */
-public class Dependency implements HasDescription, Comparable<Dependency> {
+public class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation {
     private final JavaClass originClass;
     private final JavaClass targetClass;
     private final int lineNumber;
     private final String description;
+    private final SourceCodeLocation sourceCodeLocation;
 
     private Dependency(JavaClass originClass, JavaClass targetClass, int lineNumber, String description) {
         this.originClass = originClass;
         this.targetClass = targetClass;
         this.lineNumber = lineNumber;
         this.description = description;
+        this.sourceCodeLocation = SourceCodeLocation.of(originClass, lineNumber);
     }
 
     static Dependency from(JavaAccess<?> access) {
@@ -71,16 +73,16 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
 
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetType + " " + targetDescription;
 
-        String description = dependencyDescription + " in " + formatLocation(origin, 0);
+        String description = dependencyDescription + " in " + origin.getSourceCodeLocation();
         return new Dependency(origin, targetSuperType, 0, description);
     }
 
     static Dependency fromField(JavaField field) {
-        return createDependencyFromJavaMember(field, "has type", field.getType());
+        return createDependencyFromJavaMember(field, "has type", field.getRawType());
     }
 
     static Dependency fromReturnType(JavaMethod method) {
-        return createDependencyFromJavaMember(method, "has return type", method.getReturnType());
+        return createDependencyFromJavaMember(method, "has return type", method.getRawReturnType());
     }
 
     static Dependency fromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {
@@ -88,14 +90,14 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
     }
 
     static Dependency fromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
-        return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getType());
+        return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
     private static Dependency createDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
         String originDescription = origin.getDescription();
         String targetDescription = bracketFormat(target.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
-        String description = dependencyDescription + " in " + formatLocation(origin.getOwner(), 0);
+        String description = dependencyDescription + " in " + origin.getOwner().getSourceCodeLocation();
         return new Dependency(origin.getOwner(), target, 0, description);
     }
 
@@ -116,6 +118,11 @@ public class Dependency implements HasDescription, Comparable<Dependency> {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public SourceCodeLocation getSourceCodeLocation() {
+        return sourceCodeLocation;
     }
 
     @Override

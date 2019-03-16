@@ -298,7 +298,7 @@ class JavaClassProcessor extends ClassVisitor {
             actualLineNumber = 0;
         }
 
-        // NOTE: ASM doesn't reliably visit this method, so if this method is skipped, line number 0 is recorded
+        // NOTE: ASM does not reliably visit this method, so if this method is skipped, line number 0 is recorded
         @Override
         public void visitLineNumber(int line, Label start) {
             LOG.trace("Examining line number {}", line);
@@ -654,7 +654,7 @@ class JavaClassProcessor extends ClassVisitor {
             }
 
             private Optional<Class<?>> determineComponentTypeFromReturnValue(Optional<JavaMethod> method) {
-                String name = method.get().getReturnType().getName();
+                String name = method.get().getRawReturnType().getName();
                 Optional<Class<?>> result = AnnotationTypeConversion.tryConvert(name);
                 if (result.isPresent()) {
                     return Optional.<Class<?>>of(result.get().getComponentType());

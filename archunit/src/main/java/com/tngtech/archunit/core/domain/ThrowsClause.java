@@ -36,7 +36,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_TYPE;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>>
         implements HasOwner<LOCATION>, Iterable<ThrowsDeclaration<LOCATION>> {
@@ -65,8 +65,8 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
 
     @PublicAPI(usage = ACCESS)
     public boolean containsType(DescribedPredicate<? super JavaClass> predicate) {
-        for (ThrowsDeclaration throwsDeclaration : throwsDeclarations) {
-            if (predicate.apply(throwsDeclaration.getType())) {
+        for (ThrowsDeclaration<?> throwsDeclaration : throwsDeclarations) {
+            if (predicate.apply(throwsDeclaration.getRawType())) {
                 return true;
             }
         }
@@ -75,7 +75,7 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
 
     @PublicAPI(usage = ACCESS)
     public JavaClassList getTypes() {
-        return new JavaClassList(FluentIterable.from(throwsDeclarations).transform(toGuava(GET_TYPE)).toList());
+        return new JavaClassList(FluentIterable.from(throwsDeclarations).transform(toGuava(GET_RAW_TYPE)).toList());
     }
 
     @Override
@@ -113,7 +113,7 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ThrowsClause other = (ThrowsClause) obj;
+        final ThrowsClause<?> other = (ThrowsClause<?>) obj;
         return Objects.equals(this.location, other.location)
                 && Objects.equals(this.getTypes(), other.getTypes());
     }

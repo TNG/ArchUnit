@@ -342,14 +342,14 @@ public class ClassFileImporterTest {
     public void imports_primitive_fields() throws Exception {
         Set<JavaField> fields = classesIn("testexamples/primitivefieldimport").getFields();
 
-        assertThat(findAnyByName(fields, "aBoolean").getType()).matches(boolean.class);
-        assertThat(findAnyByName(fields, "anInt").getType()).matches(int.class);
-        assertThat(findAnyByName(fields, "aByte").getType()).matches(byte.class);
-        assertThat(findAnyByName(fields, "aChar").getType()).matches(char.class);
-        assertThat(findAnyByName(fields, "aShort").getType()).matches(short.class);
-        assertThat(findAnyByName(fields, "aLong").getType()).matches(long.class);
-        assertThat(findAnyByName(fields, "aFloat").getType()).matches(float.class);
-        assertThat(findAnyByName(fields, "aDouble").getType()).matches(double.class);
+        assertThat(findAnyByName(fields, "aBoolean").getRawType()).matches(boolean.class);
+        assertThat(findAnyByName(fields, "anInt").getRawType()).matches(int.class);
+        assertThat(findAnyByName(fields, "aByte").getRawType()).matches(byte.class);
+        assertThat(findAnyByName(fields, "aChar").getRawType()).matches(char.class);
+        assertThat(findAnyByName(fields, "aShort").getRawType()).matches(short.class);
+        assertThat(findAnyByName(fields, "aLong").getRawType()).matches(long.class);
+        assertThat(findAnyByName(fields, "aFloat").getRawType()).matches(float.class);
+        assertThat(findAnyByName(fields, "aDouble").getRawType()).matches(double.class);
     }
 
     // NOTE: This provokes the scenario where the target type can't be determined uniquely due to a diamond
@@ -430,7 +430,7 @@ public class ClassFileImporterTest {
 
         JavaField field = findAnyByName(classes.getFields(), "stringAnnotatedField");
         JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithStringValue.class.getName());
-        assertThat(annotation.getType()).isEqualTo(classes.get(FieldAnnotationWithStringValue.class));
+        assertThat(annotation.getRawType()).isEqualTo(classes.get(FieldAnnotationWithStringValue.class));
         assertThat(annotation.get("value").get()).isEqualTo("something");
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("stringAnnotatedField"));
@@ -553,11 +553,11 @@ public class ClassFileImporterTest {
     public void imports_methods_with_correct_return_types() throws Exception {
         Set<JavaCodeUnit> methods = classesIn("testexamples/methodimport").getCodeUnits();
 
-        assertThat(findAnyByName(methods, "createString").getReturnType())
+        assertThat(findAnyByName(methods, "createString").getRawReturnType())
                 .as("Return type of method 'createString'").matches(String.class);
-        assertThat(findAnyByName(methods, "consume").getReturnType())
+        assertThat(findAnyByName(methods, "consume").getRawReturnType())
                 .as("Return type of method 'consume'").matches(void.class);
-        assertThat(findAnyByName(methods, "createSerializable").getReturnType())
+        assertThat(findAnyByName(methods, "createSerializable").getRawReturnType())
                 .as("Return type of method 'createSerializable'").matches(Serializable.class);
     }
 
@@ -577,7 +577,7 @@ public class ClassFileImporterTest {
 
         JavaMethod method = findAnyByName(clazz.getMethods(), stringAnnotatedMethod);
         JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
-        assertThat(annotation.getType()).matches(MethodAnnotationWithStringValue.class);
+        assertThat(annotation.getRawType()).matches(MethodAnnotationWithStringValue.class);
 
         JavaAnnotation annotationByName = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
         assertThat(annotationByName).isEqualTo(annotation);
@@ -681,7 +681,7 @@ public class ClassFileImporterTest {
         JavaClass clazz = classesIn("testexamples/annotatedclassimport").get(ClassWithOneAnnotation.class);
 
         JavaAnnotation annotation = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
-        assertThat(annotation.getType()).matches(SimpleAnnotation.class);
+        assertThat(annotation.getRawType()).matches(SimpleAnnotation.class);
 
         JavaAnnotation annotationByName = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
         assertThat(annotationByName).isEqualTo(annotation);
@@ -1224,7 +1224,7 @@ public class ClassFileImporterTest {
         FieldAccessTarget expectedSuperClassFieldAccess = new FieldAccessTargetBuilder()
                 .withOwner(subClassWithAccessedField)
                 .withName(field.getName())
-                .withType(field.getType())
+                .withType(field.getRawType())
                 .withField(Suppliers.ofInstance(Optional.of(field)))
                 .build();
         assertThatAccess(getOnly(accesses, "field", GET))
@@ -1273,8 +1273,8 @@ public class ClassFileImporterTest {
         MethodCallTarget expectedSuperClassCall = new MethodCallTargetBuilder()
                 .withOwner(subClassWithCalledMethod)
                 .withName(expectedSuperClassMethod.getName())
-                .withParameters(expectedSuperClassMethod.getParameters())
-                .withReturnType(expectedSuperClassMethod.getReturnType())
+                .withParameters(expectedSuperClassMethod.getRawParameterTypes())
+                .withReturnType(expectedSuperClassMethod.getRawReturnType())
                 .withMethods(Suppliers.ofInstance(Collections.singleton(expectedSuperClassMethod)))
                 .build();
         assertThatCall(getOnlyByCaller(calls, callSuperClassMethod))
@@ -1448,7 +1448,7 @@ public class ClassFileImporterTest {
         // NOTE: There is no java.lang.reflect.Method InterfaceD.implementMe(), because the method is inherited
         assertThat(callToInterface.getTarget().getName()).isEqualTo(InterfaceD.implementMe);
         assertThat(callToInterface.getTarget().getOwner()).isEqualTo(diamondPeakInterface);
-        assertThat(callToInterface.getTarget().getParameters()).isEmpty();
+        assertThat(callToInterface.getTarget().getRawParameterTypes()).isEmpty();
         assertThat(callToInterface.getTarget().resolve()).extracting("fullName")
                 .containsOnly(
                         diamondLeftInterface.getMethod(InterfaceB.implementMe).getFullName(),
@@ -1468,7 +1468,7 @@ public class ClassFileImporterTest {
 
         MethodCallTarget target = getOnlyElement(classThatCallsMethodReturningArray.getMethodCallsFromSelf()).getTarget();
         assertThat(target.getOwner()).matches(CallsMethodReturningArray.SomeEnum.class);
-        assertThat(target.getReturnType()).matches(CallsMethodReturningArray.SomeEnum[].class);
+        assertThat(target.getRawReturnType()).matches(CallsMethodReturningArray.SomeEnum[].class);
     }
 
     @Test
@@ -1857,7 +1857,7 @@ public class ClassFileImporterTest {
     }
 
     /**
-     * Compare {@link LocationsTest#locations_of_packages_within_JAR_URIs_that_dont_contain_package_folder()}
+     * Compare {@link LocationsTest#locations_of_packages_within_JAR_URIs_that_do_not_contain_package_folder()}
      */
     @Test
     public void imports_packages_even_if_jar_entry_for_package_is_missing() {
@@ -1970,7 +1970,7 @@ public class ClassFileImporterTest {
 
     private Constructor<?> reflect(JavaConstructor javaConstructor) {
         try {
-            return javaConstructor.getOwner().reflect().getConstructor(asClasses(javaConstructor.getParameters()));
+            return javaConstructor.getOwner().reflect().getConstructor(asClasses(javaConstructor.getRawParameterTypes()));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -1982,18 +1982,18 @@ public class ClassFileImporterTest {
 
     private Method reflect(JavaMethod javaMethod) {
         try {
-            return javaMethod.getOwner().reflect().getMethod(javaMethod.getName(), asClasses(javaMethod.getParameters()));
+            return javaMethod.getOwner().reflect().getMethod(javaMethod.getName(), asClasses(javaMethod.getRawParameterTypes()));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
 
     private JavaClassList targetParametersOf(Set<JavaMethodCall> calls, String name) {
-        return findAnyByName(calls, name).getTarget().getParameters();
+        return findAnyByName(calls, name).getTarget().getRawParameterTypes();
     }
 
     private JavaClass returnTypeOf(Set<JavaMethodCall> calls, String name) {
-        return findAnyByName(calls, name).getTarget().getReturnType();
+        return findAnyByName(calls, name).getTarget().getRawReturnType();
     }
 
     private JavaFieldAccess getOnly(Set<JavaFieldAccess> fieldAccesses, String name, AccessType accessType) {

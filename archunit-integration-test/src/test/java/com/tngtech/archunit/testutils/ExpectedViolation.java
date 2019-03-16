@@ -119,7 +119,7 @@ public class ExpectedViolation {
         }
 
         public MessageAssertionChain.Link notMatching(String packageIdentifier) {
-            return MessageAssertionChain.containsLine("class %s doesn't reside in a package '%s' in (%s.java:0)",
+            return MessageAssertionChain.containsLine("Class <%s> does not reside in a package '%s' in (%s.java:0)",
                     clazz.getName(), packageIdentifier, clazz.getSimpleName());
         }
     }
@@ -137,7 +137,7 @@ public class ExpectedViolation {
         }
 
         public MessageAssertionChain.Link havingNameMatching(String regex) {
-            return MessageAssertionChain.containsLine("class %s matches '%s' in (%s.java:0)",
+            return MessageAssertionChain.containsLine("Class <%s> matches '%s' in (%s.java:0)",
                     clazz.getName(), regex, clazz.getSimpleName());
         }
 
@@ -147,7 +147,7 @@ public class ExpectedViolation {
         }
 
         public MessageAssertionChain.Link beingAnInterface() {
-            return MessageAssertionChain.containsLine("class %s is an interface in (%s.java:0)", clazz.getName(), clazz.getSimpleName());
+            return MessageAssertionChain.containsLine("Class <%s> is an interface in (%s.java:0)", clazz.getName(), clazz.getSimpleName());
         }
     }
 }

@@ -42,8 +42,8 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
     }
 
     @Override
-    public ArchRule should(ArchCondition<Slice> condition) {
-        return ArchRule.Factory.create(classesTransformer, condition, priority);
+    public ArchRule should(ArchCondition<? super Slice> condition) {
+        return ArchRule.Factory.create(classesTransformer, condition.<Slice>forSubType(), priority);
     }
 
     @Override
@@ -101,22 +101,29 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
         return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
             @Override
             public ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate) {
-                return notDependOnEachOther(transformer, predicate);
+                return new NotDependOnEachOtherCondition(predicate, transformer);
             }
         });
     }
 
-    private ArchCondition<Slice> notDependOnEachOther(final Slices.Transformer inputTransformer, final DescribedPredicate<Dependency> predicate) {
-        return new ArchCondition<Slice>("not depend on each other") {
-            @Override
-            public void check(Slice slice, ConditionEvents events) {
-                Iterable<Dependency> relevantDependencies = filter(slice.getDependencies(), predicate);
-                Slices dependencySlices = inputTransformer.transform(relevantDependencies);
-                for (Slice dependencySlice : dependencySlices) {
-                    SliceDependency dependency = SliceDependency.of(slice, relevantDependencies, dependencySlice);
-                    events.add(SimpleConditionEvent.violated(dependency, dependency.getDescription()));
-                }
+    private static class NotDependOnEachOtherCondition extends ArchCondition<Slice> {
+        private final DescribedPredicate<Dependency> predicate;
+        private final Slices.Transformer inputTransformer;
+
+        NotDependOnEachOtherCondition(DescribedPredicate<Dependency> predicate, Slices.Transformer inputTransformer) {
+            super("not depend on each other");
+            this.predicate = predicate;
+            this.inputTransformer = inputTransformer;
+        }
+
+        @Override
+        public void check(Slice slice, ConditionEvents events) {
+            Iterable<Dependency> relevantDependencies = filter(slice.getDependencies(), predicate);
+            Slices dependencySlices = inputTransformer.transform(relevantDependencies);
+            for (Slice dependencySlice : dependencySlices) {
+                SliceDependency dependency = SliceDependency.of(slice, relevantDependencies, dependencySlice);
+                events.add(SimpleConditionEvent.violated(dependency, dependency.getDescription()));
             }
-        };
+        }
     }
 }

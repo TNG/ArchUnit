@@ -95,10 +95,10 @@ public class JavaMethod extends JavaCodeUnit {
         public Method get() {
             Class<?> reflectedOwner = getOwner().reflect();
             try {
-                return reflectedOwner.getDeclaredMethod(getName(), reflect(getParameters()));
+                return reflectedOwner.getDeclaredMethod(getName(), reflect(getRawParameterTypes()));
             } catch (NoSuchMethodException e) {
                 throw new InconsistentClassPathException(
-                        "Can't resolve method " + formatMethod(reflectedOwner.getName(), getName(), getParameters()), e);
+                        "Can't resolve method " + formatMethod(reflectedOwner.getName(), getName(), getRawParameterTypes()), e);
             }
         }
     }

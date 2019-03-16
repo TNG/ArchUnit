@@ -2,15 +2,9 @@ package com.tngtech.archunit;
 
 import java.lang.annotation.Annotation;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Guava;
-import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
@@ -18,13 +12,14 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer;
 
 import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
-import static com.tngtech.archunit.base.DescribedPredicate.dont;
+import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -35,8 +30,8 @@ import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 
 public class PublicAPIRules {
     @ArchTest
@@ -55,10 +50,9 @@ public class PublicAPIRules {
 
     @ArchTest
     public static final ArchRule only_members_that_are_public_API_or_explicitly_marked_as_internal_are_accessible =
-            // TODO: all(members()) should instead be members() and part of the fluent API
-            all(members())
+            members()
                     .that(are(withoutAPIMarking()))
-                    .and(dont(inheritPublicAPI()))
+                    .and(doNot(inheritPublicAPI()))
                     .and(are(relevantArchUnitMembers()))
 
                     .should(notBePublic())
@@ -81,6 +75,20 @@ public class PublicAPIRules {
 
                     .as("all public classes not meant for inheritance should be final")
                     .because("users of ArchUnit should only inherit from intended classes, to preserve maintainability");
+
+    @ArchTest
+    public static final ArchRule only_entry_point_and_syntax_interfaces_should_be_public =
+            classes()
+                    .that().resideInAPackage("..syntax..")
+                    .and().haveNameNotMatching(".*" + ArchRuleDefinition.class.getSimpleName() + ".*")
+                    // FIXME: Remove this line once we throw the deprecated class out of the public API
+                    .and().doNotHaveFullyQualifiedName(ClassesIdentityTransformer.class.getName())
+                    .and().areNotInterfaces()
+                    .and().areNotAnnotatedWith(Internal.class)
+                    .should().notBePublic()
+                    .as(String.format(
+                            "Only %s and interfaces within the ArchUnit syntax (..syntax..) should be public",
+                            ArchRuleDefinition.class.getSimpleName()));
 
     private static DescribedPredicate<JavaClass> publicAPI() {
         return annotatedWith(PublicAPI.class).<JavaClass>forSubType()
@@ -123,7 +131,7 @@ public class PublicAPIRules {
 
             private boolean equivalentMethod(JavaMethod method, String name, Class<?>... paramTypes) {
                 return method.getName().equals(name) &&
-                        method.getParameters().getNames().equals(JavaClass.namesOf(paramTypes));
+                        method.getRawParameterTypes().getNames().equals(JavaClass.namesOf(paramTypes));
             }
 
             private boolean enumMethod(JavaMethod methodToCheck, String name, Class<?>... paramTypes) {
@@ -146,18 +154,17 @@ public class PublicAPIRules {
         return declaredIn(resideInAPackage(packageIdentifier).as("class in '%s'", packageIdentifier));
     }
 
-    // TODO: Would be a nice feature, to record the line numbers of members as well
     private static ArchCondition<JavaMember> notBePublic() {
         return new ArchCondition<JavaMember>("not be public") {
             @Override
-            public void check(JavaMember item, ConditionEvents events) {
-                boolean satisfied = !item.getModifiers().contains(PUBLIC);
-                events.add(new SimpleConditionEvent(item, satisfied,
+            public void check(JavaMember member, ConditionEvents events) {
+                boolean satisfied = !member.getModifiers().contains(PUBLIC);
+                events.add(new SimpleConditionEvent(member, satisfied,
                         String.format("member %s.%s is %spublic in %s",
-                                item.getOwner().getName(),
-                                item.getName(),
+                                member.getOwner().getName(),
+                                member.getName(),
                                 satisfied ? "not " : "",
-                                Formatters.formatLocation(item.getOwner(), 0))));
+                                member.getSourceCodeLocation())));
             }
         };
     }
@@ -194,7 +201,7 @@ public class PublicAPIRules {
 
     private static DescribedPredicate<JavaMember> withoutAPIMarking() {
         return not(annotatedWith(PublicAPI.class)).<JavaMember>forSubType()
-                .and(not(annotatedWith(Internal.class)).<JavaMember>forSubType())
+                .and(not(annotatedWith(Internal.class)).forSubType())
                 .and(declaredIn(modifier(PUBLIC)))
                 .as("without API marking");
     }
@@ -223,7 +230,7 @@ public class PublicAPIRules {
 
             private boolean isPublicAPISuperMethod(JavaMethod candidate, JavaMethod methodToCheck) {
                 return candidate.getName().equals(methodToCheck.getName()) &&
-                        candidate.getParameters().equals(methodToCheck.getParameters()) &&
+                        candidate.getRawParameterTypes().equals(methodToCheck.getRawParameterTypes()) &&
                         candidate.isAnnotatedWith(PublicAPI.class);
             }
         };
@@ -256,7 +263,7 @@ public class PublicAPIRules {
         return new DescribedPredicate<JavaAnnotation>("@%s(usage = %s)", PublicAPI.class.getSimpleName(), INHERITANCE) {
             @Override
             public boolean apply(JavaAnnotation input) {
-                return input.getType().isEquivalentTo(PublicAPI.class) &&
+                return input.getRawType().isEquivalentTo(PublicAPI.class) &&
                         input.as(PublicAPI.class).usage() == INHERITANCE;
             }
         };
@@ -283,48 +290,5 @@ public class PublicAPIRules {
                         String.format("class %s is %smeant for inheritance", item.getName(), satisfied ? "" : "not ")));
             }
         };
-    }
-
-    private static ClassesTransformer<JavaMember> members() {
-        return new ToMembersTransformer();
-    }
-
-    private static class ToMembersTransformer implements ClassesTransformer<JavaMember> {
-        private String description;
-        private DescribedPredicate<JavaMember> selected;
-
-        private ToMembersTransformer() {
-            this("members", DescribedPredicate.<JavaMember>alwaysTrue());
-        }
-
-        private ToMembersTransformer(String description, DescribedPredicate<JavaMember> selected) {
-            this.description = description;
-            this.selected = selected;
-        }
-
-        @Override
-        public DescribedIterable<JavaMember> transform(JavaClasses collection) {
-            ImmutableSet.Builder<JavaMember> result = ImmutableSet.builder();
-            for (JavaClass javaClass : collection) {
-                result.addAll(Guava.Iterables.filter(javaClass.getMembers(), selected));
-            }
-            return DescribedIterable.From.iterable(result.build(), description);
-        }
-
-        @Override
-        public ClassesTransformer<JavaMember> that(DescribedPredicate<? super JavaMember> predicate) {
-            String newDescription = Joiner.on(" that ").join(description, predicate.getDescription());
-            return new ToMembersTransformer(newDescription, predicate.<JavaMember>forSubType());
-        }
-
-        @Override
-        public ClassesTransformer<JavaMember> as(String description) {
-            return new ToMembersTransformer(description, selected);
-        }
-
-        @Override
-        public String getDescription() {
-            return description;
-        }
     }
 }

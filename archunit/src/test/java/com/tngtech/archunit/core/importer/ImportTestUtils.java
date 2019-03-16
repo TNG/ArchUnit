@@ -121,7 +121,7 @@ public class ImportTestUtils {
         return result.build();
     }
 
-    static JavaClass javaClassFor(Class<?> owner) {
+    private static JavaClass javaClassFor(Class<?> owner) {
         return new DomainBuilders.JavaClassBuilder()
                 .withType(JavaType.From.name(owner.getName()))
                 .withInterface(owner.isInterface())
@@ -233,8 +233,8 @@ public class ImportTestUtils {
     public static AccessTarget.ConstructorCallTarget targetFrom(JavaConstructor target) {
         return new DomainBuilders.ConstructorCallTargetBuilder()
                 .withOwner(target.getOwner())
-                .withParameters(target.getParameters())
-                .withReturnType(target.getReturnType())
+                .withParameters(target.getRawParameterTypes())
+                .withReturnType(target.getRawReturnType())
                 .withConstructor(Suppliers.ofInstance(Optional.of(target)))
                 .build();
     }
@@ -243,7 +243,7 @@ public class ImportTestUtils {
         return new DomainBuilders.FieldAccessTargetBuilder()
                 .withOwner(field.getOwner())
                 .withName(field.getName())
-                .withType(field.getType())
+                .withType(field.getRawType())
                 .withField(Suppliers.ofInstance(Optional.of(field)))
                 .build();
     }
@@ -252,8 +252,8 @@ public class ImportTestUtils {
         return new DomainBuilders.MethodCallTargetBuilder()
                 .withOwner(target.getOwner())
                 .withName(target.getName())
-                .withParameters(target.getParameters())
-                .withReturnType(target.getReturnType())
+                .withParameters(target.getRawParameterTypes())
+                .withReturnType(target.getRawReturnType())
                 .withMethods(resolveSupplier)
                 .build();
     }
@@ -316,7 +316,7 @@ public class ImportTestUtils {
                 .uniqueIndex(new Function<JavaAnnotation, String>() {
                     @Override
                     public String apply(JavaAnnotation input) {
-                        return input.getType().getName();
+                        return input.getRawType().getName();
                     }
                 });
     }

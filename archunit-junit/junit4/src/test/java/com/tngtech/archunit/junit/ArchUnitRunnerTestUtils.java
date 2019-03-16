@@ -20,7 +20,7 @@ class ArchUnitRunnerTestUtils {
     };
 
     static final ArchCondition<JavaClass> NEVER_BE_SATISFIED = never(BE_SATISFIED)
-            .as("satisfy something, but don't");
+            .as("satisfy something, but do not");
 
     static ArchUnitRunner newRunnerFor(Class<?> testClass) {
         try {

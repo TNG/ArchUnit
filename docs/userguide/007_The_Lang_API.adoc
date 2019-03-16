@@ -1,6 +1,6 @@
 == The Lang API
 
-=== Composing Rules
+=== Composing Class Rules
 
 <<The Core API>> is pretty powerful with regard to all the details from the bytecode
 that it provides to tests. However, tests written this way lack conciseness and fail to convey the
@@ -75,6 +75,23 @@ noClasses()
     .or().resideInAPackage("..persistence..")
     .should().accessClassesThat().resideInAPackage("..controller..")
     .orShould().accessClassesThat().resideInAPackage("..ui..")
+
+rule.check(importedClasses);
+----
+
+=== Composing Member Rules
+
+In addition to a predefined API to write rules about Java classes and their relations, there is
+an extended API to define rules for members of Java classes. This might be relevant for example,
+if methods in a certain context need to be annotated with a specific annotation or return
+types implementing a certain interface. The entry point is again `ArchRuleDefinition`, e.g.
+
+[source,java,options="nowrap"]
+----
+ArchRule rule = ArchRuleDefinition.methods()
+    .that().arePublic()
+    .and().areDeclaredInClassesThat().resideInAPackage("..controller..")
+    .should().beAnnotatedWith(Secured.class);
 
 rule.check(importedClasses);
 ----

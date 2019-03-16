@@ -58,7 +58,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         super(builder);
         this.returnType = builder.getReturnType();
         this.parameters = builder.getParameters();
-        fullName = formatMethod(getOwner().getName(), getName(), getParameters());
+        fullName = formatMethod(getOwner().getName(), getName(), getRawParameterTypes());
     }
 
     @Override
@@ -66,8 +66,17 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         return fullName;
     }
 
+    /**
+     * @deprecated Use {@link #getRawParameterTypes()} instead
+     */
     @Override
+    @Deprecated
     public JavaClassList getParameters() {
+        return getRawParameterTypes();
+    }
+
+    @Override
+    public JavaClassList getRawParameterTypes() {
         return parameters;
     }
 
@@ -82,8 +91,17 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         return getThrowsClause().getTypes();
     }
 
+    /**
+     * @deprecated Use {@link #getRawReturnType()} instead.
+     */
     @Override
+    @Deprecated
     public JavaClass getReturnType() {
+        return getRawReturnType();
+    }
+
+    @Override
+    public JavaClass getRawReturnType() {
         return returnType;
     }
 
@@ -144,12 +162,16 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         private Functions() {
         }
 
+        /**
+         * @deprecated Use {@link HasReturnType.Functions#GET_RAW_RETURN_TYPE} instead
+         */
+        @Deprecated
         @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaCodeUnit, JavaClass> GET_RETURN_TYPE =
                 new ChainableFunction<JavaCodeUnit, JavaClass>() {
                     @Override
                     public JavaClass apply(JavaCodeUnit input) {
-                        return input.getReturnType();
+                        return input.getRawReturnType();
                     }
                 };
 

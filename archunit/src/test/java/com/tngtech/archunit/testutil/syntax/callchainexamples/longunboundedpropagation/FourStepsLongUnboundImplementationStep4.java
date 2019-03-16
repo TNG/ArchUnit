@@ -1,0 +1,4 @@
+package com.tngtech.archunit.testutil.syntax.callchainexamples.longunboundedpropagation;
+
+public class FourStepsLongUnboundImplementationStep4 implements FourStepsLongUnboundInterfaceStep4 {
+}
