@@ -31,7 +31,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * to another class <code>com.any.OtherClass</code>. Then the {@link SourceCodeLocation} would be
  * <pre><code>com.myapp.MyClass.java:28</code></pre>
  * <br>
- * An {@link SourceCodeLocation} will always only be as precise as possible from the point of Java bytecode.
+ * A {@link SourceCodeLocation} will always only be as precise as possible from the point of Java bytecode.
  * A field of a class, e.g., <code>com.myapp.MyClass</code> would always give
  * <pre><code>com.myapp.MyClass.java:0</code></pre>
  * since there is no way to precisely determine the line number of a {@link JavaField} from bytecode.
@@ -99,7 +99,7 @@ public final class SourceCodeLocation {
     /**
      * @return "(${sourceClass.getSimpleName()}.java:${lineNumber})".
      * This format is (at least by IntelliJ Idea) recognized as location, if it's the end of a line,
-     * thus enabling IDE support, to jump to a definition.
+     * thus enabling IDE support to jump to a definition.
      */
     @Override
     public String toString() {

@@ -126,7 +126,7 @@ public final class Formatters {
      * @param clazz      Class determining the location
      * @param lineNumber Line number of the location
      * @return Arguments formatted as "(${clazz.getSimpleName()}.java:${lineNumber})". This format is (at least
-     * by IntelliJ Idea) recognized as location, if it's the end of a failure line, thus enabling IDE support,
+     * by IntelliJ Idea) recognized as location, if it's the end of a failure line, thus enabling IDE support
      * to jump to a violation.
      * @deprecated use {@link SourceCodeLocation}
      * @see SourceCodeLocation
