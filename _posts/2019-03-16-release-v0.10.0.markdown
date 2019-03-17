@@ -1,0 +1,8 @@
+---
+layout: splash
+title:  "New release of ArchUnit (v0.10.0)"
+date:   2019-03-16 10:00:00
+categories: news release
+---
+
+A new release of ArchUnit (v0.10.0) is out. For details see [the release on GitHub](https://github.com/TNG/ArchUnit/releases/tag/v0.10.0 "ArchUnit v0.10.0 on GitHub").

@@ -9,26 +9,26 @@ Consider a straight forward approach to write tests:
 ----
 @Test
 public void rule1() {
-    JavaClasses classes = new ClassFileImporter().importClasspath();
+    JavaClasses importedClasses = new ClassFileImporter().importClasspath();
 
     ArchRule rule = classes()...
 
-    rule.check(classes);
+    rule.check(importedClasses);
 }
 
 @Test
 public void rule2() {
-    JavaClasses classes = new ClassFileImporter().importClasspath();
+    JavaClasses importedClasses = new ClassFileImporter().importClasspath();
 
     ArchRule rule = classes()...
 
-    rule.check(classes);
+    rule.check(importedClasses);
 }
 ----
 
 For bigger projects, this will have a significant performance impact, since the import can take
 a noticeable amount of time. Also rules will always be checked against the imported classes, thus
-the explicit call of `check(classes)` is bloat and error prone (i.e. it can be forgotten).
+the explicit call of `check(importedClasses)` is bloat and error prone (i.e. it can be forgotten).
 
 === JUnit 4 & 5 Support
 
