@@ -641,18 +641,6 @@ A typical Maven configuration could look like this:</p>
         &lt;plugin&gt;
             &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
             &lt;version&gt;2.22.0&lt;/version&gt;
-            &lt;dependencies&gt;
-                &lt;dependency&gt;
-                    &lt;groupId&gt;org.junit.platform&lt;/groupId&gt;
-                    &lt;artifactId&gt;junit-platform-surefire-provider&lt;/artifactId&gt;
-                    &lt;version&gt;1.2.0&lt;/version&gt;
-                &lt;/dependency&gt;
-                &lt;dependency&gt;
-                    &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
-                    &lt;artifactId&gt;archunit-junit5-engine&lt;/artifactId&gt;
-                    &lt;version&gt;0.10.0&lt;/version&gt;
-                &lt;/dependency&gt;
-            &lt;/dependencies&gt;
         &lt;/plugin&gt;
     &lt;/plugins&gt;
 &lt;/build&gt;
@@ -662,6 +650,12 @@ A typical Maven configuration could look like this:</p>
     &lt;dependency&gt;
         &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
         &lt;artifactId&gt;archunit-junit5-api&lt;/artifactId&gt;
+        &lt;version&gt;0.10.0&lt;/version&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
+        &lt;artifactId&gt;archunit-junit5-engine&lt;/artifactId&gt;
         &lt;version&gt;0.10.0&lt;/version&gt;
         &lt;scope&gt;test&lt;/scope&gt;
     &lt;/dependency&gt;
@@ -676,16 +670,15 @@ A typical Maven configuration could look like this:</p>
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-To run ArchUnit JUnit 5 tests within an IDE, it might unfortunately be necessary to add
-           <code>archunit-junit5-engine</code> as a project dependency with scope <code>test</code> as well.
-           Configuring <code>archunit-junit5-engine</code> as a dependency of the Surefire Plugin
-           compensates Maven&#8217;s lack of a test runtime scope, but is not reliably understood by IDEs.
+Unfortunately Maven lacks a test runtime scope, so the engine dependency must be added
+           to the test compile scope. Adding the engine dependency to the surefire-plugin
+           unfortunately does not work in the current version.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>The configuration for Gradle is much simpler due to the existence of a test runtime scope:</p>
+<p>The configuration for Gradle allows to clearly distinguish a test runtime scope:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.gradle</div>
