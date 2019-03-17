@@ -1,6 +1,7 @@
 package com.tngtech.archunit;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -31,6 +32,7 @@ import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predica
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 
 public class PublicAPIRules {
@@ -89,6 +91,15 @@ public class PublicAPIRules {
                     .as(String.format(
                             "Only %s and interfaces within the ArchUnit syntax (..syntax..) should be public",
                             ArchRuleDefinition.class.getSimpleName()));
+
+    @ArchTest
+    public static final ArchRule parameters_of_public_API_are_public =
+            codeUnits()
+                    .that().areDeclaredInClassesThat().arePublic()
+                    .and().areDeclaredInClassesThat().areNotAnnotatedWith(Internal.class)
+                    .and().arePublic()
+                    .and().doNotHaveName("adhereToPlantUmlDiagram")
+                    .should().haveRawParameterTypes(thatArePublic());
 
     private static DescribedPredicate<JavaClass> publicAPI() {
         return annotatedWith(PublicAPI.class).<JavaClass>forSubType()
@@ -288,6 +299,20 @@ public class PublicAPIRules {
                         markedAsPublicAPIForInheritance().apply(item);
                 events.add(new SimpleConditionEvent(item, satisfied,
                         String.format("class %s is %smeant for inheritance", item.getName(), satisfied ? "" : "not ")));
+            }
+        };
+    }
+
+    private static DescribedPredicate<List<JavaClass>> thatArePublic() {
+        return new DescribedPredicate<List<JavaClass>>("that are public") {
+            @Override
+            public boolean apply(List<JavaClass> input) {
+                for (JavaClass parameterType : input) {
+                    if (!parameterType.getModifiers().contains(PUBLIC)) {
+                        return false;
+                    }
+                }
+                return true;
             }
         };
     }
