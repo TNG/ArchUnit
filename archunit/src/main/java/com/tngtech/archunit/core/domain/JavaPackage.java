@@ -39,6 +39,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
@@ -449,11 +450,13 @@ public final class JavaPackage implements HasName {
         }
     }
 
-    interface ClassVisitor {
+    @PublicAPI(usage = INHERITANCE)
+    public interface ClassVisitor {
         void visit(JavaClass javaClass);
     }
 
-    interface PackageVisitor {
+    @PublicAPI(usage = INHERITANCE)
+    public interface PackageVisitor {
         void visit(JavaPackage javaPackage);
     }
 
