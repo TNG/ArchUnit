@@ -268,21 +268,23 @@ mentioned in the sections above, this is the identity transformation, passing cl
 as they are. However, one can supply any custom transformation to express a rule about a
 different type of input object. For example:
 
-// FIXME: This example is obsolete once the members API is merged
 [source,java,options="nowrap"]
 ----
-ClassesTransformer<JavaField> fields = new AbstractClassesTransformer<JavaField>("fields") {
+ClassesTransformer<JavaPackage> packages = new AbstractClassesTransformer<JavaPackage>("packages") {
     @Override
-    public Iterable<JavaField> doTransform(JavaClasses classes) {
-        Set<JavaField> result = new HashSet<>();
-        for (JavaClass javaClass : classes) {
-            result.addAll(javaClass.getFields());
-        }
+    public Iterable<JavaPackage> doTransform(JavaClasses classes) {
+        Set<JavaPackage> result = new HashSet<>();
+        classes.getDefaultPackage().accept(alwaysTrue(), new PackageVisitor() {
+            @Override
+            public void visit(JavaPackage javaPackage) {
+                result.add(javaPackage);
+            }
+        });
         return result;
     }
 };
 
-all(fields).that(have(modifier(PUBLIC))).should(...)
+all(packages).that(containACoreClass()).should(...);
 ----
 
 Of course these transformers can represent any custom concept desired:
