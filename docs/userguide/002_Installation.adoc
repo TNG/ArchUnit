@@ -47,18 +47,6 @@ A typical Maven configuration could look like this:
         <plugin>
             <artifactId>maven-surefire-plugin</artifactId>
             <version>2.22.0</version>
-            <dependencies>
-                <dependency>
-                    <groupId>org.junit.platform</groupId>
-                    <artifactId>junit-platform-surefire-provider</artifactId>
-                    <version>1.3.1</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.tngtech.archunit</groupId>
-                    <artifactId>archunit-junit5-engine</artifactId>
-                    <version>0.10.0</version>
-                </dependency>
-            </dependencies>
         </plugin>
     </plugins>
 </build>
@@ -71,16 +59,21 @@ A typical Maven configuration could look like this:
         <version>0.10.0</version>
         <scope>test</scope>
     </dependency>
+    <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit-junit5-engine</artifactId>
+        <version>0.10.0</version>
+        <scope>test</scope>
+    </dependency>
 </dependencies>
 ...
 ----
 
-IMPORTANT: To run ArchUnit JUnit 5 tests within an IDE, it might unfortunately be necessary to add
-           `archunit-junit5-engine` as a project dependency with scope `test` as well.
-           Configuring `archunit-junit5-engine` as a dependency of the Surefire Plugin
-           compensates Maven's lack of a test runtime scope, but is not reliably understood by IDEs.
+IMPORTANT: Unfortunately Maven lacks a test runtime scope, so the engine dependency must be added
+           to the test compile scope. Adding the engine dependency to the surefire-plugin
+           unfortunately does not work in the current version.
 
-The configuration for Gradle is much simpler due to the existence of a test runtime scope:
+The configuration for Gradle allows to clearly distinguish a test runtime scope:
 
 [source,options="nowrap"]
 .build.gradle
