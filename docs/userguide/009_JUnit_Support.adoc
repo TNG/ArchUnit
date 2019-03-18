@@ -65,7 +65,7 @@ public class ArchitectureTest {
 
 The `JavaClass` cache will work in two ways. On the one hand it will cache the classes by test,
 so they can be reused by several rules declared within the same class. On the other hand, it
-will cache the classes by location, so a second test, that wants to import classes from the same
+will cache the classes by location, so a second test that wants to import classes from the same
 URLs will reuse the classes previously imported as well. Note that this second caching uses
 soft references, so the classes will be dropped from memory, if the heap runs low.
 For further information see <<Controlling the Cache>>.
@@ -110,7 +110,7 @@ production code, and only consider code that is directly supplied and does not c
 
 [source,java,options="nowrap"]
 ----
-@AnalyzeClasses(importOptions = {DontIncludeTests.class, DontIncludeJars.class})
+@AnalyzeClasses(importOptions = {DoNotIncludeTests.class, DoNotIncludeJars.class})
 ----
 
 As explained in <<The Core API>>, you can write your own custom implementation of `ImportOption`
@@ -123,7 +123,7 @@ test class runs imported Java classes will be reused, if the exact combination o
 been imported.
 
 If the heap runs low, and thus the garbage collector has to do a big sweep in one run,
-this can cause a noticeable delay. On the other hand, if it is known, that no other test class will
+this can cause a noticeable delay. On the other hand, if it is known that no other test class will
 reuse the imported Java classes, it would make sense to deactivate this cache.
 
 This can be achieved by configuring `CacheMode.PER_CLASS`, e.g.

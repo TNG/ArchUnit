@@ -1,12 +1,12 @@
 == The Library API
 
-The Library API offers a growing collection of predefined rules, that offer a more concise API
+The Library API offers a growing collection of predefined rules, which offer a more concise API
 for more complex but common patterns, like a layered architecture or checks for cycles between
 slices (compare <<What to Check>>).
 
 === Architectures
 
-The entrance point for checks of common architectural styles is
+The entrance point for checks of common architectural styles is:
 
 [source,java,options="nowrap"]
 ----
@@ -20,7 +20,7 @@ architecture, pipes and filters, separation of business logic and technical infr
 === Slices
 
 Currently there are two "slice" rules offered by the Library API. These are basically rules
-that slice the code by packages, and contain assertions on those slices. The entrance point is
+that slice the code by packages, and contain assertions on those slices. The entrance point is:
 
 [source,java,options="nowrap"]
 ----
