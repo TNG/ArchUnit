@@ -33,7 +33,7 @@ is imported. This can be achieved by specifying `ImportOptions`:
 ImportOption ignoreTests = new ImportOption() {
     @Override
     public boolean includes(Location location) {
-        return !location.contains("/test/"); // ignore any URI to sources, that contains '/test/'
+        return !location.contains("/test/"); // ignore any URI to sources that contains '/test/'
     }
 };
 
@@ -52,21 +52,21 @@ there already exist predefined `ImportOptions`:
 [source,java,options="nowrap"]
 ----
 new ClassFileImporter()
-    .withImportOption(ImportOption.Predefined.DONT_INCLUDE_JARS)
-    .withImportOption(ImportOption.Predefined.DONT_INCLUDE_TESTS)
+    .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
+    .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
     .importClasspath();
 ----
 
 ==== Dealing with Missing Classes
 
 While importing the requested classes (e.g. `target/classes` or `target/test-classes`)
-it can happen, that a class within the scope of the import has a reference to a class outside of the
+it can happen that a class within the scope of the import has a reference to a class outside of the
 scope of the import. This will naturally happen, if the classes of the JDK are not imported,
 since then for example any dependency on `Object.class` will be unresolved within the import.
 
 At this point ArchUnit needs to decide how to treat these classes that are missing from the
 import. By default, ArchUnit searches within the classpath for missing classes and if found
-imports them. This obviously has the advantage, that information about those classes
+imports them. This obviously has the advantage that information about those classes
 (which interfaces they implement, how they are annotated) is present during rule evaluation.
 
 On the downside this additional lookup from the classpath will cost some performance and in some
@@ -115,18 +115,19 @@ class JavaFieldAccess
 class JavaConstructorCall
 class JavaMethodCall
 
-JavaPackage *--* JavaClass : has
-JavaClass *-- JavaMember : has
+JavaPackage *--* "1..*" JavaClass : has
+JavaClass *-- "0..*" JavaMember : has
 JavaMember <|-- JavaField : extends
 JavaMember <|-- JavaCodeUnit : extends
-JavaCodeUnit *-left- ThrowsClause : has
 JavaCodeUnit <|-- JavaConstructor : extends
 JavaCodeUnit <|-- JavaMethod : extends
 JavaCodeUnit <|-- JavaStaticInitializer : extends
+JavaConstructor *-- "1" ThrowsClause : has
+JavaMethod *-- "1" ThrowsClause : has
 
-JavaCodeUnit *-- JavaFieldAccess : has
-JavaCodeUnit *-- JavaMethodCall : has
-JavaCodeUnit *-- JavaConstructorCall : has
+JavaCodeUnit *-- "0..*" JavaFieldAccess : has
+JavaCodeUnit *-- "0..*" JavaMethodCall : has
+JavaCodeUnit *-- "0..*" JavaConstructorCall : has
 ----
 
 Most objects resemble the Java Reflection API, including inheritance relations. Thus a `JavaClass`
@@ -137,7 +138,7 @@ calls 'code unit', and is in fact either a method, a constructor (including the 
 or a static initializer of a class (e.g. a `static { ... }` block, a static field assignment,
 etc.).
 
-Furthermore one of the most interesting features of ArchUnit, that exceeds the Java Reflection API,
+Furthermore one of the most interesting features of ArchUnit that exceeds the Java Reflection API,
 is the concept of accesses to another class. On the lowest level accesses can only take place
 from a code unit (as mentioned, any block of executable code) to either a field (`JavaFieldAccess`),
 a method (`JavaMethodCall`) or constructor (`JavaConstructorCall`).
@@ -146,8 +147,8 @@ ArchUnit imports the whole graph of classes and their relationship to each other
 the accesses *from* a class is pretty isolated (the bytecode offers all this information),
 checking accesses *to* a class requires the whole graph to be built first. To distinguish which
 sort of access is referred to, methods will always clearly state *fromSelf* and *toSelf*.
-For example, every `JavaField` allows to call `JavaField#getAccessesToSelf()`, to retrieve all
-code units within the graph, that access this specific field. The resolution process through
+For example, every `JavaField` allows to call `JavaField#getAccessesToSelf()` to retrieve all
+code units within the graph that access this specific field. The resolution process through
 inheritance is not completely straight forward. Consider for example
 
 [plantuml, "resolution-example"]
@@ -180,7 +181,7 @@ ClassAccessing o-- ClassBeingAccessed
 
 The bytecode will record a field access from `ClassAccessing.accessField()` to
 `ClassBeingAccessed.accessedField`. However, there is no such field, since the field is
-actually declared in the superclass. This is the reason, that a `JavaFieldAccess`
+actually declared in the superclass. This is the reason why a `JavaFieldAccess`
 has no `JavaField` as its target, but a `FieldAccessTarget`. In other words, ArchUnit models
 the situation, as it is found within the bytecode, and an access target is not an actual
 member within another class. If a member is queried for `accessesToSelf()` though, ArchUnit
@@ -223,14 +224,14 @@ ConstructorCallTarget "1" -- "0..1" JavaConstructor : resolves to
 
 Two things might seem strange at the first look.
 
-First, why can a target resolve to zero matching members? The reason is, that the set of classes
+First, why can a target resolve to zero matching members? The reason is that the set of classes
 that was imported does not need to have all classes involved within this resolution process.
 Consider the above example, if `SuperClassBeingAccessed` would not be imported, ArchUnit would
-have no way of knowing, where the actual targeted field resides. Thus in this case the
+have no way of knowing where the actual targeted field resides. Thus in this case the
 resolution would return zero elements.
 
 Second, why can there be more than one resolved methods for method calls?
-The reason for this is, that a call target might indeed match several methods in those
+The reason for this is that a call target might indeed match several methods in those
 cases, for example:
 
 [plantuml, "diamond-example"]
@@ -265,7 +266,7 @@ D -right- C : calls targetMethod()
 ----
 
 While this situation will always be resolved in a specified way for a real program,
-ArchUnit can not do the same. Instead, the resolution will report all candidates that match a
+ArchUnit cannot do the same. Instead, the resolution will report all candidates that match a
 specific access target, so in the above example, the call target `C.targetMethod()` would in fact
 resolve to two `JavaMethods`, namely `A.targetMethod()` and `B.targetMethod()`. Likewise a check
 of either `A.targetMethod.getCallsToSelf()` or `B.targetMethod.getCallsToSelf()` would return
@@ -273,13 +274,13 @@ the same call from `D.callTargetMethod()` to `C.targetMethod()`.
 
 ==== Domain Objects, Reflection and the Classpath
 
-ArchUnit tries to offer a lot of information from the bytecode, for example a `JavaClass`
-provides details like if it is an Enum or an Interface, modifiers like `public` or `abstract`,
+ArchUnit tries to offer a lot of information from the bytecode. For example, a `JavaClass`
+provides details like if it is an enum or an interface, modifiers like `public` or `abstract`,
 but also the source, where this class was imported from (namely the URI mentioned in the first
 section). However, if information if missing, and the classpath is correct, ArchUnit offers
 some convenience to rely on the reflection API for extended details. For this reason, most
-`Java*`-Objects offer a method `reflect()`, which will in fact try to resolve the respective
-object from the Reflection API. For example
+`Java*` objects offer a method `reflect()`, which will in fact try to resolve the respective
+object from the Reflection API. For example:
 
 [source,java,options="nowrap"]
 ----
@@ -299,8 +300,8 @@ Method lengthMethod = javaMethod.reflect();
 However, this will throw an `Exception`, if the respective classes are missing on the classpath
 (e.g. because they were just imported from some file path).
 
-This restriction also applies to handling Annotations in a more convenient way.
-Consider some Annotation
+This restriction also applies to handling annotations in a more convenient way.
+Consider the following annotation:
 
 [source,java,options="nowrap"]
 ----
@@ -309,7 +310,7 @@ Consider some Annotation
 }
 ----
 
-If you need to access this annotation, without this annotation on the classpath you must rely on
+If you need to access this annotation without it being on the classpath, you must rely on
 
 [source,java,options="nowrap"]
 ----
