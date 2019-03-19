@@ -29,7 +29,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
     }
 
     _create() {
-      this._svgElement = this._svgContainer.addGroup();
+      this._svgElement = this._svgContainer.addGroup().domElement;
       d3.select(this._svgElement).append('rect').attr('class', 'frame');
       d3.select(this._svgElement).append('text').attr('class', 'access');
       d3.select(this._svgElement).append('rect').attr('class', 'hoverArea')
