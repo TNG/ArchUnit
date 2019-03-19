@@ -23,9 +23,8 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
     }
 
     createIfNecessary() {
-      if (!this._svgElement) {
-        this._create();
-      }
+      d3.select(this._svgElement).remove();
+      this._create();
     }
 
     _create() {
@@ -53,7 +52,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
       d3.select(this._svgElement).attr('transform', () => {
         const transform = d3.select('#translater').attr('transform');
-        const translateX = parseFloat(transform.substring(transform.indexOf('(')+1, transform.indexOf(')')).split(',')[0]);
+        const translateX = parseFloat(transform.substring(transform.indexOf('(') + 1, transform.indexOf(')')).split(',')[0]);
 
         //ensure that the rect is visible on the left side
         let x = Math.max(maxWidth / 2, translateX + coordinates[0]);
@@ -110,8 +109,9 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
     _hideIfNotFixed() {
       if (!this._fixed) {
-        d3.select(this._svgElement).style('visibility', 'hidden');
-        d3.select(this._svgElement).select('.hoverArea').style('pointer-events', 'none');
+        //d3.select(this._svgElement).style('visibility', 'hidden');
+        //d3.select(this._svgElement).select('.hoverArea').style('pointer-events', 'none');
+        d3.select(this._svgElement).remove();
       }
     }
 
