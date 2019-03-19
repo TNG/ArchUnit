@@ -7,7 +7,7 @@ const dashedDependencyTypes = new Set();
 
 const init = (View, DetailedView) => {
 
-  const ownDependencyTypes = {
+  const defaultDependencyTypes = {
     INNERCLASS_DEPENDENCY: 'INNERCLASS_DEPENDENCY'
   };
 
@@ -268,8 +268,7 @@ const init = (View, DetailedView) => {
     createElementaryDependency,
     getUniqueDependency,
     shiftElementaryDependency,
-    // FIXME: 'own' dependency types -> default dependency types
-    getOwnDependencyTypes: () => [...Object.values(ownDependencyTypes)]
+    getDefaultDependencyTypes: () => [...Object.values(defaultDependencyTypes)]
   };
 };
 

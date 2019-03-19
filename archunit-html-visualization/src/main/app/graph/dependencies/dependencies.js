@@ -154,7 +154,7 @@ const init = (View, DetailedDependencyView) => {
         description: jsonDependency.description
       }));
 
-      this._dependencyTypes = [...new Set(this._elementary.map(d => d.type))].concat(dependencyCreator.getOwnDependencyTypes());
+      this._dependencyTypes = [...new Set(this._elementary.map(d => d.type))].concat(dependencyCreator.getDefaultDependencyTypes());
 
       this._filterGroup = buildFilterGroup('dependencies', this.getFilterObject())
         .addStaticFilter('type', () => true)
