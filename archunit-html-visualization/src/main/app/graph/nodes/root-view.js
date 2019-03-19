@@ -6,9 +6,6 @@ const d3 = require('d3');
 const {Vector} = require('../infrastructure/vectors');
 
 const init = (transitionDuration) => {
-  const createPromiseOnEndOfTransition = (transition, transitionRunner) =>
-    new Promise(resolve => transitionRunner(transition).on('interrupt', () => resolve()).on('end', resolve));
-
   class View {
     constructor({fullNodeName}, node) {
       this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
@@ -45,17 +42,16 @@ const init = (transitionDuration) => {
         container.scrollTop += position.y - this._position.y;
       }
 
-      d3.select(this._svgElement.domElement()).attr('transform', `translate(${position.x}, ${position.y})`);
+      d3.select(this._svgElement.domElement).attr('transform', `translate(${position.x}, ${position.y})`);
 
       this._position = Vector.from(position);
     }
 
     moveToPosition(position) {
       this._position = Vector.from(position);
-      return createPromiseOnEndOfTransition(d3.select(this._svgElement.domElement()).transition().duration(transitionDuration), t => t.attr('transform', `translate(${position.x}, ${position.y})`));
-    }
-
-    updateNodeType() {
+      return this._svgElement.createTransitionWithDuration(transitionDuration)
+        .step(svgSelection => svgSelection.translate(position))
+        .finish();
     }
   }
 
