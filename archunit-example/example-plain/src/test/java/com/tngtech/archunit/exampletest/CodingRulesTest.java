@@ -1,12 +1,16 @@
 package com.tngtech.archunit.exampletest;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.ClassViolatingCodingRules;
 import com.tngtech.archunit.lang.CompositeArchRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.util.logging.Logger;
+
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.GeneralCodingRules.ACCESS_STANDARD_STREAMS;
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS;
@@ -40,6 +44,16 @@ public class CodingRulesTest {
     }
 
     @Test
+    public void loggers_should_be_private_static_final() {
+        fields().that().haveRawType(Logger.class)
+                .should().bePrivate()
+                .andShould().haveModifier(JavaModifier.STATIC)
+                .andShould().haveModifier(JavaModifier.FINAL)
+                .because("we agreed on this convention")
+                .check(classes);
+    }
+
+    @Test
     public void classes_should_not_use_jodatime() {
         NO_CLASSES_SHOULD_USE_JODATIME.check(classes);
     }
@@ -49,5 +63,4 @@ public class CodingRulesTest {
         CompositeArchRule.of(NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS)
                 .and(NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS).check(classes);
     }
-
 }

@@ -1,12 +1,16 @@
 package com.tngtech.archunit.exampletest.junit5;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.CompositeArchRule;
 
+import java.util.logging.Logger;
+
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.GeneralCodingRules.ACCESS_STANDARD_STREAMS;
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS;
@@ -31,6 +35,14 @@ public class CodingRulesTest {
 
     @ArchTest
     private final ArchRule no_java_util_logging = NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
+
+    @ArchTest
+    private final ArchRule loggers_should_be_private_static_final =
+            fields().that().haveRawType(Logger.class)
+                    .should().bePrivate()
+                    .andShould().haveModifier(JavaModifier.STATIC)
+                    .andShould().haveModifier(JavaModifier.FINAL)
+                    .because("we agreed on this convention");
 
     @ArchTest
     private final ArchRule no_jodatime = NO_CLASSES_SHOULD_USE_JODATIME;

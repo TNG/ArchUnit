@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.util.logging.Logger;
 
 public class ClassViolatingCodingRules {
-    private static final Logger log = Logger.getLogger("Wrong Logger"); // Violates rule not to use java.util.logging
+    static Logger log = Logger.getLogger("Wrong Logger"); // Violates rules not to use java.util.logging & that loggers should be private static final
 
     public void printToStandardStream() throws FileNotFoundException {
         System.out.println("I'm gonna print to the command line"); // Violates rule not to write to standard streams
