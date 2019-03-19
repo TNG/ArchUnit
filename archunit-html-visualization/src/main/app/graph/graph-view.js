@@ -11,7 +11,11 @@ const init = (transitionDuration) => {
         id: 'translater'
       });
       this._svgElementForNodes = this._translater.addGroup();
-      this.svgElementForDetailedDependencies = this._translater.addGroup().domElement;
+      this._svgElementForDetailedDependencies = this._translater.addGroup();
+    }
+
+    get svgElementForDetailedDependencies() {
+      return this._svgElementForDetailedDependencies;
     }
 
     addRootView(rootView) {

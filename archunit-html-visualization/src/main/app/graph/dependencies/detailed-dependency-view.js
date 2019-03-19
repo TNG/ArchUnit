@@ -12,7 +12,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
       this._getDetailedDependencies = getDetailedDependencies;
       this._svgElement = null;
       this._svgContainer = svgContainer;
-      this._createSvgElement = () => d3.select(svgContainer).append('g').attr('id', `detailed_${dependencyIdentifier}`).node();
+      this._createSvgElement = () => d3.select(svgContainer.domElement).append('g').node();
     }
 
     show(coordinates) {
@@ -117,7 +117,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
     }
 
     fadeIn() {
-      const coordinates = d3.mouse(d3.select(this._svgContainer).node());
+      const coordinates = this._svgContainer.getMousePosition();
       if (!this._fixed) {
         this._shouldBeHidden = false;
         setTimeout(() => {

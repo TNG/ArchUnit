@@ -150,6 +150,10 @@ const SvgSelection = class extends D3Element {
     this.get().style('pointer-events', 'none');
   }
 
+  getMousePosition() {
+    return d3.mouse(this.domElement);
+  }
+
   static fromDom(domElement) {
     return new SvgSelection(d3.select(domElement));
   }
