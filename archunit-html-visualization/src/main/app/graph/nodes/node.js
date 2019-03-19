@@ -643,12 +643,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       this._parent._focus(this);
     }
 
-    shiftLayerToEnd() {
-      this._parent._originalChildren.filter(node => node._layerWithinParentNode > this._layerWithinParentNode)
-        .forEach(node => node._layerWithinParentNode -= 1);
-      this._layerWithinParentNode = this._parent._originalChildren.length - 1;
-    }
-
     _hide() {
       this._isVisible = false;
       this._view.hide();
