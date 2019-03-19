@@ -6,13 +6,12 @@ const d3 = require('d3');
 const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
   const View = class {
-    constructor(svgContainer, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {
+    constructor(svgContainer, callForAllDetailedViews, getDetailedDependencies) {
       this._fixed = false;
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._getDetailedDependencies = getDetailedDependencies;
       this._svgElement = null;
       this._svgContainer = svgContainer;
-      this._createSvgElement = () => d3.select(svgContainer.domElement).append('g').node();
     }
 
     show(coordinates) {
@@ -30,7 +29,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
     }
 
     _create() {
-      this._svgElement = this._createSvgElement();
+      this._svgElement = this._svgContainer.addGroup();
       d3.select(this._svgElement).append('rect').attr('class', 'frame');
       d3.select(this._svgElement).append('text').attr('class', 'access');
       d3.select(this._svgElement).append('rect').attr('class', 'hoverArea')

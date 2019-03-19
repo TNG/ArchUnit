@@ -21,7 +21,7 @@ const init = (DetailedView, transitionDuration) => {
       this._hoverArea.hide();
       this._hoverArea.strokeWidth = clickAreaWidth;
 
-      this._createDetailedView(svgContainerForDetailedDependencies, dependency.toString(),
+      this._createDetailedView(svgContainerForDetailedDependencies,
         fun => callForAllViews(view => fun(view._detailedView)), getDetailedDependencies);
     }
 
@@ -31,8 +31,8 @@ const init = (DetailedView, transitionDuration) => {
       this._dependency.onContainerEndNodeApplied();
     }
 
-    _createDetailedView(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies) {
-      this._detailedView = new DetailedView(parentSvgElement, dependencyIdentifier, callForAllDetailedViews, getDetailedDependencies);
+    _createDetailedView(parentSvgElement, callForAllDetailedViews, getDetailedDependencies) {
+      this._detailedView = new DetailedView(parentSvgElement, callForAllDetailedViews, getDetailedDependencies);
       this._hoverArea.onMouseOver(() => this._detailedView.fadeIn());
       this._hoverArea.onMouseOut(() => this._detailedView.fadeOut());
     }
