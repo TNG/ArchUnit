@@ -2,31 +2,30 @@
 
 const {Vector, FixableVector} = require('../infrastructure/vectors');
 
-// FIXME: 'position' unclear -> centerPosition?
 const Shape = class {
 
-  constructor(position) {
-    this.position = position;
+  constructor(centerPosition) {
+    this.centerPosition = centerPosition;
   }
 
   get x() {
-    return this.position.x;
+    return this.centerPosition.x;
   }
 
   get y() {
-    return this.position.y;
+    return this.centerPosition.y;
   }
 
   set x(value) {
-    this.position.x = value;
+    this.centerPosition.x = value;
   }
 
   set y(value) {
-    this.position.y = value;
+    this.centerPosition.y = value;
   }
 
   /**
-   * calculates if the given circle with a position relative to this shape is completely within this shape,
+   * calculates if the given circle with a centerPosition relative to this shape is completely within this shape,
    * considering a minimum distance from inner circles to the outer shape border
    */
   containsRelativeCircle() {
@@ -43,17 +42,17 @@ const Shape = class {
 };
 
 const Circle = class extends Shape {
-  constructor(position, r) {
-    super(position);
+  constructor(centerPosition, r) {
+    super(centerPosition);
     this.r = r;
   }
 
   containsRelativeCircle(relativeCircle, padding = 0) {
-    return relativeCircle.position.length() + relativeCircle.r + padding <= this.r;
+    return relativeCircle.centerPosition.length() + relativeCircle.r + padding <= this.r;
   }
 
   translateEnclosedRelativeCircleIntoThis(enclosedCircle, padding) {
-    enclosedCircle.position.norm(this.r - enclosedCircle.r - padding);
+    enclosedCircle.centerPosition.norm(this.r - enclosedCircle.r - padding);
   }
 
   overlapsWith(otherCircle) {
@@ -61,7 +60,7 @@ const Circle = class extends Shape {
   }
 
   containsPoint(vector) {
-    return Vector.between(this.position, vector).length() <= this.r;
+    return Vector.between(this.centerPosition, vector).length() <= this.r;
   }
 
   static from(vector, r) {
@@ -70,18 +69,18 @@ const Circle = class extends Shape {
 };
 
 const Rect = class extends Shape {
-  constructor(position, halfWidth, halfHeight) {
-    super(position);
+  constructor(centerPosition, halfWidth, halfHeight) {
+    super(centerPosition);
     this.halfWidth = halfWidth;
     this.halfHeight = halfHeight;
   }
 
   _relativeCircleIsWithinWidth(relativeCircle, padding = 0) {
-    return Math.abs(relativeCircle.position.x) + relativeCircle.r + padding <= this.halfWidth;
+    return Math.abs(relativeCircle.centerPosition.x) + relativeCircle.r + padding <= this.halfWidth;
   }
 
   _relativeCircleIsWithinHeight(relativeCircle, padding = 0) {
-    return Math.abs(relativeCircle.position.y) + relativeCircle.r + padding <= this.halfHeight;
+    return Math.abs(relativeCircle.centerPosition.y) + relativeCircle.r + padding <= this.halfHeight;
   }
 
   containsRelativeCircle(relativeCircle, padding = 0) {
@@ -91,10 +90,10 @@ const Rect = class extends Shape {
 
   translateEnclosedRelativeCircleIntoThis(enclosedCircle, padding) {
     if (!this._relativeCircleIsWithinWidth(enclosedCircle, padding)) {
-      enclosedCircle.position.x = Math.sign(enclosedCircle.position.x) * (this.halfWidth - enclosedCircle.r - padding);
+      enclosedCircle.centerPosition.x = Math.sign(enclosedCircle.centerPosition.x) * (this.halfWidth - enclosedCircle.r - padding);
     }
     if (!this._relativeCircleIsWithinHeight(enclosedCircle, padding)) {
-      enclosedCircle.position.y = Math.sign(enclosedCircle.position.y) * (this.halfHeight - enclosedCircle.r - padding);
+      enclosedCircle.centerPosition.y = Math.sign(enclosedCircle.centerPosition.y) * (this.halfHeight - enclosedCircle.r - padding);
     }
   }
 };
@@ -119,11 +118,11 @@ const CircleWithFixablePosition = class extends Circle {
   }
 
   get fx() {
-    return this.position.fx;
+    return this.centerPosition.fx;
   }
 
   get fy() {
-    return this.position.fy;
+    return this.centerPosition.fy;
   }
 };
 

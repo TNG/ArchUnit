@@ -68,8 +68,8 @@ const init = (View, DetailedView) => {
     }
 
     recalculateRelativePoints() {
-      this.relativeStartPoint = Vector.between(this._dependency.containerEndNode.nodeShape.absoluteShape.position, this.startPoint);
-      this.relativeEndPoint = Vector.between(this._dependency.containerEndNode.nodeShape.absoluteShape.position, this.endPoint);
+      this.relativeStartPoint = Vector.between(this._dependency.containerEndNode.nodeShape.absoluteShape.centerPosition, this.startPoint);
+      this.relativeEndPoint = Vector.between(this._dependency.containerEndNode.nodeShape.absoluteShape.centerPosition, this.endPoint);
     }
   };
 

@@ -238,9 +238,9 @@ describe('GroupedDependency', () => {
 
   const setNodeVisualDataTo = (node, x, y, r) => {
     node.nodeShape.relativePosition.x = x;
-    node.nodeShape.absoluteCircle.x = node.getParent() ? node.getParent().nodeShape.absoluteShape.position.x + x : x;
+    node.nodeShape.absoluteCircle.x = node.getParent() ? node.getParent().nodeShape.absoluteShape.centerPosition.x + x : x;
     node.nodeShape.relativePosition.y = y;
-    node.nodeShape.absoluteCircle.y = node.getParent() ? node.getParent().nodeShape.absoluteShape.position.y + y : y;
+    node.nodeShape.absoluteCircle.y = node.getParent() ? node.getParent().nodeShape.absoluteShape.centerPosition.y + y : y;
     node.nodeShape.absoluteCircle.r = r;
   };
 
@@ -288,8 +288,8 @@ describe('GroupedDependency', () => {
 
     const nodeInForeground = testData.class2;
 
-    expect(dependency.visualData.relativeStartPoint).to.deep.closeTo(Vector.between(nodeInForeground.nodeShape.absoluteShape.position, expStartPoint), MAXIMUM_DELTA);
-    expect(dependency.visualData.relativeEndPoint).to.deep.closeTo(Vector.between(nodeInForeground.nodeShape.absoluteShape.position, expEndPoint), MAXIMUM_DELTA);
+    expect(dependency.visualData.relativeStartPoint).to.deep.closeTo(Vector.between(nodeInForeground.nodeShape.absoluteShape.centerPosition, expStartPoint), MAXIMUM_DELTA);
+    expect(dependency.visualData.relativeEndPoint).to.deep.closeTo(Vector.between(nodeInForeground.nodeShape.absoluteShape.centerPosition, expEndPoint), MAXIMUM_DELTA);
   });
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper side', () => {

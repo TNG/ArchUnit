@@ -409,7 +409,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
     }
 
     _relayoutCompletely() {
-      this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node.nodeShape.absoluteCircle.position.unfix()));
+      this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node.nodeShape.absoluteCircle.centerPosition.unfix()));
 
       const promiseInitialLayout = this._initialLayout();
       const promiseForceLayout = this._forceLayout();

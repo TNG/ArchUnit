@@ -1575,7 +1575,7 @@ describe('Node layout', () => {
     return doNext(root, () => {
       root._callOnEveryDescendantThenSelf(node => {
         const absolutePosition = getAbsolutePositionOfNode(node);
-        expect(node.nodeShape.absoluteShape.position).to.deep.closeTo(absolutePosition, MAXIMUM_DELTA);
+        expect(node.nodeShape.absoluteShape.centerPosition).to.deep.closeTo(absolutePosition, MAXIMUM_DELTA);
       });
     });
   });
@@ -1588,7 +1588,7 @@ describe('Node layout', () => {
       root.getCurrentChildren().forEach(c => c._callOnEveryDescendantThenSelf(node => {
         expect(node.nodeShape.absoluteShape.fx).to.not.be.undefined;
         expect(node.nodeShape.absoluteShape.fy).to.not.be.undefined;
-        expect(node.nodeShape.absoluteShape.position.fixed).to.be.true;
+        expect(node.nodeShape.absoluteShape.centerPosition.fixed).to.be.true;
       }));
     });
   });
