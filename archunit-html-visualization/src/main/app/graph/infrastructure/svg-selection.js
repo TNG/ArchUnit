@@ -15,6 +15,17 @@ const D3Element = class {
     return this.get().attr('transform', `translate(${x}, ${y})`);
   }
 
+  getTranslation() {
+    const transform = this.get().attr('transform');
+    const indexOfTranslate = transform.indexOf('translate');
+    const translationsString = transform.substring(transform.indexOf('(', indexOfTranslate) + 1, transform.indexOf(')', indexOfTranslate));
+    const translation = translationsString.split(',').map(s => parseInt(s));
+    return {
+      x: translation[0],
+      y: translation[1]
+    }
+  }
+
   set radius(radius) {
     this.get().attr('r', radius);
   }
@@ -76,6 +87,10 @@ const SvgSelection = class extends D3Element {
     const group = this.get().append('g');
     Object.keys(attributes || {}).forEach(key => group.attr(key, attributes[key]));
     return new SvgSelection(group);
+  }
+
+  addRect() {
+    return new SvgSelection(this.get().append('rect'));
   }
 
   addCircle() {
