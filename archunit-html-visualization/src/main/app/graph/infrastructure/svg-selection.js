@@ -124,4 +124,28 @@ const SvgSelection = class extends D3Element {
   }
 };
 
-module.exports = SvgSelection;
+const DivSelection = class extends D3Element {
+
+  get scrollLeft() {
+    return this.get().node().scrollLeft;
+  }
+
+  get scrollTop() {
+    return this.get().node().scrollTop;
+  }
+
+  set scrollLeft(value) {
+    this.get().node().scrollLeft = value;
+  }
+
+  set scrollTop(value) {
+    this.get().node().scrollTop = value;
+  }
+
+  static fromDom(domElement) {
+    return new DivSelection(d3.select(domElement));
+  }
+};
+
+module.exports.SvgSelection = SvgSelection;
+module.exports.DivSelection = DivSelection;

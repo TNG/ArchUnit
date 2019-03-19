@@ -1,23 +1,22 @@
 'use strict';
 
 const svg = require('../infrastructure/gui-elements').svg;
+const document = require('../infrastructure/gui-elements').document;
 
 const d3 = require('d3');
 const {Vector} = require('../infrastructure/vectors');
 
 const init = (transitionDuration) => {
   class View {
-    constructor({fullNodeName}, node) {
+    constructor(fullNodeName, onkeyupHandler, svgContainerDivDomElement) {
       this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
+
+      this._svgContainerDivSelection = document.selectDiv(svgContainerDivDomElement);
 
       this._svgElementForChildren = this._svgElement.addGroup();
       this._svgElementForDependencies = this._svgElement.addGroup();
 
-      document.onkeyup = event => {
-        if (event.key === 'Alt' || event.key === 'Control') {
-          node.relayoutCompletely();
-        }
-      }
+      document.onKeyUp(onkeyupHandler);
     }
 
     get svgElement() {
@@ -33,17 +32,14 @@ const init = (transitionDuration) => {
     }
 
     jumpToPosition(position, directionVector) {
-      const container = d3.select('#container').node();
-
       if (directionVector.x < 0) {
-        container.scrollLeft += position.x - this._position.x;
+        this._svgContainerDivSelection.scrollLeft += position.x - this._position.x;
       }
       if (directionVector.y < 0) {
-        container.scrollTop += position.y - this._position.y;
+        this._svgContainerDivSelection.scrollTop += position.y - this._position.y;
       }
 
-      d3.select(this._svgElement.domElement).attr('transform', `translate(${position.x}, ${position.y})`);
-
+      this._svgElement.translate(position);
       this._position = Vector.from(position);
     }
 

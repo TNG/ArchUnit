@@ -1,6 +1,6 @@
 'use strict';
 
-const svg = require('./infrastructure/gui-elements').svg;
+const {svg, document, window} = require('./infrastructure/gui-elements');
 
 const init = (transitionDuration) => {
   const View = class {
@@ -42,8 +42,8 @@ const init = (transitionDuration) => {
       const calcExpandedSize = halfSize => parseInt(2 * halfSize + 4);
       const getNewSize = (windowSize, requiredSize, maxSize) => requiredSize < windowSize ? windowSize : maxSize;
 
-      const windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-      const windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+      const windowWidth = Math.max(document.getClientWidth(), window.getInnerWidth() || 0);
+      const windowHeight = Math.max(document.getClientHeight(), window.getInnerHeight() || 0);
 
       const requiredWidth = calcRequiredSize(halfWidth);
       const expandedWidth = calcExpandedSize(halfWidth);

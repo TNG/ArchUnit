@@ -1,4 +1,4 @@
-const SvgSelection = require('./svg-selection');
+const SvgSelection = require('./svg-selection').SvgSelection;
 
 module.exports = {
   select: (domElement) => SvgSelection.fromDom(domElement),

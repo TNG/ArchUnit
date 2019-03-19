@@ -5,9 +5,10 @@ const {buildFilterCollection} = require('./filter');
 const init = (Root, Dependencies, View, visualizationStyles) => {
 
   const Graph = class {
-    constructor(jsonGraph, violations, svg) {
+    constructor(jsonGraph, violations, svg, svgContainerDivDomElement) {
       this._view = new View(svg);
-      this.root = new Root(jsonGraph.root, (halfWidth, halfHeight) => this._view.renderWithTransition(halfWidth, halfHeight),
+      this.root = new Root(jsonGraph.root, svgContainerDivDomElement,
+        (halfWidth, halfHeight) => this._view.renderWithTransition(halfWidth, halfHeight),
         (halfWidth, halfHeight) => this._view.render(halfWidth, halfHeight),
         newNodeFilterString => this.onNodeFilterStringChanged(newNodeFilterString));
 
@@ -142,12 +143,12 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
 module.exports = {
   init: (appContext) => ({
-    create: (svgElement) => {
+    create: (svgElement, svgContainerDivElement) => {
       const Graph = init(appContext.getRoot(), appContext.getDependencies(),
         appContext.getGraphView(), appContext.getVisualizationStyles()).Graph;
 
       const visualizationData = appContext.getVisualizationData();
-      return new Graph(visualizationData.jsonGraph, visualizationData.jsonViolations, svgElement);
+      return new Graph(visualizationData.jsonGraph, visualizationData.jsonViolations, svgElement, svgContainerDivElement);
     }
   })
 };

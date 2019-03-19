@@ -217,10 +217,14 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
   };
 
   const Root = class extends Node {
-    constructor(jsonNode, onSizeChanged, onSizeExpanded, onNodeFilterStringChanged) {
+    constructor(jsonNode, svgContainerDivDomElement, onSizeChanged, onSizeExpanded, onNodeFilterStringChanged) {
       super(jsonNode, 0);
 
-      this._view = new RootView({fullNodeName: this.getFullName()}, this);
+      this._view = new RootView(this.getFullName(), event => {
+        if (event.key === 'Alt' || event.key === 'Control') {
+          this.relayoutCompletely();
+        }
+      }, svgContainerDivDomElement);
 
       this._root = this;
       this._parent = this;
