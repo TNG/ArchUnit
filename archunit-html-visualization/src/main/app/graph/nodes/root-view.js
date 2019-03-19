@@ -13,8 +13,8 @@ const init = (transitionDuration) => {
     constructor({fullNodeName}, node) {
       this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
 
-      this._svgElementForChildren = d3.select(this._svgElement.domElement()).append('g').node();
-      this._svgElementForDependencies = d3.select(this._svgElement.domElement()).append('g').node();
+      this._svgElementForChildren = this._svgElement.addGroup();
+      this._svgElementForDependencies = this._svgElement.addGroup();
 
       document.onkeyup = event => {
         if (event.key === 'Alt' || event.key === 'Control') {
@@ -28,11 +28,11 @@ const init = (transitionDuration) => {
     }
 
     addChildView(childView) {
-      this._svgElementForChildren.appendChild(childView._svgElement.domElement);
+      this._svgElementForChildren.addChild(childView._svgElement);
     }
 
     get svgElementForDependencies() {
-      return this._svgElementForDependencies;
+      return this._svgElementForDependencies.domElement;
     }
 
     jumpToPosition(position, directionVector) {
