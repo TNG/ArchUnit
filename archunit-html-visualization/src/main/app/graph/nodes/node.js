@@ -291,8 +291,8 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       this._listeners.forEach(listener => listener.onNodesFocused(focusedChildNode));
     }
 
-    get svgElementForDependencies() {
-      return this._view.svgElementForDependencies;
+    get svgSelectionForDependencies() {
+      return this._view.svgSelectionForDependencies;
     }
 
     getNameWidth() {
@@ -530,8 +530,8 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       }
     }
 
-    get svgElementForDependencies() {
-      return this._view.svgElementForDependencies;
+    get svgSelectionForDependencies() {
+      return this._view.svgSelectionForDependencies;
     }
 
     liesInFrontOf(otherNode) {

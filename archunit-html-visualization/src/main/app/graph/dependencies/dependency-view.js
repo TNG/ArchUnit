@@ -3,6 +3,8 @@
 const clickAreaWidth = 10;
 const d3 = require('d3');
 
+const svg = require('../infrastructure/gui-elements').svg;
+
 const positionLineSelectionAccordingToVisualData = (selection, visualData) => {
   return selection
     .attr('x1', visualData.relativeStartPoint.x)
@@ -28,30 +30,27 @@ const init = (DetailedView, transitionDuration) => {
     constructor(svgContainerForDetailedDependencies, dependency, callForAllViews, getDetailedDependencies) {
       this._dependency = dependency;
 
-      this._svgElement =
-        d3.select(this._dependency.containerEndNode.svgElementForDependencies)
-          .append('g')
-          .attr('id', dependency.toString())
-          .style('visibility', 'hidden')
-          .node();
+      this._svgElement = this._dependency.containerEndNode.svgSelectionForDependencies.addGroup({id: dependency.toString()});
+      this._svgElement.hide();
 
-      d3.select(this._svgElement)
-        .append('line')
-        .attr('class', getCssClass(this._dependency));
+      const line = this._svgElement.addLine();
+      line.addCssClass('dependency');
+      if (dependency.isViolation) {
+        line.addCssClass('violation');
+      }
 
-      d3.select(this._svgElement)
-        .append('line')
-        .attr('class', 'area')
-        .style('visibility', 'hidden')
-        .style('stroke-width', clickAreaWidth);
+      const hoverLine = this._svgElement.addLine();
+      hoverLine.addCssClass('area');
+      hoverLine.hide();
+      hoverLine.strokeWidth = clickAreaWidth;
 
       this._createDetailedView(svgContainerForDetailedDependencies, dependency.toString(),
         fun => callForAllViews(view => fun(view._detailedView)), getDetailedDependencies);
     }
 
     onContainerEndNodeChanged() {
-      d3.select(this._svgElement).remove();
-      this._dependency.containerEndNode.svgElementForDependencies.appendChild(this._svgElement);
+      d3.select(this._svgElement.domElement).remove();
+      this._dependency.containerEndNode.svgSelectionForDependencies.addChild(this._svgElement);
       this._dependency.onContainerEndNodeApplied();
     }
 
@@ -62,14 +61,14 @@ const init = (DetailedView, transitionDuration) => {
     }
 
     show() {
-      d3.select(this._svgElement).select('line.dependency').attr('class', getCssClass(this._dependency));
-      d3.select(this._svgElement).style('visibility', 'visible');
-      d3.select(this._svgElement).select('line.area').style('pointer-events', this._dependency.hasDetailedDescription() ? 'all' : 'none');
+      d3.select(this._svgElement.domElement).select('line.dependency').attr('class', getCssClass(this._dependency));
+      d3.select(this._svgElement.domElement).style('visibility', 'visible');
+      d3.select(this._svgElement.domElement).select('line.area').style('pointer-events', this._dependency.hasDetailedDescription() ? 'all' : 'none');
     }
 
     hide() {
-      d3.select(this._svgElement).style('visibility', 'hidden');
-      d3.select(this._svgElement).select('line.area').style('pointer-events', 'none');
+      d3.select(this._svgElement.domElement).style('visibility', 'hidden');
+      d3.select(this._svgElement.domElement).select('line.area').style('pointer-events', 'none');
     }
 
     refresh() {
@@ -81,31 +80,31 @@ const init = (DetailedView, transitionDuration) => {
     }
 
     _updateAreaPosition() {
-      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.area'), this._dependency.visualData);
+      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement.domElement).select('line.area'), this._dependency.visualData);
     }
 
     jumpToPositionAndShowIfVisible() {
-      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement).select('line.dependency'), this._dependency.visualData);
+      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement.domElement).select('line.dependency'), this._dependency.visualData);
       this._updateAreaPosition();
       this.refresh();
     }
 
     moveToPositionAndShowIfVisible() {
-      const transition = d3.select(this._svgElement).select('line.dependency').transition().duration(transitionDuration);
+      const transition = d3.select(this._svgElement.domElement).select('line.dependency').transition().duration(transitionDuration);
       const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, this._dependency.visualData));
       this._updateAreaPosition();
       return promise.then(() => this.refresh());
     }
 
     onMouseOver(parentSvgElement, handler) {
-      d3.select(this._svgElement).select('line.area').on('mouseover', function () {
+      d3.select(this._svgElement.domElement).select('line.area').on('mouseover', function () {
         const coordinates = d3.mouse(d3.select(parentSvgElement).node());
         handler(coordinates);
       });
     }
 
     onMouseOut(handler) {
-      d3.select(this._svgElement).select('line.area').on('mouseout', () => {
+      d3.select(this._svgElement.domElement).select('line.area').on('mouseout', () => {
         handler();
       });
     }

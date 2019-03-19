@@ -16,7 +16,7 @@ const init = (transitionDuration) => {
       this._text = this._svgElement.addText(nodeName);
 
       this._svgElementForChildren = this._svgElement.addGroup();
-      this._svgElementForDependencies = this._svgElement.addGroup();
+      this._svgSelectionForDependencies = this._svgElement.addGroup();
 
       this._onDrag(dragHandler);
       this._onClick(clickHandler);
@@ -26,8 +26,8 @@ const init = (transitionDuration) => {
       this._svgElementForChildren.addChild(childView._svgElement);
     }
 
-    get svgElementForDependencies() {
-      return this._svgElementForDependencies.domElement;
+    get svgSelectionForDependencies() {
+      return this._svgSelectionForDependencies;
     }
 
     detachFromParent() {

@@ -22,6 +22,10 @@ const D3Element = class {
   set offsetY(offset) {
     this.get().attr('dy', offset);
   }
+
+  set strokeWidth(strokeWidth) {
+    this.get().style('stroke-width', strokeWidth);
+  }
 };
 
 const Transition = class extends D3Element {
@@ -73,6 +77,10 @@ const SvgSelection = class extends D3Element {
 
   addText(text) {
     return new SvgSelection(this.get().append('text').text(text));
+  }
+
+  addLine() {
+    return new SvgSelection(this.get().append('line'));
   }
 
   addChild(svgSelection) {
