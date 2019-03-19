@@ -15,6 +15,7 @@ import javax.persistence.EntityManager;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.example.AbstractController;
 import com.tngtech.archunit.example.ClassViolatingCodingRules;
 import com.tngtech.archunit.example.ClassViolatingSessionBeanRules;
@@ -108,6 +109,7 @@ import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
 import com.tngtech.archunit.testutils.ExpectedClass;
 import com.tngtech.archunit.testutils.ExpectedConstructor;
+import com.tngtech.archunit.testutils.ExpectedField;
 import com.tngtech.archunit.testutils.ExpectedMethod;
 import com.tngtech.archunit.testutils.ExpectedTestFailures;
 import com.tngtech.archunit.testutils.MessageAssertionChain;
@@ -195,6 +197,11 @@ class ExamplesIntegrationTest {
         expectFailures.ofRule("no classes should access standard streams and no classes should throw generic exceptions");
         expectAccessToStandardStreams(expectFailures);
         expectThrownGenericExceptions(expectFailures);
+
+        expectFailures.ofRule("fields that have raw type java.util.logging.Logger should be private " +
+                "and should have modifier STATIC and should have modifier FINAL, because we agreed on this convention")
+                .by(ExpectedField.of(ClassViolatingCodingRules.class, "log").doesNotHaveModifier(JavaModifier.PRIVATE))
+                .by(ExpectedField.of(ClassViolatingCodingRules.class, "log").doesNotHaveModifier(JavaModifier.FINAL));
 
         return expectFailures.toDynamicTests();
     }
