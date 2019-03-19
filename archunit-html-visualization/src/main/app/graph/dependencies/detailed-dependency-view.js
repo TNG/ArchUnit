@@ -1,9 +1,10 @@
 'use strict';
 
 const textPadding = 5;
-const d3 = require('d3');
 
 const svg = require('../infrastructure/gui-elements').svg;
+
+const SingleDetailedDependencyView = require('./single-detailed-dependency-view');
 
 const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
@@ -19,6 +20,8 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
       this._isCreated = false;
       this._isVisible = false;
+
+      this._detailedDependencyViews = [];
     }
 
     _createIfNecessary() {
@@ -68,55 +71,44 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
     }
 
     _update(coordinates, detailedDeps) {
-      const maxWidth = Math.max.apply(null, detailedDeps.map(d => calculateTextWidth(d, 'access'))) + 2 * textPadding + 10;
-
-      d3.select(this._svgElement.domElement).attr('transform', () => {
-        const transform = d3.select('#translater').attr('transform');
-        const translateX = parseFloat(transform.substring(transform.indexOf('(') + 1, transform.indexOf(')')).split(',')[0]);
-
-        //ensure that the rect is visible on the left side
-        let x = Math.max(maxWidth / 2, translateX + coordinates[0]);
-        //ensure that the rect is visible on the right side
-        x = Math.min(x, d3.select('#visualization').attr('width') - maxWidth / 2);
-
-        return `translate(${x - translateX}, ${coordinates[1]})`;
-      });
-
-      const tspans = d3.select(this._svgElement.domElement).select('text.access')
-        .selectAll('tspan')
-        .data(detailedDeps);
+      this._detailedDependencyViews.forEach(detailedDependencyView => detailedDependencyView.remove());
 
       const fontSize = visualizationStyles.getDependencyTitleFontSize();
 
-      tspans.exit().remove();
-      tspans.enter().append('tspan');
+      this._detailedDependencyViews = detailedDeps.map(detailedDependency =>
+        new SingleDetailedDependencyView(this._text, detailedDependency, fontSize + textPadding));
 
-      d3.select(this._svgElement.domElement).select('text')
-        .selectAll('tspan')
-        .text(d => d)
-        .attr('x', -maxWidth / 2)
-        .attr('dy', fontSize + textPadding);
+      const maxWidth = Math.max.apply(null, this._detailedDependencyViews.map(d => d.textWidth)) + 2 * textPadding + 10;
 
-      d3.select(this._svgElement.domElement).selectAll('rect')
-        .attr('x', -maxWidth / 2 - textPadding)
-        .attr('height', detailedDeps.length * (fontSize + textPadding) + 2 * textPadding)
-        .attr('width', maxWidth + fontSize);
+      this._detailedDependencyViews.forEach(d => d.positionX = -maxWidth / 2);
+
+      const translationOfTranslater = this._svgCenterTranslater.getTranslation();
+      //ensure that the rect is visible on the left side
+      let x = Math.max(maxWidth / 2, translationOfTranslater.x + coordinates[0]);
+      //ensure that the rect is visible on the right side
+      x = Math.min(x, this._svg.width - maxWidth / 2);
+      this._svgElement.translate({x, y: coordinates[1]});
+
+      this._frame.positionX = -maxWidth / 2 - textPadding;
+      this._hoverArea.positionX = -maxWidth / 2 - textPadding;
+      this._frame.height = detailedDeps.length * (fontSize + textPadding) + 2 * textPadding;
+      this._hoverArea.height = detailedDeps.length * (fontSize + textPadding) + 2 * textPadding;
+      this._frame.width = maxWidth + fontSize;
+      this._hoverArea.width = maxWidth + fontSize;
 
       this._shouldBeHidden = false;
-      d3.select(this._svgElement.domElement).style('visibility', 'visible');
-      d3.select(this._svgElement.domElement).select('.hoverArea').style('pointer-events', 'all');
+      this._svgElement.show();
+      this._hoverArea.enablePointerEvents();
     }
 
     _fix() {
       if (!this._fixed) {
         const fontSize = visualizationStyles.getDependencyTitleFontSize();
-        const dx = d3.select(this._svgElement.domElement).select('.hoverArea').attr('width') / 2 - fontSize / 2;
-        d3.select(this._svgElement.domElement).append('text')
-          .attr('class', 'closeButton')
-          .text('x')
-          .attr('dx', dx)
-          .attr('dy', fontSize)
-          .on('click', () => this._unfix());
+        this._closeButton = this._svgElement.addText('x');
+        this._closeButton.addCssClass('closeButton');
+        this._closeButton.offsetX = this._hoverArea.width / 2 - fontSize / 2;
+        this._closeButton.offsetY = fontSize;
+        this._closeButton.onClick(() => this._unfix());
         this._fixed = true;
       }
     }
@@ -124,7 +116,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
     _unfix() {
       this._fixed = false;
       this._hideIfNotFixed();
-      d3.select(this._svgElement.domElement).select('text.closeButton').remove();
+      this._closeButton.detachFromParent();
     }
 
     _hideIfNotFixed() {

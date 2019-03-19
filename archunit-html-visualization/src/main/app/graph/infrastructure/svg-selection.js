@@ -30,8 +30,16 @@ const D3Element = class {
     this.get().attr('r', radius);
   }
 
+  set offsetX(offset) {
+    this.get().attr('dx', offset);
+  }
+
   set offsetY(offset) {
     this.get().attr('dy', offset);
+  }
+
+  set positionX(x) {
+    this.get().attr('x', x);
   }
 
   set strokeWidth(strokeWidth) {
@@ -99,6 +107,10 @@ const SvgSelection = class extends D3Element {
 
   addText(text) {
     return new SvgSelection(this.get().append('text').text(text));
+  }
+
+  addTSpan(text) {
+    return new SvgSelection(this.get().append('tspan').text(text));
   }
 
   addLine() {
