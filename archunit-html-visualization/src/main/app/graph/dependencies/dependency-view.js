@@ -92,18 +92,21 @@ const init = (DetailedView, transitionDuration) => {
     }
 
     _updateAreaPosition() {
-      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement.domElement).select('line.area'), this._dependency.visualData);
+      this._hoverArea.setStartAndEndPosition(this._dependency.visualData.relativeStartPoint, this._dependency.visualData.relativeEndPoint);
     }
 
     jumpToPositionAndShowIfVisible() {
-      positionLineSelectionAccordingToVisualData(d3.select(this._svgElement.domElement).select('line.dependency'), this._dependency.visualData);
+      this._line.setStartAndEndPosition(this._dependency.visualData.relativeStartPoint, this._dependency.visualData.relativeEndPoint);
       this._updateAreaPosition();
       this.refresh();
     }
 
     moveToPositionAndShowIfVisible() {
-      const transition = d3.select(this._svgElement.domElement).select('line.dependency').transition().duration(transitionDuration);
-      const promise = createPromiseOnEndOfTransition(transition, transition => positionLineSelectionAccordingToVisualData(transition, this._dependency.visualData));
+      const promise = this._line.createTransitionWithDuration(transitionDuration)
+        .step(svgSelection => {
+          svgSelection.setStartAndEndPosition(this._dependency.visualData.relativeStartPoint, this._dependency.visualData.relativeEndPoint);
+        })
+        .finish();
       this._updateAreaPosition();
       return promise.then(() => this.refresh());
     }

@@ -18,13 +18,13 @@ const saveMovedNodesTo = arr => movedNodes = arr;
 const saveNodesWhoseRadiusWasChangedTo = arr => nodesWhoseRadiusWasChanged = arr;
 
 const NodeViewStub = class {
-  constructor(node) {
+  constructor({nodeName, fullNodeName}) {
     this.cssClass = '';
     this.isVisible = true;
     this.hasMovedToPosition = false;
     this.hasMovedToRadius = false;
 
-    this.getTextWidth = () => node.getName().length * 7;
+    this.getTextWidth = () => nodeName.length * 7;
 
     this.show = () => this.isVisible = true;
     this.hide = () => this.isVisible = false;
@@ -38,12 +38,12 @@ const NodeViewStub = class {
       this.hasMovedToRadius = true;
       this.textOffset = textOffset;
       return new Promise(resolve => {
-        movedNodes.push(node.getFullName());
+        movedNodes.push(fullNodeName);
         setTimeout(resolve, 10);
       });
     };
     this.setRadius = () => {
-      nodesWhoseRadiusWasChanged.push(node.getFullName());
+      nodesWhoseRadiusWasChanged.push(fullNodeName);
     };
     this.updateNodeType = cssClass => this.cssClass = cssClass;
     this.showIfVisible = node => {
@@ -52,6 +52,10 @@ const NodeViewStub = class {
       }
     };
     this.focus = () => {
+    };
+    this.addChildView = () => {
+    };
+    this.detachFromParent = () => {
     };
   }
 };
@@ -97,6 +101,8 @@ const DependencyViewStub = class {
 const GraphViewStub = class {
   constructor() {
     this.renderWithTransition = () => {
+    };
+    this.addRootView = () => {
     };
   }
 };

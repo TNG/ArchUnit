@@ -26,6 +26,13 @@ const D3Element = class {
   set strokeWidth(strokeWidth) {
     this.get().style('stroke-width', strokeWidth);
   }
+
+  setStartAndEndPosition(startPosition, endPosition) {
+    this.get().attr('x1', startPosition.x);
+    this.get().attr('y1', startPosition.y);
+    this.get().attr('x2', endPosition.x);
+    this.get().attr('y2', endPosition.y);
+  }
 };
 
 const Transition = class extends D3Element {
