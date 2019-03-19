@@ -3,6 +3,8 @@
 const textPadding = 5;
 const d3 = require('d3');
 
+const svg = require('../infrastructure/gui-elements').svg;
+
 const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
   const View = class {
@@ -10,21 +12,36 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
       this._fixed = false;
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._getDetailedDependencies = getDetailedDependencies;
-      this._svgElement = null;
       this._svgContainer = svgContainer;
+      this._isCreated = false;
+      this._isVisible = false;
+    }
+
+    _createIfNecessary() {
+      if (!this._isCreated) {
+        this._create();
+        this._isCreated = true;
+      }
+    }
+
+    _attachToContainerIfNecessary() {
+      if (!this._isVisible) {
+        this._svgContainer.addChild(this._svgElement);
+        this._isVisible = true;
+      }
     }
 
     show(coordinates) {
       const detailedDeps = this._getDetailedDependencies();
       if (detailedDeps.length > 0) {
-        d3.select(this._svgElement).remove();
-        this._create();
+        this._createIfNecessary();
+        this._attachToContainerIfNecessary();
         this._update(coordinates, detailedDeps);
       }
     }
 
     _create() {
-      this._svgElement = this._svgContainer.addGroup();
+      this._svgElement = svg.createGroup();
       this._frame = this._svgElement.addRect();
       this._frame.addCssClass('frame');
 
@@ -107,10 +124,9 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
     }
 
     _hideIfNotFixed() {
-      if (!this._fixed && this._svgElement) {
-        //d3.select(this._svgElement).style('visibility', 'hidden');
-        //d3.select(this._svgElement).select('.hoverArea').style('pointer-events', 'none');
-        d3.select(this._svgElement.domElement).remove();
+      if (this._isVisible && !this._fixed) {
+        this._svgElement.detachFromParent();
+        this._isVisible = false;
       }
     }
 
