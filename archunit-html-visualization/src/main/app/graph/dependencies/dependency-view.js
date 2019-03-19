@@ -13,8 +13,6 @@ const positionLineSelectionAccordingToVisualData = (selection, visualData) => {
     .attr('y2', visualData.relativeEndPoint.y);
 };
 
-const getCssClass = (dependency) => 'dependency' + (dependency.isViolation ? ' violation' : '');
-
 // FIXME: Write test for relevant logic (like style changes on property changes -> violation)
 const init = (DetailedView, transitionDuration) => {
 
@@ -33,23 +31,21 @@ const init = (DetailedView, transitionDuration) => {
       this._svgElement = this._dependency.containerEndNode.svgSelectionForDependencies.addGroup({id: dependency.toString()});
       this._svgElement.hide();
 
-      const line = this._svgElement.addLine();
-      line.addCssClass('dependency');
-      if (dependency.isViolation) {
-        line.addCssClass('violation');
-      }
+      this._line = this._svgElement.addLine();
+      this._line.addCssClass('dependency');
+      this._refreshViolationCssClass();
 
-      const hoverLine = this._svgElement.addLine();
-      hoverLine.addCssClass('area');
-      hoverLine.hide();
-      hoverLine.strokeWidth = clickAreaWidth;
+      this._hoverArea = this._svgElement.addLine();
+      this._hoverArea.addCssClass('area');
+      this._hoverArea.hide();
+      this._hoverArea.strokeWidth = clickAreaWidth;
 
       this._createDetailedView(svgContainerForDetailedDependencies, dependency.toString(),
         fun => callForAllViews(view => fun(view._detailedView)), getDetailedDependencies);
     }
 
     onContainerEndNodeChanged() {
-      d3.select(this._svgElement.domElement).remove();
+      this._svgElement.detachFromParent();
       this._dependency.containerEndNode.svgSelectionForDependencies.addChild(this._svgElement);
       this._dependency.onContainerEndNodeApplied();
     }
@@ -60,15 +56,31 @@ const init = (DetailedView, transitionDuration) => {
       this.onMouseOut(() => this._detailedView.fadeOut());
     }
 
+    _refreshViolationCssClass() {
+      if (this._dependency.isViolation) {
+        this._line.addCssClass('violation');
+      } else {
+        this._line.removeCssClasses('violation');
+      }
+    }
+
+    _refreshPointerEvents() {
+      if (this._dependency.hasDetailedDescription()) {
+        this._hoverArea.enablePointerEvents();
+      } else {
+        this._hoverArea.disablePointerEvents();
+      }
+    }
+
     show() {
-      d3.select(this._svgElement.domElement).select('line.dependency').attr('class', getCssClass(this._dependency));
-      d3.select(this._svgElement.domElement).style('visibility', 'visible');
-      d3.select(this._svgElement.domElement).select('line.area').style('pointer-events', this._dependency.hasDetailedDescription() ? 'all' : 'none');
+      this._refreshViolationCssClass();
+      this._svgElement.show();
+      this._refreshPointerEvents();
     }
 
     hide() {
-      d3.select(this._svgElement.domElement).style('visibility', 'hidden');
-      d3.select(this._svgElement.domElement).select('line.area').style('pointer-events', 'none');
+      this._svgElement.hide();
+      this._hoverArea.disablePointerEvents();
     }
 
     refresh() {

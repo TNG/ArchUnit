@@ -127,6 +127,14 @@ const SvgSelection = class extends D3Element {
     this.get().call(d3.drag().on('drag', () => dragHandler(d3.event.dx, d3.event.dy)));
   }
 
+  enablePointerEvents() {
+    this.get().style('pointer-events', 'all');
+  }
+
+  disablePointerEvents() {
+    this.get().style('pointer-events', 'none');
+  }
+
   static fromDom(domElement) {
     return new SvgSelection(d3.select(domElement));
   }
