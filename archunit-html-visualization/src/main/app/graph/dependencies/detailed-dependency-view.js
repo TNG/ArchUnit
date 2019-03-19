@@ -11,6 +11,7 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._getDetailedDependencies = getDetailedDependencies;
       this._svgElement = null;
+      this._svgContainer = svgContainer;
       this._createSvgElement = () => d3.select(svgContainer).append('g').attr('id', `detailed_${dependencyIdentifier}`).node();
     }
 
@@ -115,7 +116,8 @@ const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
       }
     }
 
-    fadeIn(coordinates) {
+    fadeIn() {
+      const coordinates = d3.mouse(d3.select(this._svgContainer).node());
       if (!this._fixed) {
         this._shouldBeHidden = false;
         setTimeout(() => {

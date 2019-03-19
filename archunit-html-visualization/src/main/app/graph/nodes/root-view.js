@@ -3,7 +3,6 @@
 const svg = require('../infrastructure/gui-elements').svg;
 const document = require('../infrastructure/gui-elements').document;
 
-const d3 = require('d3');
 const {Vector} = require('../infrastructure/vectors');
 
 const init = (transitionDuration) => {

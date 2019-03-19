@@ -134,6 +134,14 @@ const SvgSelection = class extends D3Element {
     this.get().call(d3.drag().on('drag', () => dragHandler(d3.event.dx, d3.event.dy)));
   }
 
+  onMouseOver(mouseOverHandler) {
+    this.get().on('mouseover', mouseOverHandler);
+  }
+
+  onMouseOut(mouseOutHandler) {
+    this.get().on('mouseout', mouseOutHandler);
+  }
+
   enablePointerEvents() {
     this.get().style('pointer-events', 'all');
   }
