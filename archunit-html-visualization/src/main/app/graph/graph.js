@@ -14,7 +14,11 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
       this._view.addRootView(this.root.view);
 
-      this.dependencies = new Dependencies(jsonGraph.dependencies, this.root, this._view.svgElementForDetailedDependencies);
+      this.dependencies = new Dependencies(jsonGraph.dependencies, this.root,
+        {
+          svgDetailedDependenciesContainer: this._view.svgElementForDetailedDependencies, svg: this._view.svgElement,
+          svgCenterTranslater: this._view.translater
+        });
 
       this.root.addListener(this.dependencies.createListener());
       this.root.getLinks = () => this.dependencies.getAllLinks();

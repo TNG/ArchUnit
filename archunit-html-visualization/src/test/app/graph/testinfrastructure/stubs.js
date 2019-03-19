@@ -65,7 +65,7 @@ let movedDependencies = [];
 const saveMovedDependenciesTo = arr => movedDependencies = arr;
 
 const DependencyViewStub = class {
-  constructor(svgElement, dependency) {
+  constructor(dependency) {
     this._dependency = dependency;
 
     this.refreshWasCalled = false;
@@ -95,6 +95,15 @@ const DependencyViewStub = class {
 
     this.onContainerEndNodeChanged = () => {
     };
+    this.onMouseOver = () => {
+    };
+    this.onMouseOut = () => {
+    };
+  }
+};
+
+const DetailedDependencyViewStub = class {
+  constructor() {
   }
 };
 
@@ -150,6 +159,7 @@ module.exports = {
   visualizationStylesStub: createVisualizationStylesStub,
   NodeViewStub: NodeViewStub,
   DependencyViewStub: DependencyViewStub,
+  DetailedDependencyViewStub: DetailedDependencyViewStub,
   GraphViewStub: GraphViewStub,
   NodeListenerStub: createNodeListenerStub,
   saveMovedDependenciesTo: saveMovedDependenciesTo,

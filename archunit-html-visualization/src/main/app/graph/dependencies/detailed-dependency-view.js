@@ -8,11 +8,15 @@ const svg = require('../infrastructure/gui-elements').svg;
 const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
 
   const View = class {
-    constructor(svgContainer, callForAllDetailedViews, getDetailedDependencies) {
+    constructor({svgContainer, svg, svgCenterTranslater}, callForAllDetailedViews, getDetailedDependencies) {
       this._fixed = false;
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._getDetailedDependencies = getDetailedDependencies;
+
       this._svgContainer = svgContainer;
+      this._svg = svg;
+      this._svgCenterTranslater = svgCenterTranslater;
+
       this._isCreated = false;
       this._isVisible = false;
     }

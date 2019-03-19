@@ -3,7 +3,7 @@
 const initDependency = require('./dependency.js');
 const {buildFilterGroup} = require('../filter');
 
-const init = (View) => {
+const init = (View, DetailedDependencyView) => {
 
   const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
@@ -31,14 +31,15 @@ const init = (View) => {
     })
   });
 
-  const uniteDependencies = (dependencies, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies) => {
+  const uniteDependencies = (dependencies, callForAllDependencies, getDetailedDependencies, {svgDetailedDependenciesContainer, svg, svgCenterTranslater}) => {
     const tmp = dependencies.map(r => ({key: r.from + '->' + r.to, dependency: r}));
     const map = new Map();
     tmp.forEach(e => map.set(e.key, []));
     tmp.forEach(e => map.get(e.key).push(e.dependency));
 
     return [...map.values()].map(dependencies =>
-      dependencyCreator.getUniqueDependency(dependencies[0].originNode, dependencies[0].targetNode, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies)
+      dependencyCreator.getUniqueDependency(dependencies[0].originNode, dependencies[0].targetNode, callForAllDependencies, getDetailedDependencies,
+        {svgDetailedDependenciesContainer, svg, svgCenterTranslater})
         .byGroupingDependencies(dependencies));
   };
 
@@ -139,9 +140,9 @@ const init = (View) => {
   };
 
   const Dependencies = class {
-    constructor(jsonDependencies, nodeMap, svgContainerForDetailedDependencies) {
+    constructor(jsonDependencies, nodeMap, {svgDetailedDependenciesContainer, svg, svgCenterTranslater}) {
       nodes = nodeMap;
-      dependencyCreator = initDependency(View);
+      dependencyCreator = initDependency(View, DetailedDependencyView);
 
       this._violations = new Violations();
 
@@ -167,9 +168,10 @@ const init = (View) => {
         .build();
 
       this._filtered = this._elementary;
-      this._svgContainerForDetailedDependencies = svgContainerForDetailedDependencies;
       this._updatePromise = Promise.resolve();
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
+
+      this._svgElementsForDetailedDependencies = {svgDetailedDependenciesContainer, svg, svgCenterTranslater};
     }
 
     get filterGroup() {
@@ -285,9 +287,8 @@ const init = (View) => {
       const relevantTransformers = getTransformersOfTopMostNodes(this._transformers);
       const transformedDependencies = applyTransformersOnDependencies(relevantTransformers, this._filtered);
       this._visibleDependencies = uniteDependencies(transformedDependencies,
-        this._svgContainerForDetailedDependencies,
-        fun => this._getVisibleDependencies().forEach(d => fun(d._view)),
-        (from, to) => this._getDetailedDependenciesOf(from, to));
+        fun => this._getVisibleDependencies().forEach(fun),
+        (from, to) => this._getDetailedDependenciesOf(from, to), this._svgElementsForDetailedDependencies);
 
       this._setMustShareNodes();
       this._visibleDependencies.forEach(d => d._isVisible = true);

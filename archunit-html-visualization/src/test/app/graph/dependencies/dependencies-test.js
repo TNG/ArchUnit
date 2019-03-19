@@ -94,7 +94,7 @@ const rootWithTwoClassesAndTwoDeps = new Root(jsonRootWithTwoClassesAndTwoDeps, 
 
 describe('Dependencies', () => {
   it('creates correct elementary dependencies from json-input', () => {
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     const exp = [
       '<com.tngtech.pkg1.SomeClass1.startMethod(arg1, arg2)> METHOD_CALL to <com.tngtech.pkg1.SomeClass2.targetMethod()>',
       '<com.tngtech.pkg1.SomeClass1.startMethod(arg1, arg2)> FIELD_ACCESS to <com.tngtech.pkg1.SomeClass2.targetField>',
@@ -112,7 +112,7 @@ describe('Dependencies', () => {
   });
 
   it('creates correct visible dependencies from the elementary dependencies', () => {
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.recreateVisible();
     const exp = [
       'com.tngtech.pkg1.SomeClass1-com.tngtech.pkg1.SomeClass2',
@@ -129,7 +129,7 @@ describe('Dependencies', () => {
   });
 
   it('know if they must share one of the end nodes', () => {
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.recreateVisible();
     const hasEndNodes = (node1, node2) => d => (d.from === node1 || d.to === node1) && (d.from === node2 || d.to === node2);
     const filter = d => hasEndNodes('com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.SomeClass2')(d);
@@ -159,7 +159,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.recreateVisible();
 
     const filterForHiddenDependencies = d => d.from === 'com.tngtech.startPkg.StartClass';
@@ -201,7 +201,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.recreateVisible();
 
     const filterForHiddenDependencies = d => d.from === 'com.tngtech.pkg1.SomeClass' ||
@@ -250,7 +250,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.recreateVisible();
 
     const filterForHiddenDependencies = d => d.from === 'com.tngtech.StartClassWithInnerClass$InnerClass';
@@ -284,7 +284,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.recreateVisible();
 
     const visibleDependencies1 = dependencies._getVisibleDependencies().filter(d => d.from === 'com.tngtech.startPkg.StartClass');
@@ -319,7 +319,11 @@ describe('Dependencies', () => {
 
   it('should update whether they must share one of the end nodes after folding', () => {
     const root = new Root(jsonRootSharingNodes, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesSharingNodes, root);
+    const dependencies = new Dependencies(jsonDependenciesSharingNodes, root, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
 
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.ClassWithInnerClass'));
 
@@ -329,7 +333,11 @@ describe('Dependencies', () => {
 
   it('should update whether they must share one of the end nodes after unfolding ', () => {
     const root = new Root(jsonRootSharingNodes, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesSharingNodes, root);
+    const dependencies = new Dependencies(jsonDependenciesSharingNodes, root, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
 
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.ClassWithInnerClass'));
     dependencies._updateNodeFold(unfoldedNode(root, 'com.tngtech.ClassWithInnerClass'));
@@ -357,7 +365,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = [
       'com.tngtech.startPkg-com.tngtech.TargetClass',
@@ -388,7 +396,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = [
       'com.tngtech.StartClass-com.tngtech.targetPkg',
@@ -415,7 +423,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.targetPkg.TargetClass', 'targetMethod()')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = [
       'com.tngtech.startPkg-com.tngtech.targetPkg'
@@ -441,7 +449,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.targetPkg.TargetClass', 'targetMethod()')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = [
       'com.tngtech.StartClassWithInnerClass-com.tngtech.targetPkg.TargetClass'
@@ -471,7 +479,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = [
       'com.tngtech.startPkg.StartClass-com.tngtech.TargetClass',
@@ -501,7 +509,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = ['com.tngtech.startPkg.StartClass-com.tngtech.targetPkg.TargetClass'];
 
@@ -529,7 +537,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = ['com.tngtech.startPkg.StartClass-com.tngtech.targetPkg'];
 
@@ -557,7 +565,11 @@ describe('Dependencies', () => {
 
   it('can move all dependencies to their positions', () => {
     const root = new Root(jsonRootForMoveTest, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesForMoveTest, root);
+    const dependencies = new Dependencies(jsonDependenciesForMoveTest, root, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
     dependencies.recreateVisible();
 
     const promise = dependencies._moveAllToTheirPositions();
@@ -568,7 +580,11 @@ describe('Dependencies', () => {
 
   it('can move all dependencies to their positions twice in a row: the second move does not start before the first is ended', () => {
     const root = new Root(jsonRootForMoveTest, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesForMoveTest, root);
+    const dependencies = new Dependencies(jsonDependenciesForMoveTest, root, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
     dependencies.recreateVisible();
     const exp = [
       'com.tngtech.SomeClass1-com.tngtech.SomeClass2',
@@ -614,7 +630,11 @@ describe('Dependencies', () => {
 
   it('sets and applies the node filter correctly', () => {
     const root = new Root(jsonRootForFilterTest, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesForFilterTest, root);
+    const dependencies = new Dependencies(jsonDependenciesForFilterTest, root, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -639,7 +659,11 @@ describe('Dependencies', () => {
 
   it('resets the node filter correctly', () => {
     const root = new Root(jsonRootForFilterTest, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesForFilterTest, root);
+    const dependencies = new Dependencies(jsonDependenciesForFilterTest, root, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -670,7 +694,11 @@ describe('Dependencies', () => {
   it('should recreate correctly its visible dependencies after setting the node filter: old dependencies are hidden, ' +
     'all new ones are visible but they are not re-instantiated', () => {
     const root = new Root(jsonRootForFilterTest, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesForFilterTest, root);
+    const dependencies = new Dependencies(jsonDependenciesForFilterTest, root, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
     dependencies.recreateVisible();
@@ -712,7 +740,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -749,7 +777,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.ClassWithInnerClass', 'targetMethod()')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -792,7 +820,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.pkgToFold.MatchingClassX', 'targetMethod()')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -829,7 +857,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface2')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
     const filterCollection = buildFilterCollection()
@@ -869,7 +897,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.pkgToFold.MatchingClassX', 'targetMethod()')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
     const filterCollection = buildFilterCollection()
@@ -909,7 +937,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface2')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
     const filterCollection = buildFilterCollection()
@@ -947,7 +975,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -986,7 +1014,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -1023,7 +1051,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -1059,7 +1087,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -1095,7 +1123,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -1132,7 +1160,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -1170,7 +1198,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -1209,7 +1237,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeInterface')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     root.addListener(dependencies.createListener());
     root.getLinks = () => dependencies.getAllLinks();
 
@@ -1258,7 +1286,7 @@ describe('Dependencies', () => {
   it('should recreate correctly its visible dependencies after filtering by type (only show inheritance):' +
     ' old dependencies are hidden, all new ones are visible but they are not re-instantiated', () => {
     const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesAll, root);
+    const dependencies = new Dependencies(jsonDependenciesAll, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.recreateVisible();
 
     const filterCollection = buildFilterCollection()
@@ -1291,7 +1319,7 @@ describe('Dependencies', () => {
 
   it('can filter by type: only show inheritance-dependencies', () => {
     const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesAll, root);
+    const dependencies = new Dependencies(jsonDependenciesAll, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const filterCollection = buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
@@ -1328,7 +1356,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const filterCollection = buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
@@ -1352,7 +1380,7 @@ describe('Dependencies', () => {
 
   it('can reset the filter by type: show all dependencies again', () => {
     const root = new Root(jsonRootWithAllDependencies, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependenciesAll, root);
+    const dependencies = new Dependencies(jsonDependenciesAll, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.recreateVisible();
 
     const filterCollection = buildFilterCollection()
@@ -1401,7 +1429,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = [
       '<com.tngtech.SomeClass1.startMethod(arg)> METHOD_CALL to <com.tngtech.SomeClass2.targetMethod(arg)>',
@@ -1429,7 +1457,7 @@ describe('Dependencies', () => {
       .to('com.tngtech.SomeClass2', 'targetMethod(arg)')
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = [
       '<com.tngtech.SomeClass1.startMethod(arg)> METHOD_CALL to <com.tngtech.SomeClass2.targetMethod(arg)>'
@@ -1455,7 +1483,7 @@ describe('Dependencies', () => {
       .build();
     const root = new Root(jsonRoot, null, () => Promise.resolve());
     root.getLinks = () => [];
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
 
     const exp = [
       '<com.tngtech.SomeClass1.startMethod(arg)> METHOD_CALL to <com.tngtech.SomeClass2.targetMethod(arg)>',
@@ -1495,7 +1523,7 @@ describe('Dependencies', () => {
       .build();
 
     const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.recreateVisible();
 
     const exp = [
@@ -1538,7 +1566,11 @@ describe('Dependencies', () => {
       rule: 'rule1',
       violations: ['<com.tngtech.SomeClass1.startMethod()> FIELD_ACCESS to <com.tngtech.SomeClass2.targetField>']
     };
-    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps);
+    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
     const filterCollection = buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
       .build();
@@ -1555,7 +1587,11 @@ describe('Dependencies', () => {
       rule: 'rule1',
       violations: ['<com.tngtech.SomeClass1.startMethod()> FIELD_ACCESS to <com.tngtech.SomeClass2.targetField>']
     };
-    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps);
+    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
 
     const filterCollection = buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
@@ -1580,7 +1616,11 @@ describe('Dependencies', () => {
       rule: 'rule2',
       violations: ['<com.tngtech.SomeClass1.startMethod()> FIELD_ACCESS to <com.tngtech.SomeClass2.targetField>']
     };
-    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps);
+    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
 
     const filterCollection = buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
@@ -1604,7 +1644,11 @@ describe('Dependencies', () => {
       rule: 'rule1',
       violations: ['<com.tngtech.SomeClass1.startMethod()> FIELD_ACCESS to <com.tngtech.SomeClass2.targetField>']
     };
-    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps);
+    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
 
     const filterCollection = buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
@@ -1630,7 +1674,11 @@ describe('Dependencies', () => {
       rule: 'rule1',
       violations: ['<com.tngtech.SomeClass1.startMethod()> FIELD_ACCESS to <com.tngtech.SomeClass2.targetField>']
     };
-    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps);
+    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
     const filterCollection = buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
       .build();
@@ -1650,7 +1698,11 @@ describe('Dependencies', () => {
       rule: 'rule1',
       violations: ['<com.tngtech.SomeClass1.startMethod()> FIELD_ACCESS to <com.tngtech.SomeClass2.targetField>']
     };
-    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps);
+    const dependencies = new Dependencies(jsonDependenciesWithTwo, rootWithTwoClassesAndTwoDeps, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    });
     const filterCollection = buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
       .build();
@@ -1705,7 +1757,7 @@ describe('Dependencies', () => {
       ]
     };
 
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     dependencies.showViolations(rule1);
     dependencies.showViolations(rule2);
 
@@ -1738,7 +1790,7 @@ describe('Dependencies', () => {
       violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.pkg2.SomeClass1>']
     };
 
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
       .build();
@@ -1771,7 +1823,7 @@ describe('Dependencies', () => {
       violations: ['<com.tngtech.pkg.SomeClass> INHERITANCE to <com.tngtech.SomeClass1>']
     };
 
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
       .build();
@@ -1803,7 +1855,7 @@ describe('Dependencies', () => {
       violations: ['<com.tngtech.SomeClass1.startMethod()> FIELD_ACCESS to <com.tngtech.SomeClass2.targetField>']
     };
 
-    const dependencies = new Dependencies(jsonDependencies, root);
+    const dependencies = new Dependencies(jsonDependencies, root, {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null});
     const filterCollection = buildFilterCollection()
       .addFilterGroup(dependencies.filterGroup)
       .build();

@@ -79,7 +79,7 @@ const dependencyParams = (originNode, targetNode, type) => ({
 
 const shiftEnds = (createFromDependency) => {
   const testData = createRootWithTwoClassesInDifferentPackages();
-  const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+  const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
   const testDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
 
   const testSetup = createFromDependency(testDependency);
@@ -93,7 +93,7 @@ const shiftEnds = (createFromDependency) => {
 describe('ElementaryDependency', () => {
   it('knows its start and end node', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     expect(dependency.originNode).to.equal(testData.class1);
     expect(dependency.targetNode).to.equal(testData.class2);
@@ -131,7 +131,7 @@ describe('ElementaryDependency', () => {
 
   it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if one of them is a package', () => {
     const testData = createRootWithTwoClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     dependency.isViolation = true;
     const actual = dependencyCreator.shiftElementaryDependency(dependency,
@@ -141,7 +141,7 @@ describe('ElementaryDependency', () => {
 
   it('can be shifted to one of the end-nodes\' parents if both are classes', () => {
     const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.innerClass, 'INHERITANCE'));
     const newTarget = dependency.targetNode.getParent();
     const actual = dependencyCreator.shiftElementaryDependency(dependency,
@@ -153,7 +153,7 @@ describe('ElementaryDependency', () => {
 
   it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if both are classes', () => {
     const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.innerClass, 'INHERITANCE'));
     dependency.isViolation = true;
     const actual = dependencyCreator.shiftElementaryDependency(dependency,
@@ -166,51 +166,72 @@ describe('GroupedDependency', () => {
   it('is not recreated when one with the same start and end node already exists: the type and the ' +
     'violation-property are updated', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
-    const groupedDependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
+    const groupedDependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null,
+      {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null}).byGroupingDependencies([]);
     expect(groupedDependency.isViolation).to.equal(false);
 
     const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
     elementaryDependency.isViolation = true;
-    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([elementaryDependency]);
+    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([elementaryDependency]);
     expect(actual).to.equal(groupedDependency);
     expect(actual.isViolation).to.equal(true);
   });
 
   it('has no detailed description and no types, if one of the end nodes is a package', () => {
     const testData = createRootWithTwoClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
-    const groupedDependency = dependencyCreator.getUniqueDependency(testData.root.getByName('com.tngtech.archunit.pkg1'), testData.class2)
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
+    const groupedDependency = dependencyCreator.getUniqueDependency(testData.root.getByName('com.tngtech.archunit.pkg1'), testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    })
       .byGroupingDependencies([]);
     expect(groupedDependency.hasDetailedDescription()).to.equal(false);
   });
 
   it('is created correctly from one elementary dependency', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'FIELD_ACCESS'));
-    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
+    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    })
       .byGroupingDependencies([elementaryDependency]);
     expect(actual.hasDetailedDescription()).to.equal(true);
   });
 
   it('is created correctly from two elementary dependencies', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
     const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
+    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    })
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2]);
     expect(actual.hasDetailedDescription()).to.equal(true);
   });
 
   it('is created correctly from three elementary dependencies', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'CONSTRUCTOR_CALL'));
     const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
     const elementaryDependency3 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2)
+    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    })
       .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
     expect(actual.hasDetailedDescription()).to.equal(true);
   });
@@ -225,14 +246,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper left corner', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 20, 10);
     setNodeVisualDataTo(startNode, 45, 40, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 33.287, y: 30.6296};
@@ -244,14 +269,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct relative coordinates for its end points', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 20, 10);
     setNodeVisualDataTo(startNode, 45, 40, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 33.287, y: 30.6296};
@@ -265,14 +294,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper side', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 20, 10);
     setNodeVisualDataTo(startNode, 20, 60, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 20, y: 45};
@@ -284,14 +317,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the dependency points to the upper right corner', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 40, 10);
     setNodeVisualDataTo(startNode, 45, 20, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 33.287, y: 29.370};
@@ -303,14 +340,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the dependency points to the right side', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 60, 20, 10);
     setNodeVisualDataTo(startNode, 20, 20, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 35, y: 20};
@@ -322,14 +363,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the dependency points to the lower right corner', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 45, 40, 15);
     setNodeVisualDataTo(startNode, 20, 20, 10);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 27.809, y: 26.247};
@@ -341,14 +386,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the dependency points to the lower side', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 60, 15);
     setNodeVisualDataTo(startNode, 20, 20, 10);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 20, y: 30};
@@ -360,14 +409,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the dependency points to the lower left corner', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 45, 20, 15);
     setNodeVisualDataTo(startNode, 20, 40, 10);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 27.809, y: 33.753};
@@ -379,14 +432,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the dependency points to the left side', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 20, 15);
     setNodeVisualDataTo(startNode, 60, 20, 10);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 50, y: 20};
@@ -398,14 +455,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the end node is within the start node', () => {
     const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.classWithInnerClass;
     const endNode = testData.innerClass;
 
     setNodeVisualDataTo(startNode, 50, 50, 40);
     setNodeVisualDataTo(endNode, -15, -10, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 16.718, y: 27.812};
@@ -417,14 +478,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points, if the start node is within the end node', () => {
     const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.innerClass;
     const endNode = testData.classWithInnerClass;
 
     setNodeVisualDataTo(endNode, 50, 50, 40);
     setNodeVisualDataTo(startNode, -15, -10, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.innerClass, testData.classWithInnerClass).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.innerClass, testData.classWithInnerClass, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 22.519, y: 31.680};
@@ -437,14 +502,18 @@ describe('GroupedDependency', () => {
   it('calculates the correct coordinates for its end points, if the end node is exactly in the middle of the start node: ' +
     'then the dependency points to the lower left corner', () => {
     const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.classWithInnerClass;
     const endNode = testData.innerClass;
 
     setNodeVisualDataTo(startNode, 50, 50, 40);
     setNodeVisualDataTo(endNode, 0, 0, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.jumpToPosition();
 
     const expStartPoint = {x: 78.284, y: 78.284};
@@ -456,14 +525,18 @@ describe('GroupedDependency', () => {
 
   it('calculates the correct coordinates for its end points if it must "share" the end nodes with another dependency', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.class1;
     const endNode = testData.class2;
 
     setNodeVisualDataTo(endNode, 20, 20, 10);
     setNodeVisualDataTo(startNode, 45, 40, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.visualData.mustShareNodes = true;
     dependency.jumpToPosition();
 
@@ -477,14 +550,18 @@ describe('GroupedDependency', () => {
   it('calculates the correct coordinates for its end points if it must "share" the end nodes with another dependency ' +
     'and the end node is within the start node', () => {
     const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
     const startNode = testData.classWithInnerClass;
     const endNode = testData.innerClass;
 
     setNodeVisualDataTo(startNode, 50, 50, 40);
     setNodeVisualDataTo(endNode, -15, -10, 15);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.visualData.mustShareNodes = true;
     dependency.jumpToPosition();
 
@@ -497,9 +574,13 @@ describe('GroupedDependency', () => {
 
   it('updates its view after jumping to its position: does not show the view if the dependency is hidden', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.hide();
     dependency.jumpToPosition();
 
@@ -509,9 +590,13 @@ describe('GroupedDependency', () => {
 
   it('updates its view after moving to its position: does not show the view if the dependency is hidden', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency.hide();
     const promise = dependency.moveToPosition();
 
@@ -521,9 +606,13 @@ describe('GroupedDependency', () => {
 
   it('shows the view on jumping to position if the dependency is visible', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency._isVisible = true;
     dependency.jumpToPosition();
 
@@ -532,9 +621,13 @@ describe('GroupedDependency', () => {
 
   it('shows the view on moving to position if the dependency is visible', () => {
     const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, testData.root);
+    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
 
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2).byGroupingDependencies([]);
+    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
+      svgDetailedDependenciesContainer: null,
+      svg: null,
+      svgCenterTranslater: null
+    }).byGroupingDependencies([]);
     dependency._isVisible = true;
     const promise = dependency.moveToPosition();
 

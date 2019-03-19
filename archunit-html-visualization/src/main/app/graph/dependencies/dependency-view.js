@@ -3,10 +3,10 @@
 const clickAreaWidth = 10;
 
 // FIXME: Write test for relevant logic (like style changes on property changes -> violation)
-const init = (DetailedView, transitionDuration) => {
+const init = (transitionDuration) => {
 
   const View = class {
-    constructor(svgContainerForDetailedDependencies, dependency, callForAllViews, getDetailedDependencies) {
+    constructor(dependency) {
       this._dependency = dependency;
 
       this._svgElement = this._dependency.containerEndNode.svgSelectionForDependencies.addGroup({id: dependency.toString()});
@@ -20,21 +20,12 @@ const init = (DetailedView, transitionDuration) => {
       this._hoverArea.addCssClass('area');
       this._hoverArea.hide();
       this._hoverArea.strokeWidth = clickAreaWidth;
-
-      this._createDetailedView(svgContainerForDetailedDependencies,
-        fun => callForAllViews(view => fun(view._detailedView)), getDetailedDependencies);
     }
 
     onContainerEndNodeChanged() {
       this._svgElement.detachFromParent();
       this._dependency.containerEndNode.svgSelectionForDependencies.addChild(this._svgElement);
       this._dependency.onContainerEndNodeApplied();
-    }
-
-    _createDetailedView(parentSvgElement, callForAllDetailedViews, getDetailedDependencies) {
-      this._detailedView = new DetailedView(parentSvgElement, callForAllDetailedViews, getDetailedDependencies);
-      this._hoverArea.onMouseOver(() => this._detailedView.fadeIn());
-      this._hoverArea.onMouseOut(() => this._detailedView.fadeOut());
     }
 
     _refreshViolationCssClass() {
@@ -90,6 +81,14 @@ const init = (DetailedView, transitionDuration) => {
         .finish();
       this._updateAreaPosition();
       return promise.then(() => this.refresh());
+    }
+
+    onMouseOver(mouseOverHandler) {
+      this._hoverArea.onMouseOver(mouseOverHandler);
+    }
+
+    onMouseOut(mouseOutHandler) {
+      this._hoverArea.onMouseOut(mouseOutHandler);
     }
   };
 

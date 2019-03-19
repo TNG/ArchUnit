@@ -17,7 +17,7 @@ const dependencyView = require('./dependencies/dependency-view');
 const graphView = require('./graph-view');
 const visualizationData = require('./infrastructure/visualization-data');
 
-const init = (getNodeView, getRootView, getDependencyView, getGraphView, getVisualizationStyles, getVisualizationData) => {
+const init = (getNodeView, getRootView, getDependencyView, getDetailedDependencyView, getGraphView, getVisualizationStyles, getVisualizationData) => {
 
   const getVisualizationFunctions = () => visualizationFunctions.newInstance();
 
@@ -25,7 +25,7 @@ const init = (getNodeView, getRootView, getDependencyView, getGraphView, getVisu
 
   const getRoot = () => node.init(getNodeView(), getRootView(), getNodeText(), getVisualizationFunctions(), getVisualizationStyles());
 
-  const getDependencies = () => dependencies.init(getDependencyView());
+  const getDependencies = () => dependencies.init(getDependencyView(), getDetailedDependencyView());
 
   return {
     getVisualizationStyles,
@@ -47,10 +47,10 @@ module.exports = {
     const getNodeView = () => overrides.NodeView || nodeView.init(TRANSITION_DURATION);
     const getRootView = () => overrides.RootView || rootView.init(TRANSITION_DURATION);
     const getDetailedDependencyView = () => overrides.DetailedDependencyView || detailedDependencyView.init(TRANSITION_DURATION, getCalculateTextWidth(), getVisualizationStyles());
-    const getDependencyView = () => overrides.DependencyView || dependencyView.init(getDetailedDependencyView(), TRANSITION_DURATION);
+    const getDependencyView = () => overrides.DependencyView || dependencyView.init(TRANSITION_DURATION);
     const getGraphView = () => overrides.GraphView || graphView.init(TRANSITION_DURATION);
     const getVisualizationData = () => overrides.visualizationData || visualizationData;
 
-    return init(getNodeView, getRootView, getDependencyView, getGraphView, getVisualizationStyles, getVisualizationData);
+    return init(getNodeView, getRootView, getDependencyView, getDetailedDependencyView, getGraphView, getVisualizationStyles, getVisualizationData);
   }
 };

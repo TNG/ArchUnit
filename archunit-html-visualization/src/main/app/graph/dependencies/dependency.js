@@ -5,7 +5,7 @@ const {Vector, vectors} = require('../infrastructure/vectors');
 const coloredDependencyTypes = new Set();
 const dashedDependencyTypes = new Set();
 
-const init = (View) => {
+const init = (View, DetailedView) => {
 
   const ownDependencyTypes = {
     INNERCLASS_DEPENDENCY: 'INNERCLASS_DEPENDENCY'
@@ -73,10 +73,12 @@ const init = (View) => {
     }
   };
 
-  const getOrCreateUniqueDependency = (originNode, targetNode, type, isViolation, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies) => {
+  const getOrCreateUniqueDependency = (originNode, targetNode, type, isViolation, callForAllDependencies, getDetailedDependencies,
+                                       {svgDetailedDependenciesContainer, svg, svgCenterTranslater}) => {
     const key = `${originNode.getFullName()}-${targetNode.getFullName()}`;
     if (!allDependencies.has(key)) {
-      allDependencies.set(key, new GroupedDependency(originNode, targetNode, type, isViolation, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies));
+      allDependencies.set(key, new GroupedDependency(originNode, targetNode, type, isViolation, callForAllDependencies, getDetailedDependencies,
+        {svgDetailedDependenciesContainer, svg, svgCenterTranslater}));
     }
     return allDependencies.get(key).withTypeAndViolation(type, isViolation)
   };
@@ -131,11 +133,17 @@ const init = (View) => {
   const argMax = (arr, firstIsGreaterThanSecond) => arr.reduce((elementWithMaxSoFar, e) => firstIsGreaterThanSecond(e, elementWithMaxSoFar) ? e : elementWithMaxSoFar, arr ? arr[0] : null);
 
   const GroupedDependency = class extends ElementaryDependency {
-    constructor(originNode, targetNode, type, isViolation, svgContainerForDetailedDependencies, callForAllViews, getDetailedDependencies) {
+    constructor(originNode, targetNode, type, isViolation, callForAllDependencies, getDetailedDependencies, {svgDetailedDependenciesContainer, svg, svgCenterTranslater}) {
       super(originNode, targetNode, type, '', '', isViolation);
       this._containerEndNode = this.calcEndNodeInForeground();
-      this._view = new View(svgContainerForDetailedDependencies, this, callForAllViews, () =>
-        getDetailedDependencies(this.originNode.getFullName(), this.targetNode.getFullName()));
+      this._view = new View(this);
+
+      this._detailedView = new DetailedView({svgContainer: svgDetailedDependenciesContainer, svg, svgCenterTranslater},
+        callback => callForAllDependencies(dep => callback(dep._detailedView)),
+        () => getDetailedDependencies(this.originNode.getFullName(), this.targetNode.getFullName()));
+      this._view.onMouseOver(() => this._detailedView.fadeIn());
+      this._view.onMouseOut(() => this._detailedView.fadeOut());
+
       this._isVisible = true;
       this.visualData = new VisualData({
         onJumpedToPosition: () => this._view.jumpToPositionAndShowIfVisible(),
@@ -232,17 +240,19 @@ const init = (View) => {
     }
   };
 
-  const getUniqueDependency = (originNode, targetNode, svgElementForDetailedDependencies, callForAllViews, getDetailedDependencies) => ({
+  const getUniqueDependency = (originNode, targetNode, callForAllDependencies, getDetailedDependencies,
+                               {svgDetailedDependenciesContainer, svg, svgCenterTranslater}) => ({
     byGroupingDependencies: dependencies => {
       if (originNode.isPackage() || targetNode.isPackage()) {
-        return getOrCreateUniqueDependency(originNode, targetNode, '',
-          dependencies.some(d => d.isViolation), svgElementForDetailedDependencies, callForAllViews, getDetailedDependencies);
+        return getOrCreateUniqueDependency(originNode, targetNode, '', dependencies.some(d => d.isViolation),
+          callForAllDependencies, getDetailedDependencies, {svgDetailedDependenciesContainer, svg, svgCenterTranslater});
       } else {
         const colorType = getSingleStyledDependencyType(dependencies, coloredDependencyTypes, 'severalColors');
         const dashedType = getSingleStyledDependencyType(dependencies, dashedDependencyTypes, 'severalDashed');
 
         return getOrCreateUniqueDependency(originNode, targetNode, joinStrings(' ', colorType, dashedType),
-          dependencies.some(d => d.isViolation), svgElementForDetailedDependencies, callForAllViews, getDetailedDependencies);
+          dependencies.some(d => d.isViolation), callForAllDependencies, getDetailedDependencies,
+          {svgDetailedDependenciesContainer, svg, svgCenterTranslater});
       }
     }
   });

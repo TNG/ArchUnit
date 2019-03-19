@@ -14,6 +14,14 @@ const init = (transitionDuration) => {
       this._svgElementForDetailedDependencies = this._translater.addGroup();
     }
 
+    get svgElement() {
+      return this._svgElement;
+    }
+
+    get translater() {
+      return this._translater;
+    }
+
     get svgElementForDetailedDependencies() {
       return this._svgElementForDetailedDependencies;
     }
