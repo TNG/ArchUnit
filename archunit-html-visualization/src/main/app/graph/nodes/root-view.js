@@ -1,5 +1,7 @@
 'use strict';
 
+const svg = require('../infrastructure/gui-elements').svg;
+
 const d3 = require('d3');
 const {Vector} = require('../infrastructure/vectors');
 
@@ -8,14 +10,11 @@ const init = (transitionDuration) => {
     new Promise(resolve => transitionRunner(transition).on('interrupt', () => resolve()).on('end', resolve));
 
   class View {
-    constructor(parentSvgElement, node) {
-      this._svgElement = d3.select(parentSvgElement)
-        .append('g')
-        .attr('id', node.getFullName().replace(/\\$/g, '.-'))
-        .node();
+    constructor({fullNodeName}, node) {
+      this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
 
-      this._svgElementForChildren = d3.select(this._svgElement).append('g').node();
-      this._svgElementForDependencies = d3.select(this._svgElement).append('g').node();
+      this._svgElementForChildren = d3.select(this._svgElement.domElement()).append('g').node();
+      this._svgElementForDependencies = d3.select(this._svgElement.domElement()).append('g').node();
 
       document.onkeyup = event => {
         if (event.key === 'Alt' || event.key === 'Control') {
@@ -24,8 +23,12 @@ const init = (transitionDuration) => {
       }
     }
 
+    get svgElement() {
+      return this._svgElement;
+    }
+
     addChildView(childView) {
-      this._svgElementForChildren.appendChild(childView._svgElement.domElement)
+      this._svgElementForChildren.appendChild(childView._svgElement.domElement);
     }
 
     get svgElementForDependencies() {
@@ -42,14 +45,14 @@ const init = (transitionDuration) => {
         container.scrollTop += position.y - this._position.y;
       }
 
-      d3.select(this._svgElement).attr('transform', `translate(${position.x}, ${position.y})`);
+      d3.select(this._svgElement.domElement()).attr('transform', `translate(${position.x}, ${position.y})`);
 
       this._position = Vector.from(position);
     }
 
     moveToPosition(position) {
       this._position = Vector.from(position);
-      return createPromiseOnEndOfTransition(d3.select(this._svgElement).transition().duration(transitionDuration), t => t.attr('transform', `translate(${position.x}, ${position.y})`));
+      return createPromiseOnEndOfTransition(d3.select(this._svgElement.domElement()).transition().duration(transitionDuration), t => t.attr('transform', `translate(${position.x}, ${position.y})`));
     }
 
     updateNodeType() {

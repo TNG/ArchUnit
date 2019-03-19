@@ -10,8 +10,12 @@ const init = (transitionDuration) => {
       this._translater = this._svgElement.addGroup({
         id: 'translater'
       });
-      this.svgElementForNodes = this._translater.addGroup().domElement;
+      this._svgElementForNodes = this._translater.addGroup();
       this.svgElementForDetailedDependencies = this._translater.addGroup().domElement;
+    }
+
+    addRootView(rootView) {
+      this._svgElementForNodes.addChild(rootView.svgElement);
     }
 
     render(halfWidth, halfHeight) {

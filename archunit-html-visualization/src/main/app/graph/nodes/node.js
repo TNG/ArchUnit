@@ -217,10 +217,10 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
   };
 
   const Root = class extends Node {
-    constructor(jsonNode, svgContainer, onSizeChanged, onSizeExpanded, onNodeFilterStringChanged) {
+    constructor(jsonNode, onSizeChanged, onSizeExpanded, onNodeFilterStringChanged) {
       super(jsonNode, 0);
 
-      this._view = new RootView(svgContainer, this);
+      this._view = new RootView({fullNodeName: this.getFullName()}, this);
 
       this._root = this;
       this._parent = this;
@@ -273,6 +273,10 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           }
         });
       }
+    }
+
+    get view() {
+      return this._view;
     }
 
     overlapsWith() {
