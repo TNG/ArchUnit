@@ -116,11 +116,13 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return description;
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public SourceCodeLocation getSourceCodeLocation() {
         return sourceCodeLocation;
     }

@@ -79,11 +79,13 @@ public final class JavaAnnotation implements HasType {
      */
     @Override
     @Deprecated
+    @PublicAPI(usage = ACCESS)
     public JavaClass getType() {
         return getRawType();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public JavaClass getRawType() {
         return type;
     }

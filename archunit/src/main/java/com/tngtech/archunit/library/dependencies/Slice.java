@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ForwardingSet;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -81,6 +81,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return description.format(matchingGroups);
     }
@@ -95,6 +96,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
      * @return Same slice with different description
      */
     @Override
+    @PublicAPI(usage = ACCESS)
     public Slice as(String pattern) {
         return new Slice(sliceAssignment, matchingGroups, new Description(pattern), classes);
     }

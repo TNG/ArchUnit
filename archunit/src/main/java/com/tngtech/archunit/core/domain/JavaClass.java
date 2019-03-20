@@ -121,16 +121,19 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Class <" + getName() + ">";
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getName() {
         return javaType.getName();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getFullName() {
         return getName();
     }
@@ -180,36 +183,43 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public Set<JavaModifier> getModifiers() {
         return modifiers;
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(Class<? extends Annotation> annotationType) {
         return isAnnotatedWith(annotationType.getName());
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(String annotationTypeName) {
         return annotations.get().containsKey(annotationTypeName);
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(Class<? extends Annotation> type) {
         return isMetaAnnotatedWith(type.getName());
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(String typeName) {
         return isMetaAnnotatedWith(GET_RAW_TYPE.then(GET_NAME).is(equalTo(typeName)));
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
         return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.get().values(), predicate);
     }
@@ -222,17 +232,20 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      * @see #tryGetAnnotationOfType(Class)
      */
     @Override
+    @PublicAPI(usage = ACCESS)
     public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
         return getAnnotationOfType(type.getName()).as(type);
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public JavaAnnotation getAnnotationOfType(String typeName) {
         return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(
                 String.format("Type %s is not annotated with @%s", getSimpleName(), Formatters.ensureSimpleName(typeName))));
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public Set<JavaAnnotation> getAnnotations() {
         return ImmutableSet.copyOf(annotations.get().values());
     }
@@ -245,6 +258,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      * @see #getAnnotationOfType(Class)
      */
     @Override
+    @PublicAPI(usage = ACCESS)
     public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
         return tryGetAnnotationOfType(type.getName()).transform(toAnnotationOfType(type));
     }
@@ -253,6 +267,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      * Same as {@link #tryGetAnnotationOfType(Class)}, but takes the type name.
      */
     @Override
+    @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName) {
         return Optional.fromNullable(annotations.get().get(typeName));
     }

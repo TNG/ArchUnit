@@ -129,6 +129,7 @@ public final class Architectures {
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         public String getDescription() {
             if (overriddenDescription.isPresent()) {
                 return overriddenDescription.get();
@@ -145,6 +146,7 @@ public final class Architectures {
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         public EvaluationResult evaluate(JavaClasses classes) {
             EvaluationResult result = new EvaluationResult(this, Priority.MEDIUM);
             for (LayerDependencySpecification specification : dependencySpecifications) {
@@ -171,16 +173,19 @@ public final class Architectures {
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         public void check(JavaClasses classes) {
             Assertions.check(this, classes);
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         public ArchRule because(String reason) {
             return ArchRule.Factory.withBecause(this, reason);
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         public LayeredArchitecture as(String newDescription) {
             return new LayeredArchitecture(
                     layerDefinitions, dependencySpecifications,

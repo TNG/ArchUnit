@@ -22,9 +22,9 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.HasName;
-import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -48,6 +48,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getName() {
         return target.getName();
     }
@@ -78,11 +79,13 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getOwner() {
         return getOrigin();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public SourceCodeLocation getSourceCodeLocation() {
         return sourceCodeLocation;
     }
@@ -117,6 +120,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         String description = origin.getDescription() + " " + descriptionVerb() + " " + getTarget().getDescription();
         return description + " in " + getSourceCodeLocation();

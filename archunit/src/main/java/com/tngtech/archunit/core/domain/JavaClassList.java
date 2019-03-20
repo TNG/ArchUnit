@@ -17,9 +17,9 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.List;
 
-import com.google.common.collect.ForwardingList;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ForwardingList;
 import com.tngtech.archunit.base.Function;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

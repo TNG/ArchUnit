@@ -92,7 +92,7 @@ public final class JavaPackage implements HasName {
      * @return all classes directly contained in this package, no classes in sub-packages (compare {@link #getAllClasses()})
      */
     @PublicAPI(usage = ACCESS)
-    public Iterable<JavaClass> getClasses() {
+    public Set<JavaClass> getClasses() {
         return classes;
     }
 
@@ -100,7 +100,7 @@ public final class JavaPackage implements HasName {
      * @return all classes contained in this package or any sub-package (compare {@link #getClasses()})
      */
     @PublicAPI(usage = ACCESS)
-    public Iterable<JavaClass> getAllClasses() {
+    public Set<JavaClass> getAllClasses() {
         ImmutableSet.Builder<JavaClass> result = ImmutableSet.<JavaClass>builder().addAll(classes);
         for (JavaPackage subPackage : getSubPackages()) {
             result.addAll(subPackage.getAllClasses());
@@ -113,8 +113,8 @@ public final class JavaPackage implements HasName {
      * (compare {@link #getAllSubPackages()})
      */
     @PublicAPI(usage = ACCESS)
-    public Iterable<JavaPackage> getSubPackages() {
-        return subPackages.values();
+    public Set<JavaPackage> getSubPackages() {
+        return ImmutableSet.copyOf(subPackages.values());
     }
 
     /**
@@ -123,7 +123,7 @@ public final class JavaPackage implements HasName {
      * (compare {@link #getSubPackages()})
      */
     @PublicAPI(usage = ACCESS)
-    public Iterable<JavaPackage> getAllSubPackages() {
+    public Set<JavaPackage> getAllSubPackages() {
         ImmutableSet.Builder<JavaPackage> result = ImmutableSet.builder();
         for (JavaPackage subPackage : getSubPackages()) {
             result.add(subPackage);
@@ -474,19 +474,19 @@ public final class JavaPackage implements HasName {
                 };
 
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<JavaPackage, Iterable<JavaClass>> GET_CLASSES =
-                new ChainableFunction<JavaPackage, Iterable<JavaClass>>() {
+        public static final ChainableFunction<JavaPackage, Set<JavaClass>> GET_CLASSES =
+                new ChainableFunction<JavaPackage, Set<JavaClass>>() {
                     @Override
-                    public Iterable<JavaClass> apply(JavaPackage javaPackage) {
+                    public Set<JavaClass> apply(JavaPackage javaPackage) {
                         return javaPackage.getClasses();
                     }
                 };
 
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<JavaPackage, Iterable<JavaPackage>> GET_SUB_PACKAGES =
-                new ChainableFunction<JavaPackage, Iterable<JavaPackage>>() {
+        public static final ChainableFunction<JavaPackage, Set<JavaPackage>> GET_SUB_PACKAGES =
+                new ChainableFunction<JavaPackage, Set<JavaPackage>>() {
                     @Override
-                    public Iterable<JavaPackage> apply(JavaPackage javaPackage) {
+                    public Set<JavaPackage> apply(JavaPackage javaPackage) {
                         return javaPackage.getSubPackages();
                     }
                 };

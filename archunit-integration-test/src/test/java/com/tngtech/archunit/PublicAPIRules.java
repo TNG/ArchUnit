@@ -13,6 +13,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.CompositeArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
@@ -100,6 +101,16 @@ public class PublicAPIRules {
                     .and().arePublic()
                     .and().doNotHaveName("adhereToPlantUmlDiagram")
                     .should().haveRawParameterTypes(thatArePublic());
+
+    @ArchTest
+    public static final ArchRule Guava_should_not_leak_into_public_API =
+            CompositeArchRule.of(
+                    classes().that(publicAPI()).should().notBeAssignableTo(guavaClass()))
+                    .and(codeUnits()
+                            .that().arePublic()
+                            .and().areDeclaredInClassesThat(are(publicAPI()))
+                            .should().haveRawParameterTypes(withoutGuava())
+                            .andShould().haveRawReturnType(not(guavaClass()).as("that are no Guava types")));
 
     private static DescribedPredicate<JavaClass> publicAPI() {
         return annotatedWith(PublicAPI.class).<JavaClass>forSubType()
@@ -309,6 +320,30 @@ public class PublicAPIRules {
             public boolean apply(List<JavaClass> input) {
                 for (JavaClass parameterType : input) {
                     if (!parameterType.getModifiers().contains(PUBLIC)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        };
+    }
+
+    private static DescribedPredicate<JavaClass> guavaClass() {
+        return JavaClass.Functions.GET_PACKAGE_NAME.is(
+                new DescribedPredicate<String>("") {
+                    @Override
+                    public boolean apply(String input) {
+                        return input.contains(".google.");
+                    }
+                }).as("Guava Class");
+    }
+
+    private static DescribedPredicate<List<JavaClass>> withoutGuava() {
+        return new DescribedPredicate<List<JavaClass>>("without Guava") {
+            @Override
+            public boolean apply(List<JavaClass> input) {
+                for (JavaClass parameterType : input) {
+                    if (guavaClass().apply(parameterType)) {
                         return false;
                     }
                 }

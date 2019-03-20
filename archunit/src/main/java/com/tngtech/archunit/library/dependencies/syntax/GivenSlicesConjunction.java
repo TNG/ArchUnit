@@ -28,9 +28,11 @@ public interface GivenSlicesConjunction extends GivenConjunction<Slice> {
     SlicesShould should();
 
     @Override
+    @PublicAPI(usage = ACCESS)
     GivenSlicesConjunction and(DescribedPredicate<? super Slice> predicate);
 
     @Override
+    @PublicAPI(usage = ACCESS)
     GivenSlicesConjunction or(DescribedPredicate<? super Slice> predicate);
 
     @PublicAPI(usage = ACCESS)
