@@ -185,8 +185,8 @@ public class JavaPackageTest {
 
         JavaPackage java = defaultPackage.getPackage("java");
 
-        assertThatPackages(java.getSubPackages()).containOnlyRelativeNames("lang", "util", "io", "security");
-        assertThatPackages(java.getSubPackages()).containOnlyNames("java.lang", "java.util", "java.io", "java.security");
+        assertThatPackages(java.getSubPackages()).containRelativeNames("lang", "util", "io", "security");
+        assertThatPackages(java.getSubPackages()).containNames("java.lang", "java.util", "java.io", "java.security");
     }
 
     @Test
@@ -205,7 +205,7 @@ public class JavaPackageTest {
 
         JavaPackage java = defaultPackage.getPackage("java");
 
-        assertThatPackages(java.getAllSubPackages()).matchOnlyPackagesOf(
+        assertThatPackages(java.getAllSubPackages()).containPackagesOf(
                 Object.class, Annotation.class, Collection.class, BlockingQueue.class, Security.class);
     }
 
@@ -221,7 +221,10 @@ public class JavaPackageTest {
             }
         });
 
-        assertThatClasses(visitedClasses).matchInAnyOrder(String.class, Serializable.class, Security.class);
+        assertThatClasses(visitedClasses).contain(String.class, Serializable.class, Security.class);
+        for (JavaClass visitedClass : visitedClasses) {
+            assertThat(visitedClass.getSimpleName()).startsWith("S");
+        }
     }
 
     @Test
@@ -236,7 +239,10 @@ public class JavaPackageTest {
             }
         });
 
-        assertThatPackages(visitedPackages).matchOnlyPackagesOf(Object.class, Annotation.class);
+        assertThatPackages(visitedPackages).containPackagesOf(Object.class, Annotation.class);
+        for (JavaPackage visitedPackage : visitedPackages) {
+            assertThat(visitedPackage.getName()).contains(".lang");
+        }
     }
 
     @Test
@@ -282,13 +288,13 @@ public class JavaPackageTest {
         JavaPackage examplePackage = importPackage("packageexamples");
 
         assertThat(examplePackage.getPackage("second").getPackageDependenciesFromSelf())
-                .contains(
+                .containsOnly(
+                        getRoot(examplePackage).getPackage("java.lang"),
                         examplePackage.getPackage("first"),
-                        examplePackage.getPackage("third.sub"))
-                .doesNotContain(examplePackage.getPackage("second"));
+                        examplePackage.getPackage("third.sub"));
 
         assertThat(examplePackage.getPackage("third").getPackageDependenciesFromSelf())
-                .contains(examplePackage.getPackage("first"));
+                .containsOnly(examplePackage.getPackage("first"));
 
         assertThatPackages(examplePackage.getPackage("unrelated").getPackageDependenciesFromSelf())
                 .containOnlyNames("java.lang");
@@ -299,7 +305,7 @@ public class JavaPackageTest {
         JavaPackage examplePackage = importPackage("packageexamples");
 
         assertThat(examplePackage.getPackage("first").getPackageDependenciesToSelf())
-                .contains(
+                .containsOnly(
                         examplePackage.getPackage("second"),
                         examplePackage.getPackage("second.sub"),
                         examplePackage.getPackage("third.sub"));
@@ -329,7 +335,10 @@ public class JavaPackageTest {
 
         Iterable<JavaClass> classes = GET_CLASSES.apply(defaultPackage.getPackage("java.lang"));
 
-        assertThatClasses(classes).matchInAnyOrder(Object.class, String.class);
+        assertThatClasses(classes).contain(Object.class, String.class);
+        for (JavaClass javaClass : classes) {
+            assertThat(javaClass.getPackageName()).startsWith("java.lang");
+        }
     }
 
     @Test
@@ -338,7 +347,15 @@ public class JavaPackageTest {
 
         Iterable<JavaPackage> packages = GET_SUB_PACKAGES.apply(defaultPackage.getPackage("java.lang"));
 
-        assertThatPackages(packages).matchOnlyPackagesOf(Annotation.class, Field.class);
+        assertThatPackages(packages).containPackagesOf(Annotation.class, Field.class);
+    }
+
+    private JavaPackage getRoot(JavaPackage javaPackage) {
+        JavaPackage result = javaPackage;
+        while (result.getParent().isPresent()) {
+            result = result.getParent().get();
+        }
+        return result;
     }
 
     private Predicate<? super JavaPackage> nameContains(String infix) {

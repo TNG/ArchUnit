@@ -1,9 +1,9 @@
 package com.tngtech.archunit.core.domain;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import org.junit.Rule;
@@ -11,15 +11,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaClassesTest {
-    private static final JavaClass SOME_CLASS = importClassWithContext(SomeClass.class);
-    private static final JavaClass SOME_OTHER_CLASS = importClassWithContext(SomeOtherClass.class);
-    private static final ImmutableMap<String, JavaClass> BY_TYPE_NAME = ImmutableMap.of(
-            SomeClass.class.getName(), SOME_CLASS,
-            SomeOtherClass.class.getName(), SOME_OTHER_CLASS);
-    public static final JavaClasses ALL_CLASSES = new JavaClasses(JavaPackage.from(BY_TYPE_NAME.values()), BY_TYPE_NAME);
+    public static final JavaClasses ALL_CLASSES = importClassesWithContext(SomeClass.class, SomeOtherClass.class);
+    private static final JavaClass SOME_CLASS = ALL_CLASSES.get(SomeClass.class);
+    private static final JavaClass SOME_OTHER_CLASS = ALL_CLASSES.get(SomeOtherClass.class);
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -29,6 +29,29 @@ public class JavaClassesTest {
         JavaClasses onlySomeClass = ALL_CLASSES.that(haveTheNameOf(SomeClass.class));
 
         assertThat(onlySomeClass).containsExactly(SOME_CLASS);
+    }
+
+    @Test
+    public void restriction_on_classes_should_keep_the_original_package_tree() {
+        JavaClasses restrictedClasses = ALL_CLASSES.that(haveTheNameOf(SomeClass.class));
+
+        JavaPackage javaPackage = restrictedClasses.getPackage(SomeClass.class.getPackage().getName());
+
+        assertThatClasses(javaPackage.getClasses()).contain(SomeOtherClass.class);
+    }
+
+    @Test
+    public void creation_of_JavaClasses_from_existing_classes_should_keep_the_original_package_tree() {
+        JavaClasses classes = JavaClasses.of(singletonList(ALL_CLASSES.get(SomeClass.class)));
+
+        assertThat(classes.getDefaultPackage().getAllClasses()).containsOnlyElementsOf(ALL_CLASSES.getDefaultPackage().getAllClasses());
+    }
+
+    @Test
+    public void creation_of_JavaClasses_from_empty_classes_should_create_empty_default_package() {
+        JavaClasses classes = JavaClasses.of(Collections.<JavaClass>emptySet());
+
+        assertThat(classes.getDefaultPackage().getAllClasses()).isEmpty();
     }
 
     @Test
