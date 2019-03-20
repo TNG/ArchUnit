@@ -137,4 +137,36 @@ public interface FieldsThat<CONJUNCTION extends GivenFieldsConjunction> extends 
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION doNotHaveRawType(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Matches static fields.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areStatic();
+
+    /**
+     * Matches non-static fields.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotStatic();
+
+    /**
+     * Matches final fields.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areFinal();
+
+    /**
+     * Matches non-final fields.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotFinal();
 }
