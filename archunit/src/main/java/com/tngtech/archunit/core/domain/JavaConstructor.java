@@ -47,11 +47,13 @@ public final class JavaConstructor extends JavaCodeUnit {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public ThrowsClause<JavaConstructor> getThrowsClause() {
         return throwsClause;
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isConstructor() {
         return true;
     }
@@ -62,11 +64,13 @@ public final class JavaConstructor extends JavaCodeUnit {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getAccessesToSelf() {
         return callsToSelf;
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     @ResolvesTypesViaReflection
     @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
     public Constructor<?> reflect() {
@@ -74,6 +78,7 @@ public final class JavaConstructor extends JavaCodeUnit {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Constructor <" + getFullName() + ">";
     }

@@ -46,6 +46,7 @@ public class JavaMethod extends JavaCodeUnit {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public ThrowsClause<JavaMethod> getThrowsClause() {
         return throwsClause;
     }
@@ -68,11 +69,13 @@ public class JavaMethod extends JavaCodeUnit {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getAccessesToSelf() {
         return callsToSelf.get();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     @ResolvesTypesViaReflection
     @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
     public Method reflect() {
@@ -80,6 +83,7 @@ public class JavaMethod extends JavaCodeUnit {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Method <" + getFullName() + ">";
     }

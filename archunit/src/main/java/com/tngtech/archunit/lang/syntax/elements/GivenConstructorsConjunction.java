@@ -15,14 +15,19 @@
  */
 package com.tngtech.archunit.lang.syntax.elements;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaConstructor;
+
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface GivenConstructorsConjunction extends GivenCodeUnitsConjunction<JavaConstructor> {
 
     @Override
+    @PublicAPI(usage = ACCESS)
     GivenConstructorsConjunction and(DescribedPredicate<? super JavaConstructor> predicate);
 
     @Override
+    @PublicAPI(usage = ACCESS)
     GivenConstructorsConjunction or(DescribedPredicate<? super JavaConstructor> predicate);
 }

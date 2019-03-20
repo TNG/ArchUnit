@@ -33,21 +33,25 @@ public class JavaStaticInitializer extends JavaCodeUnit {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public Set<? extends JavaAccess<?>> getAccessesToSelf() {
         return emptySet();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public Member reflect() {
         throw new UnsupportedOperationException("Can't reflect on a static initializer");
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Static Initializer <" + getFullName() + ">";
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public ThrowsClause<JavaStaticInitializer> getThrowsClause() {
         return ThrowsClause.empty(this);
     }

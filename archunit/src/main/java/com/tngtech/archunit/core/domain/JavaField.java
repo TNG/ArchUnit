@@ -21,6 +21,7 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
@@ -28,6 +29,7 @@ import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public class JavaField extends JavaMember implements HasType {
     private final JavaClass type;
@@ -41,6 +43,7 @@ public class JavaField extends JavaMember implements HasType {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getFullName() {
         return getOwner().getName() + "." + getName();
     }
@@ -50,21 +53,25 @@ public class JavaField extends JavaMember implements HasType {
      */
     @Override
     @Deprecated
+    @PublicAPI(usage = ACCESS)
     public JavaClass getType() {
         return getRawType();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public JavaClass getRawType() {
         return type;
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getAccessesToSelf() {
         return accessesToSelf.get();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     @ResolvesTypesViaReflection
     @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
     public Field reflect() {
@@ -72,6 +79,7 @@ public class JavaField extends JavaMember implements HasType {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Field <" + getFullName() + ">";
     }

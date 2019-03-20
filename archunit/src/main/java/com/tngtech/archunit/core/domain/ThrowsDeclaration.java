@@ -98,6 +98,7 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
      */
     @Override
     @Deprecated
+    @PublicAPI(usage = ACCESS)
     public JavaClass getType() {
         return getRawType();
     }

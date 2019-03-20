@@ -80,16 +80,19 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getName() {
         return name;
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public JavaClass getOwner() {
         return owner;
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getFullName() {
         return fullName;
     }
@@ -139,6 +142,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * @return true if one of the resolved targets is annotated with the given type
      */
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(Class<? extends Annotation> annotationType) {
         return isAnnotatedWith(annotationType.getName());
     }
@@ -147,6 +151,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * @see AccessTarget#isAnnotatedWith(Class)
      */
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(final String annotationTypeName) {
         return anyMember(new Predicate<JavaMember>() {
             @Override
@@ -164,6 +169,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * @return true if one of the resolved targets is annotated with an annotation matching the predicate
      */
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
         return anyMember(new Predicate<JavaMember>() {
             @Override
@@ -174,11 +180,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
         return isMetaAnnotatedWith(annotationType.getName());
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(final String annotationTypeName) {
         return anyMember(new Predicate<JavaMember>() {
             @Override
@@ -189,6 +197,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
         return anyMember(new Predicate<JavaMember>() {
             @Override
@@ -243,11 +252,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @Deprecated
+        @PublicAPI(usage = ACCESS)
         public JavaClass getType() {
             return getRawType();
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         public JavaClass getRawType() {
             return type;
         }
@@ -265,11 +276,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          * @see #resolveField()
          */
         @Override
+        @PublicAPI(usage = ACCESS)
         public Set<JavaField> resolve() {
             return resolveField().asSet();
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         String getDescription() {
             return "field <" + getFullName() + ">";
         }
@@ -310,11 +323,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @Deprecated
+        @PublicAPI(usage = ACCESS)
         public JavaClassList getParameters() {
             return getRawParameterTypes();
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         public JavaClassList getRawParameterTypes() {
             return DomainObjectCreationContext.createJavaClassList(parameters);
         }
@@ -324,16 +339,19 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @Deprecated
+        @PublicAPI(usage = ACCESS)
         public JavaClass getReturnType() {
             return getRawReturnType();
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         public JavaClass getRawReturnType() {
             return returnType;
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         public ThrowsClause<CodeUnitCallTarget> getThrowsClause() {
             List<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = FluentIterable.from(resolve())
                     .transform(toGuava(JavaCodeUnit.Functions.Get.throwsClause()))
@@ -365,6 +383,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          * @see MethodCallTarget#resolve()
          */
         @Override
+        @PublicAPI(usage = ACCESS)
         public abstract Set<? extends JavaCodeUnit> resolve();
 
         public static final class Functions {
@@ -405,11 +424,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          * @see #resolveConstructor()
          */
         @Override
+        @PublicAPI(usage = ACCESS)
         public Set<JavaConstructor> resolve() {
             return resolveConstructor().asSet();
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         String getDescription() {
             return "constructor <" + getFullName() + ">";
         }
@@ -477,11 +498,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          * @return Set of matching methods, usually a single target
          */
         @Override
+        @PublicAPI(usage = ACCESS)
         public Set<JavaMethod> resolve() {
             return methods.get();
         }
 
         @Override
+        @PublicAPI(usage = ACCESS)
         String getDescription() {
             return "method <" + getFullName() + ">";
         }

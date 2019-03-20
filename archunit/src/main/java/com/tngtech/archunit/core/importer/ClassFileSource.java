@@ -37,6 +37,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.Internal;
 
+@Internal
 interface ClassFileSource extends Iterable<ClassFileLocation> {
     @Internal
     class FromFilePath extends SimpleFileVisitor<Path> implements ClassFileSource {
@@ -60,7 +61,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         }
 
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             if (shouldBeConsidered(file)) {
                 classFileLocations.add(new InputStreamSupplierClassFileLocation(file.toUri(), newInputStreamSupplierFor(file)));
             }

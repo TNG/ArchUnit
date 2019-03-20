@@ -29,8 +29,10 @@ public interface GivenNamedSlices extends GivenObjects<Slice>, CanOverrideDescri
     SlicesShould should();
 
     @Override
+    @PublicAPI(usage = ACCESS)
     GivenNamedSlices as(String newDescription);
 
     @Override
+    @PublicAPI(usage = ACCESS)
     GivenSlicesConjunction that(DescribedPredicate<? super Slice> predicate);
 }

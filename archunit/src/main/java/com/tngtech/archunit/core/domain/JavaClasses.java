@@ -18,24 +18,25 @@ package com.tngtech.archunit.core.domain;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.ForwardingCollection;
 import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Iterables.isEmpty;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverrideDescription<JavaClasses> {
+public final class JavaClasses extends ForwardingCollection<JavaClass> implements DescribedIterable<JavaClass>, CanOverrideDescription<JavaClasses> {
     private final ImmutableMap<String, JavaClass> classes;
     private final JavaPackage defaultPackage;
     private final String description;
@@ -74,11 +75,6 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{classes=" + classes + '}';
-    }
-
-    @Override
-    public Iterator<JavaClass> iterator() {
-        return classes.values().iterator();
     }
 
     /**
@@ -155,9 +151,27 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
         return defaultPackage;
     }
 
-    @PublicAPI(usage = ACCESS)
-    public int size() {
-        return classes.size();
+    @Override
+    public int hashCode() {
+        return Objects.hash(classes.keySet(), description);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final JavaClasses other = (JavaClasses) obj;
+        return Objects.equals(this.classes.keySet(), other.classes.keySet())
+                && Objects.equals(this.description, other.description);
+    }
+
+    @Override
+    protected Collection<JavaClass> delegate() {
+        return classes.values();
     }
 
     static JavaClasses of(Iterable<JavaClass> classes) {
@@ -165,7 +179,7 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
         for (JavaClass clazz : classes) {
             mapping.put(clazz.getName(), clazz);
         }
-        JavaPackage defaultPackage = !isEmpty(classes)
+        JavaPackage defaultPackage = !Iterables.isEmpty(classes)
                 ? getRoot(classes.iterator().next().getPackage())
                 : JavaPackage.from(classes);
         return new JavaClasses(defaultPackage, mapping);

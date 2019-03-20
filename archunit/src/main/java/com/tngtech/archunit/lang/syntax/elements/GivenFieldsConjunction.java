@@ -41,8 +41,10 @@ public interface GivenFieldsConjunction extends GivenMembersConjunction<JavaFiel
     GivenFieldsConjunction or(DescribedPredicate<? super JavaField> predicate);
 
     @Override
+    @PublicAPI(usage = ACCESS)
     FieldsShouldConjunction should(ArchCondition<? super JavaField> condition);
 
     @Override
+    @PublicAPI(usage = ACCESS)
     FieldsShould<?> should();
 }
