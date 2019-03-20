@@ -28,9 +28,11 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
+import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.fullyQualifiedName;
@@ -83,6 +85,22 @@ class SyntaxPredicates {
 
     static DescribedPredicate<HasModifiers> areNotPrivate() {
         return not(modifier(PRIVATE)).as("are not private");
+    }
+
+    static DescribedPredicate<HasModifiers> areStatic() {
+        return modifier(STATIC).as("are static");
+    }
+
+    static DescribedPredicate<HasModifiers> areNotStatic() {
+        return not(modifier(STATIC)).as("are not static");
+    }
+
+    static DescribedPredicate<HasModifiers> areFinal() {
+        return modifier(FINAL).as("are final");
+    }
+
+    static DescribedPredicate<HasModifiers> areNotFinal() {
+        return not(modifier(FINAL)).as("are not final");
     }
 
     static DescribedPredicate<HasName> haveFullyQualifiedName(String name) {
