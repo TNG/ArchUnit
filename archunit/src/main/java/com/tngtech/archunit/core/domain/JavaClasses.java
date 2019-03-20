@@ -32,6 +32,7 @@ import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Iterables.isEmpty;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverrideDescription<JavaClasses> {
@@ -39,7 +40,7 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
     private final JavaPackage defaultPackage;
     private final String description;
 
-    JavaClasses(JavaPackage defaultPackage, Map<String, JavaClass> classes) {
+    private JavaClasses(JavaPackage defaultPackage, Map<String, JavaClass> classes) {
         this(defaultPackage, classes, "classes");
     }
 
@@ -164,18 +165,31 @@ public final class JavaClasses implements DescribedIterable<JavaClass>, CanOverr
         for (JavaClass clazz : classes) {
             mapping.put(clazz.getName(), clazz);
         }
-        return new JavaClasses(JavaPackage.from(classes), mapping);
+        JavaPackage defaultPackage = !isEmpty(classes)
+                ? getRoot(classes.iterator().next().getPackage())
+                : JavaPackage.from(classes);
+        return new JavaClasses(defaultPackage, mapping);
     }
 
-    static JavaClasses of(Map<String, JavaClass> classes, ImportContext importContext) {
-        CompletionProcess completionProcess = new CompletionProcess(classes.values(), importContext);
-        JavaPackage defaultPackage = JavaPackage.from(classes.values());
-        for (JavaClass clazz : classes.values()) {
+    private static JavaPackage getRoot(JavaPackage javaPackage) {
+        JavaPackage result = javaPackage;
+        while (result.getParent().isPresent()) {
+            result = result.getParent().get();
+        }
+        return result;
+    }
+
+    static JavaClasses of(
+            Map<String, JavaClass> selectedClasses, Map<String, JavaClass> allClasses, ImportContext importContext) {
+
+        CompletionProcess completionProcess = new CompletionProcess(allClasses.values(), importContext);
+        JavaPackage defaultPackage = JavaPackage.from(allClasses.values());
+        for (JavaClass clazz : allClasses.values()) {
             setPackage(clazz, defaultPackage);
             completionProcess.completeClass(clazz);
         }
         completionProcess.finish();
-        return new JavaClasses(defaultPackage, classes);
+        return new JavaClasses(defaultPackage, selectedClasses);
     }
 
     private static void setPackage(JavaClass clazz, JavaPackage defaultPackage) {
