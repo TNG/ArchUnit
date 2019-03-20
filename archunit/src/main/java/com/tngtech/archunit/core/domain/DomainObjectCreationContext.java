@@ -59,8 +59,10 @@ import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder
  */
 @Internal
 public class DomainObjectCreationContext {
-    public static JavaClasses createJavaClasses(Map<String, JavaClass> classes, ImportContext importContext) {
-        return JavaClasses.of(classes, importContext);
+    public static JavaClasses createJavaClasses(
+            Map<String, JavaClass> selectedClasses, Map<String, JavaClass> allClasses, ImportContext importContext) {
+
+        return JavaClasses.of(selectedClasses, allClasses, importContext);
     }
 
     public static JavaClass createJavaClass(JavaClassBuilder builder) {

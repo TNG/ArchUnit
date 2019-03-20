@@ -3,6 +3,7 @@ package com.tngtech.archunit.testutil.assertion;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Set;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
@@ -27,16 +28,25 @@ public class JavaPackagesAssertion extends AbstractObjectAssert<JavaPackagesAsse
         return result;
     }
 
-    public void matchOnlyPackagesOf(Class<?>... classes) {
-        HashSet<String> expectedNames = new HashSet<>();
+    public void containPackagesOf(Class<?>... classes) {
+        Set<String> expectedNames = getExpectedNames(classes);
+        assertThat(getActualNames()).containsAll(expectedNames);
+    }
+
+    private Set<String> getExpectedNames(Class<?>[] classes) {
+        Set<String> expectedNames = new HashSet<>();
         for (Class<?> clazz : classes) {
             expectedNames.add(clazz.getPackage().getName());
         }
-        assertThat(getActualNames()).containsOnlyElementsOf(expectedNames);
+        return expectedNames;
     }
 
-    public void containOnlyRelativeNames(String... relativeNames) {
-        assertThat(getActualRelativeNames()).containsOnly(relativeNames);
+    public void containRelativeNames(String... relativeNames) {
+        assertThat(getActualRelativeNames()).contains(relativeNames);
+    }
+
+    public void containNames(String... names) {
+        assertThat(getActualNames()).contains(names);
     }
 
     public void containOnlyNames(String... names) {

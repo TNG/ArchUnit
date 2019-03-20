@@ -79,15 +79,15 @@ public class TestUtils {
     public static JavaClasses importClassesWithContext(Class<?>... classes) {
         JavaClasses importedHierarchy = importHierarchies(classes);
         final List<String> classNames = JavaClass.namesOf(classes);
-        return importedHierarchy.that(new DescribedPredicate<JavaClass>(importedHierarchy.getDescription()) {
+        return importedHierarchy.that(new DescribedPredicate<JavaClass>("") {
             @Override
             public boolean apply(JavaClass input) {
                 return classNames.contains(input.getName());
             }
-        });
+        }).as(importedHierarchy.getDescription());
     }
 
-    public static JavaMethodCallBuilder newMethodCallBuilder(JavaMethod origin, MethodCallTarget target, int lineNumber) {
+    static JavaMethodCallBuilder newMethodCallBuilder(JavaMethod origin, MethodCallTarget target, int lineNumber) {
         return ImportTestUtils.newMethodCallBuilder(origin, target, lineNumber);
     }
 
@@ -103,7 +103,7 @@ public class TestUtils {
         return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Collections.singleton(target)));
     }
 
-    static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
+    private static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
         return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Collections.<JavaMethod>emptySet()));
     }
 

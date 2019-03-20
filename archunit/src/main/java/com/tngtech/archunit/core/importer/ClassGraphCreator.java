@@ -102,7 +102,7 @@ class ClassGraphCreator implements ImportContext {
         for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
             tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords);
         }
-        return createJavaClasses(classes.getDirectlyImported(), this);
+        return createJavaClasses(classes.getDirectlyImported(), classes.getAll(), this);
     }
 
     private void ensureCallTargetsArePresent() {
