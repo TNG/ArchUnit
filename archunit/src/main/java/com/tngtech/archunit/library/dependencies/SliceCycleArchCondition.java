@@ -127,7 +127,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         private Multimap<Slice, Dependency> targetsOf(Slice slice,
                 ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
             Multimap<Slice, Dependency> result = HashMultimap.create();
-            for (Dependency dependency : Guava.Iterables.filter(slice.getDependencies(), predicate)) {
+            for (Dependency dependency : Guava.Iterables.filter(slice.getDependenciesFromSelf(), predicate)) {
                 if (classesToSlicesMapping.containsKey(dependency.getTargetClass())) {
                     result.put(classesToSlicesMapping.get(dependency.getTargetClass()), dependency);
                 }

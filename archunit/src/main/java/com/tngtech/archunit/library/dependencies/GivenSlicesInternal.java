@@ -118,7 +118,7 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
 
         @Override
         public void check(Slice slice, ConditionEvents events) {
-            Iterable<Dependency> relevantDependencies = filter(slice.getDependencies(), predicate);
+            Iterable<Dependency> relevantDependencies = filter(slice.getDependenciesFromSelf(), predicate);
             Slices dependencySlices = inputTransformer.transform(relevantDependencies);
             for (Slice dependencySlice : dependencySlices) {
                 SliceDependency dependency = SliceDependency.of(slice, relevantDependencies, dependencySlice);
