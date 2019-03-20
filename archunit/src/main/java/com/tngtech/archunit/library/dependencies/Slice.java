@@ -99,21 +99,50 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
         return new Slice(sliceAssignment, matchingGroups, new Description(pattern), classes);
     }
 
+    /**
+     * @deprecated Use {@link #getDependenciesFromSelf()}
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDependencies() {
-        Set<Dependency> result = new HashSet<>();
+        return getDependenciesFromSelf();
+    }
+
+    /**
+     * @return All dependencies that originate from a class within this {@link Slice} and target a class outside of this {@link Slice}
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaClass javaClass : this) {
             for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
-                if (isNotToOwnSlice(dependency)) {
+                if (isNotAssignedToOwnSlice(dependency.getTargetClass())) {
                     result.add(dependency);
                 }
             }
         }
-        return result;
+        return result.build();
     }
 
-    private boolean isNotToOwnSlice(Dependency dependency) {
-        List<String> dependencyIdentifier = sliceAssignment.getIdentifierOf(dependency.getTargetClass()).getParts();
+    /**
+     * @return All dependencies that originate from outside of this {@link Slice} and target a class within this {@link Slice}
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getDependenciesToSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaClass javaClass : this) {
+            for (Dependency dependency : javaClass.getDirectDependenciesToSelf()) {
+                if (isNotAssignedToOwnSlice(dependency.getOriginClass())) {
+                    result.add(dependency);
+                }
+            }
+        }
+        return result.build();
+    }
+
+    // We cannot check 'contains' here, because there might be classes in the same slice that have not been originally imported (e.g. array types)
+    private boolean isNotAssignedToOwnSlice(JavaClass javaClass) {
+        List<String> dependencyIdentifier = sliceAssignment.getIdentifierOf(javaClass).getParts();
         return !dependencyIdentifier.equals(matchingGroups);
     }
 
