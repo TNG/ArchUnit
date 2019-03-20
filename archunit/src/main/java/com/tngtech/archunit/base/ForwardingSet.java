@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.dependencies.syntax;
+package com.tngtech.archunit.base;
+
+import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface GivenSlices extends GivenNamedSlices {
-    @PublicAPI(usage = ACCESS)
-    GivenNamedSlices namingSlices(String pattern);
+@PublicAPI(usage = ACCESS)
+public abstract class ForwardingSet<T> extends ForwardingCollection<T> implements Set<T> {
+    protected ForwardingSet() {
+    }
 
     @Override
-    @PublicAPI(usage = ACCESS)
-    GivenSlices as(String newDescription);
+    protected abstract Set<T> delegate();
 }

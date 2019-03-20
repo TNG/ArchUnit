@@ -63,6 +63,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getFullName() {
         return fullName;
     }
@@ -72,16 +73,19 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
      */
     @Override
     @Deprecated
+    @PublicAPI(usage = ACCESS)
     public JavaClassList getParameters() {
         return getRawParameterTypes();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public JavaClassList getRawParameterTypes() {
         return parameters;
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public abstract ThrowsClause<? extends JavaCodeUnit> getThrowsClause();
 
     /**
@@ -97,11 +101,13 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
      */
     @Override
     @Deprecated
+    @PublicAPI(usage = ACCESS)
     public JavaClass getReturnType() {
         return getRawReturnType();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public JavaClass getRawReturnType() {
         return returnType;
     }

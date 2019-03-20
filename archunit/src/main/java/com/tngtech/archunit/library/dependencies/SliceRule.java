@@ -59,26 +59,31 @@ public final class SliceRule implements ArchRule {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public void check(JavaClasses classes) {
         getArchRule().check(classes);
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public SliceRule because(String reason) {
         return copyWithTransformation(new Because(reason));
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public EvaluationResult evaluate(JavaClasses classes) {
         return getArchRule().evaluate(classes);
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return getArchRule().getDescription();
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public SliceRule as(String newDescription) {
         return copyWithTransformation(new As(newDescription));
     }

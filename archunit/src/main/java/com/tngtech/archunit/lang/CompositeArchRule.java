@@ -56,16 +56,19 @@ public final class CompositeArchRule implements ArchRule {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public void check(JavaClasses classes) {
         Assertions.check(this, classes);
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public CompositeArchRule because(String reason) {
         return new CompositeArchRule(priority, rules, createBecauseDescription(this, reason));
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public EvaluationResult evaluate(JavaClasses classes) {
         EvaluationResult result = new EvaluationResult(this, priority);
         for (ArchRule rule : rules) {
@@ -75,11 +78,13 @@ public final class CompositeArchRule implements ArchRule {
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public CompositeArchRule as(String newDescription) {
         return new CompositeArchRule(priority, rules, newDescription);
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return description;
     }
