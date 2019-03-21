@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.lang.syntax.elements;
+package com.tngtech.archunit.lang.syntax;
 
-import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.lang.syntax.elements.MethodsThat;
 
-import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+class MethodsThatInternal
+        extends CodeUnitsThatInternal<JavaMethod, GivenMethodsInternal>
+        implements MethodsThat<GivenMethodsInternal> {
 
-public interface GivenMethods extends GivenCodeUnits<JavaMethod> {
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    MethodsThat<?> that();
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    GivenMethodsConjunction that(DescribedPredicate<? super JavaMethod> predicate);
+    MethodsThatInternal(GivenMethodsInternal givenMethods, PredicateAggregator<JavaMethod> currentPredicate) {
+        super(givenMethods, currentPredicate);
+    }
 }

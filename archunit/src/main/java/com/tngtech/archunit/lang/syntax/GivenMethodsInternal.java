@@ -58,6 +58,21 @@ class GivenMethodsInternal
     }
 
     @Override
+    public MethodsThatInternal that() {
+        return new MethodsThatInternal(this, currentPredicate());
+    }
+
+    @Override
+    public MethodsThatInternal and() {
+        return new MethodsThatInternal(this, currentPredicate().thatANDs());
+    }
+
+    @Override
+    public MethodsThatInternal or() {
+        return new MethodsThatInternal(this, currentPredicate().thatORs());
+    }
+
+    @Override
     public MethodsShouldInternal should() {
         return new MethodsShouldInternal(finishedClassesTransformer(), priority, prepareCondition);
     }
