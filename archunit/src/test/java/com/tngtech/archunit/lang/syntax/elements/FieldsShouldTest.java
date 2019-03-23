@@ -60,6 +60,24 @@ public class FieldsShouldTest {
         assertThat(actualFields).containsOnly(FIELD_B, FIELD_C, FIELD_D);
     }
 
+    @DataProvider
+    public static Object[][] restricted_property_rule_ends2() {
+        return testForEach(
+                fields().should().notHaveRawType(String.class),
+                fields().should().notHaveRawType(String.class.getName()),
+                fields().should().notHaveRawType(equivalentTo(String.class).as(String.class.getName())));
+    }
+
+    @Test
+    @UseDataProvider("restricted_property_rule_ends2")
+    public void property_predicates2(ArchRule rule) {
+        EvaluationResult result = rule
+                .evaluate(importClasses(ClassWithVariousMembers.class));
+
+        Set<String> actualFields = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
+        assertThat(actualFields).containsOnly(FIELD_A);
+    }
+
     private static final String FIELD_A = "fieldA";
     private static final String FIELD_B = "fieldB";
     private static final String FIELD_C = "fieldC";
