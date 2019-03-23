@@ -45,6 +45,26 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
     CONJUNCTION haveRawType(Class<?> type);
 
     /**
+     * Asserts that fields do not have a certain raw type.
+     * <br><br>
+     * E.g.
+     * <pre><code>
+     * {@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#should() should()}.{@link FieldsShould#notHaveRawType(Class) notHaveRawType(String.class)}
+     * </code></pre>
+     * would be violated by <code>someField</code> in
+     *
+     * <pre><code>
+     * class Example {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * @param type Type fields should not have
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION notHaveRawType(Class<?> type);
+
+    /**
      * Asserts that fields have a certain fully qualified name of their raw type.
      * <br><br>
      * E.g.
@@ -65,6 +85,26 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
     CONJUNCTION haveRawType(String typeName);
 
     /**
+     * Asserts that fields do not have a certain fully qualified name of their raw type.
+     * <br><br>
+     * E.g.
+     * <pre><code>
+     * {@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#should() should()}.{@link FieldsShould#notHaveRawType(String) notHaveRawType(String.class.getName())}
+     * </code></pre>
+     * would be violated by <code>someField</code> in
+     *
+     * <pre><code>
+     * class Example {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * @param typeName Name of type fields should not have
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION notHaveRawType(String typeName);
+
+    /**
      * Asserts that fields have a raw type matching the given predicate.
      * <br><br>
      * E.g.
@@ -83,4 +123,24 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveRawType(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Asserts that fields do not have a raw type matching the given predicate.
+     * <br><br>
+     * E.g.
+     * <pre><code>
+     * {@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#should() should()}.{@link FieldsShould#notHaveRawType(DescribedPredicate) notHaveRawType(assignableTo(Serializable.class))}
+     * </code></pre>
+     * would be violated by <code>someField</code> in
+     *
+     * <pre><code>
+     * class Example {
+     *     Object someField;
+     * }</code></pre>
+     *
+     * @param predicate A predicate determining which sort of types fields should not have
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION notHaveRawType(DescribedPredicate<? super JavaClass> predicate);
 }

@@ -67,12 +67,27 @@ class FieldsShouldInternal
     }
 
     @Override
+    public FieldsShouldInternal notHaveRawType(Class<?> type) {
+        return addCondition(ArchConditions.not(ArchConditions.haveRawType(type)));
+    }
+
+    @Override
     public FieldsShouldInternal haveRawType(String typeName) {
         return addCondition(ArchConditions.haveRawType(typeName));
     }
 
     @Override
+    public FieldsShouldInternal notHaveRawType(String typeName) {
+        return addCondition(ArchConditions.not(ArchConditions.haveRawType(typeName)));
+    }
+
+    @Override
     public FieldsShouldInternal haveRawType(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(ArchConditions.haveRawType(predicate));
+    }
+
+    @Override
+    public FieldsShouldInternal notHaveRawType(DescribedPredicate<? super JavaClass> predicate) {
+        return addCondition(ArchConditions.not(ArchConditions.haveRawType(predicate)));
     }
 }
