@@ -55,7 +55,7 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
      *
      * <pre><code>
      * class Example {
-     *     Object someField;
+     *     String someField;
      * }</code></pre>
      *
      * @param type Type fields should not have
@@ -95,7 +95,7 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
      *
      * <pre><code>
      * class Example {
-     *     Object someField;
+     *     String someField;
      * }</code></pre>
      *
      * @param typeName Name of type fields should not have
@@ -135,7 +135,7 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
      *
      * <pre><code>
      * class Example {
-     *     Object someField;
+     *     String someField;
      * }</code></pre>
      *
      * @param predicate A predicate determining which sort of types fields should not have
