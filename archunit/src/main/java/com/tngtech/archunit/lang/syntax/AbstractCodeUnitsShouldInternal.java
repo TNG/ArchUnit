@@ -28,6 +28,8 @@ import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.CodeUnitsShould;
 import com.tngtech.archunit.lang.syntax.elements.CodeUnitsShouldConjunction;
 
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
+
 abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, SELF extends AbstractCodeUnitsShouldInternal<CODE_UNIT, SELF>>
         extends AbstractMembersShouldInternal<CODE_UNIT, SELF>
         implements CodeUnitsShould<SELF>, CodeUnitsShouldConjunction<CODE_UNIT> {
@@ -62,8 +64,18 @@ abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, S
     }
 
     @Override
+    public SELF notHaveRawParameterTypes(Class<?>... parameterTypes) {
+        return addCondition(not(ArchConditions.haveRawParameterTypes(parameterTypes)));
+    }
+
+    @Override
     public SELF haveRawParameterTypes(String... parameterTypeNames) {
         return addCondition(ArchConditions.haveRawParameterTypes(parameterTypeNames));
+    }
+
+    @Override
+    public SELF notHaveRawParameterTypes(String... parameterTypeNames) {
+        return addCondition(not(ArchConditions.haveRawParameterTypes(parameterTypeNames)));
     }
 
     @Override
@@ -72,8 +84,18 @@ abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, S
     }
 
     @Override
+    public SELF notHaveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate) {
+        return addCondition(not(ArchConditions.haveRawParameterTypes(predicate)));
+    }
+
+    @Override
     public SELF haveRawReturnType(Class<?> type) {
         return addCondition(ArchConditions.haveRawReturnType(type));
+    }
+
+    @Override
+    public SELF notHaveRawReturnType(Class<?> type) {
+        return addCondition(not(ArchConditions.haveRawReturnType(type)));
     }
 
     @Override
@@ -82,8 +104,18 @@ abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, S
     }
 
     @Override
+    public SELF notHaveRawReturnType(String typeName) {
+        return addCondition(not(ArchConditions.haveRawReturnType(typeName)));
+    }
+
+    @Override
     public SELF haveRawReturnType(DescribedPredicate<JavaClass> predicate) {
         return addCondition(ArchConditions.haveRawReturnType(predicate));
+    }
+
+    @Override
+    public SELF notHaveRawReturnType(DescribedPredicate<JavaClass> predicate) {
+        return addCondition(not(ArchConditions.haveRawReturnType(predicate)));
     }
 
     @Override
@@ -92,13 +124,28 @@ abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, S
     }
 
     @Override
+    public SELF notDeclareThrowableOfType(Class<? extends Throwable> type) {
+        return addCondition(not(ArchConditions.declareThrowableOfType(type)));
+    }
+
+    @Override
     public SELF declareThrowableOfType(String typeName) {
         return addCondition(ArchConditions.declareThrowableOfType(typeName));
     }
 
     @Override
+    public SELF notDeclareThrowableOfType(String typeName) {
+        return addCondition(not(ArchConditions.declareThrowableOfType(typeName)));
+    }
+
+    @Override
     public SELF declareThrowableOfType(DescribedPredicate<JavaClass> predicate) {
         return addCondition(ArchConditions.declareThrowableOfType(predicate));
+    }
+
+    @Override
+    public SELF notDeclareThrowableOfType(DescribedPredicate<JavaClass> predicate) {
+        return addCondition(not(ArchConditions.declareThrowableOfType(predicate)));
     }
 
     static class CodeUnitsShouldInternal extends AbstractCodeUnitsShouldInternal<JavaCodeUnit, CodeUnitsShouldInternal> {

@@ -1,6 +1,7 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -125,6 +126,12 @@ public class CodeUnitsShouldTest {
                         union(allMethodsExcept(METHOD_ONE_ARG), allConstructorsExcept(CONSTRUCTOR_ONE_ARG))),
                 $(codeUnits().should().haveRawParameterTypes(oneParameterOfType(String.class)),
                         union(allMethodsExcept(METHOD_ONE_ARG), allConstructorsExcept(CONSTRUCTOR_ONE_ARG))),
+                $(codeUnits().should().notHaveRawParameterTypes(String.class),
+                        ImmutableSet.of(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG)),
+                $(codeUnits().should().notHaveRawParameterTypes(String.class.getName()),
+                        ImmutableSet.of(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG)),
+                $(codeUnits().should().notHaveRawParameterTypes(oneParameterOfType(String.class)),
+                        ImmutableSet.of(METHOD_ONE_ARG, CONSTRUCTOR_ONE_ARG)),
 
                 $(methods().should().haveRawParameterTypes(String.class),
                         allMethodsExcept(METHOD_ONE_ARG)),
@@ -132,13 +139,25 @@ public class CodeUnitsShouldTest {
                         allMethodsExcept(METHOD_ONE_ARG)),
                 $(methods().should().haveRawParameterTypes(oneParameterOfType(String.class)),
                         allMethodsExcept(METHOD_ONE_ARG)),
+                $(methods().should().notHaveRawParameterTypes(String.class),
+                        ImmutableSet.of(METHOD_ONE_ARG)),
+                $(methods().should().notHaveRawParameterTypes(String.class.getName()),
+                        ImmutableSet.of(METHOD_ONE_ARG)),
+                $(methods().should().notHaveRawParameterTypes(oneParameterOfType(String.class)),
+                        ImmutableSet.of(METHOD_ONE_ARG)),
 
                 $(constructors().should().haveRawParameterTypes(String.class),
                         allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
                 $(constructors().should().haveRawParameterTypes(String.class.getName()),
                         allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
                 $(constructors().should().haveRawParameterTypes(oneParameterOfType(String.class)),
-                        allConstructorsExcept(CONSTRUCTOR_ONE_ARG))
+                        allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
+                $(constructors().should().notHaveRawParameterTypes(String.class),
+                        ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
+                $(constructors().should().notHaveRawParameterTypes(String.class.getName()),
+                        ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
+                $(constructors().should().notHaveRawParameterTypes(oneParameterOfType(String.class)),
+                        ImmutableSet.of(CONSTRUCTOR_ONE_ARG))
         );
     }
 
@@ -160,6 +179,12 @@ public class CodeUnitsShouldTest {
                         union(allMethodsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS), ALL_CONSTRUCTOR_DESCRIPTIONS)),
                 $(codeUnits().should().haveRawReturnType(equivalentTo(String.class)),
                         union(allMethodsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS), ALL_CONSTRUCTOR_DESCRIPTIONS)),
+                $(codeUnits().should().notHaveRawReturnType(String.class),
+                        ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                $(codeUnits().should().notHaveRawReturnType(String.class.getName()),
+                        ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                $(codeUnits().should().notHaveRawReturnType(equivalentTo(String.class)),
+                        ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
 
                 $(methods().should().haveRawReturnType(String.class),
                         allMethodsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
@@ -167,13 +192,25 @@ public class CodeUnitsShouldTest {
                         allMethodsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
                 $(methods().should().haveRawReturnType(equivalentTo(String.class)),
                         allMethodsExcept(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                $(methods().should().notHaveRawReturnType(String.class),
+                        ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                $(methods().should().notHaveRawReturnType(String.class.getName()),
+                        ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
+                $(methods().should().notHaveRawReturnType(equivalentTo(String.class)),
+                        ImmutableSet.of(METHOD_ONE_ARG, METHOD_THREE_ARGS)),
 
                 $(constructors().should().haveRawReturnType(String.class),
                         ALL_CONSTRUCTOR_DESCRIPTIONS),
                 $(constructors().should().haveRawReturnType(String.class.getName()),
                         ALL_CONSTRUCTOR_DESCRIPTIONS),
                 $(constructors().should().haveRawReturnType(equivalentTo(String.class)),
-                        ALL_CONSTRUCTOR_DESCRIPTIONS)
+                        ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(constructors().should().notHaveRawReturnType(String.class),
+                        Collections.emptySet()),
+                $(constructors().should().notHaveRawReturnType(String.class.getName()),
+                        Collections.emptySet()),
+                $(constructors().should().notHaveRawReturnType(equivalentTo(String.class)),
+                        Collections.emptySet())
         );
     }
 
@@ -195,6 +232,12 @@ public class CodeUnitsShouldTest {
                         ImmutableSet.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS, CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
                 $(codeUnits().should().declareThrowableOfType(equivalentTo(FirstException.class)),
                         ImmutableSet.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS, CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
+                $(codeUnits().should().notDeclareThrowableOfType(FirstException.class),
+                        allCodeUnitsExcept(METHOD_TWO_ARGS, METHOD_FOUR_ARGS, CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
+                $(codeUnits().should().notDeclareThrowableOfType(FirstException.class.getName()),
+                        allCodeUnitsExcept(METHOD_TWO_ARGS, METHOD_FOUR_ARGS, CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
+                $(codeUnits().should().notDeclareThrowableOfType(equivalentTo(FirstException.class)),
+                        allCodeUnitsExcept(METHOD_TWO_ARGS, METHOD_FOUR_ARGS, CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
 
                 $(methods().should().declareThrowableOfType(FirstException.class),
                         ImmutableSet.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
@@ -202,13 +245,25 @@ public class CodeUnitsShouldTest {
                         ImmutableSet.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
                 $(methods().should().declareThrowableOfType(equivalentTo(FirstException.class)),
                         ImmutableSet.of(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
+                $(methods().should().notDeclareThrowableOfType(FirstException.class),
+                        allMethodsExcept(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
+                $(methods().should().notDeclareThrowableOfType(FirstException.class.getName()),
+                        allMethodsExcept(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
+                $(methods().should().notDeclareThrowableOfType(equivalentTo(FirstException.class)),
+                        allMethodsExcept(METHOD_TWO_ARGS, METHOD_FOUR_ARGS)),
 
                 $(constructors().should().declareThrowableOfType(FirstException.class),
                         ImmutableSet.of(CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
                 $(constructors().should().declareThrowableOfType(FirstException.class.getName()),
                         ImmutableSet.of(CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
                 $(constructors().should().declareThrowableOfType(equivalentTo(FirstException.class)),
-                        ImmutableSet.of(CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS))
+                        ImmutableSet.of(CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
+                $(constructors().should().notDeclareThrowableOfType(FirstException.class),
+                        allConstructorsExcept(CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
+                $(constructors().should().notDeclareThrowableOfType(FirstException.class.getName()),
+                        allConstructorsExcept(CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS)),
+                $(constructors().should().notDeclareThrowableOfType(equivalentTo(FirstException.class)),
+                        allConstructorsExcept(CONSTRUCTOR_TWO_ARGS, CONSTRUCTOR_FOUR_ARGS))
         );
     }
 
@@ -230,11 +285,15 @@ public class CodeUnitsShouldTest {
         };
     }
 
-    private static Set<String> allMethodsExcept(String... method) {
-        return Sets.difference(ALL_METHOD_DESCRIPTIONS, ImmutableSet.copyOf(method));
+    private static Set<String> allMethodsExcept(String... methods) {
+        return Sets.difference(ALL_METHOD_DESCRIPTIONS, ImmutableSet.copyOf(methods));
     }
 
-    private static Set<String> allConstructorsExcept(String... constructor) {
-        return Sets.difference(ALL_CONSTRUCTOR_DESCRIPTIONS, ImmutableSet.copyOf(constructor));
+    private static Set<String> allConstructorsExcept(String... constructors) {
+        return Sets.difference(ALL_CONSTRUCTOR_DESCRIPTIONS, ImmutableSet.copyOf(constructors));
+    }
+
+    private static Set<String> allCodeUnitsExcept(String... codeUnits) {
+        return union(allMethodsExcept(codeUnits), allConstructorsExcept(codeUnits));
     }
 }
