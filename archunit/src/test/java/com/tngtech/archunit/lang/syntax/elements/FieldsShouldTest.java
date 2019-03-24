@@ -1,9 +1,11 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -19,7 +21,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.areNoFieldsWithType;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.MembersShouldTest.parseMembers;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -44,38 +47,23 @@ public class FieldsShouldTest {
 
     @DataProvider
     public static Object[][] restricted_property_rule_ends() {
-        return testForEach(
-                fields().should().haveRawType(String.class),
-                fields().should().haveRawType(String.class.getName()),
-                fields().should().haveRawType(equivalentTo(String.class).as(String.class.getName())));
+        return $$(
+                $(fields().should().haveRawType(String.class), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
+                $(fields().should().haveRawType(String.class.getName()), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
+                $(fields().should().haveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
+                $(fields().should().notHaveRawType(String.class), ImmutableList.of(FIELD_A)),
+                $(fields().should().notHaveRawType(String.class.getName()), ImmutableList.of(FIELD_A)),
+                $(fields().should().notHaveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_A)));
     }
 
     @Test
     @UseDataProvider("restricted_property_rule_ends")
-    public void property_predicates(ArchRule rule) {
+    public void property_predicates(ArchRule rule, Collection<String> expectedViolatingFields) {
         EvaluationResult result = rule
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualFields = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
-        assertThat(actualFields).containsOnly(FIELD_B, FIELD_C, FIELD_D);
-    }
-
-    @DataProvider
-    public static Object[][] restricted_property_rule_ends2() {
-        return testForEach(
-                fields().should().notHaveRawType(String.class),
-                fields().should().notHaveRawType(String.class.getName()),
-                fields().should().notHaveRawType(equivalentTo(String.class).as(String.class.getName())));
-    }
-
-    @Test
-    @UseDataProvider("restricted_property_rule_ends2")
-    public void property_predicates2(ArchRule rule) {
-        EvaluationResult result = rule
-                .evaluate(importClasses(ClassWithVariousMembers.class));
-
-        Set<String> actualFields = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
-        assertThat(actualFields).containsOnly(FIELD_A);
+        assertThat(actualFields).containsOnlyElementsOf(expectedViolatingFields);
     }
 
     private static final String FIELD_A = "fieldA";
