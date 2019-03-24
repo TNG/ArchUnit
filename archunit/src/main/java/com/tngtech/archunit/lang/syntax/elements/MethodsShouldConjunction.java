@@ -16,35 +16,26 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.ArchCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface GivenMethodsConjunction extends GivenCodeUnitsConjunction<JavaMethod> {
+public interface MethodsShouldConjunction  extends CodeUnitsShouldConjunction<JavaMethod> {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    MethodsThat<?> and();
+    MethodsShouldConjunction andShould(ArchCondition<? super JavaMethod> condition);
 
     @Override
     @PublicAPI(usage = ACCESS)
-    MethodsThat<?> or();
+    MethodsShould<?> andShould();
 
     @Override
     @PublicAPI(usage = ACCESS)
-    GivenMethodsConjunction and(DescribedPredicate<? super JavaMethod> predicate);
+    MethodsShouldConjunction orShould(ArchCondition<? super JavaMethod> condition);
 
     @Override
     @PublicAPI(usage = ACCESS)
-    GivenMethodsConjunction or(DescribedPredicate<? super JavaMethod> predicate);
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    MethodsShould<?> should();
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    MethodsShouldConjunction should(ArchCondition<? super JavaMethod> condition);
+    MethodsShould<?> orShould();
 }
