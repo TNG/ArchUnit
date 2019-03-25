@@ -351,7 +351,7 @@ class ClassGraphCreator implements ImportContext {
 
         void registerAnnotations(Collection<JavaAnnotation> annotations) {
             for (JavaAnnotation annotation : annotations) {
-                annotationTypeDependencies.put(annotation.getRawType(), annotation);
+                annotationTypeDependencies.put(annotation.getType(), annotation);
                 registerAnnotationParameters(annotation);
             }
         }
@@ -360,9 +360,11 @@ class ClassGraphCreator implements ImportContext {
             for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
                 Object value = entry.getValue();
                 if (value.getClass().isArray()) {
-                    Object[] values = (Object[]) value;
-                    for (Object o : values) {
-                        registerAnnotationParameter(annotation, o);
+                    if (!value.getClass().getComponentType().isPrimitive()) {
+                        Object[] values = (Object[]) value;
+                        for (Object o : values) {
+                            registerAnnotationParameter(annotation, o);
+                        }
                     }
                 } else {
                     registerAnnotationParameter(annotation, value);
@@ -392,9 +394,11 @@ class ClassGraphCreator implements ImportContext {
             for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
                 Object value = entry.getValue();
                 if (value.getClass().isArray()) {
-                    Object[] values = (Object[]) value;
-                    for (Object o : values) {
-                        registerMemberAnnotationParameter(member, o);
+                    if (!value.getClass().getComponentType().isPrimitive()) {
+                        Object[] values = (Object[]) value;
+                        for (Object o : values) {
+                            registerMemberAnnotationParameter(member, o);
+                        }
                     }
                 } else {
                     registerMemberAnnotationParameter(member, value);

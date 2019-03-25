@@ -1042,9 +1042,11 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
             Object value = entry.getValue();
             if (value.getClass().isArray()) {
-                Object[] values = (Object[]) value;
-                for (Object o : values) {
-                    result.addAll(annotationParameterDependencies(origin, o));
+                if (!value.getClass().getComponentType().isPrimitive()) {
+                    Object[] values = (Object[]) value;
+                    for (Object o : values) {
+                        result.addAll(annotationParameterDependencies(origin, o));
+                    }
                 }
             } else {
                 result.addAll(annotationParameterDependencies(origin, value));
