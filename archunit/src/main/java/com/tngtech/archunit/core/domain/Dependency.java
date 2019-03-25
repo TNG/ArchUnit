@@ -112,7 +112,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         String originDescription = hasDescription.getDescription();
         String targetDescription = bracketFormat(target.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
-        String description = dependencyDescription + " in " + formatLocation(owner, 0);
+        String description = dependencyDescription + " in " + owner.getSourceCodeLocation();
         return new Dependency(owner, target, 0, description);
     }
 
