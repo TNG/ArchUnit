@@ -155,8 +155,13 @@ public final class DomainBuilders {
             return name;
         }
 
-        public Map<String, JavaAnnotation> getAnnotations() {
-            return buildAnnotations(owner, annotations, importedClasses);
+        public Supplier<Map<String, JavaAnnotation>> getAnnotations() {
+            return Suppliers.memoize(new Supplier<Map<String, JavaAnnotation>>() {
+                @Override
+                public Map<String, JavaAnnotation> get() {
+                    return buildAnnotations(owner, annotations, importedClasses);
+                }
+            });
         }
 
         public String getDescriptor() {

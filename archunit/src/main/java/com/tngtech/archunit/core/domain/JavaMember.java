@@ -20,6 +20,7 @@ import java.lang.reflect.Member;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
@@ -48,7 +49,7 @@ public abstract class JavaMember implements
 
     private final String name;
     private final String descriptor;
-    private final Map<String, JavaAnnotation> annotations;
+    private final Supplier<Map<String, JavaAnnotation>> annotations;
     private final JavaClass owner;
     private final SourceCodeLocation sourceCodeLocation;
     private final Set<JavaModifier> modifiers;
@@ -65,7 +66,7 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaAnnotation> getAnnotations() {
-        return ImmutableSet.copyOf(annotations.values());
+        return ImmutableSet.copyOf(annotations.get().values());
     }
 
     /**
@@ -96,7 +97,7 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName) {
-        return Optional.fromNullable(annotations.get(typeName));
+        return Optional.fromNullable(annotations.get().get(typeName));
     }
 
     @Override
@@ -108,13 +109,13 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(String typeName) {
-        return annotations.containsKey(typeName);
+        return annotations.get().containsKey(typeName);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
-        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.values(), predicate);
+        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
     }
 
     @Override
@@ -132,7 +133,7 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
-        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
+        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.get().values(), predicate);
     }
 
     @Override

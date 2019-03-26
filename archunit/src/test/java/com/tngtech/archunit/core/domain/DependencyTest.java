@@ -77,7 +77,7 @@ public class DependencyTest {
         assertThat(dependency.getOriginClass()).matches(ClassWithDependencyOnAnnotation.class);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
-                .contains("Class <" + origin.getName() + "> has annotation <" + annotationClass.getName() + ">");
+                .contains("Class <" + origin.getName() + "> is annotated with <" + annotationClass.getName() + ">");
 
         origin = importClassesWithContext(InterfaceWithDependencyOnAnnotation.class, SomeAnnotation.class)
                 .get(InterfaceWithDependencyOnAnnotation.class);
@@ -86,7 +86,7 @@ public class DependencyTest {
         assertThat(dependency.getOriginClass()).matches(InterfaceWithDependencyOnAnnotation.class);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
-                .contains("Interface <" + origin.getName() + "> has annotation <" + annotationClass.getName() + ">");
+                .contains("Class <" + origin.getName() + "> is annotated with <" + annotationClass.getName() + ">");
     }
 
     @Test
@@ -102,7 +102,7 @@ public class DependencyTest {
         assertThat(dependency.getOriginClass()).matches(ClassWithAnnotatedField.class);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
-                .contains(origin.getDescription() + " has annotation <" + annotationClass.getName() + ">");
+                .contains(origin.getDescription() + " is annotated with <" + annotationClass.getName() + ">");
     }
 
     @Test
