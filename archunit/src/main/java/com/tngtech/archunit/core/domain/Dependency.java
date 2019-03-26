@@ -63,7 +63,9 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     static Dependency fromInheritance(JavaClass origin, JavaClass targetSuperType) {
-        String originDescription = origin.getDescription();
+        String originType = origin.isInterface() ? "Interface" : "Class";
+        String originDescription = originType + " " + bracketFormat(origin.getName());
+
         String dependencyType = !origin.isInterface() && targetSuperType.isInterface() ? "implements" : "extends";
 
         String targetType = targetSuperType.isInterface() ? "interface" : "class";

@@ -95,6 +95,7 @@ class ClassGraphCreator implements ImportContext {
         ensureCallTargetsArePresent();
         ensureClassHierarchies();
         completeMembers();
+        completeAnnotations();
         for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
             tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
         }
@@ -139,6 +140,12 @@ class ClassGraphCreator implements ImportContext {
     private void completeMembers() {
         for (JavaClass javaClass : classes.getAll().values()) {
             DomainObjectCreationContext.completeMembers(javaClass, this);
+        }
+    }
+
+    private void completeAnnotations() {
+        for (JavaClass javaClass : classes.getAll().values()) {
+            javaClass.getAnnotations();
         }
     }
 
