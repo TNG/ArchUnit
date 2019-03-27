@@ -1,13 +1,11 @@
 'use strict';
 
 const chai = require('chai');
-const stubs = require('../testinfrastructure/stubs');
+const expect = chai.expect;
+const guiElementsMock = require('../testinfrastructure/gui-elements-mock');
 const nodeTextFactory = require('../../../../main/app/graph/nodes/node-text');
 
-const expect = chai.expect;
-
-const visualizationStyles = stubs.visualizationStylesStub();
-
+const visualizationStyles = guiElementsMock.getEmbeddedVisualizationStylesMock();
 const NodeText = nodeTextFactory.init(visualizationStyles);
 
 const withRadius = obj => ({
@@ -18,11 +16,9 @@ const withRadius = obj => ({
 });
 
 const leaf = () => withRadius({isRoot: () => false, isCurrentlyLeaf: () => true});
-const root = () => withRadius({isRoot: () => true, isCurrentlyLeaf: () => false});
 const nonRootWithChildren = name => withRadius({
   isRoot: () => false,
   isCurrentlyLeaf: () => false,
-  getClass: () => 'node',
   getNameWidth: () => name.length * 7
 });
 
@@ -31,17 +27,6 @@ describe('NodeText', () => {
     const text = new NodeText(leaf().withRadius(55));
 
     expect(text.getY()).to.equal(0)
-  });
-
-  it('should position the text on the very top for the root', () => {
-    const fontSize = 13;
-    visualizationStyles.setNodeFontSize(fontSize);
-
-    const radius = 25;
-    const text = new NodeText(root().withRadius(radius));
-
-    const expectedY = -1 * (radius - fontSize);
-    expect(text.getY()).to.equal(expectedY);
   });
 
   it('should position the text on the top rim of the circle for non-roots with children', () => {
