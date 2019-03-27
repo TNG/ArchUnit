@@ -51,7 +51,6 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this.dependencies.filterGroup.getFilter('type').addDependentFilterKey('nodes.visibleViolations');
       this.dependencies.filterGroup.getFilter('nodeTypeAndName').addDependentFilterKey('nodes.visibleViolations');
       this.dependencies.filterGroup.getFilter('violations').addDependentFilterKey('nodes.visibleViolations');
-
     }
 
     filterNodesByName(filterString) {

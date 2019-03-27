@@ -47,6 +47,7 @@ const joinToRegexOptions = optionsStrings => optionsStrings.join('|');
  * @param filterExpression string out of any number of optional strings, which must be separated by '|'
  * and can start with '~' to signal that this string should be excluded.
  */
+  //FIXME: rename, matchesPattern...
 const stringEquals = filterExpression => {
   const withoutLeadingOrClosingWhitespace = filterExpression
   //remove leading whitespaces

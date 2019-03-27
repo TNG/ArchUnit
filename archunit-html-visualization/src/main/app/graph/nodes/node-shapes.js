@@ -38,11 +38,11 @@ const NodeShape = class {
     throw new Error('not implemented');
   }
 
-  jumpToPosition() {
+  _jumpToPosition() {
     throw new Error('not implemented');
   }
 
-  expand() {
+  _expand() {
     throw new Error('not implemented');
   }
 };
@@ -70,14 +70,14 @@ const RootRect = class extends NodeShape {
     return Promise.all([promise, listenerPromise]);
   }
 
-  jumpToPosition(x, y, directionVector) {
+  _jumpToPosition(x, y, directionVector) {
     this.relativePosition.changeTo(new Vector(x, y));
     this._updateAbsolutePositionAndDescendants();
     this._listener.onJumpedToPosition(directionVector);
     this._listener.onRimPositionChanged();
   }
 
-  expand(relativeCircle, padding, directionVector) {
+  _expand(relativeCircle, padding, directionVector) {
     if (!this.absoluteRect._relativeCircleIsWithinWidth(relativeCircle, padding)) {
       this.absoluteRect.halfWidth = Math.abs(relativeCircle.centerPosition.x) + relativeCircle.r + padding;
     }
@@ -86,7 +86,7 @@ const RootRect = class extends NodeShape {
       this.absoluteRect.halfHeight = Math.abs(relativeCircle.centerPosition.y) + relativeCircle.r + padding;
     }
 
-    this.jumpToPosition(this.absoluteRect.halfWidth, this.absoluteRect.halfHeight, directionVector);
+    this._jumpToPosition(this.absoluteRect.halfWidth, this.absoluteRect.halfHeight, directionVector);
     this._listener.onRadiusSet();
   }
 };
@@ -117,13 +117,13 @@ const NodeCircle = class extends NodeShape {
   jumpToRelativeDisplacement(dx, dy, padding) {
     const directionVector = new Vector(dx, dy);
     const position = vectors.add(this.relativePosition, directionVector);
-    this.jumpToPosition(position.x, position.y, padding, directionVector);
+    this._jumpToPosition(position.x, position.y, padding, directionVector);
   }
 
-  jumpToPosition(x, y, padding, directionVector) {
+  _jumpToPosition(x, y, padding, directionVector) {
     const newRelativeCircle = Circle.from(new Vector(x, y), this.getRadius());
     if (!this.absoluteReferenceShape.containsRelativeCircle(newRelativeCircle)) {
-      this._node.getParent().nodeShape.expand(newRelativeCircle, padding, directionVector);
+      this._node.getParent().nodeShape._expand(newRelativeCircle, padding, directionVector);
     }
     this.relativePosition.changeTo(newRelativeCircle.centerPosition);
     this._updateAbsolutePositionAndDescendants();
@@ -156,12 +156,12 @@ const NodeCircle = class extends NodeShape {
     this.absoluteCircle.centerPosition.changeTo(vectors.add(this.relativePosition, this.absoluteReferenceShape.centerPosition));
   }
 
-  expand(relativeCircle, padding, directionVector) {
+  _expand(relativeCircle, padding, directionVector) {
     const r = relativeCircle.centerPosition.length() + relativeCircle.r;
     this.absoluteCircle.r = r + padding;
     const newRelativeCircle = Circle.from(this.relativePosition, this.getRadius());
     if (!this.absoluteReferenceShape.containsRelativeCircle(newRelativeCircle)) {
-      this._node.getParent().nodeShape.expand(newRelativeCircle, padding, directionVector);
+      this._node.getParent().nodeShape._expand(newRelativeCircle, padding, directionVector);
     }
     this._listener.onRadiusSet();
   }

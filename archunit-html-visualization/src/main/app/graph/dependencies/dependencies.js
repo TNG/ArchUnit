@@ -198,6 +198,7 @@ const init = (View, DetailedDependencyView) => {
     }
 
     //TODO: maybe keep only one dependency of possible mutual dependencies
+    //FIXME: rename...
     getAllLinks() {
       const createSimpleDependency = (from, to) => ({source: from, target: to});
       const simpleDependencies = this._getVisibleDependencies().map(dependency => createSimpleDependency(dependency.from, dependency.to));
@@ -270,8 +271,8 @@ const init = (View, DetailedDependencyView) => {
             .forEach(d => d.jumpToPosition());
           this._getVisibleDependencies().forEach(d => d.refresh())
         },
-        onFold: node => this._updateNodeFold(node),
-        onInitialFold: node => this._setNodeFold(node),
+        onFoldFinished: node => this._updateNodeFold(node),
+        onFold: node => this._setNodeFold(node),
         onLayoutChanged: () => this._moveAllToTheirPositions(),
         onNodesFocused: () => this._getVisibleDependencies().forEach(d => d.onNodesFocused())
       }

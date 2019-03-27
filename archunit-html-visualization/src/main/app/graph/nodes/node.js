@@ -1,6 +1,7 @@
 'use strict';
 
 const predicates = require('../infrastructure/predicates');
+const nodeText = require('./node-text');
 const {NodeCircle, RootRect} = require('./node-shapes');
 const {buildFilterGroup} = require('../filter');
 const sortTopological = require('../infrastructure/graph-algorithms').sortTopological;
@@ -12,7 +13,9 @@ const fullNameSeparators = {
   classSeparator: '$'
 };
 
-const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizationStyles) => {
+const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) => {
+
+  const NodeText = nodeText.init(visualizationStyles);
 
   const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
   const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
@@ -34,7 +37,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
     constructor(jsonNode, layerWithinParentNode) {
       this._layerWithinParentNode = layerWithinParentNode;
       this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
-      this._text = new NodeText(this);
       this._folded = false;
       this._listeners = [];
     }
@@ -53,12 +55,8 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       return this._description.type === nodeTypes.package;
     }
 
-    isInterface() {
+    _isInterface() {
       return this._description.type === nodeTypes.interface;
-    }
-
-    getName() {
-      return this._description.name;
     }
 
     getFullName() {
@@ -114,10 +112,10 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       return false;
     }
 
-    foldNodesWithMinimumDepthThatHaveNotDescendants(nodes) {
+    _foldNodesWithMinimumDepthThatHaveNotDescendants(nodes) {
       const childrenWithResults = this.getCurrentChildren().map(child => ({
         node: child,
-        canBeHidden: child.foldNodesWithMinimumDepthThatHaveNotDescendants(nodes)
+        canBeHidden: child._foldNodesWithMinimumDepthThatHaveNotDescendants(nodes)
       }));
       const thisCanBeFolded = childrenWithResults.every(n => n.canBeHidden);
       if (thisCanBeFolded) {
@@ -181,11 +179,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
     _updateViewOnCurrentChildrenChanged() {
       this._view.foldable = !this._isLeaf();
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._hide());
-      this.getCurrentChildren().forEach(child => child._isVisible = true);
-    }
-
-    isVisible() {
-      return this._isVisible;
     }
 
     /**
@@ -226,7 +219,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
         }
       }, svgContainerDivDomElement);
 
-      this._root = this;
       this._parent = this;
 
       this._onNodeFilterStringChanged = onNodeFilterStringChanged;
@@ -246,8 +238,43 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       this._originalChildren = children;
       this._setFilteredChildren(this._originalChildren);
 
+      this._initializeFilterGroup();
+      this._initializeNodeMap();
+
+      this._updatePromise = Promise.resolve();
+      this._mustRelayout = false;
+    }
+
+    relayoutCompletely() {
+      this._mustRelayout = true;
+      return this.doNextAndWaitFor(() => {
+        if (this._mustRelayout) {
+          this._mustRelayout = false;
+          return this._relayoutCompletely();
+        } else {
+          return Promise.resolve();
+        }
+      });
+    }
+
+    //FIXME: rename to scheduleAction
+    doNextAndWaitFor(func) {
+      this._updatePromise = this._updatePromise.then(func);
+      return this._updatePromise;
+    }
+
+    getByName(name) {
+      return this._map.get(name);
+    }
+
+    _initializeNodeMap() {
+      this._map = new Map();
+      this._callOnSelfThenEveryDescendant(n => this._map.set(n.getFullName(), n));
+    }
+
+    _initializeFilterGroup() {
       this._filterGroup =
-        buildFilterGroup('nodes', this.getFilterObject())
+        buildFilterGroup('nodes', this._getFilterObject())
           .addStaticFilter('type', () => true, ['nodes.typeAndName'])
           .withStaticFilterPrecondition(true)
           .addDynamicFilter('name', () => this._getNameFilter(), ['nodes.typeAndName'])
@@ -259,24 +286,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
           .addStaticFilter('combinedFilter', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('typeAndName') && c.matchesFilter('visibleViolations')))
           .withStaticFilterPrecondition(true)
           .build();
-
-      this._updatePromise = Promise.resolve();
-      const map = new Map();
-      this._callOnSelfThenEveryDescendant(n => map.set(n.getFullName(), n));
-      this.getByName = name => map.get(name);
-      this.doNextAndWaitFor = fun => this._updatePromise = this._updatePromise.then(fun);
-      let mustRelayout = false;
-      this.relayoutCompletely = () => {
-        mustRelayout = true;
-        this.doNextAndWaitFor(() => {
-          if (mustRelayout) {
-            mustRelayout = false;
-            return this._relayoutCompletely();
-          } else {
-            return Promise.resolve();
-          }
-        });
-      }
     }
 
     get view() {
@@ -303,7 +312,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       return this._filterGroup;
     }
 
-    getFilterObject() {
+    _getFilterObject() {
       const runFilter = (node, filter, key) => {
         node._matchesFilter.set(key, filter(node));
         node._originalChildren.forEach(c => runFilter(c, filter, key));
@@ -327,7 +336,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
 
     foldNodesWithMinimumDepthThatHaveNoViolations() {
       //FIXME: better use another function for getting the nodes involved in violations
-      this.foldNodesWithMinimumDepthThatHaveNotDescendants(this.getNodesInvolvedInVisibleViolations());
+      this._foldNodesWithMinimumDepthThatHaveNotDescendants(this.getNodesInvolvedInVisibleViolations());
     }
 
     /**
@@ -356,8 +365,8 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
 
     _getTypeFilter(showInterfaces, showClasses) {
       let predicate = node => !node.isPackage();
-      predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node.isInterface());
-      predicate = showClasses ? predicate : predicates.and(predicate, node => node.isInterface());
+      predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node._isInterface());
+      predicate = showClasses ? predicate : predicates.and(predicate, node => node._isInterface());
       return node => predicate(node);
     }
 
@@ -467,7 +476,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
         //run the remaining simulations of collision
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k, onTick);
 
-        newNodesArray.forEach(node => node.nodeShape.completeMoveToIntermediatePosition());
+        newNodesArray.forEach(node => promises.push(node.nodeShape.completeMoveToIntermediatePosition()));
         currentNodes = newNodes;
       }
 
@@ -484,9 +493,11 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       this._root = root;
       this._parent = parent;
 
+      this._text = new NodeText(this);
+
       this._view = new NodeView(
         {
-          nodeName: this.getName(),
+          nodeName: this._description.name,
           fullNodeName: this.getFullName(),
           nodeType: this._description.type
         }, {
@@ -554,6 +565,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       });
     }
 
+    //FIXME: clean up
     _focus() {
       const dependenciesWithinParent = this._root.getDependenciesDirectlyWithinNode(this.getParent())
         .map(d => ({
@@ -652,7 +664,6 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
     }
 
     _hide() {
-      this._isVisible = false;
       this._view.hide();
     }
 
@@ -692,7 +703,7 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
 
     _changeFoldIfInnerNodeAndRelayout() {
       if (!this._isLeaf()) {
-        this._setFolded(!this._folded, () => this._listeners.forEach(listener => listener.onFold(this)));
+        this._root.doNextAndWaitFor(() => this._setFolded(!this._folded, () => this._listeners.forEach(listener => listener.onFoldFinished(this))));
         this._root.relayoutCompletely();
       }
     }
@@ -709,10 +720,9 @@ const init = (NodeView, RootView, NodeText, visualizationFunctions, visualizatio
       }
     }
 
-    // FIXME: Why does _setFoldedIfInnerNode(..) trigger 'onINITIALFold'??
     _setFoldedIfInnerNode(folded) {
       if (!this._isLeaf()) {
-        this._setFolded(folded, () => this._listeners.forEach(listener => listener.onInitialFold(this)));
+        this._setFolded(folded, () => this._listeners.forEach(listener => listener.onFold(this)));
       }
     }
 

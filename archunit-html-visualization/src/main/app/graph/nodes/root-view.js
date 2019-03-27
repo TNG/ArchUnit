@@ -1,11 +1,8 @@
 'use strict';
 
-const svg = require('../infrastructure/gui-elements').svg;
-const document = require('../infrastructure/gui-elements').document;
-
 const {Vector} = require('../infrastructure/vectors');
 
-const init = (transitionDuration) => {
+const init = (transitionDuration, svg, document) => {
   class View {
     constructor(fullNodeName, onkeyupHandler, svgContainerDivDomElement) {
       this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));

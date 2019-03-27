@@ -107,9 +107,9 @@ const DynamicFilter = class extends Filter {
 };
 
 const FilterGroup = class {
-  constructor(key, objectToFilter) {
+  constructor(key, filterObject) {
     this._key = key;
-    this._objectToFilter = objectToFilter;
+    this._objectToFilter = filterObject;
     this._filters = new Map();
   }
 
@@ -184,8 +184,8 @@ const FilterCollection = class {
   }
 };
 
-const buildFilterGroup = (key, objectToFilter) => {
-  const filterGroup = new FilterGroup(key, objectToFilter);
+const buildFilterGroup = (key, filterObject) => {
+  const filterGroup = new FilterGroup(key, filterObject);
   const filterGroupBuilder = {
     addStaticFilter: (key, filter, dependentFilterKeys = []) => {
       return {

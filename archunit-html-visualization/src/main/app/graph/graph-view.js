@@ -1,8 +1,6 @@
 'use strict';
 
-const {svg, document, window} = require('./infrastructure/gui-elements');
-
-const init = (transitionDuration) => {
+const init = (transitionDuration, svg, document, window) => {
   const View = class {
     constructor(svgElement) {
       this._svgElement = svg.select(svgElement);

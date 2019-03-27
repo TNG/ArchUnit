@@ -66,9 +66,6 @@ const stylesFrom = (styleSheet) => {
   };
 };
 
-const {getVisualizationStyleSheet} = require('./infrastructure/gui-elements');
-
 module.exports = {
-  from: stylesFrom,
-  fromEmbeddedStyleSheet: () => stylesFrom(getVisualizationStyleSheet())
+  from: stylesFrom
 };

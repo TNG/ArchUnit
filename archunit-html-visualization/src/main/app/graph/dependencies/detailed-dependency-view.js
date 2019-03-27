@@ -2,11 +2,9 @@
 
 const textPadding = 5;
 
-const svg = require('../infrastructure/gui-elements').svg;
-
 const SingleDetailedDependencyView = require('./single-detailed-dependency-view');
 
-const init = (transitionDuration, calculateTextWidth, visualizationStyles) => {
+const init = (transitionDuration, svg, visualizationStyles) => {
 
   const View = class {
     constructor({svgContainer, svg, svgCenterTranslater}, callForAllDetailedViews, getDetailedDependencies) {

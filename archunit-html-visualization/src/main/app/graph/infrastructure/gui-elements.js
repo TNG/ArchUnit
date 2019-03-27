@@ -4,8 +4,8 @@ const d3 = require('d3');
 const svg = require('./svg');
 const document = require('./document');
 const window = require('./window');
+const visualizationStylesLoader = require('../visualization-styles');
 
-const getVisualizationStyleSheet = () => d3.select('#visualization-styles').property('sheet');
-const getTextSizeComputationSvg = () => d3.select('#text-size-computation');
+const getEmbeddedVisualizationStyles = () => visualizationStylesLoader.from(d3.select('#visualization-styles').property('sheet'));
 
-module.exports = {getVisualizationStyleSheet, getTextSizeComputationSvg, svg, document, window};
+module.exports = {getEmbeddedVisualizationStyles, svg, document, window};
