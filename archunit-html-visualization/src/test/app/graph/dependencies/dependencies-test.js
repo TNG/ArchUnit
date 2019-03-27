@@ -108,7 +108,7 @@ describe('Dependencies', () => {
       '<com.tngtech.SomeClassWithInnerClass$SomeInnerClass.startMethod1()> FIELD_ACCESS to <com.tngtech.SomeClassWithInnerClass.targetField>',
       '<com.tngtech.SomeClassWithInnerClass$SomeInnerClass.startMethod2()> FIELD_ACCESS to <com.tngtech.SomeClassWithInnerClass.targetField>'
     ];
-    expect(dependencies._elementary).to.haveDependencyStrings(exp);
+    expect(dependencies._elementary).to.haveDependencies(exp);
   });
 
   it('creates correct visible dependencies from the elementary dependencies', () => {
@@ -124,7 +124,7 @@ describe('Dependencies', () => {
       'com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$1-com.tngtech.pkg2.subpkg1.SomeClassWithInnerInterface$SomeInnerInterface',
       'com.tngtech.SomeClassWithInnerClass$1-com.tngtech.pkg2.SomeInterface1',
     ];
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
     expect(dependencies._getVisibleDependencies().every(dependency => dependency.isVisible())).to.be.true;
   });
 
@@ -227,7 +227,7 @@ describe('Dependencies', () => {
       'com.tngtech.SomeClass-com.tngtech.SomeInterface'
     ];
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('should recreate its visible dependencies correctly after folding a class with an inner class: old dependencies ' +
@@ -375,7 +375,7 @@ describe('Dependencies', () => {
 
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.startPkg'));
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('should be transformed correctly if the parent-package of the end-node is folded', () => {
@@ -406,7 +406,7 @@ describe('Dependencies', () => {
 
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.targetPkg'));
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('should be transformed correctly if the parent-package of the end-node and the parent-package of the start-node are folded', () => {
@@ -432,7 +432,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.startPkg'));
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.targetPkg'));
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('should be transformed correctly if the parent-class of the start-node is folded', () => {
@@ -457,7 +457,7 @@ describe('Dependencies', () => {
 
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.StartClassWithInnerClass'));
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('should be transformed correctly if a package is unfolded again', () => {
@@ -490,7 +490,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.startPkg'));
     dependencies._updateNodeFold(unfoldedNode(root, 'com.tngtech.startPkg'));
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('should be transformed correctly if two packages are unfolded again', () => {
@@ -518,7 +518,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(unfoldedNode(root, 'com.tngtech.startPkg'));
     dependencies._updateNodeFold(unfoldedNode(root, 'com.tngtech.targetPkg'));
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('should be transformed correctly if a package is unfolded again, when another package is folded', () => {
@@ -545,7 +545,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.targetPkg'));
     dependencies._updateNodeFold(unfoldedNode(root, 'com.tngtech.startPkg'));
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   const jsonRootForMoveTest = testRoot.package('com.tngtech')
@@ -603,8 +603,8 @@ describe('Dependencies', () => {
        * when the both invokes of moveAllToTheirPositions above are not executed after each other,
        * then the dependencies are not added to the second array
        */
-      expect(movedDependenciesFirstTime).to.haveDependencyStrings(exp);
-      expect(movedDependenciesSecondTime).to.haveDependencyStrings(exp);
+      expect(movedDependenciesFirstTime).to.haveDependencies(exp);
+      expect(movedDependenciesSecondTime).to.haveDependencies(exp);
     });
   });
 
@@ -654,7 +654,7 @@ describe('Dependencies', () => {
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('resets the node filter correctly', () => {
@@ -688,7 +688,7 @@ describe('Dependencies', () => {
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('should recreate correctly its visible dependencies after setting the node filter: old dependencies are hidden, ' +
@@ -838,7 +838,7 @@ describe('Dependencies', () => {
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: fold class -> node filter, so that a dependency of the folded class is changed when the ' +
@@ -874,7 +874,7 @@ describe('Dependencies', () => {
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: fold pkg -> node filter -> reset node filter, so that a dependency of the folded package is ' +
@@ -917,7 +917,7 @@ describe('Dependencies', () => {
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: fold class -> node filter -> reset node filter, so that can a dependency of the folded class ' +
@@ -957,7 +957,7 @@ describe('Dependencies', () => {
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: fold pkg -> node filter -> unfold pkg, so that the unfolding does not affect the filter', () => {
@@ -996,7 +996,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(unfoldedNode(root, 'com.tngtech.pkgToFold'));
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: fold class -> node filter -> unfold class, so that the unfolding does not affect the filter', () => {
@@ -1033,7 +1033,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(unfoldedNode(root, 'com.tngtech.SomeClassWithInnerClass'));
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: filter -> fold pkg, so that folding does not affect the filter', () => {
@@ -1069,7 +1069,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.pkgToFold'));
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: filter -> fold class, so that folding does not affect the filter', () => {
@@ -1105,7 +1105,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(foldedNode(root, 'com.tngtech.SomeClassWithInnerClass'));
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: filter -> fold pkg -> unfold pkg, so that unfolding does not affect the filter', () => {
@@ -1142,7 +1142,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(unfoldedNode(root, 'com.tngtech.pkgToFold'));
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: filter -> fold class -> unfolding class, so that unfolding does not affect the filter', () => {
@@ -1179,7 +1179,7 @@ describe('Dependencies', () => {
     dependencies._updateNodeFold(unfoldedNode(root, 'com.tngtech.SomeClassWithInnerClass'));
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
 
@@ -1219,7 +1219,7 @@ describe('Dependencies', () => {
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   it('can do this: node filter -> fold class -> reset node filter, so that the fold state is not changed', () => {
@@ -1257,7 +1257,7 @@ describe('Dependencies', () => {
     updateFilterAndRelayout(root, filterCollection, 'nodes.name');
 
     return root._updatePromise.then(() =>
-      expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp));
+      expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp));
   });
 
   const jsonRootWithAllDependencies = testRoot.package('com.tngtech')
@@ -1339,7 +1339,7 @@ describe('Dependencies', () => {
     });
     filterCollection.updateFilter('dependencies.type');
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('can filter by type: hide dependencies between a class and its inner classes', () => {
@@ -1375,7 +1375,7 @@ describe('Dependencies', () => {
     });
     filterCollection.updateFilter('dependencies.type');
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('can reset the filter by type: show all dependencies again', () => {
@@ -1405,7 +1405,7 @@ describe('Dependencies', () => {
     });
     filterCollection.updateFilter('dependencies.type');
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('creates the correct detailed dependencies of a class without children to another class: all grouped elementary ' +
@@ -1666,7 +1666,7 @@ describe('Dependencies', () => {
     const exp = ['com.tngtech.SomeClass1-com.tngtech.SomeClass2',
       'com.tngtech.SomeClass2-com.tngtech.SomeClass1'];
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('can hide all dependencies that are not part of a violation when a violation is shown', () => {
@@ -1690,7 +1690,7 @@ describe('Dependencies', () => {
 
     const exp = ['com.tngtech.SomeClass1-com.tngtech.SomeClass2'];
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('can show all dependencies, also those that are not part of a violation, again', () => {
@@ -1719,7 +1719,7 @@ describe('Dependencies', () => {
     const exp = ['com.tngtech.SomeClass1-com.tngtech.SomeClass2',
       'com.tngtech.SomeClass2-com.tngtech.SomeClass1'];
 
-    expect(dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(dependencies._getVisibleDependencies()).to.haveDependencies(exp);
   });
 
   it('can return all node-fullnames containing violations', () => {
