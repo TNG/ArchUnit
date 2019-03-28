@@ -137,6 +137,8 @@ public final class JavaAnnotation implements HasType, HasOwner<JavaClass> {
         return AnnotationProxy.of(annotationType, this);
     }
 
-    // TODO support annotation description
-
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + '{' + getRawType().getFullName() + '}';
+    }
 }

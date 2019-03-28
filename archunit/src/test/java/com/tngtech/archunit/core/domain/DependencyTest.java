@@ -71,7 +71,7 @@ public class DependencyTest {
                 .get(ClassWithDependencyOnAnnotation.class);
 
         JavaAnnotation annotation = origin.getAnnotations().iterator().next();
-        Class<?> annotationClass = annotation.getType().reflect();
+        Class<?> annotationClass = annotation.getRawType().reflect();
 
         Dependency dependency = Dependency.fromAnnotation(origin, annotation, origin);
         assertThat(dependency.getOriginClass()).matches(ClassWithDependencyOnAnnotation.class);
@@ -96,7 +96,7 @@ public class DependencyTest {
                 .getField("obj");
 
         JavaAnnotation annotation = origin.getAnnotations().iterator().next();
-        Class<?> annotationClass = annotation.getType().reflect();
+        Class<?> annotationClass = annotation.getRawType().reflect();
 
         Dependency dependency = Dependency.fromAnnotation(origin, annotation, origin.getOwner());
         assertThat(dependency.getOriginClass()).matches(ClassWithAnnotatedField.class);
