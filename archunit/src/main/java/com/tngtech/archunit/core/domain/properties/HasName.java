@@ -30,6 +30,52 @@ public interface HasName {
     interface AndFullName extends HasName {
         @PublicAPI(usage = ACCESS)
         String getFullName();
+
+        final class Predicates {
+            private Predicates() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static DescribedPredicate<HasName.AndFullName> fullName(String fullName) {
+                return new FullNameEqualsPredicate(fullName);
+            }
+
+            /**
+             * Matches full names against a regular expression.
+             */
+            @PublicAPI(usage = ACCESS)
+            public static DescribedPredicate<HasName.AndFullName> fullNameMatching(String regex) {
+                return new FullNameMatchingPredicate(regex);
+            }
+
+            private static class FullNameEqualsPredicate extends DescribedPredicate<HasName.AndFullName> {
+                private final String fullName;
+
+                FullNameEqualsPredicate(String fullName) {
+                    super(String.format("full name '%s'", fullName));
+                    this.fullName = fullName;
+                }
+
+                @Override
+                public boolean apply(HasName.AndFullName input) {
+                    return input.getFullName().equals(fullName);
+                }
+            }
+
+            private static class FullNameMatchingPredicate extends DescribedPredicate<HasName.AndFullName> {
+                private final Pattern pattern;
+
+                FullNameMatchingPredicate(String regex) {
+                    super(String.format("full name matching '%s'", regex));
+                    this.pattern = Pattern.compile(regex);
+                }
+
+                @Override
+                public boolean apply(HasName.AndFullName input) {
+                    return pattern.matcher(input.getFullName()).matches();
+                }
+            }
+        }
     }
 
     final class Predicates {
