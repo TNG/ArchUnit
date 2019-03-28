@@ -358,7 +358,7 @@ class ClassGraphCreator implements ImportContext {
 
         void registerAnnotations(Collection<JavaAnnotation> annotations) {
             for (JavaAnnotation annotation : annotations) {
-                annotationTypeDependencies.put(annotation.getType(), annotation);
+                annotationTypeDependencies.put(annotation.getRawType(), annotation);
                 registerAnnotationParameters(annotation);
             }
         }
@@ -384,7 +384,7 @@ class ClassGraphCreator implements ImportContext {
                 annotationParameterTypeDependencies.put((JavaClass) value, annotation);
             } else if (value instanceof JavaAnnotation) {
                 JavaAnnotation memberAnnotation = (JavaAnnotation) value;
-                annotationParameterTypeDependencies.put(memberAnnotation.getType(), annotation);
+                annotationParameterTypeDependencies.put(memberAnnotation.getRawType(), annotation);
                 registerAnnotationParameters(memberAnnotation);
             }
         }
@@ -392,7 +392,7 @@ class ClassGraphCreator implements ImportContext {
         void registerMemberWithAnnotations(JavaMember member) {
             Set<JavaAnnotation> annotations = member.getAnnotations();
             for (JavaAnnotation annotation : annotations) {
-                memberAnnotatedWithTypeDependencies.put(annotation.getType(), member);
+                memberAnnotatedWithTypeDependencies.put(annotation.getRawType(), member);
                 registerMemberAnnotationParameters(member, annotation);
             }
         }
@@ -418,7 +418,7 @@ class ClassGraphCreator implements ImportContext {
                 memberAnnotatedWithParameterOfTypeDependencies.put((JavaClass) value, member);
             } else if (value instanceof JavaAnnotation) {
                 JavaAnnotation memberAnnotation = (JavaAnnotation) value;
-                memberAnnotatedWithParameterOfTypeDependencies.put(memberAnnotation.getType(), member);
+                memberAnnotatedWithParameterOfTypeDependencies.put(memberAnnotation.getRawType(), member);
                 registerMemberAnnotationParameters(member, memberAnnotation);
             }
         }

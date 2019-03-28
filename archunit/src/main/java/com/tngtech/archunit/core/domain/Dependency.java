@@ -94,7 +94,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     static Dependency fromAnnotation(HasDescription origin, JavaAnnotation target, JavaClass owner) {
-        return createDependencyFromDescribable(origin, "is annotated with", target.getType(), owner);
+        return createDependencyFromDescribable(origin, "is annotated with", target.getRawType(), owner);
     }
 
     static Dependency fromAnnotationMember(HasDescription origin, JavaClass memberType, JavaClass owner) {
