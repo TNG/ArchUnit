@@ -47,8 +47,8 @@ public class CodingRulesTest {
     public void loggers_should_be_private_static_final() {
         fields().that().haveRawType(Logger.class)
                 .should().bePrivate()
-                .andShould().haveModifier(JavaModifier.STATIC)
-                .andShould().haveModifier(JavaModifier.FINAL)
+                .andShould().beStatic()
+                .andShould().beFinal()
                 .because("we agreed on this convention")
                 .check(classes);
     }

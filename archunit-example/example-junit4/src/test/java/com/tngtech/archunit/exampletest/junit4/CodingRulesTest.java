@@ -43,8 +43,8 @@ public class CodingRulesTest {
     private final ArchRule loggers_should_be_private_static_final =
             fields().that().haveRawType(Logger.class)
                     .should().bePrivate()
-                    .andShould().haveModifier(JavaModifier.STATIC)
-                    .andShould().haveModifier(JavaModifier.FINAL)
+                    .andShould().beStatic()
+                    .andShould().beFinal()
                     .because("we agreed on this convention");
 
     @ArchTest

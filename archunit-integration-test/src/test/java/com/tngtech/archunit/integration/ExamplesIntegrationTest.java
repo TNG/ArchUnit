@@ -199,7 +199,7 @@ class ExamplesIntegrationTest {
         expectThrownGenericExceptions(expectFailures);
 
         expectFailures.ofRule("fields that have raw type java.util.logging.Logger should be private " +
-                "and should have modifier STATIC and should have modifier FINAL, because we agreed on this convention")
+                "and should be static and should be final, because we agreed on this convention")
                 .by(ExpectedField.of(ClassViolatingCodingRules.class, "log").doesNotHaveModifier(JavaModifier.PRIVATE))
                 .by(ExpectedField.of(ClassViolatingCodingRules.class, "log").doesNotHaveModifier(JavaModifier.FINAL));
 

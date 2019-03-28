@@ -19,6 +19,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
@@ -91,5 +92,25 @@ class FieldsShouldInternal
     @Override
     public FieldsShouldInternal notHaveRawType(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(not(ArchConditions.haveRawType(predicate)));
+    }
+
+    @Override
+    public FieldsShouldInternal beStatic() {
+        return addCondition(ArchConditions.haveModifier(JavaModifier.STATIC).as("be static"));
+    }
+
+    @Override
+    public FieldsShouldInternal notBeStatic() {
+        return addCondition(not(ArchConditions.haveModifier(JavaModifier.STATIC)).as("not be static"));
+    }
+
+    @Override
+    public FieldsShouldInternal beFinal() {
+        return addCondition(ArchConditions.haveModifier(JavaModifier.FINAL).as("be final"));
+    }
+
+    @Override
+    public FieldsShouldInternal notBeFinal() {
+        return addCondition(not(ArchConditions.haveModifier(JavaModifier.FINAL)).as("not be final"));
     }
 }

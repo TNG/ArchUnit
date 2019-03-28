@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -53,7 +54,12 @@ public class FieldsShouldTest {
                 $(fields().should().haveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_B, FIELD_C, FIELD_D)),
                 $(fields().should().notHaveRawType(String.class), ImmutableList.of(FIELD_A)),
                 $(fields().should().notHaveRawType(String.class.getName()), ImmutableList.of(FIELD_A)),
-                $(fields().should().notHaveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_A)));
+                $(fields().should().notHaveRawType(equivalentTo(String.class).as(String.class.getName())), ImmutableList.of(FIELD_A)),
+                $(fields().should().beFinal(), ImmutableList.of(FIELD_C, FIELD_D)),
+                $(fields().should().notBeFinal(), ImmutableList.of(FIELD_A, FIELD_B)),
+                $(fields().should().beStatic(), ImmutableList.of(FIELD_A, FIELD_C)),
+                $(fields().should().notBeStatic(), ImmutableList.of(FIELD_B, FIELD_D))
+        );
     }
 
     @Test
@@ -73,11 +79,11 @@ public class FieldsShouldTest {
 
     @SuppressWarnings({"unused"})
     private static class ClassWithVariousMembers {
-        private String fieldA;
+        private final String fieldA = "A";
         @A
-        protected Object fieldB;
+        protected static final Object fieldB = 'B';
         public List<?> fieldC;
-        Map<?, ?> fieldD;
+        static Map<?, ?> fieldD;
     }
 
     private @interface A {
