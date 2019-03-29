@@ -26,6 +26,8 @@ import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.FieldsShould;
 import com.tngtech.archunit.lang.syntax.elements.FieldsShouldConjunction;
 
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
+
 class FieldsShouldInternal
         extends AbstractMembersShouldInternal<JavaField, FieldsShouldInternal>
         implements FieldsShould<FieldsShouldInternal>, FieldsShouldConjunction {
@@ -67,12 +69,27 @@ class FieldsShouldInternal
     }
 
     @Override
+    public FieldsShouldInternal notHaveRawType(Class<?> type) {
+        return addCondition(not(ArchConditions.haveRawType(type)));
+    }
+
+    @Override
     public FieldsShouldInternal haveRawType(String typeName) {
         return addCondition(ArchConditions.haveRawType(typeName));
     }
 
     @Override
+    public FieldsShouldInternal notHaveRawType(String typeName) {
+        return addCondition(not(ArchConditions.haveRawType(typeName)));
+    }
+
+    @Override
     public FieldsShouldInternal haveRawType(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(ArchConditions.haveRawType(predicate));
+    }
+
+    @Override
+    public FieldsShouldInternal notHaveRawType(DescribedPredicate<? super JavaClass> predicate) {
+        return addCondition(not(ArchConditions.haveRawType(predicate)));
     }
 }
