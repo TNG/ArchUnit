@@ -18,7 +18,7 @@ resolveMissingDependenciesFromClassPath=false
 
 If you want to resolve just some classes from the classpath (e.g. to import missing classes from
 your own organization but avoid the performance impact of importing classes from 3rd party packages),
-it is possible, to configure only specific packages to be resolved from the classpath:
+it is possible to configure only specific packages to be resolved from the classpath:
 
 [source,options="nowrap"]
 .archunit.properties
@@ -61,7 +61,7 @@ For further details, compare the sources of `SelectedClassResolverFromClasspath`
 
 === MD5 Sums of Classes
 
-Sometimes it can be valuable to record the MD5 sums of classes being imported, to track
+Sometimes it can be valuable to record the MD5 sums of classes being imported to track
 unexpected behavior. Since this has a performance impact, it is disabled by default,
 but it can be activated the following way:
 

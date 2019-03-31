@@ -9,13 +9,14 @@ section will explain these layers in more detail.
 
 === Core
 
-Much of ArchUnit's core API resembles the Java Reflection API. There are classes
-like `JavaMethod`, `JavaField`, and more, and the public API consists of methods like
-`getName()`, `getMethods()`, `getType()` or `getParameters()`. Additionally ArchUnit extends
-this API for concepts needed to talk about dependencies between code, like `JavaMethodCall`,
-`JavaConstructorCall` or `JavaFieldAccess`. For example, it is possible to programmatically
-iterate over `javaClass.getAccessesFromSelf()` and react to the imported accesses between this
-Java class and other Java classes.
+Much of ArchUnit's core API resembles the Java Reflection API.
+There are classes like `JavaMethod`, `JavaField`, and more,
+and the public API consists of methods like `getName()`, `getMethods()`,
+`getRawType()` or `getRawParameterTypes()`.
+Additionally ArchUnit extends this API for concepts needed to talk about dependencies between code,
+like `JavaMethodCall`, `JavaConstructorCall` or `JavaFieldAccess`.
+For example, it is possible to programmatically iterate over `javaClass.getAccessesFromSelf()`
+and react to the imported accesses between this Java class and other Java classes.
 
 To import compiled Java class files, ArchUnit provides the `ClassFileImporter`, which can
 for example be used to import packages from the classpath:
