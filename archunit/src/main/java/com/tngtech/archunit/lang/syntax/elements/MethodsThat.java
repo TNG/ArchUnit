@@ -16,35 +16,40 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.lang.ArchCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface GivenMethodsConjunction extends GivenCodeUnitsConjunction<JavaMethod> {
+public interface MethodsThat<CONJUNCTION extends GivenMethodsConjunction> extends CodeUnitsThat<CONJUNCTION> {
 
-    @Override
+    /**
+     * Matches static methods.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
     @PublicAPI(usage = ACCESS)
-    MethodsThat<?> and();
+    CONJUNCTION areStatic();
 
-    @Override
+    /**
+     * Matches non-static methods.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
     @PublicAPI(usage = ACCESS)
-    MethodsThat<?> or();
+    CONJUNCTION areNotStatic();
 
-    @Override
+    /**
+     * Matches final methods.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
     @PublicAPI(usage = ACCESS)
-    GivenMethodsConjunction and(DescribedPredicate<? super JavaMethod> predicate);
+    CONJUNCTION areFinal();
 
-    @Override
+    /**
+     * Matches non-final methods.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
     @PublicAPI(usage = ACCESS)
-    GivenMethodsConjunction or(DescribedPredicate<? super JavaMethod> predicate);
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    MethodsShould<?> should();
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    MethodsShouldConjunction should(ArchCondition<? super JavaMethod> condition);
+    CONJUNCTION areNotFinal();
 }

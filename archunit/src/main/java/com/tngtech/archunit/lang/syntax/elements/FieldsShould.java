@@ -143,4 +143,36 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION notHaveRawType(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
+     * Asserts that fields are static.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION beStatic();
+
+    /**
+     * Asserts that fields are non-static.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION notBeStatic();
+
+    /**
+     * Asserts that fields are final.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION beFinal();
+
+    /**
+     * Asserts that fields are non-final.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION notBeFinal();
 }

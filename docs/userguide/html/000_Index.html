@@ -1016,13 +1016,14 @@ section will explain these layers in more detail.</p>
 <div class="sect2">
 <h3 id="_core"><a class="anchor" href="#_core"></a>5.1. Core</h3>
 <div class="paragraph">
-<p>Much of ArchUnit&#8217;s core API resembles the Java Reflection API. There are classes
-like <code>JavaMethod</code>, <code>JavaField</code>, and more, and the public API consists of methods like
-<code>getName()</code>, <code>getMethods()</code>, <code>getType()</code> or <code>getParameters()</code>. Additionally ArchUnit extends
-this API for concepts needed to talk about dependencies between code, like <code>JavaMethodCall</code>,
-<code>JavaConstructorCall</code> or <code>JavaFieldAccess</code>. For example, it is possible to programmatically
-iterate over <code>javaClass.getAccessesFromSelf()</code> and react to the imported accesses between this
-Java class and other Java classes.</p>
+<p>Much of ArchUnit&#8217;s core API resembles the Java Reflection API.
+There are classes like <code>JavaMethod</code>, <code>JavaField</code>, and more,
+and the public API consists of methods like <code>getName()</code>, <code>getMethods()</code>,
+<code>getRawType()</code> or <code>getRawParameterTypes()</code>.
+Additionally ArchUnit extends this API for concepts needed to talk about dependencies between code,
+like <code>JavaMethodCall</code>, <code>JavaConstructorCall</code> or <code>JavaFieldAccess</code>.
+For example, it is possible to programmatically iterate over <code>javaClass.getAccessesFromSelf()</code>
+and react to the imported accesses between this Java class and other Java classes.</p>
 </div>
 <div class="paragraph">
 <p>To import compiled Java class files, ArchUnit provides the <code>ClassFileImporter</code>, which can
@@ -1127,7 +1128,7 @@ is imported. This can be achieved by specifying <code>ImportOptions</code>:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ImportOption ignoreTests = new ImportOption() {
     @Override
     public boolean includes(Location location) {
-        return !location.contains("/test/"); // ignore any URI to sources, that contains '/test/'
+        return !location.contains("/test/"); // ignore any URI to sources that contains '/test/'
     }
 };
 
@@ -1155,8 +1156,8 @@ there already exist predefined <code>ImportOptions</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">new ClassFileImporter()
-    .withImportOption(ImportOption.Predefined.DONT_INCLUDE_JARS)
-    .withImportOption(ImportOption.Predefined.DONT_INCLUDE_TESTS)
+    .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
+    .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
     .importClasspath();</code></pre>
 </div>
 </div>
@@ -1164,14 +1165,14 @@ there already exist predefined <code>ImportOptions</code>:</p>
 <h4 id="_dealing_with_missing_classes"><a class="anchor" href="#_dealing_with_missing_classes"></a>6.1.1. Dealing with Missing Classes</h4>
 <div class="paragraph">
 <p>While importing the requested classes (e.g. <code>target/classes</code> or <code>target/test-classes</code>)
-it can happen, that a class within the scope of the import has a reference to a class outside of the
+it can happen that a class within the scope of the import has a reference to a class outside of the
 scope of the import. This will naturally happen, if the classes of the JDK are not imported,
 since then for example any dependency on <code>Object.class</code> will be unresolved within the import.</p>
 </div>
 <div class="paragraph">
 <p>At this point ArchUnit needs to decide how to treat these classes that are missing from the
 import. By default, ArchUnit searches within the classpath for missing classes and if found
-imports them. This obviously has the advantage, that information about those classes
+imports them. This obviously has the advantage that information about those classes
 (which interfaces they implement, how they are annotated) is present during rule evaluation.</p>
 </div>
 <div class="paragraph">
@@ -1198,7 +1199,7 @@ like this:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="domain-overview.png" alt="domain overview" width="984" height="566">
+<img src="domain-overview.png" alt="domain overview" width="984" height="691">
 </div>
 </div>
 <div class="paragraph">
@@ -1211,7 +1212,7 @@ or a static initializer of a class (e.g. a <code>static { &#8230;&#8203; }</code
 etc.).</p>
 </div>
 <div class="paragraph">
-<p>Furthermore one of the most interesting features of ArchUnit, that exceeds the Java Reflection API,
+<p>Furthermore one of the most interesting features of ArchUnit that exceeds the Java Reflection API,
 is the concept of accesses to another class. On the lowest level accesses can only take place
 from a code unit (as mentioned, any block of executable code) to either a field (<code>JavaFieldAccess</code>),
 a method (<code>JavaMethodCall</code>) or constructor (<code>JavaConstructorCall</code>).</p>
@@ -1221,8 +1222,8 @@ a method (<code>JavaMethodCall</code>) or constructor (<code>JavaConstructorCall
 the accesses <strong>from</strong> a class is pretty isolated (the bytecode offers all this information),
 checking accesses <strong>to</strong> a class requires the whole graph to be built first. To distinguish which
 sort of access is referred to, methods will always clearly state <strong>fromSelf</strong> and <strong>toSelf</strong>.
-For example, every <code>JavaField</code> allows to call <code>JavaField#getAccessesToSelf()</code>, to retrieve all
-code units within the graph, that access this specific field. The resolution process through
+For example, every <code>JavaField</code> allows to call <code>JavaField#getAccessesToSelf()</code> to retrieve all
+code units within the graph that access this specific field. The resolution process through
 inheritance is not completely straight forward. Consider for example</p>
 </div>
 <div class="imageblock">
@@ -1233,7 +1234,7 @@ inheritance is not completely straight forward. Consider for example</p>
 <div class="paragraph">
 <p>The bytecode will record a field access from <code>ClassAccessing.accessField()</code> to
 <code>ClassBeingAccessed.accessedField</code>. However, there is no such field, since the field is
-actually declared in the superclass. This is the reason, that a <code>JavaFieldAccess</code>
+actually declared in the superclass. This is the reason why a <code>JavaFieldAccess</code>
 has no <code>JavaField</code> as its target, but a <code>FieldAccessTarget</code>. In other words, ArchUnit models
 the situation, as it is found within the bytecode, and an access target is not an actual
 member within another class. If a member is queried for <code>accessesToSelf()</code> though, ArchUnit
@@ -1249,15 +1250,15 @@ The situation looks roughly like</p>
 <p>Two things might seem strange at the first look.</p>
 </div>
 <div class="paragraph">
-<p>First, why can a target resolve to zero matching members? The reason is, that the set of classes
+<p>First, why can a target resolve to zero matching members? The reason is that the set of classes
 that was imported does not need to have all classes involved within this resolution process.
 Consider the above example, if <code>SuperClassBeingAccessed</code> would not be imported, ArchUnit would
-have no way of knowing, where the actual targeted field resides. Thus in this case the
+have no way of knowing where the actual targeted field resides. Thus in this case the
 resolution would return zero elements.</p>
 </div>
 <div class="paragraph">
 <p>Second, why can there be more than one resolved methods for method calls?
-The reason for this is, that a call target might indeed match several methods in those
+The reason for this is that a call target might indeed match several methods in those
 cases, for example:</p>
 </div>
 <div class="imageblock">
@@ -1267,7 +1268,7 @@ cases, for example:</p>
 </div>
 <div class="paragraph">
 <p>While this situation will always be resolved in a specified way for a real program,
-ArchUnit can not do the same. Instead, the resolution will report all candidates that match a
+ArchUnit cannot do the same. Instead, the resolution will report all candidates that match a
 specific access target, so in the above example, the call target <code>C.targetMethod()</code> would in fact
 resolve to two <code>JavaMethods</code>, namely <code>A.targetMethod()</code> and <code>B.targetMethod()</code>. Likewise a check
 of either <code>A.targetMethod.getCallsToSelf()</code> or <code>B.targetMethod.getCallsToSelf()</code> would return
@@ -1276,13 +1277,13 @@ the same call from <code>D.callTargetMethod()</code> to <code>C.targetMethod()</
 <div class="sect3">
 <h4 id="_domain_objects_reflection_and_the_classpath"><a class="anchor" href="#_domain_objects_reflection_and_the_classpath"></a>6.2.1. Domain Objects, Reflection and the Classpath</h4>
 <div class="paragraph">
-<p>ArchUnit tries to offer a lot of information from the bytecode, for example a <code>JavaClass</code>
-provides details like if it is an Enum or an Interface, modifiers like <code>public</code> or <code>abstract</code>,
+<p>ArchUnit tries to offer a lot of information from the bytecode. For example, a <code>JavaClass</code>
+provides details like if it is an enum or an interface, modifiers like <code>public</code> or <code>abstract</code>,
 but also the source, where this class was imported from (namely the URI mentioned in the first
 section). However, if information if missing, and the classpath is correct, ArchUnit offers
 some convenience to rely on the reflection API for extended details. For this reason, most
-<code>Java*</code>-Objects offer a method <code>reflect()</code>, which will in fact try to resolve the respective
-object from the Reflection API. For example</p>
+<code>Java*</code> objects offer a method <code>reflect()</code>, which will in fact try to resolve the respective
+object from the Reflection API. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1304,8 +1305,8 @@ Method lengthMethod = javaMethod.reflect();</code></pre>
 (e.g. because they were just imported from some file path).</p>
 </div>
 <div class="paragraph">
-<p>This restriction also applies to handling Annotations in a more convenient way.
-Consider some Annotation</p>
+<p>This restriction also applies to handling annotations in a more convenient way.
+Consider the following annotation:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1315,7 +1316,7 @@ Consider some Annotation</p>
 </div>
 </div>
 <div class="paragraph">
-<p>If you need to access this annotation, without this annotation on the classpath you must rely on</p>
+<p>If you need to access this annotation without it being on the classpath, you must rely on</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1382,12 +1383,12 @@ for (JavaClass service : services) {
 <div class="paragraph">
 <p>What we want to express, is the rule <em>"no classes that reside in a package 'service' should
 access classes that reside in a package 'controller'"</em>. Nevertheless, it&#8217;s hard to read through
-that code and distill that information. And the same process has to be done every time, someone
+that code and distill that information. And the same process has to be done every time someone
 needs to understand the semantics of this rule.</p>
 </div>
 <div class="paragraph">
 <p>To solve this shortcoming, ArchUnit offers a high level API to express architectural concepts
-in a concise way. In fact, we can write code, that is almost equivalent to the prose rule text
+in a concise way. In fact, we can write code that is almost equivalent to the prose rule text
 mentioned before:</p>
 </div>
 <div class="listingblock">
@@ -1400,9 +1401,9 @@ rule.check(importedClasses);</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The only difference to colloquial language, are the ".." in the package notation,
+<p>The only difference to colloquial language is the ".." in the package notation,
 which refers to any number of packages. Thus "..service.." just expresses
-"any package that contains some sub-package 'service'", e.g. <code>com.myapp.service.any</code>.
+<em>"any package that contains some sub-package 'service'"</em>, e.g. <code>com.myapp.service.any</code>.
 If this test fails, it will report an <code>AssertionError</code> with the following message:</p>
 </div>
 <div class="listingblock">
@@ -1436,8 +1437,8 @@ rule.check(importedClasses);</code></pre>
 <h3 id="_composing_member_rules"><a class="anchor" href="#_composing_member_rules"></a>7.2. Composing Member Rules</h3>
 <div class="paragraph">
 <p>In addition to a predefined API to write rules about Java classes and their relations, there is
-an extended API to define rules for members of Java classes. This might be relevant for example,
-if methods in a certain context need to be annotated with a specific annotation or return
+an extended API to define rules for members of Java classes. This might be relevant, for example,
+if methods in a certain context need to be annotated with a specific annotation, or return
 types implementing a certain interface. The entry point is again <code>ArchRuleDefinition</code>, e.g.</p>
 </div>
 <div class="listingblock">
@@ -1449,6 +1450,10 @@ types implementing a certain interface. The entry point is again <code>ArchRuleD
 
 rule.check(importedClasses);</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Besides <code>methods()</code>, <code>ArchRuleDefinition</code> offers the methods <code>members()</code>, <code>fields()</code>, <code>codeUnits()</code>, <code>constructors()</code>
+– and the corresponding negations <code>noMembers()</code>, <code>noFields()</code>, <code>noMethods()</code>, etc.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1462,10 +1467,10 @@ rule.check(importedClasses);</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In other words, we always want to limit imported classes to a relevant subset, and then
-evaluate some condition to see that all those classes satisfy it.
-ArchUnit&#8217;s API allows you, to do just that, by exposing the concepts of <code>DescribedPredicate</code>
-and <code>ArchCondition</code>. So the rule above, is just an application of this generic API:</p>
+<p>In other words, we always want to limit imported classes to a relevant subset,
+and then evaluate some condition to see that all those classes satisfy it.
+ArchUnit&#8217;s API allows you to do just that, by exposing the concepts of <code>DescribedPredicate</code> and <code>ArchCondition</code>.
+So the rule above is just an application of this generic API:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1477,8 +1482,9 @@ noClasses().that(resideInAPackageService)
 </div>
 </div>
 <div class="paragraph">
-<p>Thus, if the predefined API does not allow to express some concept, it is possible to extend
-it in any custom way, for example:</p>
+<p>Thus, if the predefined API does not allow to express some concept,
+it is possible to extend it in any custom way.
+For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1521,10 +1527,9 @@ example above, it would be</p>
 <div class="sect2">
 <h3 id="_predefined_predicates_and_conditions"><a class="anchor" href="#_predefined_predicates_and_conditions"></a>7.4. Predefined Predicates and Conditions</h3>
 <div class="paragraph">
-<p>Often custom predicates and conditions like in the last section can be composed from
-predefined elements. ArchUnit&#8217;s basic convention for predicates is, that they are defined
-in an inner class <code>Predicates</code> within the type they target. For example, one can find the
-predicate to check for the simple name of a <code>JavaClass</code> as</p>
+<p>Custom predicates and conditions like in the last section can often be composed from predefined elements.
+ArchUnit&#8217;s basic convention for predicates is that they are defined in an inner class <code>Predicates</code> within the type they target.
+For example, one can find the predicate to check for the simple name of a <code>JavaClass</code> as</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1547,9 +1552,10 @@ DescribedPredicate&lt;JavaClass&gt; serializableNamedFoo =
 </div>
 <div class="paragraph">
 <p>Note that for some properties, there exist interfaces with predicates defined for them.
-For example the property to have a name is represented by the interface <code>HasName</code>, consequently
-the predicate to check the name of a <code>JavaClass</code>, is the same as the predicate to check the name
-of a <code>JavaMethod</code> and resides within</p>
+For example the property to have a name is represented by the interface <code>HasName</code>;
+consequently the predicate to check the name of a <code>JavaClass</code>
+is the same as the predicate to check the name of a <code>JavaMethod</code>,
+and resides within</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1575,13 +1581,13 @@ name.and(JavaClass.Predicates.type(Serializable.class));</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This behavior is somewhat tedious, but unfortunately it is a shortcoming of the Java
-type system, that cannot be circumvented in a satisfying way.</p>
+<p>This behavior is somewhat tedious, but unfortunately it is a shortcoming of the Java type system
+that cannot be circumvented in a satisfying way.</p>
 </div>
 <div class="paragraph">
-<p>Just like predicates, there exist predefined conditions, that can be combined in a similar
-way. Since <code>ArchCondition</code> is a less generic concept, all predefined conditions can be found
-within <code>ArchConditions</code>:</p>
+<p>Just like predicates, there exist predefined conditions that can be combined in a similar way.
+Since <code>ArchCondition</code> is a less generic concept, all predefined conditions can be found within <code>ArchConditions</code>.
+Examples:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1597,7 +1603,7 @@ ArchCondition&lt;JavaClass&gt; callEqualsOrHashCode = callEquals.or(callHashCode
 <div class="sect2">
 <h3 id="_rules_with_custom_concepts"><a class="anchor" href="#_rules_with_custom_concepts"></a>7.5. Rules with Custom Concepts</h3>
 <div class="paragraph">
-<p>Earlier we stated, that most architectural rules take the form</p>
+<p>Earlier we stated that most architectural rules take the form</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1609,7 +1615,7 @@ ArchCondition&lt;JavaClass&gt; callEqualsOrHashCode = callEquals.or(callHashCode
 have custom language, we might talk about modules, about slices, or on the other hand more
 detailed about fields, methods or constructors. A generic API will never be able to support
 every imaginable concept out of the box. Thus ArchUnit&#8217;s rule API has at its foundation
-a more generic API, that controls the types of objects that our concept targets.</p>
+a more generic API that controls the types of objects that our concept targets.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1617,7 +1623,7 @@ a more generic API, that controls the types of objects that our concept targets.
 </div>
 </div>
 <div class="paragraph">
-<p>To achieve this, any rule definition is based on a <code>ClassesTransformer</code> that defines, how
+<p>To achieve this, any rule definition is based on a <code>ClassesTransformer</code> that defines how
 <code>JavaClasses</code> are to be transformed to the desired rule input. In many cases, like the ones
 mentioned in the sections above, this is the identity transformation, passing classes on to the rule
 as they are. However, one can supply any custom transformation to express a rule about a
@@ -1665,19 +1671,19 @@ all(businessModules).that(dealWithOrders).should(beIndependentOfPayment);</code>
 <div class="paragraph">
 <p>If the rule is straight forward, the rule text that is created automatically should be
 sufficient in many cases. However, for rules that are not common knowledge, it is good practice
-to document the reason for this rule. This can be done the following way:</p>
+to document the reason for this rule. This can be done in the following way:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
-    .because("@Secured methods will be intercepted, checking for increased priviledges " +
+    .because("@Secured methods will be intercepted, checking for increased privileges " +
         "and obfuscating sensitive auditing information");</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Nevertheless sometimes the generated rule text might not convey the real intention
-concisely enough (e.g. if multiple predicates or conditions are joined). In those cases
-it is possible, to completely override the rule text:</p>
+<p>Nevertheless, the generated rule text might sometimes not convey the real intention
+concisely enough, e.g. if multiple predicates or conditions are joined.
+It is possible to completely overwrite the rule description in those cases:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1690,10 +1696,10 @@ it is possible, to completely override the rule text:</p>
 <h3 id="_ignoring_violations"><a class="anchor" href="#_ignoring_violations"></a>7.7. Ignoring Violations</h3>
 <div class="paragraph">
 <p>In legacy projects there might be too many violations to fix at once. Nevertheless, that code
-should be covered completely by architecture tests, to ensure that no further violations will
+should be covered completely by architecture tests to ensure that no further violations will
 be added to the existing code. One approach to ignore existing violations is
-to tailor the <code>that(..)</code> clause of the rules in question, to ignore certain violations.
-A more generic approach is, to ignore violations based on simple regex matches.
+to tailor the <code>that(..)</code> clause of the rules in question to ignore certain violations.
+A more generic approach is to ignore violations based on simple regex matches.
 For this one can put a file named <code>archunit_ignore_patterns.txt</code> in the root of the classpath.
 Every line will be interpreted as a regular expression and checked against reported violations.
 Violations with a message matching the pattern will be ignored. If no violations are left,
@@ -1730,14 +1736,14 @@ are only violated by such violations will report success instead of failure.</p>
 <h2 id="_the_library_api"><a class="anchor" href="#_the_library_api"></a>8. The Library API</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Library API offers a growing collection of predefined rules, that offer a more concise API
+<p>The Library API offers a growing collection of predefined rules, which offer a more concise API
 for more complex but common patterns, like a layered architecture or checks for cycles between
 slices (compare <a href="#_what_to_check">What to Check</a>).</p>
 </div>
 <div class="sect2">
 <h3 id="_architectures"><a class="anchor" href="#_architectures"></a>8.1. Architectures</h3>
 <div class="paragraph">
-<p>The entrance point for checks of common architectural styles is</p>
+<p>The entrance point for checks of common architectural styles is:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1754,7 +1760,7 @@ architecture, pipes and filters, separation of business logic and technical infr
 <h3 id="_slices"><a class="anchor" href="#_slices"></a>8.2. Slices</h3>
 <div class="paragraph">
 <p>Currently there are two "slice" rules offered by the Library API. These are basically rules
-that slice the code by packages, and contain assertions on those slices. The entrance point is</p>
+that slice the code by packages, and contain assertions on those slices. The entrance point is:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2021,7 +2027,7 @@ public class ArchitectureTest {
 <div class="paragraph">
 <p>The <code>JavaClass</code> cache will work in two ways. On the one hand it will cache the classes by test,
 so they can be reused by several rules declared within the same class. On the other hand, it
-will cache the classes by location, so a second test, that wants to import classes from the same
+will cache the classes by location, so a second test that wants to import classes from the same
 URLs will reuse the classes previously imported as well. Note that this second caching uses
 soft references, so the classes will be dropped from memory, if the heap runs low.
 For further information see <a href="#_controlling_the_cache">Controlling the Cache</a>.</p>
@@ -2071,7 +2077,7 @@ production code, and only consider code that is directly supplied and does not c
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(importOptions = {DontIncludeTests.class, DontIncludeJars.class})</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(importOptions = {DoNotIncludeTests.class, DoNotIncludeJars.class})</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2088,7 +2094,7 @@ been imported.</p>
 </div>
 <div class="paragraph">
 <p>If the heap runs low, and thus the garbage collector has to do a big sweep in one run,
-this can cause a noticeable delay. On the other hand, if it is known, that no other test class will
+this can cause a noticeable delay. On the other hand, if it is known that no other test class will
 reuse the imported Java classes, it would make sense to deactivate this cache.</p>
 </div>
 <div class="paragraph">
@@ -2195,7 +2201,7 @@ One way that can be chosen out of the box is to never resolve any missing class 
 <div class="paragraph">
 <p>If you want to resolve just some classes from the classpath (e.g. to import missing classes from
 your own organization but avoid the performance impact of importing classes from 3rd party packages),
-it is possible, to configure only specific packages to be resolved from the classpath:</p>
+it is possible to configure only specific packages to be resolved from the classpath:</p>
 </div>
 <div class="listingblock">
 <div class="title">archunit.properties</div>
@@ -2246,7 +2252,7 @@ argument, and supply the concrete arguments as</p>
 <div class="sect2">
 <h3 id="_md5_sums_of_classes"><a class="anchor" href="#_md5_sums_of_classes"></a>10.2. MD5 Sums of Classes</h3>
 <div class="paragraph">
-<p>Sometimes it can be valuable to record the MD5 sums of classes being imported, to track
+<p>Sometimes it can be valuable to record the MD5 sums of classes being imported to track
 unexpected behavior. Since this has a performance impact, it is disabled by default,
 but it can be activated the following way:</p>
 </div>
