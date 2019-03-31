@@ -20,8 +20,12 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.syntax.elements.MethodsShould;
+import com.tngtech.archunit.lang.syntax.elements.MethodsShouldConjunction;
 
-class MethodsShouldInternal extends AbstractCodeUnitsShouldInternal<JavaMethod, MethodsShouldInternal> {
+class MethodsShouldInternal
+        extends AbstractCodeUnitsShouldInternal<JavaMethod, MethodsShouldInternal>
+        implements MethodsShould<MethodsShouldInternal>, MethodsShouldConjunction {
 
     MethodsShouldInternal(
             ClassesTransformer<? extends JavaMethod> classesTransformer,

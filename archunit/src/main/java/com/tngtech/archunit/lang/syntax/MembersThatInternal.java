@@ -111,6 +111,26 @@ class MembersThatInternal<
         return givenWith(SyntaxPredicates.areNotPrivate());
     }
 
+    // only applicable to fields and methods; therefore not exposed via MembersThat
+    public CONJUNCTION areStatic() {
+        return givenWith(SyntaxPredicates.areStatic());
+    }
+
+    // only applicable to fields and methods; therefore not exposed via MembersThat
+    public CONJUNCTION areNotStatic() {
+        return givenWith(SyntaxPredicates.areNotStatic());
+    }
+
+    // only applicable to (classes,) fields and methods; therefore not exposed via MembersThat
+    public CONJUNCTION areFinal() {
+        return givenWith(SyntaxPredicates.areFinal());
+    }
+
+    // only applicable to (classes,) fields and methods; therefore not exposed via MembersThat
+    public CONJUNCTION areNotFinal() {
+        return givenWith(SyntaxPredicates.areNotFinal());
+    }
+
     @Override
     public CONJUNCTION haveModifier(JavaModifier modifier) {
         return givenWith(SyntaxPredicates.haveModifier(modifier));

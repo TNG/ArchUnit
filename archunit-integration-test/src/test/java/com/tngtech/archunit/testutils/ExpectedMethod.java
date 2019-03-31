@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 
+import static java.lang.String.format;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 
 public class ExpectedMethod {
@@ -23,24 +24,21 @@ public class ExpectedMethod {
         }
 
         public ExpectedMessage toNotHaveRawReturnType(Class<?> type) {
-            return new ExpectedMessage(String.format("Method <%s> does not have raw return type %s in (%s.java:0)",
-                    formatMethod(clazz.getName(), methodName, JavaClass.namesOf(params)),
-                    type.getName(),
-                    clazz.getSimpleName()));
+            return method("does not have raw return type " + type.getName());
         }
 
         public ExpectedMessage throwsException(Class<?> type) {
-            return new ExpectedMessage(String.format("Method <%s> does declare throwable of type %s in (%s.java:0)",
-                    formatMethod(clazz.getName(), methodName, JavaClass.namesOf(params)),
-                    type.getName(),
-                    clazz.getSimpleName()));
+            return method("does declare throwable of type " + type.getName());
         }
 
         public ExpectedMessage beingAnnotatedWith(Class<? extends Annotation> annotationType) {
-            return new ExpectedMessage(String.format("Method <%s> is annotated with @%s in (%s.java:0)",
-                    formatMethod(clazz.getName(), methodName, JavaClass.namesOf(params)),
-                    annotationType.getSimpleName(),
-                    clazz.getSimpleName()));
+            return method("is annotated with @" + annotationType.getSimpleName());
+        }
+
+        private ExpectedMessage method(String message) {
+            String methodDescription = format("Method <%s>", formatMethod(clazz.getName(), methodName, JavaClass.namesOf(params)));
+            String sourceCodeLocation = format("(%s.java:0)", clazz.getSimpleName());
+            return new ExpectedMessage(format("%s %s in %s", methodDescription, message, sourceCodeLocation));
         }
     }
 }
