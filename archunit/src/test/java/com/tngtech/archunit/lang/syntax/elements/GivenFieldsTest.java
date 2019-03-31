@@ -55,7 +55,14 @@ public class GivenFieldsTest {
 
                 $(described(fields().that().doNotHaveRawType(String.class)), allFieldsExcept(FIELD_A)),
                 $(described(fields().that().doNotHaveRawType(String.class.getName())), allFieldsExcept(FIELD_A)),
-                $(described(fields().that().doNotHaveRawType(equivalentTo(String.class))), allFieldsExcept(FIELD_A))
+                $(described(fields().that().doNotHaveRawType(equivalentTo(String.class))), allFieldsExcept(FIELD_A)),
+
+                $(described(fields().that().areFinal()), ImmutableSet.of(FIELD_A, FIELD_B)),
+                $(described(fields().that().areNotFinal()), ImmutableSet.of(FIELD_C, FIELD_D)),
+                $(described(fields().that().areStatic()), ImmutableSet.of(FIELD_B, FIELD_D)),
+                $(described(fields().that().areNotStatic()), ImmutableSet.of(FIELD_A, FIELD_C)),
+
+                $(described(fields().that().areStatic().and().areFinal()), ImmutableSet.of(FIELD_B))
         );
     }
 
@@ -80,11 +87,11 @@ public class GivenFieldsTest {
 
     @SuppressWarnings({"unused"})
     private static class ClassWithVariousMembers {
-        private String fieldA;
+        private final String fieldA = "A";
         @A
-        protected Object fieldB;
+        protected static final Object fieldB = 'B';
         public List<?> fieldC;
-        Map<?, ?> fieldD;
+        static Map<?, ?> fieldD;
     }
 
     private @interface A {

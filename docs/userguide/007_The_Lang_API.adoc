@@ -33,11 +33,11 @@ for (JavaClass service : services) {
 
 What we want to express, is the rule _"no classes that reside in a package 'service' should
 access classes that reside in a package 'controller'"_. Nevertheless, it's hard to read through
-that code and distill that information. And the same process has to be done every time, someone
+that code and distill that information. And the same process has to be done every time someone
 needs to understand the semantics of this rule.
 
 To solve this shortcoming, ArchUnit offers a high level API to express architectural concepts
-in a concise way. In fact, we can write code, that is almost equivalent to the prose rule text
+in a concise way. In fact, we can write code that is almost equivalent to the prose rule text
 mentioned before:
 
 [source,java,options="nowrap"]
@@ -49,9 +49,9 @@ ArchRule rule = ArchRuleDefinition.noClasses()
 rule.check(importedClasses);
 ----
 
-The only difference to colloquial language, are the ".." in the package notation,
+The only difference to colloquial language is the ".." in the package notation,
 which refers to any number of packages. Thus "..service.." just expresses
-"any package that contains some sub-package 'service'", e.g. `com.myapp.service.any`.
+_"any package that contains some sub-package 'service'"_, e.g. `com.myapp.service.any`.
 If this test fails, it will report an `AssertionError` with the following message:
 
 [source,bash]
@@ -82,8 +82,8 @@ rule.check(importedClasses);
 === Composing Member Rules
 
 In addition to a predefined API to write rules about Java classes and their relations, there is
-an extended API to define rules for members of Java classes. This might be relevant for example,
-if methods in a certain context need to be annotated with a specific annotation or return
+an extended API to define rules for members of Java classes. This might be relevant, for example,
+if methods in a certain context need to be annotated with a specific annotation, or return
 types implementing a certain interface. The entry point is again `ArchRuleDefinition`, e.g.
 
 [source,java,options="nowrap"]
@@ -96,6 +96,9 @@ ArchRule rule = ArchRuleDefinition.methods()
 rule.check(importedClasses);
 ----
 
+Besides `methods()`, `ArchRuleDefinition` offers the methods `members()`, `fields()`, `codeUnits()`, `constructors()`
+– and the corresponding negations `noMembers()`, `noFields()`, `noMethods()`, etc.
+
 === Creating Custom Rules
 
 In fact, most architectural rules take the form
@@ -105,10 +108,10 @@ In fact, most architectural rules take the form
 classes that ${PREDICATE} should ${CONDITION}
 ----
 
-In other words, we always want to limit imported classes to a relevant subset, and then
-evaluate some condition to see that all those classes satisfy it.
-ArchUnit's API allows you, to do just that, by exposing the concepts of `DescribedPredicate`
-and `ArchCondition`. So the rule above, is just an application of this generic API:
+In other words, we always want to limit imported classes to a relevant subset,
+and then evaluate some condition to see that all those classes satisfy it.
+ArchUnit's API allows you to do just that, by exposing the concepts of `DescribedPredicate` and `ArchCondition`.
+So the rule above is just an application of this generic API:
 
 [source,java,options="nowrap"]
 ----
@@ -119,8 +122,9 @@ noClasses().that(resideInAPackageService)
     .should(accessClassesThatResideInAPackageController);
 ----
 
-Thus, if the predefined API does not allow to express some concept, it is possible to extend
-it in any custom way, for example:
+Thus, if the predefined API does not allow to express some concept,
+it is possible to extend it in any custom way.
+For example:
 
 [source,java,options="nowrap"]
 ----
@@ -160,10 +164,9 @@ classes that have a field annotated with @Payload should only be accessed by @Se
 
 === Predefined Predicates and Conditions
 
-Often custom predicates and conditions like in the last section can be composed from
-predefined elements. ArchUnit's basic convention for predicates is, that they are defined
-in an inner class `Predicates` within the type they target. For example, one can find the
-predicate to check for the simple name of a `JavaClass` as
+Custom predicates and conditions like in the last section can often be composed from predefined elements.
+ArchUnit's basic convention for predicates is that they are defined in an inner class `Predicates` within the type they target.
+For example, one can find the predicate to check for the simple name of a `JavaClass` as
 
 [source,java,options="nowrap"]
 ----
@@ -184,9 +187,10 @@ DescribedPredicate<JavaClass> serializableNamedFoo =
 ----
 
 Note that for some properties, there exist interfaces with predicates defined for them.
-For example the property to have a name is represented by the interface `HasName`, consequently
-the predicate to check the name of a `JavaClass`, is the same as the predicate to check the name
-of a `JavaMethod` and resides within
+For example the property to have a name is represented by the interface `HasName`;
+consequently the predicate to check the name of a `JavaClass`
+is the same as the predicate to check the name of a `JavaMethod`,
+and resides within
 
 [source,java,options="nowrap"]
 ----
@@ -210,12 +214,12 @@ DescribedPredicate<JavaClass> name = HasName.Predicates.name("").forSubType();
 name.and(JavaClass.Predicates.type(Serializable.class));
 ----
 
-This behavior is somewhat tedious, but unfortunately it is a shortcoming of the Java
-type system, that cannot be circumvented in a satisfying way.
+This behavior is somewhat tedious, but unfortunately it is a shortcoming of the Java type system
+that cannot be circumvented in a satisfying way.
 
-Just like predicates, there exist predefined conditions, that can be combined in a similar
-way. Since `ArchCondition` is a less generic concept, all predefined conditions can be found
-within `ArchConditions`:
+Just like predicates, there exist predefined conditions that can be combined in a similar way.
+Since `ArchCondition` is a less generic concept, all predefined conditions can be found within `ArchConditions`.
+Examples:
 
 [source,java,options="nowrap"]
 ----
@@ -229,7 +233,7 @@ ArchCondition<JavaClass> callEqualsOrHashCode = callEquals.or(callHashCode);
 
 === Rules with Custom Concepts
 
-Earlier we stated, that most architectural rules take the form
+Earlier we stated that most architectural rules take the form
 
 [source]
 ----
@@ -240,7 +244,7 @@ However, we do not always talk about classes, if we express architectural concep
 have custom language, we might talk about modules, about slices, or on the other hand more
 detailed about fields, methods or constructors. A generic API will never be able to support
 every imaginable concept out of the box. Thus ArchUnit's rule API has at its foundation
-a more generic API, that controls the types of objects that our concept targets.
+a more generic API that controls the types of objects that our concept targets.
 
 [plantuml, "import-vs-lang"]
 ----
@@ -262,7 +266,7 @@ CustomObjects -right->[passed to] "ArchRule
 <i>and ArchCondition<CustomObject></i>"
 ----
 
-To achieve this, any rule definition is based on a `ClassesTransformer` that defines, how
+To achieve this, any rule definition is based on a `ClassesTransformer` that defines how
 `JavaClasses` are to be transformed to the desired rule input. In many cases, like the ones
 mentioned in the sections above, this is the identity transformation, passing classes on to the rule
 as they are. However, one can supply any custom transformation to express a rule about a
@@ -307,18 +311,18 @@ all(businessModules).that(dealWithOrders).should(beIndependentOfPayment);
 
 If the rule is straight forward, the rule text that is created automatically should be
 sufficient in many cases. However, for rules that are not common knowledge, it is good practice
-to document the reason for this rule. This can be done the following way:
+to document the reason for this rule. This can be done in the following way:
 
 [source,java,options="nowrap"]
 ----
 classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
-    .because("@Secured methods will be intercepted, checking for increased priviledges " +
+    .because("@Secured methods will be intercepted, checking for increased privileges " +
         "and obfuscating sensitive auditing information");
 ----
 
-Nevertheless sometimes the generated rule text might not convey the real intention
-concisely enough (e.g. if multiple predicates or conditions are joined). In those cases
-it is possible, to completely override the rule text:
+Nevertheless, the generated rule text might sometimes not convey the real intention
+concisely enough, e.g. if multiple predicates or conditions are joined.
+It is possible to completely overwrite the rule description in those cases:
 
 [source,java,options="nowrap"]
 ----
@@ -329,10 +333,10 @@ classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMet
 === Ignoring Violations
 
 In legacy projects there might be too many violations to fix at once. Nevertheless, that code
-should be covered completely by architecture tests, to ensure that no further violations will
+should be covered completely by architecture tests to ensure that no further violations will
 be added to the existing code. One approach to ignore existing violations is
-to tailor the `that(..)` clause of the rules in question, to ignore certain violations.
-A more generic approach is, to ignore violations based on simple regex matches.
+to tailor the `that(..)` clause of the rules in question to ignore certain violations.
+A more generic approach is to ignore violations based on simple regex matches.
 For this one can put a file named `archunit_ignore_patterns.txt` in the root of the classpath.
 Every line will be interpreted as a regular expression and checked against reported violations.
 Violations with a message matching the pattern will be ignored. If no violations are left,

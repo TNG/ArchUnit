@@ -52,9 +52,9 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
-import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -90,6 +90,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
+import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
@@ -522,22 +523,22 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideInAPackage(final String packageIdentifier) {
-        return new DoesConditionByPredicate(JavaClass.Predicates.resideInAPackage(packageIdentifier));
+        return new DoesConditionByPredicate<>(JavaClass.Predicates.resideInAPackage(packageIdentifier));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideInAnyPackage(String... packageIdentifiers) {
-        return new DoesConditionByPredicate(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers));
+        return new DoesConditionByPredicate<>(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideOutsideOfPackage(String packageIdentifier) {
-        return new DoesConditionByPredicate(JavaClass.Predicates.resideOutsideOfPackage(packageIdentifier));
+        return new DoesConditionByPredicate<>(JavaClass.Predicates.resideOutsideOfPackage(packageIdentifier));
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> resideOutsideOfPackages(String... packageIdentifiers) {
-        return new DoesConditionByPredicate(JavaClass.Predicates.resideOutsideOfPackages(packageIdentifiers));
+        return new DoesConditionByPredicate<>(JavaClass.Predicates.resideOutsideOfPackages(packageIdentifiers));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -593,6 +594,26 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> notBePrivate() {
         return not(ArchConditions.<HAS_MODIFIERS>haveModifier(JavaModifier.PRIVATE)).as("not be private");
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> beStatic() {
+        return ArchConditions.<HAS_MODIFIERS>haveModifier(STATIC).as("be static");
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> notBeStatic() {
+        return not(ArchConditions.<HAS_MODIFIERS>haveModifier(STATIC).as("be static"));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> beFinal() {
+        return ArchConditions.<HAS_MODIFIERS>haveModifier(FINAL).as("be final");
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> notBeFinal() {
+        return not(ArchConditions.<HAS_MODIFIERS>haveModifier(FINAL).as("be final"));
     }
 
     @PublicAPI(usage = ACCESS)

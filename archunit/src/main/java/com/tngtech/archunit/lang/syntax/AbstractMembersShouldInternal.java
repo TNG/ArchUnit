@@ -119,6 +119,26 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
         return addCondition(ArchConditions.notBePrivate());
     }
 
+    // only applicable to fields and methods; therefore not exposed via MembersShould
+    public SELF beStatic() {
+        return addCondition(ArchConditions.beStatic());
+    }
+
+    // only applicable to fields and methods; therefore not exposed via MembersShould
+    public SELF notBeStatic() {
+        return addCondition(ArchConditions.notBeStatic());
+    }
+
+    // only applicable to fields and methods; therefore not exposed via MembersShould
+    public SELF beFinal() {
+        return addCondition(ArchConditions.beFinal());
+    }
+
+    // only applicable to fields and methods; therefore not exposed via MembersShould
+    public SELF notBeFinal() {
+        return addCondition(ArchConditions.notBeFinal());
+    }
+
     @Override
     public SELF haveModifier(JavaModifier modifier) {
         return addCondition(ArchConditions.haveModifier(modifier));
