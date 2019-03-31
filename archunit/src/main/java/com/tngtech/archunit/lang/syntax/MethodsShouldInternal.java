@@ -17,15 +17,11 @@ package com.tngtech.archunit.lang.syntax;
 
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
-import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.MethodsShould;
 import com.tngtech.archunit.lang.syntax.elements.MethodsShouldConjunction;
-
-import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 
 class MethodsShouldInternal
         extends AbstractCodeUnitsShouldInternal<JavaMethod, MethodsShouldInternal>
@@ -60,25 +56,5 @@ class MethodsShouldInternal
     @Override
     MethodsShouldInternal copyWithNewCondition(ConditionAggregator<JavaMethod> newCondition) {
         return new MethodsShouldInternal(classesTransformer, priority, newCondition, prepareCondition);
-    }
-
-    @Override
-    public MethodsShouldInternal beStatic() {
-        return addCondition(ArchConditions.haveModifier(JavaModifier.STATIC).as("be static"));
-    }
-
-    @Override
-    public MethodsShouldInternal notBeStatic() {
-        return addCondition(not(ArchConditions.haveModifier(JavaModifier.STATIC)).as("not be static"));
-    }
-
-    @Override
-    public MethodsShouldInternal beFinal() {
-        return addCondition(ArchConditions.haveModifier(JavaModifier.FINAL).as("be final"));
-    }
-
-    @Override
-    public MethodsShouldInternal notBeFinal() {
-        return addCondition(not(ArchConditions.haveModifier(JavaModifier.FINAL)).as("not be final"));
     }
 }
