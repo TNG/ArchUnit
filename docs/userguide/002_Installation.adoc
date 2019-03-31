@@ -17,7 +17,7 @@ Maven Central:
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit-junit4</artifactId>
-    <version>0.10.1</version>
+    <version>0.10.2</version>
     <scope>test</scope>
 </dependency>
 ----
@@ -26,7 +26,7 @@ Maven Central:
 .build.gradle
 ----
 dependencies {
-    testCompile 'com.tngtech.archunit:archunit-junit4:0.10.1'
+    testCompile 'com.tngtech.archunit:archunit-junit4:0.10.2'
 }
 ----
 
@@ -56,13 +56,13 @@ A typical Maven configuration could look like this:
     <dependency>
         <groupId>com.tngtech.archunit</groupId>
         <artifactId>archunit-junit5-api</artifactId>
-        <version>0.10.1</version>
+        <version>0.10.2</version>
         <scope>test</scope>
     </dependency>
     <dependency>
         <groupId>com.tngtech.archunit</groupId>
         <artifactId>archunit-junit5-engine</artifactId>
-        <version>0.10.1</version>
+        <version>0.10.2</version>
         <scope>test</scope>
     </dependency>
 </dependencies>
@@ -80,8 +80,8 @@ The configuration for Gradle allows to clearly distinguish a test runtime scope:
 ----
 dependencies {
     ...
-    testCompile 'com.tngtech.archunit:archunit-junit5-api:0.10.1'
-    testRuntime 'com.tngtech.archunit:archunit-junit5-engine:0.10.1'
+    testCompile 'com.tngtech.archunit:archunit-junit5-api:0.10.2'
+    testRuntime 'com.tngtech.archunit:archunit-junit5-engine:0.10.2'
 }
 ----
 
@@ -96,7 +96,7 @@ context, include the core ArchUnit dependency from Maven Central:
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit</artifactId>
-    <version>0.10.1</version>
+    <version>0.10.2</version>
     <scope>test</scope>
 </dependency>
 ----
@@ -105,7 +105,7 @@ context, include the core ArchUnit dependency from Maven Central:
 .build.gradle
 ----
 dependencies {
-   testCompile 'com.tngtech.archunit:archunit:0.10.1'
+   testCompile 'com.tngtech.archunit:archunit:0.10.2'
 }
 ----
 
