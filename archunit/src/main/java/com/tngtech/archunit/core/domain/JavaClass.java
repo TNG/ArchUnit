@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -726,6 +727,16 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         return anyMatches(possibleTargets, predicate);
     }
 
+    /**
+     *
+     * @param clazz a class
+     * @return true if this {@link JavaClass} represents an anonymous inner class of the supplied {@link Class},
+     * otherwise false
+     */
+    private boolean isAnonymousInnerClassOf(Class<?> clazz) {
+        return getName().startsWith(clazz.getName() + '$');
+    }
+
     private boolean anyMatches(List<JavaClass> possibleTargets, DescribedPredicate<? super JavaClass> predicate) {
         for (JavaClass javaClass : possibleTargets) {
             if (predicate.apply(javaClass)) {
@@ -1281,6 +1292,38 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> equivalentTo(final Class<?> clazz) {
             return new EquivalentToPredicate(clazz);
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> areAnyClass(Class... classes) {
+            return new AnyClassPredicate(classes);
+        }
+
+        private static class AnyClassPredicate extends DescribedPredicate<JavaClass> {
+            private final Class[] classes;
+
+            AnyClassPredicate(Class... classes) {
+                super(String.format("any class %s", getClassNames(classes)));
+                this.classes = classes;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                for (Class clazz : classes) {
+                    if (input.isEquivalentTo(clazz) || input.isAnonymousInnerClassOf(clazz)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            private static List<String> getClassNames (Class[] classes) {
+                List<String> names = new ArrayList<>();
+                for (int i = 0; i < classes.length; i++) {
+                    names.add(classes[i].getName());
+                }
+                return names;
+            }
         }
 
         private static class SimpleNameStartingWithPredicate extends DescribedPredicate<JavaClass> {
