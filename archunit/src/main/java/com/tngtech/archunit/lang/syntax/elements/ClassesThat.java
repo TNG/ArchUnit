@@ -626,4 +626,13 @@ public interface ClassesThat<CONJUNCTION> {
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotInterfaces();
 
+    /**
+     * Matches every class in the supplied list and their anonymous inner classes.
+     *
+     * @param classes list of {@link Class} objects.
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areAnyClass(Class... classes);
+
 }
