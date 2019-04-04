@@ -73,14 +73,14 @@ const init = (transitionDuration) => {
       this.refresh();
     }
 
-    moveToPositionAndShowIfVisible() {
+    moveToPosition() {
       const promise = this._line.createTransitionWithDuration(transitionDuration)
         .step(svgSelection => {
           svgSelection.setStartAndEndPosition(this._dependency.visualData.relativeStartPoint, this._dependency.visualData.relativeEndPoint);
         })
         .finish();
       this._updateAreaPosition();
-      return promise.then(() => this.refresh());
+      return promise;
     }
 
     onMouseOver(mouseOverHandler) {

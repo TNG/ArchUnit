@@ -147,7 +147,7 @@ const init = (View, DetailedView) => {
       this._isVisible = true;
       this.visualData = new VisualData({
         onJumpedToPosition: () => this._view.jumpToPositionAndShowIfVisible(),
-        onMovedToPosition: () => this._view.moveToPositionAndShowIfVisible()
+        onMovedToPosition: () => this._view.moveToPosition().then(() => this.refresh())
       }, this);
       this._containerEndNodeHasChanged = false;
     }
