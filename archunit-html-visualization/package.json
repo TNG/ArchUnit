@@ -44,12 +44,12 @@
     }
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.2.0",
     "css-loader": "^2.0.1",
     "eslint": "^4.1.0",
     "eslint-plugin-html": "^3.0.0",
     "eslint-plugin-promise": "^3.5.0",
-    "mocha": "^5.2.0",
+    "mocha": "^6.0.2",
     "nodemon": "^1.11.0",
     "polymer-bundler": "^4.0.2",
     "style-loader": "^0.23.1",
