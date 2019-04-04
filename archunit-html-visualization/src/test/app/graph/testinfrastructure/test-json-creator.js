@@ -7,13 +7,29 @@ const changeFullName = (node, path, separator) => {
   }
 };
 
-const createTestGraph = (root, dependencies) => ({
+const createGraph = (root, dependencies) => ({
   root,
   dependencies
 });
 
-const testRoot = {
-  package: function (pkgname) {
+const nodeCreator = {
+  defaultPackage: () => {
+    const res = {
+      fullName: 'default',
+      name: 'default',
+      type: 'package',
+      children: []
+    };
+    const builder = {
+      add: (child) => {
+        res.children.push(child);
+        return builder;
+      },
+      build: () => res
+    };
+    return builder;
+  },
+  package: (pkgname) => {
     const res = {
       fullName: pkgname,
       name: pkgname,
@@ -21,18 +37,16 @@ const testRoot = {
       children: []
     };
     const builder = {
-      add: function (child) {
+      add: (child) => {
         changeFullName(child, res.fullName, '.');
         res.children.push(child);
         return builder;
       },
-      build: function () {
-        return res;
-      }
+      build: () => res
     };
     return builder;
   },
-  clazz: function (simpleName, type) {
+  clazz: (simpleName, type) => {
     const res = {
       fullName: simpleName,
       name: simpleName,
@@ -40,14 +54,12 @@ const testRoot = {
       children: []
     };
     const builder = {
-      havingInnerClass: function (innerClass) {
+      havingInnerClass: (innerClass) => {
         changeFullName(innerClass, res.fullName, '$');
         res.children.push(innerClass);
         return builder;
       },
-      build: function () {
-        return res;
-      }
+      build: () => res
     };
     return builder;
   }
@@ -55,7 +67,7 @@ const testRoot = {
 
 const addDotBefore = str => str ? '.' + str : '';
 
-const createTestDependencies = () => {
+const createDependencies = () => {
   const res = [];
   const betweenBuilder = type => ({
     from: (from, startCodeUnit = '') => ({
@@ -83,4 +95,4 @@ const createTestDependencies = () => {
   return builder;
 };
 
-module.exports = {testRoot, createTestDependencies, createTestGraph};
+module.exports = {nodeCreator, createDependencies, createGraph};
