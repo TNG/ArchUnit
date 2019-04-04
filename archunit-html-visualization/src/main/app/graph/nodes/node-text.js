@@ -14,11 +14,7 @@ const init = visualizationStyles => {
     }
 
     getY() {
-      if (this._node.isRoot()) {
-        const fontSize = visualizationStyles.getNodeFontSize();
-        return (-1 * this._node.getRadius()) + fontSize;
-      }
-      else if (this._node.isCurrentlyLeaf()) {
+      if (this._node.isCurrentlyLeaf()) {
         return 0;
       }
       else {

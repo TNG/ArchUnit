@@ -257,9 +257,7 @@ const init = (View, DetailedDependencyView) => {
       return new Set(nodesInvolvedInViolations);
     }
 
-    // FIXME: Name is weird, hasVisibleViolations is true, if _violations (which is actually 'visibleViolations') is empty??
-    // Should graph know this?
-    getHasNodeVisibleViolation() {
+    getVisibleViolationsNodeFilter() {
       const nodesInvolvedInVisibleViolations = this.getNodesInvolvedInVisibleViolations();
       return node => this._violations.isEmpty() || nodesInvolvedInVisibleViolations.has(node);
     }

@@ -112,10 +112,10 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       return false;
     }
 
-    _foldNodesWithMinimumDepthThatHaveNotDescendants(nodes) {
+    foldNodesWithMinimumDepthThatHaveNotDescendants(nodes) {
       const childrenWithResults = this.getCurrentChildren().map(child => ({
         node: child,
-        canBeHidden: child._foldNodesWithMinimumDepthThatHaveNotDescendants(nodes)
+        canBeHidden: child.foldNodesWithMinimumDepthThatHaveNotDescendants(nodes)
       }));
       const thisCanBeFolded = childrenWithResults.every(n => n.canBeHidden);
       if (thisCanBeFolded) {
@@ -282,7 +282,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
           .withStaticFilterPrecondition(true)
           .addStaticFilter('typeAndName', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('type') && c.matchesFilter('name')), ['nodes.combinedFilter'])
           .withStaticFilterPrecondition(true)
-          .addDynamicFilter('visibleViolations', () => this._getVisibleViolationsFilter(), ['nodes.combinedFilter'])
+          .addDynamicFilter('visibleViolations', () => this.getVisibleViolationsFilter(), ['nodes.combinedFilter'])
           .withStaticFilterPrecondition(false)
           .addStaticFilter('combinedFilter', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('typeAndName') && c.matchesFilter('visibleViolations')))
           .withStaticFilterPrecondition(true)
@@ -335,11 +335,6 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       this._filterGroup.getFilter('type').filter = this._getTypeFilter(showInterfaces, showClasses);
     }
 
-    foldNodesWithMinimumDepthThatHaveNoViolations() {
-      //FIXME: better use another function for getting the nodes involved in violations
-      this._foldNodesWithMinimumDepthThatHaveNotDescendants(this.getNodesInvolvedInVisibleViolations());
-    }
-
     /**
      * changes the name-filter so that the given node is excluded
      * @param nodeFullName fullname of the node to exclude
@@ -369,11 +364,6 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       predicate = showInterfaces ? predicate : predicates.and(predicate, node => !node._isInterface());
       predicate = showClasses ? predicate : predicates.and(predicate, node => node._isInterface());
       return node => predicate(node);
-    }
-
-    _getVisibleViolationsFilter() {
-      const hasNodeVisibleViolation = this.getHasNodeVisibleViolation();
-      return node => hasNodeVisibleViolation(node);
     }
 
     foldAllNodes() {

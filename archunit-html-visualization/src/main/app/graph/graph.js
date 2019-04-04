@@ -22,8 +22,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
       this._root.addListener(this._dependencies.createListener());
       this._root.getLinks = () => this._dependencies.getAllLinks();
-      this._root.getNodesInvolvedInVisibleViolations = () => this._dependencies.getNodesInvolvedInVisibleViolations();
-      this._root.getHasNodeVisibleViolation = () => this._dependencies.getHasNodeVisibleViolation();
+      this._root.getVisibleViolationsFilter = () => this._dependencies.getVisibleViolationsNodeFilter();
       this._root.getDependenciesDirectlyWithinNode = node => this._dependencies.getDependenciesDirectlyWithinNode(node);
 
       this._createFilters();
@@ -76,7 +75,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
     }
 
     _foldNodesWithMinimumDepthWithoutViolations() {
-      this._root.foldNodesWithMinimumDepthThatHaveNoViolations();
+      this._root.foldNodesWithMinimumDepthThatHaveNotDescendants(this._dependencies.getNodesInvolvedInVisibleViolations());
       this._dependencies.recreateVisible();
       this._root.relayoutCompletely();
     }
