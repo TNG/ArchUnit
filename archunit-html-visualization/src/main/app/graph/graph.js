@@ -7,83 +7,98 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
   const Graph = class {
     constructor(jsonGraph, violations, svg, svgContainerDivDomElement) {
       this._view = new View(svg);
-      this.root = new Root(jsonGraph.root, svgContainerDivDomElement,
+      this._root = new Root(jsonGraph.root, svgContainerDivDomElement,
         (halfWidth, halfHeight) => this._view.renderWithTransition(halfWidth, halfHeight),
         (halfWidth, halfHeight) => this._view.render(halfWidth, halfHeight),
-        newNodeFilterString => this.onNodeFilterStringChanged(newNodeFilterString));
+        newNodeFilterString => this._onNodeFilterStringChanged(newNodeFilterString));
 
-      this._view.addRootView(this.root.view);
+      this._view.addRootView(this._root.view);
 
-      this.dependencies = new Dependencies(jsonGraph.dependencies, this.root,
+      this._dependencies = new Dependencies(jsonGraph.dependencies, this._root,
         {
           svgDetailedDependenciesContainer: this._view.svgElementForDetailedDependencies, svg: this._view.svgElement,
           svgCenterTranslater: this._view.translater
         });
 
-      this.root.addListener(this.dependencies.createListener());
-      this.root.getLinks = () => this.dependencies.getAllLinks();
-      this.root.getNodesInvolvedInVisibleViolations = () => this.dependencies.getNodesInvolvedInVisibleViolations();
-      this.root.getHasNodeVisibleViolation = () => this.dependencies.getHasNodeVisibleViolation();
-      this.root.getDependenciesDirectlyWithinNode = node => this.dependencies.getDependenciesDirectlyWithinNode(node);
+      this._root.addListener(this._dependencies.createListener());
+      this._root.getLinks = () => this._dependencies.getAllLinks();
+      this._root.getNodesInvolvedInVisibleViolations = () => this._dependencies.getNodesInvolvedInVisibleViolations();
+      this._root.getHasNodeVisibleViolation = () => this._dependencies.getHasNodeVisibleViolation();
+      this._root.getDependenciesDirectlyWithinNode = node => this._dependencies.getDependenciesDirectlyWithinNode(node);
 
       this._createFilters();
 
-      this.root.foldAllNodes();
-      this.dependencies.recreateVisible();
+      this._root.foldAllNodes();
+      this._dependencies.recreateVisible();
 
-      this.root.relayoutCompletely();
+      this._root.relayoutCompletely();
       this._violations = violations;
     }
 
     _updateFilterAndRelayout(filterKey) {
-      this.root.doNextAndWaitFor(() => this._filterCollection.updateFilter(filterKey));
-      this.root.relayoutCompletely();
+      this._root.doNextAndWaitFor(() => this._filterCollection.updateFilter(filterKey));
+      this._root.enforceCompleteRelayout();
     }
 
     _createFilters() {
       this._filterCollection = buildFilterCollection()
-        .addFilterGroup(this.root.filterGroup)
-        .addFilterGroup(this.dependencies.filterGroup)
+        .addFilterGroup(this._root.filterGroup)
+        .addFilterGroup(this._dependencies.filterGroup)
         .build();
 
-      this.root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
-      this.root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
-      this.dependencies.filterGroup.getFilter('type').addDependentFilterKey('nodes.visibleViolations');
-      this.dependencies.filterGroup.getFilter('nodeTypeAndName').addDependentFilterKey('nodes.visibleViolations');
-      this.dependencies.filterGroup.getFilter('violations').addDependentFilterKey('nodes.visibleViolations');
+      this._root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
+      this._root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');
+      this._dependencies.filterGroup.getFilter('type').addDependentFilterKey('nodes.visibleViolations');
+      this._dependencies.filterGroup.getFilter('nodeTypeAndName').addDependentFilterKey('nodes.visibleViolations');
+      this._dependencies.filterGroup.getFilter('violations').addDependentFilterKey('nodes.visibleViolations');
     }
 
-    filterNodesByName(filterString) {
-      this.root.nameFilterString = filterString;
+    _filterNodesByName(filterString) {
+      this._root.nameFilterString = filterString;
       this._updateFilterAndRelayout('nodes.name');
     }
 
-    filterNodesByType(filter) {
-      this.root.changeTypeFilter(filter.showInterfaces, filter.showClasses);
+    _filterNodesByType(filter) {
+      this._root.changeTypeFilter(filter.showInterfaces, filter.showClasses);
       this._updateFilterAndRelayout('nodes.type');
     }
 
-    filterDependenciesByType(typeFilterConfig) {
-      this.dependencies.changeTypeFilter(typeFilterConfig);
+    _filterDependenciesByType(typeFilterConfig) {
+      this._dependencies.changeTypeFilter(typeFilterConfig);
       this._updateFilterAndRelayout('dependencies.type');
     }
 
-    unfoldNodesToShowAllViolations() {
-      const nodesContainingViolations = this.dependencies.getNodesContainingViolations();
+    _unfoldNodesToShowAllViolations() {
+      const nodesContainingViolations = this._dependencies.getNodesContainingViolations();
       nodesContainingViolations.forEach(node => node.callOnEveryPredecessorThenSelf(node => node.unfold()));
-      this.dependencies.recreateVisible();
-      this.root.relayoutCompletely();
+      this._dependencies.recreateVisible();
+      this._root.relayoutCompletely();
     }
 
-    foldNodesWithMinimumDepthWithoutViolations() {
-      this.root.foldNodesWithMinimumDepthThatHaveNoViolations();
-      this.dependencies.recreateVisible();
-      this.root.relayoutCompletely();
+    _foldNodesWithMinimumDepthWithoutViolations() {
+      this._root.foldNodesWithMinimumDepthThatHaveNoViolations();
+      this._dependencies.recreateVisible();
+      this._root.relayoutCompletely();
     }
 
-    onNodeFilterStringChanged(newNodeFilterString) {
+    _onNodeFilterStringChanged(newNodeFilterString) {
       this._menu.changeNodeNameFilter(newNodeFilterString);
-      this.root.doNextAndWaitFor(() => this._filterCollection.updateFilter('nodes.name'));
+      this._root.doNextAndWaitFor(() => this._filterCollection.updateFilter('nodes.name'));
+    }
+
+    _onHideNodesWithoutViolationsChanged(hide) {
+      this._filterCollection.getFilter('nodes.visibleViolations').filterPrecondition.filterIsEnabled = hide;
+      this._updateFilterAndRelayout('nodes.visibleViolations');
+    }
+
+    _showViolations(violationsGroup) {
+      this._dependencies.showViolations(violationsGroup);
+      this._updateFilterAndRelayout('dependencies.violations');
+    }
+
+    _hideViolations(violationsGroup) {
+      this._dependencies.hideViolations(violationsGroup);
+      this._updateFilterAndRelayout('dependencies.violations');
     }
 
     attachToMenu(menu) {
@@ -97,33 +112,18 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
           (circleFontSize, circlePadding) => {
             visualizationStyles.setNodeFontSize(circleFontSize);
             visualizationStyles.setCirclePadding(circlePadding);
-            this.root.relayoutCompletely();
+            this._root.relayoutCompletely();
           })
-        .onNodeTypeFilterChanged(filter => this.filterNodesByType(filter))
-        .initializeDependencyFilter(this.dependencies.dependencyTypes)
-        .onDependencyFilterChanged(filter => this.filterDependenciesByType(filter))
-        .onNodeNameFilterChanged((filterString) => this.filterNodesByName(filterString));
-    }
-
-    onHideNodesWithoutViolationsChanged(hide) {
-      this._filterCollection.getFilter('nodes.visibleViolations').filterPrecondition.filterIsEnabled = hide;
-      this._updateFilterAndRelayout('nodes.visibleViolations');
-    }
-
-    showViolations(violationsGroup) {
-      this.dependencies.showViolations(violationsGroup);
-      this._updateFilterAndRelayout('dependencies.violations');
-    }
-
-    hideViolations(violationsGroup) {
-      this.dependencies.hideViolations(violationsGroup);
-      this._updateFilterAndRelayout('dependencies.violations');
+        .onNodeTypeFilterChanged(filter => this._filterNodesByType(filter))
+        .initializeDependencyFilter(this._dependencies.dependencyTypes)
+        .onDependencyFilterChanged(filter => this._filterDependenciesByType(filter))
+        .onNodeNameFilterChanged((filterString) => this._filterNodesByName(filterString));
     }
 
     attachToViolationMenu(violationMenu) {
       violationMenu.initialize(this._violations,
-        violationsGroup => this.showViolations(violationsGroup),
-        violationsGroup => this.hideViolations(violationsGroup)
+        violationsGroup => this._showViolations(violationsGroup),
+        violationsGroup => this._hideViolations(violationsGroup)
       );
 
       violationMenu.onHideAllDependenciesChanged(
@@ -132,10 +132,10 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
           this._updateFilterAndRelayout('dependencies.violations');
         });
 
-      violationMenu.onHideNodesWithoutViolationsChanged(hide => this.onHideNodesWithoutViolationsChanged(hide));
+      violationMenu.onHideNodesWithoutViolationsChanged(hide => this._onHideNodesWithoutViolationsChanged(hide));
 
-      violationMenu.onClickUnfoldNodesToShowAllViolations(() => this.unfoldNodesToShowAllViolations());
-      violationMenu.onClickFoldNodesToHideNodesWithoutViolations(() => this.foldNodesWithMinimumDepthWithoutViolations());
+      violationMenu.onClickUnfoldNodesToShowAllViolations(() => this._unfoldNodesToShowAllViolations());
+      violationMenu.onClickFoldNodesToHideNodesWithoutViolations(() => this._foldNodesWithMinimumDepthWithoutViolations());
     }
   };
 

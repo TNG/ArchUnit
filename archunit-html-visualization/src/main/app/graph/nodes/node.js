@@ -245,14 +245,16 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       this._mustRelayout = false;
     }
 
+    enforceCompleteRelayout() {
+      this.doNextAndWaitFor(() => this._relayoutCompletely());
+    }
+
     relayoutCompletely() {
       this._mustRelayout = true;
-      return this.doNextAndWaitFor(() => {
+      this.doNextAndWaitFor(() => {
         if (this._mustRelayout) {
           this._mustRelayout = false;
           return this._relayoutCompletely();
-        } else {
-          return Promise.resolve();
         }
       });
     }
@@ -260,7 +262,6 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     //FIXME: rename to scheduleAction
     doNextAndWaitFor(func) {
       this._updatePromise = this._updatePromise.then(func);
-      return this._updatePromise;
     }
 
     getByName(name) {
@@ -566,6 +567,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     //FIXME: clean up
+    //FIXME: when right after loading the html page a node is dragged, an error occurs and the view stucks
     _focus() {
       const dependenciesWithinParent = this._root.getDependenciesDirectlyWithinNode(this.getParent())
         .map(d => ({
@@ -704,7 +706,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     _changeFoldIfInnerNodeAndRelayout() {
       if (!this._isLeaf()) {
         this._root.doNextAndWaitFor(() => this._setFolded(!this._folded, () => this._listeners.forEach(listener => listener.onFoldFinished(this))));
-        this._root.relayoutCompletely();
+        this._root.enforceCompleteRelayout();
       }
     }
 
