@@ -156,7 +156,7 @@ const init = (View, DetailedDependencyView) => {
 
       this._dependencyTypes = [...new Set(this._elementary.map(d => d.type))].concat(dependencyCreator.getDefaultDependencyTypes());
 
-      this._filterGroup = buildFilterGroup('dependencies', this.getFilterObject())
+      this._filterGroup = buildFilterGroup('dependencies', this._getFilterObject())
         .addStaticFilter('type', () => true)
         .withStaticFilterPrecondition(true)
         .addDynamicFilter('nodeTypeAndName', () => this._getNodeTypeAndNameFilter())
@@ -182,7 +182,7 @@ const init = (View, DetailedDependencyView) => {
       return this._dependencyTypes;
     }
 
-    getFilterObject() {
+    _getFilterObject() {
       return {
         runFilter: (filter, key) => this._elementary.forEach(d => d.setMatchesFilter(key, filter(d))),
 
