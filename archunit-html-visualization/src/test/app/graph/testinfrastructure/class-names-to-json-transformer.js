@@ -81,6 +81,10 @@ const removeTrivialToplevelPackages = nodeAsMap => {
   return nodeAsMap;
 };
 
+/**
+ * @param classNames the full qualified names of only the classes, that have no further inner classes (i.e. all leaf nodes)
+ * @return json structure with the classes
+ */
 const classNamesToTreeStructure = (...classNames) => {
   let nodeAsMap = new Map();
   classNames.forEach(className => {
