@@ -5,6 +5,13 @@ const document = require('./document-mock');
 const window = require('./window-mock');
 const visualizationStylesLoaderMock = require('./stubs').visualizationStylesStub;
 
-const getEmbeddedVisualizationStyles = (circlePadding = 1, nodeFontSize = 10) => visualizationStylesLoaderMock(circlePadding, nodeFontSize);
+let _circlePadding, _nodeFontSize;
 
-module.exports = {getEmbeddedVisualizationStyles, svg, document, window};
+const initVisualizationStyles = (circlePadding, nodeFontSize) => {
+  _circlePadding = circlePadding;
+  _nodeFontSize = nodeFontSize;
+};
+
+const getEmbeddedVisualizationStyles = () => visualizationStylesLoaderMock(_circlePadding, _nodeFontSize);
+
+module.exports = {getEmbeddedVisualizationStyles, svg, document, window, initVisualizationStyles};
