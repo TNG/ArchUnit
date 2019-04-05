@@ -56,6 +56,20 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
+    public void areAnyClass(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areAnyClass(Foo.class))
+                .on(ClassAccessedByFoo.class, Foo.class,
+                        ClassAccessedByBar.class, Bar.class,
+                        ClassAccessedByBaz.class, Baz.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassAccessedByBar.class, Bar.class,
+                ClassAccessedByBaz.class, Baz.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
     public void haveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.haveFullyQualifiedName(Foo.class.getName()))
