@@ -59,6 +59,17 @@ public class ShouldClassesThatTest {
                 classes().should().onlyDependOnClassesThat());
     }
 
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areAnyClass(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areAnyClass(Iterable.class, String.class))
+                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
+    }
+
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
