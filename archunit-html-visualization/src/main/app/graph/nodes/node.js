@@ -90,6 +90,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
           || keyAfterFullName === fullNameSeparators.classSeparator);
     }
 
+    //TODO: remove one of the two following methods (the slower one, probably the first one)
     isPredecessorOfOrNodeItself(nodeFullName) {
       const keyAfterFullName = nodeFullName.charAt(this.getFullName().length);
       return nodeFullName.startsWith(this.getFullName())
@@ -172,10 +173,6 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       return predicate(this) || this._originalChildren.some(node => node._matchesOrHasChildThatMatches(predicate));
     }
 
-    getRadius() {
-      return this.nodeShape.getRadius();
-    }
-
     _updateViewOnCurrentChildrenChanged() {
       this._view.foldable = !this._isLeaf();
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._hide());
@@ -191,19 +188,19 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
       const promises = [];
       if (this.isCurrentlyLeaf()) {
-        promises.push(this.nodeShape.changeRadius(calculateDefaultRadius(this)));
+        promises.push(this._nodeShape.changeRadius(calculateDefaultRadius(this)));
       } else if (this.getCurrentChildren().length === 1) {
         const onlyChild = this.getCurrentChildren()[0];
-        promises.push(onlyChild.nodeShape.moveToPosition(0, 0));
-        promises.push(this.nodeShape.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
+        promises.push(onlyChild._nodeShape.moveToPosition(0, 0));
+        promises.push(this._nodeShape.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
           onlyChild.getRadius(), visualizationStyles.getNodeFontSize())));
       } else {
         const childCircles = this.getCurrentChildren().map(c => ({
-          r: c.nodeShape.getRadius()
+          r: c.getRadius()
         }));
         const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
         const r = Math.max(circle.r, calculateDefaultRadius(this));
-        promises.push(this.nodeShape.changeRadius(r));
+        promises.push(this._nodeShape.changeRadius(r));
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
@@ -224,13 +221,13 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       this._onNodeFilterStringChanged = onNodeFilterStringChanged;
       this._nameFilterString = '';
 
-      this.nodeShape = new RootRect(this,
+      this._nodeShape = new RootRect(this,
         {
-          onJumpedToPosition: directionVector => this._view.jumpToPosition(this.nodeShape.relativePosition, directionVector),
-          onRadiusChanged: () => onSizeChanged(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight),
+          onJumpedToPosition: directionVector => this._view.jumpToPosition(this._nodeShape.relativePosition, directionVector),
+          onRadiusChanged: () => onSizeChanged(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight),
           onRadiusSet: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
-          onMovedToPosition: () => this._view.moveToPosition(this.nodeShape.relativePosition),
-          onRimPositionChanged: () => onSizeExpanded(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight)
+          onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition),
+          onRimPositionChanged: () => onSizeExpanded(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight)
         });
 
       const children = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this, this));
@@ -409,7 +406,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     _relayoutCompletely() {
-      this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node.nodeShape.absoluteCircle.centerPosition.unfix()));
+      this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node._nodeShape.unfix()));
 
       const promiseInitialLayout = this._initialLayout();
       const promiseForceLayout = this._forceLayout();
@@ -445,20 +442,20 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
           && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
 
         const padding = visualizationStyles.getCirclePadding();
-        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.nodeShape.absoluteCircle);
+        const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.absoluteFixableCircle);
         const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, currentLinks);
 
         const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
         const allCollisionSimulations = currentInnerNodes.map(node =>
-          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.nodeShape.absoluteCircle)));
+          createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.absoluteFixableCircle)));
 
         let timeOfLastUpdate = new Date().getTime();
 
         const onTick = () => {
-          newNodesArray.forEach(node => node.nodeShape.takeAbsolutePosition(padding));
+          newNodesArray.forEach(node => node._nodeShape.takeAbsolutePosition(padding));
           const updateInterval = 100;
           if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
-            promises = promises.concat(newNodesArray.map(node => node.nodeShape.startMoveToIntermediatePosition()));
+            promises = promises.concat(newNodesArray.map(node => node._nodeShape.startMoveToIntermediatePosition()));
             timeOfLastUpdate = new Date().getTime();
           }
         };
@@ -467,7 +464,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
         //run the remaining simulations of collision
         runSimulations(allCollisionSimulations, allCollisionSimulations[0], k, onTick);
 
-        newNodesArray.forEach(node => promises.push(node.nodeShape.completeMoveToIntermediatePosition()));
+        newNodesArray.forEach(node => promises.push(node._nodeShape.completeMoveToIntermediatePosition()));
         currentNodes = newNodes;
       }
 
@@ -504,16 +501,16 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
         });
 
       this._matchesFilter = new Map();
-      this.nodeShape = new NodeCircle(this,
+      this._nodeShape = new NodeCircle(this,
         {
-          onJumpedToPosition: () => this._view.jumpToPosition(this.nodeShape.relativePosition),
-          onRadiusChanged: () => this._view.changeRadius(this.nodeShape.getRadius(), this._text.getY()),
+          onJumpedToPosition: () => this._view.jumpToPosition(this._nodeShape.relativePosition),
+          onRadiusChanged: () => this._view.changeRadius(this.getRadius(), this._text.getY()),
           onRadiusSet: () => {
-            this._view.setRadius(this.nodeShape.getRadius(), this._text.getY());
+            this._view.setRadius(this.getRadius(), this._text.getY());
             this._listeners.forEach(listener => listener.onNodeRimChanged(this));
           },
-          onMovedToPosition: () => this._view.moveToPosition(this.nodeShape.relativePosition).then(() => this._view.show()),
-          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeShape.relativePosition)
+          onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition).then(() => this._view.show()),
+          onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this._nodeShape.relativePosition)
         });
 
       const children = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this._root, this));
@@ -522,13 +519,21 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       this._setFilteredChildren(this._originalChildren);
     }
 
+    get absoluteFixableCircle() {
+      return this._nodeShape.absoluteFixableCircle;
+    }
+
+    getRadius() {
+      return this.absoluteFixableCircle.r;
+    }
+
     overlapsWith(otherNode) {
       const ownPredecessor = this.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(otherNode));
       const otherPredecessor = otherNode.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(this));
       if (ownPredecessor.getParent() === otherPredecessor || otherPredecessor.getParent() === ownPredecessor) {
         return false;
       } else {
-        return ownPredecessor.liesInFrontOf(otherPredecessor) ? ownPredecessor.nodeShape.overlapsWith(otherNode.nodeShape) : otherPredecessor.nodeShape.overlapsWith(this.nodeShape);
+        return ownPredecessor.liesInFrontOf(otherPredecessor) ? ownPredecessor._nodeShape.overlapsWith(otherNode._nodeShape) : otherPredecessor._nodeShape.overlapsWith(this._nodeShape);
       }
     }
 
@@ -550,7 +555,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
      */
     _drag(dx, dy) {
       this._root.doNextAndWaitFor(() => {
-        this.nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
+        this._nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
         this._focus();
         this._listeners.forEach(listener => listener.onNodeRimChanged(this));
       });
@@ -600,13 +605,13 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
       dependentNodesOfThis.forEach((node1, i) =>
         dependentNodesOfThis.slice(i + 1).forEach(node2 => {
-          if (node1.nodeShape.overlapsWith(node2.nodeShape)) {
+          if (node1._nodeShape.overlapsWith(node2._nodeShape)) {
             const dependencies1 = dependentNodesWithDependencies.get(node1);
             const dependencies2 = dependentNodesWithDependencies.get(node2);
 
-            if (dependencies1.some(d => node2.nodeShape.containsPoint(getEndPointOfDependencyBelongingToNode(d, node1)))) {
+            if (dependencies1.some(d => node2._nodeShape.containsPoint(getEndPointOfDependencyBelongingToNode(d, node1)))) {
               descendantsOfEachNode.get(node1).push(node2);
-            } else if (dependencies2.some(d => node1.nodeShape.containsPoint(getEndPointOfDependencyBelongingToNode(d, node2)))) {
+            } else if (dependencies2.some(d => node1._nodeShape.containsPoint(getEndPointOfDependencyBelongingToNode(d, node2)))) {
               descendantsOfEachNode.get(node2).push(node1);
             }
           }
@@ -628,7 +633,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       });
 
       const nodeOverlapsDependencyEndPointButIsNotSibling = (siblingContainingEndNode, node, point) =>
-        !siblingContainingEndNode !== node && node.nodeShape.containsPoint(point);
+        !siblingContainingEndNode !== node && node._nodeShape.containsPoint(point);
 
       dependenciesWithinParent.forEach(d => {
         const siblingOverlappingStartNode = new Set(this.getParent()._filteredChildren.filter(c =>

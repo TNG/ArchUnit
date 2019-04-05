@@ -8,22 +8,6 @@ const Shape = class {
     this.centerPosition = centerPosition;
   }
 
-  get x() {
-    return this.centerPosition.x;
-  }
-
-  get y() {
-    return this.centerPosition.y;
-  }
-
-  set x(value) {
-    this.centerPosition.x = value;
-  }
-
-  set y(value) {
-    this.centerPosition.y = value;
-  }
-
   /**
    * calculates if the given circle with a centerPosition relative to this shape is completely within this shape,
    * considering a minimum distance from inner circles to the outer shape border
@@ -75,26 +59,26 @@ const Rect = class extends Shape {
     this.halfHeight = halfHeight;
   }
 
-  _relativeCircleIsWithinWidth(relativeCircle, padding = 0) {
-    return Math.abs(relativeCircle.centerPosition.x) + relativeCircle.r + padding <= this.halfWidth;
-  }
-
-  _relativeCircleIsWithinHeight(relativeCircle, padding = 0) {
-    return Math.abs(relativeCircle.centerPosition.y) + relativeCircle.r + padding <= this.halfHeight;
-  }
-
   containsRelativeCircle(relativeCircle, padding = 0) {
-    return this._relativeCircleIsWithinWidth(relativeCircle, padding)
-      && this._relativeCircleIsWithinHeight(relativeCircle, padding);
+    return this.relativeCircleIsWithinWidth(relativeCircle, padding)
+      && this.relativeCircleIsWithinHeight(relativeCircle, padding);
   }
 
   translateEnclosedRelativeCircleIntoThis(enclosedCircle, padding) {
-    if (!this._relativeCircleIsWithinWidth(enclosedCircle, padding)) {
+    if (!this.relativeCircleIsWithinWidth(enclosedCircle, padding)) {
       enclosedCircle.centerPosition.x = Math.sign(enclosedCircle.centerPosition.x) * (this.halfWidth - enclosedCircle.r - padding);
     }
-    if (!this._relativeCircleIsWithinHeight(enclosedCircle, padding)) {
+    if (!this.relativeCircleIsWithinHeight(enclosedCircle, padding)) {
       enclosedCircle.centerPosition.y = Math.sign(enclosedCircle.centerPosition.y) * (this.halfHeight - enclosedCircle.r - padding);
     }
+  }
+
+  relativeCircleIsWithinWidth(relativeCircle, padding = 0) {
+    return Math.abs(relativeCircle.centerPosition.x) + relativeCircle.r + padding <= this.halfWidth;
+  }
+
+  relativeCircleIsWithinHeight(relativeCircle, padding = 0) {
+    return Math.abs(relativeCircle.centerPosition.y) + relativeCircle.r + padding <= this.halfHeight;
   }
 };
 
@@ -111,10 +95,30 @@ const ZeroShape = class extends Shape {
   }
 };
 
+/**
+ * Hint: the getter and setter for x and y are needed by the method Root._forceLayout(), as the used d3 force simulation
+ * operates on the absoluteFixableCircle of a node's _nodeShape and needs direct set- and get-access to the x and y property
+ */
 const CircleWithFixablePosition = class extends Circle {
   constructor(x, y, r, id) {
     super(new FixableVector(x, y), r);
     this.id = id;
+  }
+
+  get x() {
+    return this.centerPosition.x;
+  }
+
+  get y() {
+    return this.centerPosition.y;
+  }
+
+  set x(value) {
+    this.centerPosition.x = value;
+  }
+
+  set y(value) {
+    this.centerPosition.y = value;
   }
 
   get fx() {
@@ -123,6 +127,18 @@ const CircleWithFixablePosition = class extends Circle {
 
   get fy() {
     return this.centerPosition.fy;
+  }
+
+  fix() {
+    this.centerPosition.fix();
+  }
+
+  unfix() {
+    this.centerPosition.unfix();
+  }
+
+  get fixed() {
+    return this.centerPosition.fixed;
   }
 };
 

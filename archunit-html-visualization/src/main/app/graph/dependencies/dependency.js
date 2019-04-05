@@ -68,8 +68,8 @@ const init = (View, DetailedView) => {
     }
 
     recalculateRelativePoints() {
-      this.relativeStartPoint = Vector.between(this._dependency.containerEndNode.nodeShape.absoluteShape.centerPosition, this.startPoint);
-      this.relativeEndPoint = Vector.between(this._dependency.containerEndNode.nodeShape.absoluteShape.centerPosition, this.endPoint);
+      this.relativeStartPoint = Vector.between(this._dependency.containerEndNode.absoluteFixableCircle, this.startPoint);
+      this.relativeEndPoint = Vector.between(this._dependency.containerEndNode.absoluteFixableCircle, this.endPoint);
     }
   };
 
@@ -194,11 +194,11 @@ const init = (View, DetailedView) => {
     }
 
     jumpToPosition() {
-      this.visualData.jumpToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle);
+      this.visualData.jumpToPosition(this.originNode.absoluteFixableCircle, this.targetNode.absoluteFixableCircle);
     }
 
     moveToPosition() {
-      return this.visualData.moveToPosition(this.originNode.nodeShape.absoluteCircle, this.targetNode.nodeShape.absoluteCircle); //TODO: create getter for position
+      return this.visualData.moveToPosition(this.originNode.absoluteFixableCircle, this.targetNode.absoluteFixableCircle);
     }
 
     hide() {
