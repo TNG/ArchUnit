@@ -1,14 +1,12 @@
 'use strict';
 
+//TODO: maybe own directory in infrastructure for mocks
+
 const D3ElementMock = class {
   constructor(svgType, attributes) {
     this._svgType = svgType;
     this._attributes = new Map();
     Object.keys(attributes || {}).forEach(key => this._attributes.set(key, attributes[key]));
-  }
-
-  getAttribute(attribute) {
-    return this._attributes.get(attribute);
   }
 
   translate({x, y}) {
@@ -46,6 +44,18 @@ const D3ElementMock = class {
     this._attributes.set('x2', endPosition.x);
     this._attributes.set('y2', endPosition.y);
   }
+
+  /**
+   * additional methods for testing
+   */
+
+  getAttribute(attribute) {
+    return this._attributes.get(attribute);
+  }
+
+  get svgType() {
+    return this._svgType;
+  }
 };
 
 const TransitionMock = class extends D3ElementMock {
@@ -71,10 +81,6 @@ const SvgSelectionMock = class extends D3ElementMock {
     this._parent = null;
     this._isVisible = true;
     this._cssClasses = new Set();
-  }
-
-  get isVisible() {
-    return this._isVisible;
   }
 
   get domElement() {
@@ -104,13 +110,6 @@ const SvgSelectionMock = class extends D3ElementMock {
 
   addGroup(attributes) {
     const newSvgSelectionMock = new SvgSelectionMock('g', attributes);
-    this._subElements.push(newSvgSelectionMock);
-    newSvgSelectionMock._parent = this;
-    return newSvgSelectionMock;
-  }
-
-  _addSvgElementByType(svgType) {
-    const newSvgSelectionMock = new SvgSelectionMock(svgType);
     this._subElements.push(newSvgSelectionMock);
     newSvgSelectionMock._parent = this;
     return newSvgSelectionMock;
@@ -156,10 +155,6 @@ const SvgSelectionMock = class extends D3ElementMock {
 
   get textWidth() {
     return this._attributes.get('text').length * 3;
-  }
-
-  _updateCssClasses() {
-    this._attributes.set('class', [...this._cssClasses].join(' '));
   }
 
   set cssClasses(cssClasses) {
@@ -213,12 +208,91 @@ const SvgSelectionMock = class extends D3ElementMock {
     return [0, 0];
   }
 
-  click() {
-    this._onclick();
-  }
-
   static fromDom(svgType, attributes = {}) {
     return new SvgSelectionMock(svgType, attributes);
+  }
+
+  /**
+   * additional methods for testing
+   * TODO: maybe move them to own file...ask Peter
+   */
+
+  _updateCssClasses() {
+    this._attributes.set('class', [...this._cssClasses].join(' '));
+  }
+
+  _addSvgElementByType(svgType) {
+    const newSvgSelectionMock = new SvgSelectionMock(svgType);
+    this._subElements.push(newSvgSelectionMock);
+    newSvgSelectionMock._parent = this;
+    return newSvgSelectionMock;
+  }
+
+  click(event) {
+    this._onclick(event);
+  }
+
+  get isVisible() {
+    return this._isVisible && (!this._parent || this._parent.isVisible);
+  }
+
+  getAllGroupsContainingAVisibleElementOfType(svgType) {
+    const descendants = [].concat.apply([], this._subElements.map(
+      subSvgElement => subSvgElement.getAllGroupsContainingAVisibleElementOfType(svgType)));
+    const self = [];
+    if (this._getVisibleSubElementsOfType(svgType).length > 0) {
+      self.push(this);
+    }
+    return [...descendants, ...self];
+  }
+
+  _getVisibleSubElementsOfType(svgType) {
+    return this._subElements.filter(element => element.svgType === svgType && element.isVisible);
+  }
+
+  getVisibleSubElementOfType(svgType) {
+    const result = this._getVisibleSubElementsOfType(svgType);
+    if (result.length !== 1) {
+      throw new Error('the svg element must have exactly one sub element of that type')
+    }
+    return result[0];
+  }
+
+  _getPositionOffset() {
+    const translation = this.getTranslation() || {x: 0, y: 0};
+    const absoluteReferencePosition = this._parent === null ? {x: 0, y: 0} : this._parent.absolutePosition;
+    return {
+      x: translation.x + absoluteReferencePosition.x,
+      y: translation.y + absoluteReferencePosition.y
+    }
+  }
+
+  _getAbsolutePosition(xPropertyValue, yPropertyValue) {
+    const positionOffset = this._getPositionOffset();
+    return {
+      x: positionOffset.x + xPropertyValue,
+      y: positionOffset.y + yPropertyValue
+    }
+  }
+
+  get absolutePosition() {
+    const x = this.getAttribute('x') || 0;
+    const y = this.getAttribute('y') || 0;
+    const dx = this.getAttribute('dx') || 0;
+    const dy = this.getAttribute('dy') || 0;
+    return this._getAbsolutePosition(x + dx, y + dy);
+  }
+
+  get absoluteStartPosition() {
+    const x1 = this.getAttribute('x1');
+    const y1 = this.getAttribute('y1');
+    return this._getAbsolutePosition(x1, y1);
+  }
+
+  get absoluteEndPosition() {
+    const x2 = this.getAttribute('x2');
+    const y2 = this.getAttribute('y2');
+    return this._getAbsolutePosition(x2, y2);
   }
 };
 
