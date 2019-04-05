@@ -264,7 +264,7 @@ const init = (View, DetailedDependencyView) => {
 
     createListener() {
       return {
-        onDrag: (node) => {
+        onNodeRimChanged: (node) => {
           this._getVisibleDependencies().filter(d => node.isPredecessorOfNodeOrItself(d.originNode) || node.isPredecessorOfNodeOrItself(d.targetNode))
             .forEach(d => d.jumpToPosition());
           this._getVisibleDependencies().forEach(d => d.refresh())

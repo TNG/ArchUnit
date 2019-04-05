@@ -228,7 +228,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
         {
           onJumpedToPosition: directionVector => this._view.jumpToPosition(this.nodeShape.relativePosition, directionVector),
           onRadiusChanged: () => onSizeChanged(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight),
-          onRadiusSet: () => this._listeners.forEach(listener => listener.onDrag(this)),
+          onRadiusSet: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
           onMovedToPosition: () => this._view.moveToPosition(this.nodeShape.relativePosition),
           onRimPositionChanged: () => onSizeExpanded(this.nodeShape.absoluteRect.halfWidth, this.nodeShape.absoluteRect.halfHeight)
         });
@@ -510,7 +510,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
           onRadiusChanged: () => this._view.changeRadius(this.nodeShape.getRadius(), this._text.getY()),
           onRadiusSet: () => {
             this._view.setRadius(this.nodeShape.getRadius(), this._text.getY());
-            this._listeners.forEach(listener => listener.onDrag(this));
+            this._listeners.forEach(listener => listener.onNodeRimChanged(this));
           },
           onMovedToPosition: () => this._view.moveToPosition(this.nodeShape.relativePosition).then(() => this._view.show()),
           onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this.nodeShape.relativePosition)
@@ -552,7 +552,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       this._root.doNextAndWaitFor(() => {
         this.nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
         this._focus();
-        this._listeners.forEach(listener => listener.onDrag(this));
+        this._listeners.forEach(listener => listener.onNodeRimChanged(this));
       });
     }
 
