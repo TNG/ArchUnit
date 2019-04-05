@@ -47,6 +47,13 @@ public class GivenClassesThatTest {
     public final ExpectedException thrown = ExpectedException.none();
 
     @Test
+    public void areAnyClass() {
+        List<JavaClass> classes = filterResultOf(classes().that().areAnyClass(List.class, String.class))
+                .on(List.class, String.class, Iterable.class, StringBuilder.class);
+        assertThatClasses(classes).matchInAnyOrder(String.class, List.class);
+    }
+
+    @Test
     public void haveFullyQualifiedName() {
         List<JavaClass> classes = filterResultOf(classes().that().haveFullyQualifiedName(List.class.getName()))
                 .on(List.class, String.class, Iterable.class);

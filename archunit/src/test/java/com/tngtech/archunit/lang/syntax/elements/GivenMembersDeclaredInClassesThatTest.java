@@ -44,6 +44,14 @@ public class GivenMembersDeclaredInClassesThatTest {
     public final ExpectedException thrown = ExpectedException.none();
 
     @Test
+    public void areAnyClass() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areAnyClass(String.class, List.class))
+                .on(List.class, String.class, Iterable.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(String.class, List.class);
+    }
+
+    @Test
     public void haveFullyQualifiedName() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().haveFullyQualifiedName(List.class.getName()))
                 .on(List.class, String.class, Iterable.class);
