@@ -145,7 +145,17 @@ class ClassGraphCreator implements ImportContext {
 
     private void completeAnnotations() {
         for (JavaClass javaClass : classes.getAll().values()) {
+            // By invoking the .get method of the annotations supplier, annotations are registered into the ImportContext
             javaClass.getAnnotations();
+            for (JavaMember member : javaClass.getFields()) {
+                memberDependenciesByTarget.registerMemberWithAnnotations(member);
+            }
+            for (JavaMember member : javaClass.getMethods()) {
+                memberDependenciesByTarget.registerMemberWithAnnotations(member);
+            }
+            for (JavaMember member : javaClass.getConstructors()) {
+                memberDependenciesByTarget.registerMemberWithAnnotations(member);
+            }
         }
     }
 
@@ -266,7 +276,6 @@ class ClassGraphCreator implements ImportContext {
     public Set<JavaField> createFields(JavaClass owner) {
         Set<JavaField> fields = build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
         memberDependenciesByTarget.registerFields(fields);
-        // TODO add registration annotations.
         return fields;
     }
 
@@ -327,7 +336,6 @@ class ClassGraphCreator implements ImportContext {
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
                 fieldTypeDependencies.put(field.getRawType(), field);
-                registerMemberWithAnnotations(field);
             }
         }
 
@@ -340,7 +348,6 @@ class ClassGraphCreator implements ImportContext {
                 for (ThrowsDeclaration<JavaMethod> throwsDeclaration : method.getThrowsClause()) {
                     methodsThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
                 }
-                registerMemberWithAnnotations(method);
             }
         }
 
@@ -352,7 +359,6 @@ class ClassGraphCreator implements ImportContext {
                 for (ThrowsDeclaration<JavaConstructor> throwsDeclaration : constructor.getThrowsClause()) {
                     constructorThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
                 }
-                registerMemberWithAnnotations(constructor);
             }
         }
 
