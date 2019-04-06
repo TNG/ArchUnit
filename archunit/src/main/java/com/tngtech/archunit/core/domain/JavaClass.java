@@ -1020,7 +1020,9 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     private Set<Dependency> annotationDependenciesFromSelf() {
         return new ImmutableSet.Builder<Dependency>()
                 .addAll(annotationDependencies(this))
-                .addAll(annotationDependencies(getAllMembers()))
+                .addAll(annotationDependencies(getFields()))
+                .addAll(annotationDependencies(getMethods()))
+                .addAll(annotationDependencies(getConstructors()))
                 .build();
     }
 
