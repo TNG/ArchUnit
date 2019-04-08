@@ -82,7 +82,8 @@ const removeTrivialToplevelPackages = nodeAsMap => {
 };
 
 /**
- * @param classNames the full qualified names of only the classes, that have no further inner classes (i.e. all leaf nodes)
+ * @param classNames the full qualified names of only the classes, that have no further inner classes (i.e. all leaf nodes); for all classes with
+ * 'interface' in their names, an interface is created
  * @return json structure with the classes
  */
 const classNamesToTreeStructure = (...classNames) => {
