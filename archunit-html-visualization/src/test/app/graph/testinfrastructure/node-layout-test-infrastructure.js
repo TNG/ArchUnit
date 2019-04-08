@@ -2,6 +2,7 @@
 
 const chai = require('chai');
 const expect = chai.expect;
+require('./node-layout-chai-extensions');
 
 const createTreeFromNodeFullNames = require('../testinfrastructure/node-fullnames-to-tree-transformer').createTreeFromNodeFullNames;
 

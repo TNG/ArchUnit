@@ -3,7 +3,6 @@
 const chai = require('chai');
 const expect = chai.expect;
 const checkOnRoot = require('../testinfrastructure/node-layout-test-infrastructure').checkOnRoot;
-require('../testinfrastructure/node-layout-chai-extensions');
 
 const createJsonFromClassNames = require('../testinfrastructure/class-names-to-json-transformer').createJsonFromClassNames;
 
