@@ -5,7 +5,7 @@ const expect = chai.expect;
 const guiElementsMock = require('../testinfrastructure/gui-elements-mock');
 const nodeTextFactory = require('../../../../main/app/graph/nodes/node-text');
 
-const visualizationStyles = guiElementsMock.getEmbeddedVisualizationStylesMock();
+const visualizationStyles = guiElementsMock.getEmbeddedVisualizationStyles();
 const NodeText = nodeTextFactory.init(visualizationStyles);
 
 const withRadius = obj => ({

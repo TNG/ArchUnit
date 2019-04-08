@@ -5,7 +5,7 @@ const init = visualizationStyles => {
   const computeTextShift = (radius, width) => {
     const yCoordTopBorder = -1 * Math.sqrt(Math.pow(radius, 2) - Math.pow(width / 2, 2));
     const fontSize = visualizationStyles.getNodeFontSize();
-    return yCoordTopBorder + fontSize
+    return yCoordTopBorder + fontSize;
   };
 
   return class {
