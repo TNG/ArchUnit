@@ -37,7 +37,7 @@ const init = (transitionDuration, svg) => {
     }
 
     set foldable(foldable) {
-      this._svgElement.removeCssClasses(['foldable', 'unfoldable']);
+      this._svgElement.removeCssClasses('foldable', 'unfoldable');
       if (foldable) {
         this._svgElement.addCssClass('foldable');
       } else {
