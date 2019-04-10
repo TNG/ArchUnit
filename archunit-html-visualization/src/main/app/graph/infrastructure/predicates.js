@@ -21,7 +21,8 @@ const escapeRegExp = str => {
 const formatStarAsWildcard = str => str.replace(/\*/g, '.*');
 
 const createRegexStringOfOptionsStrings = optionStrings =>
-  //a matching string must either equal an option-string or be a prefix of an option-string, so that the following symbol is . or $
+  //a matching string must either equal an option-string or an option-string is a prefix of the matching string,
+  // so that the following symbol is . or $
   optionStrings.map(s => `^${s}(?=\\.|\\$|$)`);
 
 const joinToRegexOptions = optionsStrings => optionsStrings.join('|');
