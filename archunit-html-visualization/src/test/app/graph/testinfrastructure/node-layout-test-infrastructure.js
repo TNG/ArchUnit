@@ -4,23 +4,20 @@ const chai = require('chai');
 const expect = chai.expect;
 require('./node-layout-chai-extensions');
 
-const createTreeFromNodeFullNames = require('../testinfrastructure/node-fullnames-to-tree-transformer').createTreeFromNodeFullNames;
+const createTreeFromNodeFullNames = require('./node-fullnames-to-tree-transformer').createTreeFromNodeFullNames;
 
-const createMapWithFullNamesToSvgs = svgElement => {
-  const svgGroupsWithAVisibleCircle = svgElement.getAllGroupsContainingAVisibleElementOfType('circle');
-  return new Map(svgGroupsWithAVisibleCircle.map(svgGroup => [svgGroup.getAttribute('id'), svgGroup]));
-};
+const createMapWithFullNamesToSvgs = require('./node-test-infrastructure').createMapWithFullNamesToSvgs;
 
-const checkOn = (root) => {
+const testLayoutOnRoot = (root) => {
   const fullNameToSvgElementMap = createMapWithFullNamesToSvgs(root._view.svgElement);
 
-  const doCheck = (doCheckOnNode) => {
+  const doTest = (doTestOnNode) => {
     const res = {
       where: filter => {
         const treeRoot = createTreeFromNodeFullNames(...fullNameToSvgElementMap.keys());
         const doCheckRecursively = node => {
           if (filter(node)) {
-            doCheckOnNode(node);
+            doTestOnNode(node);
           }
           node.children.forEach(doCheckRecursively);
         };
@@ -49,7 +46,7 @@ const checkOn = (root) => {
           parentNode.children.forEach(child => expect(fullNameToSvgElementMap.get(child.fullName)).to.beWithin(parentSvg, padding));
         };
 
-        doCheck(checkThatChildrenAreWithin).skipRoot.everywhere();
+        doTest(checkThatChildrenAreWithin).skipRoot.everywhere();
         return and;
       },
 
@@ -61,34 +58,34 @@ const checkOn = (root) => {
               expect(nodeSvg).to.havePaddingTo(otherNodeSvg, 2 * padding)));
         };
 
-        doCheck(checkThatSiblingsHavePadding).everywhere();
+        doTest(checkThatSiblingsHavePadding).everywhere();
         return and;
       },
 
       haveTheirLabelWithinNode: () => {
         const checkThatLabelIsWithinNode = node => expect(fullNameToSvgElementMap.get(node.fullName)).to.haveLabelWithinCircle();
-        doCheck(checkThatLabelIsWithinNode).skipRoot.everywhere();
+        doTest(checkThatLabelIsWithinNode).skipRoot.everywhere();
         return and;
       }
     },
     leaves: {
       haveTheirLabelInTheMiddle: () => {
         const checkThatLeavesHaveLabelInTheMiddle = node => expect(fullNameToSvgElementMap.get(node.fullName)).to.haveLabelInTheMiddle();
-        doCheck(checkThatLeavesHaveLabelInTheMiddle).skipRoot.where(node => node.children.length === 0);
+        doTest(checkThatLeavesHaveLabelInTheMiddle).skipRoot.where(node => node.children.length === 0);
         return and;
       }
     },
     innerNodes: {
       haveTheirLabelAtTheTop: () => {
         const checkThatInnerNodesHaveTheirLabelAtTop = node => expect(fullNameToSvgElementMap.get(node.fullName)).to.haveLabelAtTop();
-        doCheck(checkThatInnerNodesHaveTheirLabelAtTop).skipRoot.where(node => node.children.length !== 0);
+        doTest(checkThatInnerNodesHaveTheirLabelAtTop).skipRoot.where(node => node.children.length !== 0);
         return and;
       },
       withOnlyOneChild: {
         haveTheirLabelAboveTheChildNode: () => {
           const checkThatInnerNodesWithOnlyOneChildHaveTheirLabelAboveChildNode =
             node => expect(fullNameToSvgElementMap.get(node.fullName)).to.haveLabelAboveOtherCircle(fullNameToSvgElementMap.get(node.children[0].fullName));
-          doCheck(checkThatInnerNodesWithOnlyOneChildHaveTheirLabelAboveChildNode)
+          doTest(checkThatInnerNodesWithOnlyOneChildHaveTheirLabelAboveChildNode)
             .skipRoot.where(node => node.children.length === 1);
           return and;
         }
@@ -107,8 +104,8 @@ const checkOn = (root) => {
   return that;
 };
 
-module.exports.testLayoutOn = (root, circlePadding) => {
-  checkOn(root)
+module.exports.testWholeLayoutOn = (root, circlePadding) => {
+  testLayoutOnRoot(root)
     .that.allNodes.areWithinTheirParentWithRespectToPadding(circlePadding)
     .and.that.allNodes.havePaddingToTheirSiblings(circlePadding)
     .and.that.allNodes.haveTheirLabelWithinNode()
@@ -117,4 +114,4 @@ module.exports.testLayoutOn = (root, circlePadding) => {
     .and.that.innerNodes.withOnlyOneChild.haveTheirLabelAboveTheChildNode();
 };
 
-module.exports.checkOnRoot = checkOn;
+module.exports.testLayoutOnRoot = testLayoutOnRoot;
