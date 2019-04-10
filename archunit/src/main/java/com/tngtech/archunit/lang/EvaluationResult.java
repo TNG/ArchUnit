@@ -15,8 +15,11 @@
  */
 package com.tngtech.archunit.lang;
 
+import java.util.List;
+
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
@@ -75,5 +78,28 @@ public final class EvaluationResult {
     @PublicAPI(usage = ACCESS)
     public boolean hasViolation() {
         return events.containViolation();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Priority getPriority() {
+        return priority;
+    }
+
+    /**
+     * Filters all recorded {@link ConditionEvent ConditionEvents} by their textual description.
+     * I.e. the lines of the description of an event are passed to the supplied predicate to
+     * decide if the event is relevant.
+     * @param linesPredicate A predicate to determine which events match by their descriptions
+     * @return A new {@link EvaluationResult} containing only matching events
+     */
+    @PublicAPI(usage = ACCESS)
+    public EvaluationResult filterDescriptionsMatching(Predicate<List<String>> linesPredicate) {
+        ConditionEvents filtered = new ConditionEvents();
+        for (ConditionEvent event : events) {
+            if (linesPredicate.apply(event.getDescriptionLines())) {
+                filtered.add(event);
+            }
+        }
+        return new EvaluationResult(rule, filtered, priority);
     }
 }

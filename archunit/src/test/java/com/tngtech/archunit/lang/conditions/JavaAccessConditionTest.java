@@ -6,7 +6,7 @@ import java.util.Set;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.testutil.Assertions;
+import com.tngtech.archunit.testutil.assertion.ConditionEventsAssertion;
 import org.junit.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
@@ -58,7 +58,7 @@ public class JavaAccessConditionTest {
         assertThat(condition.getDescription()).isEqualTo("access target where some description");
     }
 
-    private Assertions.ConditionEventsAssert assertThatOnlyAccessToSomeClassFor(JavaClass clazz, JavaAccessCondition<JavaAccess<?>> condition) {
+    private ConditionEventsAssertion assertThatOnlyAccessToSomeClassFor(JavaClass clazz, JavaAccessCondition<JavaAccess<?>> condition) {
         Set<JavaAccess<?>> accesses = filterByTarget(clazz.getAccessesFromSelf(), SomeClass.class);
         ConditionEvents events = new ConditionEvents();
         for (JavaAccess<?> access : accesses) {
