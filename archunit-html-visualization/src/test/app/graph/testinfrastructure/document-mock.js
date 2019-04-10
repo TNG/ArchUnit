@@ -11,5 +11,5 @@ module.exports = {
   onKeyUp: (keyupHandler) => keyup = keyupHandler,
   getClientWidth: () => clientWidth,
   getClientHeight: () => clientHeight,
-  keyup: () => keyup()
+  ctrlKeyup: () => keyup({key: 'Control'})
 };
