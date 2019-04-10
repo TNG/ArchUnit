@@ -16,6 +16,7 @@
 package com.tngtech.archunit.lang;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
@@ -45,9 +46,18 @@ public interface ConditionEvent {
     /**
      * Adds a textual description of this event to the supplied {@link CollectsLines}.
      *
+     * @deprecated This method will be removed in the future in favor of the simpler {@link #getDescriptionLines()}.<br>
+     * {@link #describeTo(CollectsLines) describeTo(lineCollector)} has the same behavior as simply
+     * adding all {@link #getDescriptionLines()} to the {@code lineCollector}.
      * @param messages The message lines to append the description to.
      */
+    @Deprecated
     void describeTo(CollectsLines messages);
+
+    /**
+     * @return A textual description of this event as a list of lines
+     */
+    List<String> getDescriptionLines();
 
     /**
      * Supplies the corresponding objects and description to the supplied handler.

@@ -15,13 +15,10 @@
  */
 package com.tngtech.archunit.lang.conditions;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 
 import static com.google.common.collect.Iterables.concat;
@@ -36,14 +33,7 @@ class EventsDescription {
     private static final Function<ConditionEvent, Iterable<String>> TO_MESSAGES = new Function<ConditionEvent, Iterable<String>>() {
         @Override
         public Iterable<String> apply(ConditionEvent input) {
-            final List<String> result = new ArrayList<>();
-            input.describeTo(new CollectsLines() {
-                @Override
-                public void add(String line) {
-                    result.add(line);
-                }
-            });
-            return result;
+            return input.getDescriptionLines();
         }
     };
 }
