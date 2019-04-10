@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.lang;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -27,13 +28,14 @@ import com.tngtech.archunit.base.HasDescription;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class FailureReport implements CollectsLines {
-    private final Set<String> failureMessages = new TreeSet<>();
+    private final Set<String> failureMessages;
     private final HasDescription rule;
     private final Priority priority;
 
-    FailureReport(HasDescription rule, Priority priority) {
+    FailureReport(HasDescription rule, Priority priority, Collection<String> failureMessages) {
         this.rule = rule;
         this.priority = priority;
+        this.failureMessages = new TreeSet<>(failureMessages);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -46,6 +48,10 @@ public final class FailureReport implements CollectsLines {
         return ImmutableList.copyOf(failureMessages);
     }
 
+    /**
+     * @deprecated See {@link CollectsLines#add(String)}
+     */
+    @Deprecated
     @Override
     public void add(String message) {
         failureMessages.add(message);
@@ -57,12 +63,12 @@ public final class FailureReport implements CollectsLines {
     }
 
     FailureReport filter(Predicate<String> predicate) {
-        FailureReport result = new FailureReport(rule, priority);
+        Set<String> filtered = new TreeSet<>();
         for (String message : failureMessages) {
             if (predicate.apply(message)) {
-                result.add(message);
+                filtered.add(message);
             }
         }
-        return result;
+        return new FailureReport(rule, priority, filtered);
     }
 }

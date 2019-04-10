@@ -16,12 +16,15 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.conditions.ContainsOnlyCondition.OnlyConditionEvent;
+
+import static java.util.Collections.singletonList;
 
 class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
     private final ArchCondition<T> condition;
@@ -74,9 +77,20 @@ class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
             events.add(new OnlyConditionEvent(correspondingObjects, violating, allowed));
         }
 
+        /**
+         * @deprecated See {@link ConditionEvent#describeTo(CollectsLines)}
+         */
+        @Deprecated
         @Override
         public void describeTo(CollectsLines messages) {
-            messages.add(EventsDescription.describe(violating));
+            for (String line : getDescriptionLines()) {
+                messages.add(line);
+            }
+        }
+
+        @Override
+        public List<String> getDescriptionLines() {
+            return singletonList(EventsDescription.describe(violating));
         }
 
         @Override

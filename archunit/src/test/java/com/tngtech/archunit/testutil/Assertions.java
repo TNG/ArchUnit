@@ -41,7 +41,6 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.testutil.assertion.ArchConditionAssertion;
@@ -441,14 +440,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
         private List<String> messagesOf(Collection<? extends ConditionEvent> events) {
             final List<String> result = new ArrayList<>();
-            CollectsLines messages = new CollectsLines() {
-                @Override
-                public void add(String message) {
-                    result.add(message);
-                }
-            };
             for (ConditionEvent event : events) {
-                event.describeTo(messages);
+                result.addAll(event.getDescriptionLines());
             }
             return result;
         }
