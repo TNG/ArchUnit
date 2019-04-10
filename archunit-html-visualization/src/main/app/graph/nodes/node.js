@@ -273,14 +273,17 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     _initializeFilterGroup() {
       this._filterGroup =
         buildFilterGroup('nodes', this._getFilterObject())
-          .addStaticFilter('type', () => true, ['nodes.typeAndName'])
+          .addStaticFilter('type', () => this._getTypeFilter(true, true), ['nodes.typeAndName'])
           .withStaticFilterPrecondition(true)
           .addDynamicFilter('name', () => this._getNameFilter(), ['nodes.typeAndName'])
           .withStaticFilterPrecondition(true)
+          //Hint: the _matchesOrHasChildThatMatches-method must be used already here, not only for the combinedFilter, because otherwise dependencies
+          //of classes, that do not match the filter but have inner classes matching the filter, would be hidden
           .addStaticFilter('typeAndName', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('type') && c.matchesFilter('name')), ['nodes.combinedFilter'])
           .withStaticFilterPrecondition(true)
           .addDynamicFilter('visibleViolations', () => this.getVisibleViolationsFilter(), ['nodes.combinedFilter'])
           .withStaticFilterPrecondition(false)
+          //TODO: maybe change to node => node.matchesFilter('typeAndName') && node._matchesOrHasChildThatMatches(c => c.matchesFilter('visibleViolations'))
           .addStaticFilter('combinedFilter', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('typeAndName') && c.matchesFilter('visibleViolations')))
           .withStaticFilterPrecondition(true)
           .build();
@@ -353,7 +356,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     _getNameFilter() {
       const stringEqualsSubstring = predicates.stringEquals(this._nameFilterString);
       const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
-      return node => nodeNameSatisfies(stringEqualsSubstring)(node);
+      return node => !node.isPackage() && nodeNameSatisfies(stringEqualsSubstring)(node);
     }
 
     _getTypeFilter(showInterfaces, showClasses) {
