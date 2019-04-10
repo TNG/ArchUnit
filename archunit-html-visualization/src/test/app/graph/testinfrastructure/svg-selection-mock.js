@@ -185,7 +185,7 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   onDrag(dragHandler) {
-    this._ondrag = () => dragHandler(0, 0);
+    this._ondrag = (dx, dy) => dragHandler(dx, dy);
   }
 
   onMouseOver(mouseOverHandler) {
@@ -226,6 +226,10 @@ const SvgSelectionMock = class extends D3ElementMock {
     this._subElements.push(newSvgSelectionMock);
     newSvgSelectionMock._parent = this;
     return newSvgSelectionMock;
+  }
+
+  get cssClasses() {
+    return this._cssClasses;
   }
 
   click(event) {
