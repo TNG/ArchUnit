@@ -54,9 +54,7 @@ public final class EvaluationResult {
 
     @PublicAPI(usage = ACCESS)
     public FailureReport getFailureReport() {
-        FailureReport failureReport = new FailureReport(rule, priority);
-        events.describeFailuresTo(failureReport);
-        return failureReport;
+        return new FailureReport(rule, priority, events.getFailureDescriptionLines());
     }
 
     @PublicAPI(usage = ACCESS)
