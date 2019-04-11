@@ -176,6 +176,24 @@ public class ArchConfigurationTest {
                 entry("enabled", "false"), entry("other-prop", "other value"));
     }
 
+    @Test
+    public void allows_to_specify_custom_properties() {
+        writeProperties(ImmutableMap.<String, Object>of(
+                "some.custom.booleanproperty", "true",
+                "some.custom.stringproperty", "value",
+                "toignore", "toignore"
+        ));
+
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+
+        assertThat(configuration.getSubProperties("some.custom"))
+                .containsExactly(entry("booleanproperty", "true"), entry("stringproperty", "value"));
+
+        configuration.setProperty("some.custom.stringproperty", "changed");
+        assertThat(configuration.getSubProperties("some.custom"))
+                .containsExactly(entry("booleanproperty", "true"), entry("stringproperty", "changed"));
+    }
+
     private void writeProperties(Map<String, ?> props) {
         Properties save = new Properties();
         for (Map.Entry<String, ?> entry : props.entrySet()) {

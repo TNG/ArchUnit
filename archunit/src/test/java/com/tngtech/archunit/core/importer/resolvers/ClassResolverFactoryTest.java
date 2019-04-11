@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.importer.resolvers;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Properties;
 
 import com.google.common.base.Preconditions;
 import com.tngtech.archunit.ArchConfiguration;
@@ -129,9 +130,10 @@ public class ClassResolverFactoryTest {
 
     private void setConfiguredResolverClass(String className) {
         try {
-            Field field = ArchConfiguration.class.getDeclaredField("classResolver");
+            Field field = ArchConfiguration.class.getDeclaredField("properties");
             field.setAccessible(true);
-            field.set(ArchConfiguration.get(), Optional.of(className));
+            Properties props = (Properties) field.get(ArchConfiguration.get());
+            props.setProperty("classResolver", className);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
