@@ -17,18 +17,15 @@ package com.tngtech.archunit;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
@@ -47,7 +44,7 @@ public final class ArchConfiguration {
     static final String CLASS_RESOLVER_ARGS = "classResolver.args";
     @Internal
     public static final String ENABLE_MD5_IN_CLASS_SOURCES = "enableMd5InClassSources";
-    private static final Pattern EXTENSION_PROP___GROUP_ONE_ID_GROUP_TWO_KEY = Pattern.compile("^extension\\.([^.]+)\\.(.+)");
+    private static final String EXTENSION_PREFIX = "extension";
 
     private static final Map<String, String> PROPERTY_DEFAULTS = ImmutableMap.of(
             RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, Boolean.TRUE.toString(),
@@ -60,6 +57,7 @@ public final class ArchConfiguration {
             return new ArchConfiguration();
         }
     });
+    private final Properties properties = new Properties();
 
     @PublicAPI(usage = ACCESS)
     public static ArchConfiguration get() {
@@ -67,12 +65,6 @@ public final class ArchConfiguration {
     }
 
     private final String propertiesResourceName;
-    private boolean resolveMissingDependenciesFromClassPath;
-    private Optional<String> classResolver = Optional.absent();
-    private List<String> classResolverArguments = Collections.emptyList();
-    private boolean enableMd5InClassSources;
-
-    private final Map<String, Properties> extensionProperties = new ConcurrentHashMap<>();
 
     private ArchConfiguration() {
         this(ARCHUNIT_PROPERTIES_RESOURCE_NAME);
@@ -84,14 +76,13 @@ public final class ArchConfiguration {
     }
 
     private void readProperties(String propertiesResourceName) {
-        Properties properties = new Properties();
+        properties.clear();
         try (InputStream inputStream = getClass().getResourceAsStream(propertiesResourceName)) {
             if (inputStream != null) {
                 properties.load(inputStream);
             }
         } catch (IOException ignore) {
         }
-        set(properties);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -101,90 +92,130 @@ public final class ArchConfiguration {
 
     @PublicAPI(usage = ACCESS)
     public boolean resolveMissingDependenciesFromClassPath() {
-        return resolveMissingDependenciesFromClassPath;
+        return Boolean.valueOf(propertyOrDefault(properties, RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH));
     }
 
     @PublicAPI(usage = ACCESS)
     public void setResolveMissingDependenciesFromClassPath(boolean newValue) {
-        resolveMissingDependenciesFromClassPath = newValue;
-    }
-
-    private void set(Properties properties) {
-        resolveMissingDependenciesFromClassPath = Boolean.valueOf(
-                propertyOrDefault(properties, RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH));
-        classResolver = Optional.fromNullable(properties.getProperty(CLASS_RESOLVER));
-        classResolverArguments = Splitter.on(",").trimResults().omitEmptyStrings()
-                .splitToList(properties.getProperty(CLASS_RESOLVER_ARGS, ""));
-        enableMd5InClassSources = Boolean.valueOf(
-                propertyOrDefault(properties, ENABLE_MD5_IN_CLASS_SOURCES));
-
-        parseExtensionProperties(properties);
-    }
-
-    private void parseExtensionProperties(Properties properties) {
-        for (String key : properties.stringPropertyNames()) {
-            Matcher matcher = EXTENSION_PROP___GROUP_ONE_ID_GROUP_TWO_KEY.matcher(key);
-            if (matcher.matches()) {
-                String extensionId = matcher.group(1);
-                String extensionPropertyKey = matcher.group(2);
-                String extensionPropertyValue = properties.getProperty(key);
-                configureExtension(extensionId).setProperty(extensionPropertyKey, extensionPropertyValue);
-            }
-        }
+        properties.setProperty(RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, String.valueOf(newValue));
     }
 
     @PublicAPI(usage = ACCESS)
     public boolean md5InClassSourcesEnabled() {
-        return enableMd5InClassSources;
+        return Boolean.valueOf(propertyOrDefault(properties, ENABLE_MD5_IN_CLASS_SOURCES));
     }
 
     @PublicAPI(usage = ACCESS)
     public void setMd5InClassSourcesEnabled(boolean enabled) {
-        this.enableMd5InClassSources = enabled;
+        properties.setProperty(ENABLE_MD5_IN_CLASS_SOURCES, String.valueOf(enabled));
     }
 
     @PublicAPI(usage = ACCESS)
     public Optional<String> getClassResolver() {
-        return classResolver;
+        return Optional.fromNullable(properties.getProperty(CLASS_RESOLVER));
     }
 
     @PublicAPI(usage = ACCESS)
     public void setClassResolver(Class<? extends ClassResolver> classResolver) {
-        this.classResolver = Optional.of(classResolver.getName());
+        properties.setProperty(CLASS_RESOLVER, classResolver.getName());
     }
 
     @PublicAPI(usage = ACCESS)
     public void unsetClassResolver() {
-        this.classResolver = Optional.absent();
+        properties.remove(CLASS_RESOLVER);
     }
 
     @PublicAPI(usage = ACCESS)
     public List<String> getClassResolverArguments() {
-        return classResolverArguments;
+        return Splitter.on(",").trimResults().omitEmptyStrings()
+                .splitToList(properties.getProperty(CLASS_RESOLVER_ARGS, ""));
     }
 
     @PublicAPI(usage = ACCESS)
     public void setClassResolverArguments(String... args) {
-        classResolverArguments = ImmutableList.copyOf(args);
+        properties.setProperty(CLASS_RESOLVER_ARGS, Joiner.on(",").join(args));
     }
 
     @PublicAPI(usage = ACCESS)
     public void setExtensionProperties(String extensionIdentifier, Properties properties) {
-        extensionProperties.put(extensionIdentifier, copy(properties));
+        String propertyPrefix = getFullExtensionPropertyPrefix(extensionIdentifier);
+        clearPropertiesWithPrefix(propertyPrefix);
+        for (String propertyName : properties.stringPropertyNames()) {
+            String fullPropertyName = propertyPrefix + "." + propertyName;
+            this.properties.put(fullPropertyName, properties.getProperty(propertyName));
+        }
+    }
+
+    private void clearPropertiesWithPrefix(String propertyPrefix) {
+        for (String propertyToRemove : filterNamesWithPrefix(properties.stringPropertyNames(), propertyPrefix)) {
+            properties.remove(propertyToRemove);
+        }
     }
 
     @PublicAPI(usage = ACCESS)
     public Properties getExtensionProperties(String extensionIdentifier) {
-        return extensionProperties.containsKey(extensionIdentifier) ?
-                copy(extensionProperties.get(extensionIdentifier)) :
-                new Properties();
+        String propertyPrefix = getFullExtensionPropertyPrefix(extensionIdentifier);
+        return getSubProperties(propertyPrefix);
+    }
+
+    private String getFullExtensionPropertyPrefix(String extensionIdentifier) {
+        return EXTENSION_PREFIX + "." + extensionIdentifier;
     }
 
     @PublicAPI(usage = ACCESS)
     public ExtensionProperties configureExtension(String extensionIdentifier) {
-        Properties properties = getExtensionProperties(extensionIdentifier);
-        extensionProperties.put(extensionIdentifier, properties);
-        return new ExtensionProperties(properties);
+        return new ExtensionProperties(extensionIdentifier);
+    }
+
+    /**
+     * Returns a set of properties where all keys share a common prefix. The prefix is removed from those property names. Example:
+     * <pre><code>
+     * some.custom.prop1=value1
+     * some.custom.prop2=value2
+     * unrelated=irrelevant</code></pre>
+     * Then {@code getSubProperties("some.custom")} would return the properties
+     * <pre><code>
+     * prop1=value1
+     * prop2=value2</code></pre>
+     *
+     * @param propertyPrefix A prefix for a set of properties
+     * @return All properties with this prefix, where the prefix is removed from the keys.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Properties getSubProperties(String propertyPrefix) {
+        Properties result = new Properties();
+        for (String key : filterNamesWithPrefix(properties.stringPropertyNames(), propertyPrefix)) {
+            String extensionPropertyKey = removePrefix(key, propertyPrefix);
+            result.put(extensionPropertyKey, properties.getProperty(key));
+        }
+        return result;
+    }
+
+    private Iterable<String> filterNamesWithPrefix(Iterable<String> propertyNames, String prefix) {
+        List<String> result = new ArrayList<>();
+        String fullPrefix = prefix + ".";
+        for (String propertyName : propertyNames) {
+            if (propertyName.startsWith(fullPrefix)) {
+                result.add(propertyName);
+            }
+        }
+        return result;
+    }
+
+    private String removePrefix(String string, String prefix) {
+        return string.substring(prefix.length() + 1);
+    }
+
+    /**
+     * Overwrites a property of the global ArchUnit configuration. Note that this change will persist for the whole life time of this JVM
+     * unless overwritten another time.
+     *
+     * @param propertyName Full name of a property
+     * @param value The new value to set. Overwrites any existing property with the same name.
+     */
+    @PublicAPI(usage = ACCESS)
+    public void setProperty(String propertyName, String value) {
+        properties.setProperty(propertyName, value);
     }
 
     private Properties copy(Properties properties) {
@@ -197,16 +228,17 @@ public final class ArchConfiguration {
         return properties.getProperty(propertyName, PROPERTY_DEFAULTS.get(propertyName));
     }
 
-    public static final class ExtensionProperties {
-        private final Properties properties;
+    public final class ExtensionProperties {
+        private final String extensionIdentifier;
 
-        private ExtensionProperties(Properties properties) {
-            this.properties = properties;
+        private ExtensionProperties(String extensionIdentifier) {
+            this.extensionIdentifier = extensionIdentifier;
         }
 
         @PublicAPI(usage = ACCESS)
         public ExtensionProperties setProperty(String key, Object value) {
-            properties.setProperty(key, String.valueOf(value));
+            String fullKey = Joiner.on(".").join(EXTENSION_PREFIX, extensionIdentifier, key);
+            properties.setProperty(fullKey, String.valueOf(value));
             return this;
         }
     }
