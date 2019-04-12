@@ -78,3 +78,9 @@ Assertion.addMethod('unfoldable', function () {
   new Assertion([...svgElement.cssClasses]).to.include('unfoldable');
   new Assertion([...svgElement.cssClasses]).not.to.include('foldable');
 });
+
+Assertion.addMethod('onlyContainNodes', function (...expectedNodeFullNames) {
+  const actualNodes = this._obj;
+  const actualNodesFullNames = actualNodes.map(node => node.getFullName());
+  new Assertion(actualNodesFullNames).to.have.members(expectedNodeFullNames);
+});

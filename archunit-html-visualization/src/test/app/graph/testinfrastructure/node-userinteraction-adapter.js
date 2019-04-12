@@ -12,7 +12,7 @@ const testGuiFromSvgElement = svgElement => {
 
   return {
     clickNode: nodeFullName => {
-      getCircleByFullName(nodeFullName).click();
+      getCircleByFullName(nodeFullName).click({ctrlKey: false});
     },
 
     ctrlClickNode: nodeFullName => {
@@ -22,7 +22,15 @@ const testGuiFromSvgElement = svgElement => {
 };
 
 const testGuiFromRoot = root => {
-  return testGuiFromSvgElement(root._view.svgElement);
+  const synchronousTesGui = testGuiFromSvgElement(root._view.svgElement);
+  return {
+    clickNode: synchronousTesGui.clickNode,
+    ctrlClickNode: synchronousTesGui.ctrlClickNode,
+    clickNodeAndAwait: async (nodeFullName) => {
+      synchronousTesGui.clickNode(nodeFullName);
+      return root._updatePromise;
+    }
+  }
 };
 
 module.exports.testGuiFromSvgElement = testGuiFromSvgElement;

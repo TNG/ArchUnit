@@ -19,31 +19,30 @@ const getLeavesFromTree = node => {
   }
 };
 
+//FIXME: rename to clarify that this is only for accessing the drawn nodes
 const testOnRoot = (root) => {
   const fullNameToSvgElementMap = createMapWithFullNamesToSvgs(root._view.svgElement);
   const treeRoot = createTreeFromNodeFullNames(...fullNameToSvgElementMap.keys());
 
   const testApi = {
     it: {
-      hasOnlyVisibleLeaves: (...expectedLeafFullNames) => {
+      hasClasses: (...expectedLeafFullNames) => {
         expect(getLeavesFromTree(treeRoot)).to.have.members(expectedLeafFullNames);
-        return and;
-      },
-      hasNoVisibleNodes: () => {
-        expect(getLeavesFromTree(treeRoot)).to.be.empty;
         return and;
       }
     },
     nodeWithFullName: (nodeFullName) => ({
       is: {
-        foldable: () => {
-          expect(fullNameToSvgElementMap.get(nodeFullName)).to.be.foldable();
-          return and;
-        },
+        markedAs: {
+          foldable: () => {
+            expect(fullNameToSvgElementMap.get(nodeFullName)).to.be.foldable();
+            return and;
+          },
 
-        unfoldable: () => {
-          expect(fullNameToSvgElementMap.get(nodeFullName)).to.be.unfoldable();
-          return and;
+          unfoldable: () => {
+            expect(fullNameToSvgElementMap.get(nodeFullName)).to.be.unfoldable();
+            return and;
+          }
         }
       }
     })

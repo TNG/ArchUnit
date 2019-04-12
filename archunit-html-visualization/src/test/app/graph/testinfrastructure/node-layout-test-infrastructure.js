@@ -104,10 +104,12 @@ const testLayoutOnRoot = (root) => {
   return that;
 };
 
-module.exports.testWholeLayoutOn = (root, circlePadding) => {
+const visualizationStyles = require('../testinfrastructure/root-creator').getVisualizationStyles();
+
+module.exports.testWholeLayoutOn = (root) => {
   testLayoutOnRoot(root)
-    .that.allNodes.areWithinTheirParentWithRespectToPadding(circlePadding)
-    .and.that.allNodes.havePaddingToTheirSiblings(circlePadding)
+    .that.allNodes.areWithinTheirParentWithRespectToPadding(visualizationStyles.getCirclePadding())
+    .and.that.allNodes.havePaddingToTheirSiblings(visualizationStyles.getCirclePadding())
     .and.that.allNodes.haveTheirLabelWithinNode()
     .and.that.innerNodes.haveTheirLabelAtTheTop()
     .and.that.leaves.haveTheirLabelInTheMiddle()

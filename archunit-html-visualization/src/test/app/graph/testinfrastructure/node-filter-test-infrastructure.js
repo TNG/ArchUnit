@@ -7,6 +7,8 @@ const filterOn = (root, filterCollection) => {
   let applyTypeFilter = false;
   const testFunctions = [];
 
+  let testOnRoot;
+
   const applyFilters = () => {
     if (applyTypeFilter) {
       root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.type'));
@@ -32,43 +34,47 @@ const filterOn = (root, filterCollection) => {
 
   const test = {
     that: {
-      nodesAre: (...classNames) => {
-        testFunctions.push(() => testOn(root).that.it.hasOnlyVisibleLeaves(...classNames));
+      classesAre: (...classNames) => {
+        testFunctions.push(() => testOnRoot.that.it.hasClasses(...classNames));
         return and;
       },
       node: (fqn) => ({
-        isFoldable: () => {
-          testFunctions.push(() => testOn(root).that.nodeWithFullName(fqn).is.foldable());
-          return and;
-        },
-        isUnfoldable: () => {
-          testFunctions.push(() => testOn(root).that.nodeWithFullName(fqn).is.unfoldable());
-          return and;
+        isMarkedAs: {
+          foldable: () => {
+            testFunctions.push(() => testOnRoot.that.nodeWithFullName(fqn).is.markedAs.foldable());
+            return and;
+          },
+          unfoldable: () => {
+            testFunctions.push(() => testOnRoot.that.nodeWithFullName(fqn).is.markedAs.unfoldable());
+            return and;
+          }
         }
       })
     }
   };
 
-  const finish = () => {
+  const goOn = () => {
     applyFilters();
+    testOnRoot = testOn(root);
     testFunctions.forEach(testFunction => testFunction());
   };
 
   const await = async () => {
     applyFilters();
     await root._updatePromise;
+    testOnRoot = testOn(root);
     testFunctions.forEach(testFunction => testFunction());
   };
 
   const and = {
     and: test,
-    finish, await
+    goOn, await
   };
 
   const testOrAddFilter = {
     and: filter,
     thenTest: test,
-    finish, await
+    goOn, await
   };
 
   return filter;
