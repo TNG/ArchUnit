@@ -396,18 +396,28 @@ describe('Root', () => {
       nodeListenerMock.test.that.listenerFunction('onFoldFinished').was.not.called();
     });
 
-    it('makes #isFolded() return true for the folded nodes', async () => {
-      const root = rootCreator.createRootFromClassNames('my.company.first.SomeClass$SomeInnerClass', 'my.company.first.OtherClass',
-        'my.company.second.SomeClass', 'my.otherCompany.SomeClass', 'your.company.SomeClass');
-      root.foldAllNodes();
+    describe('makes public methods of the folded nodes working correctly', () => {
+      let root;
+      before(() => {
+        root = rootCreator.createRootFromClassNames('my.company.first.SomeClass$SomeInnerClass', 'my.company.first.OtherClass',
+          'my.company.second.SomeClass', 'my.otherCompany.SomeClass', 'your.company.SomeClass');
+        root.foldAllNodes();
+      });
 
-      expect(root.getByName('my').isFolded()).to.be.true;
-      expect(root.getByName('my.company').isFolded()).to.be.true;
-      expect(root.getByName('my.company.first').isFolded()).to.be.true;
-      expect(root.getByName('my.company.first.SomeClass').isFolded()).to.be.true;
-      expect(root.getByName('my.company.second').isFolded()).to.be.true;
-      expect(root.getByName('my.otherCompany').isFolded()).to.be.true;
-      expect(root.getByName('your.company').isFolded()).to.be.true;
+      const foldedNodeFullNames = ['my', 'my.company', 'my.company.first', 'my.company.first.SomeClass', 'my.company.second',
+        'my.otherCompany', 'your.company'];
+
+      it('#isFolded() return true for the folded nodes', async () => {
+        foldedNodeFullNames.forEach(nodeFullName => expect(root.getByName(nodeFullName).isFolded()).to.be.true);
+      });
+
+      it('#isCurrentlyLeaf() returns true for the folded nodes', async () => {
+        foldedNodeFullNames.forEach(nodeFullName => expect(root.getByName(nodeFullName).isCurrentlyLeaf()).to.be.true);
+      });
+
+      it('#getCurrentChildren() returns an empty array for the folded nodes', async () => {
+        foldedNodeFullNames.forEach(nodeFullName => expect(root.getByName(nodeFullName).getCurrentChildren()).to.be.empty);
+      });
     });
   });
 
@@ -428,11 +438,25 @@ describe('Root', () => {
       nodeListenerMock.test.that.listenerFunction('onFoldFinished').was.not.called();
     });
 
-    it('makes #isFolded() return true for the folded nodes', async () => {
-      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass', 'my.otherCompany.SomeClass',
-        'my.otherCompany.OtherClass');
-      foldNodesWithMinimumDepthThatHaveNotDescendantFullNames(root, ['my.otherCompany.SomeClass', 'my.otherCompany.OtherClass']);
-      expect(root.getByName('my.company').isFolded()).to.be.true;
+    describe('makes public methods of the folded nodes working correctly', () => {
+      let root;
+      before(async () => {
+        root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass', 'my.otherCompany.SomeClass',
+          'my.otherCompany.OtherClass');
+        foldNodesWithMinimumDepthThatHaveNotDescendantFullNames(root, ['my.otherCompany.SomeClass', 'my.otherCompany.OtherClass']);
+      });
+
+      it('#isFolded() returns true for the folded nodes', async () => {
+        expect(root.getByName('my.company').isFolded()).to.be.true;
+      });
+
+      it('#isCurrentlyLeaf() returns true for the folded nodes', async () => {
+        expect(root.getByName('my.company').isCurrentlyLeaf()).to.be.true;
+      });
+
+      it('#getCurrentChildren() returns an empty array for the folded nodes', async () => {
+        expect(root.getByName('my.company').getCurrentChildren()).to.be.empty;
+      });
     });
 
     describe('some typical cases of initial node structures and given descendant classes', () => {
