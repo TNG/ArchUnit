@@ -113,6 +113,11 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       return false;
     }
 
+    /**
+     * used for folding all nodes containing no violations
+     * @param nodes
+     * @return {boolean}
+     */
     foldNodesWithMinimumDepthThatHaveNotDescendants(nodes) {
       const childrenWithResults = this.getCurrentChildren().map(child => ({
         node: child,
@@ -121,12 +126,12 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       const thisCanBeFolded = childrenWithResults.every(n => n.canBeHidden);
       if (thisCanBeFolded) {
         if (nodes.has(this) || (this.isFolded() && [...nodes].some(n => this.isPredecessorOfOrNodeItself(n.getFullName())))) {
-          this.fold();
+          this._fold();
           return false;
         }
         return true;
       } else {
-        childrenWithResults.filter(n => n.canBeHidden).forEach(n => n.node.fold());
+        childrenWithResults.filter(n => n.canBeHidden).forEach(n => n.node._fold());
         return false;
       }
     }
@@ -395,7 +400,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     _initialFold() {
     }
 
-    fold() {
+    _fold() {
     }
 
     unfold() {
@@ -708,7 +713,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       }
     }
 
-    fold() {
+    _fold() {
       if (!this._folded) {
         this._setFoldedIfInnerNode(true);
       }
