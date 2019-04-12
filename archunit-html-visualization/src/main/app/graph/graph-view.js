@@ -47,6 +47,7 @@ const init = (transitionDuration, svg, document, window) => {
         .finish();
     }
 
+    //TODO: test this
     renderSizeIfNecessary(halfWidth, halfHeight) {
       const calcRequiredSize = halfSize => parseInt(2 * halfSize + 4);
       const calcExpandedSize = halfSize => parseInt(2 * halfSize + 4);

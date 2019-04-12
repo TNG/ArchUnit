@@ -28,6 +28,7 @@ const init = (transitionDuration, svg, document) => {
     }
 
     jumpToPosition(position, directionVector) {
+      //TODO: test this
       if (directionVector.x < 0) {
         this._svgContainerDivSelection.scrollLeft += position.x - this._position.x;
       }

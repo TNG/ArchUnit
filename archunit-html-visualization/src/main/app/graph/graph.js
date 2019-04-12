@@ -36,6 +36,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
     _updateFilterAndRelayout(filterKey) {
       this._root.doNextAndWaitFor(() => this._filterCollection.updateFilter(filterKey));
+      //FIXME: the initialization of the filters causes a delayed load of the html page --> reduce initial calls to one
       this._root.enforceCompleteRelayout();
     }
 

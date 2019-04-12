@@ -37,6 +37,7 @@ const init = (View, DetailedView) => {
       return this._listener.onMovedToPosition();
     }
 
+    //FIXME: move to own file and make proper test for it...it is better to test all cases on its own
     _recalculate(absVisualStartNode, absVisualEndNode) {
       const lineDiff = 20;
       const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode);

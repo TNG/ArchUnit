@@ -103,4 +103,6 @@ describe('Calculate default radius', () => {
     expect(expectedWidth).to.equal(expectedDefaultRadius + 1);
     expect(radius).to.equal(expectedWidth);
   });
+
+  //TODO: test for calculateDefaultRadiusForNodeWithOneChild
 });
