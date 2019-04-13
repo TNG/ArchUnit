@@ -92,6 +92,7 @@ import com.tngtech.archunit.example.layers.service.ServiceHelper;
 import com.tngtech.archunit.example.layers.service.ServiceInterface;
 import com.tngtech.archunit.example.layers.service.ServiceViolatingDaoRules;
 import com.tngtech.archunit.example.layers.service.ServiceViolatingLayerRules;
+import com.tngtech.archunit.example.layers.service.impl.ServiceImplementation;
 import com.tngtech.archunit.example.layers.service.impl.SomeInterfacePlacedInTheWrongPackage;
 import com.tngtech.archunit.example.layers.service.impl.WronglyNamedSvc;
 import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWithProblem;
@@ -150,6 +151,7 @@ import static com.tngtech.archunit.testutils.CyclicErrorMatcher.cycle;
 import static com.tngtech.archunit.testutils.ExpectedAccess.callFromConstructor;
 import static com.tngtech.archunit.testutils.ExpectedAccess.callFromMethod;
 import static com.tngtech.archunit.testutils.ExpectedAccess.callFromStaticInitializer;
+import static com.tngtech.archunit.testutils.ExpectedDependency.annotatedClass;
 import static com.tngtech.archunit.testutils.ExpectedDependency.constructor;
 import static com.tngtech.archunit.testutils.ExpectedDependency.field;
 import static com.tngtech.archunit.testutils.ExpectedDependency.inheritanceFrom;
@@ -709,20 +711,30 @@ class ExamplesIntegrationTest {
                 .by(field(DaoCallingService.class, "service").ofType(ServiceViolatingLayerRules.class))
 
                 .ofRule("classes that reside in a package '..service..' should "
-                        + "only depend on classes that reside in any package ['..service..', '..persistence..', 'java..']")
+                        + "only depend on classes that reside in any package ['..service..', '..persistence..', 'java..', 'javax..']")
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .getting().field(UseCaseOneTwoController.class, UseCaseOneTwoController.someString)
+                        .getting().field(UseCaseOneTwoController.class, someString)
                         .inLine(16).asDependency())
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
                         .toConstructor(UseCaseTwoController.class)
                         .inLine(17).asDependency())
                 .by(callFromMethod(ServiceViolatingLayerRules.class, illegalAccessToController)
-                        .toMethod(UseCaseTwoController.class, UseCaseTwoController.doSomethingTwo)
+                        .toMethod(UseCaseTwoController.class, doSomethingTwo)
                         .inLine(18).asDependency())
-                .by(method(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.dependentMethod)
+                .by(method(ServiceViolatingLayerRules.class, dependentMethod)
                         .withParameter(UseCaseTwoController.class))
-                .by(method(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.dependentMethod)
+                .by(method(ServiceViolatingLayerRules.class, dependentMethod)
                         .withReturnType(SomeGuiController.class))
+                .by(field(ServiceHelper.class, "properlySecured")
+                        .withAnnotationType(Secured.class))
+                .by(method(ServiceViolatingLayerRules.class, "properlySecured")
+                        .withAnnotationType(Secured.class))
+                .by(constructor(ServiceHelper.class)
+                        .withAnnotationType(Secured.class))
+                .by(annotatedClass(ServiceViolatingDaoRules.class).annotatedWith(MyService.class))
+                .by(annotatedClass(ServiceViolatingLayerRules.class).annotatedWith(MyService.class))
+                .by(annotatedClass(ServiceImplementation.class).annotatedWith(MyService.class))
+                .by(annotatedClass(WronglyNamedSvc.class).annotatedWith(MyService.class))
 
                 .toDynamicTests();
     }
