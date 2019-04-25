@@ -23,6 +23,7 @@ const getClassNamesAndRootListenersFromArgs = args => {
   const listeners = {
     onSizeChanged: () => Promise.resolve(),
     onSizeExpanded: () => void 0,
+    onJumpedToPosition: () => void 0,
     onNodeFilterStringChanged: () => void 0
   };
   let classNames = args;
@@ -38,12 +39,12 @@ const getClassNamesAndRootListenersFromArgs = args => {
 
 /**
  * @param args the class names of all leaf nodes; the last argument may be an object with the listener functions for the root, i.e.
- * {onSizeChanged, onSizeExpanded, onNodeFilterStringChanged}
+ * {onSizeChanged, onSizeExpanded, onJumpedToPosition, onNodeFilterStringChanged}
  */
 const createRootFromClassNames = (...args) => {
   const {listeners, classNames} = getClassNamesAndRootListenersFromArgs(args);
   const jsonRoot = createJsonFromClassNames(...classNames);
-  const root = new Root(jsonRoot, null, listeners.onSizeChanged, listeners.onSizeExpanded, listeners.onNodeFilterStringChanged);
+  const root = new Root(jsonRoot, listeners.onSizeChanged, listeners.onSizeExpanded, listeners.onJumpedToPosition, listeners.onNodeFilterStringChanged);
   root.getLinks = () => [];
   root.getDependenciesDirectlyWithinNode = () => [];
   //TODO: add other necessary functions

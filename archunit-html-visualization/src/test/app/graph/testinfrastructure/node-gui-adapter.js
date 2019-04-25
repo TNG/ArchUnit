@@ -104,3 +104,4 @@ const testGuiFromRoot = root => {
 
 module.exports.testGuiFromRoot = testGuiFromRoot;
 module.exports.createMapWithFullNamesToSvgs = createMapWithFullNamesToSvgs;
+//TODO: maybe method for graph --> this method adds to the container-div and svg, and to this svg the graph's group-element

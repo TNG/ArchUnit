@@ -71,9 +71,10 @@ const RootRect = class extends NodeShape {
   }
 
   _jumpToPosition(x, y, directionVector) {
+    const oldRelativePosition = Vector.from(this.relativePosition);
     this.relativePosition.changeTo(new Vector(x, y));
     this._updateAbsolutePositionAndDescendants();
-    this._listener.onJumpedToPosition(directionVector);
+    this._listener.onJumpedToPosition(Vector.between(oldRelativePosition, this.relativePosition));
     this._listener.onRimPositionChanged();
   }
 

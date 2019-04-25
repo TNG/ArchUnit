@@ -212,14 +212,14 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
   };
 
   const Root = class extends Node {
-    constructor(jsonNode, svgContainerDivDomElement, onSizeChanged, onSizeExpanded, onNodeFilterStringChanged) {
+    constructor(jsonNode, onSizeChanged, onSizeExpanded, onJumpedToPosition, onNodeFilterStringChanged) {
       super(jsonNode, 0);
 
       this._view = new RootView(this.getFullName(), event => {
         if (event.key === 'Alt' || event.key === 'Control') {
           this.relayoutCompletely();
         }
-      }, svgContainerDivDomElement);
+      });
 
       this._parent = this;
 
@@ -228,7 +228,10 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
       this._nodeShape = new RootRect(this,
         {
-          onJumpedToPosition: directionVector => this._view.jumpToPosition(this._nodeShape.relativePosition, directionVector),
+          onJumpedToPosition: (offsetPosition) => {
+            this._view.jumpToPosition(this._nodeShape.relativePosition);
+            onJumpedToPosition(offsetPosition);
+          },
           onRadiusChanged: () => onSizeChanged(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight),
           onRadiusSet: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
           onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition),

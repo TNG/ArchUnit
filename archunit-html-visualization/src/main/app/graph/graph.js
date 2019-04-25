@@ -6,10 +6,11 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
   const Graph = class {
     constructor(jsonGraph, violations, svg, svgContainerDivDomElement) {
-      this._view = new View(svg);
-      this._root = new Root(jsonGraph.root, svgContainerDivDomElement,
+      this._view = new View(svg, svgContainerDivDomElement);
+      this._root = new Root(jsonGraph.root,
         (halfWidth, halfHeight) => this._view.renderWithTransition(halfWidth, halfHeight),
         (halfWidth, halfHeight) => this._view.render(halfWidth, halfHeight),
+        (offsetPosition) => this._view.changeScrollPosition(offsetPosition),
         newNodeFilterString => this._onNodeFilterStringChanged(newNodeFilterString));
 
       this._view.addRootView(this._root.view);

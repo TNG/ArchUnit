@@ -2,7 +2,8 @@
 
 const init = (transitionDuration, svg, document, window) => {
   const View = class {
-    constructor(svgElement) {
+    constructor(svgElement, svgContainerDivDomElement) {
+      this._svgContainerDivSelection = document.selectDiv(svgContainerDivDomElement);
       this._svgElement = svg.select(svgElement);
       this._svgElement.dimension = {width: 0, height: 0};
       this._translater = this._svgElement.addGroup({
@@ -26,6 +27,12 @@ const init = (transitionDuration, svg, document, window) => {
 
     addRootView(rootView) {
       this._svgElementForNodes.addChild(rootView.svgElement);
+    }
+
+    //TODO: test this in graph-test
+    changeScrollPosition(offsetPosition) {
+      this._svgContainerDivSelection.scrollLeft += offsetPosition.x;
+      this._svgContainerDivSelection.scrollTop += offsetPosition.y;
     }
 
     render(halfWidth, halfHeight) {
