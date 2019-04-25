@@ -570,6 +570,11 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     //FIXME: clean up
+    //FIXME: Bug: when the dragged node a has a dependency to a node b, which is on a deeper level than node a, and node b is overlapped by
+    // a sibling node at the position where the dependency to a touches its rim, than node b is not set to the foreground relative to its overlapping
+    // sibling --> solution: after writing tests for the whole dragging stuff:
+    // wenn eine Node fokussiert wird, dann sollen also alle von ihr abhängigen Nodes innerhalb ihrer Parents und Vorgänger in den Vordergrund
+    // gebracht werden...ist aber nicht so trivial...
     //FIXME: when right after loading the html page a node is dragged, an error occurs and the view stucks
     _focus() {
       const dependenciesWithinParent = this._root.getDependenciesDirectlyWithinNode(this.getParent())
@@ -634,7 +639,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       const sum = this._parent._originalChildren.length;
       nodesInDrawOrder.forEach((n, i) => n._layerWithinParentNode = sum - i - 1);
 
-      // FIXME: A node should only know itself and its children, not siblings
+      // FIXME: A node should only know itself and its children, not siblings --> so: let his method operate on the children of a node
       nodesInDrawOrder.reverse().forEach(node => {
         node._view.detachFromParent();
         this.getParent()._view.addChildView(node._view);

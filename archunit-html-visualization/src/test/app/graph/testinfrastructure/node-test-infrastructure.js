@@ -1,15 +1,14 @@
 'use strict';
 
+//TODO: remove this file
+
 const chai = require('chai');
 const expect = chai.expect;
 require('./node-chai-extensions');
 
 const createTreeFromNodeFullNames = require('./node-fullnames-to-tree-transformer').createTreeFromNodeFullNames;
 
-const createMapWithFullNamesToSvgs = svgElement => {
-  const svgGroupsWithAVisibleCircle = svgElement.getAllGroupsContainingAVisibleElementOfType('circle');
-  return new Map(svgGroupsWithAVisibleCircle.map(svgGroup => [svgGroup.getAttribute('id'), svgGroup]));
-};
+const createMapWithFullNamesToSvgs = require('./node-gui-adapter').createMapWithFullNamesToSvgs;
 
 const getLeavesFromTree = node => {
   if (node.children.length === 0 && node.fullName !== 'default') {

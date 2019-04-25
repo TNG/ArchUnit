@@ -45,6 +45,7 @@ const createRootFromClassNames = (...args) => {
   const jsonRoot = createJsonFromClassNames(...classNames);
   const root = new Root(jsonRoot, null, listeners.onSizeChanged, listeners.onSizeExpanded, listeners.onNodeFilterStringChanged);
   root.getLinks = () => [];
+  root.getDependenciesDirectlyWithinNode = () => [];
   //TODO: add other necessary functions
   return root;
 };

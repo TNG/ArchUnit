@@ -6,7 +6,7 @@ require('./node-layout-chai-extensions');
 
 const createTreeFromNodeFullNames = require('./node-fullnames-to-tree-transformer').createTreeFromNodeFullNames;
 
-const createMapWithFullNamesToSvgs = require('./node-test-infrastructure').createMapWithFullNamesToSvgs;
+const createMapWithFullNamesToSvgs = require('./node-gui-adapter').createMapWithFullNamesToSvgs;
 
 const testLayoutOnRoot = (root) => {
   const fullNameToSvgElementMap = createMapWithFullNamesToSvgs(root._view.svgElement);
