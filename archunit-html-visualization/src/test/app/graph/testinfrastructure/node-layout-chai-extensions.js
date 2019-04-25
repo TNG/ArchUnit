@@ -27,6 +27,16 @@ Assertion.addMethod('beWithin', function (parentSvg, padding) {
   new Assertion(middleDistance + childCircle.getAttribute('r') + padding).to.be.at.most(parentRadius + MAXIMUM_PADDING_DELTA);
 });
 
+Assertion.addMethod('beWithinDimensions', function (width, height, padding) {
+  const nodeSvg = this._obj;
+  const nodeCircle = getVisibleCircleOf(nodeSvg);
+  const nodeCirclePosition = nodeCircle.absolutePosition;
+  const nodeCircleRadius = nodeCircle.getAttribute('r');
+
+  new Assertion(nodeCirclePosition.x + nodeCircleRadius + padding).to.be.at.most(width);
+  new Assertion(nodeCirclePosition.y + nodeCircleRadius + padding).to.be.at.most(height);
+});
+
 Assertion.addMethod('havePaddingTo', function (otherNodeSvg, padding) {
   const nodeSvg = this._obj;
   const circle = getVisibleCircleOf(nodeSvg);

@@ -18,7 +18,7 @@ describe('Node layout', () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout(
         'com.pkg1.SomeClass1$SomeInnerClass', 'com.pkg1.SomeClass2$SomeInnerClass1',
         'com.pkg1.SomeClass2$SomeInnerClass2', 'com.pkg2.SomeClass');
-      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToPadding(visualizationStyles.getCirclePadding());
+      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding(visualizationStyles.getCirclePadding());
     });
 
     it('they have a padding to their sibling nodes', async () => {
@@ -38,7 +38,7 @@ describe('Node layout', () => {
       root.relayoutCompletely();
       await root._updatePromise;
 
-      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToPadding(newCirclePadding);
+      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding(newCirclePadding);
       testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings(newCirclePadding);
     });
 
@@ -65,7 +65,7 @@ describe('Node layout', () => {
       root.relayoutCompletely();
       await root._updatePromise;
 
-      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToPadding(newCirclePadding);
+      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding(newCirclePadding);
       testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings(newCirclePadding);
     });
 
@@ -105,6 +105,17 @@ describe('Node layout', () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('somePkgWithVeryLongName.Class');
       testLayoutOn(root).that.innerNodes.withOnlyOneChild.haveTheirLabelAboveTheChildNode(visualizationStyles.getNodeFontSize());
     });
+  });
+
+  it('changes the root size and notifies about it', async () => {
+    let width, height;
+    const root = await rootCreator.createRootFromClassNamesAndLayout('com.pkg.SomeClass', {
+      onSizeChanged: (halfWidth, halfHeight) => {
+        width = 2 * halfWidth;
+        height = 2 * halfHeight;
+      }
+    });
+    testLayoutOn(root).that.allNodes.areWithinDimensions(width, height);
   });
 
   it('notifies its listeners about the changed layout', async () => {

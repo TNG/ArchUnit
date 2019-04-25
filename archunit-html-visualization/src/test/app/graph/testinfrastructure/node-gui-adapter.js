@@ -1,8 +1,11 @@
 'use strict';
 
 const expect = require('chai').expect;
+require('./general-chai-extensions');
 
 const createTreeFromNodeFullNames = require('./node-fullnames-to-tree-transformer').createTreeFromNodeFullNames;
+
+const DELTA = 0.0001;
 
 const createMapWithFullNamesToSvgs = svgElement => {
   const svgGroupsWithAVisibleCircle = svgElement.getAllGroupsContainingAVisibleElementOfType('circle');
@@ -79,7 +82,14 @@ const testGuiFromSvgElement = (svgElement, root) => {
               }
             },
             atPosition: ({x, y}) => {
-              expect(svgElement.absolutePosition).to.deep.equal({x, y});
+              expect(svgElement.absolutePosition).to.be.deepCloseTo({x, y}, DELTA);
+              return and;
+            },
+            in: {
+              foreground: () => {
+                expect(svgElement.isNodeInForeground()).to.be.true;
+                return and;
+              }
             }
           }
         }

@@ -66,7 +66,7 @@ const RootRect = class extends NodeShape {
     this.absoluteRect.halfWidth = r;
     this.absoluteRect.halfHeight = r;
     const promise = this.moveToPosition(r, r); // Shift root to the middle
-    const listenerPromise = this._listener.onRadiusChanged();
+    const listenerPromise = this._listener.onSizeChanged();
     return Promise.all([promise, listenerPromise]);
   }
 
@@ -88,7 +88,7 @@ const RootRect = class extends NodeShape {
     }
 
     this._jumpToPosition(this.absoluteRect.halfWidth, this.absoluteRect.halfHeight, directionVector);
-    this._listener.onRadiusSet();
+    this._listener.onNodeRimChanged();
   }
 };
 
@@ -125,6 +125,9 @@ const NodeCircle = class extends NodeShape {
     const newRelativeCircle = Circle.from(new Vector(x, y), this.absoluteFixableCircle.r);
     if (!this.absoluteReferenceShape.containsRelativeCircle(newRelativeCircle)) {
       this._node.getParent()._nodeShape._expand(newRelativeCircle, padding, directionVector);
+    } else {
+      //call the listener, if no node is expanded
+      this._listener.onNodeRimChanged();
     }
     this.relativePosition.changeTo(newRelativeCircle.centerPosition);
     this._updateAbsolutePositionAndDescendants();
@@ -163,6 +166,9 @@ const NodeCircle = class extends NodeShape {
     const newRelativeCircle = Circle.from(this.relativePosition, this.absoluteFixableCircle.r);
     if (!this.absoluteReferenceShape.containsRelativeCircle(newRelativeCircle)) {
       this._node.getParent()._nodeShape._expand(newRelativeCircle, padding, directionVector);
+    } else {
+      //call the listener for the last expanded node
+      this._listener.onNodeRimChanged();
     }
     this._listener.onRadiusSet();
   }

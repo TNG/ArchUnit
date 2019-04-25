@@ -232,8 +232,8 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
             this._view.jumpToPosition(this._nodeShape.relativePosition);
             onJumpedToPosition(offsetPosition);
           },
-          onRadiusChanged: () => onSizeChanged(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight),
-          onRadiusSet: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
+          onSizeChanged: () => onSizeChanged(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight),
+          onNodeRimChanged: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
           onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition),
           onRimPositionChanged: () => onSizeExpanded(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight)
         });
@@ -516,10 +516,8 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
         {
           onJumpedToPosition: () => this._view.jumpToPosition(this._nodeShape.relativePosition),
           onRadiusChanged: () => this._view.changeRadius(this.getRadius(), this._text.getY()),
-          onRadiusSet: () => {
-            this._view.setRadius(this.getRadius(), this._text.getY());
-            this._listeners.forEach(listener => listener.onNodeRimChanged(this));
-          },
+          onRadiusSet: () => this._view.setRadius(this.getRadius(), this._text.getY()),
+          onNodeRimChanged: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
           onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition).then(() => this._view.show()),
           onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this._nodeShape.relativePosition)
         });
@@ -568,7 +566,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       this._root.doNextAndWaitFor(() => {
         this._nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
         this._focus();
-        this._listeners.forEach(listener => listener.onNodeRimChanged(this));
+        this._listeners.forEach(listener => listener.onNodeRimChanged(this)); //FIXME: does this reallay make sense??
       });
     }
 

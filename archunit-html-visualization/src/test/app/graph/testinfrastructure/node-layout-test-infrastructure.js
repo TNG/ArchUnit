@@ -8,6 +8,8 @@ const createTreeFromNodeFullNames = require('./node-fullnames-to-tree-transforme
 
 const createMapWithFullNamesToSvgs = require('./node-gui-adapter').createMapWithFullNamesToSvgs;
 
+const visualizationStyles = require('../testinfrastructure/root-creator').getVisualizationStyles();
+
 const testLayoutOnRoot = (root) => {
   const fullNameToSvgElementMap = createMapWithFullNamesToSvgs(root._view.svgElement);
 
@@ -40,22 +42,33 @@ const testLayoutOnRoot = (root) => {
 
   const testApi = {
     allNodes: {
-      areWithinTheirParentWithRespectToPadding: (padding) => {
+      areWithinTheirParentWithRespectToCirclePadding: () => {
         const checkThatChildrenAreWithin = parentNode => {
           const parentSvg = fullNameToSvgElementMap.get(parentNode.fullName);
-          parentNode.children.forEach(child => expect(fullNameToSvgElementMap.get(child.fullName)).to.beWithin(parentSvg, padding));
+          parentNode.children.forEach(child => expect(fullNameToSvgElementMap.get(child.fullName)).to.beWithin(parentSvg,
+            visualizationStyles.getCirclePadding()));
         };
 
         doTest(checkThatChildrenAreWithin).skipRoot.everywhere();
         return and;
       },
 
-      havePaddingToTheirSiblings: (padding) => {
+      areWithinDimensions: (width, height) => {
+        const checkThatNodeIsWithin = node => {
+          const nodeSvg = fullNameToSvgElementMap.get(node.fullName);
+          expect(nodeSvg).to.beWithinDimensions(width, height, visualizationStyles.getCirclePadding());
+        };
+
+        doTest(checkThatNodeIsWithin).skipRoot.everywhere();
+        return and;
+      },
+
+      havePaddingToTheirSiblings: () => {
         const checkThatSiblingsHavePadding = parentNode => {
           const siblingSvgGroups = parentNode.children.map(child => fullNameToSvgElementMap.get(child.fullName));
           siblingSvgGroups.forEach((nodeSvg, index) =>
             siblingSvgGroups.slice(index + 1).forEach(otherNodeSvg =>
-              expect(nodeSvg).to.havePaddingTo(otherNodeSvg, 2 * padding)));
+              expect(nodeSvg).to.havePaddingTo(otherNodeSvg, 2 * visualizationStyles.getCirclePadding())));
         };
 
         doTest(checkThatSiblingsHavePadding).everywhere();
@@ -85,8 +98,7 @@ const testLayoutOnRoot = (root) => {
         haveTheirLabelAboveTheChildNode: () => {
           const checkThatInnerNodesWithOnlyOneChildHaveTheirLabelAboveChildNode =
             node => expect(fullNameToSvgElementMap.get(node.fullName)).to.haveLabelAboveOtherCircle(fullNameToSvgElementMap.get(node.children[0].fullName));
-          doTest(checkThatInnerNodesWithOnlyOneChildHaveTheirLabelAboveChildNode)
-            .skipRoot.where(node => node.children.length === 1);
+          doTest(checkThatInnerNodesWithOnlyOneChildHaveTheirLabelAboveChildNode).skipRoot.where(node => node.children.length === 1);
           return and;
         }
       }
@@ -104,12 +116,10 @@ const testLayoutOnRoot = (root) => {
   return that;
 };
 
-const visualizationStyles = require('../testinfrastructure/root-creator').getVisualizationStyles();
-
 module.exports.testWholeLayoutOn = (root) => {
   testLayoutOnRoot(root)
-    .that.allNodes.areWithinTheirParentWithRespectToPadding(visualizationStyles.getCirclePadding())
-    .and.that.allNodes.havePaddingToTheirSiblings(visualizationStyles.getCirclePadding())
+    .that.allNodes.areWithinTheirParentWithRespectToCirclePadding()
+    .and.that.allNodes.havePaddingToTheirSiblings()
     .and.that.allNodes.haveTheirLabelWithinNode()
     .and.that.innerNodes.haveTheirLabelAtTheTop()
     .and.that.leaves.haveTheirLabelInTheMiddle()

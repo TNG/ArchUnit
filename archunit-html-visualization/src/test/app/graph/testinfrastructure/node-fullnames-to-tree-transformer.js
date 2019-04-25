@@ -13,7 +13,6 @@ const createTreeFromNodeFullNames = (...nodeFullNames) => {
   nodeFullNames.forEach(fullName => {
     const prefixFullNames = nodeFullNames.filter(otherFullName => fullName.startsWith(otherFullName) && separators.includes(fullName.charAt(otherFullName.length)));
     if (prefixFullNames.length > 0) {
-
       const prefixFullName = prefixFullNames[prefixFullNames.length - 1];
       const node = {
         fullName,

@@ -236,6 +236,10 @@ const SvgSelectionMock = class extends D3ElementMock {
     this._onclick(event);
   }
 
+  drag(dx, dy) {
+    this._ondrag(dx, dy);
+  }
+
   get isVisible() {
     return this._isVisible && (!this._parent || this._parent.isVisible);
   }
@@ -297,6 +301,18 @@ const SvgSelectionMock = class extends D3ElementMock {
     const x2 = this.getAttribute('x2');
     const y2 = this.getAttribute('y2');
     return this._getAbsolutePosition(x2, y2);
+  }
+
+  /**
+   * checks if this svg-element, which is assumed to belong to a node, is in the foreground among all svg-element, that belong to nodes
+   * @return {*}
+   */
+  isNodeInForeground() {
+    if (this._parent) {
+      return this._parent._subElements[this._parent._subElements.length - 1] === this && this._parent._parent.isNodeInForeground(); //skip the
+      //svg-element containing the children of the parent node
+    }
+    return true;
   }
 };
 
