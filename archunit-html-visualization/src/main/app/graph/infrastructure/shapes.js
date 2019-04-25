@@ -40,7 +40,7 @@ const Circle = class extends Shape {
   }
 
   overlapsWith(otherCircle) {
-    return Vector.between(this, otherCircle).length() <= (this.r + otherCircle.r);
+    return Vector.between(this.centerPosition, otherCircle.centerPosition).length() <= (this.r + otherCircle.r);
   }
 
   containsPoint(vector) {
