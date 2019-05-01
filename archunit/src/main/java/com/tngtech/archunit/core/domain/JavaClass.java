@@ -734,7 +734,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      * otherwise false
      */
     private boolean isAnonymousInnerClassOf(Class<?> clazz) {
-        return getName().startsWith(clazz.getName() + '$');
+        return isInnerClass() && enclosingClass.get().isEquivalentTo(clazz) && isAnonymous();
     }
 
     private boolean anyMatches(List<JavaClass> possibleTargets, DescribedPredicate<? super JavaClass> predicate) {
