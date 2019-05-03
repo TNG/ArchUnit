@@ -18,6 +18,7 @@ package com.tngtech.archunit.library.freeze;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -26,6 +27,7 @@ import com.tngtech.archunit.lang.EvaluationResult;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.library.freeze.ViolationStore.Factory.FREEZE_STORE_PROPERTY;
 
 /**
  * A decorator around an existing {@link ArchRule} that "freezes" the state of all violations on the first call instead of failing the test.
@@ -80,6 +82,8 @@ public final class FreezingArchRule implements ArchRule {
     @Override
     @PublicAPI(usage = ACCESS)
     public EvaluationResult evaluate(JavaClasses classes) {
+        store.initialize(ArchConfiguration.get().getSubProperties(FREEZE_STORE_PROPERTY));
+
         EvaluationResult result = delegate.evaluate(classes);
         if (!store.contains(delegate)) {
             return storeViolationsAndReturnSuccess(result);
@@ -183,6 +187,6 @@ public final class FreezingArchRule implements ArchRule {
      */
     @PublicAPI(usage = ACCESS)
     public static FreezingArchRule freeze(ArchRule rule) {
-        return new FreezingArchRule(rule, DefaultViolationStoreFactory.create(), DefaultViolationLineMatcherFactory.create());
+        return new FreezingArchRule(rule, ViolationStore.Factory.create(), DefaultViolationLineMatcherFactory.create());
     }
 }

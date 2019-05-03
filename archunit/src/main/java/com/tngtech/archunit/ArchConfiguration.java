@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
@@ -207,21 +208,39 @@ public final class ArchConfiguration {
     }
 
     /**
+     * @param propertyName Full name of a property
+     * @return true, if and only if the property is configured within the global ArchUnit configuration.
+     * @see #getProperty(String)
+     * @see #setProperty(String, String)
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean containsProperty(String propertyName) {
+        return properties.containsKey(propertyName);
+    }
+
+    /**
+     * @param propertyName Full name of a property
+     * @return A property of the global ArchUnit configuration. This method will throw an exception if the property ins not set within the configuration.
+     * @see #containsProperty(String)
+     * @see #setProperty(String, String)
+     */
+    @PublicAPI(usage = ACCESS)
+    public String getProperty(String propertyName) {
+        return checkNotNull(properties.getProperty(propertyName), "Property '%s' is not configured", propertyName);
+    }
+
+    /**
      * Overwrites a property of the global ArchUnit configuration. Note that this change will persist for the whole life time of this JVM
      * unless overwritten another time.
      *
      * @param propertyName Full name of a property
      * @param value The new value to set. Overwrites any existing property with the same name.
+     * @see #containsProperty(String)
+     * @see #getProperty(String)
      */
     @PublicAPI(usage = ACCESS)
     public void setProperty(String propertyName, String value) {
         properties.setProperty(propertyName, value);
-    }
-
-    private Properties copy(Properties properties) {
-        Properties result = new Properties();
-        result.putAll(properties);
-        return result;
     }
 
     private String propertyOrDefault(Properties properties, String propertyName) {

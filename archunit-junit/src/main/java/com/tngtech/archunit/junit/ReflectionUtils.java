@@ -17,7 +17,6 @@ package com.tngtech.archunit.junit;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -79,13 +78,7 @@ class ReflectionUtils {
     }
 
     static <T> T newInstanceOf(Class<T> type) {
-        try {
-            Constructor<T> constructor = type.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            return constructor.newInstance();
-        } catch (Exception e) {
-            throw new ReflectionException(e);
-        }
+        return com.tngtech.archunit.base.ReflectionUtils.newInstanceOf(type);
     }
 
     @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
