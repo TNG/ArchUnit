@@ -1,9 +1,15 @@
 package com.tngtech.archunit.library.freeze;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -14,6 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -155,6 +162,50 @@ public class FreezingArchRuleTest {
                 .hasOnlyViolations("and new");
     }
 
+    @Test
+    public void allows_to_customize_ViolationStore_by_configuration() {
+        ArchConfiguration.get().setProperty("freeze.store", TestViolationStore.class.getName());
+        ArchConfiguration.get().setProperty("freeze.store.first.property", "first value");
+        ArchConfiguration.get().setProperty("freeze.store.second.property", "second value");
+        ArchConfiguration.get().setProperty("freeze.unrelated", "unrelated value");
+
+        freeze(rule("some description")
+                .withViolations("first violation", "second violation"))
+                .check(importClasses(getClass()));
+
+        TestViolationStore store = TestViolationStore.getLastStoreCreated();
+        store.verifyInitializationProperties("first.property", "first value", "second.property", "second value");
+        store.verifyStoredRule("some description", "first violation", "second violation");
+    }
+
+    @Test
+    public void default_violation_store_works() throws IOException {
+        File folder = temporaryFolder.newFolder();
+        ArchConfiguration.get().setProperty("freeze.store.default.path", folder.getAbsolutePath());
+
+        String[] frozenViolations = {"first violation", "second violation"};
+        FreezingArchRule frozen = freeze(rule("some description")
+                .withViolations(frozenViolations));
+
+        assertThat(frozen)
+                .checking(importClasses(getClass()))
+                .hasNoViolation();
+
+        frozen = freeze(rule("some description")
+                .withViolations(frozenViolations[0], "third violation"));
+
+        assertThat(frozen)
+                .checking(importClasses(getClass()))
+                .hasOnlyViolations("third violation");
+
+        frozen = freeze(rule("some description")
+                .withViolations(frozenViolations[0], frozenViolations[1], "third violation"));
+
+        assertThat(frozen)
+                .checking(importClasses(getClass()))
+                .hasOnlyViolations(frozenViolations[1], "third violation");
+    }
+
     private void createFrozen(TestViolationStore violationStore, ArchRule rule) {
         FreezingArchRule frozen = freeze(rule).persistIn(violationStore);
 
@@ -191,12 +242,39 @@ public class FreezingArchRuleTest {
     }
 
     private static class TestViolationStore implements ViolationStore {
+        static AtomicReference<TestViolationStore> lastStoreCreated = new AtomicReference<>();
+
+        private Properties initializationProperties;
         private final Map<String, StoredRule> storedRules = new HashMap<>();
+
+        TestViolationStore() {
+            lastStoreCreated.set(this);
+        }
+
+        static TestViolationStore getLastStoreCreated() {
+            return checkNotNull(lastStoreCreated.get(), "No store has ever been created");
+        }
 
         void verifyStoredRule(String description, String... violations) {
             StoredRule storedRule = storedRules.get(description);
             assertThat(storedRule).as(String.format("stored rule [%s]", description)).isNotNull();
             assertThat(storedRule.violations).containsOnly(violations);
+        }
+
+        void verifyInitializationProperties(String... entries) {
+            assertThat(initializationProperties).as("Initialization Properties").isNotNull();
+
+            Map<Object, Object> actual = ImmutableMap.copyOf(initializationProperties);
+            ImmutableMap.Builder<Object, Object> expected = ImmutableMap.builder();
+            for (int i = 0; i < entries.length; i += 2) {
+                expected.put(entries[i], entries[i + 1]);
+            }
+            assertThat(actual).isEqualTo(expected.build());
+        }
+
+        @Override
+        public void initialize(Properties properties) {
+            initializationProperties = properties;
         }
 
         @Override

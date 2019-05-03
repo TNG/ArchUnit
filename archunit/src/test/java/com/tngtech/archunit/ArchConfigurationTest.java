@@ -10,8 +10,11 @@ import java.util.Properties;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.TestUtils.properties;
@@ -23,14 +26,17 @@ public class ArchConfigurationTest {
     private static final String PROPERTIES_RESOURCE_NAME = "/" + PROPERTIES_FILE_NAME;
     private final File testPropsFile = new File(getClass().getResource("/").getFile(), PROPERTIES_FILE_NAME);
 
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
     @Before
     public void setUp() {
-        testPropsFile.delete();
+        checkState(!testPropsFile.exists() || testPropsFile.delete());
     }
 
     @After
     public void tearDown() {
-        testPropsFile.delete();
+        checkState(!testPropsFile.exists() || testPropsFile.delete());
     }
 
     @Test
@@ -186,12 +192,21 @@ public class ArchConfigurationTest {
 
         ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
 
+        assertThat(configuration.getProperty("some.custom.booleanproperty")).isEqualTo("true");
         assertThat(configuration.getSubProperties("some.custom"))
                 .containsExactly(entry("booleanproperty", "true"), entry("stringproperty", "value"));
 
         configuration.setProperty("some.custom.stringproperty", "changed");
         assertThat(configuration.getSubProperties("some.custom"))
                 .containsExactly(entry("booleanproperty", "true"), entry("stringproperty", "changed"));
+
+        assertThat(configuration.containsProperty("not.there"))
+                .as("configuration contains property name 'not.there'").isFalse();
+
+        thrown.expect(NullPointerException.class);
+        thrown.expectMessage("'not.there'");
+        thrown.expectMessage("not configured");
+        configuration.getProperty("not.there");
     }
 
     private void writeProperties(Map<String, ?> props) {

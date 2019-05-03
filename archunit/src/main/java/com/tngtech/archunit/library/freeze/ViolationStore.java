@@ -16,11 +16,14 @@
 package com.tngtech.archunit.library.freeze;
 
 import java.util.List;
+import java.util.Properties;
 
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
 
 /**
  * Allows to provide some sort of storage for existing violations. In particular on the first check of a {@link FreezingArchRule}, all existing
@@ -28,6 +31,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  */
 @PublicAPI(usage = INHERITANCE)
 public interface ViolationStore {
+
+    void initialize(Properties properties);
 
     /**
      * @param rule An {@link ArchRule}
@@ -49,4 +54,24 @@ public interface ViolationStore {
      * @return The lines of violations currently stored for the passed {@link ArchRule}
      */
     List<String> getViolations(ArchRule rule);
+
+    class Factory {
+        static final String FREEZE_STORE_PROPERTY = "freeze.store";
+
+        static ViolationStore create() {
+            return ArchConfiguration.get().containsProperty(FREEZE_STORE_PROPERTY)
+                    ? createInstance(ArchConfiguration.get().getProperty(FREEZE_STORE_PROPERTY))
+                    : DefaultViolationStoreFactory.create();
+        }
+
+        private static ViolationStore createInstance(String violationStoreClassName) {
+            try {
+                return (ViolationStore) newInstanceOf(Class.forName(violationStoreClassName));
+            } catch (Exception e) {
+                String message = String.format("Could not instantiate %s of configured type '%s=%s'",
+                        ViolationStore.class.getSimpleName(), FREEZE_STORE_PROPERTY, violationStoreClassName);
+                throw new StoreInitializationFailedException(message, e);
+            }
+        }
+    }
 }
