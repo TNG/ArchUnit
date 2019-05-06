@@ -83,20 +83,14 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       return this._isLeaf() || this._folded;
     }
 
-    isPredecessorOf(nodeFullName) {
-      const keyAfterFullName = nodeFullName.charAt(this.getFullName().length);
-      return nodeFullName.startsWith(this.getFullName())
-        && (keyAfterFullName === fullNameSeparators.packageSeparator
-          || keyAfterFullName === fullNameSeparators.classSeparator);
-    }
-
-    //TODO: remove one of the two following methods (the slower one, probably the first one)
-    isPredecessorOfOrNodeItself(nodeFullName) {
-      const keyAfterFullName = nodeFullName.charAt(this.getFullName().length);
-      return nodeFullName.startsWith(this.getFullName())
-        && (keyAfterFullName.length === 0
-          || keyAfterFullName === fullNameSeparators.packageSeparator
-          || keyAfterFullName === fullNameSeparators.classSeparator);
+    isPredecessorOf(otherNode) {
+      while (!otherNode.isRoot()) {
+        if (otherNode.getParent() === this) {
+          return true;
+        }
+        otherNode = otherNode.getParent();
+      }
+      return false;
     }
 
     isPredecessorOfNodeOrItself(otherNode) {
@@ -113,6 +107,26 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       return false;
     }
 
+    overlapsWith() {
+      throw new Error('not implemented');
+    }
+
+    getNameWidth() {
+      throw new Error('not implemented');
+    }
+
+    getSelfOrFirstPredecessorMatching() {
+      throw new Error('not implemented');
+    }
+
+    getSelfAndPredecessorsUntilExclusively() {
+      throw new Error('not implemented');
+    }
+
+    isRoot() {
+      throw new Error('not implemented');
+    }
+
     /**
      * used for folding all nodes containing no violations
      * @param nodes
@@ -125,7 +139,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       }));
       const thisCanBeFolded = childrenWithResults.every(n => n.canBeHidden);
       if (thisCanBeFolded) {
-        if (nodes.has(this) || (this.isFolded() && [...nodes].some(n => this.isPredecessorOfOrNodeItself(n.getFullName())))) {
+        if (nodes.has(this) || (this.isFolded() && [...nodes].some(n => this.isPredecessorOfNodeOrItself(n)))) {
           this._fold();
           return false;
         }
@@ -144,17 +158,6 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       this._folded = newFolded;
       this._updateViewOnCurrentChildrenChanged();
       callback();
-    }
-
-    // FIXME: Only used by tests
-    getSelfAndDescendants() {
-      return [this, ...this._getDescendants()];
-    }
-
-    _getDescendants() {
-      const result = [];
-      this.getCurrentChildren().forEach(child => child._callOnSelfThenEveryDescendant(node => result.push(node)));
-      return result;
     }
 
     _callOnSelfThenEveryDescendant(fun) {
@@ -393,7 +396,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       if (predecessor === this) {
         return [];
       }
-      return [this];
+      throw new Error('the given node does not exist');
     }
 
     isRoot() {
@@ -571,6 +574,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     //FIXME: clean up
+    //FIXME: improve performance
     //FIXME: Bug: when the dragged node a has a dependency to a node b, which is on a deeper level than node a, and node b is overlapped by
     // a sibling node at the position where the dependency to a touches its rim, than node b is not set to the foreground relative to its overlapping
     // sibling --> solution: after writing tests for the whole dragging stuff:

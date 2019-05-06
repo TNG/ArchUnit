@@ -45,5 +45,4 @@ const init = (transitionDuration, svg, document) => {
   return View;
 };
 
-
 module.exports = {init};

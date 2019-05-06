@@ -207,11 +207,12 @@ const init = (View, DetailedDependencyView) => {
         const sourceNode = nodes.getByName(dep.source);
         const targetNode = nodes.getByName(dep.target);
 
-        if (sourceNode.isPredecessorOf(dep.target) || targetNode.isPredecessorOf(dep.source)) {
+        if (sourceNode.isPredecessorOf(targetNode) || targetNode.isPredecessorOf(sourceNode)) {
           return [dep];
         }
 
-        const firstCommonPredecessor = sourceNode.getSelfOrFirstPredecessorMatching(node => node.isPredecessorOf(dep.target));
+        //TODO: this can be more efficient
+        const firstCommonPredecessor = sourceNode.getSelfOrFirstPredecessorMatching(node => node.isPredecessorOf(targetNode));
         const sourcePredecessors = sourceNode.getSelfAndPredecessorsUntilExclusively(firstCommonPredecessor);
         const targetPredecessors = targetNode.getSelfAndPredecessorsUntilExclusively(firstCommonPredecessor);
 
@@ -245,7 +246,7 @@ const init = (View, DetailedDependencyView) => {
     getNodesContainingViolations() {
       const violationDependencies = this._getViolationDependencies();
       const everyFirstCommonPredecessor = violationDependencies.map(d =>
-        nodes.getByName(d.from).getSelfOrFirstPredecessorMatching(node => node.isPredecessorOf(d.to)));
+        nodes.getByName(d.from).getSelfOrFirstPredecessorMatching(node => node.isPredecessorOf(nodes.getByName(d.to))));
       const distinctNodes = new Map(everyFirstCommonPredecessor.map(node => [node.getFullName(), node])).values();
       return [...distinctNodes];
     }
@@ -334,8 +335,8 @@ const init = (View, DetailedDependencyView) => {
 
     _getTypeFilter(typeFilterConfig) {
       return dependency => this.dependencyTypes.every(type => dependency.type !== type || typeFilterConfig[type])
-        && ((!dependency.originNode.isPredecessorOfOrNodeItself(dependency.targetNode.getFullName())
-          && !dependency.targetNode.isPredecessorOfOrNodeItself(dependency.originNode.getFullName()))
+        && ((!dependency.originNode.isPredecessorOfNodeOrItself(dependency.targetNode)
+          && !dependency.targetNode.isPredecessorOfNodeOrItself(dependency.originNode))
           || typeFilterConfig.INNERCLASS_DEPENDENCY);
     }
 
