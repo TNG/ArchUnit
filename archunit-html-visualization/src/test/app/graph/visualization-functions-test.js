@@ -6,7 +6,7 @@ const {Vector} = require('../../../main/app/graph/infrastructure/vectors');
 
 const expect = chai.expect;
 
-const visualizationFunctions = visualizationFunctionsFactory.newInstance(() => () => 1);
+const visualizationFunctions = visualizationFunctionsFactory.newInstance();
 const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
 
 const twoElementSubSets = arr => {
