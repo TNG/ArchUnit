@@ -3,6 +3,9 @@
 const expect = require('chai').expect;
 require('./general-chai-extensions');
 
+const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
+const vectors = require('../../../../main/app/graph/infrastructure/vectors').vectors;
+
 const createTreeFromNodeFullNames = require('./node-fullnames-to-tree-transformer').createTreeFromNodeFullNames;
 
 const DELTA = 0.0001;
@@ -46,6 +49,17 @@ const testGuiFromSvgElement = (svgElement, root) => {
     dragNodeAndAwait: async (nodeFullName, {dx, dy}) => {
       interact.dragNode(nodeFullName, {dx, dy});
       await root._updatePromise;
+    },
+    dragNodeOverOtherNodeAndAwait: async (nodeFullName, otherNodeFullName) => {
+      const nodePosition = inspect.positionOf(nodeFullName);
+      const otherNodePosition = inspect.positionOf(otherNodeFullName);
+      const nodeRadius = inspect.radiusOf(nodeFullName);
+      const otherNodeRadius = inspect.radiusOf(otherNodeFullName);
+
+      const diffVector = Vector.between(nodePosition, otherNodePosition);
+      const dragVector = diffVector.norm(diffVector.length() - nodeRadius - otherNodeRadius + 1);
+
+      await interact.dragNodeAndAwait(nodeFullName, {dx: dragVector.x, dy: dragVector.y});
     }
   };
 
@@ -55,6 +69,14 @@ const testGuiFromSvgElement = (svgElement, root) => {
     },
     positionOf: nodeFullName => {
       return inspect.svgElementOf(nodeFullName).absolutePosition;
+    },
+    radiusOf: nodeFullName => {
+      return getCircleByFullName(nodeFullName).radius;
+    },
+    nodeLiesInFrontOf: (nodeFullNameInFront, otherNodeFullName) => {
+      const svgElementInFront = inspect.svgElementOf(nodeFullNameInFront);
+      const otherSvgElement = inspect.svgElementOf(otherNodeFullName);
+      return svgElementInFront.isInFrontOf(otherSvgElement);
     }
   };
 
