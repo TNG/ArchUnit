@@ -1,1712 +1,659 @@
 'use strict';
 
-const chai = require('chai');
-const generalExtensions = require('../testinfrastructure/general-chai-extensions');
+const expect = require('chai').expect;
+require('../testinfrastructure/general-chai-extensions');
 require('../testinfrastructure/node-chai-extensions');
-const {Vector} = require('../../../../main/app/graph/infrastructure/vectors');
-const stubs = require('../testinfrastructure/stubs');
-const AppContext = require('../../../../main/app/graph/app-context');
-const {testRoot} = require('../testinfrastructure/test-json-creator');
-const testRootCreator = require('../testinfrastructure/test-object-creator');
+
+const rootCreator = require('../testinfrastructure/root-creator');
 const {buildFilterCollection} = require("../../../../main/app/graph/filter");
+const createListenerMock = require('../testinfrastructure/listener-mock').createListenerMock;
+const filterOn = require('../testinfrastructure/node-filter-test-infrastructure').filterOn;
 
-const expect = chai.expect;
-chai.use(generalExtensions);
+const testWholeLayoutOn = require('../testinfrastructure/node-layout-test-infrastructure').testWholeLayoutOn;
+const testGui = require('../testinfrastructure/node-gui-adapter').testGuiFromRoot;
 
-const appContext = AppContext.newInstance({
-  visualizationStyles: stubs.visualizationStylesStub(10),
-  calculateTextWidth: stubs.calculateTextWidthStub,
-  NodeView: stubs.NodeViewStub,
-  RootView: stubs.NodeViewStub
-});
-const circlePadding = appContext.getVisualizationStyles().getCirclePadding();
-const Root = appContext.getRoot();
+const vectors = require('../../../../main/app/graph/infrastructure/vectors').vectors;
 
 const MAXIMUM_DELTA = 0.0001;
 
-const getAbsolutePositionOfNode = node => node.getSelfAndPredecessors().reduce((acc, p) =>
-  ({x: acc.x + p.nodeShape.relativePosition.x, y: acc.y + p.nodeShape.relativePosition.y}), {x: 0, y: 0});
-
-const doNext = (root, fun) => root._updatePromise.then(fun);
-
-const updateFilterAndRelayout = (root, filterCollection, filterKey) => {
-  root.doNextAndWaitFor(() => filterCollection.updateFilter(filterKey));
-  root.relayoutCompletely();
-};
-
 describe('Root', () => {
-  it('should have itself as parent', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit').build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    expect(root.getParent()).to.equal(root);
-  });
-
-  it('should know that it is the root', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    expect(root.isRoot()).to.equal(true);
-  });
-
-  it('should not fold or change its fold-state', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit').build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root._initialFold();
-    expect(root.isFolded()).to.equal(false);
-    root._changeFoldIfInnerNodeAndRelayout();
-    expect(root.isFolded()).to.equal(false);
-    root.fold();
-    expect(root.isFolded()).to.equal(false);
-  });
-
-  it('should return the correct node by name', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass1', 'class').build())
-      .add(testRoot.clazz('SomeClass2', 'class').build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    expect(root.getByName('com.tngtech.archunit.SomeClass1').getFullName()).to.equal('com.tngtech.archunit.SomeClass1');
-    expect(root.getByName('com.tngtech.archunit.SomeClass2').getFullName()).to.equal('com.tngtech.archunit.SomeClass2');
-  });
-
-  it('can fold all nodes', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkg1')
-        .add(testRoot.clazz('SomeClass', 'class')
-          .build())
-        .build())
-      .add(testRoot.package('pkg2')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-
-    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2'];
-
-    root.foldAllNodes();
-
-    expect(root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-    return root._updatePromise;
-  });
-
-  it('can fold all visible nodes with minimum depth that have no specific descendant, when no nodes are folded', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkg1')
-        .add(testRoot.clazz('SomeClass', 'class')
-          .havingInnerClass(testRoot.clazz('InnerClass', 'class').build())
-          .build())
-        .build())
-      .add(testRoot.package('pkg2')
-        .add(testRoot.clazz('SomeClass', 'class')
-          .havingInnerClass(testRoot.clazz('InnerClass', 'class').build())
-          .build())
-        .build())
-      .add(testRoot.package('pkg3')
-        .add(testRoot.clazz('SomeClass', 'class')
-          .havingInnerClass(testRoot.clazz('InnerClass', 'class').build())
-          .build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const nodes = ['com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg1.SomeClass$InnerClass',
-      'com.tngtech.archunit.pkg2.SomeClass']
-      .map(nodeFullName => root.getByName(nodeFullName));
-
-    root.getNodesInvolvedInVisibleViolations = () => new Set(nodes);
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-
-    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg1.SomeClass',
-      'com.tngtech.archunit.pkg1.SomeClass$InnerClass', 'com.tngtech.archunit.pkg2',
-      'com.tngtech.archunit.pkg2.SomeClass', 'com.tngtech.archunit.pkg3'];
-
-    root.foldNodesWithMinimumDepthThatHaveNoViolations();
-
-    expect(root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-    expect(root.getByName('com.tngtech.archunit.pkg3.SomeClass$InnerClass').isFolded()).to.be.false;
-    return root._updatePromise;
-  });
-
-  it('can fold all visible nodes with minimum depth that have no specific descendant, when nodes are folded', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkg1')
-        .add(testRoot.clazz('SomeClass', 'class')
-          .build())
-        .build())
-      .add(testRoot.package('pkg2')
-        .add(testRoot.package('pkg3')
-          .add(testRoot.clazz('SomeClass', 'class')
-            .havingInnerClass(testRoot.clazz('InnerClass', 'class').build())
-            .build())
-          .build())
-        .build())
-      .add(testRoot.package('pkg3')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const nodes = ['com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2.pkg3.SomeClass']
-      .map(nodeFullName => root.getByName(nodeFullName));
-
-    root.getNodesInvolvedInVisibleViolations = () => new Set(nodes);
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-
-    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg1.SomeClass',
-      'com.tngtech.archunit.pkg2', 'com.tngtech.archunit.pkg2.pkg3', 'com.tngtech.archunit.pkg3'];
-
-    root.getByName('com.tngtech.archunit.pkg2.pkg3').fold();
-    root.foldNodesWithMinimumDepthThatHaveNoViolations();
-
-    expect(root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-    return root._updatePromise;
-  });
-
-  it('can hide interfaces: hides packages with only interfaces, changes CSS-class of classes with only inner ' +
-    'interfaces, does not hide interfaces with an inner class', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.clazz('SomeInterface', 'interface').build())
-      .add(testRoot.clazz('SomeInterfaceWithInnerClass', 'interface')
-        .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
-        .build())
-      .add(testRoot.package('interfaces')
-        .add(testRoot.clazz('SomeInterface', 'interface').build())
-        .build())
-      .add(testRoot.package('classes')
-        .add(testRoot.clazz('SomeClassWithInnerInterface', 'class')
-          .havingInnerClass(testRoot.clazz('SomeInnerInterface', 'interface').build())
-          .build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass',
-      'com.tngtech.archunit.SomeInterfaceWithInnerClass',
-      'com.tngtech.archunit.SomeInterfaceWithInnerClass$SomeInnerClass', 'com.tngtech.archunit.classes',
-      'com.tngtech.archunit.classes.SomeClassWithInnerInterface'];
-    const expHiddenNodes = ['com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.interfaces',
-      'com.tngtech.archunit.classes.SomeClassWithInnerInterface$SomeInnerInterface'].map(nodeFullName => root.getByName(nodeFullName));
-    const nodeWithChangedCssClass = root.getByName('com.tngtech.archunit.classes.SomeClassWithInnerInterface');
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    root.changeTypeFilter(false, true);
-    updateFilterAndRelayout(root, filterCollection, 'nodes.type');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-      expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
-      expect(nodeWithChangedCssClass._view.cssClass).to.contain(' unfoldable');
-    });
-  });
-
-  it('can hide classes: hides packages with only classes, changes CSS-class of interfaces with only inner ' +
-    'classes, does not hide classes with an inner interface', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.clazz('SomeInterface', 'interface').build())
-      .add(testRoot.clazz('SomeClassWithInnerInterface', 'class')
-        .havingInnerClass(testRoot.clazz('SomeInnerInterface', 'interface').build())
-        .build())
-      .add(testRoot.package('classes')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .add(testRoot.package('interfaces')
-        .add(testRoot.clazz('SomeInterfaceWithInnerClass', 'interface')
-          .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
-          .build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const visibleNodes = ['com.tngtech.archunit',
-      'com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.SomeClassWithInnerInterface',
-      'com.tngtech.archunit.SomeClassWithInnerInterface$SomeInnerInterface', 'com.tngtech.archunit.interfaces',
-      'com.tngtech.archunit.interfaces.SomeInterfaceWithInnerClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes',
-      'com.tngtech.archunit.interfaces.SomeInterfaceWithInnerClass$SomeInnerClass'].map(nodeFullName => root.getByName(nodeFullName));
-    const nodeWithChangedCssClass = root.getByName('com.tngtech.archunit.interfaces.SomeInterfaceWithInnerClass');
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    root.changeTypeFilter(true, false);
-    updateFilterAndRelayout(root, filterCollection, 'nodes.type');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-      expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
-      expect(nodeWithChangedCssClass._view.cssClass).to.contain(' unfoldable');
-    });
-  });
-
-  it('can hide classes and interfaces, so that only the root remains', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.clazz('SomeInterface', 'interface').build())
-      .add(testRoot.clazz('SomeClassWithInnerInterface', 'class')
-        .havingInnerClass(testRoot.clazz('SomeInnerInterface', 'interface').build())
-        .build())
-      .add(testRoot.package('classes')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .add(testRoot.package('interfaces')
-        .add(testRoot.clazz('SomeInterfaceWithInnerClass', 'interface')
-          .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
-          .build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const expHiddenNodes = ['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.SomeInterface',
-      'com.tngtech.archunit.SomeClassWithInnerInterface', 'com.tngtech.archunit.classes',
-      'com.tngtech.archunit.interfaces'].map(nodeFullName => root.getByName(nodeFullName));
-
-    const visibleNodes = ['com.tngtech.archunit'];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    root.changeTypeFilter(false, false);
-    updateFilterAndRelayout(root, filterCollection, 'nodes.type');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-      expect(root._view.cssClass).to.not.contain(' foldable');
-      expect(root._view.cssClass).to.contain(' unfoldable');
-    });
-  });
-
-  it('can hide classes and show again: sets visibilities correctly and ' +
-    'resets the CSS-class of interfaces with only inner classes', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.clazz('SomeInterface', 'interface').build())
-      .add(testRoot.clazz('SomeClassWithInnerInterface', 'class')
-        .havingInnerClass(testRoot.clazz('SomeInnerInterface', 'interface').build())
-        .build())
-      .add(testRoot.package('classes')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .add(testRoot.package('interfaces')
-        .add(testRoot.clazz('SomeInterfaceWithInnerClass', 'interface')
-          .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
-          .build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const visibleNodes = ['com.tngtech.archunit',
-      'com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.classes', 'com.tngtech.archunit.classes.SomeClass',
-      'com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.SomeClassWithInnerInterface',
-      'com.tngtech.archunit.SomeClassWithInnerInterface$SomeInnerInterface', 'com.tngtech.archunit.interfaces',
-      'com.tngtech.archunit.interfaces.SomeInterfaceWithInnerClass',
-      'com.tngtech.archunit.interfaces.SomeInterfaceWithInnerClass$SomeInnerClass'];
-    const nodeWithChangedCssClass = root.getByName('com.tngtech.archunit.interfaces.SomeInterfaceWithInnerClass');
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    root.changeTypeFilter(true, false);
-    updateFilterAndRelayout(root, filterCollection, 'nodes.type');
-
-    root.changeTypeFilter(true, true);
-    updateFilterAndRelayout(root, filterCollection, 'nodes.type');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(nodeWithChangedCssClass._view.cssClass).to.contain(' foldable');
-      expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' unfoldable');
-    });
-  });
-
-  it('can filter nodes by name using a simple string: hides packages with no matching classes, does not hide not ' +
-    'matching class with matching inner classes', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('MatchingClass', 'class').build())
-      .add(testRoot.clazz('MatchingInterface', 'interface').build())
-      .add(testRoot.clazz('NotMatchingClassWithMatchingInnerChild', 'class')
-        .havingInnerClass(testRoot.clazz('MatchingClass', 'class').build())
-        .build())
-      .add(testRoot.package('pkgWithNoMatchingClass')
-        .add(testRoot.clazz('NotMatchingClass', 'class').build())
-        .build())
-      .add(testRoot.package('MatchingPkg')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .add(testRoot.package('pkgWithMatchingClass')
-        .add(testRoot.clazz('MatchingClass', 'class').build())
-        .add(testRoot.clazz('NotMatchingClass', 'class').build())
-        .build())
-      .add(testRoot.clazz('MatchingClassWithNotMatchingInnerClass', 'class')
-        .havingInnerClass(testRoot.clazz('NotMatchingClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const visibleNodes = ['com.tngtech.archunit',
-      'com.tngtech.archunit.MatchingClass', 'com.tngtech.archunit.MatchingInterface',
-      'com.tngtech.archunit.NotMatchingClassWithMatchingInnerChild',
-      'com.tngtech.archunit.NotMatchingClassWithMatchingInnerChild$MatchingClass',
-      'com.tngtech.archunit.MatchingPkg', 'com.tngtech.archunit.MatchingPkg.SomeClass',
-      'com.tngtech.archunit.pkgWithMatchingClass', 'com.tngtech.archunit.pkgWithMatchingClass.MatchingClass',
-      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClass',
-      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClass$NotMatchingClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.pkgWithNoMatchingClass',
-      'com.tngtech.archunit.pkgWithMatchingClass.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    root.nameFilterString = 'com.tngtech.archunit.MatchingClass|com.tngtech.archunit.MatchingInterface|' +
-      'com.tngtech.archunit.NotMatchingClassWithMatchingInnerChild$MatchingClass|' +
-      'com.tngtech.archunit.MatchingPkg|com.tngtech.archunit.pkgWithMatchingClass.MatchingClass|' +
-      'com.tngtech.archunit.MatchingClassWithNotMatchingInnerClass';
-
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('can filter nodes by name using a string with a star in it', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('XMatchingClassY', 'class').build())
-      .add(testRoot.clazz('XNotMatchingClassWithMatchingChild', 'class')
-        .havingInnerClass(testRoot.clazz('MatchingYClass', 'class').build())
-        .build())
-      .add(testRoot.package('notMatchingXPkgWithMatchingClass')
-        .add(testRoot.clazz('YMatchingClass', 'class').build())
-        .build())
-      .add(testRoot.package('XMatchingYPkg')
-        .add(testRoot.clazz('MatchingClass', 'class').build())
-        .build())
-      .add(testRoot.package('pkgWithNoMatchingYClass')
-        .add(testRoot.clazz('NotMatchingXClass1', 'class').build())
-        .add(testRoot.clazz('NotMatchingClass2', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const visibleNodes = ['com.tngtech.archunit',
-      'com.tngtech.archunit.XMatchingClassY', 'com.tngtech.archunit.XNotMatchingClassWithMatchingChild',
-      'com.tngtech.archunit.XNotMatchingClassWithMatchingChild$MatchingYClass',
-      'com.tngtech.archunit.notMatchingXPkgWithMatchingClass',
-      'com.tngtech.archunit.notMatchingXPkgWithMatchingClass.YMatchingClass',
-      'com.tngtech.archunit.XMatchingYPkg', 'com.tngtech.archunit.XMatchingYPkg.MatchingClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.pkgWithNoMatchingYClass'].map(nodeFullName => root.getByName(nodeFullName));
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    root.nameFilterString = '*X*Y*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('should filter out a node not matching a part with wildcard', () => {
-    const root = testRootCreator(
-      'my.company.first.SomeClass',
-      'my.company.first.OtherClass',
-      'my.company.second.SomeClass',
-      'my.company.second.OtherClass');
-    root.getLinks = () => [];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    root.nameFilterString = 'my.*.first.*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.first.OtherClass'))
-      .then(() => {
-        root.nameFilterString = 'my.company*.SomeClass';
-        updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-        return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.SomeClass', 'my.company.second.SomeClass'))
-          .then(() => {
-            root.nameFilterString = '~my.company*.SomeClass';
-            updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-            return doNext(root, () => expect(root).to.containOnlyClasses('my.company.first.OtherClass', 'my.company.second.OtherClass'))
-              .then(() => {
-                root.nameFilterString = 'my.company*.Some';
-                updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-                return doNext(root, () => expect(root).to.containNoClasses());
-              });
-          });
-      });
-  });
-
-  it('should filter out nodes that are excluded explicitly by the filter', () => {
-    const root = testRootCreator(
-      'my.company.first.SomeClass',
-      'my.company.first.OtherClass',
-      'my.company.second.SomeClass',
-      'my.company.second.OtherClass');
-    root.getLinks = () => [];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    root.nameFilterString = 'my.company.first.*|~*SomeClass';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-    return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first', 'my.company.first.OtherClass']))
-      .then(() => {
-        root.nameFilterString = '~*.OtherClass|~*second*';
-        updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-        return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first',
-          'my.company.first.SomeClass']))
-          .then(() => {
-            root.nameFilterString = '*.OtherClass|~*.second.*';
-            updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-            return doNext(root, () => expect(root.getSelfAndDescendants()).to.containExactlyNodes(['my.company', 'my.company.first', 'my.company.first.OtherClass']));
-          });
-      });
-  });
-
-  it('can filter nodes by name and exclude the matching nodes: changes CSS-class of not matching class with ' +
-    'matching inner class (can occur in this scenario)', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('XMatchingClass', 'class').build())
-      .add(testRoot.clazz('XMatchingInterface', 'interface').build())
-      .add(testRoot.clazz('NotMatchingClassWithMatchingChild', 'class')
-        .havingInnerClass(testRoot.clazz('XMatchingClass', 'class').build())
-        .build())
-      .add(testRoot.package('notMatchingPkgWithOnlyMatchingClasses')
-        .add(testRoot.clazz('XMatchingClass', 'class').build())
-        .build())
-      .add(testRoot.package('XMatchingPkg')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .add(testRoot.package('pkgWithMatchingClass')
-        .add(testRoot.clazz('XMatchingClass', 'class').build())
-        .add(testRoot.clazz('NotMatchingClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const visibleNodes = ['com.tngtech.archunit',
-      'com.tngtech.archunit.NotMatchingClassWithMatchingChild',
-      'com.tngtech.archunit.notMatchingPkgWithOnlyMatchingClasses', 'com.tngtech.archunit.pkgWithMatchingClass',
-      'com.tngtech.archunit.pkgWithMatchingClass.NotMatchingClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.XMatchingClass', 'com.tngtech.archunit.XMatchingInterface',
-      'com.tngtech.archunit.NotMatchingClassWithMatchingChild$XMatchingClass',
-      'com.tngtech.archunit.XMatchingPkg', 'com.tngtech.archunit.pkgWithMatchingClass.XMatchingClass']
-      .map(nodeFullName => root.getByName(nodeFullName));
-    const classWithChangedCssClass =
-      root.getByName('com.tngtech.archunit.NotMatchingClassWithMatchingChild');
-
-    root.nameFilterString = '~*XMatching*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-      expect(classWithChangedCssClass._view.cssClass).to.contain(' unfoldable');
-      expect(classWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
-    });
-  });
-
-  it('can filter nodes by name and exclude the matching nodes', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('MatchingClassXX', 'class').build())
-      .add(testRoot.clazz('MatchingClassWithNotMatchingChildXX', 'class')
-        .havingInnerClass(testRoot.clazz('NotMatchingClass', 'class').build())
-        .build())
-      .add(testRoot.package('MatchingPkgWithNoMatchingChildXX')
-        .add(testRoot.clazz('NotMatchingClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const visibleNodes = ['com.tngtech.archunit'];
-    const expHiddenNodes = ['com.tngtech.archunit.MatchingPkgWithNoMatchingChildXX',
-      'com.tngtech.archunit.MatchingPkgWithNoMatchingChildXX',
-      'com.tngtech.archunit.MatchingClassXX', 'com.tngtech.archunit.MatchingClassWithNotMatchingChildXX',
-      'com.tngtech.archunit.MatchingClassWithNotMatchingChildXX'].map(nodeFullName => root.getByName(nodeFullName));
-
-    root.nameFilterString = '~*XX';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('can reset the node-filter by name: the CSS-class of a node, that was matching the filter but has no child ' +
-    'matching the filter, is reset correctly', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('MatchingClassXX', 'class').build())
-      .add(testRoot.clazz('MatchingInterfaceXX', 'interface').build())
-      .add(testRoot.clazz('NotMatchingXXClass', 'class').build())
-      .add(testRoot.package('matchingPkgWithNoMatchingClassXX')
-        .add(testRoot.clazz('NotMatchingClassXx', 'class').build())
-        .build())
-      .add(testRoot.package('pkgWithMatchingClass')
-        .add(testRoot.clazz('MatchingClassWithNotMatchingChildXX', 'class')
-          .havingInnerClass(testRoot.clazz('NotMatchingClass', 'class').build())
-          .build())
-        .add(testRoot.clazz('NotMatchingClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.MatchingClassXX',
-      'com.tngtech.archunit.MatchingInterfaceXX', 'com.tngtech.archunit.NotMatchingXXClass',
-      'com.tngtech.archunit.matchingPkgWithNoMatchingClassXX',
-      'com.tngtech.archunit.matchingPkgWithNoMatchingClassXX.NotMatchingClassXx',
-      'com.tngtech.archunit.pkgWithMatchingClass',
-      'com.tngtech.archunit.pkgWithMatchingClass.MatchingClassWithNotMatchingChildXX',
-      'com.tngtech.archunit.pkgWithMatchingClass.MatchingClassWithNotMatchingChildXX$NotMatchingClass',
-      'com.tngtech.archunit.pkgWithMatchingClass.NotMatchingClass'];
-    const pkgWithChangedCssClass = root.getByName('com.tngtech.archunit.matchingPkgWithNoMatchingClassXX');
-    const classWithChangedCssClass = root.getByName('com.tngtech.archunit.pkgWithMatchingClass.MatchingClassWithNotMatchingChildXX');
-
-    root.nameFilterString = '*XX';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    root.nameFilterString = '';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(pkgWithChangedCssClass._view.cssClass).to.contain(' foldable');
-      expect(pkgWithChangedCssClass._view.cssClass).to.not.contain(' unfoldable');
-      expect(classWithChangedCssClass._view.cssClass).to.contain(' foldable');
-      expect(classWithChangedCssClass._view.cssClass).to.not.contain(' unfoldable');
-    });
-  });
-
-  it('can change the node filter by name (without resetting it before): shows nodes matching the new filter but not ' +
-    'the old one again', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('XMatchingClass', 'class').build())
-      .add(testRoot.clazz('YMatchingInterface', 'interface').build())
-      .add(testRoot.clazz('NotMatchingClassWithMatchingChild', 'class')
-        .havingInnerClass(testRoot.clazz('YMatchingClass', 'class').build())
-        .build())
-      .add(testRoot.package('pkgWithNoMatchingClasses')
-        .add(testRoot.clazz('XMatchingClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const visibleNodes = ['com.tngtech.archunit',
-      'com.tngtech.archunit.YMatchingInterface',
-      'com.tngtech.archunit.NotMatchingClassWithMatchingChild',
-      'com.tngtech.archunit.NotMatchingClassWithMatchingChild$YMatchingClass'];
-    const expHiddenNodes = [
-      'com.tngtech.archunit.XMatchingClass', 'com.tngtech.archunit.pkgWithNoMatchingClasses']
-      .map(nodeFullName => root.getByName(nodeFullName));
-
-    root.nameFilterString = '*XMatching*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-    root.nameFilterString = '*YMatching*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('can filter by name and filter by type (hiding classes): hides packages (not matching) ' +
-    'without children matching both filters and does not hide not matching nodes with a matching child, and changes ' +
-    'CSS-class of a node loosing its children only because of both filters (that means every child is matching exactly ' +
-    'one filter)', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkgWithoutChildrenMatchingBothFilters')
-        .add(testRoot.clazz('NameMatchingClassX', 'class').build())
-        .add(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
-        .build())
-      .add(testRoot.clazz('NameMatchingInterfaceX', 'interface').build())
-      .add(testRoot.clazz('NameMatchingClassX', 'class').build())
-      .add(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
-      .add(testRoot.package('nameMatchingPkgX')
-        .add(testRoot.clazz('NotMatchingClass', 'class').build()).build())
-      .add(testRoot.package('pkgWithChildMatchingBothFilters')
-        .add(testRoot.clazz('NameMatchingInterfaceX', 'interface').build())
-        .add(testRoot.clazz('NotNameMatchingClassWithChildMatchingBothFilters', 'class')
-          .havingInnerClass(testRoot.clazz('NameMatchingInterfaceX', 'interface').build())
-          .build())
-        .build())
-      .add(testRoot.clazz('NameMatchingInterfaceWithNoMatchingChildX', 'interface')
-        .havingInnerClass(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
-        .havingInnerClass(testRoot.clazz('NameMatchingClassX', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    root.nameFilterString = '*X|~*.NameMatchingInterfaceWithNoMatchingChildX$NotNameMatchingInterface';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    root.changeTypeFilter(true, false);
-    updateFilterAndRelayout(root, filterCollection, 'nodes.type');
-
-    const visibleNodes = ['com.tngtech.archunit',
-      'com.tngtech.archunit.NameMatchingInterfaceX',
-      'com.tngtech.archunit.pkgWithChildMatchingBothFilters',
-      'com.tngtech.archunit.pkgWithChildMatchingBothFilters.NameMatchingInterfaceX',
-      'com.tngtech.archunit.pkgWithChildMatchingBothFilters.NotNameMatchingClassWithChildMatchingBothFilters',
-      'com.tngtech.archunit.pkgWithChildMatchingBothFilters.NotNameMatchingClassWithChildMatchingBothFilters$NameMatchingInterfaceX',
-      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildX'];
-    const expHiddenNodes = [
-      'com.tngtech.archunit.pkgWithoutChildrenMatchingBothFilters', 'com.tngtech.archunit.NameMatchingClassX',
-      'com.tngtech.archunit.NotNameMatchingInterface', 'com.tngtech.archunit.nameMatchingPkgX',
-      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildX$NotNameMatchingInterface',
-      'com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildX$NameMatchingClassX']
-      .map(nodeFullName => root.getByName(nodeFullName));
-    const interfaceWithChangedCssClass = root.getByName('com.tngtech.archunit.NameMatchingInterfaceWithNoMatchingChildX');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-      expect(interfaceWithChangedCssClass._view.cssClass).to.contain(' unfoldable');
-      expect(interfaceWithChangedCssClass._view.cssClass).to.not.contain(' foldable');
-    });
-  });
-
-  it('can filter by name and by type and then reset the name-filter: resets CSS-class of node with a child matching ' +
-    'the type-filter but not the name-filter', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('NameMatchingClassX', 'class').build())
-      .add(testRoot.clazz('NameMatchingInterfaceX', 'interface').build())
-      .add(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
-      .add(testRoot.clazz('NameMatchingInterfaceWithChildOnlyMatchingNameFilterX', 'interface')
-        .havingInnerClass(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
-        .build())
-      .add(testRoot.package('pkgWithNoNameMatchingChild')
-        .add(testRoot.clazz('NotNameMatchingInterface', 'interface').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.NameMatchingInterfaceX',
-      'com.tngtech.archunit.NotNameMatchingInterface', 'com.tngtech.archunit.pkgWithNoNameMatchingChild',
-      'com.tngtech.archunit.pkgWithNoNameMatchingChild.NotNameMatchingInterface',
-      'com.tngtech.archunit.NameMatchingInterfaceWithChildOnlyMatchingNameFilterX',
-      'com.tngtech.archunit.NameMatchingInterfaceWithChildOnlyMatchingNameFilterX$NotNameMatchingInterface'];
-    const expHiddenNodes = ['com.tngtech.archunit.NameMatchingClassX'].map(nodeFullName => root.getByName(nodeFullName));
-    const nodeWithChangedCssClass = root.getByName('com.tngtech.archunit.NameMatchingInterfaceWithChildOnlyMatchingNameFilterX');
-
-    root.nameFilterString = '*X';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-    root.changeTypeFilter(true, false);
-    updateFilterAndRelayout(root, filterCollection, 'nodes.type');
-    root.nameFilterString = '';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-      expect(nodeWithChangedCssClass._view.cssClass).to.contain(' foldable');
-      expect(nodeWithChangedCssClass._view.cssClass).to.not.contain(' unfoldable');
-    });
-  });
-
-  it('can fold and then filter by name: the not matching folded node with matching children (but which are hidden ' +
-    'through folding) should not be hidden', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkgToFold')
-        .add(testRoot.clazz('MatchingXClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold'];
-    const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.MatchingXClass'].map(nodeFullName => root.getByName(nodeFullName));
-
-    pkgToFold._changeFoldIfInnerNodeAndRelayout();
-
-    root.nameFilterString = '*X*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('can filter by name, fold and unfold a node in this order: the filter should be still applied after unfolding ' +
-    '(especially on the hidden nodes)', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkgToFold')
-        .add(testRoot.clazz('NotMatchingClass', 'class').build())
-        .add(testRoot.clazz('MatchingXClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold',
-      'com.tngtech.archunit.pkgToFold.MatchingXClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
-
-    root.nameFilterString = '*X*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    pkgToFold._changeFoldIfInnerNodeAndRelayout();
-    pkgToFold._changeFoldIfInnerNodeAndRelayout();
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('can fold, filter by name and reset the filter in this order: filtering should not influence the fold-state of the ' +
-    'folded node', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkgToFoldX')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFoldX');
-
-    pkgToFold._changeFoldIfInnerNodeAndRelayout();
-
-    root.nameFilterString = '~*X*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-    root.nameFilterString = '';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(pkgToFold.isFolded()).to.equal(true);
-      expect(pkgToFold.isCurrentlyLeaf()).to.equal(true);
-      expect(pkgToFold._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
-      expect(pkgToFold.getCurrentChildren()).to.containExactlyNodes([]);
-    });
-  });
-
-  it('can filter by name, fold and reset the filter in this order: the fold-state should not be changed by resetting the filter', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkgToFold')
-        .add(testRoot.clazz('MatchingClassX', 'class').build())
-        .add(testRoot.clazz('NotMatchingClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
-
-    root.nameFilterString = '~*X*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    pkgToFold._changeFoldIfInnerNodeAndRelayout();
-
-    root.nameFilterString = '';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(pkgToFold.isFolded()).to.equal(true);
-      expect(pkgToFold.isCurrentlyLeaf()).to.equal(true);
-      expect(pkgToFold._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
-      expect(pkgToFold.getCurrentChildren()).to.containExactlyNodes([]);
-    });
-  });
-
-  it('can fold, filter by name and unfold: then the filter should be applied on the hidden children of the folded ' +
-    'node', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkgToFold')
-        .add(testRoot.clazz('NotMatchingClass', 'class').build())
-        .add(testRoot.clazz('MatchingXClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold',
-      'com.tngtech.archunit.pkgToFold.MatchingXClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
-
-    pkgToFold._changeFoldIfInnerNodeAndRelayout();
-
-    root.nameFilterString = '*X*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    pkgToFold._changeFoldIfInnerNodeAndRelayout();
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('can unfold and filter by name: then the node, which would have been shown by unfolding but does not pass ' +
-    'the filter, is hidden', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkgToFold')
-        .add(testRoot.clazz('NotMatchingClass', 'class').build())
-        .add(testRoot.clazz('MatchingXClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const pkgToFold = root.getByName('com.tngtech.archunit.pkgToFold');
-    pkgToFold._changeFoldIfInnerNodeAndRelayout();
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkgToFold',
-      'com.tngtech.archunit.pkgToFold.MatchingXClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.pkgToFold.NotMatchingClass'].map(nodeFullName => root.getByName(nodeFullName));
-
-    pkgToFold._changeFoldIfInnerNodeAndRelayout();
-
-    root.nameFilterString = '*X*';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('can hide specific nodes by adding them to the filter when the filter is empty', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkg')
-        .add(testRoot.clazz('ClassToHide', 'class').build())
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .build();
-    let resultFilterString;
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
-    }, newFilterString => resultFilterString = newFilterString);
-    root.getLinks = () => [];
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg',
-      'com.tngtech.archunit.pkg.SomeClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.pkg.ClassToHide'].map(nodeFullName => root.getByName(nodeFullName));
-
-    root._addNodeToExcludeFilter('com.tngtech.archunit.pkg.ClassToHide');
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(resultFilterString).to.equal('~com.tngtech.archunit.pkg.ClassToHide');
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('can hide specific nodes by adding them to the filter when the filter already contains something', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkg1')
-        .add(testRoot.clazz('ClassToHide1', 'class').build())
-        .add(testRoot.clazz('ClassToHide2', 'class').build())
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .add(testRoot.package('pkg2')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .build();
-    let resultFilterString;
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
-    }, newFilterString => resultFilterString = newFilterString);
-    root.getLinks = () => [];
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1',
-      'com.tngtech.archunit.pkg1.SomeClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.pkg1.ClassToHide1', 'com.tngtech.archunit.pkg1.ClassToHide2',
-      'com.tngtech.archunit.pkg2']
-      .map(nodeFullName => root.getByName(nodeFullName));
-
-    root.nameFilterString = '~*pkg2';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    root._addNodeToExcludeFilter('com.tngtech.archunit.pkg1.ClassToHide1');
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    root._addNodeToExcludeFilter('com.tngtech.archunit.pkg1.ClassToHide2');
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(resultFilterString).to.equal('~*pkg2|~com.tngtech.archunit.pkg1.ClassToHide1|~com.tngtech.archunit.pkg1.ClassToHide2');
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
-  });
-
-  it('can hide specific nodes by adding them to the filter after resetting the filter', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkg')
-        .add(testRoot.clazz('ClassToHide', 'class').build())
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .build();
-    let resultFilterString;
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
-    }, newFilterString => resultFilterString = newFilterString);
-    root.getLinks = () => [];
-    const filterCollection = buildFilterCollection()
-      .addFilterGroup(root.filterGroup)
-      .build();
-
-    const visibleNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg',
-      'com.tngtech.archunit.pkg.SomeClass'];
-    const expHiddenNodes = ['com.tngtech.archunit.pkg.ClassToHide'].map(nodeFullName => root.getByName(nodeFullName));
-
-    root.nameFilterString = 'com.tngtech.archunit.pkg.SomeClass';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    root.nameFilterString = '';
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    root._addNodeToExcludeFilter('com.tngtech.archunit.pkg.ClassToHide');
-    updateFilterAndRelayout(root, filterCollection, 'nodes.name');
-
-    return doNext(root, () => {
-      expect(resultFilterString).to.equal('~com.tngtech.archunit.pkg.ClassToHide');
-      expect(root.getSelfAndDescendants()).to.containExactlyNodes(visibleNodes);
-      expect(root.getSelfAndDescendants().map(node => node._view.isVisible)).to.not.include(false);
-      expect(expHiddenNodes.map(node => node._view.isVisible)).to.not.include(true);
-    });
+  it('draws all nodes', async () => {
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.firstPkg.FirstClass$SomeInnerClass',
+      'my.company.firstPkg.SecondClass', 'my.company.firstPkg.ThirdClass$SomeInnerClass', 'my.company.secondPkg.FirstClass$SomeInnerClass',
+      'my.company.secondPkg.SecondClass', 'my.company.secondPkg.ThirdClass$SomeInnerClass', 'my.company.thirdPkg.SomeClass');
+
+    testGui(root).test.that.onlyNodesAre('my.company.firstPkg.FirstClass$SomeInnerClass',
+      'my.company.firstPkg.SecondClass', 'my.company.firstPkg.ThirdClass$SomeInnerClass', 'my.company.secondPkg.FirstClass$SomeInnerClass',
+      'my.company.secondPkg.SecondClass', 'my.company.secondPkg.ThirdClass$SomeInnerClass', 'my.company.thirdPkg.SomeClass');
   });
 });
 
-describe('Inner node', () => {
-  it('can fold a node initially', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('test')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .add(testRoot.clazz('SomeClass2', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    const innerNode = root.getByName('com.tngtech.archunit.test');
+describe("Node's visual properties are initialized correctly", () => {
+  it('Leaves have the css-class "unfoldable"', async () => {
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass', 'my.company.OtherClass$InnerClass');
 
-    innerNode._initialFold();
-
-    expect(innerNode.isFolded()).to.equal(true);
-    expect(innerNode.isCurrentlyLeaf()).to.equal(true);
-    expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
-    expect(listenerStub.initialFoldedNode()).to.equal(innerNode);
-    expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
+    testGui(root).test.that.node('my.company.SomeClass').is.markedAs.unfoldable()
+      .and.that.node('my.company.OtherClass$InnerClass').is.markedAs.unfoldable();
   });
 
-  it('can change the fold-state to folded', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('test')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .add(testRoot.clazz('SomeClass2', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    const innerNode = root.getByName('com.tngtech.archunit.test');
-    innerNode._changeFoldIfInnerNodeAndRelayout();
+  it('Inner nodes have the css-class "foldable"', async () => {
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInnerClass');
 
-    expect(innerNode.isFolded()).to.equal(true);
-    expect(innerNode.isCurrentlyLeaf()).to.equal(true);
-    expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
-    expect(listenerStub.foldedNode()).to.equal(innerNode);
-    expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
-    return doNext(root, () => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true));
-  });
-
-  it('can change the fold-state to unfolded', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('test')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .add(testRoot.clazz('SomeClass2', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    const innerNode = root.getByName('com.tngtech.archunit.test');
-    innerNode._changeFoldIfInnerNodeAndRelayout();
-    innerNode._changeFoldIfInnerNodeAndRelayout();
-
-    const promises = [];
-    expect(innerNode.isFolded()).to.equal(false);
-    expect(innerNode.isCurrentlyLeaf()).to.equal(false);
-    expect(innerNode.getCurrentChildren()).to.containExactlyNodes(['com.tngtech.archunit.test.SomeClass1', 'com.tngtech.archunit.test.SomeClass2']);
-    promises.push(doNext(root, () => expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(false)));
-    expect(listenerStub.foldedNode()).to.equal(innerNode);
-    promises.push(doNext(root, () => expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true)));
-    return Promise.all(promises);
-  });
-
-  it('can be folded', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('test')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .add(testRoot.clazz('SomeClass2', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    const innerNode = root.getByName('com.tngtech.archunit.test');
-    innerNode.fold();
-
-    expect(innerNode.isFolded()).to.equal(true);
-    expect(innerNode.isCurrentlyLeaf()).to.equal(true);
-    expect(innerNode._originalChildren.map(node => node._view.isVisible)).to.not.include(true);
-    expect(listenerStub.initialFoldedNode()).to.equal(innerNode);
-    expect(innerNode.getCurrentChildren()).to.containExactlyNodes([]);
-  });
-
-  it('can unfold', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('test')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .add(testRoot.clazz('SomeClass2', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    const innerNode = root.getByName('com.tngtech.archunit.test');
-    innerNode.fold();
-    innerNode.unfold();
-
-    expect(innerNode.isFolded()).to.equal(false);
-    expect(innerNode.isCurrentlyLeaf()).to.equal(false);
-    expect(innerNode.getCurrentChildren()).to.containExactlyNodes(['com.tngtech.archunit.test.SomeClass1', 'com.tngtech.archunit.test.SomeClass2']);
-    expect(listenerStub.initialFoldedNode()).to.equal(innerNode);
-    expect(innerNode._originalChildren.map(node => node._isVisible)).to.not.include(false);
-  });
-
-  it('does not call the listeners on folding if it is already folded', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('test')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .add(testRoot.clazz('SomeClass2', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    const innerNode = root.getByName('com.tngtech.archunit.test');
-    innerNode.fold();
-
-    listenerStub.resetInitialFoldedNode();
-    innerNode.fold();
-    expect(listenerStub.initialFoldedNode()).to.equal(null);
-  });
-
-  it('does not call the listeners on unfolding if it is already unfolded', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('test')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .add(testRoot.clazz('SomeClass2', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    const innerNode = root.getByName('com.tngtech.archunit.test');
-
-    innerNode.unfold();
-
-    expect(listenerStub.initialFoldedNode()).to.equal(null);
+    testGui(root).test.that.node('my.company').is.markedAs.foldable()
+      .and.that.node('my.company.SomeClass').is.markedAs.foldable();
   });
 });
 
-describe('Leaf', () => {
-  it('should not fold or change its fold-state', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('Leaf', 'class').build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const leaf = root.getByName('com.tngtech.archunit.Leaf');
-    leaf._initialFold();
-    expect(leaf.isFolded()).to.equal(false);
-    leaf._changeFoldIfInnerNodeAndRelayout();
-    expect(leaf.isFolded()).to.equal(false);
+describe("Node's geometrical properties", () => {
+  it('#getRadius() corresponds to drawn radius', async () => {
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
+
+    const inspectTestGui = testGui(root).inspect;
+
+    expect(root.getByName('my.company.SomeClass').getRadius()).to.equal(inspectTestGui.radiusOf('my.company.SomeClass'));
+    expect(root.getByName('my.company').getRadius()).to.equal(inspectTestGui.radiusOf('my.company'));
   });
 
-  it('should know that it is a leaf', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('Leaf', 'class').build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const leaf = root.getByName('com.tngtech.archunit.Leaf');
-    expect(leaf.isCurrentlyLeaf()).to.equal(true);
+  it('#absoluteFixableCircle corresponds to drawn circle', async () => {
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
+
+    const inspectTestGui = testGui(root).inspect;
+
+    let absoluteFixAbleCircle = root.getByName('my.company.SomeClass').absoluteFixableCircle;
+    expect({x: absoluteFixAbleCircle.x, y: absoluteFixAbleCircle.y}).to.deep.equal(inspectTestGui.positionOf('my.company.SomeClass'));
+    expect(absoluteFixAbleCircle.r).to.deep.equal(inspectTestGui.radiusOf('my.company.SomeClass'));
+
+    absoluteFixAbleCircle = root.getByName('my.company').absoluteFixableCircle;
+    expect({x: absoluteFixAbleCircle.x, y: absoluteFixAbleCircle.y}).to.deep.equal(inspectTestGui.positionOf('my.company'));
+    expect(absoluteFixAbleCircle.r).to.deep.equal(inspectTestGui.radiusOf('my.company'));
   });
 });
 
-describe('Inner node or leaf', () => {
-  it('should know its parent', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    expect(root.getByName('com.tngtech.archunit.SomeClass').getParent()).to.equal(root);
-  });
+describe("Node's public methods", () => {
+  describe('#isPackage()', () => {
+    it('returns false for classes and interfaces', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass', 'my.company.somePkg.SomeInterface$SomeInnerClass');
 
-  it('should know that is not the root', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    expect(root.getByName('com.tngtech.archunit.SomeClass').isRoot()).to.equal(false);
-  });
+      expect(root.getByName('my.company.SomeClass').isPackage()).to.be.false;
+      expect(root.getByName('my.company.somePkg.SomeInterface').isPackage()).to.be.false;
+      expect(root.getByName('my.company.somePkg.SomeInterface$SomeInnerClass').isPackage()).to.be.false;
+    });
 
-  it('can be dragged: changes its relative and absolute coordinates and the ones of its descendants,' +
-    ' updates its view and calls the listener', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.package('htmlvisualization')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    root.getNodesWithDependencies = () => new Map();
-    root.getDependenciesDirectlyWithinNode = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    root.relayoutCompletely();
+    it('returns true for packages', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass', 'my.company.somePkg.SomeInterface');
 
-    const nodeToDrag = root.getByName('com.tngtech.archunit.htmlvisualization.SomeClass');
-    const dx = -5;
-    const dy = 5;
-    const expCoordinates = {x: dx, y: dy};
-
-    nodeToDrag._drag(dx, dy);
-    return doNext(root, () => {
-      expect({
-        x: nodeToDrag.nodeShape.relativePosition.x,
-        y: nodeToDrag.nodeShape.relativePosition.y
-      }).to.deep.equal(expCoordinates);
-      nodeToDrag.getSelfAndDescendants().forEach(node =>
-        expect({
-          x: node.nodeShape.absoluteCircle.x,
-          y: node.nodeShape.absoluteCircle.y
-        }).to.deep.equal(getAbsolutePositionOfNode(node)));
-      expect(nodeToDrag._view.hasJumpedToPosition).to.equal(true);
-      expect(listenerStub.onDragWasCalled()).to.equal(true);
+      expect(root.getByName('my.company').isPackage()).to.be.true;
+      expect(root.getByName('my.company.somePkg').isPackage()).to.be.true;
     });
   });
 
-  it('can be dragged out of the circle of the parent: the radius of the parent is extended', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.package('htmlvisualization')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
+  it('#getFullName() returns the full qualified name of a node', () => {
+    const root = rootCreator.createRootFromClassNames('my.company.SomeClass$SomeInnerClass');
+
+    expect(root.getByName('my.company').getFullName()).to.equal('my.company');
+    expect(root.getByName('my.company.SomeClass').getFullName()).to.equal('my.company.SomeClass');
+    expect(root.getByName('my.company.SomeClass$SomeInnerClass').getFullName()).to.equal('my.company.SomeClass$SomeInnerClass');
+  });
+
+  describe('#getParent()', () => {
+    it('returns itself for the default root', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+      expect(root.getByName('default').getParent()).to.equal(root.getByName('default'));
     });
-    root.getLinks = () => [];
-    root.getNodesWithDependencies = () => new Map();
-    root.getDependenciesDirectlyWithinNode = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    root.relayoutCompletely();
 
-    const nodeToDrag = root.getByName('com.tngtech.archunit.htmlvisualization.SomeClass');
-    const parentOfDraggedNode = root.getByName('com.tngtech.archunit.htmlvisualization');
+    it('returns the parent node of a node', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass$SomeInnerClass');
 
-    return doNext(root, () => {
-      const minDragDistance = parentOfDraggedNode.nodeShape.getRadius() - nodeToDrag.nodeShape.getRadius();
+      expect(root.getByName('my.company').getParent()).to.equal(root.getByName('default'));
+      expect(root.getByName('my.company.SomeClass').getParent()).to.equal(root.getByName('my.company'));
+      expect(root.getByName('my.company.SomeClass$SomeInnerClass').getParent()).to.equal(root.getByName('my.company.SomeClass'));
+    });
+  });
 
-      const dx = -minDragDistance;
-      const dy = minDragDistance;
-      const expCoordinates = {x: dx, y: dy};
+  it('#getOriginalChildren returns all children of a node', () => {
+    const root = rootCreator.createRootFromClassNames('my.company.SomeClass', 'my.company.OtherClass$SomeInnerClass');
 
-      nodeToDrag._drag(dx, dy);
-      return doNext(root, () => {
-        expect({
-          x: nodeToDrag.nodeShape.relativePosition.x,
-          y: nodeToDrag.nodeShape.relativePosition.y
-        }).to.deep.equal(expCoordinates);
+    expect(root.getByName('default').getOriginalChildren()).to.onlyContainNodes('my.company');
+    expect(root.getByName('my.company').getOriginalChildren()).to.onlyContainNodes('my.company.SomeClass', 'my.company.OtherClass');
+    expect(root.getByName('my.company.OtherClass').getOriginalChildren()).to.onlyContainNodes('my.company.OtherClass$SomeInnerClass');
+    expect(root.getByName('my.company.OtherClass$SomeInnerClass').getOriginalChildren()).to.be.empty;
+  });
 
-        expect(listenerStub.draggedNodes()).to.include.members(['com.tngtech.archunit.htmlvisualization.SomeClass', 'com.tngtech.archunit.htmlvisualization']);
-        expect(nodeToDrag).to.be.locatedWithinWithPadding(parentOfDraggedNode, circlePadding);
+  it('#getCurrentChildren() returns all children of a node', () => {
+    const root = rootCreator.createRootFromClassNames('my.company.SomeClass', 'my.company.OtherClass$SomeInnerClass');
+
+    expect(root.getByName('default').getCurrentChildren()).to.onlyContainNodes('my.company');
+    expect(root.getByName('my.company').getCurrentChildren()).to.onlyContainNodes('my.company.SomeClass', 'my.company.OtherClass');
+    expect(root.getByName('my.company.OtherClass').getCurrentChildren()).to.onlyContainNodes('my.company.OtherClass$SomeInnerClass');
+    expect(root.getByName('my.company.OtherClass$SomeInnerClass').getCurrentChildren()).to.be.empty;
+  });
+
+  describe('#isCurrentlyLeaf()', () => {
+    it('returns true for leaf', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+      expect(root.getByName('my.company.SomeClass').isCurrentlyLeaf()).to.be.true;
+    });
+
+    it('returns false for non-leaves', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+      expect(root.getByName('default').isCurrentlyLeaf()).to.be.false;
+      expect(root.getByName('my.company').isCurrentlyLeaf()).to.be.false;
+    });
+  });
+
+  describe('#isPredecessorOf()', () => {
+    it('returns true if the node is a predecessor of the give node', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.somePkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.OtherClass');
+
+      expect(root.getByName('default').isPredecessorOf(root.getByName('my.company'))).to.be.true;
+      expect(root.getByName('default').isPredecessorOf(root.getByName('my.company.somePkg'))).to.be.true;
+      expect(root.getByName('default').isPredecessorOf(root.getByName('my.company.somePkg.SomeClass'))).to.be.true;
+      expect(root.getByName('default').isPredecessorOf(root.getByName('my.company.somePkg.SomeClass$SomeInnerClass'))).to.be.true;
+
+      expect(root.getByName('my.company').isPredecessorOf(root.getByName('my.company.somePkg'))).to.be.true;
+      expect(root.getByName('my.company').isPredecessorOf(root.getByName('my.company.somePkg.SomeClass'))).to.be.true;
+      expect(root.getByName('my.company').isPredecessorOf(root.getByName('my.company.somePkg.SomeClass$SomeInnerClass'))).to.be.true;
+
+      expect(root.getByName('my.company.somePkg.SomeClass').isPredecessorOf(root.getByName('my.company.somePkg.SomeClass$SomeInnerClass'))).to.be.true;
+    });
+
+    it('returns false if the node is not a predecessor of the give node', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
+
+      expect(root.getByName('my.company.otherPkg').isPredecessorOf(root.getByName('my.company.somePkg.SomeClass'))).to.be.false;
+      expect(root.getByName('my.company.otherPkg').isPredecessorOf(root.getByName('my.company.somePkg'))).to.be.false;
+    });
+
+    it('returns false if the node equals the give node', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.somePkg.SomeClass');
+
+      expect(root.getByName('my.company.somePkg').isPredecessorOf(root.getByName('my.company.somePkg'))).to.be.false;
+      expect(root.getByName('my.company.somePkg.SomeClass').isPredecessorOf(root.getByName('my.company.somePkg.SomeClass'))).to.be.false;
+    });
+  });
+
+  describe('#isPredecessorOfNodeOrItself()', () => {
+    it('returns true if the node is a predecessor of the give node', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.somePkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.OtherClass');
+
+      expect(root.getByName('default').isPredecessorOfNodeOrItself(root.getByName('my.company'))).to.be.true;
+      expect(root.getByName('default').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg'))).to.be.true;
+      expect(root.getByName('default').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg.SomeClass'))).to.be.true;
+      expect(root.getByName('default').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg.SomeClass$SomeInnerClass'))).to.be.true;
+
+      expect(root.getByName('my.company').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg'))).to.be.true;
+      expect(root.getByName('my.company').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg.SomeClass'))).to.be.true;
+      expect(root.getByName('my.company').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg.SomeClass$SomeInnerClass'))).to.be.true;
+
+      expect(root.getByName('my.company.somePkg.SomeClass').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg.SomeClass$SomeInnerClass'))).to.be.true;
+    });
+
+    it('returns true if the node equals the give node', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.somePkg.SomeClass');
+
+      expect(root.getByName('my.company.somePkg').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg'))).to.be.true;
+      expect(root.getByName('my.company.somePkg.SomeClass').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg.SomeClass'))).to.be.true;
+    });
+
+    it('returns false if the node is not a predecessor of the give node', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
+
+      expect(root.getByName('my.company.otherPkg').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg.SomeClass'))).to.be.false;
+      expect(root.getByName('my.company.otherPkg').isPredecessorOfNodeOrItself(root.getByName('my.company.somePkg'))).to.be.false;
+    });
+  });
+
+  it('#isFolded() returns false for all nodes', () => {
+    const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+    expect(root.getByName('my.company.SomeClass').isFolded()).to.be.false;
+    expect(root.getByName('my.company').isFolded()).to.be.false;
+    expect(root.getByName('default').isFolded()).to.be.false;
+  });
+
+  describe('#overlapsWith()', () => {
+    it('returns false if one of the nodes is a predecessor of the other one', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInnerClass');
+
+      expect(root.getByName('my.company').overlapsWith(root.getByName('my.company.SomeClass'))).to.be.false;
+      expect(root.getByName('my.company').overlapsWith(root.getByName('my.company.SomeClass$SomeInnerClass'))).to.be.false;
+      expect(root.getByName('my.company.SomeClass').overlapsWith(root.getByName('my.company.SomeClass$SomeInnerClass'))).to.be.false;
+
+      expect(root.getByName('my.company.SomeClass').overlapsWith(root.getByName('my.company'))).to.be.false;
+      expect(root.getByName('my.company.SomeClass$SomeInnerClass').overlapsWith(root.getByName('my.company'))).to.be.false;
+      expect(root.getByName('my.company.SomeClass$SomeInnerClass').overlapsWith(root.getByName('my.company.SomeClass'))).to.be.false;
+    });
+
+    it('returns false for not overlapping nodes with the same parent', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass', 'my.company.OtherClass', 'my.company.somePkg.SomeClass');
+
+      expect(root.getByName('my.company.SomeClass').overlapsWith(root.getByName('my.company.OtherClass'))).to.be.false;
+      expect(root.getByName('my.company.SomeClass').overlapsWith(root.getByName('my.company.somePkg'))).to.be.false;
+      expect(root.getByName('my.company.OtherClass').overlapsWith(root.getByName('my.company.somePkg'))).to.be.false;
+    });
+
+    it('returns false for not overlapping node not with the same parent', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
+
+      expect(root.getByName('my.company.somePkg.SomeClass').overlapsWith(root.getByName('my.company.otherPkg.OtherClass'))).to.be.false;
+    });
+  });
+
+  describe('#getSelfOrFirstPredecessorMatching()', () => {
+    it('returns self if it matches the condition', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+      const someClass = root.getByName('my.company.SomeClass');
+      expect(someClass.getSelfOrFirstPredecessorMatching(node => node.getFullName().includes('Some'))).to.equal(someClass);
+    });
+
+    it('returns the first predecessor matching the condition', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.somePkg.firstPkg.SomeClass$SomeInnerClass',
+        'my.company.somePkg.secondPkg.SomeClass', 'my.company.otherPkg.OtherClass');
+
+      const someInnerClass = root.getByName('my.company.somePkg.firstPkg.SomeClass$SomeInnerClass');
+      const expectedClass = root.getByName('my.company.somePkg.firstPkg');
+      expect(someInnerClass.getSelfOrFirstPredecessorMatching(node => node.getFullName().endsWith('Pkg'))).to.equal(expectedClass);
+    });
+
+    it('returns null if no predecessor matches the condition', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+      const someClass = root.getByName('my.company.SomeClass');
+      expect(someClass.getSelfOrFirstPredecessorMatching(node => node.getFullName().includes('foo'))).to.be.null;
+    });
+  });
+
+  describe('#getSelfAndPredecessorsUntilExclusively()', () => {
+    it('returns an empty array, if the given node equals the one where the method is invoked on', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+      const someClass = root.getByName('my.company.SomeClass');
+      expect(someClass.getSelfAndPredecessorsUntilExclusively(someClass)).to.be.empty;
+    });
+
+    it('returns an array with the node where the method is invoked on, if the given node is the parent', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass$SomeInnerClass');
+
+      const someInnerClass = root.getByName('my.company.SomeClass$SomeInnerClass');
+      const someClass = root.getByName('my.company.SomeClass');
+      expect(someInnerClass.getSelfAndPredecessorsUntilExclusively(someClass)).to.onlyContainOrderedNodes('my.company.SomeClass$SomeInnerClass');
+    });
+
+    it('returns all nodes until the given one exclusively', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.somePkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.OtherClass');
+
+      const someInnerClass = root.getByName('my.company.somePkg.SomeClass$SomeInnerClass');
+      const company = root.getByName('my.company');
+      expect(someInnerClass.getSelfAndPredecessorsUntilExclusively(company)).to.onlyContainOrderedNodes(
+        'my.company.somePkg', 'my.company.somePkg.SomeClass', 'my.company.somePkg.SomeClass$SomeInnerClass');
+    });
+
+    it('throws an error if the given node does not exist', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+      expect(() => root.getByName('my.company.SomeClass').getSelfAndPredecessorsUntilExclusively()).to.throw('the given node does not exist');
+    });
+  });
+
+  it('#isRoot()', () => {
+    const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+    expect(root.getByName('default').isRoot()).to.be.true;
+    expect(root.getByName('my.company').isRoot()).to.be.false;
+    expect(root.getByName('my.company.SomeClass').isRoot()).to.be.false;
+  });
+
+  it('#getSelfAndPredecessors()', () => {
+    const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+    expect(root.getByName('default').getSelfAndPredecessors()).to.onlyContainOrderedNodes('default');
+    expect(root.getByName('my.company').getSelfAndPredecessors()).to.onlyContainOrderedNodes('my.company', 'default');
+    expect(root.getByName('my.company.SomeClass').getSelfAndPredecessors()).to.onlyContainOrderedNodes('my.company.SomeClass', 'my.company', 'default');
+  });
+
+  describe("Root's specific public methods", () => {
+    it('#getByName() returns the node for a given fullname', () => {
+      const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
+
+      expect(root.getByName('my.company.SomeClass').getFullName()).to.equal('my.company.SomeClass');
+      expect(root.getByName('my.company').getFullName()).to.equal('my.company');
+      expect(root.getByName('default').getFullName()).to.equal('default');
+    });
+  });
+
+  describe("InnerNode's specific public methods", () => {
+    describe('#liesInFrontOf()', () => {
+      it('returned value corresponds to the drawing order of the elements', async () => {
+        const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.FirstClass', 'my.company.somePkg.SecondClass',
+          'my.company.otherPkg.OtherClass');
+
+        const inspectTestGui = testGui(root).inspect;
+
+        const firstClass = root.getByName('my.company.somePkg.FirstClass');
+
+        expect(firstClass.liesInFrontOf(root.getByName('my.company.somePkg.SecondClass'))).to.equal(
+          inspectTestGui.nodeLiesInFrontOf('my.company.somePkg.FirstClass', 'my.company.somePkg.SecondClass'));
+        expect(firstClass.liesInFrontOf(root.getByName('my.company.otherPkg.OtherClass'))).to.equal(
+          inspectTestGui.nodeLiesInFrontOf('my.company.somePkg.FirstClass', 'my.company.otherPkg.OtherClass'));
+        expect(firstClass.liesInFrontOf(root.getByName('my.company.somePkg'))).to.equal(
+          inspectTestGui.nodeLiesInFrontOf('my.company.somePkg.FirstClass', 'my.company.somePkg'));
+        expect(firstClass.liesInFrontOf(root.getByName('my.company.otherPkg'))).to.equal(
+          inspectTestGui.nodeLiesInFrontOf('my.company.somePkg.FirstClass', 'my.company.otherPkg'));
       });
-    });
-  });
 
-  it('can be dragged out of the circle of the parent: the radius of the parent is extended and recursively of all predecessors of the parent, ' +
-    'so that every node is completely within its parent node', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.package('htmlvisualization')
-        .add(testRoot.package('pkg')
-          .add(testRoot.clazz('SomeClass', 'class').build())
-          .build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
-    });
-    root.getLinks = () => [];
-    root.getNodesWithDependencies = () => new Map();
-    root.getDependenciesDirectlyWithinNode = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    root.relayoutCompletely();
+      it('the returned value is negated, if the elements are switched', async () => {
+        const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.FirstClass', 'my.company.SecondClass');
 
-    const nodeToDrag = root.getByName('com.tngtech.archunit.htmlvisualization.pkg.SomeClass');
-    const predecessor1OfDraggedNode = root.getByName('com.tngtech.archunit.htmlvisualization.pkg');
-    const predecessor2OfDraggedNode = root.getByName('com.tngtech.archunit.htmlvisualization');
+        const firstClass = root.getByName('my.company.FirstClass');
+        const secondClass = root.getByName('my.company.SecondClass');
+        const company = root.getByName('my.company');
 
-    return doNext(root, () => {
-      const minDragDistance = predecessor2OfDraggedNode.nodeShape.getRadius() - nodeToDrag.nodeShape.getRadius();
-
-      const dx = -minDragDistance;
-      const dy = minDragDistance;
-      const expCoordinates = {x: dx, y: dy};
-
-      nodeToDrag._drag(dx, dy);
-      return doNext(root, () => {
-        expect({
-          x: nodeToDrag.nodeShape.relativePosition.x,
-          y: nodeToDrag.nodeShape.relativePosition.y
-        }).to.deep.equal(expCoordinates);
-
-        expect(listenerStub.draggedNodes()).to.include.members(['com.tngtech.archunit.htmlvisualization.pkg.SomeClass', 'com.tngtech.archunit.htmlvisualization.pkg', 'com.tngtech.archunit.htmlvisualization']);
-        expect(nodeToDrag).to.be.locatedWithinWithPadding(predecessor1OfDraggedNode, circlePadding);
-        expect(predecessor1OfDraggedNode).to.be.locatedWithinWithPadding(predecessor2OfDraggedNode, circlePadding);
-      });
-    });
-  });
-
-  it('can be dragged out of the circle of the parent: the size of the root is extended, if some node would not be completely within ' +
-    'the root rectangle otherwise', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.package('htmlvisualization')
-        .add(testRoot.package('pkg')
-          .add(testRoot.clazz('SomeClass', 'class').build())
-          .build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
-    });
-    root.getLinks = () => [];
-    root.getNodesWithDependencies = () => new Map();
-    root.getDependenciesDirectlyWithinNode = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    root.relayoutCompletely();
-
-    const nodeToDrag = root.getByName('com.tngtech.archunit.htmlvisualization.pkg.SomeClass');
-    const predecessor2OfDraggedNode = root.getByName('com.tngtech.archunit.htmlvisualization');
-
-    return doNext(root, () => {
-      const minDragDistance = Math.max(root.nodeShape.absoluteRect.halfWidth, root.nodeShape.absoluteRect.halfHeight) - nodeToDrag.nodeShape.getRadius() + 10;
-
-      const dx = -minDragDistance;
-      const dy = minDragDistance;
-      const expCoordinates = {x: dx, y: dy};
-
-      nodeToDrag._drag(dx, dy);
-      return doNext(root, () => {
-        expect({
-          x: nodeToDrag.nodeShape.relativePosition.x,
-          y: nodeToDrag.nodeShape.relativePosition.y
-        }).to.deep.equal(expCoordinates);
-
-        expect(listenerStub.draggedNodes()).to.include.members(['com.tngtech.archunit.htmlvisualization.pkg.SomeClass',
-          'com.tngtech.archunit.htmlvisualization.pkg', 'com.tngtech.archunit.htmlvisualization', 'com.tngtech.archunit']);
-        expect(predecessor2OfDraggedNode).to.be.locatedWithinWithPadding(root, circlePadding);
-      });
-    });
-  });
-
-  it('can be dragged out of the root: as the root has a rectangular form, its width and/or height are extended', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve(), () => {
-    });
-    root.getLinks = () => [];
-    root.getNodesWithDependencies = () => new Map();
-    root.getDependenciesDirectlyWithinNode = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    root.relayoutCompletely();
-
-    const nodeToDrag = root.getByName('com.tngtech.archunit.SomeClass');
-
-    return doNext(root, () => {
-      const minDragDistance = Math.max(root.nodeShape.absoluteRect.halfWidth, root.nodeShape.absoluteRect.halfHeight) - nodeToDrag.nodeShape.getRadius() + 10;
-
-      const dx = -minDragDistance;
-      const dy = minDragDistance;
-      const expCoordinates = {x: dx, y: dy};
-
-      nodeToDrag._drag(dx, dy);
-      return doNext(root, () => {
-        expect({
-          x: nodeToDrag.nodeShape.relativePosition.x,
-          y: nodeToDrag.nodeShape.relativePosition.y
-        }).to.deep.equal(expCoordinates);
-
-        expect(listenerStub.draggedNodes()).to.include.members(['com.tngtech.archunit.SomeClass', 'com.tngtech.archunit']);
-        expect(nodeToDrag).to.be.locatedWithinWithPadding(root, circlePadding);
-      });
-    });
-  });
-
-  it('does not notify its listeners, if it is dragged so that a class and an unfolded package are overlapping', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkgToBeOverlapped')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .add(testRoot.clazz('ClassToDrag', 'class').build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    root.getDependenciesDirectlyWithinNode = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    root.relayoutCompletely();
-
-    const nodeToDrag = root.getByName('com.tngtech.archunit.ClassToDrag');
-    const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
-    const node = root.getByName('com.tngtech.archunit.pkgToBeOverlapped.SomeClass');
-    root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [node.getFullName(), node]]);
-
-    return doNext(root, () => {
-      const dragVector = Vector.between(nodeToDrag.nodeShape.relativePosition, nodeToBeOverlapped.nodeShape.relativePosition);
-      dragVector.norm(3 * circlePadding);
-
-      nodeToDrag._drag(dragVector.x, dragVector.y);
-
-      return doNext(root, () => {
-        expect(listenerStub.overlappedNodesAndPosition()).to.be.empty;
-      });
-    });
-  });
-
-  it('does not notify its listeners, if it is dragged so that a class and a folded package are overlapping and the package is in front of the class', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('ClassToDrag', 'class').build())
-      .add(testRoot.package('pkgToBeOverlapped')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    root.getDependenciesDirectlyWithinNode = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    root.relayoutCompletely();
-
-    const nodeToDrag = root.getByName('com.tngtech.archunit.ClassToDrag');
-    const nodeToBeOverlapped = root.getByName('com.tngtech.archunit.pkgToBeOverlapped');
-    nodeToBeOverlapped._changeFoldIfInnerNodeAndRelayout();
-    root.getNodesWithDependencies = () => new Map([[nodeToDrag.getFullName(), nodeToDrag], [nodeToBeOverlapped.getFullName(), nodeToBeOverlapped]]);
-
-    return doNext(root, () => {
-      const dragVector = Vector.between(nodeToDrag.nodeShape.relativePosition, nodeToBeOverlapped.nodeShape.relativePosition);
-      dragVector.norm(dragVector.length() - nodeToBeOverlapped.getRadius());
-
-      nodeToDrag._drag(dragVector.x, dragVector.y);
-
-      return doNext(root, () => {
-        expect(listenerStub.overlappedNodesAndPosition()).to.be.empty;
+        expect(firstClass.liesInFrontOf(secondClass)).to.not.equal(secondClass.liesInFrontOf(firstClass));
+        expect(firstClass.liesInFrontOf(company)).to.not.equal(company.liesInFrontOf(firstClass));
       });
     });
   });
 });
 
-describe('Arbitrary node', () => {
-  it('should know whether it is the predecessor of another node', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkg')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    expect(root.getByName('com.tngtech.archunit.pkg').isPredecessorOf('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
-    expect(root.getByName('com.tngtech.archunit').isPredecessorOf('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
-    expect(root.getByName('com.tngtech.archunit.pkg.SomeClass1').isPredecessorOf('com.tngtech.archunit.pkg.SomeClass1')).to.be.false;
+describe('Filter and fold nodes in combination:', () => {
+  it('A folded class stays folded when it is hidden and shown again by a filter', async () => {
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass',
+      'my.company.otherPkg.SomeInterface');
+    const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+    await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+    await filterOn(root, filterCollection).typeFilter(true, false).await();
+    testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeInterface');
+
+    await filterOn(root, filterCollection).typeFilter(true, true).await();
+    testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.SomeInterface');
   });
 
-  it('should know whether it is the predecessor of another node or the node itself', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkg')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    expect(root.getByName('com.tngtech.archunit.pkg.SomeClass1').isPredecessorOfOrNodeItself('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
-    expect(root.getByName('com.tngtech.archunit.pkg').isPredecessorOfOrNodeItself('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
-    expect(root.getByName('com.tngtech.archunit').isPredecessorOfOrNodeItself('com.tngtech.archunit.pkg.SomeClass1')).to.be.true;
+  it('A folded class that does not match the filter but has matching children, is not hidden', async () => {
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInnerClass', 'my.company.OtherClass');
+    const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+    await testGui(root).interact.clickNodeAndAwait('my.company.SomeClass');
+    await filterOn(root, filterCollection).nameFilter('*$SomeInnerClass').await();
+    testGui(root).test.that.onlyNodesAre('my.company.SomeClass');
+
+    await testGui(root).interact.clickNodeAndAwait('my.company.SomeClass');
+    testGui(root).test.that.onlyNodesAre('my.company.SomeClass$SomeInnerClass');
+  });
+
+  describe('Fold and filter after each other', () => {
+    it('Fold, filter, unfold, reset the filter and unfold nodes that were hidden by the filter', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout(
+        'my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
+        'my.company.otherPkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg.SomeClass');
+      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg');
+      await filterOn(root, filterCollection).typeFilter(false, true).await();
+      await filterOn(root, filterCollection).nameFilter('~my.company.otherPkg.SomeClass').await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg');
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.otherPkg');
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
+
+      await filterOn(root, filterCollection).typeFilter(true, true).await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
+        'my.company.otherPkg.OtherClass');
+
+      await filterOn(root, filterCollection).nameFilter('').await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
+        'my.company.otherPkg.SomeClass', 'my.company.otherPkg.OtherClass');
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg.SomeClass');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
+        'my.company.otherPkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.OtherClass');
+    });
+
+    it('Filter, fold, reset the filter and unfold', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass$SomeInnerClass',
+        'my.company.somePkg.SomeClass$SomeInnerInterface', 'my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      await filterOn(root, filterCollection).typeFilter(false, true).await();
+      await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.OtherClass').await();
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg.SomeClass');
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+
+      await filterOn(root, filterCollection).typeFilter(true, true).await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+
+      await filterOn(root, filterCollection).nameFilter('').await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg.SomeClass');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass$SomeInnerClass',
+        'my.company.somePkg.SomeClass$SomeInnerInterface', 'my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
+    });
+
+    it('Fold, filter, reset the filter, unfold', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout(
+        'my.company.somePkg.SomeInterface', 'my.company.somePkg.OtherInterface', 'my.company.otherPkg.SomeClass$SomeInnerClass',
+        'my.company.otherPkg.SomeClass$OtherInnerClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg.SomeClass');
+      await filterOn(root, filterCollection).typeFilter(false, true).await();
+      await filterOn(root, filterCollection).nameFilter('~*.SomeInnerClass').await();
+      testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeClass');
+
+      await filterOn(root, filterCollection).typeFilter(true, true).await();
+      testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeClass', 'my.company.somePkg');
+
+      await filterOn(root, filterCollection).nameFilter('').await();
+      testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeClass', 'my.company.somePkg');
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeInterface', 'my.company.somePkg.OtherInterface',
+        'my.company.otherPkg.SomeClass');
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg.SomeClass');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeInterface', 'my.company.somePkg.OtherInterface',
+        'my.company.otherPkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.SomeClass$OtherInnerClass');
+    });
+
+    it('Filter, fold, unfold and reset the filter', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass$SomeInnerClass',
+        'my.company.somePkg.SomeClass$SomeInnerInterface', 'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      await filterOn(root, filterCollection).typeFilter(false, true).await();
+      await filterOn(root, filterCollection).nameFilter('~my.company.otherPkg.OtherClass').await();
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg.SomeClass');
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg');
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass');
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg.SomeClass');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass$SomeInnerClass');
+
+      await filterOn(root, filterCollection).typeFilter(true, true).await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass$SomeInnerClass',
+        'my.company.somePkg.SomeClass$SomeInnerInterface');
+
+      await filterOn(root, filterCollection).nameFilter('').await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass$SomeInnerClass',
+        'my.company.somePkg.SomeClass$SomeInnerInterface', 'my.company.otherPkg.OtherClass');
+    });
+  });
+
+  describe('Fold and filter directly after each other, so that the relayout in between may not be finished', () => {
+    it('Fold and then filter, reset the filter and then unfold', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      testGui(root).interact.clickNode('my.company.somePkg');
+      testGui(root).interact.clickNode('my.company.otherPkg');
+      await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.OtherClass|~my.company.otherPkg.OtherClass').await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg');
+
+      filterOn(root, filterCollection).nameFilter('').goOn();
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg');
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass');
+    });
+
+    it('Fold and then reset the filter, filter and then unfold', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').await();
+
+      testGui(root).interact.clickNode('my.company.somePkg');
+      await filterOn(root, filterCollection).nameFilter('').await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+
+      filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
+    });
+
+    it('Reset the filter and then fold, unfold and then filter', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').await();
+
+      filterOn(root, filterCollection).nameFilter('').goOn();
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+
+      testGui(root).interact.clickNode('my.company.somePkg');
+      await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
+    });
+
+    it('Filter and then fold, unfold and then reset the filter', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+
+      testGui(root).interact.clickNode('my.company.somePkg');
+      await filterOn(root, filterCollection).nameFilter('').await();
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass');
+    });
+
+    it('Filter, fold, unfold, reset the filter', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
+      testGui(root).interact.clickNode('my.company.somePkg');
+      testGui(root).interact.clickNode('my.company.somePkg');
+      await filterOn(root, filterCollection).nameFilter('').await();
+
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass')
+    });
+
+    it('Fold, filter, reset the filter, unfold', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      testGui(root).interact.clickNode('my.company.somePkg');
+      filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
+      filterOn(root, filterCollection).nameFilter('').goOn();
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass')
+    });
+
+    it('Fold, filter, unfold, reset the filter', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass');
+      const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+      testGui(root).interact.clickNode('my.company.somePkg');
+      filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
+      testGui(root).interact.clickNode('my.company.somePkg');
+      await filterOn(root, filterCollection).nameFilter('').await();
+
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+        'my.company.otherPkg.OtherClass')
+    });
   });
 });
 
-describe('Node layout', () => {
-  const jsonRoot = testRoot.package('com.tngtech.archunit')
-    .add(testRoot.clazz('SomeClass1', 'class').build())
-    .add(testRoot.clazz('SomeClass2', 'class').build())
-    .add(testRoot.package('htmlvisualization')
-      .add(testRoot.clazz('SomeClass1', 'class').build())
-      .add(testRoot.clazz('SomeClass2', 'class').build())
-      .add(testRoot.clazz('SomeClass3', 'class').build())
-      .build())
-    .build();
+describe('Dragging node in combination with folding and filtering:', () => {
+  it('A folded node can be dragged', async () => {
+    let _offsetPosition = {x: 0, y: 0};
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass', {
+      onJumpedToPosition: offsetPosition => _offsetPosition = offsetPosition
+    });
+    await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
 
-  it("should set a node's absolute position correctly", () => {
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    root.relayoutCompletely();
-    return doNext(root, () => {
-      root._callOnEveryDescendantThenSelf(node => {
-        const absolutePosition = getAbsolutePositionOfNode(node);
-        expect(node.nodeShape.absoluteShape.centerPosition).to.deep.closeTo(absolutePosition, MAXIMUM_DELTA);
-      });
+    const nodePositionBefore = testGui(root).inspect.positionOf('my.company.somePkg');
+
+    await testGui(root).interact.dragNodeAndAwait('my.company.somePkg', {dx: 50, dy: 50});
+
+    const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x + 50, y: nodePositionBefore.y + 50});
+    testGui(root).test.that.node('my.company.somePkg').is.atPosition(expectedPosition);
+  });
+
+  describe('Clicking on a node after dragging it:', () => {
+    it('folds the node if it was unfolded before and leads to a correct layout', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
+      await testGui(root).interact.dragNodeAndAwait('my.company.somePkg', {dx: 50, dy: 50});
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+      testWholeLayoutOn(root);
+    });
+
+    it('unfolds the node if it was folded before and leads to a correct layout', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
+      testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      await testGui(root).interact.dragNodeAndAwait('my.company.somePkg', {dx: 50, dy: 50});
+
+      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+
+      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
+      testWholeLayoutOn(root);
     });
   });
 
-  it('should make all nodes fixed after having done the layout', () => {
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    root.relayoutCompletely();
-    return doNext(root, () => {
-      root.getCurrentChildren().forEach(c => c._callOnEveryDescendantThenSelf(node => {
-        expect(node.nodeShape.absoluteShape.fx).to.not.be.undefined;
-        expect(node.nodeShape.absoluteShape.fy).to.not.be.undefined;
-        expect(node.nodeShape.absoluteShape.centerPosition.fixed).to.be.true;
-      }));
-    });
-  });
+  it('the nodes can be filtered after dragging one, which leads to a correct layout', async () => {
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.SomeClass',
+      'my.company.otherPkg.OtherClass');
+    const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+    await testGui(root).interact.dragNodeAndAwait('my.company.somePkg.SomeClass', {dx: 50, dy: 50});
 
-  it('should put every child node within its parent node considering the padding', () => {
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    root.relayoutCompletely();
-    return doNext(root, () => {
-      root._callOnEveryDescendantThenSelf(node => {
-        if (!node.isRoot()) {
-          expect(node).to.locatedWithinWithPadding(node.getParent(), circlePadding);
-        }
-      });
-    });
-  });
+    await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').await();
 
-  it('does the relayout only once, when it is called several times after each other', () => {
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    const movedNodes = [];
-    stubs.saveMovedNodesTo(movedNodes);
-    root.relayoutCompletely();
-    root.relayoutCompletely();
-    root.relayoutCompletely();
-    return root._updatePromise.then(() => {
-      expect(root._getDescendants()).to.containExactlyNodes(movedNodes);
-    });
-  });
-
-  it('should update the node-views on relayouting and call the listener', () => {
-    let onRadiusChangedWasCalled = false;
-    const root = new Root(jsonRoot, null, () => onRadiusChangedWasCalled = true);
-    root.getLinks = () => [];
-    const listenerStub = stubs.NodeListenerStub();
-    root.addListener(listenerStub);
-    root.relayoutCompletely();
-    return doNext(root, () => {
-      expect(listenerStub.onLayoutChangedWasCalled()).to.equal(true);
-      expect(onRadiusChangedWasCalled).to.equal(true);
-      root._callOnEveryDescendantThenSelf(node => {
-        expect(node._view.hasMovedToPosition).to.equal(true);
-        if (!node.isRoot()) {
-          expect(node._view.hasMovedToRadius).to.equal(true);
-        }
-      });
-    });
-  });
-
-  it('should not make two siblings overlap', () => {
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    root.relayoutCompletely();
-    return doNext(root, () => {
-      root._callOnEveryDescendantThenSelf(node => {
-        if (!node.isRoot()) {
-          node.getParent().getOriginalChildren().filter(child => child !== node).forEach(sibling =>
-            expect(node).to.notOverlapWith(sibling, 2 * circlePadding));
-        }
-      });
-    });
-  });
-
-  it('should put the text at the correct position in the circle: for leaves in the middle, for inner nodes at the top ' +
-    'and for the root at the very top; furthermore the text must be within the circle (except for the root)', () => {
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    root.getLinks = () => [];
-    root.relayoutCompletely();
-    return doNext(root, () => {
-      root._callOnEveryDescendantThenSelf(node => {
-        if (!node.isRoot()) {
-          if (node.isCurrentlyLeaf()) {
-            expect(node._view.textOffset).to.equal(0);
-            expect(node.getNameWidth() / 2).to.be.at.most(node.getRadius());
-          } else {
-            const halfTextWith = node.getNameWidth() / 2;
-            const offset = node._view.textOffset;
-            expect(Math.sqrt(halfTextWith * halfTextWith + offset * offset)).to.be.at.most(node.getRadius());
-          }
-        }
-      });
-    });
-  });
-});
-
-describe('Node', () => {
-  it('creates the correct tree-structure from json-input', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass', 'class').build())
-      .add(testRoot.clazz('SomeInterface', 'interface').build())
-      .add(testRoot.package('htmlvisualization')
-        .add(testRoot.clazz('SomeClass', 'class').build())
-        .build())
-      .add(testRoot.package('test')
-        .add(testRoot.clazz('SomeTestClass', 'class')
-          .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
-          .build())
-        .build())
-      .build();
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-    const exp = ['com.tngtech.archunit(package)', 'com.tngtech.archunit.SomeClass(class)',
-      'com.tngtech.archunit.SomeInterface(interface)', 'com.tngtech.archunit.htmlvisualization(package)',
-      'com.tngtech.archunit.htmlvisualization.SomeClass(class)', 'com.tngtech.archunit.test(package)',
-      'com.tngtech.archunit.test.SomeTestClass(class)', 'com.tngtech.archunit.test.SomeTestClass$SomeInnerClass(class)'];
-    const act = root.getSelfAndDescendants().map(node => `${node.getFullName()}(${node._description.type})`);
-    expect(act).to.deep.equal(exp);
-  });
-
-  it('Adds CSS to make the mouse a pointer, if there are children to unfold', () => {
-    const jsonRoot = testRoot.package("com.tngtech")
-      .add(testRoot.clazz("Class1", "abstractclass").build())
-      .build();
-
-    const root = new Root(jsonRoot, null, () => Promise.resolve());
-
-    expect(root._getClass()).to.contain(' foldable');
-    expect(root._getClass()).not.to.contain(' unfoldable');
-    expect(root.getCurrentChildren()[0]._getClass()).to.contain(' unfoldable');
-    expect(root.getCurrentChildren()[0]._getClass()).not.to.contain(' foldable');
+    testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeClass', 'my.company.otherPkg.OtherClass');
+    testWholeLayoutOn(root);
   });
 });

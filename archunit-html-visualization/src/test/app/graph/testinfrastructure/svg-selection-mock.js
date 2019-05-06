@@ -56,6 +56,10 @@ const D3ElementMock = class {
   get svgType() {
     return this._svgType;
   }
+
+  get radius() {
+    return this.getAttribute('r');
+  }
 };
 
 const TransitionMock = class extends D3ElementMock {
@@ -313,6 +317,55 @@ const SvgSelectionMock = class extends D3ElementMock {
       //svg-element containing the children of the parent node
     }
     return true;
+  }
+
+  getSelfAndPredecessors() {
+    if (this._parent) {
+      return [this, ...this._parent.getSelfAndPredecessors()];
+    } else {
+      return [this];
+    }
+  }
+
+  /**
+   * checks if this svg-element is drawn in front of the given other svg element
+   * @return {*}
+   */
+  isInFrontOf(otherSvgElement) {
+    const selfAndPredecessors = this.getSelfAndPredecessors();
+    const otherAndPredecessors = otherSvgElement.getSelfAndPredecessors();
+
+    const otherAndPredecessorsSet = new Set(otherAndPredecessors);
+
+    let selfIndex = 0;
+    let firstCommonPredecessor = selfAndPredecessors[selfIndex];
+
+    while (!otherAndPredecessorsSet.has(firstCommonPredecessor)) {
+      if (selfIndex >= selfAndPredecessors.length - 1) {
+        throw new Error('the svg element seem not to be in the same svg hierarchy');
+      }
+
+      selfIndex++;
+      firstCommonPredecessor = selfAndPredecessors[selfIndex];
+    }
+
+    const otherIndex = otherAndPredecessors.indexOf(firstCommonPredecessor);
+
+    if (selfIndex === 0 && otherIndex === 0) {
+      throw new Error('the both svg element seem to be the same');
+    }
+
+    if (selfIndex === 0) {
+      return false;
+    }
+
+    if (otherIndex === 0) {
+      return true;
+    }
+
+    const selfPredecessorIndex = firstCommonPredecessor._subElements.indexOf(selfAndPredecessors[selfIndex - 1]);
+    const otherPredecessorIndex = firstCommonPredecessor._subElements.indexOf(otherAndPredecessors[otherIndex - 1]);
+    return selfPredecessorIndex > otherPredecessorIndex;
   }
 };
 
