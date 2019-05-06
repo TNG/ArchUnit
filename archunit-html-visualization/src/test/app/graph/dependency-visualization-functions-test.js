@@ -88,6 +88,33 @@ describe('Calculates correct start end end point of a single dependency', () => 
     expect(results.startPoint).to.deepCloseTo({x: 117.888444, y: 191.055728});
     expect(results.endPoint).to.deepCloseTo({x: 182.111456, y: 158.944272});
   });
+
+  it('if the start circle of the dependency is within the end circle', () => {
+    const startCircle = {x: 100, y: 100, r: 20};
+    const endCircle = {x: 110, y: 130, r: 70};
+
+    const results = visualizationFunctions.calculateStartAndEndPositionOfDependency(false, startCircle, endCircle);
+    expect(results.startPoint).to.deepCloseTo({x: 93.675445, y: 81.026334});
+    expect(results.endPoint).to.deepCloseTo({x: 87.864056, y: 63.592169});
+  });
+
+  it('if the end circle of the dependency is within the start circle', () => {
+    const startCircle = {x: 110, y: 130, r: 70};
+    const endCircle = {x: 100, y: 100, r: 20};
+
+    const results = visualizationFunctions.calculateStartAndEndPositionOfDependency(false, startCircle, endCircle);
+    expect(results.startPoint).to.deepCloseTo({x: 87.864056, y: 63.592169});
+    expect(results.endPoint).to.deepCloseTo({x: 93.675445, y: 81.026334});
+  });
+
+  it('if the start circle of the dependency is exactly in the middle of the end circle: then the dependency points to the bottom left', () => {
+    const startCircle = {x: 100, y: 100, r: 20};
+    const endCircle = {x: 100, y: 100, r: 40};
+
+    const results = visualizationFunctions.calculateStartAndEndPositionOfDependency(false, startCircle, endCircle);
+    expect(results.startPoint).to.deepCloseTo({x: 114.142136, y: 114.142136});
+    expect(results.endPoint).to.deepCloseTo({x: 128.284271, y: 128.284271});
+  });
 });
 
 describe('Calculates correct start end end point of a dependency, where another dependency in the opposite direction exists', () => {
@@ -170,5 +197,32 @@ describe('Calculates correct start end end point of a dependency, where another 
     const results = visualizationFunctions.calculateStartAndEndPositionOfDependency(true, startCircle, endCircle);
     expect(results.startPoint).to.deepCloseTo({x: 112, y: 184});
     expect(results.endPoint).to.deepCloseTo({x: 180, y: 150});
+  });
+
+  it('if the start circle of the dependency is within the end circle', () => {
+    const startCircle = {x: 100, y: 100, r: 20};
+    const endCircle = {x: 110, y: 130, r: 70};
+
+    const results = visualizationFunctions.calculateStartAndEndPositionOfDependency(false, startCircle, endCircle);
+    expect(results.startPoint).to.deepCloseTo({x: 93.675445, y: 81.026334});
+    expect(results.endPoint).to.deepCloseTo({x: 87.864056, y: 63.592169});
+  });
+
+  it('if the end circle of the dependency is within the start circle', () => {
+    const startCircle = {x: 110, y: 130, r: 70};
+    const endCircle = {x: 100, y: 100, r: 20};
+
+    const results = visualizationFunctions.calculateStartAndEndPositionOfDependency(false, startCircle, endCircle);
+    expect(results.startPoint).to.deepCloseTo({x: 87.864056, y: 63.592169});
+    expect(results.endPoint).to.deepCloseTo({x: 93.675445, y: 81.026334});
+  });
+
+  it('if the start circle of the dependency is exactly in the middle of the end circle: then the dependency points to the bottom left', () => {
+    const startCircle = {x: 100, y: 100, r: 20};
+    const endCircle = {x: 100, y: 100, r: 40};
+
+    const results = visualizationFunctions.calculateStartAndEndPositionOfDependency(false, startCircle, endCircle);
+    expect(results.startPoint).to.deepCloseTo({x: 114.142136, y: 114.142136});
+    expect(results.endPoint).to.deepCloseTo({x: 128.284271, y: 128.284271});
   });
 });
