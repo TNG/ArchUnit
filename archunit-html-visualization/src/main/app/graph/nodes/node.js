@@ -613,9 +613,9 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
       const getEndPointOfDependencyBelongingToNode = (dependency, node) => {
         if (dependency.siblingContainingOrigin === node) {
-          return dependency.dependency.visualData.startPoint;
+          return dependency.dependency.startPoint;
         } else if (dependency.siblingContainingTarget === node) {
-          return dependency.dependency.visualData.endPoint;
+          return dependency.dependency.endPoint;
         } else {
           throw new Error('the node must be one the predecessor in the current node of one of the end nodes of the dependency');
         }
@@ -655,9 +655,9 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
       dependenciesWithinParent.forEach(d => {
         const siblingOverlappingStartNode = new Set(this.getParent()._filteredChildren.filter(c =>
-          nodeOverlapsDependencyEndPointButIsNotSibling(d.siblingContainingOrigin, c, d.dependency.visualData.startPoint)));
+          nodeOverlapsDependencyEndPointButIsNotSibling(d.siblingContainingOrigin, c, d.dependency.startPoint)));
         const siblingOverlappingEndNode = new Set(this.getParent()._filteredChildren.filter(c =>
-          nodeOverlapsDependencyEndPointButIsNotSibling(d.siblingContainingTarget, c, d.dependency.visualData.endPoint)));
+          nodeOverlapsDependencyEndPointButIsNotSibling(d.siblingContainingTarget, c, d.dependency.endPoint)));
 
         const endNodes = [d.siblingContainingOrigin, d.siblingContainingTarget];
 

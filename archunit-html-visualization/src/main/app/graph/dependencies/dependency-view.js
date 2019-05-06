@@ -64,11 +64,11 @@ const init = (transitionDuration) => {
     }
 
     _updateAreaPosition() {
-      this._hoverArea.setStartAndEndPosition(this._dependency.visualData.relativeStartPoint, this._dependency.visualData.relativeEndPoint);
+      this._hoverArea.setStartAndEndPosition(this._dependency.relativeStartPoint, this._dependency.relativeEndPoint);
     }
 
     jumpToPositionAndShowIfVisible() {
-      this._line.setStartAndEndPosition(this._dependency.visualData.relativeStartPoint, this._dependency.visualData.relativeEndPoint);
+      this._line.setStartAndEndPosition(this._dependency.relativeStartPoint, this._dependency.relativeEndPoint);
       this._updateAreaPosition();
       this.refresh();
     }
@@ -76,7 +76,7 @@ const init = (transitionDuration) => {
     moveToPosition() {
       const promise = this._line.createTransitionWithDuration(transitionDuration)
         .step(svgSelection => {
-          svgSelection.setStartAndEndPosition(this._dependency.visualData.relativeStartPoint, this._dependency.visualData.relativeEndPoint);
+          svgSelection.setStartAndEndPosition(this._dependency.relativeStartPoint, this._dependency.relativeEndPoint);
         })
         .finish();
       this._updateAreaPosition();

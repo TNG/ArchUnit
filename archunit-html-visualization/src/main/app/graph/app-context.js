@@ -5,6 +5,7 @@
  */
 
 const visualizationFunctions = require('./visualization-functions');
+const dependencyVisualizationFunctions = require('./dependency-visualization-functions');
 const node = require('./nodes/node');
 const dependencies = require('./dependencies/dependencies');
 const guiElements = require('./infrastructure/gui-elements');
@@ -19,9 +20,11 @@ const init = (getNodeView, getRootView, getDependencyView, getDetailedDependency
 
   const getVisualizationFunctions = () => visualizationFunctions.newInstance();
 
+  const getDependencyVisualizationFunctions = () => dependencyVisualizationFunctions.newInstance();
+
   const getRoot = () => node.init(getNodeView(), getRootView(), getVisualizationFunctions(), getVisualizationStyles());
 
-  const getDependencies = () => dependencies.init(getDependencyView(), getDetailedDependencyView());
+  const getDependencies = () => dependencies.init(getDependencyView(), getDetailedDependencyView(), getDependencyVisualizationFunctions());
 
   return {
     getVisualizationStyles,

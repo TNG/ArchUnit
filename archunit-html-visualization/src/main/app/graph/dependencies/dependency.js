@@ -5,74 +5,13 @@ const {Vector, vectors} = require('../infrastructure/vectors');
 const coloredDependencyTypes = new Set();
 const dashedDependencyTypes = new Set();
 
-const init = (View, DetailedView) => {
+const init = (View, DetailedView, dependencyVisualizationFunctions) => {
 
   const defaultDependencyTypes = {
     INNERCLASS_DEPENDENCY: 'INNERCLASS_DEPENDENCY'
   };
 
   const allDependencies = new Map();
-
-  const oneEndNodeIsCompletelyWithinTheOtherOne = (node1, node2) => {
-    const middleDiff = vectors.distance(node1, node2);
-    return middleDiff + Math.min(node1.r, node2.r) < Math.max(node1.r, node2.r);
-  };
-
-  const VisualData = class {
-    constructor(listener, dependency) {
-      this._listener = listener;
-      this._dependency = dependency;
-      this.startPoint = {};
-      this.endPoint = {};
-      this.mustShareNodes = false;
-    }
-
-    jumpToPosition(absVisualStartNode, absVisualEndNode) {
-      this._recalculate(absVisualStartNode, absVisualEndNode);
-      this._listener.onJumpedToPosition();
-    }
-
-    moveToPosition(absVisualStartNode, absVisualEndNode) {
-      this._recalculate(absVisualStartNode, absVisualEndNode);
-      return this._listener.onMovedToPosition();
-    }
-
-    //FIXME: move to own file and make proper test for it...it is better to test all cases on its own
-    _recalculate(absVisualStartNode, absVisualEndNode) {
-      const lineDiff = 20;
-      const oneIsInOther = oneEndNodeIsCompletelyWithinTheOtherOne(absVisualStartNode, absVisualEndNode);
-      const nodes = [absVisualStartNode, absVisualEndNode].sort((a, b) => a.r - b.r);
-
-      const direction = Vector.between(absVisualStartNode, absVisualEndNode);
-
-      const startDirectionVector = Vector.from(direction);
-      startDirectionVector.revertIf(oneIsInOther && absVisualStartNode === nodes[0]);
-      startDirectionVector.makeDefaultIfNull();
-      const endDirectionVector = Vector.from(startDirectionVector).revertIf(!oneIsInOther);
-
-      if (this.mustShareNodes) {
-        const orthogonalVector = vectors.getOrthogonalVector(startDirectionVector).norm(lineDiff / 2);
-        orthogonalVector.revertIf(oneIsInOther && absVisualStartNode === nodes[1]);
-        startDirectionVector.norm(absVisualStartNode.r);
-        endDirectionVector.norm(absVisualEndNode.r);
-        startDirectionVector.add(orthogonalVector);
-        endDirectionVector.add(orthogonalVector);
-      }
-
-      startDirectionVector.norm(absVisualStartNode.r);
-      endDirectionVector.norm(absVisualEndNode.r);
-
-      this.startPoint = vectors.add(absVisualStartNode, startDirectionVector);
-      this.endPoint = vectors.add(absVisualEndNode, endDirectionVector);
-
-      this.recalculateRelativePoints();
-    }
-
-    recalculateRelativePoints() {
-      this.relativeStartPoint = Vector.between(this._dependency.containerEndNode.absoluteFixableCircle, this.startPoint);
-      this.relativeEndPoint = Vector.between(this._dependency.containerEndNode.absoluteFixableCircle, this.endPoint);
-    }
-  };
 
   const getOrCreateUniqueDependency = (originNode, targetNode, type, isViolation, callForAllDependencies, getDetailedDependencies,
                                        {svgDetailedDependenciesContainer, svg, svgCenterTranslater}) => {
@@ -146,11 +85,21 @@ const init = (View, DetailedView) => {
       this._view.onMouseOut(() => this._detailedView.fadeOut());
 
       this._isVisible = true;
-      this.visualData = new VisualData({
-        onJumpedToPosition: () => this._view.jumpToPositionAndShowIfVisible(),
-        onMovedToPosition: () => this._view.moveToPosition().then(() => this.refresh())
-      }, this);
+      this.mustShareNodes = false;
       this._containerEndNodeHasChanged = false;
+    }
+
+    recalculatePoint() {
+      const results = dependencyVisualizationFunctions.calculateStartAndEndPositionOfDependency(this.mustShareNodes,
+        this.originNode.absoluteFixableCircle, this.targetNode.absoluteFixableCircle);
+      this.startPoint = results.startPoint;
+      this.endPoint = results.endPoint;
+      this._recalculateRelativePoints();
+    }
+
+    _recalculateRelativePoints() {
+      this.relativeStartPoint = Vector.between(this.containerEndNode.absoluteFixableCircle, this.startPoint);
+      this.relativeEndPoint = Vector.between(this.containerEndNode.absoluteFixableCircle, this.endPoint);
     }
 
     onContainerEndNodeApplied() {
@@ -165,7 +114,7 @@ const init = (View, DetailedView) => {
       if (this._containerEndNode !== value) {
         this._containerEndNodeHasChanged = true;
         this._containerEndNode = value;
-        this.visualData.recalculateRelativePoints();
+        this._recalculateRelativePoints();
       }
     }
 
@@ -195,11 +144,13 @@ const init = (View, DetailedView) => {
     }
 
     jumpToPosition() {
-      this.visualData.jumpToPosition(this.originNode.absoluteFixableCircle, this.targetNode.absoluteFixableCircle);
+      this.recalculatePoint();
+      this._view.jumpToPositionAndShowIfVisible();
     }
 
     moveToPosition() {
-      return this.visualData.moveToPosition(this.originNode.absoluteFixableCircle, this.targetNode.absoluteFixableCircle);
+      this.recalculatePoint();
+      return this._view.moveToPosition().then(() => this.refresh());
     }
 
     hide() {

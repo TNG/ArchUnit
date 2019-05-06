@@ -3,7 +3,7 @@
 const initDependency = require('./dependency.js');
 const {buildFilterGroup} = require('../filter');
 
-const init = (View, DetailedDependencyView) => {
+const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) => {
 
   const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
@@ -142,7 +142,7 @@ const init = (View, DetailedDependencyView) => {
   const Dependencies = class {
     constructor(jsonDependencies, nodeMap, {svgDetailedDependenciesContainer, svg, svgCenterTranslater}) {
       nodes = nodeMap;
-      dependencyCreator = initDependency(View, DetailedDependencyView);
+      dependencyCreator = initDependency(View, DetailedDependencyView, dependencyVisualizationFunctions);
 
       this._violations = new Violations();
 
@@ -297,7 +297,7 @@ const init = (View, DetailedDependencyView) => {
 
     _setMustShareNodes() {
       const swappedDependenciesSet = new Set(this._visibleDependencies.map(d => `${d.to}-${d.from}`));
-      const setMustShareNodes = d => d.visualData.mustShareNodes = swappedDependenciesSet.has(`${d.from}-${d.to}`);
+      const setMustShareNodes = d => d.mustShareNodes = swappedDependenciesSet.has(`${d.from}-${d.to}`);
       this._visibleDependencies.forEach(setMustShareNodes);
     }
 
