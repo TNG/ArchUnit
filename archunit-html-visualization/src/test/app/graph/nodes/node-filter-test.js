@@ -728,5 +728,16 @@ describe('Filters', () => {
           'my.company.OtherInterface');
       });
     });
+
+    describe('#getOriginalChildren()', () => {
+      it('returns still all children of a node after filtering some out', async () => {
+        const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInnerClass', 'my.company.SomeClass$OtherInnerClass');
+
+        const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+        await filterOn(root, filterCollection).nameFilter('~my.company.SomeClass$OtherInnerClass').await();
+        expect(root.getByName('my.company.SomeClass').getOriginalChildren()).to.onlyContainNodes('my.company.SomeClass$SomeInnerClass', 'my.company.SomeClass$OtherInnerClass');
+      });
+    });
   });
 });

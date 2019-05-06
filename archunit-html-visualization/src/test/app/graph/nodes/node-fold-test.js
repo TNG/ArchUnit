@@ -242,6 +242,15 @@ describe('Inner nodes', () => {
         expect(root.getByName('my.company').getCurrentChildren()).to.onlyContainNodes('my.company.SomeClass');
       });
     });
+
+    describe('#getOriginalChildren()', () => {
+      it('returns still all children of a node after folding it', async () => {
+        const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
+
+        await testGui(root).interact.clickNodeAndAwait('my.company');
+        expect(root.getByName('my.company').getOriginalChildren()).to.onlyContainNodes('my.company.SomeClass');
+      });
+    });
   });
 
   describe('some typical scenarios when folding inner nodes:', () => {
@@ -467,6 +476,29 @@ describe('Root', () => {
           'my.company.first.OtherClass', 'my.company.second.SomeClass', 'my.otherCompany.SomeClass');
       });
 
+      describe('some nodes are already folded:', () => {
+        it('some nodes that must be folded are already folded', async () => {
+          const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.SomeClass',
+            'my.company.otherPkg.OtherClass$SomeInnerClass');
+          await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+
+          foldNodesWithMinimumDepthThatHaveNotDescendantFullNames(root, ['my.company.otherPkg.SomeClass']);
+          testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.SomeClass',
+            'my.company.otherPkg.OtherClass');
+        });
+
+        it('children of nodes, which must be folded, are folded and stay so', async () => {
+          const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.somePkg.otherPkg.OtherClass',
+            'my.company.otherPkg.OtherClass');
+          await testGui(root).interact.clickNodeAndAwait('my.company.somePkg.otherPkg');
+
+          foldNodesWithMinimumDepthThatHaveNotDescendantFullNames(root, ['my.company.otherPkg.OtherClass']);
+          await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+          testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.otherPkg',
+            'my.company.otherPkg.OtherClass');
+        });
+      });
+
       describe('the path of the given classes does not contain a node to fold, but top level packages have to be folded:', () => {
         let root;
         beforeEach(async () => {
@@ -530,7 +562,6 @@ describe('Root', () => {
             'your.company.first.otherPkg.OtherClass',
             'your.company.first.somePkg.OtherClass$SomeInnerClass$SomeMoreInnerClass', 'your.company.first.thirdPkg.somePkg.SomeClass',
             'your.company.second', 'your.otherCompany');
-
         });
       });
 
