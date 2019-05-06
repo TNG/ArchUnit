@@ -4,7 +4,7 @@ const isNumber = n => !isNaN(parseFloat(n)) && !isNaN(n - 0);
 
 const Assertion = require('chai').Assertion;
 
-Assertion.addMethod('deepCloseTo', function (expObject, delta) {
+Assertion.addMethod('deepCloseTo', function (expObject, delta = 0.0001) {
   const actObject = this._obj;
 
   for (const key in expObject) {
