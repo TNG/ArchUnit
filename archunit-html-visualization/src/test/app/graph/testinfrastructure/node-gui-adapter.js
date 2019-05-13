@@ -1,7 +1,9 @@
 'use strict';
 
-const expect = require('chai').expect;
-require('./general-chai-extensions');
+const chai = require('chai');
+const expect = chai.expect;
+const chaiExtensions = require('./general-chai-extensions');
+chai.use(chaiExtensions);
 
 const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
 const vectors = require('../../../../main/app/graph/infrastructure/vectors').vectors;
@@ -104,7 +106,7 @@ const testGuiFromSvgElement = (svgElement, root) => {
               }
             },
             atPosition: ({x, y}) => {
-              expect(svgElement.absolutePosition).to.be.deepCloseTo({x, y}, DELTA);
+              expect(svgElement.absolutePosition).to.be.deep.closeTo({x, y}, DELTA);
               return and;
             },
             in: {

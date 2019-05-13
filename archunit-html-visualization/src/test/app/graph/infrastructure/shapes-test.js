@@ -1,12 +1,12 @@
 'use strict';
 
 const chai = require('chai');
-const generalExtensions = require('../testinfrastructure/general-chai-extensions');
+const expect = chai.expect;
+const chaiExtensions = require('../testinfrastructure/general-chai-extensions');
+chai.use(chaiExtensions);
+
 const {Vector} = require('../../../../main/app/graph/infrastructure/vectors');
 const {Circle, Rect} = require('../../../../main/app/graph/infrastructure/shapes');
-
-const expect = chai.expect;
-chai.use(generalExtensions);
 
 const MAXIMUM_DELTA = 0.0001;
 

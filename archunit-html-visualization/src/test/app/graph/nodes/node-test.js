@@ -1,7 +1,10 @@
 'use strict';
 
-const expect = require('chai').expect;
-require('../testinfrastructure/general-chai-extensions');
+const chai = require('chai');
+const expect = chai.expect;
+const chaiExtensions = require('../testinfrastructure/general-chai-extensions');
+chai.use(chaiExtensions);
+
 require('../testinfrastructure/node-chai-extensions');
 
 const rootCreator = require('../testinfrastructure/root-creator');

@@ -1,7 +1,6 @@
 'use strict';
 
-const chai = require('chai');
-const expect = chai.expect;
+const expect = require('chai').expect;
 require('./node-layout-chai-extensions');
 
 const createTreeFromNodeFullNames = require('./node-fullnames-to-tree-transformer').createTreeFromNodeFullNames;
