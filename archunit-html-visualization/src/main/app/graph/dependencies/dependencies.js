@@ -31,7 +31,7 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
     })
   });
 
-  const uniteDependencies = (dependencies, callForAllDependencies, getDetailedDependencies, {svgDetailedDependenciesContainer, svg, svgCenterTranslater}) => {
+  const uniteDependencies = (dependencies, callForAllDependencies, getDetailedDependencies, {svgDetailedDependenciesContainer, htmlSvgElement}) => {
     const tmp = dependencies.map(r => ({key: r.from + '->' + r.to, dependency: r}));
     const map = new Map();
     tmp.forEach(e => map.set(e.key, []));
@@ -39,7 +39,7 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
 
     return [...map.values()].map(dependencies =>
       dependencyCreator.getUniqueDependency(dependencies[0].originNode, dependencies[0].targetNode, callForAllDependencies, getDetailedDependencies,
-        {svgDetailedDependenciesContainer, svg, svgCenterTranslater})
+        {svgDetailedDependenciesContainer, htmlSvgElement})
         .byGroupingDependencies(dependencies));
   };
 
@@ -140,7 +140,7 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
   };
 
   const Dependencies = class {
-    constructor(jsonDependencies, nodeMap, {svgDetailedDependenciesContainer, svg, svgCenterTranslater}) {
+    constructor(jsonDependencies, nodeMap, {svgDetailedDependenciesContainer, htmlSvgElement}) {
       nodes = nodeMap;
       dependencyCreator = initDependency(View, DetailedDependencyView, dependencyVisualizationFunctions);
 
@@ -171,7 +171,7 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
       this._updatePromise = Promise.resolve();
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
 
-      this._svgElementsForDetailedDependencies = {svgDetailedDependenciesContainer, svg, svgCenterTranslater};
+      this._svgElementsForDetailedDependencies = {svgDetailedDependenciesContainer, htmlSvgElement};
     }
 
     get filterGroup() {

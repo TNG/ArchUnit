@@ -5,8 +5,8 @@ const {buildFilterCollection} = require('./filter');
 const init = (Root, Dependencies, View, visualizationStyles) => {
 
   const Graph = class {
-    constructor(jsonGraph, violations, svg, svgContainerDivDomElement) {
-      this._view = new View(svg, svgContainerDivDomElement);
+    constructor(jsonGraph, violations, svgDomElement, svgContainerDivDomElement) {
+      this._view = new View(svgDomElement, svgContainerDivDomElement);
       this._root = new Root(jsonGraph.root,
         (halfWidth, halfHeight) => this._view.renderWithTransition(halfWidth, halfHeight),
         (halfWidth, halfHeight) => this._view.render(halfWidth, halfHeight),
@@ -17,8 +17,8 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
       this._dependencies = new Dependencies(jsonGraph.dependencies, this._root,
         {
-          svgDetailedDependenciesContainer: this._view.svgElementForDetailedDependencies, svg: this._view.svgElement,
-          svgCenterTranslater: this._view.translater
+          svgDetailedDependenciesContainer: this._view.svgElementForDetailedDependencies,
+          htmlSvgElement: this._view.svgElement
         });
 
       this._root.addListener(this._dependencies.createListener());

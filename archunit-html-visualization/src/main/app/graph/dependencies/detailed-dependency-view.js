@@ -1,20 +1,17 @@
 'use strict';
 
-const textPadding = 5;
-
 const SingleDetailedDependencyView = require('./single-detailed-dependency-view');
 
-const init = (transitionDuration, svg, visualizationStyles) => {
+const init = (transitionDuration, svg, visualizationStyles, textPadding = 5) => {
 
   const View = class {
-    constructor({svgContainer, svg, svgCenterTranslater}, callForAllDetailedViews, getDetailedDependencies) {
+    constructor({svgContainer, htmlSvgElement}, callForAllDetailedViews, getDetailedDependencies) {
       this._fixed = false;
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._getDetailedDependencies = getDetailedDependencies;
 
       this._svgContainer = svgContainer;
-      this._svg = svg;
-      this._svgCenterTranslater = svgCenterTranslater;
+      this._htmlSvgElement = htmlSvgElement;
 
       this._isCreated = false;
       this._isVisible = false;
@@ -36,7 +33,7 @@ const init = (transitionDuration, svg, visualizationStyles) => {
       }
     }
 
-    show(coordinates) {
+    _show(coordinates) {
       const detailedDeps = this._getDetailedDependencies();
       if (detailedDeps.length > 0) {
         this._createIfNecessary();
@@ -76,23 +73,28 @@ const init = (transitionDuration, svg, visualizationStyles) => {
       this._detailedDependencyViews = detailedDeps.map(detailedDependency =>
         new SingleDetailedDependencyView(this._text, detailedDependency, fontSize + textPadding));
 
-      const maxWidth = Math.max.apply(null, this._detailedDependencyViews.map(d => d.textWidth)) + 2 * textPadding + 10;
+      const maxWidth = Math.max.apply(null, this._detailedDependencyViews.map(d => d.textWidth));
+      const halfMaxWidthWithPadding = maxWidth / 2 + textPadding;
 
       this._detailedDependencyViews.forEach(d => d.positionX = -maxWidth / 2);
 
-      const translationOfTranslater = this._svgCenterTranslater.getTranslation();
       //ensure that the rect is visible on the left side
-      let x = Math.max(maxWidth / 2, translationOfTranslater.x + coordinates[0]);
+      let x = Math.max(halfMaxWidthWithPadding, coordinates[0]);
       //ensure that the rect is visible on the right side
-      x = Math.min(x, this._svg.width - maxWidth / 2);
+      x = Math.min(x, this._htmlSvgElement.width - halfMaxWidthWithPadding);
       this._svgElement.translate({x, y: coordinates[1]});
 
-      this._frame.positionX = -maxWidth / 2 - textPadding;
-      this._hoverArea.positionX = -maxWidth / 2 - textPadding;
-      this._frame.height = detailedDeps.length * (fontSize + textPadding) + 2 * textPadding;
-      this._hoverArea.height = detailedDeps.length * (fontSize + textPadding) + 2 * textPadding;
-      this._frame.width = maxWidth + fontSize;
-      this._hoverArea.width = maxWidth + fontSize;
+      const xShift = -halfMaxWidthWithPadding;
+      this._frame.positionX = xShift;
+      this._hoverArea.positionX = xShift;
+
+      const height = detailedDeps.length * (fontSize + textPadding) + 2 * textPadding;
+      this._frame.height = height;
+      this._hoverArea.height = height;
+
+      const width = maxWidth + 2 * textPadding + fontSize;
+      this._frame.width = width;
+      this._hoverArea.width = width;
 
       this._shouldBeHidden = false;
       this._svgElement.show();
@@ -104,7 +106,7 @@ const init = (transitionDuration, svg, visualizationStyles) => {
         const fontSize = visualizationStyles.getDependencyTitleFontSize();
         this._closeButton = this._svgElement.addText('x');
         this._closeButton.addCssClass('closeButton');
-        this._closeButton.offsetX = this._hoverArea.width / 2 - fontSize / 2;
+        this._closeButton.offsetX = this._hoverArea.width / 2 - this._closeButton.textWidth / 2;
         this._closeButton.offsetY = fontSize;
         this._closeButton.onClick(() => this._unfix());
         this._fixed = true;
@@ -131,7 +133,7 @@ const init = (transitionDuration, svg, visualizationStyles) => {
         setTimeout(() => {
           if (!this._shouldBeHidden) {
             this._callForAllDetailedViews(d => d._hideIfNotFixed());
-            this.show(coordinates);
+            this._show(coordinates);
           }
         }, transitionDuration);
       }

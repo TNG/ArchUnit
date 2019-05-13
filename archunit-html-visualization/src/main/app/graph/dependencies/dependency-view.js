@@ -44,22 +44,22 @@ const init = (transitionDuration) => {
       }
     }
 
-    show() {
+    _show() {
       this._refreshViolationCssClass();
       this._svgElement.show();
       this._refreshPointerEvents();
     }
 
-    hide() {
+    _hide() {
       this._svgElement.hide();
       this._hoverArea.disablePointerEvents();
     }
 
     refresh() {
       if (this._dependency.isVisible()) {
-        this.show();
+        this._show();
       } else {
-        this.hide();
+        this._hide();
       }
     }
 
@@ -67,7 +67,7 @@ const init = (transitionDuration) => {
       this._hoverArea.setStartAndEndPosition(this._dependency.relativeStartPoint, this._dependency.relativeEndPoint);
     }
 
-    jumpToPositionAndShowIfVisible() {
+    jumpToPositionAndRefresh() {
       this._line.setStartAndEndPosition(this._dependency.relativeStartPoint, this._dependency.relativeEndPoint);
       this._updateAreaPosition();
       this.refresh();

@@ -46,7 +46,7 @@ module.exports = {
     const getVisualizationStyles = () => guiElementsInstance.getEmbeddedVisualizationStyles();
     const getNodeView = () => overrides.NodeView || nodeView.init(TRANSITION_DURATION, guiElementsInstance.svg);
     const getRootView = () => overrides.RootView || rootView.init(TRANSITION_DURATION, guiElementsInstance.svg, guiElementsInstance.document);
-    const getDetailedDependencyView = () => overrides.DetailedDependencyView || detailedDependencyView.init(TRANSITION_DURATION, guiElementsInstance.svg, getVisualizationStyles());
+    const getDetailedDependencyView = () => overrides.DetailedDependencyView || detailedDependencyView.init(TRANSITION_DURATION, guiElementsInstance.svg, getVisualizationStyles(), 5);
     const getDependencyView = () => overrides.DependencyView || dependencyView.init(TRANSITION_DURATION);
     const getGraphView = () => overrides.GraphView || graphView.init(TRANSITION_DURATION, guiElementsInstance.svg, guiElementsInstance.document, guiElementsInstance.window);
     const getVisualizationData = () => overrides.visualizationData || visualizationData;

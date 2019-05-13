@@ -2,15 +2,15 @@
 
 const init = (transitionDuration, svg, document, window) => {
   const View = class {
-    constructor(svgElement, svgContainerDivDomElement) {
+    constructor(svgDomElement, svgContainerDivDomElement) {
       this._svgContainerDivSelection = document.selectDiv(svgContainerDivDomElement);
-      this._svgElement = svg.select(svgElement);
+      this._svgElement = svg.select(svgDomElement);
       this._svgElement.dimension = {width: 0, height: 0};
       this._translater = this._svgElement.addGroup({
         id: 'translater'
       });
       this._svgElementForNodes = this._translater.addGroup();
-      this._svgElementForDetailedDependencies = this._translater.addGroup();
+      this._svgElementForDetailedDependencies = this._svgElement.addGroup();
     }
 
     get svgElement() {
