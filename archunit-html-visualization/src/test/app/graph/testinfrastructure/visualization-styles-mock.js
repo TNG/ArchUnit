@@ -13,7 +13,8 @@ const createVisualizationStylesMock = () => {
     resetCirclePadding: () => _circlePadding = defaultCirclePadding,
     getNodeFontSize: () => _nodeFontSize,
     setNodeFontSize: fontSize => _nodeFontSize = fontSize,
-    resetNodeFontSize: () => _nodeFontSize = defaultNodeFontSize
+    resetNodeFontSize: () => _nodeFontSize = defaultNodeFontSize,
+    getDependencyTitleFontSize: () => 10
   }
 };
 

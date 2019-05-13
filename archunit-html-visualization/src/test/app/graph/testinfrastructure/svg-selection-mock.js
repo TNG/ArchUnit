@@ -7,10 +7,11 @@ const D3ElementMock = class {
     this._svgType = svgType;
     this._attributes = new Map();
     Object.keys(attributes || {}).forEach(key => this._attributes.set(key, attributes[key]));
+    this.translate({x: 0, y: 0})
   }
 
   translate({x, y}) {
-    this._translation = {x, y};
+    this._translation = {x: x || 0, y: y || 0};
     return this;
   }
 
@@ -85,6 +86,8 @@ const SvgSelectionMock = class extends D3ElementMock {
     this._parent = null;
     this._isVisible = true;
     this._cssClasses = new Set();
+
+    this._mousePosition = [0, 0];
   }
 
   get domElement() {
@@ -209,7 +212,11 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   getMousePosition() {
-    return [0, 0];
+    return this._mousePosition;
+  }
+
+  setMousePosition(x, y) {
+    this._mousePosition = [x, y];
   }
 
   static fromDom(svgType, attributes = {}) {
@@ -240,6 +247,10 @@ const SvgSelectionMock = class extends D3ElementMock {
     this._onclick(event);
   }
 
+  mouseOut() {
+    this._onmouseout();
+  }
+
   drag(dx, dy) {
     this._ondrag(dx, dy);
   }
@@ -248,22 +259,66 @@ const SvgSelectionMock = class extends D3ElementMock {
     return this._isVisible && (!this._parent || this._parent.isVisible);
   }
 
-  getAllGroupsContainingAVisibleElementOfType(svgType) {
+  getAllVisibleDescendantElementsOfType(svgType) {
     const descendants = [].concat.apply([], this._subElements.map(
-      subSvgElement => subSvgElement.getAllGroupsContainingAVisibleElementOfType(svgType)));
+      subSvgElement => subSvgElement.getAllVisibleDescendantElementsOfType(svgType)));
     const self = [];
-    if (this._getVisibleSubElementsOfType(svgType).length > 0) {
+    if (this.svgType === svgType) {
       self.push(this);
     }
     return [...descendants, ...self];
   }
 
-  _getVisibleSubElementsOfType(svgType) {
+  getVisibleDescendantElementOfType(svgType) {
+    const result = this.getAllVisibleDescendantElementsOfType(svgType);
+    if (result.length !== 1) {
+      throw new Error('the svg element must have exactly one descendant of that type');
+    }
+    return result[0];
+  }
+
+  getAllVisibleDescendantElementsByTypeAndCssClasses(svgType, ...cssClasses) {
+    const descendants = [].concat.apply([], this._subElements.map(
+      subSvgElement => subSvgElement.getAllVisibleDescendantElementsByTypeAndCssClasses(svgType, ...cssClasses)));
+    const self = [];
+    if (this.svgType === svgType && cssClasses.every(cssClass => this.cssClasses.has(cssClass))) {
+      self.push(this);
+    }
+    return [...descendants, ...self];
+  }
+
+  getVisibleDescendantElementByTypeAndCssClasses(svgType, ...cssClasses) {
+    const result = this.getAllVisibleDescendantElementsByTypeAndCssClasses(svgType, ...cssClasses);
+    if (result.length !== 1) {
+      throw new Error('the svg element must have exactly one descendant of that type');
+    }
+    return result[0];
+  }
+
+  getAllGroupsContainingAVisibleElementOfType(svgType) {
+    const descendants = [].concat.apply([], this._subElements.map(
+      subSvgElement => subSvgElement.getAllGroupsContainingAVisibleElementOfType(svgType)));
+    const self = [];
+    if (this.getAllVisibleSubElementsOfType(svgType).length > 0) {
+      self.push(this);
+    }
+    return [...descendants, ...self];
+  }
+
+  getGroupContainingAVisibleElementOfType(svgType) {
+    const result = this.getAllGroupsContainingAVisibleElementOfType(svgType);
+    if (result.length !== 1) {
+      throw new Error('the svg element must have exactly one descendant group with a child of that type')
+    }
+    return result[0];
+  }
+
+  getAllVisibleSubElementsOfType(svgType) {
     return this._subElements.filter(element => element.svgType === svgType && element.isVisible);
   }
 
   getVisibleSubElementOfType(svgType) {
-    const result = this._getVisibleSubElementsOfType(svgType);
+    const result = this.getAllVisibleSubElementsOfType(svgType);
     if (result.length !== 1) {
       throw new Error('the svg element must have exactly one sub element of that type')
     }

@@ -21,8 +21,8 @@ const D3Element = class {
     const translationsString = transform.substring(transform.indexOf('(', indexOfTranslate) + 1, transform.indexOf(')', indexOfTranslate));
     const translation = translationsString.split(',').map(s => parseInt(s));
     return {
-      x: translation[0],
-      y: translation[1]
+      x: translation[0] || 0,
+      y: translation[1] || 0
     }
   }
 
