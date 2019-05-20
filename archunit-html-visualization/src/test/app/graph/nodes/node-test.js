@@ -387,6 +387,17 @@ describe('Filter and fold nodes in combination:', () => {
     testGui(root).test.that.onlyNodesAre('my.company.SomeClass$SomeInnerClass');
   });
 
+  it('A folded class that looses its children by the filter cannot be unfolded anymore', async () => {
+    const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInnerClass');
+    const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
+
+    await testGui(root).interact.clickNodeAndAwait('my.company.SomeClass');
+    await filterOn(root, filterCollection).nameFilter('~my.company.SomeClass$SomeInnerClass').await();
+    await testGui(root).interact.clickNodeAndAwait('my.company.SomeClass');
+
+    testGui(root).test.that.onlyNodesAre('my.company.SomeClass');
+  });
+
   describe('Fold and filter after each other', () => {
     it('Fold, filter, unfold, reset the filter and unfold nodes that were hidden by the filter', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout(
