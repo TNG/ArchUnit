@@ -15,6 +15,9 @@
  */
 package com.tngtech.archunit.library;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -287,6 +290,113 @@ public final class Architectures {
             public String toString() {
                 return String.format("where layer '%s' %s", layerName, descriptionSuffix);
             }
+        }
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static OnionArchitecture onionArchitecture() {
+        return new OnionArchitecture();
+    }
+
+    public static final class OnionArchitecture implements ArchRule {
+        private static final String DOMAIN_MODEL_LAYER = "domain model";
+        private static final String DOMAIN_SERVICE_LAYER = "domain service";
+        private static final String APPLICATION_LAYER = "application";
+        private static final String ADAPTER_LAYER = "adapter";
+
+        private String[] domainModelPackageIdentifiers = new String[0];
+        private String[] domainServicePackageIdentifiers = new String[0];
+        private String[] applicationPackageIdentifiers = new String[0];
+        private Map<String, String[]> adapterPackageIdentifiers = new LinkedHashMap<>();
+
+        private LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture();
+
+        private OnionArchitecture() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture domainModel(String... packageIdentifiers) {
+            domainModelPackageIdentifiers = packageIdentifiers;
+            return this;
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture domainService(String... packageIdentifiers) {
+            domainServicePackageIdentifiers = packageIdentifiers;
+            return this;
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture application(String... packageIdentifiers) {
+            applicationPackageIdentifiers = packageIdentifiers;
+            return this;
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture adapter(String name, String... packageIdentifiers) {
+            adapterPackageIdentifiers.put(name, packageIdentifiers);
+            return this;
+        }
+
+        private void updateLayersDelegate() {
+            layeredArchitectureDelegate = layeredArchitecture()
+                    .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPackageIdentifiers)
+                    .layer(DOMAIN_SERVICE_LAYER).definedBy(domainServicePackageIdentifiers)
+                    .layer(APPLICATION_LAYER).definedBy(applicationPackageIdentifiers)
+                    .layer(ADAPTER_LAYER).definedBy(concatenateAll(adapterPackageIdentifiers.values()));
+            for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
+                layeredArchitectureDelegate = layeredArchitectureDelegate
+                        .layer(getAdapterLayer(adapter.getKey())).definedBy(adapter.getValue());
+            }
+            layeredArchitectureDelegate = layeredArchitectureDelegate
+                    .whereLayer(DOMAIN_MODEL_LAYER).mayOnlyBeAccessedByLayers(DOMAIN_SERVICE_LAYER, APPLICATION_LAYER, ADAPTER_LAYER)
+                    .whereLayer(DOMAIN_SERVICE_LAYER).mayOnlyBeAccessedByLayers(APPLICATION_LAYER, ADAPTER_LAYER)
+                    .whereLayer(APPLICATION_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER)
+                    .whereLayer(ADAPTER_LAYER).mayNotBeAccessedByAnyLayer();
+            for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
+                String adapterLayer = getAdapterLayer(adapter.getKey());
+                layeredArchitectureDelegate = layeredArchitectureDelegate
+                        .layer(adapterLayer).definedBy(adapter.getValue())
+                        .whereLayer(adapterLayer).mayNotBeAccessedByAnyLayer();
+            }
+        }
+
+        private String[] concatenateAll(Collection<String[]> arrays) {
+            List<String> resultList = new ArrayList<>();
+            for (String[] array : arrays) {
+                resultList.addAll(Arrays.asList(array));
+            }
+            return resultList.toArray(new String[0]);
+        }
+
+        private String getAdapterLayer(String name) {
+            return String.format("%s %s", name, ADAPTER_LAYER);
+        }
+
+        @Override
+        public void check(JavaClasses classes) {
+            layeredArchitectureDelegate.check(classes);
+        }
+
+        @Override
+        public ArchRule because(String reason) {
+            return layeredArchitectureDelegate.because(reason);
+        }
+
+        @Override
+        public ArchRule as(String newDescription) {
+            return layeredArchitectureDelegate.as(newDescription);
+        }
+
+        @Override
+        public EvaluationResult evaluate(JavaClasses classes) {
+            updateLayersDelegate();
+            return layeredArchitectureDelegate.evaluate(classes);
+        }
+
+        @Override
+        public String getDescription() {
+            return layeredArchitectureDelegate.getDescription();
         }
     }
 }
