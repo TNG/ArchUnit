@@ -13,8 +13,15 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.library.Architectures.LayeredArchitecture;
+import com.tngtech.archunit.library.Architectures.OnionArchitecture;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
 import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.cli.CliAdapterLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.persistence.PersistenceAdapterLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.rest.RestAdapterLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.application.ApplicationLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.model.DomainModelLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.service.DomainServiceLayerClass;
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubClass;
@@ -30,6 +37,7 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
+import static com.tngtech.archunit.library.Architectures.onionArchitecture;
 import static java.lang.System.lineSeparator;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -144,6 +152,66 @@ public class ArchitecturesTest {
                 new RuleWithIgnore(
                         layeredArchitecture.ignoreDependency(name(FirstAnyPkgClass.class.getName()), name(SomePkgSubClass.class.getName())),
                         "rule with ignore specified as predicates"));
+    }
+
+    @Test
+    public void gathers_all_onion_architecture_violations() {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModel(absolute("onionarchitecture.domain.model"))
+                .domainService(absolute("onionarchitecture.domain.service"))
+                .application(absolute("onionarchitecture.application"))
+                .adapter("cli", absolute("onionarchitecture.adapter.cli"))
+                .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
+                .adapter("rest", absolute("onionarchitecture.adapter.rest"));
+        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses.onionarchitecture");
+
+        EvaluationResult result = architecture.evaluate(classes);
+
+        ImmutableSet<String> expectedRegexes = ImmutableSet.of(
+                expectedAccessViolationPattern(DomainModelLayerClass.class, "call", DomainServiceLayerClass.class, "callMe"),
+                expectedAccessViolationPattern(DomainModelLayerClass.class, "call", ApplicationLayerClass.class, "callMe"),
+                expectedAccessViolationPattern(DomainModelLayerClass.class, "call", CliAdapterLayerClass.class, "callMe"),
+                expectedAccessViolationPattern(DomainModelLayerClass.class, "call", PersistenceAdapterLayerClass.class, "callMe"),
+                expectedAccessViolationPattern(DomainModelLayerClass.class, "call", RestAdapterLayerClass.class, "callMe"),
+                fieldTypePattern(DomainModelLayerClass.class, "domainServiceLayerClass", DomainServiceLayerClass.class),
+                fieldTypePattern(DomainModelLayerClass.class, "applicationLayerClass", ApplicationLayerClass.class),
+                fieldTypePattern(DomainModelLayerClass.class, "cliAdapterLayerClass", CliAdapterLayerClass.class),
+                fieldTypePattern(DomainModelLayerClass.class, "persistenceAdapterLayerClass", PersistenceAdapterLayerClass.class),
+                fieldTypePattern(DomainModelLayerClass.class, "restAdapterLayerClass", RestAdapterLayerClass.class),
+
+                expectedAccessViolationPattern(DomainServiceLayerClass.class, "call", ApplicationLayerClass.class, "callMe"),
+                expectedAccessViolationPattern(DomainServiceLayerClass.class, "call", CliAdapterLayerClass.class, "callMe"),
+                expectedAccessViolationPattern(DomainServiceLayerClass.class, "call", PersistenceAdapterLayerClass.class, "callMe"),
+                expectedAccessViolationPattern(DomainServiceLayerClass.class, "call", RestAdapterLayerClass.class, "callMe"),
+                fieldTypePattern(DomainServiceLayerClass.class, "applicationLayerClass", ApplicationLayerClass.class),
+                fieldTypePattern(DomainServiceLayerClass.class, "cliAdapterLayerClass", CliAdapterLayerClass.class),
+                fieldTypePattern(DomainServiceLayerClass.class, "persistenceAdapterLayerClass", PersistenceAdapterLayerClass.class),
+                fieldTypePattern(DomainServiceLayerClass.class, "restAdapterLayerClass", RestAdapterLayerClass.class),
+
+                expectedAccessViolationPattern(ApplicationLayerClass.class, "call", CliAdapterLayerClass.class, "callMe"),
+                expectedAccessViolationPattern(ApplicationLayerClass.class, "call", PersistenceAdapterLayerClass.class, "callMe"),
+                expectedAccessViolationPattern(ApplicationLayerClass.class, "call", RestAdapterLayerClass.class, "callMe"),
+                fieldTypePattern(ApplicationLayerClass.class, "cliAdapterLayerClass", ApplicationLayerClass.class),
+                fieldTypePattern(ApplicationLayerClass.class, "persistenceAdapterLayerClass", ApplicationLayerClass.class),
+                fieldTypePattern(ApplicationLayerClass.class, "restAdapterLayerClass", ApplicationLayerClass.class),
+
+                expectedAccessViolationPattern(CliAdapterLayerClass.class, "call", PersistenceAdapterLayerClass.class, "callMe"),
+                fieldTypePattern(CliAdapterLayerClass.class, "persistenceAdapterLayerClass", PersistenceAdapterLayerClass.class),
+                expectedAccessViolationPattern(CliAdapterLayerClass.class, "call", RestAdapterLayerClass.class, "callMe"),
+                fieldTypePattern(CliAdapterLayerClass.class, "restAdapterLayerClass", RestAdapterLayerClass.class),
+
+                expectedAccessViolationPattern(PersistenceAdapterLayerClass.class, "call", CliAdapterLayerClass.class, "callMe"),
+                fieldTypePattern(PersistenceAdapterLayerClass.class, "cliAdapterLayerClass", CliAdapterLayerClass.class),
+                expectedAccessViolationPattern(PersistenceAdapterLayerClass.class, "call", RestAdapterLayerClass.class, "callMe"),
+                fieldTypePattern(PersistenceAdapterLayerClass.class, "restAdapterLayerClass", RestAdapterLayerClass.class),
+
+                expectedAccessViolationPattern(RestAdapterLayerClass.class, "call", CliAdapterLayerClass.class, "callMe"),
+                fieldTypePattern(RestAdapterLayerClass.class, "cliAdapterLayerClass", CliAdapterLayerClass.class),
+                expectedAccessViolationPattern(RestAdapterLayerClass.class, "call", PersistenceAdapterLayerClass.class, "callMe"),
+                fieldTypePattern(RestAdapterLayerClass.class, "persistenceAdapterLayerClass", PersistenceAdapterLayerClass.class)
+        );
+        assertPatternMatches(result.getFailureReport().getDetails(), expectedRegexes);
+        assertThat(result.getFailureReport().getDetails().size()).isEqualTo(expectedRegexes.size());
     }
 
     @Test
