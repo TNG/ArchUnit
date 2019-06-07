@@ -63,6 +63,11 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       return this._description.fullName;
     }
 
+    get parent() {
+      return this._parent;
+    }
+
+    // FIXME: Replace by "get parent()"
     getParent() {
       return this._parent;
     }

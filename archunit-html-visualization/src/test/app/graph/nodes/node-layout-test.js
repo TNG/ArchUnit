@@ -5,6 +5,8 @@ const expect = require('chai').expect;
 const rootCreator = require('../testinfrastructure/root-creator');
 const visualizationStyles = rootCreator.getVisualizationStyles();
 
+const RootUi = require('./testinfrastructure/root-ui');
+
 const testLayoutOn = require('../testinfrastructure/node-layout-test-infrastructure').testLayoutOnRoot;
 
 afterEach(() => {
@@ -13,33 +15,46 @@ afterEach(() => {
 });
 
 describe('Node layout', () => {
-  describe('positions the nodes and sets the radii, so that', () => {
-    it('they are within their parent and have a padding to it', async () => {
+  describe('when a node is sized and positioned', () => {
+    it('is within its parent', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout(
-        'com.pkg1.SomeClass1$SomeInnerClass', 'com.pkg1.SomeClass2$SomeInnerClass1',
-        'com.pkg1.SomeClass2$SomeInnerClass2', 'com.pkg2.SomeClass');
-      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding(visualizationStyles.getCirclePadding());
+        'com.pkg1.SomeClass1$SomeInnerClass',
+        'com.pkg1.SomeClass2$SomeInnerClass1',
+        'com.pkg1.SomeClass2$SomeInnerClass2',
+        'com.pkg2.SomeClass');
+
+      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding();
     });
 
-    it('they have a padding to their sibling nodes', async () => {
-      const root = await rootCreator.createRootFromClassNamesAndLayout('pkg1.SomeClass1$SomeInnerClass1', 'pkg1.SomeClass1$SomeInnerClass2',
-        'pkg1.SomeClass1$SomeInnerClass3', 'pkg1.SomeClass2', 'pkg1.SomeClass3', 'pkg2.SomeClass');
-      testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings(visualizationStyles.getCirclePadding());
+    it('does not overlap with its siblings', async () => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout(
+        'pkg1.SomeClass1$SomeInnerClass1',
+        'pkg1.SomeClass1$SomeInnerClass2',
+        'pkg1.SomeClass1$SomeInnerClass3',
+        'pkg1.SomeClass2',
+        'pkg1.SomeClass3',
+        'pkg2.SomeClass');
+
+      testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings();
     });
   });
 
-  describe('is adapted to changed layout setting:', () => {
-    it('considers a changed circle padding', async () => {
+  describe('change layout settings', () => {
+    it('correctly re-layouts with respect to circle padding', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg2.SomeClass');
 
-      const newCirclePadding = 20;
       visualizationStyles.setCirclePadding(20);
 
       root.relayoutCompletely();
       await root._updatePromise;
 
-      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding(newCirclePadding);
-      testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings(newCirclePadding);
+      const rootUi = RootUi.of(root);
+
+      // FIXME: Migrate to test-ui structure instead of implicit assertions
+      rootUi.allNodes().forEach(nodeUi => nodeUi.expectToBeWithin(nodeUi.parent));
+
+      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding();
+      testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings();
     });
 
     it('considers a changed node font size', async () => {
@@ -65,8 +80,8 @@ describe('Node layout', () => {
       root.relayoutCompletely();
       await root._updatePromise;
 
-      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding(newCirclePadding);
-      testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings(newCirclePadding);
+      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding();
+      testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings();
     });
 
     it('considers a new node fontsize, if it is changed during a relayout', async () => {
