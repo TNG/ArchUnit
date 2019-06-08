@@ -2,18 +2,23 @@ package com.tngtech.archunit.library.freeze;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.CollectsLines;
+import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
@@ -23,7 +28,6 @@ import org.junit.rules.TemporaryFolder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -117,6 +121,24 @@ public class FreezingArchRuleTest {
         assertThat(frozenWithNewViolation)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations("second violation");
+    }
+
+    @Test
+    public void only_reports_relevant_lines_of_multi_line_events() {
+        TestViolationStore violationStore = new TestViolationStore();
+
+        createFrozen(violationStore, rule("some description").withViolations(
+                new ViolatedEvent("first violation1", "second violation1"),
+                new ViolatedEvent("first violation2", "second violation2")));
+
+        ArchRule anotherViolation = rule("some description").withViolations(
+                new ViolatedEvent("first violation1", "second violation1", "third violation1"),
+                new ViolatedEvent("first violation2", "second violation2"));
+        ArchRule frozenWithNewViolation = freeze(anotherViolation).persistIn(violationStore);
+
+        assertThat(frozenWithNewViolation)
+                .checking(importClasses(getClass()))
+                .hasOnlyViolations("third violation1");
     }
 
     @Test
@@ -294,11 +316,23 @@ public class FreezingArchRuleTest {
         }
 
         ArchRule withViolations(final String... messages) {
+            final Collection<ViolatedEvent> violatedEvents = new ArrayList<>();
+            for (String message : messages) {
+                violatedEvents.add(new ViolatedEvent(message));
+            }
+            return createArchRuleWithViolations(violatedEvents);
+        }
+
+        ArchRule withViolations(final ViolatedEvent... events) {
+            return createArchRuleWithViolations(ImmutableList.copyOf(events));
+        }
+
+        private ArchRule createArchRuleWithViolations(final Collection<ViolatedEvent> violatedEvents) {
             return classes().should(new ArchCondition<JavaClass>("") {
                 @Override
                 public void check(JavaClass javaClass, ConditionEvents events) {
-                    for (String message : messages) {
-                        events.add(violated(javaClass, message));
+                    for (ViolatedEvent event : violatedEvents) {
+                        events.add(event);
                     }
                 }
             }).as(description);
@@ -369,6 +403,39 @@ public class FreezingArchRuleTest {
         @Override
         public boolean matches(String lineFromFirstViolation, String lineFromSecondViolation) {
             return lineFromFirstViolation.charAt(0) == lineFromSecondViolation.charAt(0);
+        }
+    }
+
+    private static class ViolatedEvent implements ConditionEvent {
+        private List<String> descriptionLines;
+
+        private ViolatedEvent(String... descriptionLines) {
+            this.descriptionLines = ImmutableList.copyOf(descriptionLines);
+        }
+
+        @Override
+        public boolean isViolation() {
+            return true;
+        }
+
+        @Override
+        public void addInvertedTo(ConditionEvents events) {
+            throw new UnsupportedOperationException("Implement me");
+        }
+
+        @Override
+        public void describeTo(CollectsLines messages) {
+            throw new UnsupportedOperationException("Obsolete");
+        }
+
+        @Override
+        public List<String> getDescriptionLines() {
+            return descriptionLines;
+        }
+
+        @Override
+        public void handleWith(Handler handler) {
+            throw new UnsupportedOperationException("Implement me");
         }
     }
 }
