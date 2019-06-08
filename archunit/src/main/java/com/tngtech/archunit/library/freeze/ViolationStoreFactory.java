@@ -19,6 +19,7 @@ import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.io.Files.toByteArray;
 import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -53,9 +54,14 @@ class ViolationStoreFactory {
         public void initialize(Properties properties) {
             String path = properties.getProperty("default.path", "archunit_store");
             storeFolder = new File(path);
+            ensureExistence(storeFolder);
             File storedRulesFile = new File(storeFolder, "stored.rules");
             storedRules = new FileSyncedProperties(storedRulesFile);
             checkInitialization(storedRules.initializationSuccessful(), "Cannot create rule store at %s", storedRulesFile.getAbsolutePath());
+        }
+
+        private void ensureExistence(File folder) {
+            checkState(folder.exists() && folder.isDirectory() || folder.mkdirs(), "Cannot create folder %s", folder.getAbsolutePath());
         }
 
         private void checkInitialization(boolean initializationSuccessful, String message, Object... args) {
