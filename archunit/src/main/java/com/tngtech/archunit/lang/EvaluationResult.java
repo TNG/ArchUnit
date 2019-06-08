@@ -16,6 +16,7 @@
 package com.tngtech.archunit.lang;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.tngtech.archunit.PublicAPI;
@@ -139,7 +140,24 @@ public final class EvaluationResult {
 
         @Override
         public void handleWith(Handler handler) {
-            delegate.handleWith(handler);
+            delegate.handleWith(new FilteredHandler(handler, linePredicate));
+        }
+    }
+
+    private static class FilteredHandler implements ConditionEvent.Handler {
+        private final ConditionEvent.Handler delegate;
+        private final Predicate<String> linePredicate;
+
+        private FilteredHandler(ConditionEvent.Handler delegate, Predicate<String> linePredicate) {
+            this.delegate = delegate;
+            this.linePredicate = linePredicate;
+        }
+
+        @Override
+        public void handle(Collection<?> correspondingObjects, String message) {
+            if (linePredicate.apply(message)) {
+                delegate.handle(correspondingObjects, message);
+            }
         }
     }
 }
