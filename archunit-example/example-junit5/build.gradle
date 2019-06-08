@@ -8,6 +8,10 @@ dependencies {
     testCompile project(path: ':archunit-example:example-plain')
 
     testRuntime project(path: ':archunit-junit5-engine')
+
+    testRuntime dependency.log4j_api
+    testRuntime dependency.log4j_core
+    testRuntime dependency.log4j_slf4j
 }
 
 test {
