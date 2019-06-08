@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.lang;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.tngtech.archunit.PublicAPI;
@@ -89,17 +90,56 @@ public final class EvaluationResult {
      * Filters all recorded {@link ConditionEvent ConditionEvents} by their textual description.
      * I.e. the lines of the description of an event are passed to the supplied predicate to
      * decide if the event is relevant.
-     * @param linesPredicate A predicate to determine which events match by their descriptions
+     * @param linePredicate A predicate to determine which lines of events match. Predicate.apply(..) == true will imply the violation will be preserved.
      * @return A new {@link EvaluationResult} containing only matching events
      */
     @PublicAPI(usage = ACCESS)
-    public EvaluationResult filterDescriptionsMatching(Predicate<List<String>> linesPredicate) {
+    public EvaluationResult filterDescriptionsMatching(Predicate<String> linePredicate) {
         ConditionEvents filtered = new ConditionEvents();
         for (ConditionEvent event : events) {
-            if (linesPredicate.apply(event.getDescriptionLines())) {
-                filtered.add(event);
-            }
+            filtered.add(new FilteredEvent(event, linePredicate));
         }
         return new EvaluationResult(rule, filtered, priority);
+    }
+
+    private static class FilteredEvent implements ConditionEvent {
+        private final ConditionEvent delegate;
+        private final Predicate<String> linePredicate;
+
+        private FilteredEvent(ConditionEvent delegate, Predicate<String> linePredicate) {
+            this.delegate = delegate;
+            this.linePredicate = linePredicate;
+        }
+
+        @Override
+        public boolean isViolation() {
+            return delegate.isViolation() && !getDescriptionLines().isEmpty();
+        }
+
+        @Override
+        public void addInvertedTo(ConditionEvents events) {
+            delegate.addInvertedTo(events);
+        }
+
+        @Override
+        public void describeTo(CollectsLines messages) {
+            throw new UnsupportedOperationException("Method should already be obsolete");
+        }
+
+        @Override
+        public List<String> getDescriptionLines() {
+            List<String> result = new ArrayList<>();
+            for (String line : delegate.getDescriptionLines()) {
+                if (linePredicate.apply(line)) {
+                    result.add(line);
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public void handleWith(Handler handler) {
+            delegate.handleWith(handler);
+        }
     }
 }

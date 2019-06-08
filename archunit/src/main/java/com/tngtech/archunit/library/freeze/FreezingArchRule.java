@@ -110,10 +110,10 @@ public final class FreezingArchRule implements ArchRule {
     }
 
     private EvaluationResult filterOutKnownViolations(EvaluationResult result, final List<String> knownViolations) {
-        return result.filterDescriptionsMatching(new Predicate<List<String>>() {
+        return result.filterDescriptionsMatching(new Predicate<String>() {
             @Override
-            public boolean apply(List<String> partialViolations) {
-                return !filterMatchingLines(partialViolations, knownViolations).isEmpty();
+            public boolean apply(String violation) {
+                return isUnmatched(violation, knownViolations);
             }
         });
     }
