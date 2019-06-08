@@ -24,6 +24,8 @@ import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -51,6 +53,8 @@ import static com.tngtech.archunit.library.freeze.ViolationStoreFactory.FREEZE_S
  */
 @PublicAPI(usage = ACCESS)
 public final class FreezingArchRule implements ArchRule {
+    private static final Logger log = LoggerFactory.getLogger(FreezingArchRule.class);
+
     private final ArchRule delegate;
     private final ViolationStore store;
     private final ViolationLineMatcher matcher;
@@ -93,23 +97,27 @@ public final class FreezingArchRule implements ArchRule {
     }
 
     private EvaluationResult storeViolationsAndReturnSuccess(EvaluationResult result) {
+        log.debug("No results present for rule '{}'. Freezing rule result...", delegate.getDescription());
         store.save(delegate, result.getFailureReport().getDetails());
         return new EvaluationResult(delegate, result.getPriority());
     }
 
     private EvaluationResult removeObsoleteViolationsFromStoreAndReturnNewViolations(EvaluationResult result) {
+        log.debug("Found frozen result for rule '{}'", delegate.getDescription());
         final List<String> knownViolations = store.getViolations(delegate);
         removeObsoleteViolationsFromStore(result, knownViolations);
         return filterOutKnownViolations(result, knownViolations);
     }
 
     private void removeObsoleteViolationsFromStore(EvaluationResult result, List<String> knownViolations) {
-        List<String> knowViolationsSolved = filterMatchingLines(knownViolations, result.getFailureReport().getDetails());
-        List<String> violationsStillRelevant = filterMatchingLines(knownViolations, knowViolationsSolved);
+        List<String> knownViolationsSolved = filterMatchingLines(knownViolations, result.getFailureReport().getDetails());
+        log.debug("Removing obsolete violations from store: {}", knownViolationsSolved);
+        List<String> violationsStillRelevant = filterMatchingLines(knownViolations, knownViolationsSolved);
         store.save(delegate, violationsStillRelevant);
     }
 
     private EvaluationResult filterOutKnownViolations(EvaluationResult result, final List<String> knownViolations) {
+        log.debug("Filtering out known violations: {}", knownViolations);
         return result.filterDescriptionsMatching(new Predicate<String>() {
             @Override
             public boolean apply(String violation) {

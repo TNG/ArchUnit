@@ -17,6 +17,8 @@ import com.google.common.io.Files;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.lang.ArchRule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -46,6 +48,8 @@ class ViolationStoreFactory {
 
     @VisibleForTesting
     static class TextFileBasedViolationStore implements ViolationStore {
+        private static final Logger log = LoggerFactory.getLogger(TextFileBasedViolationStore.class);
+
         private static final Pattern UNESCAPED_LINE_BREAK_PATTERN = Pattern.compile("(?<!\\\\)\n");
         private File storeFolder;
         private FileSyncedProperties storedRules;
@@ -56,6 +60,7 @@ class ViolationStoreFactory {
             storeFolder = new File(path);
             ensureExistence(storeFolder);
             File storedRulesFile = new File(storeFolder, "stored.rules");
+            log.info("Initializing {} at {}", TextFileBasedViolationStore.class.getSimpleName(), storedRulesFile.getAbsolutePath());
             storedRules = new FileSyncedProperties(storedRulesFile);
             checkInitialization(storedRules.initializationSuccessful(), "Cannot create rule store at %s", storedRulesFile.getAbsolutePath());
         }
@@ -77,6 +82,8 @@ class ViolationStoreFactory {
 
         @Override
         public void save(ArchRule rule, List<String> violations) {
+            log.debug("Storing evaluated rule '{}' with violations: {}", rule.getDescription(), violations);
+
             UUID ruleId = ensureRuleId(rule);
             File ruleDetails = new File(storeFolder, ruleId.toString());
             write(violations, ruleDetails);
@@ -114,12 +121,14 @@ class ViolationStoreFactory {
                 ruleId = createNewRuleId(rule);
             } else {
                 ruleId = UUID.fromString(storedRules.getProperty(rule.getDescription()));
+                log.debug("Rule '{}' is already stored with ID {}", rule.getDescription(), ruleId);
             }
             return ruleId;
         }
 
         private UUID createNewRuleId(ArchRule rule) {
             UUID ruleId = UUID.randomUUID();
+            log.debug("Assigning new ID {} to rule '{}'", ruleId, rule.getDescription());
             storedRules.setProperty(rule.getDescription(), ruleId.toString());
             return ruleId;
         }
@@ -128,7 +137,9 @@ class ViolationStoreFactory {
         public List<String> getViolations(ArchRule rule) {
             String ruleDetailsFileName = storedRules.getProperty(rule.getDescription());
             checkArgument(ruleDetailsFileName != null, "No rule stored with description '%s'", rule.getDescription());
-            return readLines(ruleDetailsFileName);
+            List<String> result = readLines(ruleDetailsFileName);
+            log.debug("Retrieved stored rule '{}' with violations: {}", rule.getDescription(), result);
+            return result;
         }
 
         private List<String> readLines(String ruleDetailsFileName) {
