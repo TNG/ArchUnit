@@ -27,7 +27,7 @@ import com.tngtech.archunit.lang.EvaluationResult;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.library.freeze.ViolationStore.Factory.FREEZE_STORE_PROPERTY;
+import static com.tngtech.archunit.library.freeze.ViolationStoreFactory.FREEZE_STORE_PROPERTY;
 
 /**
  * A decorator around an existing {@link ArchRule} that "freezes" the state of all violations on the first call instead of failing the test.
@@ -187,6 +187,6 @@ public final class FreezingArchRule implements ArchRule {
      */
     @PublicAPI(usage = ACCESS)
     public static FreezingArchRule freeze(ArchRule rule) {
-        return new FreezingArchRule(rule, ViolationStore.Factory.create(), DefaultViolationLineMatcherFactory.create());
+        return new FreezingArchRule(rule, ViolationStoreFactory.create(), ViolationLineMatcherFactory.create());
     }
 }
