@@ -18,6 +18,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,6 +35,9 @@ public class FreezingArchRuleTest {
 
     @Rule
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void delegates_description() {
@@ -179,6 +183,16 @@ public class FreezingArchRuleTest {
     }
 
     @Test
+    public void rejects_illegal_ViolationStore_configuration() {
+        String wrongConfig = "SomeBogus";
+        ArchConfiguration.get().setProperty("freeze.store", wrongConfig);
+
+        thrown.expect(StoreInitializationFailedException.class);
+        thrown.expectMessage("freeze.store=" + wrongConfig);
+        freeze(rule("some description").withoutViolations()).check(importClasses(getClass()));
+    }
+
+    @Test
     public void default_violation_store_works() throws IOException {
         File folder = temporaryFolder.newFolder();
         ArchConfiguration.get().setProperty("freeze.store.default.path", folder.getAbsolutePath());
@@ -204,6 +218,56 @@ public class FreezingArchRuleTest {
         assertThat(frozen)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations(frozenViolations[1], "third violation");
+    }
+
+    @Test
+    public void allows_to_customize_ViolationLineMatcher_by_configuration() {
+        ArchConfiguration.get().setProperty("freeze.lineMatcher", ConsiderAllLinesWithTheSameStartLetterTheSame.class.getName());
+        TestViolationStore violationStore = new TestViolationStore();
+
+        createFrozen(violationStore, rule("some description")
+                .withViolations("a violation", "b violation", "c violation"));
+
+        String onlyOneDifferentLineByFirstLetter = "d violation";
+        FreezingArchRule frozen = freeze(rule("some description")
+                .withViolations("a different but counted same", "b too", "b also", onlyOneDifferentLineByFirstLetter))
+                .persistIn(violationStore);
+
+        assertThat(frozen)
+                .checking(importClasses(getClass()))
+                .hasOnlyViolations(onlyOneDifferentLineByFirstLetter);
+    }
+
+    @Test
+    public void rejects_illegal_ViolationLineMatcher_configuration() {
+        String wrongConfig = "SomeBogus";
+        ArchConfiguration.get().setProperty("freeze.lineMatcher", wrongConfig);
+
+        thrown.expect(StoreInitializationFailedException.class);
+        thrown.expectMessage("freeze.lineMatcher=" + wrongConfig);
+        freeze(rule("some description").withoutViolations()).check(importClasses(getClass()));
+    }
+
+    @Test
+    public void default_ViolationLineMatcher_ignores_line_numbers() {
+        TestViolationStore violationStore = new TestViolationStore();
+
+        createFrozen(violationStore, rule("some description")
+                .withViolations(
+                        "first violation in (SomeClass.java:13)",
+                        "second violation in (SomeClass.java:77)",
+                        "third violation in (OtherClass.java:123)"));
+
+        String onlyLineNumberChanged = "first violation in (SomeClass.java:99)";
+        String locationClassDoesNotMatch = "second violation in (OtherClass.java:77)";
+        String descriptionDoesNotMatch = "unknown violation in (SomeClass.java:77";
+        FreezingArchRule updatedViolations = freeze(rule("some description")
+                .withViolations(onlyLineNumberChanged, locationClassDoesNotMatch, descriptionDoesNotMatch))
+                .persistIn(violationStore);
+
+        assertThat(updatedViolations)
+                .checking(importClasses(getClass()))
+                .hasOnlyViolations(locationClassDoesNotMatch, descriptionDoesNotMatch);
     }
 
     private void createFrozen(TestViolationStore violationStore, ArchRule rule) {
@@ -298,6 +362,13 @@ public class FreezingArchRuleTest {
             private StoredRule(List<String> violations) {
                 this.violations = violations;
             }
+        }
+    }
+
+    private static class ConsiderAllLinesWithTheSameStartLetterTheSame implements ViolationLineMatcher {
+        @Override
+        public boolean matches(String lineFromFirstViolation, String lineFromSecondViolation) {
+            return lineFromFirstViolation.charAt(0) == lineFromSecondViolation.charAt(0);
         }
     }
 }

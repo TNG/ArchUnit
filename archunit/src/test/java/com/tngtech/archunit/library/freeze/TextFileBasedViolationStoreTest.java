@@ -10,6 +10,7 @@ import java.util.Properties;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.library.freeze.ViolationStoreFactory.TextFileBasedViolationStore;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,7 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultViolationStoreFactoryTest {
+public class TextFileBasedViolationStoreTest {
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -29,7 +30,7 @@ public class DefaultViolationStoreFactoryTest {
     @Rule
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    private final ViolationStore store = DefaultViolationStoreFactory.create();
+    private final ViolationStore store = new TextFileBasedViolationStore();
     private File configuredFolder;
 
     @Before
