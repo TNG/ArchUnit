@@ -14,9 +14,102 @@ The entrance point for checks of common architectural styles is:
 com.tngtech.archunit.library.Architectures
 ----
 
-At the moment this only provides a convenient check for a layered architecture (compare
-<<What to Check>>), but in the future it might be extended for styles like a hexagonal
-architecture, pipes and filters, separation of business logic and technical infrastructure, etc.
+At the moment this only provides a convenient check for a layered architecture and onion architecture.
+But in the future it might be extended for styles like a pipes and filters,
+separation of business logic and technical infrastructure, etc.
+
+==== Layered Architecture
+
+In layered architectures, we define different layers and how those interact with each other.
+An example setup for a simple 3-tier architecture can be found in <<Layer Checks>>.
+
+
+==== Onion Architecture
+
+In an "onion architecture" (also known as "hexagonal architecture" or "ports and adapters"),
+we can define domain packages and adapter packages as follows.
+
+[source,java]
+----
+onionArchitecture()
+        .domainModel("com.myapp.domain.model")
+        .domainService("com.myapp.domain.service")
+        .application("com.myapp.application")
+        .adapter("cli", "com.myapp.adapter.cli")
+        .adapter("persistence", "com.myapp.adapter.persistence")
+        .adapter("rest", "com.myapp.adapter.rest");
+----
+
+The semantic follows the descriptions in https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/.
+More precisely, the following holds:
+
+* The `domain` package is the core of the application. It consists of two parts.
+    . The `domainModel` packages contain the domain entities.
+    . The packages in `domainService` contains services that use the entities in the `domainModel` packages.
+* The `application` packages contain services and configuration to run the application and use cases. It can use the items of the `domain` package but there must not be any dependency from the `domain` to the `application` packages.
+* The `adapter` package contains logic to connect to external systems and/or infrastructure. No adapter may depend on another adapter. Adapters can use both the items of the `domain` as well as the `application` packages. Vice versa, neither the `domain` nor the `application` packages must contain dependencies on any `adapter` package.
+
+
+[plantuml, "onion-architecture-check"]
+----
+skinparam componentStyle uml2
+
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+skinparam class {
+  BorderColor #grey
+  BackgroundColor #white
+}
+
+package "com.myapp.domain.model" {
+    class DomainModel
+}
+package com.myapp.domain.service {
+    class DomainService
+    interface DomainRepository
+}
+package com.myapp.application {
+    class ApplicationConfiguration
+}
+package com.myapp.adapter.cli {
+    class Cli
+}
+package com.myapp.adapter.persistence {
+    class NoSqlRepository
+}
+package com.myapp.adapter.rest {
+    class RestController
+}
+
+DomainService --> DomainModel #green
+DomainService --> DomainRepository #green
+
+ApplicationConfiguration --> DomainService #green
+Cli --> DomainService #green
+Cli --> DomainRepository #green
+NoSqlRepository -up-|> DomainRepository #green
+NoSqlRepository --> DomainModel #green
+RestController --> DomainService #green
+RestController --> DomainModel #green
+
+DomainModel -up--> DomainService #crimson
+note right on link #crimson: the domain model\nmust be independent
+
+DomainService -up--> RestController #crimson
+note right on link #crimson: the domain must not know\nabout any adapters
+DomainService ---> NoSqlRepository #crimson
+note right on link #crimson: the domain must not know about\nany implementation of domain interfaces
+
+ApplicationConfiguration -up-> Cli
+note right on link #crimson: the application must not know\nabout any adapters
+
+Cli ---> RestController #crimson
+note right on link #crimson: one adapter must not know\nabout any other adapter
+----
+
 
 
 === Slices
@@ -92,7 +185,6 @@ com.tngtech.archunit.library.GeneralCodingRules
 
 These for example contain rules not to use `java.util.logging`, not to write to `System.out`
 (but use logging instead) or not to throw generic exceptions.
-
 
 === PlantUML Component Diagrams as rules
 
