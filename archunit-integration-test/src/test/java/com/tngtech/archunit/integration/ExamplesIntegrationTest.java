@@ -983,7 +983,7 @@ class ExamplesIntegrationTest {
                         .setting().field(ClassViolatingSessionBeanRules.class, "state")
                         .inLine(13))
 
-                .ofRule("classes that are business interfaces should have an unique implementation")
+                .ofRule("classes that are business interfaces should have a unique implementation")
                 .by(someBusinessInterfaceIsImplementedByTwoBeans)
 
                 .toDynamicTests();

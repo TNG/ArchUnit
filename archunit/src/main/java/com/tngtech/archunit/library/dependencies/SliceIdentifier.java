@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
- * An unique identifier of a {@link Slice}. All {@link JavaClasses} that are assigned to the same
+ * A unique identifier of a {@link Slice}. All {@link JavaClasses} that are assigned to the same
  * {@link SliceIdentifier} are considered to belong to the same {@link Slice}.<br>
  * A {@link SliceIdentifier} consists of textual parts. Two {@link SliceIdentifier} are considered to
  * be equal if and only if their parts are equal. The parts can also be referred to from
