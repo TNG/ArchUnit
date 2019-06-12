@@ -41,11 +41,11 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 @PublicAPI(usage = INHERITANCE, state = EXPERIMENTAL)
 public interface ArchUnitExtension {
     /**
-     * An unique String, identifying this extension, so ArchUnit can associate configured properties. The
+     * A unique String, identifying this extension, so ArchUnit can associate configured properties. The
      * String must not contain '<b>.</b>' (dot). The return value MUST BE UNIQUE between all configured extensions,
      * or an exception will be thrown, thus it's good practice, to use some company specific namespace.
      *
-     * @return An unique String identifier of this extension
+     * @return A unique String identifier of this extension
      */
     String getUniqueIdentifier();
 

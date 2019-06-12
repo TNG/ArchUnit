@@ -43,7 +43,7 @@ public class SessionBeanRulesTest {
 
     @ArchTest
     static final ArchRule business_interface_implementations_should_be_unique =
-            classes().that(are(businessInterfaces())).should(haveAnUniqueImplementation());
+            classes().that(are(businessInterfaces())).should(haveAUniqueImplementation());
 
     private static DescribedPredicate<JavaFieldAccess> targetIsStatelessSessionBean() {
         return Get.<JavaFieldAccess, FieldAccessTarget>target()
@@ -85,8 +85,8 @@ public class SessionBeanRulesTest {
         return INTERFACES.and(haveLocalBeanSubclass()).as("business interfaces");
     }
 
-    private static ArchCondition<JavaClass> haveAnUniqueImplementation() {
-        return new ArchCondition<JavaClass>("have an unique implementation") {
+    private static ArchCondition<JavaClass> haveAUniqueImplementation() {
+        return new ArchCondition<JavaClass>("have a unique implementation") {
             @Override
             public void check(JavaClass businessInterface, ConditionEvents events) {
                 events.add(new SimpleConditionEvent(businessInterface,
