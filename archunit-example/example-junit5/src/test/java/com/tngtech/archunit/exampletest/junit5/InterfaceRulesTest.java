@@ -25,7 +25,7 @@ public class InterfaceRulesTest {
             noClasses().that().areInterfaces().should().haveNameMatching(".*Interface");
 
     @ArchTest
-    static final ArchRule interfaces_should_not_have_simple_class_names_ending_with_the_word_interface =
+    static final ArchRule interfaces_should_not_have_simple_class_names_containing_the_word_interface =
             noClasses().that().areInterfaces().should().haveSimpleNameContaining("Interface");
 
     @ArchTest
