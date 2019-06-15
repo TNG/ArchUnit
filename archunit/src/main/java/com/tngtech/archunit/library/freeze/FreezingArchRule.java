@@ -16,7 +16,10 @@
 package com.tngtech.archunit.library.freeze;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.PublicAPI;
@@ -105,44 +108,25 @@ public final class FreezingArchRule implements ArchRule {
     private EvaluationResult removeObsoleteViolationsFromStoreAndReturnNewViolations(EvaluationResult result) {
         log.debug("Found frozen result for rule '{}'", delegate.getDescription());
         final List<String> knownViolations = store.getViolations(delegate);
-        removeObsoleteViolationsFromStore(result, knownViolations);
-        return filterOutKnownViolations(result, knownViolations);
+        CategorizedViolations categorizedViolations = removeObsoleteViolationsFromStore(result, knownViolations);
+        return filterOutKnownViolations(result, categorizedViolations.getKnownActualViolations());
     }
 
-    private void removeObsoleteViolationsFromStore(EvaluationResult result, List<String> knownViolations) {
-        List<String> knownViolationsSolved = filterMatchingLines(knownViolations, result.getFailureReport().getDetails());
-        log.debug("Removing obsolete violations from store: {}", knownViolationsSolved);
-        List<String> violationsStillRelevant = filterMatchingLines(knownViolations, knownViolationsSolved);
-        store.save(delegate, violationsStillRelevant);
+    private CategorizedViolations removeObsoleteViolationsFromStore(EvaluationResult result, List<String> knownViolations) {
+        CategorizedViolations categorizedViolations = new CategorizedViolations(matcher, result, knownViolations);
+        log.debug("Removing obsolete violations from store: {}", categorizedViolations.getStoredSolvedViolations());
+        store.save(delegate, categorizedViolations.getStoredUnsolvedViolations());
+        return categorizedViolations;
     }
 
-    private EvaluationResult filterOutKnownViolations(EvaluationResult result, final List<String> knownViolations) {
-        log.debug("Filtering out known violations: {}", knownViolations);
+    private EvaluationResult filterOutKnownViolations(EvaluationResult result, final Set<String> knownActualViolations) {
+        log.debug("Filtering out known violations: {}", knownActualViolations);
         return result.filterDescriptionsMatching(new Predicate<String>() {
             @Override
             public boolean apply(String violation) {
-                return isUnmatched(violation, knownViolations);
+                return !knownActualViolations.contains(violation);
             }
         });
-    }
-
-    private List<String> filterMatchingLines(List<String> lines, List<String> toSubtract) {
-        List<String> result = new ArrayList<>();
-        for (String line : lines) {
-            if (isUnmatched(line, toSubtract)) {
-                result.add(line);
-            }
-        }
-        return result;
-    }
-
-    private boolean isUnmatched(String line, List<String> toMatch) {
-        for (String candidate : toMatch) {
-            if (matcher.matches(line, candidate)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override
@@ -196,5 +180,40 @@ public final class FreezingArchRule implements ArchRule {
     @PublicAPI(usage = ACCESS)
     public static FreezingArchRule freeze(ArchRule rule) {
         return new FreezingArchRule(rule, ViolationStoreFactory.create(), ViolationLineMatcherFactory.create());
+    }
+
+    private static class CategorizedViolations {
+        private final Set<String> knownActualViolations = new HashSet<>();
+        private final List<String> storedSolvedViolations;
+        private final List<String> storedUnsolvedViolations = new ArrayList<>();
+
+        CategorizedViolations(ViolationLineMatcher matcher, EvaluationResult actualResult, List<String> storedViolations) {
+            List<String> storedViolationsLeft = new ArrayList<>(storedViolations);
+            for (String actualViolation : actualResult.getFailureReport().getDetails()) {
+                for (Iterator<String> iterator = storedViolationsLeft.iterator(); iterator.hasNext(); ) {
+                    String storedViolation = iterator.next();
+                    if (matcher.matches(actualViolation, storedViolation)) {
+                        iterator.remove();
+                        knownActualViolations.add(actualViolation);
+                        storedUnsolvedViolations.add(storedViolation);
+                        break;
+                    }
+                }
+            }
+            storedSolvedViolations = new ArrayList<>(storedViolations);
+            storedSolvedViolations.removeAll(storedUnsolvedViolations);
+        }
+
+        Set<String> getKnownActualViolations() {
+            return knownActualViolations;
+        }
+
+        List<String> getStoredSolvedViolations() {
+            return storedSolvedViolations;
+        }
+
+        List<String> getStoredUnsolvedViolations() {
+            return storedUnsolvedViolations;
+        }
     }
 }

@@ -189,6 +189,28 @@ public class FreezingArchRuleTest {
     }
 
     @Test
+    public void fails_on_an_increased_violation_count_of_the_same_violation_compared_to_frozen_ones() {
+        TestViolationStore violationStore = new TestViolationStore();
+
+        createFrozen(violationStore, rule("some description")
+                .withViolations("violation"));
+
+        ArchRule frozen = freeze(rule("some description")
+                .withViolations("violation", "second"))
+                .persistIn(violationStore)
+                .associateViolationLinesVia(new ViolationLineMatcher() {
+                    @Override
+                    public boolean matches(String lineFromFirstViolation, String lineFromSecondViolation) {
+                        return true;
+                    }
+                });
+
+        assertThat(frozen)
+                .checking(importClasses(getClass()))
+                .hasAnyViolationOf("violation", "second");
+    }
+
+    @Test
     public void allows_to_customize_ViolationStore_by_configuration() {
         ArchConfiguration.get().setProperty("freeze.store", TestViolationStore.class.getName());
         ArchConfiguration.get().setProperty("freeze.store.first.property", "first value");
@@ -248,11 +270,11 @@ public class FreezingArchRuleTest {
         TestViolationStore violationStore = new TestViolationStore();
 
         createFrozen(violationStore, rule("some description")
-                .withViolations("a violation", "b violation", "c violation"));
+                .withViolations("a violation", "a nother violation", "b violation", "c violation"));
 
         String onlyOneDifferentLineByFirstLetter = "d violation";
         FreezingArchRule frozen = freeze(rule("some description")
-                .withViolations("a different but counted same", "b too", "b also", onlyOneDifferentLineByFirstLetter))
+                .withViolations("a different but counted same", "a nother too", "b too", "c also", onlyOneDifferentLineByFirstLetter))
                 .persistIn(violationStore);
 
         assertThat(frozen)
@@ -276,11 +298,11 @@ public class FreezingArchRuleTest {
 
         createFrozen(violationStore, rule("some description")
                 .withViolations(
-                        "first violation in (SomeClass.java:13)",
+                        "first violation one in (SomeClass.java:12) and first violation two in (SomeClass.java:13)",
                         "second violation in (SomeClass.java:77)",
                         "third violation in (OtherClass.java:123)"));
 
-        String onlyLineNumberChanged = "first violation in (SomeClass.java:99)";
+        String onlyLineNumberChanged = "first violation one in (SomeClass.java:98) and first violation two in (SomeClass.java:99)";
         String locationClassDoesNotMatch = "second violation in (OtherClass.java:77)";
         String descriptionDoesNotMatch = "unknown violation in (SomeClass.java:77";
         FreezingArchRule updatedViolations = freeze(rule("some description")
