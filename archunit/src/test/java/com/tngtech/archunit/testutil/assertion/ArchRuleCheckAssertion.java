@@ -1,5 +1,6 @@
 package com.tngtech.archunit.testutil.assertion;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
@@ -16,6 +17,11 @@ public class ArchRuleCheckAssertion extends AbstractObjectAssert<ArchRuleCheckAs
 
     public ArchRuleCheckAssertion hasOnlyViolations(String... violations) {
         actual.checkContainsOnlyViolations(violations);
+        return this;
+    }
+
+    public ArchRuleCheckAssertion hasAnyViolationOf(String... violations) {
+        actual.checkContainsAnyViolationOf(violations);
         return this;
     }
 
@@ -46,6 +52,11 @@ public class ArchRuleCheckAssertion extends AbstractObjectAssert<ArchRuleCheckAs
             for (String violation : violations) {
                 assertThat(error.get().getMessage()).contains(violation);
             }
+        }
+
+        void checkContainsAnyViolationOf(String[] violations) {
+            assertThat(evaluationResult.getFailureReport().getDetails()).containsAnyOf(violations);
+            assertThat(error.get().getMessage()).containsPattern(Joiner.on("|").join(violations));
         }
 
         void checkNoViolation() {
