@@ -15,12 +15,14 @@
  */
 package com.tngtech.archunit.library.freeze;
 
-import java.util.regex.Pattern;
+import java.util.Iterator;
 
+import com.google.common.base.Splitter;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 
 import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
+import static java.lang.Character.isDigit;
 
 class ViolationLineMatcherFactory {
     private static final String FREEZE_LINE_MATCHER_PROPERTY = "freeze.lineMatcher";
@@ -44,15 +46,31 @@ class ViolationLineMatcherFactory {
     }
 
     private static class FuzzyLineNumberMatcher implements ViolationLineMatcher {
-        private static final Pattern LINE_WITHOUT_LINE_NUMBER_PATTERN = Pattern.compile("(.*\\(.*):\\d+\\)$");
-
         @Override
         public boolean matches(String lineFromFirstViolation, String lineFromSecondViolation) {
             return ignoreLineNumber(lineFromFirstViolation).equals(ignoreLineNumber(lineFromSecondViolation));
         }
 
+        // Would be nicer to use a regex here, but unfortunately that would have a massive performance impact.
+        // So we do some low level character processing instead.
         private String ignoreLineNumber(String violation) {
-            return LINE_WITHOUT_LINE_NUMBER_PATTERN.matcher(violation).replaceAll("$1");
+            Iterator<String> parts = Splitter.on(":").split(violation).iterator();
+            StringBuilder removedLineNumbers = new StringBuilder(parts.next());
+            while (parts.hasNext()) {
+                removedLineNumbers.append(removeLineNumberIfPresent(parts.next()));
+            }
+            return removedLineNumbers.toString();
+        }
+
+        private String removeLineNumberIfPresent(String part) {
+            int i = 0;
+            while (part.length() > i && isDigit(part.charAt(i))) {
+                i++;
+            }
+            boolean foundClosingBracketFollowingDigits = i > 0 && part.length() > i && part.charAt(i) == ')';
+            return foundClosingBracketFollowingDigits
+                    ? part.substring(i)
+                    : part;
         }
     }
 }
