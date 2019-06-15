@@ -30,6 +30,25 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 @PublicAPI(usage = INHERITANCE)
 public interface ViolationStore {
 
+    /**
+     * Provides custom initialization. The properties will be derived from
+     * {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME} by considering the sub properties of {@code freeze.store}.
+     * I.e. if {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME} contains
+     *
+     * <pre><code>
+     * freeze.store.propOne=valueOne
+     * freeze.store.propTwo=valueTwo
+     * </code></pre>
+     *
+     * then this method will be called with properties containing
+     *
+     * <pre><code>
+     * propOne=valueOne
+     * propTwo=valueTwo</code></pre>
+     *
+     * @param properties The properties derived from the {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME} prefix
+     *                   {@code freeze.store}.
+     */
     void initialize(Properties properties);
 
     /**
