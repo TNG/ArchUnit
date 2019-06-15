@@ -4,6 +4,7 @@ The Library API offers a growing collection of predefined rules, which offer a m
 for more complex but common patterns, like a layered architecture or checks for cycles between
 slices (compare <<What to Check>>).
 
+
 === Architectures
 
 The entrance point for checks of common architectural styles is:
@@ -16,6 +17,7 @@ com.tngtech.archunit.library.Architectures
 At the moment this only provides a convenient check for a layered architecture (compare
 <<What to Check>>), but in the future it might be extended for styles like a hexagonal
 architecture, pipes and filters, separation of business logic and technical infrastructure, etc.
+
 
 === Slices
 
@@ -77,6 +79,7 @@ SliceAssignment legacyPackageStructure = new SliceAssignment() {
 SlicesRuleDefinition.slices().assignedFrom(legacyPackageStructure).should().beFreeOfCycles()
 ----
 
+
 === General Coding Rules
 
 The Library API also offers a small set of coding rules that might be useful in various projects.
@@ -89,6 +92,7 @@ com.tngtech.archunit.library.GeneralCodingRules
 
 These for example contain rules not to use `java.util.logging`, not to write to `System.out`
 (but use logging instead) or not to throw generic exceptions.
+
 
 === PlantUML Component Diagrams as rules
 
@@ -180,3 +184,103 @@ an arbitrary number of packages; compare the core API)
 
 You can compare this
 https://github.com/TNG/ArchUnit-Examples/blob/master/example-plain/src/test/resources/com/tngtech/archunit/exampletest/shopping_example.puml[diagram of ArchUnit-Examples].
+
+
+=== Freezing Arch Rules
+
+Often in grown projects when a new rule is introduced, there are hundreds or even thousands of violations,
+way too many to fix immediately. The only way to tackle such extensive violations is to establish an
+iterative approach which prevents the code base from further deterioration.
+
+`FreezingArchRule` can help in these scenarios by recording all existing violations to a `ViolationStore`
+on the first run. Consecutive runs will then only report new violations and ignore known violations.
+Furthermore if violations are fixed, `FreezingArchRule` will automatically reduce the known stored
+violations to prevent any regression.
+
+==== Usage
+
+To freeze an arbitrary `ArchRule` just wrap it into a `FreezingArchRule`:
+
+[source,java,options="nowrap"]
+----
+ArchRule rule = FreezingArchRule.freeze(classes().should()./*complete ArchRule*/);
+----
+
+On the first run all violations of that rule will be stored as the current state. On consecutive runs only
+new violations will be reported. By default `FreezingArchRule` will ignore line numbers, i.e. if a
+violation is just shifted to a different line, it will still count as previously recorded
+and will not be reported.
+
+==== Configuration
+
+By default `FreezingArchRule` will use a simple text based `ViolationStore` to store the violations
+occurred during the first run and update fixed violations in the future. This is sufficient to add
+these files to any version control system to continuously track the progress. You can configure the
+location of the violation store within `archunit.properties` (compare <<Advanced Configuration>>):
+
+[source,options="nowrap"]
+.archunit.properties
+----
+freeze.store.default.path=/some/path/in/a/vcs/repo
+----
+
+==== Extension
+
+`FreezingArchRule` provides two extension points to adjust the behavior to custom needs.
+The first one is the `ViolationStore`, i.e. the store violations will be recorded to. The second one
+is the `ViolationLineMatcher`, i.e. how `FreezingArchRule` will associate lines of stored violations
+with lines of actual violations. As mentioned, by default this is a line matcher that ignores the
+line numbers of violations within the same class.
+
+===== ViolationStore
+
+As mentioned in <<Configuration>>, the default `ViolationStore` is a simple text based store.
+It can be exchanged though, for example to store violations in a database.
+To provide your own implementation, implement `com.tngtech.archunit.library.freeze.ViolationStore` and
+configure `FreezingArchRule` to use it. This can either be done programmatically:
+
+[source,java,options="nowrap"]
+----
+FreezingArchRule.freeze(rule).persistIn(customViolationStore);
+----
+
+Alternatively it can be configured via `archunit.properties` (compare <<Advanced Configuration>>):
+
+[source,options="nowrap"]
+----
+freeze.store=fully.qualified.name.of.MyCustomViolationStore
+----
+
+You can supply properties to initialize the store by using the namespace `freeze.store`. I.e. for properties
+
+[source,options="nowrap"]
+----
+freeze.store.propOne=valueOne
+freeze.store.propTwo=valueTwo
+----
+
+the method `ViolationStore.initialize(props)` will be called with the properties
+
+[source,java,options="nowrap"]
+----
+propOne=valueOne
+propTwo=valueTwo
+----
+
+===== ViolationLineMatcher
+
+The `ViolationLineMatcher` will decide if a line of an occurred violation was actually be stored before.
+As mentioned by default it will only ignore line numbers and count lines as equivalent when all other
+details match. To exchange the default `ViolationLineMatcher`, you can again either do it programmatically:
+
+[source,java,options="nowrap"]
+----
+FreezingArchRule.freeze(rule).associateViolationLinesVia(customLineMatcher);
+----
+
+or via `archunit.properties`:
+
+[source,options="nowrap"]
+----
+freeze.lineMatcher=fully.qualified.name.of.MyCustomLineMatcher
+----
