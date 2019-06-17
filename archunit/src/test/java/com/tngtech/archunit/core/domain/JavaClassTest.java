@@ -22,6 +22,7 @@ import com.tngtech.archunit.core.domain.testobjects.B;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
 import com.tngtech.archunit.core.domain.testobjects.IsArrayTestClass;
 import com.tngtech.archunit.core.domain.testobjects.SuperA;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -34,9 +35,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -47,6 +50,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEn
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
@@ -705,6 +709,39 @@ public class JavaClassTest {
                 .hasDescription("equivalent to " + Parent.class.getName());
     }
 
+    @Test
+    public void predicate_belong_to() {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(getClass());
+        JavaClass outerAnonymous =
+                getOnlyClassSettingField(classes, ClassWithNamedAndAnonymousInnerClasses.name_of_fieldIndicatingOuterAnonymousInnerClass);
+        JavaClass nestedAnonymous =
+                getOnlyClassSettingField(classes, ClassWithNamedAndAnonymousInnerClasses.name_of_fieldIndicatingNestedAnonymousInnerClass);
+
+        assertThat(belongToAnyOf(Object.class, ClassWithNamedAndAnonymousInnerClasses.class))
+                .hasDescription(String.format("belong to any of [%s, %s]",
+                        Object.class.getName(), ClassWithNamedAndAnonymousInnerClasses.class.getName()))
+                .accepts(classes.get(ClassWithNamedAndAnonymousInnerClasses.class))
+                .accepts(classes.get(ClassWithNamedAndAnonymousInnerClasses.NamedInnerClass.class))
+                .accepts(classes.get(ClassWithNamedAndAnonymousInnerClasses.NamedInnerClass.NestedNamedInnerClass.class))
+                .accepts(outerAnonymous)
+                .accepts(nestedAnonymous)
+                .rejects(classes.get(getClass()));
+    }
+
+    private JavaClass getOnlyClassSettingField(JavaClasses classes, final String fieldName) {
+        return getOnlyElement(classes.that(new DescribedPredicate<JavaClass>("") {
+            @Override
+            public boolean apply(JavaClass input) {
+                for (JavaFieldAccess access : input.getFieldAccessesFromSelf()) {
+                    if (access.getTarget().getName().equals(fieldName) && access.getAccessType() == SET) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }));
+    }
+
     private JavaClass classWithHierarchy(Class<?> clazz) {
         Set<Class<?>> classesToImport = getHierarchy(clazz);
         return importClasses(classesToImport.toArray(new Class[0])).get(clazz);
@@ -1037,4 +1074,31 @@ public class JavaClassTest {
         void parentMethod();
     }
 
+    private static class ClassWithNamedAndAnonymousInnerClasses {
+        static final String name_of_fieldIndicatingOuterAnonymousInnerClass = "fieldIndicatingOuterAnonymousInnerClass";
+        static final String name_of_fieldIndicatingNestedAnonymousInnerClass = "fieldIndicatingNestedAnonymousInnerClass";
+
+        private Object fieldIndicatingOuterAnonymousInnerClass;
+        private Object fieldIndicatingNestedAnonymousInnerClass;
+
+        void createAnonymousClasses() {
+            new Runnable() {
+                @Override
+                public void run() {
+                    fieldIndicatingOuterAnonymousInnerClass = "set";
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            fieldIndicatingNestedAnonymousInnerClass = "set";
+                        }
+                    };
+                }
+            };
+        }
+
+        private class NamedInnerClass {
+            private class NestedNamedInnerClass {
+            }
+        }
+    }
 }

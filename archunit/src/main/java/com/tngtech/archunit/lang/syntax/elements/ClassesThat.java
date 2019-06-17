@@ -627,12 +627,26 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION areNotInterfaces();
 
     /**
-     * Matches every class in the supplied list and their anonymous inner classes.
+     * Matches every class in the supplied list and any of their named/anonymous inner classes,
+     * no matter how deeply nested. E.g. consider
      *
-     * @param classes list of {@link Class} objects.
+     * <pre><code>
+     * class Outer {
+     *     class Inner {
+     *         class EvenMoreInner {
+     *         }
+     *     }
+     * }
+     * </code></pre>
+     *
+     * Then {@link #belongToAnyOf belongToAnyOf(Outer.class)} would match the {@link JavaClass}
+     * {@code Outer} but also {@code Inner} and {@code EvenMoreInner}.
+     * Likewise would hold for any anonymous inner classes.
+     *
+     * @param classes List of {@link Class} objects.
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION areAnyClass(Class... classes);
+    CONJUNCTION belongToAnyOf(Class... classes);
 
 }
