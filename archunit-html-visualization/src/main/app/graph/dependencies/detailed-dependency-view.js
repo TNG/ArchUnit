@@ -5,13 +5,13 @@ const SingleDetailedDependencyView = require('./single-detailed-dependency-view'
 const init = (transitionDuration, svg, visualizationStyles, textPadding = 5) => {
 
   const View = class {
-    constructor({svgContainer, htmlSvgElement}, callForAllDetailedViews, getDetailedDependencies) {
+    constructor(svgContainer, getContainerWidth, callForAllDetailedViews, getDetailedDependencies) {
       this._fixed = false;
       this._callForAllDetailedViews = callForAllDetailedViews;
       this._getDetailedDependencies = getDetailedDependencies;
 
       this._svgContainer = svgContainer;
-      this._htmlSvgElement = htmlSvgElement;
+      this._getContainerWidth = getContainerWidth;
 
       this._isCreated = false;
       this._isVisible = false;
@@ -81,7 +81,7 @@ const init = (transitionDuration, svg, visualizationStyles, textPadding = 5) => 
       //ensure that the rect is visible on the left side
       let x = Math.max(halfMaxWidthWithPadding, coordinates[0]);
       //ensure that the rect is visible on the right side
-      x = Math.min(x, this._htmlSvgElement.width - halfMaxWidthWithPadding);
+      x = Math.min(x, this._getContainerWidth() - halfMaxWidthWithPadding);
       this._svgElement.translate({x, y: coordinates[1]});
 
       const xShift = -halfMaxWidthWithPadding;

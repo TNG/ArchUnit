@@ -16,10 +16,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this._view.addRootView(this._root.view);
 
       this._dependencies = new Dependencies(jsonGraph.dependencies, this._root,
-        {
-          svgDetailedDependenciesContainer: this._view.svgElementForDetailedDependencies,
-          htmlSvgElement: this._view.svgElement
-        });
+        this._view.svgElementForDetailedDependencies, () => this._view.svgElement.width);
 
       this._root.addListener(this._dependencies.createListener());
       this._root.getLinks = () => this._dependencies.getAllLinks();

@@ -3,12 +3,12 @@
 const initDependency = require('./dependency.js');
 const {buildFilterGroup} = require('../filter');
 
-const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) => {
+const init = (getDependencyCreator) => {
 
   const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
   let nodes = new Map();
-  let dependencyCreator;
+  let dependencyCreator = getDependencyCreator();
 
   const fullNameStartsWithOtherFullName = (fullName, prefix) => nodes.getByName(prefix).isPredecessorOfNodeOrItself(nodes.getByName(fullName));
 
@@ -31,7 +31,7 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
     })
   });
 
-  const uniteDependencies = (dependencies, callForAllDependencies, getDetailedDependencies, {svgDetailedDependenciesContainer, htmlSvgElement}) => {
+  const uniteDependencies = (dependencies, callForAllDependencies, getDetailedDependencies, svgDetailedDependenciesContainer, getContainerWidth) => {
     const tmp = dependencies.map(r => ({key: r.from + '->' + r.to, dependency: r}));
     const map = new Map();
     tmp.forEach(e => map.set(e.key, []));
@@ -39,7 +39,7 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
 
     return [...map.values()].map(dependencies =>
       dependencyCreator.getUniqueDependency(dependencies[0].originNode, dependencies[0].targetNode, callForAllDependencies, getDetailedDependencies,
-        {svgDetailedDependenciesContainer, htmlSvgElement})
+        svgDetailedDependenciesContainer, getContainerWidth)
         .byGroupingDependencies(dependencies));
   };
 
@@ -140,10 +140,8 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
   };
 
   const Dependencies = class {
-    constructor(jsonDependencies, nodeMap, {svgDetailedDependenciesContainer, htmlSvgElement}) {
+    constructor(jsonDependencies, nodeMap, svgDetailedDependenciesContainer, getContainerWidth) {
       nodes = nodeMap;
-      dependencyCreator = initDependency(View, DetailedDependencyView, dependencyVisualizationFunctions);
-
       this._violations = new Violations();
 
       this._transformers = new Map();
@@ -171,7 +169,8 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
       this._updatePromise = Promise.resolve();
       this.doNext = fun => this._updatePromise = this._updatePromise.then(fun);
 
-      this._svgElementsForDetailedDependencies = {svgDetailedDependenciesContainer, htmlSvgElement};
+      this._svgElementForDetailedDependencies = svgDetailedDependenciesContainer;
+      this._getContainerWidth = getContainerWidth;
     }
 
     get filterGroup() {
@@ -267,13 +266,11 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
       return {
         onNodeRimChanged: (node) => {
           this._getVisibleDependencies().filter(d => node.isPredecessorOfNodeOrItself(d.originNode) || node.isPredecessorOfNodeOrItself(d.targetNode))
-            .forEach(d => d.jumpToPosition());
-          this._getVisibleDependencies().forEach(d => d.refresh())
+            .forEach(d => d.onNodeRimChanged());
         },
         onFoldFinished: node => this._updateNodeFold(node),
         onFold: node => this._setNodeFold(node),
         onLayoutChanged: () => this._moveAllToTheirPositions(),
-        onNodesFocused: () => this._getVisibleDependencies().forEach(d => d.onNodesFocused())
       }
     }
 
@@ -288,8 +285,10 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
       const transformedDependencies = applyTransformersOnDependencies(relevantTransformers, this._filtered);
       this._visibleDependencies = uniteDependencies(transformedDependencies,
         fun => this._getVisibleDependencies().forEach(fun),
-        (from, to) => this._getDetailedDependenciesOf(from, to), this._svgElementsForDetailedDependencies);
+        (from, to) => this._getDetailedDependenciesOf(from, to), this._svgElementForDetailedDependencies,
+        () => this._getContainerWidth());
 
+      //TODO: test this in dependencies-test (testing directly the dep-position)
       this._setMustShareNodes();
       this._visibleDependencies.forEach(d => d._isVisible = true);
       this._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
@@ -344,6 +343,7 @@ const init = (View, DetailedDependencyView, dependencyVisualizationFunctions) =>
       return this._visibleDependencies;
     }
 
+    //TODO: test in dependencies-test
     _getDetailedDependenciesOf(from, to) {
       const getDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
         const matchingDependencies = filter(dependencies).by(propertyFunc);

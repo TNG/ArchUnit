@@ -14,7 +14,7 @@ const init = (transitionDuration) => {
 
       this._line = this._svgElement.addLine();
       this._line.addCssClass('dependency');
-      this._refreshViolationCssClass();
+      this.refreshViolationCssClass();
 
       this._hoverArea = this._svgElement.addLine();
       this._hoverArea.addCssClass('area');
@@ -25,10 +25,10 @@ const init = (transitionDuration) => {
     onContainerEndNodeChanged() {
       this._svgElement.detachFromParent();
       this._dependency.containerEndNode.svgSelectionForDependencies.addChild(this._svgElement);
-      this._dependency.onContainerEndNodeApplied();
+      this.jumpToPosition();
     }
 
-    _refreshViolationCssClass() {
+    refreshViolationCssClass() {
       if (this._dependency.isViolation) {
         this._line.addCssClass('violation');
       } else {
@@ -44,33 +44,23 @@ const init = (transitionDuration) => {
       }
     }
 
-    _show() {
-      this._refreshViolationCssClass();
+    show() {
       this._svgElement.show();
       this._refreshPointerEvents();
     }
 
-    _hide() {
+    hide() {
       this._svgElement.hide();
       this._hoverArea.disablePointerEvents();
-    }
-
-    refresh() {
-      if (this._dependency.isVisible()) {
-        this._show();
-      } else {
-        this._hide();
-      }
     }
 
     _updateAreaPosition() {
       this._hoverArea.setStartAndEndPosition(this._dependency.relativeStartPoint, this._dependency.relativeEndPoint);
     }
 
-    jumpToPositionAndRefresh() {
+    jumpToPosition() {
       this._line.setStartAndEndPosition(this._dependency.relativeStartPoint, this._dependency.relativeEndPoint);
       this._updateAreaPosition();
-      this.refresh();
     }
 
     moveToPosition() {

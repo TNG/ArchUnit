@@ -314,7 +314,6 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     _focus(focusedChildNode) {
-      this._listeners.forEach(listener => listener.onNodesFocused(focusedChildNode));
     }
 
     get svgSelectionForDependencies() {
@@ -573,8 +572,8 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     _drag(dx, dy) {
       this._root.doNextAndWaitFor(() => {
         this._nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
-        this._focus();
         this._listeners.forEach(listener => listener.onNodeRimChanged(this)); //FIXME: does this reallay make sense??
+        this._focus();
       });
     }
 
@@ -674,9 +673,9 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
           || [...siblingOverlappingEndNode].some(n => n._layerWithinParentNode > d.siblingContainingTarget._layerWithinParentNode && n._layerWithinParentNode < d.siblingContainingOrigin._layerWithinParentNode);
 
         if (nodeOverlapsBothEndPointsAndLiesInBetween() || nodeOverlapsOneEndPointAndLiesInFrontOfTheOverlappedNodeButBehindTheOther()) {
-          d.dependency.containerEndNode = d.dependency.calcEndNodeInBackground();
+          d.dependency.setContainerEndNodeToEndNodeInBackground();
         } else {
-          d.dependency.containerEndNode = d.dependency.calcEndNodeInForeground();
+          d.dependency.setContainerEndNodeToEndNodeInForeground();
         }
       });
 

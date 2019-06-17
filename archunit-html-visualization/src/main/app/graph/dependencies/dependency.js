@@ -2,6 +2,8 @@
 
 const {Vector, vectors} = require('../infrastructure/vectors');
 
+//Hint: the functionality of the dependency-types is unused. It can be used to color or dash the lines of dependencies
+// of certain types: these types have to be added to the following two sets. The tests also have to be changed if this functionality is used.
 const coloredDependencyTypes = new Set();
 const dashedDependencyTypes = new Set();
 
@@ -14,13 +16,13 @@ const init = (View, DetailedView, dependencyVisualizationFunctions) => {
   const allDependencies = new Map();
 
   const getOrCreateUniqueDependency = (originNode, targetNode, type, isViolation, callForAllDependencies, getDetailedDependencies,
-                                       {svgDetailedDependenciesContainer, htmlSvgElement}) => {
+                                       svgDetailedDependenciesContainer, getContainerWidth) => {
     const key = `${originNode.getFullName()}-${targetNode.getFullName()}`;
     if (!allDependencies.has(key)) {
       allDependencies.set(key, new GroupedDependency(originNode, targetNode, type, isViolation, callForAllDependencies, getDetailedDependencies,
-        {svgDetailedDependenciesContainer, htmlSvgElement}));
+        svgDetailedDependenciesContainer, getContainerWidth));
     }
-    return allDependencies.get(key).withTypeAndViolation(type, isViolation)
+    return allDependencies.get(key)._withTypeAndViolation(type, isViolation)
   };
 
   const ElementaryDependency = class {
@@ -73,23 +75,21 @@ const init = (View, DetailedView, dependencyVisualizationFunctions) => {
   const argMax = (arr, firstIsGreaterThanSecond) => arr.reduce((elementWithMaxSoFar, e) => firstIsGreaterThanSecond(e, elementWithMaxSoFar) ? e : elementWithMaxSoFar, arr ? arr[0] : null);
 
   const GroupedDependency = class extends ElementaryDependency {
-    constructor(originNode, targetNode, type, isViolation, callForAllDependencies, getDetailedDependencies, {svgDetailedDependenciesContainer, htmlSvgElement}) {
-      super(originNode, targetNode, type, '', '', isViolation);
-      this._containerEndNode = this.calcEndNodeInForeground();
+    constructor(originNode, targetNode, type, isViolation, callForAllDependencies, getDetailedDependencies, svgDetailedDependenciesContainer, getContainerWidth) {
+      super(originNode, targetNode, type, '', isViolation);
+      this._containerEndNode = this._calcEndNodeInForeground();
       this._view = new View(this);
 
-      this._detailedView = new DetailedView({svgContainer: svgDetailedDependenciesContainer, htmlSvgElement},
+      this._detailedView = new DetailedView(svgDetailedDependenciesContainer, getContainerWidth,
         callback => callForAllDependencies(dep => callback(dep._detailedView)),
         () => getDetailedDependencies(this.originNode.getFullName(), this.targetNode.getFullName()));
       this._view.onMouseOver(() => this._detailedView.fadeIn());
       this._view.onMouseOut(() => this._detailedView.fadeOut());
 
-      this._isVisible = true;
       this.mustShareNodes = false;
-      this._containerEndNodeHasChanged = false;
     }
 
-    recalculatePoint() {
+    _recalculatePoint() {
       const results = dependencyVisualizationFunctions.calculateStartAndEndPositionOfDependency(this.mustShareNodes,
         this.originNode.absoluteFixableCircle, this.targetNode.absoluteFixableCircle);
       this.startPoint = results.startPoint;
@@ -102,40 +102,38 @@ const init = (View, DetailedView, dependencyVisualizationFunctions) => {
       this.relativeEndPoint = Vector.between(this.containerEndNode.absoluteFixableCircle, this.endPoint);
     }
 
-    onContainerEndNodeApplied() {
-      this._containerEndNodeHasChanged = false;
-    }
-
     get containerEndNode() {
       return this._containerEndNode;
     }
 
-    set containerEndNode(value) {
+    _setContainerEndNode(value) {
       if (this._containerEndNode !== value) {
-        this._containerEndNodeHasChanged = true;
         this._containerEndNode = value;
         this._recalculateRelativePoints();
-      }
-    }
-
-    onNodesFocused() {
-      if (this._containerEndNodeHasChanged) {
         this._view.onContainerEndNodeChanged();
-        this.jumpToPosition();
       }
     }
 
-    withTypeAndViolation(type, isViolation) {
+    setContainerEndNodeToEndNodeInForeground() {
+      this._setContainerEndNode(this._calcEndNodeInForeground());
+    }
+
+    setContainerEndNodeToEndNodeInBackground() {
+      this._setContainerEndNode(this._calcEndNodeInBackground());
+    }
+
+    _withTypeAndViolation(type, isViolation) {
       this.type = type;
       this.isViolation = isViolation;
+      this._view.refreshViolationCssClass();
       return this;
     }
 
-    calcEndNodeInForeground() {
+    _calcEndNodeInForeground() {
       return argMax([this._originNode, this._targetNode], (node1, node2) => node1.liesInFrontOf(node2));
     }
 
-    calcEndNodeInBackground() {
+    _calcEndNodeInBackground() {
       return argMax([this._originNode, this._targetNode], (node1, node2) => !node1.liesInFrontOf(node2));
     }
 
@@ -143,35 +141,30 @@ const init = (View, DetailedView, dependencyVisualizationFunctions) => {
       return !(this.originNode.isPackage() || this.targetNode.isPackage());
     }
 
-    jumpToPosition() {
-      this.recalculatePoint();
-      this._view.jumpToPositionAndRefresh();
+    onNodeRimChanged() {
+      this._recalculatePoint();
+      this._view.jumpToPosition();
+      this._refresh();
     }
 
     moveToPosition() {
-      this.recalculatePoint();
-      return this._view.moveToPosition().then(() => this.refresh());
+      this._recalculatePoint();
+      return this._view.moveToPosition().then(() => this._refresh());
     }
 
     hide() {
-      this._isVisible = false;
-      this._view.refresh();
+      this._view.hide();
     }
 
-    show() {
-      this._isVisible = true;
-      this._view.refresh();
+    _show() {
+      this._view.show();
     }
 
-    isVisible() {
-      return this._isVisible;
-    }
-
-    refresh() {
+    _refresh() {
       if (this.originNode.overlapsWith(this.targetNode)) {
         this.hide();
       } else {
-        this.show();
+        this._show();
       }
     }
 
@@ -193,18 +186,18 @@ const init = (View, DetailedView, dependencyVisualizationFunctions) => {
   };
 
   const getUniqueDependency = (originNode, targetNode, callForAllDependencies, getDetailedDependencies,
-                               {svgDetailedDependenciesContainer, htmlSvgElement}) => ({
+                               svgDetailedDependenciesContainer, getContainerWidth) => ({
     byGroupingDependencies: dependencies => {
       if (originNode.isPackage() || targetNode.isPackage()) {
-        return getOrCreateUniqueDependency(originNode, targetNode, '', dependencies.some(d => d.isViolation),
-          callForAllDependencies, getDetailedDependencies, {svgDetailedDependenciesContainer, htmlSvgElement});
+        return getOrCreateUniqueDependency(originNode, targetNode, '', dependencies.some(d => d.isViolation), callForAllDependencies,
+          getDetailedDependencies, svgDetailedDependenciesContainer, getContainerWidth);
       } else {
         const colorType = getSingleStyledDependencyType(dependencies, coloredDependencyTypes, 'severalColors');
         const dashedType = getSingleStyledDependencyType(dependencies, dashedDependencyTypes, 'severalDashed');
 
         return getOrCreateUniqueDependency(originNode, targetNode, joinStrings(' ', colorType, dashedType),
           dependencies.some(d => d.isViolation), callForAllDependencies, getDetailedDependencies,
-          {svgDetailedDependenciesContainer, htmlSvgElement});
+          svgDetailedDependenciesContainer, getContainerWidth);
       }
     }
   });
@@ -224,4 +217,4 @@ const init = (View, DetailedView, dependencyVisualizationFunctions) => {
   };
 };
 
-module.exports = init;
+module.exports = {init};
