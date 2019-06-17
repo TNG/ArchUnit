@@ -44,14 +44,6 @@ public class GivenMembersDeclaredInClassesThatTest {
     public final ExpectedException thrown = ExpectedException.none();
 
     @Test
-    public void areAnyClass() {
-        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areAnyClass(String.class, List.class))
-                .on(List.class, String.class, Iterable.class);
-
-        assertThatMembers(members).matchInAnyOrderMembersOf(String.class, List.class);
-    }
-
-    @Test
     public void haveFullyQualifiedName() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().haveFullyQualifiedName(List.class.getName()))
                 .on(List.class, String.class, Iterable.class);
@@ -642,6 +634,20 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
+    public void belongToAnyOf() {
+        List<JavaMember> members =
+                filterResultOf(members().that().areDeclaredInClassesThat().belongToAnyOf(ClassWithInnerClasses.class, String.class))
+                        .on(ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class,
+                                ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                                List.class, String.class, Iterable.class, StringBuilder.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(
+                ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class, ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                String.class
+        );
+    }
+
+    @Test
     public void and_conjunction() {
         List<JavaMember> members = filterResultOf(
                 members().that().areDeclaredInClassesThat().haveNameMatching(".*\\..*i.*")
@@ -726,5 +732,19 @@ public class GivenMembersDeclaredInClassesThatTest {
 
     @MetaAnnotatedAnnotation
     private static class MetaAnnotatedClass {
+    }
+
+    // the fields are important for the test to test anything relevant
+    @SuppressWarnings("unused")
+    private static class ClassWithInnerClasses {
+        String member;
+
+        private static class InnerClass {
+            String member;
+
+            private static class EvenMoreInnerClass {
+                String member;
+            }
+        }
     }
 }

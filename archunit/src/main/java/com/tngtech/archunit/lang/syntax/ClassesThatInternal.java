@@ -281,8 +281,8 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     }
 
     @Override
-    public CONJUNCTION areAnyClass(Class... classes) {
-        return givenWith(are(JavaClass.Predicates.areAnyClass(classes)));
+    public CONJUNCTION belongToAnyOf(Class... classes) {
+        return givenWith(JavaClass.Predicates.belongToAnyOf(classes));
     }
 
     @Override

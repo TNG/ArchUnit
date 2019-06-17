@@ -59,17 +59,6 @@ public class ShouldClassesThatTest {
                 classes().should().onlyDependOnClassesThat());
     }
 
-
-    @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
-    public void areAnyClass(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.areAnyClass(Iterable.class, String.class))
-                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
-    }
-
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void haveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
@@ -732,6 +721,19 @@ public class ShouldClassesThatTest {
                         ClassAccessingCollection.class, ClassAccessingSimpleClass.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void belongToAnyOf(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.belongToAnyOf(ClassWithInnerClasses.class, String.class))
+                .on(ClassAccessingNestedInnerClass.class, ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class,
+                        ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingNestedInnerClass.class,
+                ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class, ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                ClassAccessingString.class);
     }
 
     @Test
@@ -1576,5 +1578,23 @@ public class ShouldClassesThatTest {
 
     @MetaAnnotatedAnnotation
     private static class MetaAnnotatedClass {
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassAccessingNestedInnerClass {
+        ClassWithInnerClasses.InnerClass.EvenMoreInnerClass evenMoreInnerClass;
+
+        void access() {
+            evenMoreInnerClass.callMe();
+        }
+    }
+
+    private static class ClassWithInnerClasses {
+        private static class InnerClass {
+            private static class EvenMoreInnerClass {
+                void callMe() {
+                }
+            }
+        }
     }
 }

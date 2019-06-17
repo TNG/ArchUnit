@@ -17,7 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -727,16 +726,6 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         return anyMatches(possibleTargets, predicate);
     }
 
-    /**
-     *
-     * @param clazz a class
-     * @return true if this {@link JavaClass} represents an anonymous inner class of the supplied {@link Class},
-     * otherwise false
-     */
-    private boolean isAnonymousInnerClassOf(Class<?> clazz) {
-        return isInnerClass() && enclosingClass.get().isEquivalentTo(clazz) && isAnonymous();
-    }
-
     private boolean anyMatches(List<JavaClass> possibleTargets, DescribedPredicate<? super JavaClass> predicate) {
         for (JavaClass javaClass : possibleTargets) {
             if (predicate.apply(javaClass)) {
@@ -1294,35 +1283,43 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
             return new EquivalentToPredicate(clazz);
         }
 
+        /**
+         * A predicate to determine if a {@link JavaClass} "belongs" to one of the passed {@link Class classes},
+         * where we define "belong" as being equivalent to the class itself or any inner/anonymous class of this class.
+         *
+         * @param classes The {@link Class classes} to check the {@link JavaClass} against
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} is equivalent to
+         * one of the supplied {@link Class classes} or to one of its inner/anonymous classes.
+         */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> areAnyClass(Class... classes) {
-            return new AnyClassPredicate(classes);
+        public static DescribedPredicate<JavaClass> belongToAnyOf(Class... classes) {
+            return new BelongToAnyOfPredicate(classes);
         }
 
-        private static class AnyClassPredicate extends DescribedPredicate<JavaClass> {
+        private static class BelongToAnyOfPredicate extends DescribedPredicate<JavaClass> {
             private final Class[] classes;
 
-            AnyClassPredicate(Class... classes) {
-                super(String.format("any class %s", getClassNames(classes)));
+            BelongToAnyOfPredicate(Class... classes) {
+                super("belong to any of " + JavaClass.namesOf(classes));
                 this.classes = classes;
             }
 
             @Override
             public boolean apply(JavaClass input) {
                 for (Class clazz : classes) {
-                    if (input.isEquivalentTo(clazz) || input.isAnonymousInnerClassOf(clazz)) {
+                    if (belongsTo(input, clazz)) {
                         return true;
                     }
                 }
                 return false;
             }
 
-            private static List<String> getClassNames (Class[] classes) {
-                List<String> names = new ArrayList<>();
-                for (int i = 0; i < classes.length; i++) {
-                    names.add(classes[i].getName());
+            private boolean belongsTo(JavaClass input, Class clazz) {
+                JavaClass toTest = input;
+                while (!toTest.isEquivalentTo(clazz) && toTest.getEnclosingClass().isPresent()) {
+                    toTest = toTest.getEnclosingClass().get();
                 }
-                return names;
+                return toTest.isEquivalentTo(clazz);
             }
         }
 

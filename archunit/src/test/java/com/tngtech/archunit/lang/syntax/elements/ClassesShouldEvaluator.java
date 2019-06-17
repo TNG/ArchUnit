@@ -114,7 +114,10 @@ class ClassesShouldEvaluator {
     private static class ClassOriginInLineMatcher extends ClassInReportLineMatcher {
         @Override
         boolean matches(String line, JavaClass javaClass) {
-            String originPattern = String.format(".*<%s.*(\\w\\.)+\\w.*in \\(.*\\.java.*\\)", quote(javaClass.getName()));
+            String optionalMemberName = "(\\.[^$]+)?";
+            String optionalMethodParameters = "(\\([^)]*\\))?";
+            String originPattern = String.format(".*<%s%s%s> .* <.*> in \\(.*\\.java.*\\)",
+                    quote(javaClass.getName()), optionalMemberName, optionalMethodParameters);
             return line.matches(originPattern);
         }
     }
