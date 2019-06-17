@@ -64,7 +64,7 @@ public class ExpectedDependency implements ExpectedRelation {
     }
 
     private static String getDependencyPattern(String originName, String dependencyTypePattern, String targetName, int lineNumber) {
-        return String.format(".*%s.*%s.*%s.*\\.java:%d.*", quote(originName), dependencyTypePattern, quote(targetName), lineNumber);
+        return String.format(".*%s[^$]*%s[^$]*%s.*\\.java:%d.*", quote(originName), dependencyTypePattern, quote(targetName), lineNumber);
     }
 
     public static class InheritanceCreator {
