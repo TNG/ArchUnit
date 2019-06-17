@@ -313,7 +313,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       return false;
     }
 
-    _focus(focusedChildNode) {
+    _focus() {
     }
 
     get svgSelectionForDependencies() {
@@ -585,6 +585,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     // wenn eine Node fokussiert wird, dann sollen also alle von ihr abhängigen Nodes innerhalb ihrer Parents und Vorgänger in den Vordergrund
     // gebracht werden...ist aber nicht so trivial...
     //FIXME: when right after loading the html page a node is dragged, an error occurs and the view stucks
+    //TODO: maybe move this partly into graph??
     _focus() {
       const dependenciesWithinParent = this._root.getDependenciesDirectlyWithinNode(this.getParent())
         .map(d => ({

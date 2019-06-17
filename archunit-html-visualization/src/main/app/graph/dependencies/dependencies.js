@@ -1,6 +1,5 @@
 'use strict';
 
-const initDependency = require('./dependency.js');
 const {buildFilterGroup} = require('../filter');
 
 const init = (getDependencyCreator) => {
@@ -161,7 +160,7 @@ const init = (getDependencyCreator) => {
         .withStaticFilterPrecondition(true)
         .addDynamicFilter('violations', () => this._violations.getFilter())
         .withStaticFilterPrecondition(false)
-        .addDynamicFilter('visibleNodes', () => this._getVisibleNodesFilter(), [])
+        .addDynamicFilter('visibleNodes', () => this._getVisibleNodesFilter())
         .withStaticFilterPrecondition(true)
         .build();
 
@@ -270,8 +269,8 @@ const init = (getDependencyCreator) => {
         },
         onFoldFinished: node => this._updateNodeFold(node),
         onFold: node => this._setNodeFold(node),
-        onLayoutChanged: () => this._moveAllToTheirPositions(),
-      }
+        onLayoutChanged: () => this._moveAllToTheirPositions()
+      };
     }
 
     getDependenciesDirectlyWithinNode(node) {
@@ -343,7 +342,7 @@ const init = (getDependencyCreator) => {
       return this._visibleDependencies;
     }
 
-    //TODO: test in dependencies-test
+    //TODO: test in dependencies-test...not directly this method but the shown detailed deps
     _getDetailedDependenciesOf(from, to) {
       const getDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
         const matchingDependencies = filter(dependencies).by(propertyFunc);
