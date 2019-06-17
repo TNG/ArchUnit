@@ -1,68 +1,114 @@
 'use strict';
 
-const NodeMock = class {
-  /**
-   * @param fullName
-   * @param isPackage
-   * @param centerPosition
-   * @param radius
-   * @param zIndex higher z-index means a layer more in the front
-   * @param svgContainerElement svg-selection, where the svg-element for the dependencies should be added to
-   */
-  constructor(fullName, isPackage, centerPosition, radius, zIndex, svgContainerElement = null) {
-    this._fullName = fullName;
-    this._isPackage = isPackage;
-    this._centerPosition = centerPosition;
-    this._radius = radius;
-    this._zIndex = zIndex;
+const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
 
-    if (svgContainerElement) {
-      this._svgElement = svgContainerElement.addGroup({'id': fullName});
-      this._svgElement.translate(this._centerPosition);
-      this._svgSelectionForDependencies = this._svgElement.addGroup();
+const d3 = require('d3');
+
+const MIN_RADIUS = 5;
+
+const init = () => {
+
+  let currentZIndex = 0;
+  const nodeMap = new Map();
+
+  const NodeMock = class {
+    /**
+     * @param jsonNode same format as when creating a real node
+     * @param zIndex higher z-index means a layer more in the front
+     * @param svgContainerElement svg-selection, where the svg-element for the dependencies should be added to
+     * @param parent
+     */
+    constructor(jsonNode, svgContainerElement = null, zIndex = 0, parent = null) {
+      this._fullName = jsonNode.fullName;
+      this._isPackage = jsonNode.type === 'package';
+      this._zIndex = zIndex;
+      this._circle = {x: 0, y: 0};
+      this._parent = parent;
+
+      if (svgContainerElement) {
+        this._svgElement = svgContainerElement.addGroup({'id': this._fullName});
+        this._svgElement.translate({x: 0, y: 0});
+        this._svgElementForChildren = this._svgElement.addGroup();
+        this._svgSelectionForDependencies = this._svgElement.addGroup();
+      }
+
+      this.children = Array.from(jsonNode.children || []).map(jsonChild =>
+        new NodeMock(jsonChild, this._svgElementForChildren, currentZIndex++, this));
+
+      const childCircles = this.children.map(child => child._circle);
+      d3.packSiblings(childCircles);
+      this.children.forEach(child => child._updatePosition());
+      const enclosingCircle = d3.packEnclose(childCircles) || {r: 0};
+      this._circle.r = Math.max(enclosingCircle.r, MIN_RADIUS);
+
+      this._setOfOverlappingNodes = new Set();
+
+      nodeMap.set(this._fullName, this);
     }
 
-    this._setOfOverlappingNodes = new Set();
-  }
-
-  get absoluteFixableCircle() {
-    return {
-      x: this._centerPosition.x,
-      y: this._centerPosition.y,
-      r: this._radius
+    getByName(fullName) {
+      return nodeMap.get(fullName);
     }
-  }
 
-  getFullName() {
-    return this._fullName;
-  }
+    get absoluteFixableCircle() {
+      if (this._parent) {
+        const pos = Vector.from(this._parent.absoluteFixableCircle).add(this._circle);
+        return {x: pos.x, y: pos.y, r: this._circle.r};
+      } else {
+        return this._circle;
+      }
+    }
 
-  liesInFrontOf(otherNodeMock) {
-    return this._zIndex > otherNodeMock._zIndex;
-  }
+    getFullName() {
+      return this._fullName;
+    }
 
-  isPackage() {
-    return this._isPackage;
-  }
+    liesInFrontOf(otherNodeMock) {
+      return this._zIndex > otherNodeMock._zIndex;
+    }
 
-  overlapsWith(otherNodeMock) {
-    return this._setOfOverlappingNodes.has(otherNodeMock._fullName);
-  }
+    isPackage() {
+      return this._isPackage;
+    }
 
-  get svgSelectionForDependencies() {
-    return this._svgSelectionForDependencies;
-  }
+    overlapsWith(otherNodeMock) {
+      return this._setOfOverlappingNodes.has(otherNodeMock._fullName);
+    }
 
-  //helper methods
-  addOverlap(otherNodeMock) {
-    this._setOfOverlappingNodes.add(otherNodeMock._fullName);
-    otherNodeMock._setOfOverlappingNodes.add(this._fullName);
-  }
+    get svgSelectionForDependencies() {
+      return this._svgSelectionForDependencies;
+    }
 
-  removeOverlap(otherNodeMock) {
-    this._setOfOverlappingNodes.delete(otherNodeMock._fullName);
-    otherNodeMock._setOfOverlappingNodes.delete(this._fullName);
-  }
+    /**
+     * helper methods
+     */
+
+    _updatePosition() {
+      if (this._svgElement) {
+        this._svgElement.translate(this._circle);
+      }
+    }
+
+    get _maximumZIndexOfSeldAndDescendants() {
+      if (this.children.length === 0) {
+        return this._zIndex;
+      } else {
+        return this.children[this.children.length - 1]._maximumZIndexOfSeldAndDescendants;
+      }
+    }
+
+    addOverlap(otherNodeMock) {
+      this._setOfOverlappingNodes.add(otherNodeMock._fullName);
+      otherNodeMock._setOfOverlappingNodes.add(this._fullName);
+    }
+
+    removeOverlap(otherNodeMock) {
+      this._setOfOverlappingNodes.delete(otherNodeMock._fullName);
+      otherNodeMock._setOfOverlappingNodes.delete(this._fullName);
+    }
+  };
+
+  return NodeMock;
 };
 
-module.exports = NodeMock;
+module.exports = {init};

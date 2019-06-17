@@ -1,7 +1,7 @@
 'use strict';
 
 const svg = require('../testinfrastructure/svg-mock');
-const NodeMock = require('./node-mock');
+const createMockRootFromClassNames = require('./mock-root-creator').createMockRootFromClassNames;
 
 const TestDependencyCreator = class {
   constructor(dependencyCreator) {
@@ -17,11 +17,12 @@ const TestDependencyCreator = class {
     this.from = 'my.company.somePkg.SomeClass';
     this.to = 'my.company.otherPkg.OtherClass';
 
-    this.parentOriginNode = new NodeMock(this.parentFrom, true, {x: 20, y: 110}, 40, this._index++, svgNodesContainer);
-    this.originNode = new NodeMock(this.from, false, {x: 10, y: 100}, 20, this._index++, svgNodesContainer);
+    const mockRoot = createMockRootFromClassNames(this.from, this.to, this.svgContainer);
 
-    this.parentTargetNode = new NodeMock(this.parentTo, true, {x: 200, y: 190}, 40, this._index++, svgNodesContainer);
-    this.targetNode = new NodeMock(this.to, false, {x: 210, y: 200}, 20, this._index++, svgNodesContainer);
+    this.parentOriginNode = mockRoot.getByName(this.parentFrom);
+    this.parentTargetNode = mockRoot.getByName(this.parentTo);
+    this.originNode = mockRoot.getByName(this.from);
+    this.targetNode = mockRoot.getByName(this.to);
 
     this._currentDescriptions = new Map();
 

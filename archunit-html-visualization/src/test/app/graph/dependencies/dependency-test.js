@@ -18,6 +18,8 @@ const interactOn = require('../testinfrastructure/dependency-gui-adapter').inter
 const inspect = require('../testinfrastructure/dependency-gui-adapter').inspect;
 const detailedDepsGuiAdapter = require('../testinfrastructure/detailed-dependency-gui-adapter');
 
+const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
+
 describe('ElementaryDependency', () => {
   describe('exposes end nodes and their fullnames', () => {
     let testDependencyCreator;
@@ -382,12 +384,17 @@ describe('GroupedDependency', () => {
         });
 
         it('leads to correct end positions of the svg-lines', () => {
-          const expectedStartPosition = {x: 27.88854, y: 108.94428};
-          const expectedEndPosition = {x: 192.11146, y: 191.05573};
+          const expectedDependencyLength =
+            Vector.between(testDepCreator.originNode.absoluteFixableCircle, testDepCreator.targetNode.absoluteFixableCircle).length()
+            - (testDepCreator.originNode.absoluteFixableCircle.r + testDepCreator.targetNode.absoluteFixableCircle.r);
 
           const actualPositions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
-          expect(actualPositions.startPosition).to.deep.closeTo(expectedStartPosition);
-          expect(actualPositions.endPosition).to.deep.closeTo(expectedEndPosition);
+
+          expect(Vector.between(testDepCreator.originNode.absoluteFixableCircle, actualPositions.startPosition).length())
+            .to.equal(testDepCreator.originNode.absoluteFixableCircle.r);
+          expect(Vector.between(testDepCreator.targetNode.absoluteFixableCircle, actualPositions.endPosition).length())
+            .to.equal(testDepCreator.targetNode.absoluteFixableCircle.r);
+          expect(Vector.between(actualPositions.startPosition, actualPositions.endPosition).length()).to.equal(expectedDependencyLength);
         });
 
         it('#startPoint and #endPoint equal the drawn positions', () => {
@@ -438,12 +445,17 @@ describe('GroupedDependency', () => {
         });
 
         it('leads to correct end positions of the svg-lines', () => {
-          const expectedStartPosition = {x: 27.88854, y: 108.94428};
-          const expectedEndPosition = {x: 192.11146, y: 191.05573};
+          const expectedDependencyLength =
+            Vector.between(testDepCreator.originNode.absoluteFixableCircle, testDepCreator.targetNode.absoluteFixableCircle).length()
+            - (testDepCreator.originNode.absoluteFixableCircle.r + testDepCreator.targetNode.absoluteFixableCircle.r);
 
           const actualPositions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
-          expect(actualPositions.startPosition).to.deep.closeTo(expectedStartPosition);
-          expect(actualPositions.endPosition).to.deep.closeTo(expectedEndPosition);
+
+          expect(Vector.between(testDepCreator.originNode.absoluteFixableCircle, actualPositions.startPosition).length())
+            .to.equal(testDepCreator.originNode.absoluteFixableCircle.r);
+          expect(Vector.between(testDepCreator.targetNode.absoluteFixableCircle, actualPositions.endPosition).length())
+            .to.equal(testDepCreator.targetNode.absoluteFixableCircle.r);
+          expect(Vector.between(actualPositions.startPosition, actualPositions.endPosition).length()).to.equal(expectedDependencyLength);
         });
 
         it('#startPoint and #endPoint equal the drawn positions', () => {
