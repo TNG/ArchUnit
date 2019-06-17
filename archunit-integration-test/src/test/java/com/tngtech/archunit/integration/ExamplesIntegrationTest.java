@@ -87,6 +87,7 @@ import com.tngtech.archunit.example.layers.core.VeryCentralCore;
 import com.tngtech.archunit.example.layers.persistence.WrongSecurityCheck;
 import com.tngtech.archunit.example.layers.persistence.first.InWrongPackageDao;
 import com.tngtech.archunit.example.layers.persistence.first.dao.EntityInWrongPackage;
+import com.tngtech.archunit.example.layers.persistence.first.dao.SomeDao;
 import com.tngtech.archunit.example.layers.persistence.first.dao.jpa.SomeJpa;
 import com.tngtech.archunit.example.layers.persistence.layerviolation.DaoCallingService;
 import com.tngtech.archunit.example.layers.persistence.second.dao.OtherDao;
@@ -578,6 +579,37 @@ class ExamplesIntegrationTest {
                 .ofRule("no methods that are declared in classes that have name matching '.*Dao' "
                         + String.format("should declare throwable of type %s", SQLException.class.getName()))
                 .by(ExpectedMethod.of(OtherDao.class, "testConnection").throwsException(SQLException.class))
+
+                .toDynamicTests();
+    }
+
+    @TestFactory
+    Stream<DynamicTest> DependencyRulesTest() {
+        return ExpectedTestFailures
+                .forTests(
+                        com.tngtech.archunit.exampletest.DependencyRulesTest.class,
+                        com.tngtech.archunit.exampletest.junit4.DependencyRulesTest.class,
+                        com.tngtech.archunit.exampletest.junit5.DependencyRulesTest.class)
+
+                .ofRule("no classes should depend on upper packages, because that might prevent packages on that level from being split into separate artifacts in a clean way")
+                .by(inheritanceFrom(UseCaseTwoController.class).extending(AbstractController.class))
+                .by(callFromConstructor(UseCaseTwoController.class).toConstructor(AbstractController.class).inLine(6).asDependency())
+                .by(inheritanceFrom(InheritedControllerImpl.class).extending(AbstractController.class))
+                .by(callFromConstructor(InheritedControllerImpl.class).toConstructor(AbstractController.class).inLine(5).asDependency())
+                .by(inheritanceFrom(InheritedControllerImpl.ChildControl.class).extending(AbstractController.AbstractInnerControl.class))
+                .by(callFromConstructor(InheritedControllerImpl.ChildControl.class).toConstructor(AbstractController.AbstractInnerControl.class).inLine(6).asDependency())
+                .by(callFromMethod(DaoCallingService.class, "violateLayerRulesTrickily").toConstructor(SomeMediator.class, ServiceViolatingLayerRules.class).inLine(18).asDependency())
+                .by(callFromMethod(DaoCallingService.class, "violateLayerRulesTrickily").toMethod(SomeMediator.class, "violateLayerRulesIndirectly").inLine(18).asDependency())
+                .by(annotatedClass(WronglyAnnotated.class).annotatedWith(MyController.class))
+                .by(inheritanceFrom(VeryCentralCore.class).implementing(SomeOtherBusinessInterface.class))
+                .by(inheritanceFrom(SomeJpa.class).implementing(SomeDao.class))
+                .by(inheritanceFrom(OtherJpa.class).implementing(OtherDao.class))
+                .by(annotatedClass(ServiceViolatingDaoRules.class).annotatedWith(MyService.class))
+                .by(annotatedClass(ServiceViolatingLayerRules.class).annotatedWith(MyService.class))
+                .by(inheritanceFrom(ServiceImplementation.class).implementing(ServiceInterface.class))
+                .by(annotatedClass(ServiceImplementation.class).annotatedWith(MyService.class))
+                .by(annotatedClass(WronglyNamedSvc.class).annotatedWith(MyService.class))
+                .by(annotatedClass(AnnotatedController.class).annotatedWith(MyController.class))
 
                 .toDynamicTests();
     }
