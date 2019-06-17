@@ -87,6 +87,7 @@ const SvgSelectionMock = class extends D3ElementMock {
     this._isVisible = true;
     this._cssClasses = new Set();
 
+    this._pointerEventsEnabled = true;
     this._mousePosition = [0, 0];
   }
 
@@ -228,6 +229,10 @@ const SvgSelectionMock = class extends D3ElementMock {
    * TODO: maybe move them to own file...ask Peter
    */
 
+  get pointerEventsEnabled() {
+    return this._pointerEventsEnabled;
+  }
+
   _updateCssClasses() {
     this._attributes.set('class', [...this._cssClasses].join(' '));
   }
@@ -244,11 +249,21 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   click(event) {
-    this._onclick(event);
+    if (this._pointerEventsEnabled) {
+      this._onclick(event);
+    }
   }
 
   mouseOut() {
-    this._onmouseout();
+    if (this._pointerEventsEnabled) {
+      this._onmouseout();
+    }
+  }
+
+  mouseOver() {
+    if (this._pointerEventsEnabled) {
+      this._onmouseover();
+    }
   }
 
   drag(dx, dy) {
@@ -257,6 +272,24 @@ const SvgSelectionMock = class extends D3ElementMock {
 
   get isVisible() {
     return this._isVisible && (!this._parent || this._parent.isVisible);
+  }
+
+  getAllSubSvgElementsWithId(id) {
+    const descendants = [].concat.apply([], this._subElements.map(
+      subSvgElement => subSvgElement.getAllSubSvgElementsWithId(id)));
+    const self = [];
+    if (this.getAttribute('id') === id) {
+      self.push(this);
+    }
+    return [...descendants, ...self];
+  }
+
+  getSubSvgElementWithId(id) {
+    const result = this.getAllSubSvgElementsWithId(id);
+    if (result.length !== 1) {
+      throw new Error('the svg element must have exactly one descendant with that id');
+    }
+    return result[0];
   }
 
   getAllVisibleDescendantElementsOfType(svgType) {
@@ -277,9 +310,9 @@ const SvgSelectionMock = class extends D3ElementMock {
     return result[0];
   }
 
-  getAllVisibleDescendantElementsByTypeAndCssClasses(svgType, ...cssClasses) {
+  getAllDescendantElementsByTypeAndCssClasses(svgType, ...cssClasses) {
     const descendants = [].concat.apply([], this._subElements.map(
-      subSvgElement => subSvgElement.getAllVisibleDescendantElementsByTypeAndCssClasses(svgType, ...cssClasses)));
+      subSvgElement => subSvgElement.getAllDescendantElementsByTypeAndCssClasses(svgType, ...cssClasses)));
     const self = [];
     if (this.svgType === svgType && cssClasses.every(cssClass => this.cssClasses.has(cssClass))) {
       self.push(this);
@@ -287,8 +320,8 @@ const SvgSelectionMock = class extends D3ElementMock {
     return [...descendants, ...self];
   }
 
-  getVisibleDescendantElementByTypeAndCssClasses(svgType, ...cssClasses) {
-    const result = this.getAllVisibleDescendantElementsByTypeAndCssClasses(svgType, ...cssClasses);
+  getDescendantElementByTypeAndCssClasses(svgType, ...cssClasses) {
+    const result = this.getAllDescendantElementsByTypeAndCssClasses(svgType, ...cssClasses);
     if (result.length !== 1) {
       throw new Error('the svg element must have exactly one descendant of that type');
     }
@@ -300,6 +333,16 @@ const SvgSelectionMock = class extends D3ElementMock {
       subSvgElement => subSvgElement.getAllGroupsContainingAVisibleElementOfType(svgType)));
     const self = [];
     if (this.getAllVisibleSubElementsOfType(svgType).length > 0) {
+      self.push(this);
+    }
+    return [...descendants, ...self];
+  }
+
+  getAllGroupsContainingAnElementOfType(svgType) {
+    const descendants = [].concat.apply([], this._subElements.map(
+      subSvgElement => subSvgElement.getAllGroupsContainingAnElementOfType(svgType)));
+    const self = [];
+    if (this.getAllSubElementsOfType(svgType).length > 0) {
       self.push(this);
     }
     return [...descendants, ...self];
@@ -323,6 +366,10 @@ const SvgSelectionMock = class extends D3ElementMock {
       throw new Error('the svg element must have exactly one sub element of that type')
     }
     return result[0];
+  }
+
+  getAllSubElementsOfType(svgType) {
+    return this._subElements.filter(element => element.svgType === svgType);
   }
 
   _getPositionOffset() {

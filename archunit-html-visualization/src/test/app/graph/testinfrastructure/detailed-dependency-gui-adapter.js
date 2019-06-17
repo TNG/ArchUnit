@@ -10,7 +10,7 @@ const sleep = (timeInMs) => {
 
 const checkThat = (svgGroup) => ({
   containsExactlyDetailedDependencies: (...detailedDependencies) => {
-    const svgTextElements = svgGroup.getAllVisibleDescendantElementsByTypeAndCssClasses('text', 'access');
+    const svgTextElements = svgGroup.getAllDescendantElementsByTypeAndCssClasses('text', 'access');
 
     expect(svgTextElements.length).to.equal(detailedDependencies.length);
     svgTextElements.forEach((svgTextElement, i) => {
@@ -20,7 +20,7 @@ const checkThat = (svgGroup) => ({
     });
   },
   containsNoDetailedDependencies: () => {
-    const svgTextElements = svgGroup.getAllVisibleDescendantElementsByTypeAndCssClasses('text', 'access');
+    const svgTextElements = svgGroup.getAllDescendantElementsByTypeAndCssClasses('text', 'access');
     expect(svgTextElements).to.be.empty;
   }
 });
@@ -28,7 +28,7 @@ const checkThat = (svgGroup) => ({
 const checkLayoutOn = (svgGroup, fontSize, textPadding) => ({
   that: {
     linesAreLeftAligned: () => {
-      const tspanElements = svgGroup.getVisibleDescendantElementByTypeAndCssClasses('text', 'access')
+      const tspanElements = svgGroup.getDescendantElementByTypeAndCssClasses('text', 'access')
         .getAllVisibleDescendantElementsOfType('tspan');
       const xPositionOfFirstTSpan = tspanElements[0].absolutePosition.x;
       tspanElements.forEach(tspanElement => {
@@ -36,7 +36,7 @@ const checkLayoutOn = (svgGroup, fontSize, textPadding) => ({
       });
     },
     backgroundRectanglesLieExactlyBehindTheLines: () => {
-      const tspanElements = svgGroup.getVisibleDescendantElementByTypeAndCssClasses('text', 'access')
+      const tspanElements = svgGroup.getDescendantElementByTypeAndCssClasses('text', 'access')
         .getAllVisibleDescendantElementsOfType('tspan');
       const positionOfTSpan = tspanElements[0].absolutePosition;
       const heightOfTSpans = (fontSize + textPadding) * tspanElements.length;
@@ -58,16 +58,16 @@ const checkLayoutOn = (svgGroup, fontSize, textPadding) => ({
 const interactOn = (svgGroup) => ({
   withDetailedDependenciesAt: (index) => ({
     click: () => {
-      svgGroup.getAllVisibleDescendantElementsByTypeAndCssClasses('rect', 'hoverArea')[index].click();
+      svgGroup.getAllDescendantElementsByTypeAndCssClasses('rect', 'hoverArea')[index].click();
     },
     clickOnCloseButton: () => {
-      svgGroup.getAllVisibleDescendantElementsByTypeAndCssClasses('text', 'closeButton')[index].click();
+      svgGroup.getAllDescendantElementsByTypeAndCssClasses('text', 'closeButton')[index].click();
     },
     moveMouseOut: () => {
-      svgGroup.getAllVisibleDescendantElementsByTypeAndCssClasses('rect', 'hoverArea')[index].mouseOut();
+      svgGroup.getAllDescendantElementsByTypeAndCssClasses('rect', 'hoverArea')[index].mouseOut();
     },
     moveMouseOutAndWaitFor: async (timeInMs) => {
-      svgGroup.getAllVisibleDescendantElementsByTypeAndCssClasses('rect', 'hoverArea')[index].mouseOut();
+      svgGroup.getAllDescendantElementsByTypeAndCssClasses('rect', 'hoverArea')[index].mouseOut();
       await sleep(timeInMs);
     },
     drag: (dx, dy) => {
@@ -76,8 +76,17 @@ const interactOn = (svgGroup) => ({
   })
 });
 
+const inspect = (svgGroup) => ({
+  detailedDependenciesAt: (index) => ({
+    absoluteTextPosition: () => {
+      return svgGroup.getAllDescendantElementsByTypeAndCssClasses('text', 'access')[index].absolutePosition;
+    }
+  })
+});
+
 module.exports = {
   checkThat,
   interactOn,
-  checkLayoutOn
+  checkLayoutOn,
+  inspect
 };

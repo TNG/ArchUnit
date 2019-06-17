@@ -1,636 +1,500 @@
 'use strict';
 
 const chai = require('chai');
-const generalExtensions = require('../testinfrastructure/general-chai-extensions');
-const {Vector} = require('../../../../main/app/graph/infrastructure/vectors');
-const {testRoot} = require('../testinfrastructure/test-json-creator');
-const stubs = require('../testinfrastructure/stubs');
-const initDependency = require('../../../../main/app/graph/dependencies/dependency');
-const AppContext = require('../../../../main/app/graph/app-context');
-
 const expect = chai.expect;
+const chaiExtensions = require('../testinfrastructure/general-chai-extensions');
+chai.use(chaiExtensions);
 
-chai.use(generalExtensions);
+const fontSize = require('../testinfrastructure/visualization-styles-mock').createVisualizationStylesMock().getDependencyTitleFontSize();
+const transitionDuration = 5;
+const textPadding = 5;
 
-const MAXIMUM_DELTA = 0.001;
-const CIRCLE_PADDING = 30;
-
-const appContext = AppContext.newInstance({
-  visualizationStyles: stubs.visualizationStylesStub(CIRCLE_PADDING),
-  calculateTextWidth: stubs.calculateTextWidthStub,
-  NodeView: stubs.NodeViewStub,
-  RootView: stubs.NodeViewStub //FIXME: necessary??
-});
-
-const Root = appContext.getRoot();
-
-const createRootWithTwoClasses = () => {
-  const jsonRoot = testRoot.package('com.tngtech.archunit')
-    .add(testRoot.clazz('SomeClass1', 'class').build())
-    .add(testRoot.clazz('SomeClass2', 'class').build())
-    .build();
-  const root = new Root(jsonRoot, null, () => Promise.resolve());
-  return {
-    root: root,
-    class1: root.getByName('com.tngtech.archunit.SomeClass1'),
-    class2: root.getByName('com.tngtech.archunit.SomeClass2')
-  };
-};
-
-const createRootWithTwoClassesInDifferentPackages = () => {
-  const jsonRoot = testRoot.package('com.tngtech.archunit')
-    .add(testRoot.package('pkg1')
-      .add(testRoot.clazz('SomeClass1', 'class').build())
-      .build())
-    .add(testRoot.package('pkg2')
-      .add(testRoot.clazz('SomeClass2', 'class').build())
-      .build())
-    .build();
-  const root = new Root(jsonRoot, null, () => Promise.resolve());
-  return {
-    root: root,
-    class1: root.getByName('com.tngtech.archunit.pkg1.SomeClass1'),
-    class2: root.getByName('com.tngtech.archunit.pkg2.SomeClass2')
-  };
-};
-
-const createRootWithTwoClassesAndOneInnerClass = () => {
-  const jsonRoot = testRoot.package('com.tngtech.archunit')
-    .add(testRoot.clazz('SomeClass1', 'class').build())
-    .add(testRoot.clazz('SomeClass2', 'class')
-      .havingInnerClass(testRoot.clazz('SomeInnerClass', 'class').build())
-      .build())
-    .build();
-  const root = new Root(jsonRoot, null, () => Promise.resolve());
-  return {
-    root: root,
-    class1: root.getByName('com.tngtech.archunit.SomeClass1'),
-    classWithInnerClass: root.getByName('com.tngtech.archunit.SomeClass2'),
-    innerClass: root.getByName('com.tngtech.archunit.SomeClass2$SomeInnerClass')
-  };
-};
-
-const dependencyParams = (originNode, targetNode, type) => ({
-  originNode,
-  targetNode,
-  type,
-  description: `Class <${originNode}> (verb to ${type}) class <${targetNode}>`
-});
-
-const shiftEnds = (createFromDependency) => {
-  const testData = createRootWithTwoClassesInDifferentPackages();
-  const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-  const testDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-
-  const testSetup = createFromDependency(testDependency);
-  testSetup.originalDependency = testSetup.originalDependency || testDependency;
-  testSetup.newOrigin = testSetup.newOrigin || testDependency.originNode.getParent();
-  testSetup.newTarget = testSetup.newTarget || testDependency.targetNode.getParent();
-  const shiftedDependency = dependencyCreator.shiftElementaryDependency(testSetup.originalDependency, testSetup.newOrigin, testSetup.newTarget);
-  return {originalDependency: testSetup.originalDependency, shiftedDependency};
-};
+const guiElementsMock = require('../testinfrastructure/gui-elements-mock');
+const AppContext = require('../../../../main/app/graph/app-context');
+const getDependencyCreator = AppContext.newInstance({guiElements: guiElementsMock, transitionDuration, textPadding}).getDependencyCreator;
+const TestDependencyCreator = require('../testinfrastructure/dependency-test-infrastructure').TestDependencyCreator;
+const checkThat = require('../testinfrastructure/dependency-gui-adapter').checkThat;
+const interactOn = require('../testinfrastructure/dependency-gui-adapter').interactOn;
+const inspect = require('../testinfrastructure/dependency-gui-adapter').inspect;
+const detailedDepsGuiAdapter = require('../testinfrastructure/detailed-dependency-gui-adapter');
 
 describe('ElementaryDependency', () => {
-  it('knows its start and end node', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    expect(dependency.originNode).to.equal(testData.class1);
-    expect(dependency.targetNode).to.equal(testData.class2);
+  describe('exposes end nodes and their fullnames', () => {
+    let testDependencyCreator;
+    let dependency;
+    before(() => {
+      testDependencyCreator = new TestDependencyCreator(getDependencyCreator());
+      dependency = testDependencyCreator.createElementaryDependency();
+    });
+
+    it('#originNode', () => {
+      expect(dependency.originNode).to.equal(testDependencyCreator.originNode);
+    });
+
+    it('#targetNode', () => {
+      expect(dependency.targetNode).to.equal(testDependencyCreator.targetNode);
+    });
+
+    it('#from returns the origin fullname', () => {
+      expect(dependency.from).to.equal(testDependencyCreator.from);
+    });
+
+    it('#to returns the target fullname', () => {
+      expect(dependency.to).to.equal(testDependencyCreator.to);
+    });
   });
 
-  it('can be shifted', () => {
-    const {originalDependency, shiftedDependency} = shiftEnds(dependency => ({
-      newOrigin: dependency.originNode.getParent(),
-      newTarget: dependency.targetNode.getParent()
-    }));
+  it('the matching concerning specific filters can be set and changed', () => {
+    const testDependencyCreator = new TestDependencyCreator(getDependencyCreator());
+    const dependency = testDependencyCreator.createElementaryDependency();
 
-    expect(shiftedDependency.originNode).to.equal(originalDependency.originNode.getParent());
-    expect(shiftedDependency.targetNode).to.equal(originalDependency.targetNode.getParent());
+    dependency.setMatchesFilter('someFilter', true);
+    dependency.setMatchesFilter('otherFilter', false);
+
+    expect(dependency.matchesAllFilters()).to.be.false;
+    expect(dependency.matchesFilter('someFilter')).to.be.true;
+    expect(dependency.matchesFilter('otherFilter')).to.be.false;
+
+    dependency.setMatchesFilter('someFilter', false);
+    dependency.setMatchesFilter('otherFilter', true);
+
+    expect(dependency.matchesAllFilters()).to.be.false;
+    expect(dependency.matchesFilter('someFilter')).to.be.false;
+    expect(dependency.matchesFilter('otherFilter')).to.be.true;
+
+    dependency.setMatchesFilter('someFilter', true);
+    dependency.setMatchesFilter('otherFilter', true);
+
+    expect(dependency.matchesAllFilters()).to.be.true;
   });
 
-  it('shifted dependencies retain violation property', () => {
-    const shiftedWithViolation = shiftEnds(dependency => ({
-      originalDependency: (() => {
-        dependency.isViolation = true;
-        return dependency;
-      })()
-    })).shiftedDependency;
+  it('can be marked and unmarked as violation', () => {
+    const testDependencyCreator = new TestDependencyCreator(getDependencyCreator());
+    const dependency = testDependencyCreator.createElementaryDependency();
 
-    expect(shiftedWithViolation.isViolation).to.be.true;
+    expect(dependency.isViolation).to.be.false;
 
-    const shiftedWithoutViolation = shiftEnds(dependency => ({
-      originalDependency: (() => {
-        dependency.isViolation = false;
-        return dependency;
-      })()
-    })).shiftedDependency;
+    dependency.markAsViolation();
+    expect(dependency.isViolation).to.be.true;
 
-    expect(shiftedWithoutViolation.isViolation).to.be.false;
+    dependency.unMarkAsViolation();
+    expect(dependency.isViolation).to.be.false;
   });
 
-  it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if one of them is a package', () => {
-    const testData = createRootWithTwoClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    dependency.isViolation = true;
-    const actual = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.originNode.getParent(), dependency.targetNode);
-    expect(actual.isViolation).to.equal(true);
-  });
+  describe('can be shifted to end nodes on a lower depth (i.e. higher in the tree), so that', () => {
+    let testDependencyCreator;
+    let dependency;
+    beforeEach(() => {
+      testDependencyCreator = new TestDependencyCreator(getDependencyCreator());
+      dependency = testDependencyCreator.createElementaryDependency();
+    });
 
-  it('can be shifted to one of the end-nodes\' parents if both are classes', () => {
-    const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.innerClass, 'INHERITANCE'));
-    const newTarget = dependency.targetNode.getParent();
-    const actual = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.originNode, newTarget);
-    expect(actual.isViolation).to.equal(false);
-    expect(actual.originNode).to.equal(dependency.originNode);
-    expect(actual.targetNode).to.equal(newTarget);
-  });
+    it('the returned ElementaryDependency has the new end nodes and their fullnames', () => {
+      const shiftedDependency = testDependencyCreator.shiftElementaryDependencyAtBothEnds(dependency);
+      expect(shiftedDependency.originNode).to.equal(testDependencyCreator.parentOriginNode);
+      expect(shiftedDependency.targetNode).to.equal(testDependencyCreator.parentTargetNode);
+      expect(shiftedDependency.from).to.equal(testDependencyCreator.parentFrom);
+      expect(shiftedDependency.to).to.equal(testDependencyCreator.parentTo);
+    });
 
-  it('transfers its violation-property if it is shifted to one of the end-nodes\' parents if both are classes', () => {
-    const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const dependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.innerClass, 'INHERITANCE'));
-    dependency.isViolation = true;
-    const actual = dependencyCreator.shiftElementaryDependency(dependency,
-      dependency.originNode, dependency.targetNode.getParent());
-    expect(actual.isViolation).to.equal(true);
+    it('the returned ElementaryDependency retains the violation-property', () => {
+      dependency.markAsViolation();
+      const shiftedDependency = testDependencyCreator.shiftElementaryDependencyAtBothEnds(dependency);
+      expect(shiftedDependency.isViolation).to.be.true;
+    });
+
+    it('the returned ElementaryDependency loosed its type and description', () => {
+      const shiftedDependency = testDependencyCreator.shiftElementaryDependencyAtBothEnds(dependency);
+      expect(shiftedDependency.type).to.be.empty;
+      expect(shiftedDependency.description).to.be.empty;
+    });
   });
 });
 
 describe('GroupedDependency', () => {
-  it('is not recreated when one with the same start and end node already exists: the type and the ' +
-    'violation-property are updated', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const groupedDependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null,
-      {svgDetailedDependenciesContainer: null, svg: null, svgCenterTranslater: null}).byGroupingDependencies([]);
-    expect(groupedDependency.isViolation).to.equal(false);
+  describe('creation of a GroupedDependency', () => {
+    describe('the created GroupedDependency has correct end nodes and their fullnames', () => {
+      let testDepCreator;
+      let groupedDependency;
 
-    const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    elementaryDependency.isViolation = true;
-    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([elementaryDependency]);
-    expect(actual).to.equal(groupedDependency);
-    expect(actual.isViolation).to.equal(true);
+      before(() => {
+        testDepCreator = new TestDependencyCreator(getDependencyCreator());
+
+        const elementaryDependency1 = testDepCreator.createElementaryDependency();
+        const elementaryDependency2 = testDepCreator.createElementaryDependency();
+        const elementaryDependency3 = testDepCreator.createElementaryDependency();
+        groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency2, elementaryDependency3);
+      });
+
+      it('#originNode', () => {
+        expect(groupedDependency.originNode).to.equal(testDepCreator.originNode);
+      });
+
+      it('#targetNode', () => {
+        expect(groupedDependency.targetNode).to.equal(testDepCreator.targetNode);
+      });
+
+      it('#from', () => {
+        expect(groupedDependency.from).to.equal(testDepCreator.from);
+      });
+
+      it('#to', () => {
+        expect(groupedDependency.to).to.equal(testDepCreator.to);
+      });
+    });
+
+    describe('its svg-element is correctly created', () => {
+      let testDepCreator;
+
+      before(() => {
+        testDepCreator = new TestDependencyCreator(getDependencyCreator());
+        const elementaryDependency = testDepCreator.createElementaryDependency();
+        testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency);
+      });
+
+      it('it is added to the svg-container-element', () => {
+        checkThat(testDepCreator.svgContainer).containsExactlyDependencies(`${testDepCreator.from}-${testDepCreator.to}`);
+      });
+
+      it("it lies in front of both end nodes", () => {
+        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.inFrontOf.bothEndNodes();
+      });
+    });
+
+    describe('The "violation"-css-class of a GroupedDependency are initialized correctly:', () => {
+      let testDepCreator;
+      let elementaryDependency1;
+      let elementaryDependency2;
+
+      beforeEach(() => {
+        testDepCreator = new TestDependencyCreator(getDependencyCreator());
+        elementaryDependency1 = testDepCreator.createElementaryDependency();
+        elementaryDependency2 = testDepCreator.createElementaryDependency();
+      });
+
+      it('the visible line has the css class "violation", if one of the elementary dependencies was a violation', () => {
+        elementaryDependency1.markAsViolation();
+        const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency2);
+        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.markedAs.violation();
+      });
+
+      it('the visible line does not have the css class "violation", if none of the elementary dependencies was a violation', () => {
+        const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency2);
+        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.not.markedAs.violation();
+      });
+    });
+
+    describe('when a dependency with the same start and end node already exists', () => {
+      let testDepCreator;
+      let elementaryDependency1;
+      let elementaryDependency2;
+      let elementaryDependency3;
+
+      beforeEach(() => {
+        testDepCreator = new TestDependencyCreator(getDependencyCreator());
+
+        elementaryDependency1 = testDepCreator.createElementaryDependency();
+        elementaryDependency2 = testDepCreator.createElementaryDependency();
+        elementaryDependency3 = testDepCreator.createElementaryDependency();
+      });
+
+      it('it is not drawn again and the object is not recreated', () => {
+        const originGroupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1);
+        const secondGroupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency2, elementaryDependency3);
+
+        checkThat(testDepCreator.svgContainer).containsExactlyDependencies(`${testDepCreator.from}-${testDepCreator.to}`);
+        expect(secondGroupedDependency).to.equal(originGroupedDependency);
+      });
+
+      it('its violation property is updated', () => {
+        testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1);
+        elementaryDependency1.markAsViolation();
+        testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency2);
+
+        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.markedAs.violation();
+
+        elementaryDependency1.unMarkAsViolation();
+        elementaryDependency2.markAsViolation();
+        testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency3);
+
+        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.not.markedAs.violation();
+      });
+    });
   });
 
-  it('has no detailed description and no types, if one of the end nodes is a package', () => {
-    const testData = createRootWithTwoClassesInDifferentPackages();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const groupedDependency = dependencyCreator.getUniqueDependency(testData.root.getByName('com.tngtech.archunit.pkg1'), testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    })
-      .byGroupingDependencies([]);
-    expect(groupedDependency.hasDetailedDescription()).to.equal(false);
+  describe('User interaction', () => {
+    let testDepCreator;
+    let elementaryDep1;
+    let elementaryDep2;
+
+    beforeEach(() => {
+      testDepCreator = new TestDependencyCreator(getDependencyCreator());
+
+      elementaryDep1 = testDepCreator.createElementaryDependency();
+      elementaryDep2 = testDepCreator.createElementaryDependency();
+    });
+
+    it("hovering over the dependency's line shows the detailed dependency", async () => {
+      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      await interactOn(testDepCreator.svgContainer)
+        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+      detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer)
+        .containsExactlyDetailedDependencies([elementaryDep1.description, elementaryDep2.description]);
+    });
+
+    it("hovering over the dependency's line does not show the detailed dependency if one of the dependency end nodes is a package", async () => {
+      const shiftedElementaryDependency = testDepCreator.shiftElementaryDependencyAtStart(elementaryDep1);
+      testDepCreator.createAndShowGroupedDependencyFrom(shiftedElementaryDependency);
+      await interactOn(testDepCreator.svgContainer)
+        .hoverOverDependencyAndWaitFor(`${testDepCreator.parentFrom}-${testDepCreator.to}`, transitionDuration);
+      detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer).containsNoDetailedDependencies();
+    });
+
+    it("leaving the dependency's line with the mouse hides the detailed dependency again", async () => {
+      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      await interactOn(testDepCreator.svgContainer)
+        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+      await interactOn(testDepCreator.svgContainer)
+        .leaveDependencyWithMouseAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+      detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer).containsNoDetailedDependencies();
+    });
+
+    it("if the dependency has changed, then re-hovering over the dependency's line shows the new detailed dependency", async () => {
+      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      await interactOn(testDepCreator.svgContainer)
+        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+      await interactOn(testDepCreator.svgContainer).leaveDependencyWithMouseAndWaitFor(
+        `${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+
+      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1);
+      await interactOn(testDepCreator.svgContainer).hoverOverDependencyAndWaitFor(
+        `${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+      detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer)
+        .containsExactlyDetailedDependencies([elementaryDep1.description]);
+    });
+
+    it('layouts the detailed dependency correctly', async () => {
+      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      await interactOn(testDepCreator.svgContainer)
+        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+      detailedDepsGuiAdapter
+        .checkLayoutOn(testDepCreator.svgDetailedDepsContainer, fontSize, textPadding).that.backgroundRectanglesLieExactlyBehindTheLines();
+      detailedDepsGuiAdapter.checkLayoutOn(testDepCreator.svgDetailedDepsContainer, fontSize, textPadding).that.linesAreLeftAligned();
+    });
+
+    it('the detailed dependency can be dragged', async () => {
+      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      await interactOn(testDepCreator.svgContainer)
+        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+      const positionBefore = detailedDepsGuiAdapter
+        .inspect(testDepCreator.svgDetailedDepsContainer).detailedDependenciesAt(0).absoluteTextPosition();
+      const expectedPosition = {x: positionBefore.x + 20, y: positionBefore.y + 20};
+      detailedDepsGuiAdapter.interactOn(testDepCreator.svgDetailedDepsContainer).withDetailedDependenciesAt(0).drag(20, 20);
+      const positionAfterDragging = detailedDepsGuiAdapter
+        .inspect(testDepCreator.svgDetailedDepsContainer).detailedDependenciesAt(0).absoluteTextPosition();
+      expect(positionAfterDragging).to.deep.equal(expectedPosition);
+    });
+
+    describe('clicking on the detailed dependency shows it permanently:', () => {
+      beforeEach(async () => {
+        testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+        await interactOn(testDepCreator.svgContainer)
+          .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+        detailedDepsGuiAdapter.interactOn(testDepCreator.svgDetailedDepsContainer).withDetailedDependenciesAt(0).click();
+      });
+
+      it("leaving the dependency's line with the mouse does not hide the detailed dependency", async () => {
+        await interactOn(testDepCreator.svgContainer)
+          .leaveDependencyWithMouseAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+        detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer)
+          .containsExactlyDetailedDependencies([elementaryDep1.description, elementaryDep2.description]);
+      });
+
+      it('clicking on the close-button of the fixed detailed dependency hides it again', () => {
+        detailedDepsGuiAdapter.interactOn(testDepCreator.svgDetailedDepsContainer).withDetailedDependenciesAt(0).clickOnCloseButton();
+        detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer).containsNoDetailedDependencies();
+      });
+    });
   });
 
-  it('is created correctly from one elementary dependency', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const elementaryDependency = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'FIELD_ACCESS'));
-    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    })
-      .byGroupingDependencies([elementaryDependency]);
-    expect(actual.hasDetailedDescription()).to.equal(true);
-  });
-
-  it('is created correctly from two elementary dependencies', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    })
-      .byGroupingDependencies([elementaryDependency1, elementaryDependency2]);
-    expect(actual.hasDetailedDescription()).to.equal(true);
-  });
-
-  it('is created correctly from three elementary dependencies', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const elementaryDependency1 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'CONSTRUCTOR_CALL'));
-    const elementaryDependency2 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'METHOD_CALL'));
-    const elementaryDependency3 = dependencyCreator.createElementaryDependency(dependencyParams(testData.class1, testData.class2, 'INHERITANCE'));
-    const actual = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    })
-      .byGroupingDependencies([elementaryDependency1, elementaryDependency2, elementaryDependency3]);
-    expect(actual.hasDetailedDescription()).to.equal(true);
-  });
-
-  const setNodeVisualDataTo = (node, x, y, r) => {
-    node.nodeShape.relativePosition.x = x;
-    node.nodeShape.absoluteCircle.x = node.getParent() ? node.getParent().nodeShape.absoluteShape.centerPosition.x + x : x;
-    node.nodeShape.relativePosition.y = y;
-    node.nodeShape.absoluteCircle.y = node.getParent() ? node.getParent().nodeShape.absoluteShape.centerPosition.y + y : y;
-    node.nodeShape.absoluteCircle.r = r;
-  };
-
-  it('calculates the correct coordinates for its end points, if the dependency points to the upper left corner', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 20, 20, 10);
-    setNodeVisualDataTo(startNode, 45, 40, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 33.287, y: 30.6296};
-    const expEndPoint = {x: 27.809, y: 26.247};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct relative coordinates for its end points', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 20, 20, 10);
-    setNodeVisualDataTo(startNode, 45, 40, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 33.287, y: 30.6296};
-    const expEndPoint = {x: 27.809, y: 26.247};
-
-    const nodeInForeground = testData.class2;
-
-    expect(dependency.visualData.relativeStartPoint).to.deep.closeTo(Vector.between(nodeInForeground.nodeShape.absoluteShape.centerPosition, expStartPoint), MAXIMUM_DELTA);
-    expect(dependency.visualData.relativeEndPoint).to.deep.closeTo(Vector.between(nodeInForeground.nodeShape.absoluteShape.centerPosition, expEndPoint), MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the dependency points to the upper side', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 20, 20, 10);
-    setNodeVisualDataTo(startNode, 20, 60, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 20, y: 45};
-    const expEndPoint = {x: 20, y: 30};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the dependency points to the upper right corner', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 20, 40, 10);
-    setNodeVisualDataTo(startNode, 45, 20, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 33.287, y: 29.370};
-    const expEndPoint = {x: 27.809, y: 33.753};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the dependency points to the right side', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 60, 20, 10);
-    setNodeVisualDataTo(startNode, 20, 20, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 35, y: 20};
-    const expEndPoint = {x: 50, y: 20};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the dependency points to the lower right corner', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 45, 40, 15);
-    setNodeVisualDataTo(startNode, 20, 20, 10);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 27.809, y: 26.247};
-    const expEndPoint = {x: 33.287, y: 30.6296};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the dependency points to the lower side', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 20, 60, 15);
-    setNodeVisualDataTo(startNode, 20, 20, 10);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 20, y: 30};
-    const expEndPoint = {x: 20, y: 45};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the dependency points to the lower left corner', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 45, 20, 15);
-    setNodeVisualDataTo(startNode, 20, 40, 10);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 27.809, y: 33.753};
-    const expEndPoint = {x: 33.287, y: 29.370};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the dependency points to the left side', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 20, 20, 15);
-    setNodeVisualDataTo(startNode, 60, 20, 10);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 50, y: 20};
-    const expEndPoint = {x: 35, y: 20};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the end node is within the start node', () => {
-    const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.classWithInnerClass;
-    const endNode = testData.innerClass;
-
-    setNodeVisualDataTo(startNode, 50, 50, 40);
-    setNodeVisualDataTo(endNode, -15, -10, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 16.718, y: 27.812};
-    const expEndPoint = {x: 22.519, y: 31.680};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the start node is within the end node', () => {
-    const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.innerClass;
-    const endNode = testData.classWithInnerClass;
-
-    setNodeVisualDataTo(endNode, 50, 50, 40);
-    setNodeVisualDataTo(startNode, -15, -10, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.innerClass, testData.classWithInnerClass, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 22.519, y: 31.680};
-    const expEndPoint = {x: 16.718, y: 27.812};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points, if the end node is exactly in the middle of the start node: ' +
-    'then the dependency points to the lower left corner', () => {
-    const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.classWithInnerClass;
-    const endNode = testData.innerClass;
-
-    setNodeVisualDataTo(startNode, 50, 50, 40);
-    setNodeVisualDataTo(endNode, 0, 0, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 78.284, y: 78.284};
-    const expEndPoint = {x: 60.607, y: 60.607};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points if it must "share" the end nodes with another dependency', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.class1;
-    const endNode = testData.class2;
-
-    setNodeVisualDataTo(endNode, 20, 20, 10);
-    setNodeVisualDataTo(startNode, 45, 40, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.visualData.mustShareNodes = true;
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 30.056, y: 38.701};
-    const expEndPoint = {x: 21.104, y: 29.939};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('calculates the correct coordinates for its end points if it must "share" the end nodes with another dependency ' +
-    'and the end node is within the start node', () => {
-    const testData = createRootWithTwoClassesAndOneInnerClass();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-    const startNode = testData.classWithInnerClass;
-    const endNode = testData.innerClass;
-
-    setNodeVisualDataTo(startNode, 50, 50, 40);
-    setNodeVisualDataTo(endNode, -15, -10, 15);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.classWithInnerClass, testData.innerClass, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.visualData.mustShareNodes = true;
-    dependency.jumpToPosition();
-
-    const expStartPoint = {x: 23.093, y: 20.402};
-    const expEndPoint = {x: 29.231, y: 26.154};
-
-    expect(dependency.visualData.startPoint).to.deep.closeTo(expStartPoint, MAXIMUM_DELTA);
-    expect(dependency.visualData.endPoint).to.deep.closeTo(expEndPoint, MAXIMUM_DELTA);
-  });
-
-  it('updates its view after jumping to its position: does not show the view if the dependency is hidden', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.hide();
-    dependency.jumpToPosition();
-
-    expect(dependency._view.hasJumpedToPosition).to.equal(true);
-    expect(dependency._view.isVisible).to.equal(false);
-  });
-
-  it('updates its view after moving to its position: does not show the view if the dependency is hidden', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency.hide();
-    const promise = dependency.moveToPosition();
-
-    expect(dependency._view.hasMovedToPosition).to.equal(true);
-    return promise.then(() => expect(dependency._view.isVisible).to.equal(false));
-  });
-
-  it('shows the view on jumping to position if the dependency is visible', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency._isVisible = true;
-    dependency.jumpToPosition();
-
-    expect(dependency._view.isVisible).to.equal(true);
-  });
-
-  it('shows the view on moving to position if the dependency is visible', () => {
-    const testData = createRootWithTwoClasses();
-    const dependencyCreator = initDependency(stubs.DependencyViewStub, stubs.DetailedDependencyViewStub, testData.root);
-
-    const dependency = dependencyCreator.getUniqueDependency(testData.class1, testData.class2, null, null, {
-      svgDetailedDependenciesContainer: null,
-      svg: null,
-      svgCenterTranslater: null
-    }).byGroupingDependencies([]);
-    dependency._isVisible = true;
-    const promise = dependency.moveToPosition();
-
-    return promise.then(() => expect(dependency._view.isVisible).to.equal(true));
+  describe('public API methods', () => {
+    describe("methods for changing the layer of the dependency's svg-element", () => {
+      let testDepCreator;
+      let groupedDependency;
+
+      beforeEach(() => {
+        testDepCreator = new TestDependencyCreator(getDependencyCreator());
+        groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+      });
+
+      describe('#setContainerEndNodeToEndNodeInForeground()', () => {
+        beforeEach(() => {
+          //as the default layer of a dependency is the foreground, change it to background before testing
+          groupedDependency.setContainerEndNodeToEndNodeInBackground();
+        });
+
+        it("makes the dependency's svg-element lie in front of both end nodes", () => {
+          groupedDependency.setContainerEndNodeToEndNodeInForeground();
+
+          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.inFrontOf.bothEndNodes();
+        });
+
+        it("does not change the position of the dependency's svg-element", () => {
+          const linePositionsBefore = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+
+          groupedDependency.setContainerEndNodeToEndNodeInForeground();
+
+          const linePositionsAfterwards = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          expect(linePositionsAfterwards.startPosition).to.deep.equal(linePositionsBefore.startPosition);
+          expect(linePositionsAfterwards.endPosition).to.deep.equal(linePositionsBefore.endPosition);
+        });
+      });
+
+      describe('#setContainerEndNodeToEndNodeInBackground() with followed #onNodesFocused()', () => {
+        it("makes the dependency's svg-element lie in front of one end node and behind the other", () => {
+          groupedDependency.setContainerEndNodeToEndNodeInBackground();
+
+          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.between.bothEndNodes();
+        });
+
+        it("does not change the position of the dependency's svg-element", () => {
+          const linePositionsBefore = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+
+          groupedDependency.setContainerEndNodeToEndNodeInBackground();
+
+          const linePositionsAfterwards = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          expect(linePositionsAfterwards.startPosition).to.deep.equal(linePositionsBefore.startPosition);
+          expect(linePositionsAfterwards.endPosition).to.deep.equal(linePositionsBefore.endPosition);
+        });
+      });
+    });
+
+    describe('#onNodeRimChanged()', () => {
+      describe('updates the position of the dependency', () => {
+        let testDepCreator;
+        let groupedDependency;
+
+        before(() => {
+          testDepCreator = new TestDependencyCreator(getDependencyCreator());
+          groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+
+          groupedDependency.onNodeRimChanged();
+        });
+
+        it('leads to correct end positions of the svg-lines', () => {
+          const expectedStartPosition = {x: 27.88854, y: 108.94428};
+          const expectedEndPosition = {x: 192.11146, y: 191.05573};
+
+          const actualPositions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          expect(actualPositions.startPosition).to.deep.closeTo(expectedStartPosition);
+          expect(actualPositions.endPosition).to.deep.closeTo(expectedEndPosition);
+        });
+
+        it('#startPoint and #endPoint equal the drawn positions', () => {
+          const positions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          expect(groupedDependency.startPoint.equals(positions.startPosition)).to.be.true;
+          expect(groupedDependency.endPoint.equals(positions.endPosition)).to.be.true;
+        });
+      });
+
+      describe('updates the visibility of the dependency:', () => {
+
+        let testDepCreator;
+        let groupedDependency;
+
+        beforeEach(() => {
+          testDepCreator = new TestDependencyCreator(getDependencyCreator());
+          groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+
+          testDepCreator.originNode.addOverlap(testDepCreator.targetNode);
+          groupedDependency.onNodeRimChanged();
+        });
+
+        it('it is hidden, if the end nodes are overlapping', () => {
+          checkThat(testDepCreator.svgContainer).containsExactlyDependencies();
+          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.not.hoverable();
+        });
+
+        it('it is shown again, if the end nodes are not overlapping anymore', () => {
+          testDepCreator.originNode.removeOverlap(testDepCreator.targetNode);
+          groupedDependency.onNodeRimChanged();
+
+          checkThat(testDepCreator.svgContainer).containsExactlyDependencies(`${testDepCreator.from}-${testDepCreator.to}`);
+          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.hoverable();
+        });
+      });
+    });
+
+    describe('#moveToPosition()', () => {
+      describe('updates the position of the dependency', () => {
+        let testDepCreator;
+        let groupedDependency;
+
+        before(async () => {
+          testDepCreator = new TestDependencyCreator(getDependencyCreator());
+          groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+
+          await groupedDependency.moveToPosition();
+        });
+
+        it('leads to correct end positions of the svg-lines', () => {
+          const expectedStartPosition = {x: 27.88854, y: 108.94428};
+          const expectedEndPosition = {x: 192.11146, y: 191.05573};
+
+          const actualPositions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          expect(actualPositions.startPosition).to.deep.closeTo(expectedStartPosition);
+          expect(actualPositions.endPosition).to.deep.closeTo(expectedEndPosition);
+        });
+
+        it('#startPoint and #endPoint equal the drawn positions', () => {
+          const positions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          expect(groupedDependency.startPoint.equals(positions.startPosition)).to.be.true;
+          expect(groupedDependency.endPoint.equals(positions.endPosition)).to.be.true;
+        });
+      });
+
+      describe('updates the visibility of the dependency:', () => {
+
+        let testDepCreator;
+        let groupedDependency;
+
+        beforeEach(async () => {
+          testDepCreator = new TestDependencyCreator(getDependencyCreator());
+          groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+
+          testDepCreator.originNode.addOverlap(testDepCreator.targetNode);
+          await groupedDependency.moveToPosition();
+        });
+
+        it('it is hidden, if the end nodes are overlapping', () => {
+          checkThat(testDepCreator.svgContainer).containsExactlyDependencies();
+          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.not.hoverable();
+        });
+
+        it('it is shown again, if the end nodes are not overlapping anymore', async () => {
+          testDepCreator.originNode.removeOverlap(testDepCreator.targetNode);
+          await groupedDependency.moveToPosition();
+
+          checkThat(testDepCreator.svgContainer).containsExactlyDependencies(`${testDepCreator.from}-${testDepCreator.to}`);
+          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.hoverable();
+        });
+      });
+    });
+
+    it('#hide()', () => {
+      const testDepCreator = new TestDependencyCreator(getDependencyCreator());
+      const groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+
+      groupedDependency.hide();
+
+      checkThat(testDepCreator.svgContainer).containsExactlyDependencies();
+    });
+
+    it('#toString()', () => {
+      const testDepCreator = new TestDependencyCreator(getDependencyCreator());
+      const groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+
+      expect(groupedDependency.toString()).to.equal(`${testDepCreator.from}-${testDepCreator.to}`);
+    });
   });
 });

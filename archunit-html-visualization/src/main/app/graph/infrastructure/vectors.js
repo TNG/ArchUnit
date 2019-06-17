@@ -84,12 +84,20 @@ const Vector = class {
     return this;
   }
 
+  equals(otherVector) {
+    return Vector.equal(this, otherVector);
+  }
+
   static from(vector) {
     return new Vector(vector.x, vector.y);
   }
 
   static between(originPoint, targetPoint) {
     return new Vector(targetPoint.x - originPoint.x, targetPoint.y - originPoint.y);
+  }
+
+  static equal(vector1, vector2) {
+    return vector1.x === vector2.x && vector1.y === vector2.y;
   }
 };
 
