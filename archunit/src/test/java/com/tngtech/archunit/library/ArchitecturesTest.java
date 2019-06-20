@@ -155,6 +155,89 @@ public class ArchitecturesTest {
     }
 
     @Test
+    @UseDataProvider("toIgnore")
+    public void ignores_specified_violations(RuleWithIgnore layeredArchitectureWithIgnore) {
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                FirstAnyPkgClass.class, SomePkgSubClass.class,
+                SecondThreeAnyClass.class, SomePkgClass.class);
+
+        EvaluationResult result = layeredArchitectureWithIgnore.rule.evaluate(classes);
+
+        assertThat(singleLine(result))
+                .doesNotMatch(String.format(".*%s[^%s]*%s.*",
+                        quote(FirstAnyPkgClass.class.getName()), NEW_LINE_REPLACE, quote(SomePkgSubClass.class.getName())))
+                .matches(String.format(".*%s[^%s]*%s.*",
+                        quote(SecondThreeAnyClass.class.getName()), NEW_LINE_REPLACE, quote(SomePkgClass.class.getName())));
+    }
+
+    @Test
+    public void combines_multiple_ignores() {
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                FirstAnyPkgClass.class, SomePkgSubClass.class,
+                SecondThreeAnyClass.class, SomePkgClass.class);
+
+        LayeredArchitecture layeredArchitecture = layeredArchitecture()
+                .layer("One").definedBy(absolute("some.pkg.."))
+                .whereLayer("One").mayNotBeAccessedByAnyLayer()
+                .ignoreDependency(FirstAnyPkgClass.class, SomePkgSubClass.class);
+
+        assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isTrue();
+
+        layeredArchitecture = layeredArchitecture
+                .ignoreDependency(SecondThreeAnyClass.class, SomePkgClass.class);
+
+        assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
+    }    @Test
+    public void description_of_onion_architecture() {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModel("onionarchitecture.domain.model..")
+                .domainService("onionarchitecture.domain.service..")
+                .application("onionarchitecture.application..")
+                .adapter("cli", "onionarchitecture.adapter.cli..")
+                .adapter("persistence", "onionarchitecture.adapter.persistence..")
+                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..");
+
+        assertThat(architecture.getDescription()).isEqualTo(
+                "Onion architecture consisting of" + lineSeparator() +
+                        "domain models ('onionarchitecture.domain.model..')" + lineSeparator() +
+                        "domain services ('onionarchitecture.domain.service..')" + lineSeparator() +
+                        "application services ('onionarchitecture.application..')" + lineSeparator() +
+                        "adapter 'cli' ('onionarchitecture.adapter.cli..')" + lineSeparator() +
+                        "adapter 'persistence' ('onionarchitecture.adapter.persistence..')" + lineSeparator() +
+                        "adapter 'rest' ('onionarchitecture.adapter.rest.command..', 'onionarchitecture.adapter.rest.query..')"
+        );
+    }
+
+    @Test
+    public void overridden_description_of_onion_architecture() {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModel("onionarchitecture.domain.model..")
+                .domainService("onionarchitecture.domain.service..")
+                .application("onionarchitecture.application..")
+                .adapter("cli", "onionarchitecture.adapter.cli..")
+                .adapter("persistence", "onionarchitecture.adapter.persistence..")
+                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..")
+                .as("overridden");
+
+        assertThat(architecture.getDescription()).isEqualTo("overridden");
+    }
+
+    @Test
+    public void because_clause_on_onion_architecture() {
+        ArchRule architecture = onionArchitecture()
+                .domainModel("onionarchitecture.domain.model..")
+                .domainService("onionarchitecture.domain.service..")
+                .application("onionarchitecture.application..")
+                .adapter("cli", "onionarchitecture.adapter.cli..")
+                .adapter("persistence", "onionarchitecture.adapter.persistence..")
+                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..")
+                .as("overridden")
+                .because("some reason");
+
+        assertThat(architecture.getDescription()).isEqualTo("overridden, because some reason");
+    }
+
+    @Test
     public void gathers_all_onion_architecture_violations() {
         OnionArchitecture architecture = onionArchitecture()
                 .domainModel(absolute("onionarchitecture.domain.model"))
@@ -214,40 +297,6 @@ public class ArchitecturesTest {
         assertThat(result.getFailureReport().getDetails().size()).isEqualTo(expectedRegexes.size());
     }
 
-    @Test
-    @UseDataProvider("toIgnore")
-    public void ignores_specified_violations(RuleWithIgnore layeredArchitectureWithIgnore) {
-        JavaClasses classes = new ClassFileImporter().importClasses(
-                FirstAnyPkgClass.class, SomePkgSubClass.class,
-                SecondThreeAnyClass.class, SomePkgClass.class);
-
-        EvaluationResult result = layeredArchitectureWithIgnore.rule.evaluate(classes);
-
-        assertThat(singleLine(result))
-                .doesNotMatch(String.format(".*%s[^%s]*%s.*",
-                        quote(FirstAnyPkgClass.class.getName()), NEW_LINE_REPLACE, quote(SomePkgSubClass.class.getName())))
-                .matches(String.format(".*%s[^%s]*%s.*",
-                        quote(SecondThreeAnyClass.class.getName()), NEW_LINE_REPLACE, quote(SomePkgClass.class.getName())));
-    }
-
-    @Test
-    public void combines_multiple_ignores() {
-        JavaClasses classes = new ClassFileImporter().importClasses(
-                FirstAnyPkgClass.class, SomePkgSubClass.class,
-                SecondThreeAnyClass.class, SomePkgClass.class);
-
-        LayeredArchitecture layeredArchitecture = layeredArchitecture()
-                .layer("One").definedBy(absolute("some.pkg.."))
-                .whereLayer("One").mayNotBeAccessedByAnyLayer()
-                .ignoreDependency(FirstAnyPkgClass.class, SomePkgSubClass.class);
-
-        assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isTrue();
-
-        layeredArchitecture = layeredArchitecture
-                .ignoreDependency(SecondThreeAnyClass.class, SomePkgClass.class);
-
-        assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
-    }
 
     private String singleLine(EvaluationResult result) {
         return Joiner.on(NEW_LINE_REPLACE).join(result.getFailureReport().getDetails()).replace("\n", NEW_LINE_REPLACE);
