@@ -309,9 +309,22 @@ public final class Architectures {
         private String[] applicationPackageIdentifiers = new String[0];
         private Map<String, String[]> adapterPackageIdentifiers = new LinkedHashMap<>();
 
-        private LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture();
+        private final Optional<String> overriddenDescription;
 
         private OnionArchitecture() {
+            overriddenDescription = Optional.absent();
+        }
+
+        private OnionArchitecture(String[] domainModelPackageIdentifiers,
+                 String[] domainServicePackageIdentifiers,
+                 String[] applicationPackageIdentifiers,
+                 Map<String, String[]> adapterPackageIdentifiers,
+                 Optional<String> overriddenDescription) {
+            this.domainModelPackageIdentifiers = domainModelPackageIdentifiers;
+            this.domainServicePackageIdentifiers = domainServicePackageIdentifiers;
+            this.applicationPackageIdentifiers = applicationPackageIdentifiers;
+            this.adapterPackageIdentifiers = adapterPackageIdentifiers;
+            this.overriddenDescription = overriddenDescription;
         }
 
         @PublicAPI(usage = ACCESS)
@@ -338,8 +351,8 @@ public final class Architectures {
             return this;
         }
 
-        private void updateLayersDelegate() {
-            layeredArchitectureDelegate = layeredArchitecture()
+        private LayeredArchitecture layeredArchitectureDelegate() {
+            LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture()
                     .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPackageIdentifiers)
                     .layer(DOMAIN_SERVICE_LAYER).definedBy(domainServicePackageIdentifiers)
                     .layer(APPLICATION_LAYER).definedBy(applicationPackageIdentifiers)
@@ -359,6 +372,7 @@ public final class Architectures {
                         .layer(adapterLayer).definedBy(adapter.getValue())
                         .whereLayer(adapterLayer).mayNotBeAccessedByAnyLayer();
             }
+            return layeredArchitectureDelegate;
         }
 
         private String[] concatenateAll(Collection<String[]> arrays) {
@@ -375,28 +389,39 @@ public final class Architectures {
 
         @Override
         public void check(JavaClasses classes) {
-            layeredArchitectureDelegate.check(classes);
+            layeredArchitectureDelegate().check(classes);
         }
 
         @Override
         public ArchRule because(String reason) {
-            return layeredArchitectureDelegate.because(reason);
+            return ArchRule.Factory.withBecause(this, reason);
         }
 
         @Override
-        public ArchRule as(String newDescription) {
-            return layeredArchitectureDelegate.as(newDescription);
+        public OnionArchitecture as(String newDescription) {
+            return new OnionArchitecture(domainModelPackageIdentifiers, domainServicePackageIdentifiers,
+                    applicationPackageIdentifiers, adapterPackageIdentifiers, Optional.of(newDescription));
         }
 
         @Override
         public EvaluationResult evaluate(JavaClasses classes) {
-            updateLayersDelegate();
-            return layeredArchitectureDelegate.evaluate(classes);
+            return layeredArchitectureDelegate().evaluate(classes);
         }
 
         @Override
         public String getDescription() {
-            return layeredArchitectureDelegate.getDescription();
+            if (overriddenDescription.isPresent()) {
+                return overriddenDescription.get();
+            }
+
+            List<String> lines = newArrayList("Onion architecture consisting of");
+            lines.add(String.format("domain models ('%s')", Joiner.on("', '").join(domainModelPackageIdentifiers)));
+            lines.add(String.format("domain services ('%s')", Joiner.on("', '").join(domainServicePackageIdentifiers)));
+            lines.add(String.format("application services ('%s')", Joiner.on("', '").join(applicationPackageIdentifiers)));
+            for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
+                lines.add(String.format("adapter '%s' ('%s')", adapter.getKey(), Joiner.on("', '").join(adapter.getValue())));
+            }
+            return Joiner.on(lineSeparator()).join(lines);
         }
     }
 }
