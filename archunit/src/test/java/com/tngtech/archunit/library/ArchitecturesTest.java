@@ -187,7 +187,9 @@ public class ArchitecturesTest {
                 .ignoreDependency(SecondThreeAnyClass.class, SomePkgClass.class);
 
         assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
-    }    @Test
+    }
+
+    @Test
     public void description_of_onion_architecture() {
         OnionArchitecture architecture = onionArchitecture()
                 .domainModel("onionarchitecture.domain.model..")
@@ -206,6 +208,13 @@ public class ArchitecturesTest {
                         "adapter 'persistence' ('onionarchitecture.adapter.persistence..')" + lineSeparator() +
                         "adapter 'rest' ('onionarchitecture.adapter.rest.command..', 'onionarchitecture.adapter.rest.query..')"
         );
+    }
+
+    @Test
+    public void description_of_onion_architecture_with_missing_layers() {
+        OnionArchitecture architecture = onionArchitecture();
+
+        assertThat(architecture.getDescription()).isEqualTo("Onion architecture consisting of");
     }
 
     @Test
