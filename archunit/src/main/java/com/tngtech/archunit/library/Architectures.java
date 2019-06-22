@@ -364,15 +364,14 @@ public final class Architectures {
             layeredArchitectureDelegate = layeredArchitectureDelegate
                     .whereLayer(DOMAIN_MODEL_LAYER).mayOnlyBeAccessedByLayers(DOMAIN_SERVICE_LAYER, APPLICATION_LAYER, ADAPTER_LAYER)
                     .whereLayer(DOMAIN_SERVICE_LAYER).mayOnlyBeAccessedByLayers(APPLICATION_LAYER, ADAPTER_LAYER)
-                    .whereLayer(APPLICATION_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER)
-                    .whereLayer(ADAPTER_LAYER).mayNotBeAccessedByAnyLayer();
+                    .whereLayer(APPLICATION_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER);
             for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
                 String adapterLayer = getAdapterLayer(adapter.getKey());
                 layeredArchitectureDelegate = layeredArchitectureDelegate
                         .layer(adapterLayer).definedBy(adapter.getValue())
                         .whereLayer(adapterLayer).mayNotBeAccessedByAnyLayer();
             }
-            return layeredArchitectureDelegate;
+            return layeredArchitectureDelegate.as(getDescription());
         }
 
         private String[] concatenateAll(Collection<String[]> arrays) {
@@ -415,9 +414,15 @@ public final class Architectures {
             }
 
             List<String> lines = newArrayList("Onion architecture consisting of");
-            lines.add(String.format("domain models ('%s')", Joiner.on("', '").join(domainModelPackageIdentifiers)));
-            lines.add(String.format("domain services ('%s')", Joiner.on("', '").join(domainServicePackageIdentifiers)));
-            lines.add(String.format("application services ('%s')", Joiner.on("', '").join(applicationPackageIdentifiers)));
+            if (domainModelPackageIdentifiers.length > 0) {
+                lines.add(String.format("domain models ('%s')", Joiner.on("', '").join(domainModelPackageIdentifiers)));
+            }
+            if (domainServicePackageIdentifiers.length > 0) {
+                lines.add(String.format("domain services ('%s')", Joiner.on("', '").join(domainServicePackageIdentifiers)));
+            }
+            if (applicationPackageIdentifiers.length > 0) {
+                lines.add(String.format("application services ('%s')", Joiner.on("', '").join(applicationPackageIdentifiers)));
+            }
             for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
                 lines.add(String.format("adapter '%s' ('%s')", adapter.getKey(), Joiner.on("', '").join(adapter.getValue())));
             }

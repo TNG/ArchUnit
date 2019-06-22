@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -14,6 +15,7 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.example.AbstractController;
@@ -105,7 +107,14 @@ import com.tngtech.archunit.example.thirdparty.ThirdPartySubClassWithProblem;
 import com.tngtech.archunit.example.web.AnnotatedController;
 import com.tngtech.archunit.example.web.InheritedControllerImpl;
 import com.tngtech.archunit.exampletest.ControllerRulesTest;
+import com.tngtech.archunit.exampletest.OnionArchitectureTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
+import com.tngtech.archunit.onionarchitecture.example.adapter.cli.CliAdapterLayerClass;
+import com.tngtech.archunit.onionarchitecture.example.adapter.persistence.PersistenceAdapterLayerClass;
+import com.tngtech.archunit.onionarchitecture.example.adapter.rest.RestAdapterLayerClass;
+import com.tngtech.archunit.onionarchitecture.example.application.ApplicationLayerClass;
+import com.tngtech.archunit.onionarchitecture.example.domain.model.DomainModelLayerClass;
+import com.tngtech.archunit.onionarchitecture.example.domain.service.DomainServiceLayerClass;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
 import com.tngtech.archunit.testutils.ExpectedClass;
 import com.tngtech.archunit.testutils.ExpectedConstructor;
@@ -775,6 +784,73 @@ class ExamplesIntegrationTest {
         addExpectedCommonFailure.accept("layer_dependencies_are_respected_with_exception", expectedTestFailures);
 
         return expectedTestFailures.toDynamicTests();
+    }
+
+    @TestFactory
+    Stream<DynamicTest> OnionArchitectureTest() {
+        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
+                .forTests(
+                        OnionArchitectureTest.class,
+                        com.tngtech.archunit.exampletest.junit4.OnionArchitectureTest.class,
+                        com.tngtech.archunit.exampletest.junit5.OnionArchitectureTest.class)
+
+                .ofRule("Onion architecture consisting of" + lineSeparator() +
+                        String.format("domain models ('%s..')", DomainModelLayerClass.class.getPackage().getName()) + lineSeparator() +
+                        String.format("domain services ('%s..')", DomainServiceLayerClass.class.getPackage().getName()) + lineSeparator() +
+                        String.format("application services ('%s..')", ApplicationLayerClass.class.getPackage().getName()) + lineSeparator() +
+                        String.format("adapter 'cli' ('%s..')", CliAdapterLayerClass.class.getPackage().getName()) + lineSeparator() +
+                        String.format("adapter 'persistence' ('%s..')", PersistenceAdapterLayerClass.class.getPackage().getName()) + lineSeparator() +
+                        String.format("adapter 'rest' ('%s..')", RestAdapterLayerClass.class.getPackage().getName()));
+
+        Map<Class, Integer> callMap = ImmutableMap.<Class, Integer>builder()
+                .put(DomainModelLayerClass.class, 18)
+                .put(DomainServiceLayerClass.class, 19)
+                .put(ApplicationLayerClass.class, 20)
+                .put(CliAdapterLayerClass.class, 21)
+                .put(PersistenceAdapterLayerClass.class, 22)
+                .put(RestAdapterLayerClass.class, 23)
+                .build();
+
+        expectForbiddenAccesses(expectedTestFailures, callMap,
+                DomainModelLayerClass.class,
+                DomainServiceLayerClass.class, ApplicationLayerClass.class, CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+
+        expectForbiddenAccesses(expectedTestFailures, callMap,
+                DomainServiceLayerClass.class,
+                ApplicationLayerClass.class, CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+
+        expectForbiddenAccesses(expectedTestFailures, callMap,
+                ApplicationLayerClass.class,
+                CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+
+        expectForbiddenAccesses(expectedTestFailures, callMap,
+                CliAdapterLayerClass.class,
+                PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectForbiddenAccesses(expectedTestFailures, callMap,
+                RestAdapterLayerClass.class,
+                CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class);
+        expectForbiddenAccesses(expectedTestFailures, callMap,
+                PersistenceAdapterLayerClass.class,
+                CliAdapterLayerClass.class, RestAdapterLayerClass.class);
+
+        return expectedTestFailures.toDynamicTests();
+    }
+
+    private void expectForbiddenAccesses(ExpectedTestFailures expectedTestFailures, Map<Class, Integer> callMap,
+                                         Class from, Class... to) {
+        for (Class toClass : to) {
+            expectedTestFailures
+                    .by(field(from, uncapitalizedSimpleName(toClass))
+                            .ofType(toClass))
+                    .by(callFromMethod(from, "call")
+                            .toMethod(toClass, "callMe")
+                            .inLine(callMap.get(toClass))
+                            .asDependency());
+        }
+    }
+
+    private static String uncapitalizedSimpleName(Class clazz) {
+        return Character.toLowerCase(clazz.getSimpleName().charAt(0)) + clazz.getSimpleName().substring(1);
     }
 
     @TestFactory
