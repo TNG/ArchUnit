@@ -21,21 +21,15 @@ import com.tngtech.archunit.lang.ArchRule;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 /**
- * Allows to decide when two lines of two violations count as "equivalent". I.e. when {@link FreezingArchRule} determines if the description of an
- * occurring violation matches the description of an already stored one, it will use the configured {@link ViolationLineMatcher} to do so
- * by checking all the description lines of those two violations against each other.
- * <br><br>
- * A simple example could be to match any (xxx).java from lines and count all violations equivalent if they appear in the same class (as long as the
- * violations comply to the default description pattern adding 'in (ClassName.java:y) to the end of the lines). This would then effectively count all
- * violations in a class with any previous violation as known and not fail the check.
+ * Allows {@link FreezingArchRule} to decide when two lines of two violations count as "equivalent".
  */
 @PublicAPI(usage = INHERITANCE)
 public interface ViolationLineMatcher {
 
     /**
-     * @param lineFromFirstViolation A line from the description of a violation of an {@link ArchRule}
-     * @param lineFromSecondViolation A line from the description of another violation of an {@link ArchRule}
-     * @return true, if and only if those two lines should be considered equivalent (e.g. because only the line number differs)
+     * @param lineFromFirstViolation A line from the description of a violation of an {@link ArchRule} being evaluated
+     * @param lineFromSecondViolation A line from the description of a stored violation of an {@link ArchRule}
+     * @return true, if and only if those two lines should be considered equivalent
      */
     boolean matches(String lineFromFirstViolation, String lineFromSecondViolation);
 }

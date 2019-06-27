@@ -24,16 +24,17 @@ import com.tngtech.archunit.lang.ArchRule;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 /**
- * Allows to provide some sort of storage for existing violations. In particular on the first check of a {@link FreezingArchRule}, all existing
- * violations will be persisted to the configured {@link ViolationStore}.
+ * Provides some sort of storage for violations to {@link FreezingArchRule}.
  */
 @PublicAPI(usage = INHERITANCE)
 public interface ViolationStore {
 
     /**
-     * Provides custom initialization. The properties will be derived from
-     * {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME} by considering the sub properties of {@code freeze.store}.
-     * I.e. if {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME} contains
+     * Provides custom initialization with properties derived from
+     * {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}
+     * by considering the sub properties of {@code freeze.store}.
+     * <br><br>
+     * If {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME} contains, e.g.,
      *
      * <pre><code>
      * freeze.store.propOne=valueOne

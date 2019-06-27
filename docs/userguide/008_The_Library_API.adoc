@@ -188,14 +188,13 @@ https://github.com/TNG/ArchUnit-Examples/blob/master/example-plain/src/test/reso
 
 === Freezing Arch Rules
 
-Often in grown projects when a new rule is introduced, there are hundreds or even thousands of violations,
+When rules are introduced in grown projects, there are often hundreds or even thousands of violations,
 way too many to fix immediately. The only way to tackle such extensive violations is to establish an
-iterative approach which prevents the code base from further deterioration.
+iterative approach, which prevents the code base from further deterioration.
 
-`FreezingArchRule` can help in these scenarios by recording all existing violations to a `ViolationStore`
-on the first run. Consecutive runs will then only report new violations and ignore known violations.
-Furthermore if violations are fixed, `FreezingArchRule` will automatically reduce the known stored
-violations to prevent any regression.
+`FreezingArchRule` can help in these scenarios by recording all existing violations to a `ViolationStore`.
+Consecutive runs will then only report new violations and ignore known violations.
+If violations are fixed, `FreezingArchRule` will automatically reduce the known stored violations to prevent any regression.
 
 ==== Usage
 
@@ -213,10 +212,9 @@ and will not be reported.
 
 ==== Configuration
 
-By default `FreezingArchRule` will use a simple text based `ViolationStore` to store the violations
-occurred during the first run and update fixed violations in the future. This is sufficient to add
-these files to any version control system to continuously track the progress. You can configure the
-location of the violation store within `archunit.properties` (compare <<Advanced Configuration>>):
+By default `FreezingArchRule` will use a simple `ViolationStore` based on plain text files.
+This is sufficient to add these files to any version control system to continuously track the progress.
+You can configure the location of the violation store within `archunit.properties` (compare <<Advanced Configuration>>):
 
 [source,options="nowrap"]
 .archunit.properties
@@ -232,7 +230,7 @@ is the `ViolationLineMatcher`, i.e. how `FreezingArchRule` will associate lines 
 with lines of actual violations. As mentioned, by default this is a line matcher that ignores the
 line numbers of violations within the same class.
 
-===== ViolationStore
+===== Violation Store
 
 As mentioned in <<Configuration>>, the default `ViolationStore` is a simple text based store.
 It can be exchanged though, for example to store violations in a database.
@@ -251,7 +249,8 @@ Alternatively it can be configured via `archunit.properties` (compare <<Advanced
 freeze.store=fully.qualified.name.of.MyCustomViolationStore
 ----
 
-You can supply properties to initialize the store by using the namespace `freeze.store`. I.e. for properties
+You can supply properties to initialize the store by using the namespace `freeze.store`.
+For properties
 
 [source,options="nowrap"]
 ----
@@ -261,17 +260,17 @@ freeze.store.propTwo=valueTwo
 
 the method `ViolationStore.initialize(props)` will be called with the properties
 
-[source,java,options="nowrap"]
+[source,options="nowrap"]
 ----
 propOne=valueOne
 propTwo=valueTwo
 ----
 
-===== ViolationLineMatcher
+===== Violation Line Matcher
 
-The `ViolationLineMatcher` will decide if a line of an occurred violation was actually be stored before.
-As mentioned by default it will only ignore line numbers and count lines as equivalent when all other
-details match. To exchange the default `ViolationLineMatcher`, you can again either do it programmatically:
+The `ViolationLineMatcher` compares lines from occurred violations with lines from the store.
+The default implementation ignores line numbers and counts lines as equivalent when all other details match.
+A custom `ViolationLineMatcher` can again either be defined programmatically:
 
 [source,java,options="nowrap"]
 ----
