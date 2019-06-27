@@ -108,15 +108,14 @@ public final class FreezingArchRule implements ArchRule {
     private EvaluationResult removeObsoleteViolationsFromStoreAndReturnNewViolations(EvaluationResult result) {
         log.debug("Found frozen result for rule '{}'", delegate.getDescription());
         final List<String> knownViolations = store.getViolations(delegate);
-        CategorizedViolations categorizedViolations = removeObsoleteViolationsFromStore(result, knownViolations);
+        CategorizedViolations categorizedViolations = new CategorizedViolations(matcher, result, knownViolations);
+        removeObsoleteViolationsFromStore(categorizedViolations);
         return filterOutKnownViolations(result, categorizedViolations.getKnownActualViolations());
     }
 
-    private CategorizedViolations removeObsoleteViolationsFromStore(EvaluationResult result, List<String> knownViolations) {
-        CategorizedViolations categorizedViolations = new CategorizedViolations(matcher, result, knownViolations);
+    private void removeObsoleteViolationsFromStore(CategorizedViolations categorizedViolations) {
         log.debug("Removing obsolete violations from store: {}", categorizedViolations.getStoredSolvedViolations());
         store.save(delegate, categorizedViolations.getStoredUnsolvedViolations());
-        return categorizedViolations;
     }
 
     private EvaluationResult filterOutKnownViolations(EvaluationResult result, final Set<String> knownActualViolations) {
