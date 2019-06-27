@@ -184,7 +184,7 @@ public class ArchConfigurationTest {
 
     @Test
     public void allows_to_specify_custom_properties() {
-        writeProperties(ImmutableMap.<String, Object>of(
+        writeProperties(ImmutableMap.of(
                 "some.custom.booleanproperty", "true",
                 "some.custom.stringproperty", "value",
                 "toignore", "toignore"

@@ -48,21 +48,21 @@ class ViolationLineMatcherFactory {
     private static class FuzzyLineNumberMatcher implements ViolationLineMatcher {
         @Override
         public boolean matches(String lineFromFirstViolation, String lineFromSecondViolation) {
-            return ignoreLineNumber(lineFromFirstViolation).equals(ignoreLineNumber(lineFromSecondViolation));
+            return ignorePotentialLineNumbers(lineFromFirstViolation).equals(ignorePotentialLineNumbers(lineFromSecondViolation));
         }
 
         // Would be nicer to use a regex here, but unfortunately that would have a massive performance impact.
         // So we do some low level character processing instead.
-        private String ignoreLineNumber(String violation) {
+        private String ignorePotentialLineNumbers(String violation) {
             Iterator<String> parts = Splitter.on(":").split(violation).iterator();
             StringBuilder removedLineNumbers = new StringBuilder(parts.next());
             while (parts.hasNext()) {
-                removedLineNumbers.append(removeLineNumberIfPresent(parts.next()));
+                removedLineNumbers.append(removeNumberIfPresent(parts.next()));
             }
             return removedLineNumbers.toString();
         }
 
-        private String removeLineNumberIfPresent(String part) {
+        private String removeNumberIfPresent(String part) {
             int i = 0;
             while (part.length() > i && isDigit(part.charAt(i))) {
                 i++;
