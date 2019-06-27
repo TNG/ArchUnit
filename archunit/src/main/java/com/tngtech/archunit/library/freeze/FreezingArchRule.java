@@ -36,23 +36,30 @@ import static com.tngtech.archunit.library.freeze.ViolationStoreFactory.FREEZE_S
 
 /**
  * A decorator around an existing {@link ArchRule} that "freezes" the state of all violations on the first call instead of failing the test.
- * This means in particular that the first run of a {@link FreezingArchRule} will always pass, consecutive calls will only fail if "unknown"
- * violations are introduced (read below for further explanations when a violation is "unknown").
+ * This means in particular that the first run of a {@link FreezingArchRule} will always pass.
+ * Consecutive calls will only fail if "unknown" violations are introduced (read below for further explanations when a violation is "unknown").
+ * Once resolved, initially "known" violations will fail again if they were re-introduced.
  * <br><br>
- * You might consider using this class, if you introduce a new {@link ArchRule} to an existing project that causes too many violations to solve
+ * You might consider using this class when introducing a new {@link ArchRule} to an existing project that causes too many violations to solve
  * at the current time. A typical example is a huge legacy project where a new rule might cause thousands of violations. Even if it is impossible
  * to fix all those violations at the moment, it is typically a good idea to a) make sure no further violations are introduced and
  * b) incrementally fix those violations over time one by one.
  * <br><br>
- * {@link FreezingArchRule} uses two concepts to support this use case. First a {@link ViolationStore} to store the result of the current
- * evaluation of this rule (compare {@link #persistIn(ViolationStore)}). Second a {@link ViolationLineMatcher} to decide which violations are "known",
- * i.e. have been present from the beginning (compare {@link #associateViolationLinesVia(ViolationLineMatcher)}).
- * The reason to adjust the {@link ViolationLineMatcher} and not simply check for equality might be to make the comparison for known violations
- * more resilient, e.g. by ignoring the current line number (assume a class has 500 lines, adding a line at the beginning should maybe not affect an
- * unrelated known violation in line 490).
- * <br><br>
- * If you do not configure {@link ViolationStore} or {@link ViolationLineMatcher}, a default will be used (compare the javadoc of the
- * respective class).
+ * {@link FreezingArchRule} uses two concepts to support this use case:
+ * <ul>
+ * <li>
+ *   a {@link ViolationStore} to store the result of the current evaluation and retrieve the result of the previous evaluation of this rule.<br>
+ *   It can be configured via {@link #persistIn(ViolationStore)}.<br>
+ *   The default {@link ViolationStore} stores violations in plain text files
+ *   within the {@code freeze.store.default.path} path of {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}
+ *   (default: {@code archunit_store})
+ * </li>
+ * <li>
+ *   a {@link ViolationLineMatcher} to decide which violations are "known", i.e. have already been present in the previous evaluation.<br>
+ *   It can be configured via {@link #associateViolationLinesVia(ViolationLineMatcher)}.<br>
+ *   The default {@link ViolationLineMatcher} compares violations ignoring the line number of their source code location.
+ * </li>
+ * </ul>
  */
 @PublicAPI(usage = ACCESS)
 public final class FreezingArchRule implements ArchRule {
@@ -149,9 +156,7 @@ public final class FreezingArchRule implements ArchRule {
     }
 
     /**
-     * Allows to reconfigure how this {@link FreezingArchRule} will decide if an occurring violation is known or not. For example a
-     * {@link ViolationLineMatcher} that filters out the line number of a violation will consider all violations known that have the same
-     * textual description regardless of the concrete lines in which those violations have occurred.
+     * Allows to reconfigure how this {@link FreezingArchRule} will decide if an occurring violation is known or not.
      *
      * @param matcher A {@link ViolationLineMatcher} that decides which lines of a violation description are known and which are unknown and should
      *                cause a failure of this rule
