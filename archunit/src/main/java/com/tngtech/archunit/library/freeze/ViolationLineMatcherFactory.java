@@ -41,7 +41,7 @@ class ViolationLineMatcherFactory {
         } catch (Exception e) {
             String message = String.format("Could not instantiate %s of configured type '%s=%s'",
                     ViolationLineMatcher.class.getSimpleName(), FREEZE_LINE_MATCHER_PROPERTY, lineMatcherClassName);
-            throw new StoreInitializationFailedException(message, e);
+            throw new ViolationLineMatcherInitializationFailedException(message, e);
         }
     }
 

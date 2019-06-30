@@ -49,15 +49,21 @@ import static com.tngtech.archunit.library.freeze.ViolationStoreFactory.FREEZE_S
  * <ul>
  * <li>
  *   a {@link ViolationStore} to store the result of the current evaluation and retrieve the result of the previous evaluation of this rule.<br>
- *   It can be configured via {@link #persistIn(ViolationStore)}.<br>
  *   The default {@link ViolationStore} stores violations in plain text files
- *   within the {@code freeze.store.default.path} path of {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}
- *   (default: {@code archunit_store})
+ *   within the path specified by {@code freeze.store.default.path} of
+ *   {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME} (default: {@code archunit_store})<br>
+ *   A custom implementation can be provided in two ways.
+ *   Either programmatically via {@link #persistIn(ViolationStore)}, or by specifying the fully qualified class name within
+ *   {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}, e.g.
+ *   <pre><code>freeze.store=com.fully.qualified.MyViolationStore</code></pre>
  * </li>
  * <li>
  *   a {@link ViolationLineMatcher} to decide which violations are "known", i.e. have already been present in the previous evaluation.<br>
- *   It can be configured via {@link #associateViolationLinesVia(ViolationLineMatcher)}.<br>
- *   The default {@link ViolationLineMatcher} compares violations ignoring the line number of their source code location.
+ *   The default {@link ViolationLineMatcher} compares violations ignoring the line number of their source code location.<br>
+ *   A custom implementation can be configured in two ways.
+ *   Again either programmatically via {@link #associateViolationLinesVia(ViolationLineMatcher)}, or within
+ *   {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}, e.g.
+ *   <pre><code>freeze.lineMatcher=com.fully.qualified.MyViolationLineMatcher</code></pre>
  * </li>
  * </ul>
  */
