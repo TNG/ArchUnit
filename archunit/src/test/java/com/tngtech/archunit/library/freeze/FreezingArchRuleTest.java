@@ -288,7 +288,7 @@ public class FreezingArchRuleTest {
         String wrongConfig = "SomeBogus";
         ArchConfiguration.get().setProperty("freeze.lineMatcher", wrongConfig);
 
-        thrown.expect(StoreInitializationFailedException.class);
+        thrown.expect(ViolationLineMatcherInitializationFailedException.class);
         thrown.expectMessage("freeze.lineMatcher=" + wrongConfig);
         freeze(rule("some description").withoutViolations()).check(importClasses(getClass()));
     }
