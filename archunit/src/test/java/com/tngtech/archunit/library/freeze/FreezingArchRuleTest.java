@@ -196,7 +196,7 @@ public class FreezingArchRuleTest {
                 .withViolations("violation"));
 
         ArchRule frozen = freeze(rule("some description")
-                .withViolations("violation", "second"))
+                .withViolations("violation", "equivalent one"))
                 .persistIn(violationStore)
                 .associateViolationLinesVia(new ViolationLineMatcher() {
                     @Override
@@ -207,7 +207,8 @@ public class FreezingArchRuleTest {
 
         assertThat(frozen)
                 .checking(importClasses(getClass()))
-                .hasAnyViolationOf("violation", "second");
+                .hasViolations(1)
+                .hasAnyViolationOf("violation", "equivalent one");
     }
 
     @Test

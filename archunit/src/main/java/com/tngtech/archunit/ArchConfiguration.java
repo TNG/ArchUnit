@@ -58,7 +58,6 @@ public final class ArchConfiguration {
             return new ArchConfiguration();
         }
     });
-    private final Properties properties = new Properties();
 
     @PublicAPI(usage = ACCESS)
     public static ArchConfiguration get() {
@@ -66,6 +65,7 @@ public final class ArchConfiguration {
     }
 
     private final String propertiesResourceName;
+    private final Properties properties = new Properties();
 
     private ArchConfiguration() {
         this(ARCHUNIT_PROPERTIES_RESOURCE_NAME);
@@ -220,7 +220,7 @@ public final class ArchConfiguration {
 
     /**
      * @param propertyName Full name of a property
-     * @return A property of the global ArchUnit configuration. This method will throw an exception if the property ins not set within the configuration.
+     * @return A property of the global ArchUnit configuration. This method will throw an exception if the property is not set within the configuration.
      * @see #containsProperty(String)
      * @see #setProperty(String, String)
      */
