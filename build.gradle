@@ -1,7 +1,7 @@
 plugins {
-    id 'com.gradle.build-scan' version '1.16'
-    id 'com.github.johnrengelman.shadow' version '4.0.1'
-    id 'com.github.spotbugs' version '1.6.4'
+    id 'com.gradle.build-scan' version '2.3'
+    id 'com.github.johnrengelman.shadow' version '5.1.0'
+    id 'com.github.spotbugs' version '2.0.0'
 }
 
 def appAndSourceUrl = 'https://github.com/TNG/ArchUnit'
