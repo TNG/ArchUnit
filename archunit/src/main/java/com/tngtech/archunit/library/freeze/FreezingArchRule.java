@@ -127,7 +127,8 @@ public final class FreezingArchRule implements ArchRule {
     }
 
     private void removeObsoleteViolationsFromStore(CategorizedViolations categorizedViolations) {
-        log.debug("Removing obsolete violations from store: {}", categorizedViolations.getStoredSolvedViolations());
+        List<String> solvedViolations = categorizedViolations.getStoredSolvedViolations();
+        log.debug("Removing {} obsolete violations from store: {}", solvedViolations.size(), solvedViolations);
         store.save(delegate, categorizedViolations.getStoredUnsolvedViolations());
     }
 
