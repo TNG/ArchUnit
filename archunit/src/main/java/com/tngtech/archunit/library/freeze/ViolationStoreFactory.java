@@ -97,8 +97,7 @@ class ViolationStoreFactory {
 
         @Override
         public void save(ArchRule rule, List<String> violations) {
-            log.debug("Storing evaluated rule '{}' with violations: {}", rule.getDescription(), violations);
-
+            log.debug("Storing evaluated rule '{}' with {} violations: {}", rule.getDescription(), violations.size(), violations);
             UUID ruleId = ensureRuleId(rule);
             File ruleDetails = new File(storeFolder, ruleId.toString());
             write(violations, ruleDetails);
@@ -153,7 +152,7 @@ class ViolationStoreFactory {
             String ruleDetailsFileName = storedRules.getProperty(rule.getDescription());
             checkArgument(ruleDetailsFileName != null, "No rule stored with description '%s'", rule.getDescription());
             List<String> result = readLines(ruleDetailsFileName);
-            log.debug("Retrieved stored rule '{}' with violations: {}", rule.getDescription(), result);
+            log.debug("Retrieved stored rule '{}' with {} violations: {}", rule.getDescription(), result.size(), result);
             return result;
         }
 
