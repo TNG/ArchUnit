@@ -98,9 +98,8 @@ class ViolationStoreFactory {
         @Override
         public void save(ArchRule rule, List<String> violations) {
             log.debug("Storing evaluated rule '{}' with {} violations: {}", rule.getDescription(), violations.size(), violations);
-            UUID ruleId = ensureRuleId(rule);
-            File ruleDetails = new File(storeFolder, ruleId.toString());
-            write(violations, ruleDetails);
+            String ruleFileName = ensureRuleFileName(rule);
+            write(violations, new File(storeFolder, ruleFileName));
         }
 
         private void write(List<String> violations, File ruleDetails) {
@@ -129,15 +128,15 @@ class ViolationStoreFactory {
             return result;
         }
 
-        private UUID ensureRuleId(ArchRule rule) {
-            UUID ruleId;
-            if (!storedRules.containsKey(rule.getDescription())) {
-                ruleId = createNewRuleId(rule);
+        private String ensureRuleFileName(ArchRule rule) {
+            String ruleFileName;
+            if (storedRules.containsKey(rule.getDescription())) {
+                ruleFileName = storedRules.getProperty(rule.getDescription());
+                log.error("Rule '{}' is already stored in file {}", rule.getDescription(), ruleFileName);
             } else {
-                ruleId = UUID.fromString(storedRules.getProperty(rule.getDescription()));
-                log.debug("Rule '{}' is already stored with ID {}", rule.getDescription(), ruleId);
+               ruleFileName = createNewRuleId(rule).toString();
             }
-            return ruleId;
+            return ruleFileName;
         }
 
         private UUID createNewRuleId(ArchRule rule) {
