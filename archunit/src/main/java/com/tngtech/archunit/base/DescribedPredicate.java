@@ -112,8 +112,8 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return new GreaterThanOrEqualToPredicate<>(value);
     }
 
-    public static <T> DescribedPredicate<T> describe(String description, Predicate<T> test) {
-        return new DescribePredicate<>(description, test);
+    public static <T> DescribedPredicate<T> describe(String description, Predicate<T> predicate) {
+        return new DescribePredicate<>(description, predicate);
     }
 
     /**
@@ -295,16 +295,16 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     }
 
     private static class DescribePredicate<T> extends DescribedPredicate<T> {
-        private final Predicate<T> test;
+        private final Predicate<T> delegate;
 
-        DescribePredicate(String description, Predicate<T> test) {
+        DescribePredicate(String description, Predicate<T> predicate) {
             super(description);
-            this.test = checkNotNull(test);
+            this.delegate = checkNotNull(predicate);
         }
 
         @Override
         public boolean apply(T input) {
-            return test.apply(input);
+            return delegate.apply(input);
         }
     }
 
