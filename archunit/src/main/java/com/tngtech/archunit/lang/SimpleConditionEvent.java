@@ -16,12 +16,14 @@
 package com.tngtech.archunit.lang;
 
 import java.util.Collections;
+import java.util.List;
 
 import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.Collections.singletonList;
 
 @PublicAPI(usage = ACCESS)
 public final class SimpleConditionEvent implements ConditionEvent {
@@ -46,9 +48,20 @@ public final class SimpleConditionEvent implements ConditionEvent {
         events.add(new SimpleConditionEvent(correspondingObject, !conditionSatisfied, message));
     }
 
+    /**
+     * @deprecated See {@link ConditionEvent#describeTo(CollectsLines)}
+     */
+    @Deprecated
     @Override
     public void describeTo(CollectsLines messages) {
-        messages.add(message);
+        for (String line : getDescriptionLines()) {
+            messages.add(line);
+        }
+    }
+
+    @Override
+    public List<String> getDescriptionLines() {
+        return singletonList(message);
     }
 
     @Override

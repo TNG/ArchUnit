@@ -1,9 +1,7 @@
 package com.tngtech.archunit.testutil;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,10 +39,11 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.CollectsLines;
-import com.tngtech.archunit.lang.ConditionEvent;
+import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.testutil.assertion.ArchConditionAssertion;
+import com.tngtech.archunit.testutil.assertion.ArchRuleAssertion;
+import com.tngtech.archunit.testutil.assertion.ConditionEventsAssertion;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
@@ -57,7 +56,6 @@ import com.tngtech.archunit.testutil.assertion.JavaMembersAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
-import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.AbstractObjectAssert;
@@ -66,8 +64,6 @@ import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.api.ObjectAssertFactory;
 import org.objectweb.asm.Type;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodSimple;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -81,8 +77,12 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new ArchConditionAssertion<>(archCondition);
     }
 
-    public static ConditionEventsAssert assertThat(ConditionEvents events) {
-        return new ConditionEventsAssert(events);
+    public static ConditionEventsAssertion assertThat(ConditionEvents events) {
+        return new ConditionEventsAssertion(events);
+    }
+
+    public static ArchRuleAssertion assertThat(ArchRule rule) {
+        return new ArchRuleAssertion(rule);
     }
 
     public static <T> org.assertj.guava.api.OptionalAssert<T> assertThat(Optional<T> optional) {
@@ -412,90 +412,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
         @Override
         protected ObjectAssert<ThrowsDeclaration<?>> toAssert(ThrowsDeclaration<?> value, String description) {
             return new ObjectAssertFactory<ThrowsDeclaration<?>>().createAssert(value).as(description);
-        }
-    }
-
-    public static class ConditionEventsAssert
-            extends AbstractIterableAssert<ConditionEventsAssert, ConditionEvents, ConditionEvent, ObjectAssert<ConditionEvent>> {
-        ConditionEventsAssert(ConditionEvents actual) {
-            super(actual, ConditionEventsAssert.class);
-        }
-
-        public void containViolations(String violation, String... additional) {
-            assertThat(actual.containViolation()).as("Condition is violated").isTrue();
-
-            List<String> expected = concat(violation, additional);
-            if (!sorted(messagesOf(actual.getViolating())).equals(sorted(expected))) {
-                failWithMessage("Expected %s to contain only violations %s", actual, expected);
-            }
-        }
-
-        public void containAllowed(String message, String... additional) {
-            assertThat(actual.getAllowed().size()).as("Allowed events occurred").isGreaterThan(0);
-
-            List<String> expected = concat(message, additional);
-            if (!sorted(messagesOf(actual.getAllowed())).equals(sorted(expected))) {
-                failWithMessage("Expected %s to contain only allowed events %s", actual, expected);
-            }
-        }
-
-        private List<String> messagesOf(Collection<? extends ConditionEvent> events) {
-            final List<String> result = new ArrayList<>();
-            CollectsLines messages = new CollectsLines() {
-                @Override
-                public void add(String message) {
-                    result.add(message);
-                }
-            };
-            for (ConditionEvent event : events) {
-                event.describeTo(messages);
-            }
-            return result;
-        }
-
-        private List<String> concat(String violation, String[] additional) {
-            ArrayList<String> list = newArrayList(additional);
-            list.add(0, violation);
-            return list;
-        }
-
-        private List<String> sorted(Collection<String> collection) {
-            ArrayList<String> result = new ArrayList<>(collection);
-            Collections.sort(result);
-            return result;
-        }
-
-        public void containNoViolation() {
-            assertThat(actual.containViolation()).as("Condition is violated").isFalse();
-            assertThat(messagesOf(actual.getViolating())).as("Violating messages").isEmpty();
-        }
-
-        public ConditionEventsAssert haveOneViolationMessageContaining(String... messageParts) {
-            return haveOneViolationMessageContaining(ImmutableSet.copyOf(messageParts));
-        }
-
-        public ConditionEventsAssert haveOneViolationMessageContaining(Set<String> messageParts) {
-            assertThat(messagesOf(actual.getViolating())).as("Number of violations").hasSize(1);
-            AbstractCharSequenceAssert<?, String> assertion = assertThat(getOnlyElement(messagesOf(actual.getViolating())));
-            for (String part : messageParts) {
-                assertion.as("Violation message").contains(part);
-            }
-            return this;
-        }
-
-        public ConditionEventsAssert haveAtLeastOneViolationMessageMatching(String regex) {
-            Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
-            for (String message : messagesOf(actual.getViolating())) {
-                if (pattern.matcher(message).matches()) {
-                    return this;
-                }
-            }
-            throw new AssertionError(String.format("No message matches pattern '%s'", regex));
-        }
-
-        @Override
-        protected ObjectAssert<ConditionEvent> toAssert(ConditionEvent value, String description) {
-            return new ObjectAssertFactory<ConditionEvent>().createAssert(value).as(description);
         }
     }
 

@@ -17,8 +17,10 @@ package com.tngtech.archunit.lang;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
@@ -60,11 +62,29 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
         return getAllowed().isEmpty() && getViolating().isEmpty();
     }
 
+    /**
+     * @deprecated Use the result of {@link #getFailureDescriptionLines()} instead.
+     * {@link #describeFailuresTo(CollectsLines) describeFailuresTo(lineCollector)} has the same behavior as simply
+     * adding all {@link #getFailureDescriptionLines()} to the {@code lineCollector}.
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public void describeFailuresTo(CollectsLines messages) {
-        for (ConditionEvent event : getViolating()) {
-            event.describeTo(messages);
+        for (String line : getFailureDescriptionLines()) {
+            messages.add(line);
         }
+    }
+
+    /**
+     * @return List of text lines describing the contained failures of these events.
+     */
+    @PublicAPI(usage = ACCESS)
+    public List<String> getFailureDescriptionLines() {
+        ImmutableList.Builder<String> result = ImmutableList.builder();
+        for (ConditionEvent event : getViolating()) {
+            result.addAll(event.getDescriptionLines());
+        }
+        return result.build();
     }
 
     /**

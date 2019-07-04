@@ -46,34 +46,33 @@ import static java.util.Collections.singletonList;
 /**
  * The central API to import {@link JavaClasses} from compiled Java class files.
  * Supports various types of {@link Location}, e.g. {@link Path},
- * {@link JarFile} or {@link URL}. The {@link Location Locations} that are scanned, can be filtered by passing any number of
+ * {@link JarFile} or {@link URL}. The {@link Location Locations} that are scanned can be filtered by passing any number of
  * {@link ImportOption} to {@link #withImportOption(ImportOption)}, which will then be <b>AND</b>ed (compare
  * {@link ImportOptions}).
  * <br><br>
  * Note that information about a class is only complete, if all necessary classes are imported.
  * For example, if class A is imported, and A accesses class B,
  * but class B is not imported, the import will behave according to the configured
- * {@link ClassResolver}. With the default configuration, the importer will just create a stub with all
- * information known from the access, i.e. the fully qualified name of B and not much
- * more. In particular the stub class B will miss any information like super classes,
- * interfaces, etc. The stub class B will also miss information like "accesses to self"
- * and similar. In short, if one wants to write rules about certain properties of classes, it is
- * important to ensure that all relevant classes are imported, even if those might be classes
- * from the JDK (like {@link RuntimeException} or {@link Exception}).
- * <br><br>
- * The resolution behavior, i.e. what the importer does if a class is missing from the context,
- * can be configured by providing a respective {@link ClassResolver}. ArchUnit provides a second
- * {@link ClassResolver} to import referenced classes more widely, namely the
- * {@link ClassResolverFromClasspath}. This resolver will attempt to import missing classes from
- * the classpath, and by that complete any information necessary for rules. In the above case
- * this would mean, if class A accesses B, but B is missing
+ * {@link ClassResolver}. With the default configuration, the importer will use the {@link ClassResolverFromClasspath}
+ * to attempt to import missing classes from  the classpath, and by that complete any information necessary for rules.
+ * In the above case this would mean, if class A accesses B, but B is missing
  * from the set of imported classes, the importer will try to locate the class on the classpath
  * and then import that class, thus acquiring more information like superclasses and interfaces.
  * However, it will not transitively go on to resolve access targets of these classes.
  * <br><br>
- * The {@link ClassResolverFromClasspath} can easily be activated by setting
- * <pre><code>{@value ArchConfiguration#RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH}=true</code></pre>
- * within your {@value ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}.
+ * The resolution behavior, i.e. what the importer does if a class is missing from the context,
+ * can be configured by providing a respective {@link ClassResolver}. To use the simplest {@link ClassResolver} possible,
+ * namely one that does not import any further classes, simply configure
+ * <pre><code>{@value ArchConfiguration#RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH}=false</code></pre>
+ * within your {@value ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}.<br>
+ * Whenever the configured {@link ClassResolver} does not import a class, the importer will simply create a stub with
+ * all information known from the access, i.e. the fully qualified name of B and not much more.
+ * In particular the stub class B will miss any information like super classes, interfaces, etc.
+ * <br><br>
+ * In short, if one wants to write rules about certain properties of classes, it is
+ * important to ensure that all relevant classes are imported, even if those might be classes
+ * from the JDK (like {@link RuntimeException} or {@link Exception}).
+ * <br><br>
  * For further information consult the ArchUnit user guide.
  *
  * @see ArchConfiguration
