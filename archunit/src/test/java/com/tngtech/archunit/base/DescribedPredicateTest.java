@@ -16,6 +16,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.greaterThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.lessThan;
 import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -115,6 +116,22 @@ public class DescribedPredicateTest {
                 .rejects(Foo.FIRST)
                 .accepts(Foo.SECOND)
                 .accepts(Foo.THIRD);
+    }
+
+    @Test
+    public void describe_works() {
+        Predicate<Integer> isEven = new Predicate<Integer>() {
+            @Override
+            public boolean apply(Integer input) {
+                return input % 2 == 0;
+            }
+        };
+
+        assertThat(describe("is even", isEven))
+                .accepts(8)
+                .hasDescription("is even")
+                .accepts(4)
+                .rejects(5);
     }
 
     @DataProvider

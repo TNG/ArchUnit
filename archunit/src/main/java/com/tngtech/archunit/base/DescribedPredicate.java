@@ -112,6 +112,10 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return new GreaterThanOrEqualToPredicate<>(value);
     }
 
+    public static <T> DescribedPredicate<T> describe(String description, Predicate<T> predicate) {
+        return new DescribePredicate<>(description, predicate);
+    }
+
     /**
      * @deprecated Decided to consistently never use contractions -&gt; use {@link #doesNot(DescribedPredicate)}
      */
@@ -287,6 +291,20 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         @Override
         public boolean apply(T input) {
             return input.compareTo(value) >= 0;
+        }
+    }
+
+    private static class DescribePredicate<T> extends DescribedPredicate<T> {
+        private final Predicate<T> delegate;
+
+        DescribePredicate(String description, Predicate<T> predicate) {
+            super(description);
+            this.delegate = checkNotNull(predicate);
+        }
+
+        @Override
+        public boolean apply(T input) {
+            return delegate.apply(input);
         }
     }
 
