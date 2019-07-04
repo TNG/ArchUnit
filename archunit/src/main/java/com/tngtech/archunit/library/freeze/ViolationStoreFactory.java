@@ -103,7 +103,7 @@ class ViolationStoreFactory {
         }
 
         private void write(List<String> violations, File ruleDetails) {
-            String updatedViolations = Joiner.on("\n").join(escaped(violations));
+            String updatedViolations = Joiner.on("\n").join(escape(violations));
             try {
                 Files.write(updatedViolations, ruleDetails, UTF_8);
             } catch (IOException e) {
@@ -111,12 +111,11 @@ class ViolationStoreFactory {
             }
         }
 
-        private List<String> escaped(List<String> violations) {
+        private List<String> escape(List<String> violations) {
             return replaceCharacter(violations, "\n", "\\\n");
         }
 
-        // FIXME: Correct word for 'deescaped'?
-        private List<String> deescaped(List<String> violations) {
+        private List<String> unescape(List<String> violations) {
             return replaceCharacter(violations, "\\\n", "\n");
         }
 
@@ -132,9 +131,9 @@ class ViolationStoreFactory {
             String ruleFileName;
             if (storedRules.containsKey(rule.getDescription())) {
                 ruleFileName = storedRules.getProperty(rule.getDescription());
-                log.error("Rule '{}' is already stored in file {}", rule.getDescription(), ruleFileName);
+                log.debug("Rule '{}' is already stored in file {}", rule.getDescription(), ruleFileName);
             } else {
-               ruleFileName = createNewRuleId(rule).toString();
+                ruleFileName = createNewRuleId(rule).toString();
             }
             return ruleFileName;
         }
@@ -159,7 +158,7 @@ class ViolationStoreFactory {
             try {
                 String violationsText = new String(toByteArray(new File(storeFolder, ruleDetailsFileName)), UTF_8);
                 List<String> lines = Splitter.on(UNESCAPED_LINE_BREAK_PATTERN).splitToList(violationsText);
-                return deescaped(lines);
+                return unescape(lines);
             } catch (IOException e) {
                 throw new StoreReadException(e);
             }
