@@ -562,6 +562,37 @@ class ExamplesIntegrationTest {
     }
 
     @TestFactory
+    Stream<DynamicTest> FrozenRulesTest() {
+        return ExpectedTestFailures
+                .forTests(
+                        com.tngtech.archunit.exampletest.FrozenRulesTest.class,
+                        com.tngtech.archunit.exampletest.junit4.FrozenRulesTest.class,
+                        com.tngtech.archunit.exampletest.junit5.FrozenRulesTest.class)
+
+                .ofRule("no classes should depend on classes that reside in a package '..service..'")
+                .by(callFromMethod(SomeController.class, "doSthController").
+                        toMethod(ServiceViolatingDaoRules.class, "doSthService")
+                        .inLine(11)
+                        .asDependency())
+                .by(callFromMethod(SomeController.class, "doSthWithSecuredService").
+                        toMethod(ServiceViolatingLayerRules.class, "properlySecured")
+                        .inLine(15)
+                        .asDependency())
+
+                .ofRule("no classes should depend on classes that are assignable to javax.persistence.EntityManager")
+                .by(callFromMethod(ServiceViolatingDaoRules.class, "illegallyUseEntityManager").
+                        toMethod(EntityManager.class, "persist", Object.class)
+                        .inLine(26)
+                        .asDependency())
+                .by(callFromMethod(ServiceViolatingDaoRules.class, "illegallyUseEntityManager").
+                        toMethod(ServiceViolatingDaoRules.MyEntityManager.class, "persist", Object.class)
+                        .inLine(27)
+                        .asDependency())
+
+                .toDynamicTests();
+    }
+
+    @TestFactory
     Stream<DynamicTest> InterfaceRulesTest() {
         return ExpectedTestFailures
                 .forTests(

@@ -180,22 +180,27 @@ public abstract class ArchCondition<T> {
             this.evaluatedConditions = evaluatedConditions;
         }
 
-        Set<String> getUniqueLinesOfViolations() { // TODO: Sort by line number, then lexicographically
+        List<String> getUniqueLinesOfViolations() { // TODO: Sort by line number, then lexicographically
             final Set<String> result = new TreeSet<>();
-            CollectsLines lines = new CollectsLines() {
-                @Override
-                public void add(String line) {
-                    result.add(line);
-                }
-            };
             for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
                 for (ConditionEvent event : evaluation.events) {
                     if (event.isViolation()) {
-                        event.describeTo(lines);
+                        result.addAll(event.getDescriptionLines());
                     }
                 }
             }
-            return result;
+            return ImmutableList.copyOf(result);
+        }
+
+        /**
+         * @deprecated See {@link ConditionEvent#describeTo(CollectsLines)}
+         */
+        @Deprecated
+        @Override
+        public void describeTo(CollectsLines messages) {
+            for (String line : getDescriptionLines()) {
+                messages.add(line);
+            }
         }
 
         @Override
@@ -265,10 +270,8 @@ public abstract class ArchCondition<T> {
         }
 
         @Override
-        public void describeTo(CollectsLines lines) {
-            for (String line : getUniqueLinesOfViolations()) {
-                lines.add(line);
-            }
+        public List<String> getDescriptionLines() {
+            return getUniqueLinesOfViolations();
         }
 
         @Override
@@ -305,8 +308,8 @@ public abstract class ArchCondition<T> {
         }
 
         @Override
-        public void describeTo(CollectsLines lines) {
-            lines.add(createMessage());
+        public List<String> getDescriptionLines() {
+            return ImmutableList.of(createMessage());
         }
 
         private String createMessage() {

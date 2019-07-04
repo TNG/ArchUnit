@@ -2,7 +2,6 @@ package com.tngtech.archunit.testutil.assertion;
 
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
-import com.tngtech.archunit.testutil.Assertions;
 import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -18,7 +17,7 @@ public class ArchConditionAssertion<T> extends AbstractObjectAssert<ArchConditio
         return this;
     }
 
-    public Assertions.ConditionEventsAssert checking(T item) {
+    public ConditionEventsAssertion checking(T item) {
         ConditionEvents events = new ConditionEvents();
         actual.check(item, events);
         return assertThat(events);

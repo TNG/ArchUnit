@@ -3,6 +3,10 @@ ext.moduleName = 'com.tngtech.archunit.example.junit4'
 dependencies {
     testCompile project(path: ':archunit-junit4')
     testCompile project(path: ':archunit-example:example-plain')
+
+    testRuntime dependency.log4j_api
+    testRuntime dependency.log4j_core
+    testRuntime dependency.log4j_slf4j
 }
 
 test {
