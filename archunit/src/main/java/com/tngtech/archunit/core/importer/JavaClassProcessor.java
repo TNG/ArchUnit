@@ -98,7 +98,7 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        LOG.info("Analysing class '{}'", name);
+        LOG.debug("Analyzing class '{}'", name);
         JavaType javaType = JavaTypeImporter.createFromAsmObjectTypeName(name);
         if (alreadyImported(javaType)) {
             return;
@@ -202,7 +202,7 @@ class JavaClassProcessor extends ClassVisitor {
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 
-        LOG.debug("Analysing method {}.{}:{}", className, name, desc);
+        LOG.debug("Analyzing method {}.{}:{}", className, name, desc);
         accessHandler.setContext(new CodeUnit(name, namesOf(Type.getArgumentTypes(desc)), className));
 
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
@@ -268,7 +268,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         declarationHandler.onDeclaredAnnotations(annotations);
-        LOG.debug("Done analysing {}", className);
+        LOG.debug("Done analyzing {}", className);
     }
 
     private static List<String> namesOf(Type[] types) {
