@@ -15,6 +15,10 @@ sourceSets {
     }
 }
 
+spotbugs {
+    sourceSets += [project.sourceSets.api]
+}
+
 dependencies {
     compileOnly sourceSets.api.output
     testCompile sourceSets.api.output
