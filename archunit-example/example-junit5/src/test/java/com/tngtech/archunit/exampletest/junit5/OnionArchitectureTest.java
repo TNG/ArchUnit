@@ -8,9 +8,9 @@ import com.tngtech.archunit.lang.ArchRule;
 import static com.tngtech.archunit.library.Architectures.onionArchitecture;
 
 @ArchTag("example")
-@AnalyzeClasses(packages = "com.tngtech.archunit.onionarchitecture.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.onionarchitecture")
 public class OnionArchitectureTest {
-    private static final String BASE_PACKAGE = "com.tngtech.archunit.onionarchitecture.example";
+    private static final String BASE_PACKAGE = "com.tngtech.archunit.example.onionarchitecture";
 
     @ArchTest
     static final ArchRule onion_architecture_is_respected = onionArchitecture()

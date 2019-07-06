@@ -1,7 +1,7 @@
 package com.tngtech.archunit.exampletest.junit5;
 
-import com.tngtech.archunit.example.anticorruption.WrappedResult;
-import com.tngtech.archunit.example.security.Secured;
+import com.tngtech.archunit.example.layers.anticorruption.WrappedResult;
+import com.tngtech.archunit.example.layers.security.Secured;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
@@ -11,7 +11,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noCodeUnits;
 
 @ArchTag("example")
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class MethodsTest {
 
     @ArchTest

@@ -9,7 +9,7 @@ import static com.tngtech.archunit.library.Architectures.onionArchitecture;
 
 @Category(Example.class)
 public class OnionArchitectureTest {
-    private static final String BASE_PACKAGE = "com.tngtech.archunit.onionarchitecture.example";
+    private static final String BASE_PACKAGE = "com.tngtech.archunit.example.onionarchitecture";
 
     private final JavaClasses classes = new ClassFileImporter().importPackages(BASE_PACKAGE);
 

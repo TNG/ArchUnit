@@ -9,11 +9,11 @@ import org.junit.runner.RunWith;
 
 @Category(Example.class)
 @RunWith(ArchUnitRunner.class)
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class RuleSetsTest {
     @ArchTest
     private final ArchRules CODING_RULES = ArchRules.in(CodingRulesTest.class);
 
     @ArchTest
-    private final ArchRules CYCLIC_DEPENDENCY_RULES = ArchRules.in(CyclicDependencyRulesTest.class);
+    private final ArchRules NAMING_CONVENTION_RULES = ArchRules.in(NamingConventionTest.class);
 }

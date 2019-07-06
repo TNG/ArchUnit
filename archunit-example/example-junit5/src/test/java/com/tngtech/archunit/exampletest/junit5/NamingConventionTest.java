@@ -1,8 +1,8 @@
 package com.tngtech.archunit.exampletest.junit5;
 
-import com.tngtech.archunit.example.AbstractController;
-import com.tngtech.archunit.example.MyController;
-import com.tngtech.archunit.example.MyService;
+import com.tngtech.archunit.example.layers.AbstractController;
+import com.tngtech.archunit.example.layers.MyController;
+import com.tngtech.archunit.example.layers.MyService;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
@@ -11,7 +11,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 @ArchTag("example")
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class NamingConventionTest {
 
     @ArchTest
