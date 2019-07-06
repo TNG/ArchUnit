@@ -28,7 +28,7 @@ import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
  */
 @Category(Example.class)
 @RunWith(ArchUnitRunner.class)
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class FrozenRulesTest {
 
     @ArchTest

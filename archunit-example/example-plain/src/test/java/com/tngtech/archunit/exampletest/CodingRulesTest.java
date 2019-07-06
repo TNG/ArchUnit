@@ -1,14 +1,13 @@
 package com.tngtech.archunit.exampletest;
 
+import java.util.logging.Logger;
+
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.ClassViolatingCodingRules;
+import com.tngtech.archunit.example.layers.ClassViolatingCodingRules;
 import com.tngtech.archunit.lang.CompositeArchRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
-import java.util.logging.Logger;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;

@@ -1,8 +1,8 @@
 package com.tngtech.archunit.exampletest.junit5;
 
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.example.cycle.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
-import com.tngtech.archunit.example.cycle.complexcycles.slice3.ClassCallingConstructorInSliceFive;
+import com.tngtech.archunit.example.cycles.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
+import com.tngtech.archunit.example.cycles.complexcycles.slice3.ClassCallingConstructorInSliceFive;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
@@ -15,7 +15,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPac
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 @ArchTag("example")
-@AnalyzeClasses(packages = "com.tngtech.archunit.example.cycle")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.cycles")
 public class CyclicDependencyRulesTest {
 
     @ArchTest

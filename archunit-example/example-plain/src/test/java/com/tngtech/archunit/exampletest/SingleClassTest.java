@@ -2,11 +2,11 @@ package com.tngtech.archunit.exampletest;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.ClassViolatingCodingRules;
-import com.tngtech.archunit.example.SomeOtherBusinessInterface;
-import com.tngtech.archunit.example.core.CoreSatellite;
-import com.tngtech.archunit.example.core.HighSecurity;
-import com.tngtech.archunit.example.core.VeryCentralCore;
+import com.tngtech.archunit.example.layers.ClassViolatingCodingRules;
+import com.tngtech.archunit.example.layers.SomeOtherBusinessInterface;
+import com.tngtech.archunit.example.layers.core.CoreSatellite;
+import com.tngtech.archunit.example.layers.core.HighSecurity;
+import com.tngtech.archunit.example.layers.core.VeryCentralCore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
