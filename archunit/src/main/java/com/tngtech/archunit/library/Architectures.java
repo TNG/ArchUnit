@@ -301,7 +301,7 @@ public final class Architectures {
     public static final class OnionArchitecture implements ArchRule {
         private static final String DOMAIN_MODEL_LAYER = "domain model";
         private static final String DOMAIN_SERVICE_LAYER = "domain service";
-        private static final String APPLICATION_LAYER = "application";
+        private static final String APPLICATION_SERVICE_LAYER = "application service";
         private static final String ADAPTER_LAYER = "adapter";
 
         private String[] domainModelPackageIdentifiers = new String[0];
@@ -355,16 +355,12 @@ public final class Architectures {
             LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture()
                     .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPackageIdentifiers)
                     .layer(DOMAIN_SERVICE_LAYER).definedBy(domainServicePackageIdentifiers)
-                    .layer(APPLICATION_LAYER).definedBy(applicationPackageIdentifiers)
-                    .layer(ADAPTER_LAYER).definedBy(concatenateAll(adapterPackageIdentifiers.values()));
-            for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
-                layeredArchitectureDelegate = layeredArchitectureDelegate
-                        .layer(getAdapterLayer(adapter.getKey())).definedBy(adapter.getValue());
-            }
-            layeredArchitectureDelegate = layeredArchitectureDelegate
-                    .whereLayer(DOMAIN_MODEL_LAYER).mayOnlyBeAccessedByLayers(DOMAIN_SERVICE_LAYER, APPLICATION_LAYER, ADAPTER_LAYER)
-                    .whereLayer(DOMAIN_SERVICE_LAYER).mayOnlyBeAccessedByLayers(APPLICATION_LAYER, ADAPTER_LAYER)
-                    .whereLayer(APPLICATION_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER);
+                    .layer(APPLICATION_SERVICE_LAYER).definedBy(applicationPackageIdentifiers)
+                    .layer(ADAPTER_LAYER).definedBy(concatenateAll(adapterPackageIdentifiers.values()))
+                    .whereLayer(DOMAIN_MODEL_LAYER).mayOnlyBeAccessedByLayers(DOMAIN_SERVICE_LAYER, APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
+                    .whereLayer(DOMAIN_SERVICE_LAYER).mayOnlyBeAccessedByLayers(APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
+                    .whereLayer(APPLICATION_SERVICE_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER);
+
             for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
                 String adapterLayer = getAdapterLayer(adapter.getKey());
                 layeredArchitectureDelegate = layeredArchitectureDelegate
