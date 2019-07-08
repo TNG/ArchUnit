@@ -192,9 +192,9 @@ public class ArchitecturesTest {
     @Test
     public void description_of_onion_architecture() {
         OnionArchitecture architecture = onionArchitecture()
-                .domainModel("onionarchitecture.domain.model..")
-                .domainService("onionarchitecture.domain.service..")
-                .application("onionarchitecture.application..")
+                .domainModels("onionarchitecture.domain.model..")
+                .domainServices("onionarchitecture.domain.service..")
+                .applicationServices("onionarchitecture.application..")
                 .adapter("cli", "onionarchitecture.adapter.cli..")
                 .adapter("persistence", "onionarchitecture.adapter.persistence..")
                 .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..");
@@ -220,9 +220,9 @@ public class ArchitecturesTest {
     @Test
     public void overridden_description_of_onion_architecture() {
         OnionArchitecture architecture = onionArchitecture()
-                .domainModel("onionarchitecture.domain.model..")
-                .domainService("onionarchitecture.domain.service..")
-                .application("onionarchitecture.application..")
+                .domainModels("onionarchitecture.domain.model..")
+                .domainServices("onionarchitecture.domain.service..")
+                .applicationServices("onionarchitecture.application..")
                 .adapter("cli", "onionarchitecture.adapter.cli..")
                 .adapter("persistence", "onionarchitecture.adapter.persistence..")
                 .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..")
@@ -234,9 +234,9 @@ public class ArchitecturesTest {
     @Test
     public void because_clause_on_onion_architecture() {
         ArchRule architecture = onionArchitecture()
-                .domainModel("onionarchitecture.domain.model..")
-                .domainService("onionarchitecture.domain.service..")
-                .application("onionarchitecture.application..")
+                .domainModels("onionarchitecture.domain.model..")
+                .domainServices("onionarchitecture.domain.service..")
+                .applicationServices("onionarchitecture.application..")
                 .adapter("cli", "onionarchitecture.adapter.cli..")
                 .adapter("persistence", "onionarchitecture.adapter.persistence..")
                 .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..")
@@ -249,9 +249,9 @@ public class ArchitecturesTest {
     @Test
     public void gathers_all_onion_architecture_violations() {
         OnionArchitecture architecture = onionArchitecture()
-                .domainModel(absolute("onionarchitecture.domain.model"))
-                .domainService(absolute("onionarchitecture.domain.service"))
-                .application(absolute("onionarchitecture.application"))
+                .domainModels(absolute("onionarchitecture.domain.model"))
+                .domainServices(absolute("onionarchitecture.domain.service"))
+                .applicationServices(absolute("onionarchitecture.application"))
                 .adapter("cli", absolute("onionarchitecture.adapter.cli"))
                 .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
                 .adapter("rest", absolute("onionarchitecture.adapter.rest"));
@@ -344,7 +344,7 @@ public class ArchitecturesTest {
             String absolute = ArchitecturesTest.class.getPackage().getName() + ".testclasses." + s;
             result.add(absolute.replaceAll("\\.\\.\\.+", ".."));
         }
-        return result.toArray(new String[result.size()]);
+        return result.toArray(new String[0]);
     }
 
     private static class RuleWithIgnore {

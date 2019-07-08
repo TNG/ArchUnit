@@ -6,8 +6,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.ClassBeingCalledInSliceOne;
@@ -100,12 +99,18 @@ import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWorkaroundF
 import com.tngtech.archunit.example.layers.thirdparty.ThirdPartySubClassWithProblem;
 import com.tngtech.archunit.example.layers.web.AnnotatedController;
 import com.tngtech.archunit.example.layers.web.InheritedControllerImpl;
-import com.tngtech.archunit.example.onionarchitecture.adapter.cli.CliAdapterLayerClass;
-import com.tngtech.archunit.example.onionarchitecture.adapter.persistence.PersistenceAdapterLayerClass;
-import com.tngtech.archunit.example.onionarchitecture.adapter.rest.RestAdapterLayerClass;
-import com.tngtech.archunit.example.onionarchitecture.application.ApplicationLayerClass;
-import com.tngtech.archunit.example.onionarchitecture.domain.model.DomainModelLayerClass;
-import com.tngtech.archunit.example.onionarchitecture.domain.service.DomainServiceLayerClass;
+import com.tngtech.archunit.example.onionarchitecture.adapter.cli.AdministrationCLI;
+import com.tngtech.archunit.example.onionarchitecture.adapter.persistence.ProductId;
+import com.tngtech.archunit.example.onionarchitecture.adapter.persistence.ProductRepository;
+import com.tngtech.archunit.example.onionarchitecture.adapter.persistence.ShoppingCartId;
+import com.tngtech.archunit.example.onionarchitecture.adapter.persistence.ShoppingCartRepository;
+import com.tngtech.archunit.example.onionarchitecture.adapter.rest.ShoppingController;
+import com.tngtech.archunit.example.onionarchitecture.application.AdministrationPort;
+import com.tngtech.archunit.example.onionarchitecture.domain.model.OrderItem;
+import com.tngtech.archunit.example.onionarchitecture.domain.model.ShoppingCart;
+import com.tngtech.archunit.example.onionarchitecture.domain.service.OrderQuantity;
+import com.tngtech.archunit.example.onionarchitecture.domain.service.ProductName;
+import com.tngtech.archunit.example.onionarchitecture.domain.service.ShoppingService;
 import com.tngtech.archunit.example.plantuml.address.Address;
 import com.tngtech.archunit.example.plantuml.catalog.ProductCatalog;
 import com.tngtech.archunit.example.plantuml.customer.Customer;
@@ -113,7 +118,6 @@ import com.tngtech.archunit.example.plantuml.importer.ProductImport;
 import com.tngtech.archunit.example.plantuml.order.Order;
 import com.tngtech.archunit.example.plantuml.product.Product;
 import com.tngtech.archunit.exampletest.ControllerRulesTest;
-import com.tngtech.archunit.exampletest.OnionArchitectureTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
 import com.tngtech.archunit.testutils.ExpectedClass;
@@ -790,67 +794,54 @@ class ExamplesIntegrationTest {
     Stream<DynamicTest> OnionArchitectureTest() {
         ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
                 .forTests(
-                        OnionArchitectureTest.class,
+                        com.tngtech.archunit.exampletest.OnionArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit4.OnionArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit5.OnionArchitectureTest.class)
 
                 .ofRule("Onion architecture consisting of" + lineSeparator() +
-                        String.format("domain models ('%s..')", DomainModelLayerClass.class.getPackage().getName()) + lineSeparator() +
-                        String.format("domain services ('%s..')", DomainServiceLayerClass.class.getPackage().getName()) + lineSeparator() +
-                        String.format("application services ('%s..')", ApplicationLayerClass.class.getPackage().getName()) + lineSeparator() +
-                        String.format("adapter 'cli' ('%s..')", CliAdapterLayerClass.class.getPackage().getName()) + lineSeparator() +
-                        String.format("adapter 'persistence' ('%s..')", PersistenceAdapterLayerClass.class.getPackage().getName()) + lineSeparator() +
-                        String.format("adapter 'rest' ('%s..')", RestAdapterLayerClass.class.getPackage().getName()));
+                        "domain models ('..domain.model..')" + lineSeparator() +
+                        "domain services ('..domain.service..')" + lineSeparator() +
+                        "application services ('..application..')" + lineSeparator() +
+                        "adapter 'cli' ('..adapter.cli..')" + lineSeparator() +
+                        "adapter 'persistence' ('..adapter.persistence..')" + lineSeparator() +
+                        "adapter 'rest' ('..adapter.rest..')")
 
-        Map<Class, Integer> callMap = ImmutableMap.<Class, Integer>builder()
-                .put(DomainModelLayerClass.class, 18)
-                .put(DomainServiceLayerClass.class, 19)
-                .put(ApplicationLayerClass.class, 20)
-                .put(CliAdapterLayerClass.class, 21)
-                .put(PersistenceAdapterLayerClass.class, 22)
-                .put(RestAdapterLayerClass.class, 23)
-                .build();
+                .by(constructor(OrderItem.class).withParameter(OrderQuantity.class))
+                .by(constructor(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class).withParameter(ProductId.class))
+                .by(constructor(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class).withParameter(ProductName.class))
+                .by(constructor(ShoppingCart.class).withParameter(ShoppingCartId.class))
+                .by(constructor(ShoppingService.class).withParameter(ProductRepository.class))
+                .by(constructor(ShoppingService.class).withParameter(ShoppingCartRepository.class))
 
-        expectForbiddenAccesses(expectedTestFailures, callMap,
-                DomainModelLayerClass.class,
-                DomainServiceLayerClass.class, ApplicationLayerClass.class, CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+                .by(field(OrderItem.class, "quantity").ofType(OrderQuantity.class))
+                .by(field(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class, "id").ofType(ProductId.class))
+                .by(field(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class, "name").ofType(ProductName.class))
+                .by(field(ShoppingCart.class, "id").ofType(ShoppingCartId.class))
+                .by(field(ShoppingService.class, "productRepository").ofType(ProductRepository.class))
+                .by(field(ShoppingService.class, "shoppingCartRepository").ofType(ShoppingCartRepository.class))
 
-        expectForbiddenAccesses(expectedTestFailures, callMap,
-                DomainServiceLayerClass.class,
-                ApplicationLayerClass.class, CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-
-        expectForbiddenAccesses(expectedTestFailures, callMap,
-                ApplicationLayerClass.class,
-                CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-
-        expectForbiddenAccesses(expectedTestFailures, callMap,
-                CliAdapterLayerClass.class,
-                PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectForbiddenAccesses(expectedTestFailures, callMap,
-                RestAdapterLayerClass.class,
-                CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class);
-        expectForbiddenAccesses(expectedTestFailures, callMap,
-                PersistenceAdapterLayerClass.class,
-                CliAdapterLayerClass.class, RestAdapterLayerClass.class);
+                .by(callFromMethod(AdministrationCLI.class, "handle", String[].class, AdministrationPort.class)
+                        .toMethod(ProductRepository.class, "getTotalCount")
+                        .inLine(17).asDependency())
+                .by(callFromMethod(ShoppingController.class, "addToShoppingCart", UUID.class, UUID.class, int.class)
+                        .toConstructor(ProductId.class, UUID.class)
+                        .inLine(20).asDependency())
+                .by(callFromMethod(ShoppingController.class, "addToShoppingCart", UUID.class, UUID.class, int.class)
+                        .toConstructor(ShoppingCartId.class, UUID.class)
+                        .inLine(20).asDependency())
+                .by(method(ShoppingService.class, "addToShoppingCart").withParameter(ProductId.class))
+                .by(method(ShoppingService.class, "addToShoppingCart").withParameter(ShoppingCartId.class))
+                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
+                        .toMethod(ShoppingCartRepository.class, "read", ShoppingCartId.class)
+                        .inLine(21).asDependency())
+                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
+                        .toMethod(ProductRepository.class, "read", ProductId.class)
+                        .inLine(22).asDependency())
+                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
+                        .toMethod(ShoppingCartRepository.class, "save", ShoppingCart.class)
+                        .inLine(25).asDependency());
 
         return expectedTestFailures.toDynamicTests();
-    }
-
-    private void expectForbiddenAccesses(ExpectedTestFailures expectedTestFailures, Map<Class, Integer> callMap,
-                                         Class from, Class... to) {
-        for (Class toClass : to) {
-            expectedTestFailures
-                    .by(field(from, uncapitalizedSimpleName(toClass))
-                            .ofType(toClass))
-                    .by(callFromMethod(from, "call")
-                            .toMethod(toClass, "callMe")
-                            .inLine(callMap.get(toClass))
-                            .asDependency());
-        }
-    }
-
-    private static String uncapitalizedSimpleName(Class clazz) {
-        return Character.toLowerCase(clazz.getSimpleName().charAt(0)) + clazz.getSimpleName().substring(1);
     }
 
     @TestFactory

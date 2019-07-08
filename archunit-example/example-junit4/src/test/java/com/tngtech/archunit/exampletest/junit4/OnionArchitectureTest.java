@@ -13,14 +13,13 @@ import static com.tngtech.archunit.library.Architectures.onionArchitecture;
 @RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(packages = "com.tngtech.archunit.example.onionarchitecture")
 public class OnionArchitectureTest {
-    private static final String BASE_PACKAGE = "com.tngtech.archunit.example.onionarchitecture";
 
     @ArchTest
     static final ArchRule onion_architecture_is_respected = onionArchitecture()
-            .domainModel(String.format("%s.domain.model..", BASE_PACKAGE))
-            .domainService(String.format("%s.domain.service..", BASE_PACKAGE))
-            .application(String.format("%s.application..", BASE_PACKAGE))
-            .adapter("cli", String.format("%s.adapter.cli..", BASE_PACKAGE))
-            .adapter("persistence", String.format("%s.adapter.persistence..", BASE_PACKAGE))
-            .adapter("rest", String.format("%s.adapter.rest..", BASE_PACKAGE));
+            .domainModels("..domain.model..")
+            .domainServices("..domain.service..")
+            .applicationServices("..application..")
+            .adapter("cli", "..adapter.cli..")
+            .adapter("persistence", "..adapter.persistence..")
+            .adapter("rest", "..adapter.rest..");
 }
