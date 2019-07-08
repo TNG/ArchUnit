@@ -1,4 +1,8 @@
-const expect = require('chai').expect;
+const chai = require('chai');
+const chaiExtensions = require('../../testinfrastructure/general-chai-extensions');
+chai.use(chaiExtensions);
+const expect = chai.expect;
+
 const Vector = require('../../../../../main/app/graph/infrastructure/vectors').Vector;
 const visualizationStyles = require('../../testinfrastructure/root-creator').getVisualizationStyles();
 
@@ -6,30 +10,35 @@ const MAXIMUM_PADDING_DELTA = 1;
 
 class RootUi {
   constructor(root) {
-    this._nodeUIs = [];
-    const createNodeUi = (node, parentUi) => {
-      const nodeUi = new NodeUi(node, parentUi);
-      nodeUi._childrenUis = node.getOriginalChildren().map(child => createNodeUi(child, nodeUi));
-      this._nodeUIs.push(nodeUi);
+    this._root = root;
+    this._nodeUIs = new Map();
+    const createNodeUi = (node, parentUi, rootUi) => {
+      const nodeUi = new NodeUi(node, parentUi, rootUi);
+      nodeUi._childrenUis = node.getOriginalChildren().map(child => createNodeUi(child, nodeUi, rootUi));
+      this._nodeUIs.set(node.getFullName(), nodeUi);
       return nodeUi;
     };
-    this._childrenUis = root.getOriginalChildren().map(child => createNodeUi(child, this));
+    this._childrenUis = root.getOriginalChildren().map(child => createNodeUi(child, this, this));
   }
 
   allNodes() {
-    return this._nodeUIs;
+    return [...this._nodeUIs.values()];
   }
 
   nodesWithSingleChild() {
-    return this._nodeUIs.filter(nodeUi => nodeUi.childrenUis.length === 1);
+    return this.allNodes().filter(nodeUi => nodeUi.childrenUis.length === 1);
   }
 
   leafNodes() {
-    return this._nodeUIs.filter(nodeUi => nodeUi.childrenUis.length === 0);
+    return this.allNodes().filter(nodeUi => nodeUi.childrenUis.length === 0);
   }
 
   nonLeafNodes() {
-    return this._nodeUIs.filter(nodeUi => nodeUi.childrenUis.length > 0);
+    return this.allNodes().filter(nodeUi => nodeUi.childrenUis.length > 0);
+  }
+
+  nodeByFullName(nodeFullName) {
+    return this._nodeUIs.get(nodeFullName);
   }
 
   _isRoot() {
@@ -43,11 +52,16 @@ class RootUi {
   get childrenUis() {
     return new NodeUiCollection(this._childrenUis);
   }
+
+  isInForeground() {
+    return true;
+  }
 }
 
 class NodeUi {
-  constructor(node, parentUi) {
+  constructor(node, parentUi, rootUi) {
     this._parentUi = parentUi;
+    this._rootUi = rootUi;
     this._svg = node._view._svgElement;
     this._circleSvg = this._svg.getVisibleSubElementOfType('circle');
     this._labelSvg = this._svg.getVisibleSubElementOfType('text');
@@ -125,6 +139,22 @@ class NodeUi {
 
   }
 
+  async drag({dx, dy}) {
+    this._svg.drag(dx, dy);
+    await this._rootUi._root._updatePromise;
+  }
+
+  async dragOver(otherNodeFullName) {
+    const otherNodeUi = this._rootUi._nodeUIs.get(otherNodeFullName);
+    const diffVector = Vector.between(this.absolutePosition, otherNodeUi.absolutePosition);
+    const dragVector = diffVector.norm(diffVector.length() - this.radius - otherNodeUi.radius + 1);
+    await this.drag({dx: dragVector.x, dy: dragVector.y});
+  }
+
+  isInForeground() {
+    return this._svg.isInForegroundWithinParent() && this._parentUi.isInForeground();
+  }
+
   expectToHaveLabelAbove(otherNodeUi) {
     expect(this.hasLabelAbove(otherNodeUi)).to.be.true;
   }
@@ -143,6 +173,14 @@ class NodeUi {
 
   expectToBeWithinRectangle(width, height) {
     expect(this.isWithinRectangle(width, height)).to.be.true;
+  }
+
+  expectToBeAtPosition(position) {
+    expect(this.absolutePosition).to.deep.closeTo(position);
+  }
+
+  expectToBeInForeground() {
+    expect(this.isInForeground()).to.be.true;
   }
 }
 
