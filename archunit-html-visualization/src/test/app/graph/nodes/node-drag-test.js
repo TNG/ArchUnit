@@ -12,7 +12,7 @@ const vectors = require('../../../../main/app/graph/infrastructure/vectors').vec
 
 describe('Dragging a node', () => {
   describe('changes its position by the movement, if it is dragged', async () => {
-    let root, _offsetPosition, nodePositionBefore;
+    let root, _offsetPosition, nodePositionBefore, rootUi;
 
     beforeEach(async () => {
       _offsetPosition = {x: 0, y: 0};
@@ -20,64 +20,66 @@ describe('Dragging a node', () => {
         onJumpedToPosition: offsetPosition => _offsetPosition = offsetPosition
       });
 
-      nodePositionBefore = RootUi.of(root).nodeByFullName('my.company.SomeClass').absolutePosition;
+      rootUi = RootUi.of(root);
+
+      nodePositionBefore = rootUi.nodeByFullName('my.company.SomeClass').absolutePosition;
     });
 
     it('to the right', async () => {
-      await RootUi.of(root).nodeByFullName('my.company.SomeClass').drag({dx: 20, dy: 0});
+      await rootUi.nodeByFullName('my.company.SomeClass').drag({dx: 20, dy: 0});
 
       const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x + 20, y: nodePositionBefore.y});
 
-      RootUi.of(root).nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
     });
 
     it('to the bottom right', async () => {
-      await RootUi.of(root).nodeByFullName('my.company.SomeClass').drag({dx: 20, dy: 20});
+      await rootUi.nodeByFullName('my.company.SomeClass').drag({dx: 20, dy: 20});
 
       const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x + 20, y: nodePositionBefore.y + 20});
-      RootUi.of(root).nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
     });
 
     it('to the bottom', async () => {
-      await RootUi.of(root).nodeByFullName('my.company.SomeClass').drag({dx: 0, dy: 20});
+      await rootUi.nodeByFullName('my.company.SomeClass').drag({dx: 0, dy: 20});
 
       const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x, y: nodePositionBefore.y + 20});
-      RootUi.of(root).nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
     });
 
     it('to the bottom left', async () => {
-      await RootUi.of(root).nodeByFullName('my.company.SomeClass').drag({dx: -20, dy: 20});
+      await rootUi.nodeByFullName('my.company.SomeClass').drag({dx: -20, dy: 20});
 
       const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x - 20, y: nodePositionBefore.y + 20});
-      RootUi.of(root).nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
     });
 
     it('to the left', async () => {
-      await RootUi.of(root).nodeByFullName('my.company.SomeClass').drag({dx: -20, dy: 0});
+      await rootUi.nodeByFullName('my.company.SomeClass').drag({dx: -20, dy: 0});
 
       const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x - 20, y: nodePositionBefore.y});
-      RootUi.of(root).nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
     });
 
     it('to the top left', async () => {
-      await RootUi.of(root).nodeByFullName('my.company.SomeClass').drag({dx: -20, dy: -20});
+      await rootUi.nodeByFullName('my.company.SomeClass').drag({dx: -20, dy: -20});
 
       const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x - 20, y: nodePositionBefore.y - 20});
-      RootUi.of(root).nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
     });
 
     it('to the top', async () => {
-      await RootUi.of(root).nodeByFullName('my.company.SomeClass').drag({dx: 0, dy: -20});
+      await rootUi.nodeByFullName('my.company.SomeClass').drag({dx: 0, dy: -20});
 
       const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x, y: nodePositionBefore.y - 20});
-      RootUi.of(root).nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
     });
 
     it('to the top right', async () => {
-      await RootUi.of(root).nodeByFullName('my.company.SomeClass').drag({dx: 20, dy: -20});
+      await rootUi.nodeByFullName('my.company.SomeClass').drag({dx: 20, dy: -20});
 
       const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x + 20, y: nodePositionBefore.y - 20});
-      RootUi.of(root).nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeAtPosition(expectedPosition);
     });
   });
 
@@ -98,25 +100,26 @@ describe('Dragging a node', () => {
     const someSubPkgOtherClass = rootUi.nodeByFullName('my.company.somePkg.someSubPkg.OtherClass').absolutePosition;
     const otherSubPkgOtherClass = rootUi.nodeByFullName('my.company.somePkg.otherSubPkg.OtherClass').absolutePosition;
 
-    await RootUi.of(root).nodeByFullName('my.company.somePkg').drag({dx: -50, dy: 70});
+    await rootUi.nodeByFullName('my.company.somePkg').drag({dx: -50, dy: 70});
 
     const expectedPosition = nodePositionBefore => (vectors.add(_offsetPosition, {x: nodePositionBefore.x - 50, y: nodePositionBefore.y + 70}));
 
-    RootUi.of(root).nodeByFullName('my.company.somePkg').expectToBeAtPosition(expectedPosition(somePkg));
-    RootUi.of(root).nodeByFullName('my.company.somePkg.someSubPkg').expectToBeAtPosition(expectedPosition(someSubPkg));
-    RootUi.of(root).nodeByFullName('my.company.somePkg.otherSubPkg').expectToBeAtPosition(expectedPosition(otherSubPkg));
-    RootUi.of(root).nodeByFullName('my.company.somePkg.someSubPkg.SomeClass').expectToBeAtPosition(expectedPosition(someSubPkgSomeClass));
-    RootUi.of(root).nodeByFullName('my.company.somePkg.someSubPkg.SomeClass$SomeInnerClass').expectToBeAtPosition(expectedPosition(someSubPkgSomeClassInnerClass));
-    RootUi.of(root).nodeByFullName('my.company.somePkg.someSubPkg.OtherClass').expectToBeAtPosition(expectedPosition(someSubPkgOtherClass));
-    RootUi.of(root).nodeByFullName('my.company.somePkg.otherSubPkg.OtherClass').expectToBeAtPosition(expectedPosition(otherSubPkgOtherClass));
+    rootUi.nodeByFullName('my.company.somePkg').expectToBeAtPosition(expectedPosition(somePkg));
+    rootUi.nodeByFullName('my.company.somePkg.someSubPkg').expectToBeAtPosition(expectedPosition(someSubPkg));
+    rootUi.nodeByFullName('my.company.somePkg.otherSubPkg').expectToBeAtPosition(expectedPosition(otherSubPkg));
+    rootUi.nodeByFullName('my.company.somePkg.someSubPkg.SomeClass').expectToBeAtPosition(expectedPosition(someSubPkgSomeClass));
+    rootUi.nodeByFullName('my.company.somePkg.someSubPkg.SomeClass$SomeInnerClass').expectToBeAtPosition(expectedPosition(someSubPkgSomeClassInnerClass));
+    rootUi.nodeByFullName('my.company.somePkg.someSubPkg.OtherClass').expectToBeAtPosition(expectedPosition(someSubPkgOtherClass));
+    rootUi.nodeByFullName('my.company.somePkg.otherSubPkg.OtherClass').expectToBeAtPosition(expectedPosition(otherSubPkgOtherClass));
   });
 
   it('expands all predecessor nodes, if the node is dragged out of them', async () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.SomeClass');
 
-    await RootUi.of(root).nodeByFullName('my.company.somePkg.SomeClass').drag({dx: 1000, dy: -1000});
+    const rootUi = RootUi.of(root);
+    await rootUi.nodeByFullName('my.company.somePkg.SomeClass').drag({dx: 1000, dy: -1000});
 
-    RootUi.of(root).allNodes().forEach(nodeUi => nodeUi.expectToBeWithin(nodeUi.parent));
+    rootUi.allNodes().forEach(nodeUi => nodeUi.expectToBeWithin(nodeUi.parent));
   });
 
   it('expands the root and notifies about it', async () => {
@@ -129,9 +132,11 @@ describe('Dragging a node', () => {
         }
       });
 
-    await RootUi.of(root).nodeByFullName('my.company.somePkg.someSubPkg.SomeClass').drag({dx: -1000, dy: 1000});
+    const rootUi = RootUi.of(root);
 
-    RootUi.of(root).allNodes().forEach(nodeUi => nodeUi.expectToBeWithinRectangle(width, height));
+    await rootUi.nodeByFullName('my.company.somePkg.someSubPkg.SomeClass').drag({dx: -1000, dy: 1000});
+
+    rootUi.allNodes().forEach(nodeUi => nodeUi.expectToBeWithinRectangle(width, height));
   });
 
   //TODO: is calling the listener for the dragged node really necessary??
@@ -151,16 +156,15 @@ describe('Dragging a node', () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.someSubPkg.SomeClass$SomeInnerClass',
       'my.company.somePkg.someSubPkg.OtherClass', 'my.company.somePkg.otherSubPkg.OtherClass', 'my.company.otherPkg.SomeClass');
 
-    await RootUi.of(root).nodeByFullName('my.company.somePkg.someSubPkg.SomeClass').drag({dx: 1000, dy: -1000});
-
     const rootUi = RootUi.of(root);
+    await rootUi.nodeByFullName('my.company.somePkg.someSubPkg.SomeClass').drag({dx: 1000, dy: -1000});
 
     rootUi.allNodes().forEach(nodeUi => {
       nodeUi.expectToBeWithin(nodeUi.parent);
       nodeUi.expectToHaveLabelWithinCircle();
     });
     rootUi.nonLeafNodes().forEach(nodeUi => nodeUi.expectToHaveLabelAtTheTop());
-    rootUi.nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis.getSingleNodeUi()));
+    rootUi.nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis[0]));
     rootUi.leafNodes().forEach(nodeUi => nodeUi.expectToHaveLabelInTheMiddleOfCircle());
   });
 
@@ -177,7 +181,9 @@ describe('Dragging a node', () => {
     it('returns true for the descendants of a node that is dragged over a sibling (as the dragged node is pushed into the foreground) and false again, when the other node is focussed', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.OtherClass');
 
-      await RootUi.of(root).nodeByFullName('my.company.somePkg').dragOver('my.company.otherPkg');
+      const rootUi = RootUi.of(root);
+
+      await rootUi.nodeByFullName('my.company.somePkg').dragOver('my.company.otherPkg');
 
       expect(root.getByName('my.company.somePkg.SomeClass').overlapsWith(root.getByName('my.company.otherPkg'))).to.be.true;
       expect(root.getByName('my.company.somePkg.SomeClass$SomeInnerClass').overlapsWith(root.getByName('my.company.otherPkg'))).to.be.true;
@@ -185,7 +191,7 @@ describe('Dragging a node', () => {
       expect(root.getByName('my.company.otherPkg').overlapsWith(root.getByName('my.company.somePkg.SomeClass'))).to.be.true;
       expect(root.getByName('my.company.otherPkg').overlapsWith(root.getByName('my.company.somePkg.SomeClass$SomeInnerClass'))).to.be.true;
 
-      await RootUi.of(root).nodeByFullName('my.company.otherPkg').drag({dx: 1, dy: 1});
+      await rootUi.nodeByFullName('my.company.otherPkg').drag({dx: 1, dy: 1});
 
       expect(root.getByName('my.company.somePkg.SomeClass').overlapsWith(root.getByName('my.company.otherPkg'))).to.be.false;
       expect(root.getByName('my.company.somePkg.SomeClass$SomeInnerClass').overlapsWith(root.getByName('my.company.otherPkg'))).to.be.false;
@@ -225,17 +231,19 @@ describe('Dragging a node', () => {
         'my.company.firstPkg.SecondClass', 'my.company.firstPkg.ThirdClass', 'my.company.secondPkg.FirstClass',
         'my.company.secondPkg.SecondClass', 'my.company.secondPkg.ThirdClass', 'my.company.thirdPkg.SomeClass');
 
-      await RootUi.of(root).nodeByFullName('my.company.firstPkg.FirstClass').drag({dx: -20, dy: 30});
-      RootUi.of(root).nodeByFullName('my.company.firstPkg.FirstClass').expectToBeInForeground();
+      const rootUi = RootUi.of(root);
 
-      await RootUi.of(root).nodeByFullName('my.company.firstPkg.SecondClass').drag({dx: -20, dy: 30});
-      RootUi.of(root).nodeByFullName('my.company.firstPkg.SecondClass').expectToBeInForeground();
+      await rootUi.nodeByFullName('my.company.firstPkg.FirstClass').drag({dx: -20, dy: 30});
+      rootUi.nodeByFullName('my.company.firstPkg.FirstClass').expectToBeInForeground();
 
-      await RootUi.of(root).nodeByFullName('my.company.secondPkg.FirstClass').drag({dx: -20, dy: 30});
-      RootUi.of(root).nodeByFullName('my.company.secondPkg.FirstClass').expectToBeInForeground();
+      await rootUi.nodeByFullName('my.company.firstPkg.SecondClass').drag({dx: -20, dy: 30});
+      rootUi.nodeByFullName('my.company.firstPkg.SecondClass').expectToBeInForeground();
 
-      await RootUi.of(root).nodeByFullName('my.company.secondPkg.SecondClass').drag({dx: -20, dy: 30});
-      RootUi.of(root).nodeByFullName('my.company.secondPkg.SecondClass').expectToBeInForeground();
+      await rootUi.nodeByFullName('my.company.secondPkg.FirstClass').drag({dx: -20, dy: 30});
+      rootUi.nodeByFullName('my.company.secondPkg.FirstClass').expectToBeInForeground();
+
+      await rootUi.nodeByFullName('my.company.secondPkg.SecondClass').drag({dx: -20, dy: 30});
+      rootUi.nodeByFullName('my.company.secondPkg.SecondClass').expectToBeInForeground();
     });
 
     describe('#liesInFrontOf()', () => {
@@ -243,7 +251,9 @@ describe('Dragging a node', () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.firstPkg.FirstClass',
           'my.company.firstPkg.SecondClass', 'my.company.firstPkg.ThirdClass', 'my.company.secondPkg.FirstClass');
 
-        await RootUi.of(root).nodeByFullName('my.company.firstPkg.FirstClass').drag({dx: -20, dy: 30});
+        const rootUi = RootUi.of(root);
+
+        await rootUi.nodeByFullName('my.company.firstPkg.FirstClass').drag({dx: -20, dy: 30});
 
         expect(root.getByName('my.company.firstPkg.FirstClass').liesInFrontOf(root.getByName('my.company.firstPkg.SecondClass'))).to.be.true;
         expect(root.getByName('my.company.firstPkg.FirstClass').liesInFrontOf(root.getByName('my.company.firstPkg.ThirdClass'))).to.be.true;
@@ -252,7 +262,7 @@ describe('Dragging a node', () => {
         expect(root.getByName('my.company.firstPkg.FirstClass').liesInFrontOf(root.getByName('my.company.secondPkg'))).to.be.true;
         expect(root.getByName('my.company.firstPkg.FirstClass').liesInFrontOf(root.getByName('my.company'))).to.be.true;
 
-        await RootUi.of(root).nodeByFullName('my.company.secondPkg.FirstClass').drag({dx: -20, dy: 30});
+        await rootUi.nodeByFullName('my.company.secondPkg.FirstClass').drag({dx: -20, dy: 30});
         expect(root.getByName('my.company.secondPkg.FirstClass').liesInFrontOf(root.getByName('my.company.firstPkg.FirstClass'))).to.be.true;
         expect(root.getByName('my.company.secondPkg.FirstClass').liesInFrontOf(root.getByName('my.company.firstPkg.SecondClass'))).to.be.true;
         expect(root.getByName('my.company.secondPkg.FirstClass').liesInFrontOf(root.getByName('my.company.firstPkg.ThirdClass'))).to.be.true;
