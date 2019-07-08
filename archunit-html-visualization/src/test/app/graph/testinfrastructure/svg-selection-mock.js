@@ -372,6 +372,14 @@ const SvgSelectionMock = class extends D3ElementMock {
     return this._subElements.filter(element => element.svgType === svgType);
   }
 
+  getSubElementOfType(svgType) {
+    const result = this.getAllSubElementsOfType(svgType);
+    if (result.length !== 1) {
+      throw new Error('the svg element must have exactly one child of that type');
+    }
+    return result[0];
+  }
+
   _getPositionOffset() {
     const translation = this.getTranslation() || {x: 0, y: 0};
     const absoluteReferencePosition = this._parent === null ? {x: 0, y: 0} : this._parent.absolutePosition;
@@ -413,10 +421,18 @@ const SvgSelectionMock = class extends D3ElementMock {
    * checks if this svg-element, which is assumed to belong to a node, is in the foreground among all svg-element, that belong to nodes
    * @return {*}
    */
+  //FIXME: remove
   isNodeInForeground() {
     if (this._parent) {
       return this._parent._subElements[this._parent._subElements.length - 1] === this && this._parent._parent.isNodeInForeground(); //skip the
       //svg-element containing the children of the parent node
+    }
+    return true;
+  }
+
+  isInForegroundWithinParent() {
+    if (this._parent) {
+      return this._parent._subElements[this._parent._subElements.length - 1] === this;
     }
     return true;
   }
