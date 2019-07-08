@@ -12,12 +12,9 @@ const {buildFilterCollection} = require("../../../../main/app/graph/filter");
 const createListenerMock = require('../testinfrastructure/listener-mock').createListenerMock;
 const filterOn = require('../testinfrastructure/node-filter-test-infrastructure').filterOn;
 
-const testWholeLayoutOn = require('../testinfrastructure/node-layout-test-infrastructure').testWholeLayoutOn;
-const testGui = require('../testinfrastructure/node-gui-adapter').testGuiFromRoot;
+const RootUi = require('./testinfrastructure/root-ui');
 
 const vectors = require('../../../../main/app/graph/infrastructure/vectors').vectors;
-
-const MAXIMUM_DELTA = 0.0001;
 
 describe('Root', () => {
   it('draws all nodes', async () => {
@@ -25,7 +22,7 @@ describe('Root', () => {
       'my.company.firstPkg.SecondClass', 'my.company.firstPkg.ThirdClass$SomeInnerClass', 'my.company.secondPkg.FirstClass$SomeInnerClass',
       'my.company.secondPkg.SecondClass', 'my.company.secondPkg.ThirdClass$SomeInnerClass', 'my.company.thirdPkg.SomeClass');
 
-    testGui(root).test.that.onlyNodesAre('my.company.firstPkg.FirstClass$SomeInnerClass',
+    RootUi.of(root).expectToHaveLeafFullNames('my.company.firstPkg.FirstClass$SomeInnerClass',
       'my.company.firstPkg.SecondClass', 'my.company.firstPkg.ThirdClass$SomeInnerClass', 'my.company.secondPkg.FirstClass$SomeInnerClass',
       'my.company.secondPkg.SecondClass', 'my.company.secondPkg.ThirdClass$SomeInnerClass', 'my.company.thirdPkg.SomeClass');
   });
@@ -35,15 +32,19 @@ describe("Node's visual properties are initialized correctly", () => {
   it('Leaves have the css-class "unfoldable"', async () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass', 'my.company.OtherClass$InnerClass');
 
-    testGui(root).test.that.node('my.company.SomeClass').is.markedAs.unfoldable()
-      .and.that.node('my.company.OtherClass$InnerClass').is.markedAs.unfoldable();
+    const rootUi = RootUi.of(root);
+
+    rootUi.nodeByFullName('my.company.SomeClass').expectToBeUnfoldable();
+    rootUi.nodeByFullName('my.company.OtherClass$InnerClass').expectToBeUnfoldable();
   });
 
   it('Inner nodes have the css-class "foldable"', async () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInnerClass');
 
-    testGui(root).test.that.node('my.company').is.markedAs.foldable()
-      .and.that.node('my.company.SomeClass').is.markedAs.foldable();
+    const rootUi = RootUi.of(root);
+
+    rootUi.nodeByFullName('my.company').expectToBeFoldable();
+    rootUi.nodeByFullName('my.company.SomeClass').expectToBeFoldable();
   });
 });
 
@@ -51,24 +52,24 @@ describe("Node's geometrical properties", () => {
   it('#getRadius() corresponds to drawn radius', async () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
 
-    const inspectTestGui = testGui(root).inspect;
+    const rootUi = RootUi.of(root);
 
-    expect(root.getByName('my.company.SomeClass').getRadius()).to.equal(inspectTestGui.radiusOf('my.company.SomeClass'));
-    expect(root.getByName('my.company').getRadius()).to.equal(inspectTestGui.radiusOf('my.company'));
+    expect(root.getByName('my.company.SomeClass').getRadius()).to.equal(rootUi.nodeByFullName('my.company.SomeClass').radius);
+    expect(root.getByName('my.company').getRadius()).to.equal(rootUi.nodeByFullName('my.company').radius);
   });
 
   it('#absoluteFixableCircle corresponds to drawn circle', async () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
 
-    const inspectTestGui = testGui(root).inspect;
+    const rootUi = RootUi.of(root);
 
     let absoluteFixAbleCircle = root.getByName('my.company.SomeClass').absoluteFixableCircle;
-    expect({x: absoluteFixAbleCircle.x, y: absoluteFixAbleCircle.y}).to.deep.equal(inspectTestGui.positionOf('my.company.SomeClass'));
-    expect(absoluteFixAbleCircle.r).to.deep.equal(inspectTestGui.radiusOf('my.company.SomeClass'));
+    expect({x: absoluteFixAbleCircle.x, y: absoluteFixAbleCircle.y}).to.deep.equal(rootUi.nodeByFullName('my.company.SomeClass').absolutePosition);
+    expect(absoluteFixAbleCircle.r).to.deep.equal(rootUi.nodeByFullName('my.company.SomeClass').radius);
 
     absoluteFixAbleCircle = root.getByName('my.company').absoluteFixableCircle;
-    expect({x: absoluteFixAbleCircle.x, y: absoluteFixAbleCircle.y}).to.deep.equal(inspectTestGui.positionOf('my.company'));
-    expect(absoluteFixAbleCircle.r).to.deep.equal(inspectTestGui.radiusOf('my.company'));
+    expect({x: absoluteFixAbleCircle.x, y: absoluteFixAbleCircle.y}).to.deep.equal(rootUi.nodeByFullName('my.company').absolutePosition);
+    expect(absoluteFixAbleCircle.r).to.deep.equal(rootUi.nodeByFullName('my.company').radius);
   });
 });
 
@@ -333,18 +334,18 @@ describe("Node's public methods", () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.FirstClass', 'my.company.somePkg.SecondClass',
           'my.company.otherPkg.OtherClass');
 
-        const inspectTestGui = testGui(root).inspect;
+        const rootUi = RootUi.of(root);
 
         const firstClass = root.getByName('my.company.somePkg.FirstClass');
 
         expect(firstClass.liesInFrontOf(root.getByName('my.company.somePkg.SecondClass'))).to.equal(
-          inspectTestGui.nodeLiesInFrontOf('my.company.somePkg.FirstClass', 'my.company.somePkg.SecondClass'));
+          rootUi.nodeByFullName('my.company.somePkg.FirstClass').liesInFrontOf('my.company.somePkg.SecondClass'));
         expect(firstClass.liesInFrontOf(root.getByName('my.company.otherPkg.OtherClass'))).to.equal(
-          inspectTestGui.nodeLiesInFrontOf('my.company.somePkg.FirstClass', 'my.company.otherPkg.OtherClass'));
+          rootUi.nodeByFullName('my.company.somePkg.FirstClass').liesInFrontOf('my.company.otherPkg.OtherClass'));
         expect(firstClass.liesInFrontOf(root.getByName('my.company.somePkg'))).to.equal(
-          inspectTestGui.nodeLiesInFrontOf('my.company.somePkg.FirstClass', 'my.company.somePkg'));
+          rootUi.nodeByFullName('my.company.somePkg.FirstClass').liesInFrontOf('my.company.somePkg'));
         expect(firstClass.liesInFrontOf(root.getByName('my.company.otherPkg'))).to.equal(
-          inspectTestGui.nodeLiesInFrontOf('my.company.somePkg.FirstClass', 'my.company.otherPkg'));
+          rootUi.nodeByFullName('my.company.somePkg.FirstClass').liesInFrontOf('my.company.otherPkg'));
       });
 
       it('the returned value is negated, if the elements are switched', async () => {
@@ -367,35 +368,41 @@ describe('Filter and fold nodes in combination:', () => {
       'my.company.otherPkg.SomeInterface');
     const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-    await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+    const rootUi = RootUi.of(root);
+
+    await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
     await filterOn(root, filterCollection).typeFilter(true, false).await();
-    testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeInterface');
+    rootUi.expectToHaveLeafFullNames('my.company.otherPkg.SomeInterface');
 
     await filterOn(root, filterCollection).typeFilter(true, true).await();
-    testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.SomeInterface');
+    rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg.SomeInterface');
   });
 
   it('A folded class that does not match the filter but has matching children, is not hidden', async () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInnerClass', 'my.company.OtherClass');
     const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-    await testGui(root).interact.clickNodeAndAwait('my.company.SomeClass');
-    await filterOn(root, filterCollection).nameFilter('*$SomeInnerClass').await();
-    testGui(root).test.that.onlyNodesAre('my.company.SomeClass');
+    const rootUi = RootUi.of(root);
 
-    await testGui(root).interact.clickNodeAndAwait('my.company.SomeClass');
-    testGui(root).test.that.onlyNodesAre('my.company.SomeClass$SomeInnerClass');
+    await rootUi.nodeByFullName('my.company.SomeClass').clickAndAwait();
+    await filterOn(root, filterCollection).nameFilter('*$SomeInnerClass').await();
+    rootUi.expectToHaveLeafFullNames('my.company.SomeClass');
+
+    await rootUi.nodeByFullName('my.company.SomeClass').clickAndAwait();
+    rootUi.expectToHaveLeafFullNames('my.company.SomeClass$SomeInnerClass');
   });
 
   it('A folded class that looses its children by the filter cannot be unfolded anymore', async () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInnerClass');
     const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-    await testGui(root).interact.clickNodeAndAwait('my.company.SomeClass');
-    await filterOn(root, filterCollection).nameFilter('~my.company.SomeClass$SomeInnerClass').await();
-    await testGui(root).interact.clickNodeAndAwait('my.company.SomeClass');
+    const rootUi = RootUi.of(root);
 
-    testGui(root).test.that.onlyNodesAre('my.company.SomeClass');
+    await rootUi.nodeByFullName('my.company.SomeClass').clickAndAwait();
+    await filterOn(root, filterCollection).nameFilter('~my.company.SomeClass$SomeInnerClass').await();
+    await rootUi.nodeByFullName('my.company.SomeClass').clickAndAwait();
+
+    rootUi.expectToHaveLeafFullNames('my.company.SomeClass');
   });
 
   describe('Fold and filter after each other', () => {
@@ -405,29 +412,31 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.otherPkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg.SomeClass');
-      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg');
+      const rootUi = RootUi.of(root);
+
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      await rootUi.nodeByFullName('my.company.otherPkg.SomeClass').clickAndAwait();
+      await rootUi.nodeByFullName('my.company.otherPkg').clickAndAwait();
       await filterOn(root, filterCollection).typeFilter(false, true).await();
       await filterOn(root, filterCollection).nameFilter('~my.company.otherPkg.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg');
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg');
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.otherPkg');
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.otherPkg');
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
+      await rootUi.nodeByFullName('my.company.otherPkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
 
       await filterOn(root, filterCollection).typeFilter(true, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
         'my.company.otherPkg.OtherClass');
 
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
         'my.company.otherPkg.SomeClass', 'my.company.otherPkg.OtherClass');
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg.SomeClass');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
+      await rootUi.nodeByFullName('my.company.otherPkg.SomeClass').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.SomeInterface',
         'my.company.otherPkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.OtherClass');
     });
 
@@ -436,21 +445,23 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.somePkg.SomeClass$SomeInnerInterface', 'my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).typeFilter(false, true).await();
       await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.OtherClass').await();
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg.SomeClass');
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+      await rootUi.nodeByFullName('my.company.somePkg.SomeClass').clickAndAwait();
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg.OtherClass');
 
       await filterOn(root, filterCollection).typeFilter(true, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg.OtherClass');
 
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg.OtherClass');
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg.SomeClass');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass$SomeInnerClass',
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      await rootUi.nodeByFullName('my.company.somePkg.SomeClass').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass$SomeInnerClass',
         'my.company.somePkg.SomeClass$SomeInnerInterface', 'my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
     });
 
@@ -460,24 +471,26 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.otherPkg.SomeClass$OtherInnerClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg.SomeClass');
+      const rootUi = RootUi.of(root);
+
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      await rootUi.nodeByFullName('my.company.otherPkg.SomeClass').clickAndAwait();
       await filterOn(root, filterCollection).typeFilter(false, true).await();
       await filterOn(root, filterCollection).nameFilter('~*.SomeInnerClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.otherPkg.SomeClass');
 
       await filterOn(root, filterCollection).typeFilter(true, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeClass', 'my.company.somePkg');
+      rootUi.expectToHaveLeafFullNames('my.company.otherPkg.SomeClass', 'my.company.somePkg');
 
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeClass', 'my.company.somePkg');
+      rootUi.expectToHaveLeafFullNames('my.company.otherPkg.SomeClass', 'my.company.somePkg');
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeInterface', 'my.company.somePkg.OtherInterface',
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeInterface', 'my.company.somePkg.OtherInterface',
         'my.company.otherPkg.SomeClass');
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg.SomeClass');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeInterface', 'my.company.somePkg.OtherInterface',
+      await rootUi.nodeByFullName('my.company.otherPkg.SomeClass').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeInterface', 'my.company.somePkg.OtherInterface',
         'my.company.otherPkg.SomeClass$SomeInnerClass', 'my.company.otherPkg.SomeClass$OtherInnerClass');
     });
 
@@ -486,24 +499,26 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.somePkg.SomeClass$SomeInnerInterface', 'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).typeFilter(false, true).await();
       await filterOn(root, filterCollection).nameFilter('~my.company.otherPkg.OtherClass').await();
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg.SomeClass');
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg');
+      await rootUi.nodeByFullName('my.company.somePkg.SomeClass').clickAndAwait();
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg');
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass');
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass');
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg.SomeClass');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass$SomeInnerClass');
+      await rootUi.nodeByFullName('my.company.somePkg.SomeClass').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass$SomeInnerClass');
 
       await filterOn(root, filterCollection).typeFilter(true, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass$SomeInnerClass',
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass$SomeInnerClass',
         'my.company.somePkg.SomeClass$SomeInnerInterface');
 
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass$SomeInnerClass',
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass$SomeInnerClass',
         'my.company.somePkg.SomeClass$SomeInnerInterface', 'my.company.otherPkg.OtherClass');
     });
   });
@@ -514,18 +529,20 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-      testGui(root).interact.clickNode('my.company.somePkg');
-      testGui(root).interact.clickNode('my.company.otherPkg');
+      const rootUi = RootUi.of(root);
+
+      rootUi.nodeByFullName('my.company.somePkg').click();
+      rootUi.nodeByFullName('my.company.otherPkg').click();
       await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.OtherClass|~my.company.otherPkg.OtherClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg');
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg');
 
       filterOn(root, filterCollection).nameFilter('').goOn();
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
         'my.company.otherPkg');
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.otherPkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+      await rootUi.nodeByFullName('my.company.otherPkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
         'my.company.otherPkg.OtherClass');
     });
 
@@ -534,15 +551,17 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').await();
 
-      testGui(root).interact.clickNode('my.company.somePkg');
+      rootUi.nodeByFullName('my.company.somePkg').click();
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg.OtherClass');
 
       filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
     });
 
     it('Reset the filter and then fold, unfold and then filter', async () => {
@@ -550,15 +569,17 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').await();
 
       filterOn(root, filterCollection).nameFilter('').goOn();
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg.OtherClass');
 
-      testGui(root).interact.clickNode('my.company.somePkg');
+      rootUi.nodeByFullName('my.company.somePkg').click();
       await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.OtherClass', 'my.company.otherPkg.OtherClass');
     });
 
     it('Filter and then fold, unfold and then reset the filter', async () => {
@@ -566,13 +587,15 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-      filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+      const rootUi = RootUi.of(root);
 
-      testGui(root).interact.clickNode('my.company.somePkg');
+      filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+
+      rootUi.nodeByFullName('my.company.somePkg').click();
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
         'my.company.otherPkg.OtherClass');
     });
 
@@ -581,12 +604,14 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
-      testGui(root).interact.clickNode('my.company.somePkg');
-      testGui(root).interact.clickNode('my.company.somePkg');
+      rootUi.nodeByFullName('my.company.somePkg').click();
+      rootUi.nodeByFullName('my.company.somePkg').click();
       await filterOn(root, filterCollection).nameFilter('').await();
 
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
         'my.company.otherPkg.OtherClass')
     });
 
@@ -595,12 +620,14 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-      testGui(root).interact.clickNode('my.company.somePkg');
+      const rootUi = RootUi.of(root);
+
+      rootUi.nodeByFullName('my.company.somePkg').click();
       filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
       filterOn(root, filterCollection).nameFilter('').goOn();
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
 
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
         'my.company.otherPkg.OtherClass')
     });
 
@@ -609,12 +636,14 @@ describe('Filter and fold nodes in combination:', () => {
         'my.company.otherPkg.OtherClass');
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-      testGui(root).interact.clickNode('my.company.somePkg');
+      const rootUi = RootUi.of(root);
+
+      rootUi.nodeByFullName('my.company.somePkg').click();
       filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').goOn();
-      testGui(root).interact.clickNode('my.company.somePkg');
+      rootUi.nodeByFullName('my.company.somePkg').click();
       await filterOn(root, filterCollection).nameFilter('').await();
 
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.OtherClass',
         'my.company.otherPkg.OtherClass')
     });
   });
@@ -626,36 +655,45 @@ describe('Dragging node in combination with folding and filtering:', () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass', {
       onJumpedToPosition: offsetPosition => _offsetPosition = offsetPosition
     });
-    await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
 
-    const nodePositionBefore = testGui(root).inspect.positionOf('my.company.somePkg');
+    const rootUi = RootUi.of(root);
 
-    await testGui(root).interact.dragNodeAndAwait('my.company.somePkg', {dx: 50, dy: 50});
+    await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+
+    const nodePositionBefore = rootUi.nodeByFullName('my.company.somePkg').absolutePosition;
+
+    await rootUi.nodeByFullName('my.company.somePkg').drag({dx: 50, dy: 50});
 
     const expectedPosition = vectors.add(_offsetPosition, {x: nodePositionBefore.x + 50, y: nodePositionBefore.y + 50});
-    testGui(root).test.that.node('my.company.somePkg').is.atPosition(expectedPosition);
+
+    rootUi.nodeByFullName('my.company.somePkg').expectToBeAtPosition(expectedPosition);
   });
 
   describe('Clicking on a node after dragging it:', () => {
     it('folds the node if it was unfolded before and leads to a correct layout', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
-      await testGui(root).interact.dragNodeAndAwait('my.company.somePkg', {dx: 50, dy: 50});
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      const rootUi = RootUi.of(root);
 
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg', 'my.company.otherPkg.OtherClass');
-      testWholeLayoutOn(root);
+      await rootUi.nodeByFullName('my.company.somePkg').drag({dx: 50, dy: 50});
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg.OtherClass');
+      rootUi.checkWholeLayout();
     });
 
     it('unfolds the node if it was folded before and leads to a correct layout', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
-      testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
-      await testGui(root).interact.dragNodeAndAwait('my.company.somePkg', {dx: 50, dy: 50});
 
-      await testGui(root).interact.clickNodeAndAwait('my.company.somePkg');
+      const rootUi = RootUi.of(root);
 
-      testGui(root).test.that.onlyNodesAre('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
-      testWholeLayoutOn(root);
+      rootUi.nodeByFullName('my.company.somePkg').click();
+      await rootUi.nodeByFullName('my.company.somePkg').drag({dx: 50, dy: 50});
+
+      await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+
+      rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.otherPkg.OtherClass');
+      rootUi.checkWholeLayout();
     });
   });
 
@@ -663,11 +701,14 @@ describe('Dragging node in combination with folding and filtering:', () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.SomeClass', 'my.company.otherPkg.SomeClass',
       'my.company.otherPkg.OtherClass');
     const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
-    await testGui(root).interact.dragNodeAndAwait('my.company.somePkg.SomeClass', {dx: 50, dy: 50});
+
+    const rootUi = RootUi.of(root);
+
+    await rootUi.nodeByFullName('my.company.somePkg.SomeClass').drag({dx: 50, dy: 50});
 
     await filterOn(root, filterCollection).nameFilter('~my.company.somePkg.SomeClass').await();
 
-    testGui(root).test.that.onlyNodesAre('my.company.otherPkg.SomeClass', 'my.company.otherPkg.OtherClass');
-    testWholeLayoutOn(root);
+    rootUi.expectToHaveLeafFullNames('my.company.otherPkg.SomeClass', 'my.company.otherPkg.OtherClass');
+    rootUi.checkWholeLayout();
   });
 });

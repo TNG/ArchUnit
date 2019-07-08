@@ -244,6 +244,10 @@ class NodeUi {
     expect([...this._svg.cssClasses]).to.include('unfoldable');
     expect([...this._svg.cssClasses]).not.to.include('foldable');
   }
+
+  liesInFrontOf(otherNodeFullName) {
+    return this._svg.isInFrontOf(this._rootUi._nodeUIs.get(otherNodeFullName)._svg);
+  }
 }
 
 module.exports = {of: root => new RootUi(root)};
