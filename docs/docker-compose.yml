@@ -8,7 +8,7 @@ services:
     environment:
       - JEKYLL_ENV=development
     volumes:
-      - $PWD:/srv/jekyll
-      - $PWD/_config-dev.yml:/srv/jekyll/_config.yml
+      - ./:/srv/jekyll
+      - ./_config-dev.yml:/srv/jekyll/_config.yml
     ports:
       - 4000:4000
