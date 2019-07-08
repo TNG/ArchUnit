@@ -9,8 +9,8 @@ const document = require('../testinfrastructure/gui-elements-mock').document;
 const {buildFilterCollection} = require("../../../../main/app/graph/filter");
 
 const filterOn = require('../testinfrastructure/node-filter-test-infrastructure').filterOn;
-const testGui = require('../testinfrastructure/node-gui-adapter').testGuiFromRoot;
-const testWholeLayoutOn = require('../testinfrastructure/node-layout-test-infrastructure').testWholeLayoutOn;
+
+const RootUi = require('./testinfrastructure/root-ui');
 
 describe('Filters', () => {
   describe('by type', () => {
@@ -21,7 +21,7 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(false, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.SomeClass', 'my.company.OtherClass');
+      RootUi.of(root).expectToHaveLeafFullNames('my.company.SomeClass', 'my.company.OtherClass');
     });
 
     it('can hide classes', async () => {
@@ -31,7 +31,7 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(true, false).await();
-      testGui(root).test.that.onlyNodesAre('my.company.SomeInterface', 'my.company.OtherInterface');
+      RootUi.of(root).expectToHaveLeafFullNames('my.company.SomeInterface', 'my.company.OtherInterface');
     });
 
     it('can hide interfaces and classes, so that nothing remains', async () => {
@@ -40,7 +40,7 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(false, false).await();
-      testGui(root).test.that.onlyNodesAre();
+      RootUi.of(root).expectToHaveLeafFullNames();
     });
 
     it('creates a correct layout at the end', async () => {
@@ -49,8 +49,10 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(false, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.SomeClass');
-      testWholeLayoutOn(root);
+
+      const rootUi = RootUi.of(root);
+      rootUi.expectToHaveLeafFullNames('my.company.SomeClass');
+      rootUi.checkWholeLayout();
     });
 
     it('can be applied successively with a correct layout at the end', async () => {
@@ -59,11 +61,13 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(true, false).await();
-      testGui(root).test.that.onlyNodesAre('my.company.SomeInterface');
+      RootUi.of(root).expectToHaveLeafFullNames('my.company.SomeInterface');
 
       await filterOn(root, filterCollection).typeFilter(false, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.SomeClass');
-      testWholeLayoutOn(root);
+
+      const rootUi = RootUi.of(root);
+      rootUi.expectToHaveLeafFullNames('my.company.SomeClass');
+      rootUi.checkWholeLayout();
     });
 
     it('can be applied directly successively, so that the relayout of the filtering before is not finished yet', async () => {
@@ -75,8 +79,9 @@ describe('Filters', () => {
       filterOn(root, filterCollection).typeFilter(false, false).goOn();
       await filterOn(root, filterCollection).typeFilter(false, true).await();
 
-      testGui(root).test.that.onlyNodesAre('my.company.SomeClass');
-      testWholeLayoutOn(root);
+      const rootUi = RootUi.of(root);
+      rootUi.expectToHaveLeafFullNames('my.company.SomeClass');
+      rootUi.checkWholeLayout();
     });
 
     it('can be reset successively, so that all classes are shown again', async () => {
@@ -84,14 +89,16 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).typeFilter(false, false).await();
-      testGui(root).test.that.onlyNodesAre();
+      rootUi.expectToHaveLeafFullNames();
 
       await filterOn(root, filterCollection).typeFilter(false, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.SomeClass');
 
       await filterOn(root, filterCollection).typeFilter(true, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.SomeClass', 'my.company.SomeInterface');
+      rootUi.expectToHaveLeafFullNames('my.company.SomeClass', 'my.company.SomeInterface');
     });
 
     it('does not filter out a class with a descendant interface, if only interfaces are shown', async () => {
@@ -101,7 +108,7 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(true, false).await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass$SomeInterface',
+      RootUi.of(root).expectToHaveLeafFullNames('my.company.first.SomeClass$SomeInterface',
         'my.company.second.SomeClass$SomeInnerClass$SomeInterface', 'my.company.second.OtherInterface');
     });
 
@@ -112,7 +119,7 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(false, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeInterface$SomeClass',
+      RootUi.of(root).expectToHaveLeafFullNames('my.company.first.SomeInterface$SomeClass',
         'my.company.second.SomeInterface$SomeInnerInterface$SomeClass', 'my.company.second.OtherClass');
     });
 
@@ -125,7 +132,7 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(true, false).await();
-      testGui(root).test.that.onlyNodesAre('my.company.third.SomeInterface');
+      RootUi.of(root).expectToHaveLeafFullNames('my.company.third.SomeInterface');
     });
 
     it('does filter out packages without descendant classes, if only classes are shown', async () => {
@@ -137,7 +144,7 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(false, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.third.SomeClass');
+      RootUi.of(root).expectToHaveLeafFullNames('my.company.third.SomeClass');
     });
   });
 
@@ -148,12 +155,14 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('my.company.first.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass');
       await filterOn(root, filterCollection).nameFilter('my.company.first.OtherClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.OtherClass');
       await filterOn(root, filterCollection).nameFilter('my.company.first').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass');
     });
 
     it('can filter nodes by strings separated by "|"', async () => {
@@ -162,10 +171,12 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('my.company.first.SomeClass|my.company.first.OtherClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass');
       await filterOn(root, filterCollection).nameFilter('my.company.first.SomeClass|my.company.first.OtherClass|my.company.second.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass', 'my.company.second.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass', 'my.company.second.SomeClass');
     });
 
     it('does not filter out a node that is the child of one of the option strings', async () => {
@@ -174,10 +185,12 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('my.company.first').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass');
       await filterOn(root, filterCollection).nameFilter('my.company.first|my.company.third.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass',
         'my.company.third.SomeClass$InnerClass');
     });
 
@@ -187,10 +200,12 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('my.company.first').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass');
       await filterOn(root, filterCollection).nameFilter('my.company.first|my.company.second.Some').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass');
     });
 
     it('ignores leading and closing whitespaces at each option string', async () => {
@@ -200,14 +215,16 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('my.company.first ').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass');
       await filterOn(root, filterCollection).nameFilter('   my.company.first   ').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass');
       await filterOn(root, filterCollection).nameFilter('   my.company.first   | my.company.second.SomeClass   ').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass', 'my.company.second.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass', 'my.company.second.SomeClass');
       await filterOn(root, filterCollection).nameFilter('    my.company.first   | my.company.second.SomeClass  | my.company.third').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass',
         'my.company.second.SomeClass', 'my.company.third.SomeClass');
     });
 
@@ -218,17 +235,19 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('*SomeClass*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.second.SomeClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.second.SomeClass',
         'my.secondCompany.first.SomeClass$InnerClass', 'my.secondCompany.SomeClass');
       await filterOn(root, filterCollection).nameFilter('my.*.first').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass',
         'my.secondCompany.first.SomeClass$InnerClass');
       await filterOn(root, filterCollection).nameFilter('my.*.*.Some*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.second.SomeClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.second.SomeClass',
         'my.secondCompany.first.SomeClass$InnerClass');
       await filterOn(root, filterCollection).nameFilter('my.company.first.*|*SomeClass$*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass',
         'my.secondCompany.first.SomeClass$InnerClass');
     });
 
@@ -238,14 +257,16 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('~my.company.first.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.OtherClass', 'my.company.second.SomeClass', 'my.company.second.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.OtherClass', 'my.company.second.SomeClass', 'my.company.second.OtherClass');
       await filterOn(root, filterCollection).nameFilter('~my.company.first.SomeClass|~my.company.second.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.OtherClass', 'my.company.second.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.OtherClass', 'my.company.second.OtherClass');
       await filterOn(root, filterCollection).nameFilter('my.company.first|~my.company.first.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.OtherClass');
       await filterOn(root, filterCollection).nameFilter('~*.first.Some*|~*.first.Other*|~*.second.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.second.OtherClass');
+      rootUi.expectToHaveLeafFullNames('my.company.second.OtherClass');
     });
 
     it('filters out a node that is the child of one of the excluded options', async () => {
@@ -254,12 +275,14 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('~my.company.first').await();
-      testGui(root).test.that.onlyNodesAre('my.company.second.SomeClass', 'my.company.third.SomeClass$InnerClass');
+      rootUi.expectToHaveLeafFullNames('my.company.second.SomeClass', 'my.company.third.SomeClass$InnerClass');
       await filterOn(root, filterCollection).nameFilter('my.company.first.SomeClass|~my.company.first').await();
-      testGui(root).test.that.onlyNodesAre();
+      rootUi.expectToHaveLeafFullNames();
       await filterOn(root, filterCollection).nameFilter('~my.company.third.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.OtherClass', 'my.company.second.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.OtherClass', 'my.company.second.SomeClass');
     });
 
     it('does not filter out a node that is not the child of one of the excluded options but has one of them as prefix', async () => {
@@ -268,11 +291,13 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('~my.company.first').await();
-      testGui(root).test.that.onlyNodesAre('my.company.firstOther.OtherClass', 'my.company.second.SomeClass',
+      rootUi.expectToHaveLeafFullNames('my.company.firstOther.OtherClass', 'my.company.second.SomeClass',
         'my.company.second.SomeClassOther');
       await filterOn(root, filterCollection).nameFilter('~my.company.first|~my.company.second.SomeClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.firstOther.OtherClass', 'my.company.second.SomeClassOther');
+      rootUi.expectToHaveLeafFullNames('my.company.firstOther.OtherClass', 'my.company.second.SomeClassOther');
     });
 
     it('creates a correct layout at the end', async () => {
@@ -283,10 +308,12 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('my.first*.*|my.second*.*|~*OtherClass').await();
-      testGui(root).test.that.onlyNodesAre('my.firstCompany.first.SomeClass$InnerClass', 'my.firstCompany.second.SomeClass',
+      rootUi.expectToHaveLeafFullNames('my.firstCompany.first.SomeClass$InnerClass', 'my.firstCompany.second.SomeClass',
         'my.secondCompany.first.SomeClass');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
     });
 
     it('can be applied directly successively, so that the relayout of the filtering before is not finished yet', async () => {
@@ -305,9 +332,11 @@ describe('Filters', () => {
       filterString += '|*.second*.*.*';
       await filterOn(root, filterCollection).nameFilter(filterString).await();
 
-      testGui(root).test.that.onlyNodesAre('my.firstCompany.first.OtherClass', 'my.firstCompany.second.OtherClass',
+      const rootUi = RootUi.of(root);
+
+      rootUi.expectToHaveLeafFullNames('my.firstCompany.first.OtherClass', 'my.firstCompany.second.OtherClass',
         'my.secondCompany.first.SomeClass');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
     });
 
     it('can be reset successively', async () => {
@@ -323,20 +352,22 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('my.*.first.*|~*otherPkg*|~*OtherClass|~my.otherCompany').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.somePkg.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass');
       await filterOn(root, filterCollection).nameFilter('my.*.first.*|~*otherPkg*|~*OtherClass').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.somePkg.SomeClass', 'my.otherCompany.first.somePkg.SomeClass');
+      rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass', 'my.otherCompany.first.somePkg.SomeClass');
       await filterOn(root, filterCollection).nameFilter('my.*.first.*|~*otherPkg*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.somePkg.SomeClass', 'my.company.first.somePkg.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass', 'my.company.first.somePkg.OtherClass',
         'my.otherCompany.first.somePkg.SomeClass', 'my.otherCompany.first.somePkg.OtherClass');
       await filterOn(root, filterCollection).nameFilter('my.*.first.*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.somePkg.SomeClass', 'my.company.first.somePkg.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass', 'my.company.first.somePkg.OtherClass',
         'my.company.first.otherPkg.SomeClass', 'my.company.first.otherPkg.OtherClass',
         'my.otherCompany.first.somePkg.SomeClass', 'my.otherCompany.first.somePkg.OtherClass',
         'my.otherCompany.first.otherPkg.SomeClass', 'my.otherCompany.first.otherPkg.OtherClass');
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.somePkg.SomeClass', 'my.company.first.somePkg.OtherClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass', 'my.company.first.somePkg.OtherClass',
         'my.company.first.otherPkg.SomeClass', 'my.company.first.otherPkg.OtherClass',
         'my.company.second.somePkg.SomeClass', 'my.company.second.somePkg.OtherClass',
         'my.company.second.otherPkg.SomeClass', 'my.company.second.otherPkg.OtherClass',
@@ -345,7 +376,7 @@ describe('Filters', () => {
         'my.otherCompany.second.somePkg.SomeClass', 'my.otherCompany.second.somePkg.OtherClass',
         'my.otherCompany.second.otherPkg.SomeClass', 'my.otherCompany.second.otherPkg.OtherClass');
 
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
     });
 
     it('does not filter out a node, that does not match the filter itself but has a matching descendant', async () => {
@@ -356,7 +387,9 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).nameFilter('my.company.first.SomeClass$SomeInnerClass|*$*Matching*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass$SomeInnerClass', 'my.company.second.SomeClass$SomeMatchingInnerClass',
+      RootUi.of(root).expectToHaveLeafFullNames(
+        'my.company.first.SomeClass$SomeInnerClass',
+        'my.company.second.SomeClass$SomeMatchingInnerClass',
         'my.company.second.OtherClass$SomeInnerClass$SomeMatchingInnerClass');
     });
 
@@ -369,7 +402,7 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).nameFilter('~*.Some*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.third.OtherClass');
+      RootUi.of(root).expectToHaveLeafFullNames('my.company.third.OtherClass');
     });
 
     describe('provides a ctrl-click filter,', () => {
@@ -384,14 +417,14 @@ describe('Filters', () => {
 
           const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-          testGui(root).interact.ctrlClickNode('my.company.first.SomeClass');
-          await root._updatePromise;
-          testGui(root).test.that.onlyNodesAre('my.company.first.OtherClass',
+          const rootUi = RootUi.of(root);
+
+          await rootUi.nodeByFullName('my.company.first.SomeClass').ctrlClickAndAwait();
+          rootUi.expectToHaveLeafFullNames('my.company.first.OtherClass',
             'my.company.second.SomeClass', 'my.company.second.OtherClass');
 
-          testGui(root).interact.ctrlClickNode('my.company.second');
-          await root._updatePromise;
-          testGui(root).test.that.onlyNodesAre('my.company.first.OtherClass');
+          await rootUi.nodeByFullName('my.company.second').ctrlClickAndAwait();
+          rootUi.expectToHaveLeafFullNames('my.company.first.OtherClass');
         });
 
         it('when the name filter already contains something', async () => {
@@ -405,14 +438,14 @@ describe('Filters', () => {
 
           await filterOn(root, filterCollection).nameFilter('*first*|*second*').await();
 
-          testGui(root).interact.ctrlClickNode('my.company.first.SomeClass');
-          await root._updatePromise;
-          testGui(root).test.that.onlyNodesAre('my.company.first.OtherClass',
+          const rootUi = RootUi.of(root);
+
+          await rootUi.nodeByFullName('my.company.first.SomeClass').ctrlClickAndAwait();
+          rootUi.expectToHaveLeafFullNames('my.company.first.OtherClass',
             'my.company.second.SomeClass', 'my.company.second.OtherClass');
 
-          testGui(root).interact.ctrlClickNode('my.company.second');
-          await root._updatePromise;
-          testGui(root).test.that.onlyNodesAre('my.company.first.OtherClass');
+          await rootUi.nodeByFullName('my.company.second').ctrlClickAndAwait();
+          rootUi.expectToHaveLeafFullNames('my.company.first.OtherClass');
         });
 
         it('right after the name filter was changed, i.e. before the last relayout was finished', async () => {
@@ -425,9 +458,10 @@ describe('Filters', () => {
 
           filterOn(root, filterCollection).nameFilter('*first*').goOn();
 
-          testGui(root).interact.ctrlClickNode('my.company.first.SomeClass');
-          await root._updatePromise;
-          testGui(root).test.that.onlyNodesAre('my.company.first.OtherClass');
+          const rootUi = RootUi.of(root);
+
+          await rootUi.nodeByFullName('my.company.first.SomeClass').ctrlClickAndAwait();
+          rootUi.expectToHaveLeafFullNames('my.company.first.OtherClass');
         });
 
         it('when several nodes are clicked directly successively', async () => {
@@ -440,15 +474,18 @@ describe('Filters', () => {
           root.addListener(nodeListenerMock.listener);
 
           const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
-          testGui(root).interact.ctrlClickNode('my.company.first.SomeClass');
-          testGui(root).interact.ctrlClickNode('my.company.first.OtherClass');
-          testGui(root).interact.ctrlClickNode('my.company.second.SomeClass');
-          testGui(root).interact.ctrlClickNode('my.otherCompany');
+
+          const rootUi = RootUi.of(root);
+
+          rootUi.nodeByFullName('my.company.first.SomeClass').ctrlClick();
+          rootUi.nodeByFullName('my.company.first.OtherClass').ctrlClick();
+          rootUi.nodeByFullName('my.company.second.SomeClass').ctrlClick();
+          rootUi.nodeByFullName('my.otherCompany').ctrlClick();
           document.ctrlKeyup();
           await root._updatePromise;
 
-          testGui(root).test.that.onlyNodesAre('my.company.second.OtherClass');
-          testWholeLayoutOn(root);
+          rootUi.expectToHaveLeafFullNames('my.company.second.OtherClass');
+          rootUi.checkWholeLayout();
           nodeListenerMock.test.that.listenerFunction('onLayoutChanged').was.called.once();
         });
       });
@@ -462,8 +499,8 @@ describe('Filters', () => {
         root.addListener(nodeListenerMock.listener);
 
         const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
-        testGui(root).interact.ctrlClickNode('my.company.first.SomeClass');
-        await root._updatePromise;
+
+        await RootUi.of(root).nodeByFullName('my.company.first.SomeClass').ctrlClickAndAwait();
 
         nodeListenerMock.test.that.listenerFunction('onLayoutChanged').was.not.called();
       });
@@ -477,11 +514,13 @@ describe('Filters', () => {
         root.addListener(nodeListenerMock.listener);
 
         const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
-        testGui(root).interact.ctrlClickNode('my.company.first.SomeClass');
+        const rootUi = RootUi.of(root);
+
+        rootUi.nodeByFullName('my.company.first.SomeClass').ctrlClick();
         document.ctrlKeyup();
         await root._updatePromise;
 
-        testWholeLayoutOn(root);
+        rootUi.checkWholeLayout();
         nodeListenerMock.test.that.listenerFunction('onLayoutChanged').was.called.once();
       });
 
@@ -496,12 +535,12 @@ describe('Filters', () => {
 
           const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
-          testGui(root).interact.ctrlClickNode('my.company.first.SomeClass');
-          await root._updatePromise;
+          const rootUi = RootUi.of(root);
+
+          await rootUi.nodeByFullName('my.company.first.SomeClass').ctrlClickAndAwait();
           expect(actualNameFilterString).to.equal('~my.company.first.SomeClass');
 
-          testGui(root).interact.ctrlClickNode('my.company.second');
-          await root._updatePromise;
+          await rootUi.nodeByFullName('my.company.second').ctrlClickAndAwait();
           expect(actualNameFilterString).to.equal('~my.company.first.SomeClass|~my.company.second');
         });
 
@@ -515,14 +554,14 @@ describe('Filters', () => {
 
           const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+          const rootUi = RootUi.of(root);
+
           await filterOn(root, filterCollection).nameFilter('*first*|*second*').await();
 
-          testGui(root).interact.ctrlClickNode('my.company.first.SomeClass');
-          await root._updatePromise;
+          await rootUi.nodeByFullName('my.company.first.SomeClass').ctrlClickAndAwait();
           expect(actualNameFilterString).to.equal('*first*|*second*|~my.company.first.SomeClass');
 
-          testGui(root).interact.ctrlClickNode('my.company.second');
-          await root._updatePromise;
+          await rootUi.nodeByFullName('my.company.second').ctrlClickAndAwait();
           expect(actualNameFilterString).to.equal('*first*|*second*|~my.company.first.SomeClass|~my.company.second');
         });
       });
@@ -542,45 +581,47 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).typeFilter(true, false).await();
       await filterOn(root, filterCollection).nameFilter('my.*.first.*|my.*second.*|~*Other*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeInterface', 'my.otherCompany.first.SomeClass$SomeInnerInterface',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeInterface', 'my.otherCompany.first.SomeClass$SomeInnerInterface',
         'my.otherCompany.first.SomeInterface', 'my.company.second.SomeInterface', 'my.otherCompany.second.SomeInterface');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
 
       await filterOn(root, filterCollection).typeFilter(false, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.otherCompany.first.SomeClass',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.otherCompany.first.SomeClass',
         'my.company.second.SomeClass', 'my.otherCompany.second.SomeClass');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
 
       await filterOn(root, filterCollection).nameFilter('my.*.second.*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.second.SomeClass$OtherInnerClass', 'my.otherCompany.second.SomeClass');
-      testWholeLayoutOn(root);
+      rootUi.expectToHaveLeafFullNames('my.company.second.SomeClass$OtherInnerClass', 'my.otherCompany.second.SomeClass');
+      rootUi.checkWholeLayout();
 
       await filterOn(root, filterCollection).nameFilter('my.*.second.*|*third*Other*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.second.SomeClass$OtherInnerClass',
+      rootUi.expectToHaveLeafFullNames('my.company.second.SomeClass$OtherInnerClass',
         'my.otherCompany.second.SomeClass', 'my.otherCompany.third.OtherClass');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
 
       await filterOn(root, filterCollection).typeFilter(true, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.second.SomeClass$OtherInnerClass', 'my.company.second.SomeInterface',
+      rootUi.expectToHaveLeafFullNames('my.company.second.SomeClass$OtherInnerClass', 'my.company.second.SomeInterface',
         'my.otherCompany.second.SomeClass', 'my.otherCompany.second.SomeInterface', 'my.otherCompany.third.OtherClass');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
 
-      testGui(root).interact.ctrlClickNode('my.company.second.SomeClass$OtherInnerClass');
+      rootUi.nodeByFullName('my.company.second.SomeClass$OtherInnerClass').ctrlClick();
       document.ctrlKeyup();
       await root._updatePromise;
-      testGui(root).test.that.onlyNodesAre('my.company.second.SomeClass', 'my.company.second.SomeInterface',
+      rootUi.expectToHaveLeafFullNames('my.company.second.SomeClass', 'my.company.second.SomeInterface',
         'my.otherCompany.second.SomeClass', 'my.otherCompany.second.SomeInterface', 'my.otherCompany.third.OtherClass');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
 
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.SomeInterface',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.SomeInterface',
         'my.otherCompany.first.SomeClass$SomeInnerInterface', 'my.otherCompany.first.SomeInterface',
         'my.company.second.SomeClass$OtherInnerClass', 'my.company.second.SomeInterface',
         'my.otherCompany.second.SomeClass', 'my.otherCompany.second.SomeInterface',
         'my.company.third.SomeClass', 'my.otherCompany.third.OtherClass');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
     });
 
     it('directly successively, i.e. the relayout of the filtering before was not finished', async () => {
@@ -595,36 +636,38 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       filterOn(root, filterCollection).typeFilter(true, false).goOn();
       await filterOn(root, filterCollection).nameFilter('my.*.first.*|my.*second.*|~*Other*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeInterface', 'my.otherCompany.first.SomeClass$SomeInnerInterface',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeInterface', 'my.otherCompany.first.SomeClass$SomeInnerInterface',
         'my.otherCompany.first.SomeInterface', 'my.company.second.SomeInterface', 'my.otherCompany.second.SomeInterface');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
 
       filterOn(root, filterCollection).typeFilter(false, true).goOn();
       await filterOn(root, filterCollection).nameFilter('my.*.second.*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.second.SomeClass$OtherInnerClass', 'my.otherCompany.second.SomeClass');
-      testWholeLayoutOn(root);
+      rootUi.expectToHaveLeafFullNames('my.company.second.SomeClass$OtherInnerClass', 'my.otherCompany.second.SomeClass');
+      rootUi.checkWholeLayout();
 
       filterOn(root, filterCollection).nameFilter('my.*.second.*|*third*Other*').goOn();
       await filterOn(root, filterCollection).typeFilter(true, true).await();
-      testGui(root).test.that.onlyNodesAre('my.company.second.SomeClass$OtherInnerClass', 'my.company.second.SomeInterface',
+      rootUi.expectToHaveLeafFullNames('my.company.second.SomeClass$OtherInnerClass', 'my.company.second.SomeInterface',
         'my.otherCompany.second.SomeClass', 'my.otherCompany.second.SomeInterface', 'my.otherCompany.third.OtherClass');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
 
-      testGui(root).interact.ctrlClickNode('my.company.second.SomeClass$OtherInnerClass');
+      rootUi.nodeByFullName('my.company.second.SomeClass$OtherInnerClass').ctrlClick();
       document.ctrlKeyup();
       filterOn(root, filterCollection).nameFilter('my.*.second.*').goOn();
       filterOn(root, filterCollection).typeFilter(false, true).goOn();
       filterOn(root, filterCollection).nameFilter('~my.*.second.*').goOn();
       filterOn(root, filterCollection).typeFilter(true, true).goOn();
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.onlyNodesAre('my.company.first.SomeClass', 'my.company.first.SomeInterface',
+      rootUi.expectToHaveLeafFullNames('my.company.first.SomeClass', 'my.company.first.SomeInterface',
         'my.otherCompany.first.SomeClass$SomeInnerInterface', 'my.otherCompany.first.SomeInterface',
         'my.company.second.SomeClass$OtherInnerClass', 'my.company.second.SomeInterface',
         'my.otherCompany.second.SomeClass', 'my.otherCompany.second.SomeInterface',
         'my.company.third.SomeClass', 'my.otherCompany.third.OtherClass');
-      testWholeLayoutOn(root);
+      rootUi.checkWholeLayout();
     });
 
     it('filters out packages that have no matching descendant only because of both filters', async () => {
@@ -636,11 +679,10 @@ describe('Filters', () => {
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
       await filterOn(root, filterCollection).typeFilter(false, true).and.nameFilter('~*SomeClass*').await();
-      testGui(root).test.that.onlyNodesAre('my.company.third.OtherClass');
+      RootUi.of(root).expectToHaveLeafFullNames('my.company.third.OtherClass');
     });
   });
 
-  //TODO: also test in node-test, that such a node cannot be unfolded anymore (not only has the correct css-class)
   describe('changes css-class of those nodes from "foldable" to "unfoldable", that loose their children, and resets it again', () => {
     it('because of the type-filter', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInterface',
@@ -648,15 +690,22 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).typeFilter(false, true).await();
-      testGui(root).test.that.node('my.company.SomeClass').is.markedAs.unfoldable()
-        .and.that.node('my.company.OtherClass').is.markedAs.foldable();
+
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeUnfoldable();
+      rootUi.nodeByFullName('my.company.OtherClass').expectToBeFoldable();
+
       await filterOn(root, filterCollection).typeFilter(true, false).await();
-      testGui(root).test.that.node('my.company.SomeInterface').is.markedAs.unfoldable()
-        .and.that.node('my.company.OtherInterface').is.markedAs.foldable();
+
+      rootUi.nodeByFullName('my.company.SomeInterface').expectToBeUnfoldable();
+      rootUi.nodeByFullName('my.company.OtherInterface').expectToBeFoldable();
+
       await filterOn(root, filterCollection).typeFilter(true, true).await();
-      testGui(root).test.that.node('my.company.SomeClass').is.markedAs.foldable()
-        .and.that.node('my.company.OtherClass').is.markedAs.foldable();
+
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeFoldable();
+      rootUi.nodeByFullName('my.company.OtherClass').expectToBeFoldable();
     });
 
     it('because of the name-filter', async () => {
@@ -665,12 +714,17 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('~*$SomeInner*').await();
-      testGui(root).test.that.node('my.company.SomeClass').is.markedAs.unfoldable()
-        .and.that.node('my.company.OtherClass').is.markedAs.foldable();
+
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeUnfoldable();
+      rootUi.nodeByFullName('my.company.OtherClass').expectToBeFoldable();
+
       await filterOn(root, filterCollection).nameFilter('').await();
-      testGui(root).test.that.node('my.company.SomeClass').is.markedAs.foldable()
-        .and.that.node('my.company.OtherClass').is.markedAs.foldable();
+
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeFoldable();
+      rootUi.nodeByFullName('my.company.OtherClass').expectToBeFoldable();
     });
 
     //TODO: test this also for nodes that become unfoldable only because of the violations-filter (somewhere in graph-tests)
@@ -680,17 +734,23 @@ describe('Filters', () => {
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
 
+      const rootUi = RootUi.of(root);
+
       await filterOn(root, filterCollection).nameFilter('~*$SomeInner*').and.typeFilter(false, true).await();
-      testGui(root).test.that.node('my.company.SomeClass').is.markedAs.unfoldable()
-        .and.that.node('my.company.OtherClass').is.markedAs.foldable();
+
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeUnfoldable();
+      rootUi.nodeByFullName('my.company.OtherClass').expectToBeFoldable();
+
       await filterOn(root, filterCollection).nameFilter('').and.typeFilter(false, true).await();
-      testGui(root).test.that.node('my.company.SomeClass').is.markedAs.foldable()
-        .and.that.node('my.company.OtherClass').is.markedAs.foldable();
+
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeFoldable();
+      rootUi.nodeByFullName('my.company.OtherClass').expectToBeFoldable();
 
       await filterOn(root, filterCollection).nameFilter('~*$SomeInner*').and.typeFilter(false, true).await();
       await filterOn(root, filterCollection).nameFilter('~*$SomeInner*').and.typeFilter(true, true).await();
-      testGui(root).test.that.node('my.company.SomeClass').is.markedAs.foldable()
-        .and.that.node('my.company.OtherClass').is.markedAs.foldable();
+
+      rootUi.nodeByFullName('my.company.SomeClass').expectToBeFoldable();
+      rootUi.nodeByFullName('my.company.OtherClass').expectToBeFoldable();
     });
   });
 
