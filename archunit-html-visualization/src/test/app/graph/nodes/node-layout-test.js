@@ -7,8 +7,6 @@ const visualizationStyles = rootCreator.getVisualizationStyles();
 
 const RootUi = require('./testinfrastructure/root-ui');
 
-const testLayoutOn = require('../testinfrastructure/node-layout-test-infrastructure').testLayoutOnRoot;
-
 afterEach(() => {
   visualizationStyles.resetCirclePadding();
   visualizationStyles.resetNodeFontSize();
@@ -23,7 +21,7 @@ describe('Node layout', () => {
         'com.pkg1.SomeClass2$SomeInnerClass2',
         'com.pkg2.SomeClass');
 
-      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding();
+      RootUi.of(root).allNodes().forEach(nodeUI => nodeUI.expectToBeWithin(nodeUI.parent));
     });
 
     it('does not overlap with its siblings', async () => {
@@ -35,7 +33,7 @@ describe('Node layout', () => {
         'pkg1.SomeClass3',
         'pkg2.SomeClass');
 
-      testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings();
+      RootUi.of(root).allNodes().forEach(nodeUI => nodeUI.childrenUis.expectNotToOverlapEachOther());
     });
   });
 
@@ -50,11 +48,8 @@ describe('Node layout', () => {
 
       const rootUi = RootUi.of(root);
 
-      // FIXME: Migrate to test-ui structure instead of implicit assertions
       rootUi.allNodes().forEach(nodeUi => nodeUi.expectToBeWithin(nodeUi.parent));
-
-      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding();
-      testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings();
+      rootUi.allNodes().forEach(nodeUi => nodeUi.childrenUis.expectNotToOverlapEachOther());
     });
 
     it('considers a changed node font size', async () => {
@@ -66,7 +61,7 @@ describe('Node layout', () => {
       root.relayoutCompletely();
       await root._updatePromise;
 
-      testLayoutOn(root).that.innerNodes.withOnlyOneChild.haveTheirLabelAboveTheChildNode(newFontSize);
+      RootUi.of(root).nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis.getSingleNodeUi()));
     });
 
     it('considers a new circle padding, if it is changed during a relayout', async () => {
@@ -80,8 +75,10 @@ describe('Node layout', () => {
       root.relayoutCompletely();
       await root._updatePromise;
 
-      testLayoutOn(root).that.allNodes.areWithinTheirParentWithRespectToCirclePadding();
-      testLayoutOn(root).that.allNodes.havePaddingToTheirSiblings();
+      const rootUi = RootUi.of(root);
+
+      rootUi.allNodes().forEach(nodeUi => nodeUi.expectToBeWithin(nodeUi.parent));
+      rootUi.allNodes().forEach(nodeUi => nodeUi.childrenUis.expectNotToOverlapEachOther());
     });
 
     it('considers a new node fontsize, if it is changed during a relayout', async () => {
@@ -95,7 +92,7 @@ describe('Node layout', () => {
       root.relayoutCompletely();
       await root._updatePromise;
 
-      testLayoutOn(root).that.innerNodes.withOnlyOneChild.haveTheirLabelAboveTheChildNode(newFontSize);
+      RootUi.of(root).nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis.getSingleNodeUi()));
     });
   });
 
@@ -103,22 +100,22 @@ describe('Node layout', () => {
     it('the labels are within the nodes', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('pkg1.SomeClassWithAVeryLongName', 'pkg1.SomeClass',
         'somePkgWithAVeryLongName.SomeClass');
-      testLayoutOn(root).that.allNodes.haveTheirLabelWithinNode();
+      RootUi.of(root).allNodes().forEach(nodeUi => nodeUi.expectToHaveLabelWithinCircle());
     });
 
     it('the labels of the leaves are in the middle', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('pkg1.SomeClass1', 'pkg1.SomeClass2$SomeInnerClass', 'pkg3');
-      testLayoutOn(root).that.leaves.haveTheirLabelInTheMiddle();
+      RootUi.of(root).leafNodes().forEach(nodeUi => nodeUi.expectToHaveLabelInTheMiddleOfCircle());
     });
 
     it('the labels of the inner nodes are at the top', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('pkg1.SomeClass1', 'pkg1.SomeClass2$SomeInnerClass');
-      testLayoutOn(root).that.innerNodes.haveTheirLabelAtTheTop();
+      RootUi.of(root).nonLeafNodes().forEach(nodeUi => nodeUi.expectToHaveLabelAtTheTop());
     });
 
     it('the labels of the inner nodes with only one child are above the child circle', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('somePkgWithVeryLongName.Class');
-      testLayoutOn(root).that.innerNodes.withOnlyOneChild.haveTheirLabelAboveTheChildNode(visualizationStyles.getNodeFontSize());
+      RootUi.of(root).nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis.getSingleNodeUi()));
     });
   });
 
@@ -130,7 +127,7 @@ describe('Node layout', () => {
         height = 2 * halfHeight;
       }
     });
-    testLayoutOn(root).that.allNodes.areWithinDimensions(width, height);
+    RootUi.of(root).allNodes().forEach(nodeUi => nodeUi.expectToBeWithinRectangle(width, height));
   });
 
   it('notifies its listeners about the changed layout', async () => {
