@@ -328,19 +328,19 @@ public final class Architectures {
         }
 
         @PublicAPI(usage = ACCESS)
-        public OnionArchitecture domainModel(String... packageIdentifiers) {
+        public OnionArchitecture domainModels(String... packageIdentifiers) {
             domainModelPackageIdentifiers = packageIdentifiers;
             return this;
         }
 
         @PublicAPI(usage = ACCESS)
-        public OnionArchitecture domainService(String... packageIdentifiers) {
+        public OnionArchitecture domainServices(String... packageIdentifiers) {
             domainServicePackageIdentifiers = packageIdentifiers;
             return this;
         }
 
         @PublicAPI(usage = ACCESS)
-        public OnionArchitecture application(String... packageIdentifiers) {
+        public OnionArchitecture applicationServices(String... packageIdentifiers) {
             applicationPackageIdentifiers = packageIdentifiers;
             return this;
         }
