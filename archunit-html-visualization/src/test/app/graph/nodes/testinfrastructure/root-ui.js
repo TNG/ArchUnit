@@ -190,6 +190,15 @@ class NodeUi {
     await this._rootUi._root._updatePromise;
   }
 
+  click() {
+    this._circleSvg.click({ctrlKey: false});
+  }
+
+  async clickAndAwait() {
+    this.click();
+    await this._rootUi._root._updatePromise;
+  }
+
   isInForeground() {
     return this._svg.isInForegroundWithinParent() && this._parentUi.isInForeground();
   }

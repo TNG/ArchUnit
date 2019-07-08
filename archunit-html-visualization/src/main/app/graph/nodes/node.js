@@ -48,6 +48,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
     _setFilteredChildren(filteredChildren) {
       this._filteredChildren = filteredChildren;
+      this._view.foldable = !this._isLeaf();
       this._updateViewOnCurrentChildrenChanged();
     }
 
@@ -187,7 +188,6 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     _updateViewOnCurrentChildrenChanged() {
-      this._view.foldable = !this._isLeaf();
       arrayDifference(this._originalChildren, this.getCurrentChildren()).forEach(child => child._hide());
     }
 
