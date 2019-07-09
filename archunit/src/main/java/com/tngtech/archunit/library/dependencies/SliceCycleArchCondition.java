@@ -43,11 +43,10 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
-    private final ClassesToSlicesMapping classesToSlicesMapping = new ClassesToSlicesMapping();
     private final DescribedPredicate<Dependency> predicate;
+    private ClassesToSlicesMapping classesToSlicesMapping;
     private DependencyGraph graph;
-    private final EventRecorder eventRecorder = new EventRecorder();
-    private Iterable<Slice> allObjectsToTest;
+    private EventRecorder eventRecorder;
 
     SliceCycleArchCondition(DescribedPredicate<Dependency> predicate) {
         super("be free of cycles");
@@ -55,9 +54,17 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     }
 
     @Override
-    public void init(Iterable<Slice> allObjectsToTest) {
-        this.allObjectsToTest = allObjectsToTest;
-        initGraph();
+    public void init(Iterable<Slice> allSlices) {
+        initializeResources(allSlices);
+        for (Slice slice : allSlices) {
+            graph.add(slice, Collections.<Edge<Slice, Dependency>>emptySet());
+        }
+    }
+
+    private void initializeResources(Iterable<Slice> allSlices) {
+        classesToSlicesMapping = new ClassesToSlicesMapping(allSlices);
+        graph = new DependencyGraph();
+        eventRecorder = new EventRecorder();
     }
 
     @Override
@@ -70,21 +77,22 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         for (Cycle<Slice, Dependency> cycle : graph.getCycles()) {
             eventRecorder.record(cycle, events);
         }
+        releaseResources();
     }
 
-    private void initGraph() {
-        if (graph != null) {
-            return;
-        }
-
-        graph = new DependencyGraph();
-        for (Slice slice : allObjectsToTest) {
-            graph.add(slice, Collections.<Edge<Slice, Dependency>>emptySet());
-        }
+    private void releaseResources() {
+        classesToSlicesMapping = null;
+        graph = null;
+        eventRecorder = null;
     }
 
-    private class ClassesToSlicesMapping {
+    private static class ClassesToSlicesMapping {
+        private final Iterable<Slice> allSlices;
         private Map<JavaClass, Slice> mapping;
+
+        private ClassesToSlicesMapping(Iterable<Slice> allSlices) {
+            this.allSlices = allSlices;
+        }
 
         public Slice get(JavaClass javaClass) {
             return mapping().get(javaClass);
@@ -95,7 +103,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
                 return mapping;
             }
             ImmutableMap.Builder<JavaClass, Slice> result = ImmutableMap.builder();
-            for (Slice slice : allObjectsToTest) {
+            for (Slice slice : allSlices) {
                 for (JavaClass javaClass : slice) {
                     result.put(javaClass, slice);
                 }
