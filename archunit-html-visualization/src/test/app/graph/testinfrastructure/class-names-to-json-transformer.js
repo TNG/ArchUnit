@@ -35,9 +35,7 @@ const mapToTreeStructure = nodeAsMap => {
   const childrenMap = onlyEntry[1];
 
   const type = currentElement.toLowerCase().includes('interface') ? 'interface' : 'class';
-  if (childrenMap.size === 0) {
-    return nodeCreator.clazz(currentElement, type).build();
-  } else if (currentElement.endsWith('$')) {
+  if (currentElement.endsWith('$')) {
     const result = nodeCreator.clazz(currentElement.slice(0, -1), type);
     Array.from(childrenMap.entries())
       .map(e => mapToTreeStructure(new Map([e])))
@@ -87,6 +85,7 @@ const removeTrivialToplevelPackages = nodeAsMap => {
  * @return json structure with the classes
  */
 const classNamesToTreeStructure = (...classNames) => {
+  classNames = classNames.map(className => className + '$');
   let nodeAsMap = new Map();
   classNames.forEach(className => {
     let fullNameParts = className.split('.');
