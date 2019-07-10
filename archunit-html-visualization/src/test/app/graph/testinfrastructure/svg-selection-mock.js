@@ -123,6 +123,9 @@ const SvgSelectionMock = class extends D3ElementMock {
     return newSvgSelectionMock;
   }
 
+  /**
+   * The position of a rectangle is assumed to define the upper left corner of the rectangle
+   */
   addRect() {
     return this._addSvgElementByType('rect');
   }
@@ -137,6 +140,9 @@ const SvgSelectionMock = class extends D3ElementMock {
     return textSvgSelectionMock;
   }
 
+  /**
+   * The position of a tspan is assumed to define the lower left corner of the text
+   */
   addTSpan(text) {
     const textSvgSelectionMock = this._addSvgElementByType('tspan');
     textSvgSelectionMock._attributes.set('text', text);
@@ -271,7 +277,7 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   get isVisible() {
-    return this._isVisible && (!this._parent || this._parent.isVisible);
+    return this._isVisible && this._parent && this._parent.isVisible;
   }
 
   getAllSubSvgElementsWithId(id) {
@@ -357,7 +363,7 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   getAllVisibleSubElementsOfType(svgType) {
-    return this._subElements.filter(element => element.svgType === svgType && element.isVisible);
+    return this._subElements.filter(element => element.svgType === svgType && element._isVisible);
   }
 
   getVisibleSubElementOfType(svgType) {
@@ -368,14 +374,14 @@ const SvgSelectionMock = class extends D3ElementMock {
     return result[0];
   }
 
-  getAllSubElementsOfType(svgType) {
-    return this._subElements.filter(element => element.svgType === svgType);
+  getAllVisibleSubElementsByTypeAndCssClasses(svgType, ...cssClasses) {
+    return this._subElements.filter(element => element._isVisible && element.svgType === svgType && cssClasses.every(cssClass => element.cssClasses.has(cssClass)));
   }
 
-  getSubElementOfType(svgType) {
-    const result = this.getAllSubElementsOfType(svgType);
+  getVisibleSubElementByTypeAndCssClasses(svgType, ...cssClasses) {
+    const result = this.getAllVisibleSubElementsByTypeAndCssClasses(svgType, ...cssClasses);
     if (result.length !== 1) {
-      throw new Error('the svg element must have exactly one child of that type');
+      throw new Error('the svg element must have exactly one sub element of that type and with that css classes')
     }
     return result[0];
   }
@@ -487,6 +493,16 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 };
 
+const RootSvgMock = class extends SvgSelectionMock {
+  constructor() {
+    super('svg');
+  }
+
+  get isVisible() {
+    return true;
+  }
+};
+
 const DivSelectionMock = class extends D3ElementMock {
 
   get scrollLeft() {
@@ -510,5 +526,6 @@ const DivSelectionMock = class extends D3ElementMock {
   }
 };
 
+module.exports.RootSvgMock = RootSvgMock;
 module.exports.SvgSelectionMock = SvgSelectionMock;
 module.exports.DivSelectionMock = DivSelectionMock;

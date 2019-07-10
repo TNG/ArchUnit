@@ -1,3 +1,5 @@
+'use strict';
+
 const chai = require('chai');
 const chaiExtensions = require('../../testinfrastructure/general-chai-extensions');
 chai.use(chaiExtensions);
@@ -9,7 +11,10 @@ const visualizationStyles = require('../../testinfrastructure/root-creator').get
 const MAXIMUM_PADDING_DELTA = 1;
 
 /**
- * Adapter for the UIs of nodes. Only the visible nodes (i.e. whose svg group is visible) are exposed.
+ * Adapter for the UIs of nodes. Only the visible nodes (i.e. whose svg group is visible) are exposed, even if all nodes are handled here.
+ * To create the node-uis, the constructor of the root-ui goes through all nodes of the given root using getOriginalChildren() of each node.
+ * Then for each node the svg element, where the nodes is drawn in, is accessed over node._view._svgElement. All other svg sub elements are not
+ * accessed via the node's view.
  */
 class RootUi {
   constructor(root) {
@@ -89,8 +94,8 @@ class NodeUi {
     this._parentUi = parentUi;
     this._rootUi = rootUi;
     this._svg = node._view._svgElement;
-    this._circleSvg = this._svg.getSubElementOfType('circle');
-    this._labelSvg = this._svg.getSubElementOfType('text');
+    this._circleSvg = this._svg.getVisibleSubElementOfType('circle');
+    this._labelSvg = this._svg.getVisibleSubElementOfType('text');
   }
 
   get absolutePosition() {

@@ -2,6 +2,7 @@
 
 const createJsonFromClassNames = require('../testinfrastructure/class-names-to-json-transformer').createJsonFromClassNames;
 
+const svgMock = require('./svg-mock');
 const guiElementsMock = require('../testinfrastructure/gui-elements-mock');
 const AppContext = require('../../../../main/app/graph/app-context');
 const appContext = AppContext.newInstance({guiElements: guiElementsMock});
@@ -45,6 +46,7 @@ const createRootFromClassNames = (...args) => {
   const {listeners, classNames} = getClassNamesAndRootListenersFromArgs(args);
   const jsonRoot = createJsonFromClassNames(...classNames);
   const root = new Root(jsonRoot, listeners.onSizeChanged, listeners.onSizeExpanded, listeners.onJumpedToPosition, listeners.onNodeFilterStringChanged);
+  svgMock.createSvgRoot().addChild(root.view.svgElement);
   root.getLinks = () => [];
   root.getDependenciesDirectlyWithinNode = () => [];
   //TODO: add other necessary functions
