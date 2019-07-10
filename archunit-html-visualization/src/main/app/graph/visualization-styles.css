@@ -144,7 +144,3 @@ rect.hoverArea {
     fill: none;
     visibility: hidden;
 }
-
-tspan {
-    text-align: left;
-}
