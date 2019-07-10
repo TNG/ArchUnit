@@ -106,7 +106,7 @@ const init = (transitionDuration, svg, visualizationStyles, textPadding = 5) => 
         const fontSize = visualizationStyles.getDependencyTitleFontSize();
         this._closeButton = this._svgElement.addText('x');
         this._closeButton.addCssClass('closeButton');
-        this._closeButton.offsetX = this._hoverArea.width / 2 - this._closeButton.textWidth / 2;
+        this._closeButton.offsetX = this._hoverArea.width / 2 + fontSize / 2 - this._closeButton.textWidth / 2;
         this._closeButton.offsetY = fontSize;
         this._closeButton.onClick(() => this._unfix());
         this._fixed = true;

@@ -3,6 +3,7 @@
 const expect = require('chai').expect;
 
 const svgMock = require('../testinfrastructure/svg-mock');
+
 const fontSize = require('../testinfrastructure/visualization-styles-mock').createVisualizationStylesMock().getDependencyTitleFontSize();
 
 const guiElementsMock = require('../testinfrastructure/gui-elements-mock');
@@ -11,10 +12,7 @@ const textPadding = 5;
 const AppContext = require('../../../../main/app/graph/app-context');
 const DetailedDependencyView = AppContext.newInstance({guiElements: guiElementsMock, transitionDuration, textPadding}).getDetailedDependencyView();
 
-const checkLayoutOn = require('../testinfrastructure/detailed-dependency-gui-adapter').checkLayoutOn;
-const checkThat = require('../testinfrastructure/detailed-dependency-gui-adapter').checkThat;
-const interactOn = require('../testinfrastructure/detailed-dependency-gui-adapter').interactOn;
-const inspect = require('../testinfrastructure/detailed-dependency-gui-adapter').inspect;
+const DetailedDependencyUi = require('./testinfrastructure/detailed-dependency-ui').DetailedDependencyUi;
 
 const createDetailedDependencyViews = (svgContainer, getContainerWidth, ...getAllDetailedDependencies) => {
   const detailedDependencyViews = getAllDetailedDependencies.map(getDetailedDependencies =>
@@ -69,7 +67,8 @@ describe('DetailedDependencyView', () => {
   const getContainerWidth = () => htmlSvgElement.width;
 
   beforeEach(() => {
-    htmlSvgElement = svgMock.select();
+    htmlSvgElement = svgMock.createEmptyElement();
+    svgMock.createSvgRoot().addChild(htmlSvgElement);
     svgGroup = htmlSvgElement.addGroup();
     detailedDependencies = getFirstDetailedDependencies();
   });
@@ -79,13 +78,13 @@ describe('DetailedDependencyView', () => {
       it('shows all detailed dependencies', async () => {
         const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
         await fadeInAndAwait(detailedDependencyView);
-        checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies);
+        DetailedDependencyUi.of(detailedDependencyView).expectToShowDetailedDependencies(detailedDependencies);
       });
 
       it('shows the detailed dependencies only after a certain time', async () => {
         const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
         detailedDependencyView.fadeIn();
-        checkThat(svgGroup).containsNoDetailedDependencies();
+        DetailedDependencyUi.of(detailedDependencyView).expectToBeHidden();
       });
 
       it('hides other detailed dependencies, that are currently displayed', async () => {
@@ -98,7 +97,9 @@ describe('DetailedDependencyView', () => {
 
         await fadeInAndAwait(detailedDependencyViews[0]);
         await fadeInAndAwait(detailedDependencyViews[1]);
-        checkThat(svgGroup).containsExactlyDetailedDependencies(secondDetailedDependencies);
+
+        DetailedDependencyUi.of(detailedDependencyViews[0]).expectToBeHidden();
+        DetailedDependencyUi.of(detailedDependencyViews[1]).expectToShowDetailedDependencies(secondDetailedDependencies);
       });
 
       it('shows only the latest detailed dependencies, if it is called right after each other', async () => {
@@ -108,7 +109,9 @@ describe('DetailedDependencyView', () => {
 
         detailedDependencyViews[0].fadeIn();
         await fadeInAndAwait(detailedDependencyViews[1]);
-        checkThat(svgGroup).containsExactlyDetailedDependencies(secondDetailedDependencies);
+
+        DetailedDependencyUi.of(detailedDependencyViews[0]).expectToBeHidden();
+        DetailedDependencyUi.of(detailedDependencyViews[1]).expectToShowDetailedDependencies(secondDetailedDependencies);
       });
 
       it('shows the new detailed dependencies when it is called again and the detailed dependencies have changed', async () => {
@@ -119,7 +122,8 @@ describe('DetailedDependencyView', () => {
         detailedDependencies.push('Method <my.company.FourthStartClass.startMethod(my.company.SomeParamType)> ' +
           'calls method <my.company.FourthTargetClass> in (my.company.FourthStartClass.java:60)');
         await fadeInAndAwait(detailedDependencyView);
-        checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies);
+
+        DetailedDependencyUi.of(detailedDependencyView).expectToShowDetailedDependencies(detailedDependencies);
       });
 
       describe('the detailed dependencies are put to a position, so that', () => {
@@ -129,9 +133,9 @@ describe('DetailedDependencyView', () => {
           const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
 
           await fadeInAndAwait(detailedDependencyView);
-          const tspanElements = svgGroup.getVisibleDescendantElementOfType('text').getAllVisibleDescendantElementsOfType('tspan');
-          tspanElements.forEach(tspanElement => {
-            expect(tspanElement.absolutePosition.x).to.be.at.least(0);
+
+          DetailedDependencyUi.of(detailedDependencyView).allLineElements().forEach(lineElement => {
+            expect(lineElement.absolutePosition.x).to.be.at.least(0);
           });
         });
 
@@ -142,9 +146,8 @@ describe('DetailedDependencyView', () => {
           const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
 
           await fadeInAndAwait(detailedDependencyView);
-          const tspanElements = svgGroup.getVisibleDescendantElementOfType('text').getAllVisibleDescendantElementsOfType('tspan');
-          tspanElements.forEach(tspanElement => {
-            expect(tspanElement.absolutePosition.x + tspanElement.textWidth).to.be.at.most(width);
+          DetailedDependencyUi.of(detailedDependencyView).allLineElements().forEach(lineElement => {
+            expect(lineElement.absolutePosition.x + lineElement.textWidth).to.be.at.most(width);
           });
         });
       });
@@ -156,7 +159,7 @@ describe('DetailedDependencyView', () => {
           const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
 
           await fadeInAndAwait(detailedDependencyView);
-          checkLayoutOn(svgGroup, fontSize, textPadding).that.linesAreLeftAligned();
+          DetailedDependencyUi.of(detailedDependencyView).expectLinesToBeLeftAligned();
         });
 
         it('the detailed dependencies are displayed in front of a rectangle', async () => {
@@ -165,7 +168,8 @@ describe('DetailedDependencyView', () => {
           const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
 
           await fadeInAndAwait(detailedDependencyView);
-          checkLayoutOn(svgGroup, fontSize, textPadding).that.backgroundRectanglesLieExactlyBehindTheLines();
+          const detailedDependencyUi = DetailedDependencyUi.of(detailedDependencyView);
+          detailedDependencyUi.rectangles.forEach(rect => detailedDependencyUi.expectRectangleToLieBehindTheLines(rect));
         });
       });
     });
@@ -176,7 +180,8 @@ describe('DetailedDependencyView', () => {
 
         await fadeInAndAwait(detailedDependencyView);
         await fadeOutAndAwait(detailedDependencyView);
-        checkThat(svgGroup).containsNoDetailedDependencies();
+
+        DetailedDependencyUi.of(detailedDependencyView).expectToBeHidden();
       });
 
       it('hides the detailed dependencies, if it is called immediately after a #fadeIn()', async () => {
@@ -184,7 +189,7 @@ describe('DetailedDependencyView', () => {
 
         detailedDependencyView.fadeIn();
         await fadeOutAndAwait(detailedDependencyView);
-        checkThat(svgGroup).containsNoDetailedDependencies();
+        DetailedDependencyUi.of(detailedDependencyView).expectToBeHidden();
       });
 
       it('hides the detailed dependencies only after a certain time', async () => {
@@ -192,7 +197,7 @@ describe('DetailedDependencyView', () => {
 
         await fadeInAndAwait(detailedDependencyView);
         detailedDependencyView.fadeOut();
-        checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies);
+        DetailedDependencyUi.of(detailedDependencyView).expectToShowDetailedDependencies(detailedDependencies);
       });
     });
   });
@@ -203,16 +208,20 @@ describe('DetailedDependencyView', () => {
         const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
 
         await fadeInAndAwait(detailedDependencyView);
-        await interactOn(svgGroup).withDetailedDependenciesAt(0).moveMouseOutAndWaitFor(transitionDuration);
-        checkThat(svgGroup).containsNoDetailedDependencies();
+
+        const detailedDependencyUi = DetailedDependencyUi.of(detailedDependencyView);
+        await detailedDependencyUi.moveMouseOutAndWaitFor(transitionDuration);
+        detailedDependencyUi.expectToBeHidden();
       });
 
       it('hides the detailed dependencies only after a certain time', async () => {
         const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
 
         await fadeInAndAwait(detailedDependencyView);
-        interactOn(svgGroup).withDetailedDependenciesAt(0).moveMouseOut();
-        checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies);
+
+        const detailedDependencyUi = DetailedDependencyUi.of(detailedDependencyView);
+        detailedDependencyUi.moveMouseOut();
+        detailedDependencyUi.expectToShowDetailedDependencies(detailedDependencies);
       });
     });
 
@@ -222,62 +231,86 @@ describe('DetailedDependencyView', () => {
           const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
 
           await fadeInAndAwait(detailedDependencyView);
-          interactOn(svgGroup).withDetailedDependenciesAt(0).click();
 
-          await interactOn(svgGroup).withDetailedDependenciesAt(0).moveMouseOutAndWaitFor(transitionDuration);
-          checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies);
+          const detailedDependencyUi = DetailedDependencyUi.of(detailedDependencyView);
+          detailedDependencyUi.click();
+          await detailedDependencyUi.moveMouseOutAndWaitFor(transitionDuration);
+          detailedDependencyUi.expectToShowDetailedDependencies(detailedDependencies);
         });
 
         it('invoking #fadeOut() does not hide them', async () => {
           const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
 
           await fadeInAndAwait(detailedDependencyView);
-          interactOn(svgGroup).withDetailedDependenciesAt(0).click();
+          const detailedDependencyUi = DetailedDependencyUi.of(detailedDependencyView);
+          detailedDependencyUi.click();
 
           await fadeOutAndAwait(detailedDependencyView);
-          checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies);
+          detailedDependencyUi.expectToShowDetailedDependencies(detailedDependencies);
         });
 
         it('calling #fadeIn() on an other detailed dependency view does not hide them', async () => {
           const secondDetailedDependencies = getSecondDetailedDependencies();
           const detailedDependencyViews = createDetailedDependencyViews(svgGroup, getContainerWidth, () => detailedDependencies,
             () => secondDetailedDependencies);
+          const detailedDependencyUis = detailedDependencyViews.map(detailedDependencyView => DetailedDependencyUi.of(detailedDependencyView));
 
           await fadeInAndAwait(detailedDependencyViews[0]);
-          interactOn(svgGroup).withDetailedDependenciesAt(0).click();
+          detailedDependencyUis[0].click();
 
           await fadeInAndAwait(detailedDependencyViews[1]);
-          checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies, secondDetailedDependencies);
+          detailedDependencyUis[0].expectToShowDetailedDependencies(detailedDependencies);
+          detailedDependencyUis[1].expectToShowDetailedDependencies(secondDetailedDependencies);
         });
 
         it('calling #fadeIn() on the same detailed dependency view does not change anything', async () => {
           const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
+          const detailedDependencyUi = DetailedDependencyUi.of(detailedDependencyView);
 
           await fadeInAndAwait(detailedDependencyView);
-          interactOn(svgGroup).withDetailedDependenciesAt(0).click();
+          detailedDependencyUi.click();
 
           //does not re-create the detailed dependencies
           await fadeInAndAwait(detailedDependencyView);
-          checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies);
+          detailedDependencyUi.expectToShowDetailedDependencies(detailedDependencies);
 
           //does not change the fix-state
           await fadeOutAndAwait(detailedDependencyView);
-          checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies);
+          detailedDependencyUi.expectToShowDetailedDependencies(detailedDependencies);
 
           //does not hide the close button
-          interactOn(svgGroup).withDetailedDependenciesAt(0).clickOnCloseButton();
-          checkThat(svgGroup).containsNoDetailedDependencies();
+          detailedDependencyUi.closeButton.click();
+          detailedDependencyUi.expectToBeHidden();
+        });
+      });
+
+      it('a close button is shown in the upper right corner', async () => {
+        const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
+
+        await fadeInAndAwait(detailedDependencyView);
+
+        const detailedDependencyUi = DetailedDependencyUi.of(detailedDependencyView);
+        detailedDependencyUi.click();
+
+        const closeButton = detailedDependencyUi.closeButton;
+        const closeButtonPosition = closeButton.absolutePosition;
+
+        detailedDependencyUi.rectangles.forEach(rect => {
+          const rectPosition = rect.absolutePosition;
+          expect(closeButtonPosition.x).to.equal(rectPosition.x + rect.width - closeButton.textWidth / 2);
+          expect(closeButtonPosition.y).to.equal(rectPosition.y + fontSize);
         });
       });
 
       it('clicking on the close button hides the fixed detailed dependencies again', async () => {
         const detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
+        const detailedDependencyUi = DetailedDependencyUi.of(detailedDependencyView);
 
         await fadeInAndAwait(detailedDependencyView);
-        interactOn(svgGroup).withDetailedDependenciesAt(0).click();
+        detailedDependencyUi.click();
 
-        interactOn(svgGroup).withDetailedDependenciesAt(0).clickOnCloseButton();
-        checkThat(svgGroup).containsNoDetailedDependencies();
+        detailedDependencyUi.closeButton.click();
+        detailedDependencyUi.expectToBeHidden();
       });
 
       describe('several detailed dependencies views can be shown permanently:', () => {
@@ -286,17 +319,20 @@ describe('DetailedDependencyView', () => {
           const thirdDetailedDependencies = getThirdDetailedDependencies();
           const detailedDependencyViews = createDetailedDependencyViews(svgGroup, getContainerWidth, () => detailedDependencies,
             () => secondDetailedDependencies, () => thirdDetailedDependencies);
+          const detailedDependencyUis = detailedDependencyViews.map(detailedDependencyView => DetailedDependencyUi.of(detailedDependencyView));
 
           await fadeInAndAwait(detailedDependencyViews[0]);
-          interactOn(svgGroup).withDetailedDependenciesAt(0).click();
+          detailedDependencyUis[0].click();
 
           await fadeInAndAwait(detailedDependencyViews[1]);
-          interactOn(svgGroup).withDetailedDependenciesAt(1).click();
+          detailedDependencyUis[1].click();
 
           await fadeInAndAwait(detailedDependencyViews[2]);
-          interactOn(svgGroup).withDetailedDependenciesAt(2).click();
+          detailedDependencyUis[2].click();
 
-          checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies, secondDetailedDependencies, thirdDetailedDependencies);
+          detailedDependencyUis[0].expectToShowDetailedDependencies(detailedDependencies);
+          detailedDependencyUis[1].expectToShowDetailedDependencies(secondDetailedDependencies);
+          detailedDependencyUis[2].expectToShowDetailedDependencies(thirdDetailedDependencies);
         });
 
         it('all fixed detailed dependencies views can be closed via their close button again', async () => {
@@ -304,58 +340,78 @@ describe('DetailedDependencyView', () => {
           const thirdDetailedDependencies = getThirdDetailedDependencies();
           const detailedDependencyViews = createDetailedDependencyViews(svgGroup, getContainerWidth, () => detailedDependencies,
             () => secondDetailedDependencies, () => thirdDetailedDependencies);
+          const detailedDependencyUis = detailedDependencyViews.map(detailedDependencyView => DetailedDependencyUi.of(detailedDependencyView));
 
           await fadeInAndAwait(detailedDependencyViews[0]);
-          interactOn(svgGroup).withDetailedDependenciesAt(0).click();
+          detailedDependencyUis[0].click();
 
           await fadeInAndAwait(detailedDependencyViews[1]);
-          interactOn(svgGroup).withDetailedDependenciesAt(1).click();
+          detailedDependencyUis[1].click();
 
           await fadeInAndAwait(detailedDependencyViews[2]);
-          interactOn(svgGroup).withDetailedDependenciesAt(2).click();
+          detailedDependencyUis[2].click();
 
-          interactOn(svgGroup).withDetailedDependenciesAt(0).clickOnCloseButton();
-          checkThat(svgGroup).containsExactlyDetailedDependencies(secondDetailedDependencies, thirdDetailedDependencies);
+          detailedDependencyUis[0].closeButton.click();
+          detailedDependencyUis[0].expectToBeHidden();
+          detailedDependencyUis[1].expectToShowDetailedDependencies(secondDetailedDependencies);
+          detailedDependencyUis[2].expectToShowDetailedDependencies(thirdDetailedDependencies);
 
-          interactOn(svgGroup).withDetailedDependenciesAt(0).clickOnCloseButton();
-          checkThat(svgGroup).containsExactlyDetailedDependencies(thirdDetailedDependencies);
+          detailedDependencyUis[1].closeButton.click();
+          detailedDependencyUis[0].expectToBeHidden();
+          detailedDependencyUis[1].expectToBeHidden();
+          detailedDependencyUis[2].expectToShowDetailedDependencies(thirdDetailedDependencies);
 
-          interactOn(svgGroup).withDetailedDependenciesAt(0).clickOnCloseButton();
-          checkThat(svgGroup).containsNoDetailedDependencies();
+          detailedDependencyUis[2].closeButton.click();
+          detailedDependencyUis[0].expectToBeHidden();
+          detailedDependencyUis[1].expectToBeHidden();
+          detailedDependencyUis[2].expectToBeHidden();
         });
       });
     });
 
     describe('Dragging the detailed dependencies', () => {
       let detailedDependencyView;
+      let detailedDependencyUi;
       let positionBefore;
       beforeEach(async () => {
         detailedDependencyView = createSingleDetailedDependencyView(svgGroup, getContainerWidth, () => detailedDependencies);
+        detailedDependencyUi = DetailedDependencyUi.of(detailedDependencyView);
         await fadeInAndAwait(detailedDependencyView);
-        positionBefore = inspect(svgGroup).detailedDependenciesAt(0).absoluteTextPosition();
-        interactOn(svgGroup).withDetailedDependenciesAt(0).drag(20, 20);
+        positionBefore = detailedDependencyUi.textElement.absolutePosition;
+        detailedDependencyUi.drag(20, 20);
       });
 
       it('moves them ', async () => {
-        const positionAfterDragging = inspect(svgGroup).detailedDependenciesAt(0).absoluteTextPosition();
+        const positionAfterDragging = detailedDependencyUi.textElement.absolutePosition;
         const expectedPosition = {x: positionBefore.x + 20, y: positionBefore.y + 20};
         expect(positionAfterDragging).to.deep.equal(expectedPosition);
       });
 
       it('keeps the layout correctly', async () => {
-        checkLayoutOn(svgGroup, fontSize, textPadding).that.linesAreLeftAligned();
-        checkLayoutOn(svgGroup, fontSize, textPadding).that.backgroundRectanglesLieExactlyBehindTheLines();
+        detailedDependencyUi.expectLinesToBeLeftAligned();
+        detailedDependencyUi.rectangles.forEach(rect => detailedDependencyUi.expectRectangleToLieBehindTheLines(rect));
       });
 
       describe('shows them permanently', () => {
         it('leaving the detailed dependencies with the mouse does not hide them', async () => {
-          await interactOn(svgGroup).withDetailedDependenciesAt(0).moveMouseOutAndWaitFor(transitionDuration);
-          checkThat(svgGroup).containsExactlyDetailedDependencies(detailedDependencies);
+          await detailedDependencyUi.moveMouseOutAndWaitFor(transitionDuration);
+          detailedDependencyUi.expectToShowDetailedDependencies(detailedDependencies);
+        });
+
+        it('a close button is shown in the upper right corner', async () => {
+          const closeButton = detailedDependencyUi.closeButton;
+          const closeButtonPosition = closeButton.absolutePosition;
+
+          detailedDependencyUi.rectangles.forEach(rect => {
+            const rectPosition = rect.absolutePosition;
+            expect(closeButtonPosition.x).to.equal(rectPosition.x + rect.width - closeButton.textWidth / 2);
+            expect(closeButtonPosition.y).to.equal(rectPosition.y + fontSize);
+          });
         });
 
         it('clicking on the close button hides the detailed dependencies again', () => {
-          interactOn(svgGroup).withDetailedDependenciesAt(0).clickOnCloseButton();
-          checkThat(svgGroup).containsNoDetailedDependencies();
+          detailedDependencyUi.closeButton.click();
+          detailedDependencyUi.expectToBeHidden();
         });
       });
     });

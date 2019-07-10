@@ -1,5 +1,7 @@
 'use strict';
 
+//FIXME: remove file
+
 const expect = require('chai').expect;
 
 const sleep = (timeInMs) => {
