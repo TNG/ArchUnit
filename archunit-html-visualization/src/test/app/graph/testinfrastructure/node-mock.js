@@ -46,6 +46,12 @@ const init = () => {
       nodeMap.set(this._fullName, this);
     }
 
+    get _view() {
+      return {
+        _svgElement: this._svgElement
+      }
+    }
+
     getByName(fullName) {
       return nodeMap.get(fullName);
     }
