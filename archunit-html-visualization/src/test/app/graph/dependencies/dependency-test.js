@@ -5,7 +5,6 @@ const expect = chai.expect;
 const chaiExtensions = require('../testinfrastructure/general-chai-extensions');
 chai.use(chaiExtensions);
 
-const fontSize = require('../testinfrastructure/visualization-styles-mock').createVisualizationStylesMock().getDependencyTitleFontSize();
 const transitionDuration = 5;
 const textPadding = 5;
 
@@ -13,10 +12,8 @@ const guiElementsMock = require('../testinfrastructure/gui-elements-mock');
 const AppContext = require('../../../../main/app/graph/app-context');
 const getDependencyCreator = AppContext.newInstance({guiElements: guiElementsMock, transitionDuration, textPadding}).getDependencyCreator;
 const TestDependencyCreator = require('../testinfrastructure/dependency-test-infrastructure').TestDependencyCreator;
-const checkThat = require('../testinfrastructure/dependency-gui-adapter').checkThat;
-const interactOn = require('../testinfrastructure/dependency-gui-adapter').interactOn;
-const inspect = require('../testinfrastructure/dependency-gui-adapter').inspect;
-const detailedDepsGuiAdapter = require('../testinfrastructure/detailed-dependency-gui-adapter');
+
+const DependencyUi = require('./testinfrastructure/dependencies-ui').DependencyUi;
 
 const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
 
@@ -147,19 +144,18 @@ describe('GroupedDependency', () => {
 
     describe('its svg-element is correctly created', () => {
       let testDepCreator;
+      let dependencyUi;
 
       before(() => {
         testDepCreator = new TestDependencyCreator(getDependencyCreator());
         const elementaryDependency = testDepCreator.createElementaryDependency();
-        testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency);
-      });
-
-      it('it is added to the svg-container-element', () => {
-        checkThat(testDepCreator.svgContainer).containsExactlyDependencies(`${testDepCreator.from}-${testDepCreator.to}`);
+        const dependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency);
+        dependencyUi = DependencyUi.of(dependency);
       });
 
       it("it lies in front of both end nodes", () => {
-        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.inFrontOf.bothEndNodes();
+        dependencyUi.expectToLieInFrontOf(dependencyUi.originNodeSvgElement);
+        dependencyUi.expectToLieInFrontOf(dependencyUi.targetNodeSvgElement);
       });
     });
 
@@ -177,12 +173,12 @@ describe('GroupedDependency', () => {
       it('the visible line has the css class "violation", if one of the elementary dependencies was a violation', () => {
         elementaryDependency1.markAsViolation();
         const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency2);
-        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.markedAs.violation();
+        DependencyUi.of(groupedDependency).expectToBeMarkedAsViolation();
       });
 
       it('the visible line does not have the css class "violation", if none of the elementary dependencies was a violation', () => {
         const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency2);
-        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.not.markedAs.violation();
+        DependencyUi.of(groupedDependency).expectToNotBeMarkedAsViolation();
       });
     });
 
@@ -202,24 +198,24 @@ describe('GroupedDependency', () => {
 
       it('it is not drawn again and the object is not recreated', () => {
         const originGroupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1);
+        const originDependencyUi = DependencyUi.of(originGroupedDependency);
         const secondGroupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency2, elementaryDependency3);
 
-        checkThat(testDepCreator.svgContainer).containsExactlyDependencies(`${testDepCreator.from}-${testDepCreator.to}`);
+        originDependencyUi.expectToEqual(DependencyUi.of(secondGroupedDependency));
         expect(secondGroupedDependency).to.equal(originGroupedDependency);
       });
 
       it('its violation property is updated', () => {
         testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1);
         elementaryDependency1.markAsViolation();
-        testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency2);
-
-        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.markedAs.violation();
+        let groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency2);
+        DependencyUi.of(groupedDependency).expectToBeMarkedAsViolation();
 
         elementaryDependency1.unMarkAsViolation();
         elementaryDependency2.markAsViolation();
-        testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency3);
+        groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDependency1, elementaryDependency3);
 
-        checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.not.markedAs.violation();
+        DependencyUi.of(groupedDependency).expectToNotBeMarkedAsViolation();
       });
     });
   });
@@ -237,84 +233,76 @@ describe('GroupedDependency', () => {
     });
 
     it("hovering over the dependency's line shows the detailed dependency", async () => {
-      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
-      await interactOn(testDepCreator.svgContainer)
-        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
-      detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer)
-        .containsExactlyDetailedDependencies([elementaryDep1.description, elementaryDep2.description]);
+      const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      const dependencyUi = DependencyUi.of(groupedDependency);
+      await dependencyUi.hoverOverAndWaitFor(transitionDuration);
+      dependencyUi.detailedDependencyUi.expectToShowDetailedDependencies([elementaryDep1.description, elementaryDep2.description]);
     });
 
     it("hovering over the dependency's line does not show the detailed dependency if one of the dependency end nodes is a package", async () => {
       const shiftedElementaryDependency = testDepCreator.shiftElementaryDependencyAtStart(elementaryDep1);
-      testDepCreator.createAndShowGroupedDependencyFrom(shiftedElementaryDependency);
-      await interactOn(testDepCreator.svgContainer)
-        .hoverOverDependencyAndWaitFor(`${testDepCreator.parentFrom}-${testDepCreator.to}`, transitionDuration);
-      detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer).containsNoDetailedDependencies();
+      const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(shiftedElementaryDependency);
+      const dependencyUi = DependencyUi.of(groupedDependency);
+      await dependencyUi.hoverOverAndWaitFor(transitionDuration);
+      dependencyUi.detailedDependencyUi.expectToBeHidden();
     });
 
     it("leaving the dependency's line with the mouse hides the detailed dependency again", async () => {
-      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
-      await interactOn(testDepCreator.svgContainer)
-        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
-      await interactOn(testDepCreator.svgContainer)
-        .leaveDependencyWithMouseAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
-      detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer).containsNoDetailedDependencies();
+      const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      const dependencyUi = DependencyUi.of(groupedDependency);
+      await dependencyUi.hoverOverAndWaitFor(transitionDuration);
+      await dependencyUi.leaveWithMouseAndWaitFor(transitionDuration);
+      dependencyUi.detailedDependencyUi.expectToBeHidden();
     });
 
     it("if the dependency has changed, then re-hovering over the dependency's line shows the new detailed dependency", async () => {
-      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
-      await interactOn(testDepCreator.svgContainer)
-        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
-      await interactOn(testDepCreator.svgContainer).leaveDependencyWithMouseAndWaitFor(
-        `${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
+      const groupedDependency1 = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      const dependencyUi1 = DependencyUi.of(groupedDependency1);
+      await dependencyUi1.hoverOverAndWaitFor(transitionDuration);
+      await dependencyUi1.leaveWithMouseAndWaitFor(transitionDuration);
 
-      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1);
-      await interactOn(testDepCreator.svgContainer).hoverOverDependencyAndWaitFor(
-        `${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
-      detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer)
-        .containsExactlyDetailedDependencies([elementaryDep1.description]);
+      const groupedDependency2 = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1);
+      const dependencyUi2 = DependencyUi.of(groupedDependency2);
+      await dependencyUi2.hoverOverAndWaitFor(transitionDuration);
+      dependencyUi2.detailedDependencyUi.expectToShowDetailedDependencies([elementaryDep1.description]);
     });
 
     it('layouts the detailed dependency correctly', async () => {
-      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
-      await interactOn(testDepCreator.svgContainer)
-        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
-      detailedDepsGuiAdapter
-        .checkLayoutOn(testDepCreator.svgDetailedDepsContainer, fontSize, textPadding).that.backgroundRectanglesLieExactlyBehindTheLines();
-      detailedDepsGuiAdapter.checkLayoutOn(testDepCreator.svgDetailedDepsContainer, fontSize, textPadding).that.linesAreLeftAligned();
+      const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      const dependencyUi = DependencyUi.of(groupedDependency);
+      await dependencyUi.hoverOverAndWaitFor(transitionDuration);
+      dependencyUi.detailedDependencyUi.rectangles.forEach(rect => dependencyUi.detailedDependencyUi.expectRectangleToLieBehindTheLines(rect));
+      dependencyUi.detailedDependencyUi.expectLinesToBeLeftAligned();
     });
 
     it('the detailed dependency can be dragged', async () => {
-      testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
-      await interactOn(testDepCreator.svgContainer)
-        .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
-      const positionBefore = detailedDepsGuiAdapter
-        .inspect(testDepCreator.svgDetailedDepsContainer).detailedDependenciesAt(0).absoluteTextPosition();
+      const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+      const dependencyUi = DependencyUi.of(groupedDependency);
+      await dependencyUi.hoverOverAndWaitFor(transitionDuration);
+      const positionBefore = dependencyUi.detailedDependencyUi.textElement.absolutePosition;
       const expectedPosition = {x: positionBefore.x + 20, y: positionBefore.y + 20};
-      detailedDepsGuiAdapter.interactOn(testDepCreator.svgDetailedDepsContainer).withDetailedDependenciesAt(0).drag(20, 20);
-      const positionAfterDragging = detailedDepsGuiAdapter
-        .inspect(testDepCreator.svgDetailedDepsContainer).detailedDependenciesAt(0).absoluteTextPosition();
+      dependencyUi.detailedDependencyUi.drag(20, 20);
+      const positionAfterDragging = dependencyUi.detailedDependencyUi.textElement.absolutePosition;
       expect(positionAfterDragging).to.deep.equal(expectedPosition);
     });
 
     describe('clicking on the detailed dependency shows it permanently:', () => {
+      let dependencyUi;
       beforeEach(async () => {
-        testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
-        await interactOn(testDepCreator.svgContainer)
-          .hoverOverDependencyAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
-        detailedDepsGuiAdapter.interactOn(testDepCreator.svgDetailedDepsContainer).withDetailedDependenciesAt(0).click();
+        const groupedDependency = testDepCreator.createAndShowGroupedDependencyFrom(elementaryDep1, elementaryDep2);
+        dependencyUi = DependencyUi.of(groupedDependency);
+        await dependencyUi.hoverOverAndWaitFor(transitionDuration);
+        dependencyUi.detailedDependencyUi.click();
       });
 
       it("leaving the dependency's line with the mouse does not hide the detailed dependency", async () => {
-        await interactOn(testDepCreator.svgContainer)
-          .leaveDependencyWithMouseAndWaitFor(`${testDepCreator.from}-${testDepCreator.to}`, transitionDuration);
-        detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer)
-          .containsExactlyDetailedDependencies([elementaryDep1.description, elementaryDep2.description]);
+        await dependencyUi.leaveWithMouseAndWaitFor(transitionDuration);
+        dependencyUi.detailedDependencyUi.expectToShowDetailedDependencies([elementaryDep1.description, elementaryDep2.description]);
       });
 
       it('clicking on the close-button of the fixed detailed dependency hides it again', () => {
-        detailedDepsGuiAdapter.interactOn(testDepCreator.svgDetailedDepsContainer).withDetailedDependenciesAt(0).clickOnCloseButton();
-        detailedDepsGuiAdapter.checkThat(testDepCreator.svgDetailedDepsContainer).containsNoDetailedDependencies();
+        dependencyUi.detailedDependencyUi.closeButton.click();
+        dependencyUi.detailedDependencyUi.expectToBeHidden();
       });
     });
   });
@@ -337,36 +325,44 @@ describe('GroupedDependency', () => {
 
         it("makes the dependency's svg-element lie in front of both end nodes", () => {
           groupedDependency.setContainerEndNodeToEndNodeInForeground();
-
-          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.inFrontOf.bothEndNodes();
+          const dependencyUi = DependencyUi.of(groupedDependency);
+          dependencyUi.expectToLieInFrontOf(dependencyUi.originNodeSvgElement);
+          dependencyUi.expectToLieInFrontOf(dependencyUi.targetNodeSvgElement);
         });
 
         it("does not change the position of the dependency's svg-element", () => {
-          const linePositionsBefore = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          const dependencyUi = DependencyUi.of(groupedDependency);
+          const startPositionBefore = dependencyUi.line.absoluteStartPosition;
+          const endPositionBefore = dependencyUi.line.absoluteEndPosition;
 
           groupedDependency.setContainerEndNodeToEndNodeInForeground();
 
-          const linePositionsAfterwards = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
-          expect(linePositionsAfterwards.startPosition).to.deep.equal(linePositionsBefore.startPosition);
-          expect(linePositionsAfterwards.endPosition).to.deep.equal(linePositionsBefore.endPosition);
+          const startPositionAfterwards = dependencyUi.line.absoluteStartPosition;
+          const endPositionAfterwards = dependencyUi.line.absoluteEndPosition;
+          expect(startPositionAfterwards).to.deep.equal(startPositionBefore);
+          expect(endPositionAfterwards).to.deep.equal(endPositionBefore);
         });
       });
 
       describe('#setContainerEndNodeToEndNodeInBackground() with followed #onNodesFocused()', () => {
         it("makes the dependency's svg-element lie in front of one end node and behind the other", () => {
           groupedDependency.setContainerEndNodeToEndNodeInBackground();
+          const dependencyUi = DependencyUi.of(groupedDependency);
 
-          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.between.bothEndNodes();
+          dependencyUi.expectToLieBetween(dependencyUi.originNodeSvgElement, dependencyUi.targetNodeSvgElement);
         });
 
         it("does not change the position of the dependency's svg-element", () => {
-          const linePositionsBefore = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          const dependencyUi = DependencyUi.of(groupedDependency);
+          const startPositionBefore = dependencyUi.line.absoluteStartPosition;
+          const endPositionBefore = dependencyUi.line.absoluteEndPosition;
 
           groupedDependency.setContainerEndNodeToEndNodeInBackground();
 
-          const linePositionsAfterwards = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
-          expect(linePositionsAfterwards.startPosition).to.deep.equal(linePositionsBefore.startPosition);
-          expect(linePositionsAfterwards.endPosition).to.deep.equal(linePositionsBefore.endPosition);
+          const startPositionAfterwards = dependencyUi.line.absoluteStartPosition;
+          const endPositionAfterwards = dependencyUi.line.absoluteEndPosition;
+          expect(startPositionAfterwards).to.deep.equal(startPositionBefore);
+          expect(endPositionAfterwards).to.deep.equal(endPositionBefore);
         });
       });
     });
@@ -375,12 +371,13 @@ describe('GroupedDependency', () => {
       describe('updates the position of the dependency', () => {
         let testDepCreator;
         let groupedDependency;
+        let dependencyUi;
 
         before(() => {
           testDepCreator = new TestDependencyCreator(getDependencyCreator());
           groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
-
           groupedDependency.onNodeRimChanged();
+          dependencyUi = DependencyUi.of(groupedDependency);
         });
 
         it('leads to correct end positions of the svg-lines', () => {
@@ -388,19 +385,21 @@ describe('GroupedDependency', () => {
             Vector.between(testDepCreator.originNode.absoluteFixableCircle, testDepCreator.targetNode.absoluteFixableCircle).length()
             - (testDepCreator.originNode.absoluteFixableCircle.r + testDepCreator.targetNode.absoluteFixableCircle.r);
 
-          const actualPositions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          const startPosition = dependencyUi.line.absoluteStartPosition;
+          const endPosition = dependencyUi.line.absoluteEndPosition;
 
-          expect(Vector.between(testDepCreator.originNode.absoluteFixableCircle, actualPositions.startPosition).length())
+          expect(Vector.between(testDepCreator.originNode.absoluteFixableCircle, startPosition).length())
             .to.equal(testDepCreator.originNode.absoluteFixableCircle.r);
-          expect(Vector.between(testDepCreator.targetNode.absoluteFixableCircle, actualPositions.endPosition).length())
+          expect(Vector.between(testDepCreator.targetNode.absoluteFixableCircle, endPosition).length())
             .to.equal(testDepCreator.targetNode.absoluteFixableCircle.r);
-          expect(Vector.between(actualPositions.startPosition, actualPositions.endPosition).length()).to.equal(expectedDependencyLength);
+          expect(Vector.between(startPosition, endPosition).length()).to.equal(expectedDependencyLength);
         });
 
         it('#startPoint and #endPoint equal the drawn positions', () => {
-          const positions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
-          expect(groupedDependency.startPoint.equals(positions.startPosition)).to.be.true;
-          expect(groupedDependency.endPoint.equals(positions.endPosition)).to.be.true;
+          const startPosition = dependencyUi.line.absoluteStartPosition;
+          const endPosition = dependencyUi.line.absoluteEndPosition;
+          expect(groupedDependency.startPoint.equals(startPosition)).to.be.true;
+          expect(groupedDependency.endPoint.equals(endPosition)).to.be.true;
         });
       });
 
@@ -408,6 +407,7 @@ describe('GroupedDependency', () => {
 
         let testDepCreator;
         let groupedDependency;
+        let dependencyUi;
 
         beforeEach(() => {
           testDepCreator = new TestDependencyCreator(getDependencyCreator());
@@ -415,19 +415,20 @@ describe('GroupedDependency', () => {
 
           testDepCreator.originNode.addOverlap(testDepCreator.targetNode);
           groupedDependency.onNodeRimChanged();
+          dependencyUi = DependencyUi.of(groupedDependency);
         });
 
         it('it is hidden, if the end nodes are overlapping', () => {
-          checkThat(testDepCreator.svgContainer).containsExactlyDependencies();
-          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.not.hoverable();
+          expect(dependencyUi.isVisible()).to.be.false;
+          expect(dependencyUi.hoverArea.pointerEventsEnabled).to.be.false;
         });
 
         it('it is shown again, if the end nodes are not overlapping anymore', () => {
           testDepCreator.originNode.removeOverlap(testDepCreator.targetNode);
           groupedDependency.onNodeRimChanged();
 
-          checkThat(testDepCreator.svgContainer).containsExactlyDependencies(`${testDepCreator.from}-${testDepCreator.to}`);
-          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.hoverable();
+          expect(dependencyUi.isVisible()).to.be.true;
+          expect(dependencyUi.hoverArea.pointerEventsEnabled).to.be.true;
         });
       });
     });
@@ -436,10 +437,12 @@ describe('GroupedDependency', () => {
       describe('updates the position of the dependency', () => {
         let testDepCreator;
         let groupedDependency;
+        let dependencyUi;
 
         before(async () => {
           testDepCreator = new TestDependencyCreator(getDependencyCreator());
           groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+          dependencyUi = DependencyUi.of(groupedDependency);
 
           await groupedDependency.moveToPosition();
         });
@@ -449,19 +452,22 @@ describe('GroupedDependency', () => {
             Vector.between(testDepCreator.originNode.absoluteFixableCircle, testDepCreator.targetNode.absoluteFixableCircle).length()
             - (testDepCreator.originNode.absoluteFixableCircle.r + testDepCreator.targetNode.absoluteFixableCircle.r);
 
-          const actualPositions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
+          const startPosition = dependencyUi.line.absoluteStartPosition;
+          const endPosition = dependencyUi.line.absoluteEndPosition;
 
-          expect(Vector.between(testDepCreator.originNode.absoluteFixableCircle, actualPositions.startPosition).length())
+          expect(Vector.between(testDepCreator.originNode.absoluteFixableCircle, startPosition).length())
             .to.equal(testDepCreator.originNode.absoluteFixableCircle.r);
-          expect(Vector.between(testDepCreator.targetNode.absoluteFixableCircle, actualPositions.endPosition).length())
+          expect(Vector.between(testDepCreator.targetNode.absoluteFixableCircle, endPosition).length())
             .to.equal(testDepCreator.targetNode.absoluteFixableCircle.r);
-          expect(Vector.between(actualPositions.startPosition, actualPositions.endPosition).length()).to.equal(expectedDependencyLength);
+          expect(Vector.between(startPosition, endPosition).length()).to.equal(expectedDependencyLength);
         });
 
         it('#startPoint and #endPoint equal the drawn positions', () => {
-          const positions = inspect(testDepCreator.svgContainer).linePositionOf(`${testDepCreator.from}-${testDepCreator.to}`);
-          expect(groupedDependency.startPoint.equals(positions.startPosition)).to.be.true;
-          expect(groupedDependency.endPoint.equals(positions.endPosition)).to.be.true;
+          const startPosition = dependencyUi.line.absoluteStartPosition;
+          const endPosition = dependencyUi.line.absoluteEndPosition;
+
+          expect(groupedDependency.startPoint.equals(startPosition)).to.be.true;
+          expect(groupedDependency.endPoint.equals(endPosition)).to.be.true;
         });
       });
 
@@ -469,26 +475,28 @@ describe('GroupedDependency', () => {
 
         let testDepCreator;
         let groupedDependency;
+        let dependencyUi;
 
         beforeEach(async () => {
           testDepCreator = new TestDependencyCreator(getDependencyCreator());
           groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+          dependencyUi = DependencyUi.of(groupedDependency);
 
           testDepCreator.originNode.addOverlap(testDepCreator.targetNode);
           await groupedDependency.moveToPosition();
         });
 
         it('it is hidden, if the end nodes are overlapping', () => {
-          checkThat(testDepCreator.svgContainer).containsExactlyDependencies();
-          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.not.hoverable();
+          expect(dependencyUi.isVisible()).to.be.false;
+          expect(dependencyUi.hoverArea.pointerEventsEnabled).to.be.false;
         });
 
         it('it is shown again, if the end nodes are not overlapping anymore', async () => {
           testDepCreator.originNode.removeOverlap(testDepCreator.targetNode);
           await groupedDependency.moveToPosition();
 
-          checkThat(testDepCreator.svgContainer).containsExactlyDependencies(`${testDepCreator.from}-${testDepCreator.to}`);
-          checkThat(testDepCreator.svgContainer).dependency(`${testDepCreator.from}-${testDepCreator.to}`).is.hoverable();
+          expect(dependencyUi.isVisible()).to.be.true;
+          expect(dependencyUi.hoverArea.pointerEventsEnabled).to.be.true;
         });
       });
     });
@@ -496,10 +504,11 @@ describe('GroupedDependency', () => {
     it('#hide()', () => {
       const testDepCreator = new TestDependencyCreator(getDependencyCreator());
       const groupedDependency = testDepCreator.createAndShowDefaultGroupedDependency();
+      const dependencyUi = DependencyUi.of(groupedDependency);
 
       groupedDependency.hide();
 
-      checkThat(testDepCreator.svgContainer).containsExactlyDependencies();
+      expect(dependencyUi.isVisible()).to.be.false;
     });
 
     it('#toString()', () => {

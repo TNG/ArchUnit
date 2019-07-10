@@ -8,11 +8,6 @@ const sortTopological = require('../infrastructure/graph-algorithms').sortTopolo
 
 const nodeTypes = require('./node-types.json');
 
-const fullNameSeparators = {
-  packageSeparator: '.',
-  classSeparator: '$'
-};
-
 const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) => {
 
   const NodeText = nodeText.init(visualizationStyles);

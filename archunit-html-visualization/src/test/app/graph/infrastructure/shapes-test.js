@@ -20,18 +20,18 @@ describe('Circle', () => {
   });
 
   it('knows if it contains an other relative circle, considering a minimum padding between the circle rims', () => {
-    let containingCircle = Circle.from({x: 1, y: 1}, 5);
+    const containingCircle = Circle.from({x: 1, y: 1}, 5);
 
-    let circleCompletelyOutside = Circle.from({x: -6, y: 6}, 5);
+    const circleCompletelyOutside = Circle.from({x: -6, y: 6}, 5);
     expect(containingCircle.containsRelativeCircle(circleCompletelyOutside)).to.be.false;
 
-    let circlePartiallyOutside = Circle.from({x: -1, y: 1}, 5);
+    const circlePartiallyOutside = Circle.from({x: -1, y: 1}, 5);
     expect(containingCircle.containsRelativeCircle(circlePartiallyOutside)).to.be.false;
 
-    let circleInsideCircleButViolatingPadding = Circle.from({x: -1, y: 1}, 1);
+    const circleInsideCircleButViolatingPadding = Circle.from({x: -1, y: 1}, 1);
     expect(containingCircle.containsRelativeCircle(circleInsideCircleButViolatingPadding, 5)).to.be.false;
 
-    let circleInside = Circle.from({x: -1, y: 1}, 1);
+    const circleInside = Circle.from({x: -1, y: 1}, 1);
     expect(containingCircle.containsRelativeCircle(circleInside)).to.be.true;
   });
 
@@ -74,24 +74,24 @@ describe('Rect', () => {
   });
 
   it('knows if it contains a relative circle, considering a minimum padding between the circle and the rect rim', () => {
-    let rect = new Rect(new Vector(1, 1), 10, 5);
+    const rect = new Rect(new Vector(1, 1), 10, 5);
 
-    let circleCompletelyOutside = Circle.from({x: 20, y: 15}, 5);
+    const circleCompletelyOutside = Circle.from({x: 20, y: 15}, 5);
     expect(rect.containsRelativeCircle(circleCompletelyOutside)).to.be.false;
 
-    let circlePartiallyOutsideAtTop = Circle.from({x: -1, y: 1}, 5);
+    const circlePartiallyOutsideAtTop = Circle.from({x: -1, y: 1}, 5);
     expect(rect.containsRelativeCircle(circlePartiallyOutsideAtTop)).to.be.false;
 
-    let circlePartiallyOutsideAtLeft = Circle.from({x: -9, y: 0}, 3);
+    const circlePartiallyOutsideAtLeft = Circle.from({x: -9, y: 0}, 3);
     expect(rect.containsRelativeCircle(circlePartiallyOutsideAtLeft)).to.be.false;
 
-    let circlePartiallyOutsideAtTopLeft = Circle.from({x: -9, y: -3}, 3);
-    expect(rect.containsRelativeCircle(circlePartiallyOutsideAtLeft)).to.be.false;
+    const circlePartiallyOutsideAtTopLeft = Circle.from({x: -9, y: -3}, 3);
+    expect(rect.containsRelativeCircle(circlePartiallyOutsideAtTopLeft)).to.be.false;
 
-    let circleInsideButViolatingPadding = Circle.from({x: -1, y: 1}, 3);
+    const circleInsideButViolatingPadding = Circle.from({x: -1, y: 1}, 3);
     expect(rect.containsRelativeCircle(circleInsideButViolatingPadding, 5)).to.be.false;
 
-    let circleInside = Circle.from({x: -1, y: 1}, 1);
+    const circleInside = Circle.from({x: -1, y: 1}, 1);
     expect(rect.containsRelativeCircle(circleInside)).to.be.true;
   });
 });

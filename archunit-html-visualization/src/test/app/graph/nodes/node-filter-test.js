@@ -533,8 +533,6 @@ describe('Filters', () => {
               onNodeFilterStringChanged: (nameFilterString) => actualNameFilterString = nameFilterString
             });
 
-          const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
-
           const rootUi = RootUi.of(root);
 
           await rootUi.nodeByFullName('my.company.first.SomeClass').ctrlClickAndAwait();

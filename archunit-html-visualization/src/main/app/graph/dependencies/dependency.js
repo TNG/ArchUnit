@@ -1,6 +1,6 @@
 'use strict';
 
-const {Vector, vectors} = require('../infrastructure/vectors');
+const {Vector} = require('../infrastructure/vectors');
 
 //Hint: the functionality of the dependency-types is unused. It can be used to color or dash the lines of dependencies
 // of certain types: these types have to be added to the following two sets. The tests also have to be changed if this functionality is used.

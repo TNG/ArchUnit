@@ -9,7 +9,6 @@ require('../testinfrastructure/node-chai-extensions');
 
 const rootCreator = require('../testinfrastructure/root-creator');
 const {buildFilterCollection} = require("../../../../main/app/graph/filter");
-const createListenerMock = require('../testinfrastructure/listener-mock').createListenerMock;
 const filterOn = require('../testinfrastructure/node-filter-test-infrastructure').filterOn;
 
 const RootUi = require('./testinfrastructure/root-ui');

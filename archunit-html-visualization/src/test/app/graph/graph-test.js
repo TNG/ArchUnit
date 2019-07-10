@@ -3,9 +3,11 @@
 const {expect} = require('chai');
 require('./testinfrastructure/node-chai-extensions');
 require('./testinfrastructure/dependencies-chai-extension');
+require('./testinfrastructure/graph-chai-extensions');
+const createJsonFromClassNames = require('./testinfrastructure/class-names-to-json-transformer').createJsonFromClassNames;
 
-const stubs = require('./testinfrastructure/stubs');
-const {createTestDependencies, createTestGraph, testRoot} = require('./testinfrastructure/test-json-creator');
+const guiElementsMock = require('./testinfrastructure/gui-elements-mock');
+const {createDependencies, createGraph, nodeCreator} = require('./testinfrastructure/test-json-creator');
 const AppContext = require('../../../main/app/graph/app-context');
 
 const realInitGraph = require('../../../main/app/graph/graph').init;
@@ -23,48 +25,231 @@ const initGraph = function () {
   }
 };
 
+const circlePadding = 10;
+
 const appContextWith = (graph, violations) => AppContext.newInstance({
-  visualizationStyles: stubs.visualizationStylesStub(30),
-  calculateTextWidth: stubs.calculateTextWidthStub,
-  NodeView: stubs.NodeViewStub,
-  RootView: stubs.NodeViewStub,
-  DependencyView: stubs.DependencyViewStub,
-  GraphView: stubs.GraphViewStub,
+  guiElements: guiElementsMock,
   visualizationData: {
     jsonGraph: graph,
     jsonViolations: violations
   }
 });
 
-describe('Graph', () => {
-  const jsonRootWithTwoClasses = testRoot.package('com.tngtech.archunit')
-    .add(testRoot.package('pkg1')
-      .add(testRoot.clazz('SomeClass', 'class').build())
+describe.skip('Graph', () => {
+
+  describe('creates a layout, so that', () => {
+    //FIXME: this is not layout...layout is only positioning of the elements and so...better put it to smth like 'initialization of the nodes", "sets the css classes"
+    //css classes like foldable must be checked in the fold tet methods then
+    it('packages have a css-class "package", classes a css-class "class", interfaces a css-class "interface"', async () => {
+      const jsonRoot = createJsonFromClassNames('pkg1.SomeClass', 'pkg1.SomeInterface');
+      const jsonDependencies = createMethodCallDependencies(jsonRoot);
+
+      const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
+      graphGui.clickNode('pkg1');
+      await graphGui.isReady();
+
+      graphGui.test.expectNodeToHaveCssClass('pkg1', 'package');
+      graphGui.test.expectNodeToHaveCssClass('pkg1.SomeClass', 'class');
+      graphGui.test.expectNodeToHaveCssClass('pkg1.SomeInterface', 'interface');
+    });
+
+    it('nodes have a padding to their parent nodes', async () => {
+      const jsonRoot = createJsonFromClassNames('pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3', 'pkg2.SomeClass');
+      const jsonDependencies = createMethodCallDependencies(jsonRoot,
+        {from: 'pkg1.SomeClass1', to: 'pkg2.SomeClass'}, {from: 'pkg1.SomeClass1', to: 'pkg1.SomeClass2'});
+
+      const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
+      graphGui.clickNode('pkg1');
+      await graphGui.isReady();
+
+      graphGui.test.expectNodesToHaveAtLeastPaddingFromParent(circlePadding, 'pkg1', 'pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3');
+    });
+
+    it('sibling nodes have a minimum padding between each other', async () => {
+      const jsonRoot = createJsonFromClassNames('pkg1.SomeClass1', 'pkg1.SomeClass2',
+        'pkg2.SomeClass', 'pkg3.SomeClass', 'pkg4.SomeClass');
+      const jsonDependencies = createMethodCallDependencies(jsonRoot,
+        {from: 'pkg1.SomeClass1', to: 'pkg2.SomeClass'}, {from: 'pkg1.SomeClass2', to: 'pkg1.SomeClass2'},
+        {from: 'pkg1.SomeClass2', to: 'pkg1.SomeClass2'});
+
+      const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
+      await graphGui.isReady();
+
+      graphGui.test.expectSiblingNodesToHaveAtLeastPadding(circlePadding, 'pkg1', 'pkg2', 'pkg3', 'pkg4');
+    });
+
+    it('', async () => {
+
+    });
+  });
+
+  //TODO: alle möglichen Interaktionen des Users mit der GUI testen
+
+  const jsonRootWithTwoClasses = nodeCreator.package('com.tngtech.archunit')
+    .add(nodeCreator.package('pkg1')
+      .add(nodeCreator.clazz('SomeClass', 'class').build())
       .build())
-    .add(testRoot.package('pkg2')
-      .add(testRoot.clazz('SomeClass', 'class').build())
+    .add(nodeCreator.package('pkg2')
+      .add(nodeCreator.clazz('SomeClass', 'class').build())
       .build())
     .build();
-  const jsonDependenciesOfTwoClass = createTestDependencies()
+  const jsonDependenciesOfTwoClass = createDependencies()
     .addMethodCall().from('com.tngtech.archunit.pkg1.SomeClass', 'startMethod()')
     .to('com.tngtech.archunit.pkg2.SomeClass', 'targetMethod()')
     .build();
-  const jsonGraphWithTwoClasses = createTestGraph(jsonRootWithTwoClasses, jsonDependenciesOfTwoClass);
+  const jsonGraphWithTwoClasses = createGraph(jsonRootWithTwoClasses, jsonDependenciesOfTwoClass);
 
-  it('creates a correct tree-structure with dependencies and a correct layout', () => {
-    const graph = initGraph(appContextWith(jsonGraphWithTwoClasses)).create();
 
-    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1',
-      'com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2',
-      'com.tngtech.archunit.pkg2.SomeClass'];
-    const expDeps = ['com.tngtech.archunit.pkg1.SomeClass-com.tngtech.archunit.pkg2.SomeClass'];
+  // FIXME -> Test infrastructure
 
-    const actNodes = graph.root.getSelfAndDescendants();
-    const actDeps = graph.dependencies._getVisibleDependencies();
-    expect(actNodes).to.containExactlyNodes(expNodes);
-    expect(actDeps).to.haveDependencyStrings(expDeps);
-    return graph.root._updatePromise;
+  const createMethodCallDependencies = (jsonRoot, ...predicatesOrPartialNames) => {
+    const createNodePredicate = predicateOrPartialName => typeof predicateOrPartialName === 'string'
+      ? node => node.fullName.includes(predicateOrPartialName)
+      : predicateOrPartialName;
+
+    const predicates = predicatesOrPartialNames.map(({from, to}) => ({
+      fromPredicate: createNodePredicate(from),
+      toPredicate: createNodePredicate(to)
+    }));
+
+    const findMatchingEnds = (node, {fromPredicate, toPredicate}) => {
+      const matchingFrom = [];
+      const matchingTo = [];
+      const findAllMatchingEnds = node => {
+        if (fromPredicate(node)) {
+          matchingFrom.push(node);
+        }
+        if (toPredicate(node)) {
+          matchingTo.push(node)
+        }
+        node.children.forEach(findAllMatchingEnds)
+      };
+      findAllMatchingEnds(node);
+      if (matchingFrom.length !== 1 || matchingTo.length !== 1) {
+        throw new Error("from- and toPredicate must match exactly one node each")
+      }
+      return {matchingFrom: matchingFrom[0], matchingTo: matchingTo[0]};
+    };
+    const matchingEnds = predicates.map(fromAndToPredicates => findMatchingEnds(jsonRoot, fromAndToPredicates));
+
+    const creator = createDependencies();
+    matchingEnds.forEach(({matchingFrom, matchingTo}) => creator.addMethodCall().from(matchingFrom.fullName, 'startMethod()')
+      .to(matchingTo.fullName, 'targetMethod()'));
+    return creator.build();
+  };
+
+  //TODO: maybe do not create map from visual nesting, but from svg ids and check visual nesting in layout function...ask Peter what is better
+  /*const createMapWithNodeFullNamesToSvgGroup = svgElement => {
+    const svgGroupsWithAVisibleCircle = svgElement.getAllGroupsContainingAVisibleElementOfType('circle');
+    svgGroupsWithAVisibleCircle.sort((g1, g2) => g2.getVisibleCircleRadius() - g1.getVisibleCircleRadius());
+    const map = new Map();
+
+    const splitByCircleLiesWithinNext = (svgGroupsToSplit, nextSvgGroup) => {
+      const svgGroupsWithin = [];
+      const svgGroupsNotWithin = [];
+      const positionOfNext = nextSvgGroup.getVisibleSubElementOfType('circle').absolutePosition;
+      const radiusOfNext = nextSvgGroup.getVisibleCircleRadius();
+
+      const circleIsWithinNextCircle = (position, radius) => {
+        const positionDiff = {
+          x: position.x - positionOfNext.x,
+          y: position.y - positionOfNext.y
+        };
+        const middlePointDistance = Math.sqrt(positionDiff.x * positionDiff.x + positionDiff.y * positionDiff.y);
+        return middlePointDistance + radius <= radiusOfNext;
+      };
+
+      svgGroupsToSplit.forEach(svgGroup => {
+        const radius = svgGroup.getVisibleCircleRadius();
+        const position = svgGroup.getVisibleSubElementOfType('circle').absolutePosition;
+        if (circleIsWithinNextCircle(position, radius)) {
+          svgGroupsWithin.push(svgGroup);
+        } else {
+          svgGroupsNotWithin.push(svgGroup);
+        }
+      });
+
+      return {svgGroupsWithin, svgGroupsNotWithin};
+    };
+
+    const addNextSvgElementToMap = (fullNameSoFar, svgGroupsSortedByCircleRadius) => {
+      if (svgGroupsSortedByCircleRadius.length === 0) {
+        return;
+      }
+      const next = svgGroupsSortedByCircleRadius.shift();
+      const split = splitByCircleLiesWithinNext(svgGroupsSortedByCircleRadius, next);
+
+      const fullNameOfNext = fullNameSoFar + next.getVisibleText();
+      map.set(fullNameOfNext, next);
+      addNextSvgElementToMap(fullNameOfNext + (next._cssClasses.has('package') ? '.' : '$'), split.svgGroupsWithin);
+      addNextSvgElementToMap(fullNameSoFar, split.svgGroupsNotWithin);
+    };
+
+    addNextSvgElementToMap('', svgGroupsWithAVisibleCircle);
+
+    return map;
+  };*/
+
+  const createMapWithNodeFullNamesToSvgGroup = svgElement => {
+    const svgGroupsWithAVisibleCircle = svgElement.getAllGroupsContainingAVisibleElementOfType('circle');
+    return new Map(svgGroupsWithAVisibleCircle.map(svgGroup => [svgGroup.getAttribute('id'), svgGroup]));
+  };
+
+  const createTestGui = graph => {
+    const testGui = {
+      clickNode: fullNodeName => {
+        testGui.inspect.getMapWithNodeFullNamesToSvgGroup().get(fullNodeName).getVisibleSubElementOfType('circle').click({
+          ctrlKey: false,
+          altKey: false
+        })
+      },
+      test: {
+        expectOnlyVisibleNodes: (...nodeFullNames) => expect(graph).to.haveOnlyVisibleNodes(nodeFullNames),
+        expectOnlyVisibleDependencies: (...dependencyIds) => expect(graph).to.haveOnlyVisibleDependencies(dependencyIds),
+        expectSiblingNodesToHaveAtLeastPadding: (padding, ...nodeFullNames) => expect(testGui.inspect.getMapWithNodeFullNamesToSvgGroup())
+          .to.haveSiblingNodesWithPaddingAtLeast(padding, nodeFullNames),
+        expectNodesToHaveAtLeastPaddingFromParent: (padding, parentFullName, ...nodeFullNames) => expect(testGui.inspect.getMapWithNodeFullNamesToSvgGroup())
+          .to.haveNodesWithPaddingToParentAtLeast(padding, parentFullName, nodeFullNames),
+        expectNodeToHaveCssClass: (nodeFullName, cssClass) => expect(testGui.inspect.getMapWithNodeFullNamesToSvgGroup().get(nodeFullName)).to.haveCssClass(cssClass)
+      },
+      inspect: {
+        getMapWithNodeFullNamesToSvgGroup: () => createMapWithNodeFullNamesToSvgGroup(graph._view.svgElement),
+
+      },
+      isReady: () => graph._root._updatePromise
+    };
+    return testGui;
+  };
+
+  const createTestGraphGui = (jsonRoot, jsonDependencies) => createTestGui(realInitGraph(appContextWith(createGraph(jsonRoot, jsonDependencies))).create());
+
+
+  it('shows only the top level packages right after creation', async () => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass$TmpInner$TmpInner2', 'some.package.SomeClass');
+    const jsonDependencies = createMethodCallDependencies(jsonRoot, {from: 'archunit.SomeClass', to: 'package.SomeClass'});
+
+    const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
+    await graphGui.isReady();
+
+    graphGui.test.expectOnlyVisibleNodes('com.tngtech.archunit', 'some.package');
+    graphGui.test.expectOnlyVisibleDependencies('com.tngtech.archunit-some.package');
   });
+
+  it('shows children if I click on a node', () => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2.SomeClass');
+    const jsonDependencies = createMethodCallDependencies(jsonRoot, 'pkg1.SomeClass', 'pkg2.SomeClass');
+
+    const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
+
+    graphGui.clickNode('com.tngtech.archunit');
+
+    graphGui.expectOnlyVisibleNodes('com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2');
+    graphGui.expectOnlyVisibleDependencies({from: 'pkg1.SomeClass', to: 'pkg2.SomeClass'});
+  });
+
+  //TODO: Mock für Filter Menü
+  //TODO: Jeder mögliche Filter-Usecase eher in Node
+  //TODO: extra Layout-Test, siehe dazu auch TODOs in graph-chai-extensions
 
   it('initially folds all nodes', () => {
     const graph = realInitGraph(appContextWith(jsonGraphWithTwoClasses)).create(null);
@@ -72,24 +257,24 @@ describe('Graph', () => {
     const expDeps = ['com.tngtech.archunit.pkg1-com.tngtech.archunit.pkg2'];
 
     expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-    expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+    expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
     return graph.root._updatePromise;
   });
 
   it('can filter node by name containing', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass1', 'class').build())
-      .add(testRoot.clazz('SomeClass2', 'class').build())
-      .add(testRoot.clazz('NotMatchingClass', 'class')
+    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
+      .add(nodeCreator.clazz('SomeClass1', 'class').build())
+      .add(nodeCreator.clazz('SomeClass2', 'class').build())
+      .add(nodeCreator.clazz('NotMatchingClass', 'class')
         .build())
       .build();
-    const jsonDependencies = createTestDependencies()
+    const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .addMethodCall().from('com.tngtech.archunit.SomeClass2', 'startMethod()')
       .to('com.tngtech.archunit.NotMatchingClass', 'targetMethod()')
       .build();
-    const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
+    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
 
     const graph = initGraph(appContextWith(jsonGraph)).create();
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
@@ -99,23 +284,23 @@ describe('Graph', () => {
 
     return graph.root._updatePromise.then(() => {
       expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-      expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+      expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
     });
   });
 
   it('can filter node by name not containing', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass1', 'class').build())
-      .add(testRoot.clazz('SomeClass2', 'class').build())
-      .add(testRoot.clazz('MatchingClass', 'class').build())
+    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
+      .add(nodeCreator.clazz('SomeClass1', 'class').build())
+      .add(nodeCreator.clazz('SomeClass2', 'class').build())
+      .add(nodeCreator.clazz('MatchingClass', 'class').build())
       .build();
-    const jsonDependencies = createTestDependencies()
+    const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .addMethodCall().from('com.tngtech.archunit.SomeClass2', 'startMethod()')
       .to('com.tngtech.archunit.MatchingClass', 'targetMethod()')
       .build();
-    const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
+    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
 
     const graph = initGraph(appContextWith(jsonGraph)).create();
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
@@ -125,23 +310,23 @@ describe('Graph', () => {
 
     return graph.root._updatePromise.then(() => {
       expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-      expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+      expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
     });
   });
 
   it('can filter nodes by type', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass1', 'class').build())
-      .add(testRoot.clazz('SomeClass2', 'class').build())
-      .add(testRoot.clazz('SomeInterface', 'interface').build())
+    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
+      .add(nodeCreator.clazz('SomeClass1', 'class').build())
+      .add(nodeCreator.clazz('SomeClass2', 'class').build())
+      .add(nodeCreator.clazz('SomeInterface', 'interface').build())
       .build();
-    const jsonDependencies = createTestDependencies()
+    const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .addMethodCall().from('com.tngtech.archunit.SomeClass2', 'startMethod()')
       .to('com.tngtech.archunit.SomeInterface', 'targetMethod()')
       .build();
-    const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
+    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
 
     const graph = initGraph(appContextWith(jsonGraph)).create();
     const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
@@ -151,22 +336,22 @@ describe('Graph', () => {
 
     return graph.root._updatePromise.then(() => {
       expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-      expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+      expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
     });
   });
 
   it('can filter dependencies by type', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass1', 'class').build())
-      .add(testRoot.clazz('SomeClass2', 'class').build())
+    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
+      .add(nodeCreator.clazz('SomeClass1', 'class').build())
+      .add(nodeCreator.clazz('SomeClass2', 'class').build())
       .build();
-    const jsonDependencies = createTestDependencies()
+    const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .addInheritance().from('com.tngtech.archunit.SomeClass2')
       .to('com.tngtech.archunit.SomeClass1')
       .build();
-    const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
+    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
 
     const graph = initGraph(appContextWith(jsonGraph)).create();
     const expDeps = ['com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2'];
@@ -178,42 +363,42 @@ describe('Graph', () => {
       FIELD_ACCESS: false
     });
 
-    return graph.root._updatePromise.then(() => expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps));
+    return graph.root._updatePromise.then(() => expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps));
   });
 
   it('transforms the dependencies if a node is folded', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.package('pkgToFold')
-        .add(testRoot.clazz('SomeClass1', 'class').build())
+    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
+      .add(nodeCreator.package('pkgToFold')
+        .add(nodeCreator.clazz('SomeClass1', 'class').build())
         .build())
-      .add(testRoot.clazz('SomeClass2', 'class').build())
+      .add(nodeCreator.clazz('SomeClass2', 'class').build())
       .build();
-    const jsonDependencies = createTestDependencies()
+    const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.pkgToFold.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .build();
-    const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
+    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
 
     const graph = initGraph(appContextWith(jsonGraph)).create();
     const exp = ['com.tngtech.archunit.pkgToFold-com.tngtech.archunit.SomeClass2'];
 
     graph.root.getByName('com.tngtech.archunit.pkgToFold')._changeFoldIfInnerNodeAndRelayout();
 
-    expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(exp);
+    expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(exp);
 
     return graph.root._updatePromise;
   });
 
   it('updates the positions of the dependencies if a node is dragged', () => {
-    const jsonRoot = testRoot.package('com.tngtech.archunit')
-      .add(testRoot.clazz('SomeClass1', 'class').build())
-      .add(testRoot.clazz('SomeClass2', 'class').build())
+    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
+      .add(nodeCreator.clazz('SomeClass1', 'class').build())
+      .add(nodeCreator.clazz('SomeClass2', 'class').build())
       .build();
-    const jsonDependencies = createTestDependencies()
+    const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .build();
-    const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
+    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
 
     const graph = initGraph(appContextWith(jsonGraph)).create();
     graph.root.getByName('com.tngtech.archunit.SomeClass1')._drag(10, 10);
@@ -222,21 +407,21 @@ describe('Graph', () => {
 
   it('can change the fold-states of the nodes to show all violations', () => {
     const jsonRoot =
-      testRoot.package('com.tngtech')
-        .add(testRoot.package('pkg1')
-          .add(testRoot.package('pkg2')
-            .add(testRoot.clazz('SomeClass2', 'class').build())
+      nodeCreator.package('com.tngtech')
+        .add(nodeCreator.package('pkg1')
+          .add(nodeCreator.package('pkg2')
+            .add(nodeCreator.clazz('SomeClass2', 'class').build())
             .build())
-          .add(testRoot.clazz('SomeClass1', 'class').build())
+          .add(nodeCreator.clazz('SomeClass1', 'class').build())
           .build())
         .build();
-    const jsonDependencies = createTestDependencies()
+    const jsonDependencies = createDependencies()
       .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass2')
       .to('com.tngtech.pkg1.SomeClass1')
       .addFieldAccess().from('com.tngtech.pkg1.SomeClass1', 'startMethod()')
       .to('com.tngtech.pkg1.pkg2.SomeClass2', 'targetField')
       .build();
-    const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
+    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
 
     const violations = [{
       rule: 'rule1',
@@ -259,24 +444,24 @@ describe('Graph', () => {
 
   it('can fold nodes with minimum depth that have no violations', () => {
     const jsonRoot =
-      testRoot.package('com.tngtech')
-        .add(testRoot.package('pkg1')
-          .add(testRoot.package('pkg2')
-            .add(testRoot.clazz('SomeClass2', 'class').build())
+      nodeCreator.package('com.tngtech')
+        .add(nodeCreator.package('pkg1')
+          .add(nodeCreator.package('pkg2')
+            .add(nodeCreator.clazz('SomeClass2', 'class').build())
             .build())
-          .add(testRoot.clazz('SomeClass1', 'class').build())
+          .add(nodeCreator.clazz('SomeClass1', 'class').build())
           .build())
-        .add(testRoot.package('pkg3')
-          .add(testRoot.clazz('SomeOtherClass', 'class').build())
+        .add(nodeCreator.package('pkg3')
+          .add(nodeCreator.clazz('SomeOtherClass', 'class').build())
           .build())
         .build();
-    const jsonDependencies = createTestDependencies()
+    const jsonDependencies = createDependencies()
       .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass2')
       .to('com.tngtech.pkg1.SomeClass1')
       .addFieldAccess().from('com.tngtech.pkg3.SomeOtherClass', 'startMethod()')
       .to('com.tngtech.pkg1.pkg2.SomeClass2', 'targetField')
       .build();
-    const jsonGraph = createTestGraph(jsonRoot, jsonDependencies);
+    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
 
     const violations = [{
       rule: 'rule1',
@@ -304,22 +489,22 @@ describe('Graph', () => {
   });
 
   const jsonRootWithThreeClasses =
-    testRoot.package('com.tngtech')
-      .add(testRoot.package('pkg1')
-        .add(testRoot.package('pkg2')
-          .add(testRoot.clazz('SomeClass2', 'class').build())
-          .add(testRoot.clazz('SomeClass3', 'class').build())
+    nodeCreator.package('com.tngtech')
+      .add(nodeCreator.package('pkg1')
+        .add(nodeCreator.package('pkg2')
+          .add(nodeCreator.clazz('SomeClass2', 'class').build())
+          .add(nodeCreator.clazz('SomeClass3', 'class').build())
           .build())
-        .add(testRoot.clazz('SomeClass1', 'class').build())
+        .add(nodeCreator.clazz('SomeClass1', 'class').build())
         .build())
       .build();
-  const jsonDependenciesForThreeClasses = createTestDependencies()
+  const jsonDependenciesForThreeClasses = createDependencies()
     .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass2')
     .to('com.tngtech.pkg1.SomeClass1')
     .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass3')
     .to('com.tngtech.pkg1.SomeClass1')
     .build();
-  const jsonGraphWithThreeClasses = createTestGraph(jsonRootWithThreeClasses, jsonDependenciesForThreeClasses);
+  const jsonGraphWithThreeClasses = createGraph(jsonRootWithThreeClasses, jsonDependenciesForThreeClasses);
   const violationsForThreeClasses = [{
     rule: 'rule1',
     violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
@@ -342,7 +527,7 @@ describe('Graph', () => {
           'com.tngtech.pkg1.SomeClass1'];
         const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1'];
         expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-        expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+        expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
 
         graph.onHideNodesWithoutViolationsChanged(false);
 
@@ -352,7 +537,7 @@ describe('Graph', () => {
           const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1',
             'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1'];
           expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-          expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+          expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
 
           return graph.root._updatePromise;
         });
@@ -373,7 +558,7 @@ describe('Graph', () => {
           'com.tngtech.pkg1.SomeClass1'];
         const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1'];
         expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-        expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+        expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
 
         graph.showViolations(violationsForThreeClasses[1]);
 
@@ -383,7 +568,7 @@ describe('Graph', () => {
           const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1',
             'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1'];
           expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-          expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+          expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
 
           graph.hideViolations(violationsForThreeClasses[0]);
 
@@ -392,7 +577,7 @@ describe('Graph', () => {
               'com.tngtech.pkg1.pkg2.SomeClass3', 'com.tngtech.pkg1.SomeClass1'];
             const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1'];
             expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-            expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+            expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
 
             graph.hideViolations(violationsForThreeClasses[1]);
 
@@ -402,7 +587,7 @@ describe('Graph', () => {
               const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1',
                 'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1'];
               expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-              expect(graph.dependencies._getVisibleDependencies()).to.haveDependencyStrings(expDeps);
+              expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
 
               return graph.root._updatePromise;
             });

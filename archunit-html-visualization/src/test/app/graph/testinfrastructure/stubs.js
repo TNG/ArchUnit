@@ -1,16 +1,5 @@
 'use strict';
 
-const createVisualizationStylesStub = (circlePadding = 1, nodeFontSize = 10) => {
-  let _circlePadding = circlePadding;
-  let _nodeFontSize = nodeFontSize;
-  return {
-    getCirclePadding: () => _circlePadding,
-    setCirclePadding: padding => _circlePadding = padding,
-    getNodeFontSize: () => _nodeFontSize,
-    setNodeFontSize: fontSize => _nodeFontSize = fontSize
-  };
-};
-
 //all nodes are added to this list when they are moved to their position to be able to track the process
 let movedNodes = [];
 let nodesWhoseRadiusWasChanged = [];
@@ -156,7 +145,6 @@ const createNodeListenerStub = () => {
 };
 
 module.exports = {
-  visualizationStylesStub: createVisualizationStylesStub,
   NodeViewStub: NodeViewStub,
   DependencyViewStub: DependencyViewStub,
   DetailedDependencyViewStub: DetailedDependencyViewStub,

@@ -163,7 +163,7 @@ const SvgSelectionMock = class extends D3ElementMock {
     this._parent = null;
   }
 
-  createTransitionWithDuration(duration) {
+  createTransitionWithDuration() {
     return new TransitionMock(this);
   }
 

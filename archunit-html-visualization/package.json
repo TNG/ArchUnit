@@ -15,7 +15,7 @@
     "root": true,
     "extends": "eslint:recommended",
     "parserOptions": {
-      "ecmaVersion": 6,
+      "ecmaVersion": 2018,
       "sourceType": "module"
     },
     "env": {
@@ -46,9 +46,9 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "css-loader": "^2.0.1",
-    "eslint": "^4.1.0",
-    "eslint-plugin-html": "^3.0.0",
-    "eslint-plugin-promise": "^3.5.0",
+    "eslint": "^6.0.1",
+    "eslint-plugin-html": "^6.0.0",
+    "eslint-plugin-promise": "^4.2.1",
     "mocha": "^6.0.2",
     "nodemon": "^1.11.0",
     "polymer-bundler": "^4.0.2",

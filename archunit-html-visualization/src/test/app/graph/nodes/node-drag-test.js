@@ -7,7 +7,6 @@ const createListenerMock = require('../testinfrastructure/listener-mock').create
 
 const RootUi = require('./testinfrastructure/root-ui');
 
-const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
 const vectors = require('../../../../main/app/graph/infrastructure/vectors').vectors;
 
 describe('Dragging a node', () => {

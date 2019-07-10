@@ -70,7 +70,7 @@ const RootRect = class extends NodeShape {
     return Promise.all([promise, listenerPromise]);
   }
 
-  _jumpToPosition(x, y, directionVector) {
+  _jumpToPosition(x, y) {
     const oldRelativePosition = Vector.from(this.relativePosition);
     this.relativePosition.changeTo(new Vector(x, y));
     this._updateAbsolutePositionAndDescendants();
@@ -78,7 +78,7 @@ const RootRect = class extends NodeShape {
     this._listener.onRimPositionChanged();
   }
 
-  _expand(relativeCircle, padding, directionVector) {
+  _expand(relativeCircle, padding) {
     if (!this.absoluteRect.relativeCircleIsWithinWidth(relativeCircle, padding)) {
       this.absoluteRect.halfWidth = Math.abs(relativeCircle.centerPosition.x) + relativeCircle.r + padding;
     }
@@ -87,7 +87,7 @@ const RootRect = class extends NodeShape {
       this.absoluteRect.halfHeight = Math.abs(relativeCircle.centerPosition.y) + relativeCircle.r + padding;
     }
 
-    this._jumpToPosition(this.absoluteRect.halfWidth, this.absoluteRect.halfHeight, directionVector);
+    this._jumpToPosition(this.absoluteRect.halfWidth, this.absoluteRect.halfHeight);
     this._listener.onNodeRimChanged();
   }
 };
@@ -118,13 +118,13 @@ const NodeCircle = class extends NodeShape {
   jumpToRelativeDisplacement(dx, dy, padding) {
     const directionVector = new Vector(dx, dy);
     const position = vectors.add(this.relativePosition, directionVector);
-    this._jumpToPosition(position.x, position.y, padding, directionVector);
+    this._jumpToPosition(position.x, position.y, padding);
   }
 
-  _jumpToPosition(x, y, padding, directionVector) {
+  _jumpToPosition(x, y, padding) {
     const newRelativeCircle = Circle.from(new Vector(x, y), this.absoluteFixableCircle.r);
     if (!this.absoluteReferenceShape.containsRelativeCircle(newRelativeCircle)) {
-      this._node.getParent()._nodeShape._expand(newRelativeCircle, padding, directionVector);
+      this._node.getParent()._nodeShape._expand(newRelativeCircle, padding);
     } else {
       //call the listener, if no node is expanded
       this._listener.onNodeRimChanged();
@@ -160,12 +160,12 @@ const NodeCircle = class extends NodeShape {
     this.absoluteFixableCircle.centerPosition.changeTo(vectors.add(this.relativePosition, this.absoluteReferenceShape.centerPosition));
   }
 
-  _expand(relativeCircle, padding, directionVector) {
+  _expand(relativeCircle, padding) {
     const r = relativeCircle.centerPosition.length() + relativeCircle.r;
     this.absoluteFixableCircle.r = r + padding;
     const newRelativeCircle = Circle.from(this.relativePosition, this.absoluteFixableCircle.r);
     if (!this.absoluteReferenceShape.containsRelativeCircle(newRelativeCircle)) {
-      this._node.getParent()._nodeShape._expand(newRelativeCircle, padding, directionVector);
+      this._node.getParent()._nodeShape._expand(newRelativeCircle, padding);
     } else {
       //call the listener for the last expanded node
       this._listener.onNodeRimChanged();

@@ -14,7 +14,6 @@ const createMockRootFromClassNames = (...args) => {
     }
   }
 
-  //FIXME: does this preserve the order??
   const jsonRoot = createJsonFromClassNames(...classNames);
   const mockRoot = new (initNodeMock())(jsonRoot, svgContainerElement);
   return mockRoot;

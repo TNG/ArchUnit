@@ -7,7 +7,7 @@ const init = (getDependencyCreator) => {
   const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
   let nodes = new Map();
-  let dependencyCreator = getDependencyCreator();
+  const dependencyCreator = getDependencyCreator();
 
   const fullNameStartsWithOtherFullName = (fullName, prefix) => nodes.getByName(prefix).isPredecessorOfNodeOrItself(nodes.getByName(fullName));
 

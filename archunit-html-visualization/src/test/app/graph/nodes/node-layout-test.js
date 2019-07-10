@@ -55,7 +55,6 @@ describe('Node layout', () => {
     it('considers a changed node font size', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('somePkgWithVeryLongName.Class');
 
-      const newFontSize = 30;
       visualizationStyles.setNodeFontSize(30);
 
       root.relayoutCompletely();

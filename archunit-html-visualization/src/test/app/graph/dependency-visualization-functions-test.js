@@ -6,7 +6,6 @@ const chaiExtensions = require('./testinfrastructure/general-chai-extensions');
 chai.use(chaiExtensions);
 
 const dependencyVisualizationFunctionsFactory = require('../../../main/app/graph/dependency-visualization-functions');
-const {Vector} = require('../../../main/app/graph/infrastructure/vectors');
 
 const visualizationFunctions = dependencyVisualizationFunctionsFactory.newInstance();
 
@@ -180,7 +179,7 @@ describe('Calculates correct start end end point of a dependency, where another 
     const endCircle = {x: 100, y: 200, r: 20};
 
     const results = visualizationFunctions.calculateStartAndEndPositionOfDependency(true, startCircle, endCircle);
-    expect(results.startPoint).to.deep.closeTo({x: 193.675445, y: 118.973666},);
+    expect(results.startPoint).to.deep.closeTo({x: 193.675445, y: 118.973666});
     expect(results.endPoint).to.deep.closeTo({x: 118.973666, y: 193.675445});
   });
 

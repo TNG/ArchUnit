@@ -7,17 +7,16 @@ const TestDependencyCreator = class {
   constructor(dependencyCreator) {
     this._dependencyCreator = dependencyCreator;
 
-    this.svgContainer = svg.createGroup();
-    const svgNodesContainer = this.svgContainer.addGroup();
-    this.svgDetailedDepsContainer = this.svgContainer.addGroup();
+    this._svgContainer = svg.createSvgRoot().addGroup();
+    const svgNodesContainer = this._svgContainer.addGroup();
+    this._svgDetailedDepsContainer = this._svgContainer.addGroup();
 
-    this._index = 0;
     this.parentFrom = 'my.company.somePkg';
     this.parentTo = 'my.company.otherPkg';
     this.from = 'my.company.somePkg.SomeClass';
     this.to = 'my.company.otherPkg.OtherClass';
 
-    const mockRoot = createMockRootFromClassNames(this.from, this.to, this.svgContainer);
+    const mockRoot = createMockRootFromClassNames(this.from, this.to, svgNodesContainer);
 
     this.parentOriginNode = mockRoot.getByName(this.parentFrom);
     this.parentTargetNode = mockRoot.getByName(this.parentTo);
@@ -63,7 +62,7 @@ const TestDependencyCreator = class {
     this._currentDescriptions.set(dependencyString, elementaryDependencies.map(d => d.description));
     const groupedDependency = this._dependencyCreator.getUniqueDependency(originNode, targetNode,
       callback => callback(groupedDependency),
-      () => this._currentDescriptions.get(dependencyString), this.svgDetailedDepsContainer, () => this.svgContainer.width)
+      () => this._currentDescriptions.get(dependencyString), this._svgDetailedDepsContainer, () => this._svgContainer.width)
       .byGroupingDependencies(elementaryDependencies);
     return groupedDependency;
   }

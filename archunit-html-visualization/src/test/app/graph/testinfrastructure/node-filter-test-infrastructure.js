@@ -31,14 +31,14 @@ const filterOn = (root, filterCollection) => {
     applyFilters();
   };
 
-  const await = async () => {
+  const waitFor = async () => {
     applyFilters();
     await root._updatePromise;
   };
 
   const and = {
     and: filter,
-    goOn, await
+    goOn, await: waitFor
   };
 
   return filter;

@@ -6,14 +6,6 @@ const Assertion = require('chai').Assertion;
 
 const nodesFrom = root => Array.from(root.getSelfAndDescendants());
 
-const convertActualAndExpectedToStrings = (actual, args) => {
-  const expectedNodeFullNames = Array.isArray(args[0]) ? args[0] : Array.from(args);
-
-  const actualStrings = actual.map(n => n.getFullName()).sort();
-  const expectedStrings = expectedNodeFullNames.sort();
-  return {actualStrings, expectedStrings};
-};
-
 const getHiddenChildrenOfNode = node => node._originalChildren.filter(child => !node.getCurrentChildren().includes(child));
 
 const assertThatVisibilityOfNodesIsConsistent = root => {
