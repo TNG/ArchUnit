@@ -2,6 +2,8 @@
 
 //TODO: maybe own directory in infrastructure for mocks
 
+const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
+
 const D3ElementMock = class {
   constructor(svgType, attributes) {
     this._svgType = svgType;
@@ -421,6 +423,10 @@ const SvgSelectionMock = class extends D3ElementMock {
     const x2 = this.getAttribute('x2');
     const y2 = this.getAttribute('y2');
     return this._getAbsolutePosition(x2, y2);
+  }
+
+  get lineLength() {
+    return Vector.between(this.absoluteStartPosition, this.absoluteEndPosition).length();
   }
 
   /**

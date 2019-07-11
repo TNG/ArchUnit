@@ -385,14 +385,10 @@ describe('GroupedDependency', () => {
             Vector.between(testDepCreator.originNode.absoluteFixableCircle, testDepCreator.targetNode.absoluteFixableCircle).length()
             - (testDepCreator.originNode.absoluteFixableCircle.r + testDepCreator.targetNode.absoluteFixableCircle.r);
 
-          const startPosition = dependencyUi.line.absoluteStartPosition;
-          const endPosition = dependencyUi.line.absoluteEndPosition;
+          dependencyUi.expectToTouchOriginNode();
+          dependencyUi.expectToTouchTargetNode();
 
-          expect(Vector.between(testDepCreator.originNode.absoluteFixableCircle, startPosition).length())
-            .to.equal(testDepCreator.originNode.absoluteFixableCircle.r);
-          expect(Vector.between(testDepCreator.targetNode.absoluteFixableCircle, endPosition).length())
-            .to.equal(testDepCreator.targetNode.absoluteFixableCircle.r);
-          expect(Vector.between(startPosition, endPosition).length()).to.equal(expectedDependencyLength);
+          expect(dependencyUi.line.lineLength).to.equal(expectedDependencyLength);
         });
 
         it('#startPoint and #endPoint equal the drawn positions', () => {
@@ -452,14 +448,10 @@ describe('GroupedDependency', () => {
             Vector.between(testDepCreator.originNode.absoluteFixableCircle, testDepCreator.targetNode.absoluteFixableCircle).length()
             - (testDepCreator.originNode.absoluteFixableCircle.r + testDepCreator.targetNode.absoluteFixableCircle.r);
 
-          const startPosition = dependencyUi.line.absoluteStartPosition;
-          const endPosition = dependencyUi.line.absoluteEndPosition;
+          dependencyUi.expectToTouchOriginNode();
+          dependencyUi.expectToTouchTargetNode();
 
-          expect(Vector.between(testDepCreator.originNode.absoluteFixableCircle, startPosition).length())
-            .to.equal(testDepCreator.originNode.absoluteFixableCircle.r);
-          expect(Vector.between(testDepCreator.targetNode.absoluteFixableCircle, endPosition).length())
-            .to.equal(testDepCreator.targetNode.absoluteFixableCircle.r);
-          expect(Vector.between(startPosition, endPosition).length()).to.equal(expectedDependencyLength);
+          expect(dependencyUi.line.lineLength).to.equal(expectedDependencyLength);
         });
 
         it('#startPoint and #endPoint equal the drawn positions', () => {

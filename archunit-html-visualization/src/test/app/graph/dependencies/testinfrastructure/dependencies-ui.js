@@ -4,6 +4,10 @@ const expect = require('chai').expect;
 
 const DetailedDependencyUi = require('./detailed-dependency-ui').DetailedDependencyUi;
 
+const Vector = require('../../../../../main/app/graph/infrastructure/vectors').Vector;
+
+const MAXIMUM_DELTA = 0.0001;
+
 const sleep = (timeInMs) => {
   return new Promise(resolve => {
     setTimeout(resolve, timeInMs);
@@ -71,6 +75,16 @@ class DependencyUi {
 
   expectToEqual(otherDependencyUi) {
     expect(this.equals(otherDependencyUi)).to.be.true;
+  }
+
+  expectToTouchOriginNode() {
+    const originCircle = this._dependency.originNode.absoluteFixableCircle;
+    expect(Vector.between(originCircle, this.line.absoluteStartPosition).length()).to.be.closeTo(originCircle.r, MAXIMUM_DELTA);
+  }
+
+  expectToTouchTargetNode() {
+    const targetCircle = this._dependency.targetNode.absoluteFixableCircle;
+    expect(Vector.between(targetCircle, this.line.absoluteEndPosition).length()).to.be.closeTo(targetCircle.r, MAXIMUM_DELTA);
   }
 
   async hoverOverAndWaitFor(timeInMs) {

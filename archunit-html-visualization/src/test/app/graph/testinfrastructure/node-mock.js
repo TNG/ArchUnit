@@ -22,7 +22,7 @@ const init = () => {
       this._fullName = jsonNode.fullName;
       this._isPackage = jsonNode.type === 'package';
       this._zIndex = zIndex;
-      this._circle = {x: 0, y: 0, r: 10};
+      this._circle = {r: 10};
       this._parent = parent;
 
       if (svgContainerElement) {
@@ -38,8 +38,13 @@ const init = () => {
       const childCircles = this.children.map(child => child._circle);
       d3.packSiblings(childCircles);
       this.children.forEach(child => child._updatePosition());
-      const enclosingCircle = childCircles.length === 0 ? {r: 10} : d3.packEnclose(childCircles);
-      this._circle.r = Math.max(enclosingCircle.r, MIN_RADIUS);
+      const enclosingCircle = childCircles.length === 0 ? {r: MIN_RADIUS} : d3.packEnclose(childCircles);
+      this._circle.r = enclosingCircle.r;
+
+      if (this._parent === null) {
+        this._circle.x = 0;
+        this._circle.y = 0;
+      }
 
       this._setOfOverlappingNodes = new Set();
 

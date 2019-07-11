@@ -1,10 +1,14 @@
 'use strict';
 
-//const chai = require('chai');
-//const expect = chai.expect;
+const chai = require('chai');
+const expect = chai.expect;
 
 const transitionDuration = 5;
 const textPadding = 5;
+
+const MAXIMUM_DELTA = 0.0001;
+
+const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
 
 const guiElementsMock = require('../testinfrastructure/gui-elements-mock');
 const AppContext = require('../../../../main/app/graph/app-context');
@@ -16,14 +20,15 @@ const DependenciesUi = require('./testinfrastructure/dependencies-ui').Dependenc
 
 
 describe('Dependencies', () => {
-  describe('are created correctly:', () => {
+
+  describe('#recreateVisible', () => {
+
     let dependencies;
     let dependenciesUi;
 
     before(async () => {
       dependencies = createDependencies(Dependencies,
         'my.company.somePkg.FirstClass-my.company.otherPkg.FirstClass',
-        'my.company.otherPkg.FirstClass-my.company.somePkg.FirstClass',
         'my.company.somePkg.SecondClass-my.company.otherPkg.SecondClass',
         'my.company.somePkg.SecondClass$SomeInnerClass-my.company.otherPkg.SecondClass',
         'my.company.somePkg.SecondClass$SomeInnerClass-my.company.otherPkg.ThirdClass'
@@ -36,7 +41,6 @@ describe('Dependencies', () => {
     it('displays all dependencies', () => {
       dependenciesUi.expectToShowDependencies(
         'my.company.somePkg.FirstClass-my.company.otherPkg.FirstClass',
-        'my.company.otherPkg.FirstClass-my.company.somePkg.FirstClass',
         'my.company.somePkg.SecondClass-my.company.otherPkg.SecondClass',
         'my.company.somePkg.SecondClass$SomeInnerClass-my.company.otherPkg.SecondClass',
         'my.company.somePkg.SecondClass$SomeInnerClass-my.company.otherPkg.ThirdClass'
@@ -50,9 +54,32 @@ describe('Dependencies', () => {
       });
     });
 
-    it('places all dependencies at the correct position', () => {
-      dependenciesUi.visibleDependencyUis.forEach(() => {
-        //TODO
+    it('places all dependencies directly between the circles of their end nodes', () => {
+      dependenciesUi.visibleDependencyUis.forEach(visibleDependencyUi => {
+        const originCircle = visibleDependencyUi._dependency.originNode.absoluteFixableCircle;
+        const targetCircle = visibleDependencyUi._dependency.targetNode.absoluteFixableCircle;
+        const circleMiddleDistance = Vector.between(originCircle, targetCircle).length();
+        const expectedDependencyLength = circleMiddleDistance - (originCircle.r + targetCircle.r);
+
+        expect(visibleDependencyUi.line.lineLength).to.be.closeTo(expectedDependencyLength, MAXIMUM_DELTA);
+
+        visibleDependencyUi.expectToTouchOriginNode();
+        visibleDependencyUi.expectToTouchTargetNode();
+      });
+    });
+
+    it('places mutual dependencies parallel with a small distance to each other', async () => {
+      const dependencies = createDependencies(Dependencies,
+        'my.company.FirstClass-my.company.SecondClass',
+        'my.company.SecondClass-my.company.FirstClass',
+      );
+      dependencies.recreateVisible();
+      await dependencies.createListener().onLayoutChanged();
+      const dependenciesUi = DependenciesUi.of(dependencies);
+
+      dependenciesUi.visibleDependencyUis.forEach(dependencyUi => {
+        dependencyUi.expectToTouchOriginNode();
+        dependencyUi.expectToTouchTargetNode();
       });
     });
   });
@@ -94,6 +121,7 @@ describe('Dependencies', () => {
   });
 
   describe('public API-methods', () => {
+
     describe('#getAllLinks', () => {
       //TODO:
     });
