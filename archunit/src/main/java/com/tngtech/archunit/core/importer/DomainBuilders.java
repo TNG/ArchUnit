@@ -34,6 +34,7 @@ import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.CodeUnitParameterList;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -244,8 +245,16 @@ public final class DomainBuilders {
             return get(returnType.getName());
         }
 
+        @Deprecated
+        /**
+         * @deprecated Use {@link #getCodeUnitParameters()} instead
+         */
         public JavaClassList getParameters() {
             return createJavaClassList(asJavaClasses(parameters));
+        }
+
+        public CodeUnitParameterList getCodeUnitParameters() {
+            return new CodeUnitParameterList(getParameters());
         }
 
         public <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> getThrowsClause(CODE_UNIT codeUnit) {
@@ -259,6 +268,8 @@ public final class DomainBuilders {
             }
             return result.build();
         }
+
+
     }
 
     @Internal

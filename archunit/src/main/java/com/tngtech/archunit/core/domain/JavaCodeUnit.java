@@ -48,7 +48,7 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
  */
 public abstract class JavaCodeUnit extends JavaMember implements HasParameterTypes, HasReturnType, HasThrowsClause<JavaCodeUnit> {
     private final JavaClass returnType;
-    private final JavaClassList parameters;
+    private final CodeUnitParameterList codeUnitParameters;
     private final String fullName;
 
     private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
@@ -58,7 +58,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
         this.returnType = builder.getReturnType();
-        this.parameters = builder.getParameters();
+        this.codeUnitParameters = builder.getCodeUnitParameters();
         fullName = formatMethod(getOwner().getName(), getName(), getRawParameterTypes());
     }
 
@@ -81,10 +81,23 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         return getRawParameterTypes();
     }
 
+    /**
+     * @deprecated Use {@link #getCodeUnitParameters()} instead
+     */
+    @Deprecated
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaClassList getRawParameterTypes() {
-        return parameters;
+        List<JavaClass> javaClasses = new ArrayList<JavaClass>();
+        for(CodeUnitParameter codeUnitParameter: getCodeUnitParameters()){
+            javaClasses.add(codeUnitParameter.getType());
+        }
+
+        return new JavaClassList(javaClasses);
+    }
+
+    public CodeUnitParameterList getCodeUnitParameters(){
+        return codeUnitParameters;
     }
 
     @Override
