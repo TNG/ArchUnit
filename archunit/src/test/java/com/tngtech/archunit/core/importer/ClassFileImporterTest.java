@@ -280,7 +280,7 @@ public class ClassFileImporterTest {
         assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
         assertThat(javaClass.getSuperClass().get()).as("super class").matches(Enum.class);
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
-        assertThatClasses(javaClass.getAllInterfaces()).matchInAnyOrder(Serializable.class, Comparable.class);
+        assertThatClasses(javaClass.getAllInterfaces()).matchInAnyOrder(Enum.class.getInterfaces());
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isTrue();
     }
