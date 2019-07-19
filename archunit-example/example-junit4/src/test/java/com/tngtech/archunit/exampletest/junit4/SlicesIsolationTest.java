@@ -2,8 +2,8 @@ package com.tngtech.archunit.exampletest.junit4;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
-import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
+import com.tngtech.archunit.example.layers.controller.one.UseCaseOneTwoController;
+import com.tngtech.archunit.example.layers.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
@@ -17,7 +17,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 
 @Category(Example.class)
 @RunWith(ArchUnitRunner.class)
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class SlicesIsolationTest {
     @ArchTest
     public static final ArchRule controllers_should_only_use_their_own_slice =

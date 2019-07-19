@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -16,94 +17,106 @@ import javax.persistence.EntityManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.example.AbstractController;
-import com.tngtech.archunit.example.ClassViolatingCodingRules;
-import com.tngtech.archunit.example.ClassViolatingSessionBeanRules;
-import com.tngtech.archunit.example.ClassViolatingThirdPartyRules;
-import com.tngtech.archunit.example.EvilCoreAccessor;
-import com.tngtech.archunit.example.MyController;
-import com.tngtech.archunit.example.MyService;
-import com.tngtech.archunit.example.OtherClassViolatingSessionBeanRules;
-import com.tngtech.archunit.example.SecondBeanImplementingSomeBusinessInterface;
-import com.tngtech.archunit.example.SomeBusinessInterface;
-import com.tngtech.archunit.example.SomeCustomException;
-import com.tngtech.archunit.example.SomeMediator;
-import com.tngtech.archunit.example.SomeOtherBusinessInterface;
-import com.tngtech.archunit.example.anticorruption.WithIllegalReturnType;
-import com.tngtech.archunit.example.anticorruption.WrappedResult;
-import com.tngtech.archunit.example.controller.SomeController;
-import com.tngtech.archunit.example.controller.SomeGuiController;
-import com.tngtech.archunit.example.controller.SomeUtility;
-import com.tngtech.archunit.example.controller.WronglyAnnotated;
-import com.tngtech.archunit.example.controller.one.SomeEnum;
-import com.tngtech.archunit.example.controller.one.UseCaseOneThreeController;
-import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
-import com.tngtech.archunit.example.controller.three.UseCaseThreeController;
-import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
-import com.tngtech.archunit.example.core.CoreSatellite;
-import com.tngtech.archunit.example.core.HighSecurity;
-import com.tngtech.archunit.example.core.VeryCentralCore;
-import com.tngtech.archunit.example.cycle.complexcycles.slice1.ClassBeingCalledInSliceOne;
-import com.tngtech.archunit.example.cycle.complexcycles.slice1.ClassOfMinimalCycleCallingSliceTwo;
-import com.tngtech.archunit.example.cycle.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
-import com.tngtech.archunit.example.cycle.complexcycles.slice2.ClassOfMinimalCycleCallingSliceOne;
-import com.tngtech.archunit.example.cycle.complexcycles.slice2.InstantiatedClassInSliceTwo;
-import com.tngtech.archunit.example.cycle.complexcycles.slice2.SliceTwoInheritingFromSliceOne;
-import com.tngtech.archunit.example.cycle.complexcycles.slice2.SliceTwoInheritingFromSliceThreeAndAccessingFieldInSliceFour;
-import com.tngtech.archunit.example.cycle.complexcycles.slice3.ClassCallingConstructorInSliceFive;
-import com.tngtech.archunit.example.cycle.complexcycles.slice3.InheritedClassInSliceThree;
-import com.tngtech.archunit.example.cycle.complexcycles.slice4.ClassWithAccessedFieldCallingMethodInSliceOne;
-import com.tngtech.archunit.example.cycle.complexcycles.slice5.InstantiatedClassInSliceFive;
-import com.tngtech.archunit.example.cycle.constructorcycle.slice1.SliceOneCallingConstructorInSliceTwo;
-import com.tngtech.archunit.example.cycle.constructorcycle.slice1.SomeClassWithCalledConstructor;
-import com.tngtech.archunit.example.cycle.constructorcycle.slice2.SliceTwoCallingConstructorInSliceOne;
-import com.tngtech.archunit.example.cycle.fieldaccesscycle.slice1.ClassInSliceOneWithAccessedField;
-import com.tngtech.archunit.example.cycle.fieldaccesscycle.slice1.SliceOneAccessingFieldInSliceTwo;
-import com.tngtech.archunit.example.cycle.fieldaccesscycle.slice2.SliceTwoAccessingFieldInSliceOne;
-import com.tngtech.archunit.example.cycle.inheritancecycle.slice1.ClassThatCallSliceThree;
-import com.tngtech.archunit.example.cycle.inheritancecycle.slice1.ClassThatInheritsFromSliceTwo;
-import com.tngtech.archunit.example.cycle.inheritancecycle.slice1.ClassThatIsInheritedFromSliceTwo;
-import com.tngtech.archunit.example.cycle.inheritancecycle.slice1.InterfaceInSliceOne;
-import com.tngtech.archunit.example.cycle.inheritancecycle.slice2.ClassThatInheritsFromSliceOne;
-import com.tngtech.archunit.example.cycle.inheritancecycle.slice3.ClassThatImplementsInterfaceFromSliceOne;
-import com.tngtech.archunit.example.cycle.membercycle.slice1.SliceOneWithFieldTypeInSliceTwo;
-import com.tngtech.archunit.example.cycle.membercycle.slice2.SliceTwoWithMethodParameterTypeInSliceThree;
-import com.tngtech.archunit.example.cycle.membercycle.slice3.SliceThreeWithMethodReturnTypeInSliceFour;
-import com.tngtech.archunit.example.cycle.membercycle.slice4.SliceFourWithConstructorParameterInSliceOne;
-import com.tngtech.archunit.example.cycle.simplecycle.slice1.SliceOneCallingMethodInSliceTwo;
-import com.tngtech.archunit.example.cycle.simplecycle.slice1.SomeClassBeingCalledInSliceOne;
-import com.tngtech.archunit.example.cycle.simplecycle.slice2.SliceTwoCallingMethodOfSliceThree;
-import com.tngtech.archunit.example.cycle.simplecycle.slice3.SliceThreeCallingMethodOfSliceOne;
-import com.tngtech.archunit.example.cycle.simplescenario.administration.AdministrationService;
-import com.tngtech.archunit.example.cycle.simplescenario.administration.Invoice;
-import com.tngtech.archunit.example.cycle.simplescenario.importer.ImportService;
-import com.tngtech.archunit.example.cycle.simplescenario.report.Report;
-import com.tngtech.archunit.example.cycle.simplescenario.report.ReportService;
-import com.tngtech.archunit.example.persistence.WrongSecurityCheck;
-import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
-import com.tngtech.archunit.example.persistence.first.dao.EntityInWrongPackage;
-import com.tngtech.archunit.example.persistence.first.dao.jpa.SomeJpa;
-import com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService;
-import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
-import com.tngtech.archunit.example.persistence.second.dao.jpa.OtherJpa;
-import com.tngtech.archunit.example.security.Secured;
-import com.tngtech.archunit.example.service.ServiceHelper;
-import com.tngtech.archunit.example.service.ServiceInterface;
-import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
-import com.tngtech.archunit.example.service.ServiceViolatingLayerRules;
-import com.tngtech.archunit.example.service.impl.SomeInterfacePlacedInTheWrongPackage;
-import com.tngtech.archunit.example.service.impl.WronglyNamedSvc;
-import com.tngtech.archunit.example.shopping.address.Address;
-import com.tngtech.archunit.example.shopping.catalog.ProductCatalog;
-import com.tngtech.archunit.example.shopping.customer.Customer;
-import com.tngtech.archunit.example.shopping.importer.ProductImport;
-import com.tngtech.archunit.example.shopping.order.Order;
-import com.tngtech.archunit.example.shopping.product.Product;
-import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
-import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
-import com.tngtech.archunit.example.thirdparty.ThirdPartySubClassWithProblem;
-import com.tngtech.archunit.example.web.AnnotatedController;
-import com.tngtech.archunit.example.web.InheritedControllerImpl;
+import com.tngtech.archunit.example.cycles.complexcycles.slice1.ClassBeingCalledInSliceOne;
+import com.tngtech.archunit.example.cycles.complexcycles.slice1.ClassOfMinimalCycleCallingSliceTwo;
+import com.tngtech.archunit.example.cycles.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
+import com.tngtech.archunit.example.cycles.complexcycles.slice2.ClassOfMinimalCycleCallingSliceOne;
+import com.tngtech.archunit.example.cycles.complexcycles.slice2.InstantiatedClassInSliceTwo;
+import com.tngtech.archunit.example.cycles.complexcycles.slice2.SliceTwoInheritingFromSliceOne;
+import com.tngtech.archunit.example.cycles.complexcycles.slice2.SliceTwoInheritingFromSliceThreeAndAccessingFieldInSliceFour;
+import com.tngtech.archunit.example.cycles.complexcycles.slice3.ClassCallingConstructorInSliceFive;
+import com.tngtech.archunit.example.cycles.complexcycles.slice3.InheritedClassInSliceThree;
+import com.tngtech.archunit.example.cycles.complexcycles.slice4.ClassWithAccessedFieldCallingMethodInSliceOne;
+import com.tngtech.archunit.example.cycles.complexcycles.slice5.InstantiatedClassInSliceFive;
+import com.tngtech.archunit.example.cycles.constructorcycle.slice1.SliceOneCallingConstructorInSliceTwo;
+import com.tngtech.archunit.example.cycles.constructorcycle.slice1.SomeClassWithCalledConstructor;
+import com.tngtech.archunit.example.cycles.constructorcycle.slice2.SliceTwoCallingConstructorInSliceOne;
+import com.tngtech.archunit.example.cycles.fieldaccesscycle.slice1.ClassInSliceOneWithAccessedField;
+import com.tngtech.archunit.example.cycles.fieldaccesscycle.slice1.SliceOneAccessingFieldInSliceTwo;
+import com.tngtech.archunit.example.cycles.fieldaccesscycle.slice2.SliceTwoAccessingFieldInSliceOne;
+import com.tngtech.archunit.example.cycles.inheritancecycle.slice1.ClassThatCallSliceThree;
+import com.tngtech.archunit.example.cycles.inheritancecycle.slice1.ClassThatInheritsFromSliceTwo;
+import com.tngtech.archunit.example.cycles.inheritancecycle.slice1.ClassThatIsInheritedFromSliceTwo;
+import com.tngtech.archunit.example.cycles.inheritancecycle.slice1.InterfaceInSliceOne;
+import com.tngtech.archunit.example.cycles.inheritancecycle.slice2.ClassThatInheritsFromSliceOne;
+import com.tngtech.archunit.example.cycles.inheritancecycle.slice3.ClassThatImplementsInterfaceFromSliceOne;
+import com.tngtech.archunit.example.cycles.membercycle.slice1.SliceOneWithFieldTypeInSliceTwo;
+import com.tngtech.archunit.example.cycles.membercycle.slice2.SliceTwoWithMethodParameterTypeInSliceThree;
+import com.tngtech.archunit.example.cycles.membercycle.slice3.SliceThreeWithMethodReturnTypeInSliceFour;
+import com.tngtech.archunit.example.cycles.membercycle.slice4.SliceFourWithConstructorParameterInSliceOne;
+import com.tngtech.archunit.example.cycles.simplecycle.slice1.SliceOneCallingMethodInSliceTwo;
+import com.tngtech.archunit.example.cycles.simplecycle.slice1.SomeClassBeingCalledInSliceOne;
+import com.tngtech.archunit.example.cycles.simplecycle.slice2.SliceTwoCallingMethodOfSliceThree;
+import com.tngtech.archunit.example.cycles.simplecycle.slice3.SliceThreeCallingMethodOfSliceOne;
+import com.tngtech.archunit.example.cycles.simplescenario.administration.AdministrationService;
+import com.tngtech.archunit.example.cycles.simplescenario.administration.Invoice;
+import com.tngtech.archunit.example.cycles.simplescenario.importer.ImportService;
+import com.tngtech.archunit.example.cycles.simplescenario.report.Report;
+import com.tngtech.archunit.example.cycles.simplescenario.report.ReportService;
+import com.tngtech.archunit.example.layers.AbstractController;
+import com.tngtech.archunit.example.layers.ClassViolatingCodingRules;
+import com.tngtech.archunit.example.layers.ClassViolatingSessionBeanRules;
+import com.tngtech.archunit.example.layers.ClassViolatingThirdPartyRules;
+import com.tngtech.archunit.example.layers.EvilCoreAccessor;
+import com.tngtech.archunit.example.layers.MyController;
+import com.tngtech.archunit.example.layers.MyService;
+import com.tngtech.archunit.example.layers.OtherClassViolatingSessionBeanRules;
+import com.tngtech.archunit.example.layers.SecondBeanImplementingSomeBusinessInterface;
+import com.tngtech.archunit.example.layers.SomeBusinessInterface;
+import com.tngtech.archunit.example.layers.SomeCustomException;
+import com.tngtech.archunit.example.layers.SomeMediator;
+import com.tngtech.archunit.example.layers.SomeOtherBusinessInterface;
+import com.tngtech.archunit.example.layers.anticorruption.WithIllegalReturnType;
+import com.tngtech.archunit.example.layers.anticorruption.WrappedResult;
+import com.tngtech.archunit.example.layers.controller.SomeController;
+import com.tngtech.archunit.example.layers.controller.SomeGuiController;
+import com.tngtech.archunit.example.layers.controller.SomeUtility;
+import com.tngtech.archunit.example.layers.controller.WronglyAnnotated;
+import com.tngtech.archunit.example.layers.controller.one.SomeEnum;
+import com.tngtech.archunit.example.layers.controller.one.UseCaseOneThreeController;
+import com.tngtech.archunit.example.layers.controller.one.UseCaseOneTwoController;
+import com.tngtech.archunit.example.layers.controller.three.UseCaseThreeController;
+import com.tngtech.archunit.example.layers.controller.two.UseCaseTwoController;
+import com.tngtech.archunit.example.layers.core.CoreSatellite;
+import com.tngtech.archunit.example.layers.core.HighSecurity;
+import com.tngtech.archunit.example.layers.core.VeryCentralCore;
+import com.tngtech.archunit.example.layers.persistence.WrongSecurityCheck;
+import com.tngtech.archunit.example.layers.persistence.first.InWrongPackageDao;
+import com.tngtech.archunit.example.layers.persistence.first.dao.EntityInWrongPackage;
+import com.tngtech.archunit.example.layers.persistence.first.dao.jpa.SomeJpa;
+import com.tngtech.archunit.example.layers.persistence.layerviolation.DaoCallingService;
+import com.tngtech.archunit.example.layers.persistence.second.dao.OtherDao;
+import com.tngtech.archunit.example.layers.persistence.second.dao.jpa.OtherJpa;
+import com.tngtech.archunit.example.layers.security.Secured;
+import com.tngtech.archunit.example.layers.service.ServiceHelper;
+import com.tngtech.archunit.example.layers.service.ServiceInterface;
+import com.tngtech.archunit.example.layers.service.ServiceViolatingDaoRules;
+import com.tngtech.archunit.example.layers.service.ServiceViolatingLayerRules;
+import com.tngtech.archunit.example.layers.service.impl.SomeInterfacePlacedInTheWrongPackage;
+import com.tngtech.archunit.example.layers.service.impl.WronglyNamedSvc;
+import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWithProblem;
+import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWorkaroundFactory;
+import com.tngtech.archunit.example.layers.thirdparty.ThirdPartySubClassWithProblem;
+import com.tngtech.archunit.example.layers.web.AnnotatedController;
+import com.tngtech.archunit.example.layers.web.InheritedControllerImpl;
+import com.tngtech.archunit.example.onionarchitecture.adapter.cli.AdministrationCLI;
+import com.tngtech.archunit.example.onionarchitecture.adapter.persistence.ProductId;
+import com.tngtech.archunit.example.onionarchitecture.adapter.persistence.ProductRepository;
+import com.tngtech.archunit.example.onionarchitecture.adapter.persistence.ShoppingCartId;
+import com.tngtech.archunit.example.onionarchitecture.adapter.persistence.ShoppingCartRepository;
+import com.tngtech.archunit.example.onionarchitecture.adapter.rest.ShoppingController;
+import com.tngtech.archunit.example.onionarchitecture.application.AdministrationPort;
+import com.tngtech.archunit.example.onionarchitecture.domain.model.OrderItem;
+import com.tngtech.archunit.example.onionarchitecture.domain.model.ShoppingCart;
+import com.tngtech.archunit.example.onionarchitecture.domain.service.OrderQuantity;
+import com.tngtech.archunit.example.onionarchitecture.domain.service.ProductName;
+import com.tngtech.archunit.example.onionarchitecture.domain.service.ShoppingService;
+import com.tngtech.archunit.example.plantuml.address.Address;
+import com.tngtech.archunit.example.plantuml.catalog.ProductCatalog;
+import com.tngtech.archunit.example.plantuml.customer.Customer;
+import com.tngtech.archunit.example.plantuml.importer.ProductImport;
+import com.tngtech.archunit.example.plantuml.order.Order;
+import com.tngtech.archunit.example.plantuml.product.Product;
 import com.tngtech.archunit.exampletest.ControllerRulesTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
@@ -123,16 +136,16 @@ import org.junit.jupiter.api.TestFactory;
 import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.collect.Collections2.filter;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
-import static com.tngtech.archunit.example.OtherClassViolatingSessionBeanRules.init;
-import static com.tngtech.archunit.example.SomeMediator.violateLayerRulesIndirectly;
-import static com.tngtech.archunit.example.controller.one.UseCaseOneTwoController.doSomethingOne;
-import static com.tngtech.archunit.example.controller.one.UseCaseOneTwoController.someString;
-import static com.tngtech.archunit.example.controller.three.UseCaseThreeController.doSomethingThree;
-import static com.tngtech.archunit.example.controller.two.UseCaseTwoController.doSomethingTwo;
-import static com.tngtech.archunit.example.core.VeryCentralCore.DO_CORE_STUFF_METHOD_NAME;
-import static com.tngtech.archunit.example.persistence.layerviolation.DaoCallingService.violateLayerRules;
-import static com.tngtech.archunit.example.service.ServiceViolatingLayerRules.dependentMethod;
-import static com.tngtech.archunit.example.service.ServiceViolatingLayerRules.illegalAccessToController;
+import static com.tngtech.archunit.example.layers.OtherClassViolatingSessionBeanRules.init;
+import static com.tngtech.archunit.example.layers.SomeMediator.violateLayerRulesIndirectly;
+import static com.tngtech.archunit.example.layers.controller.one.UseCaseOneTwoController.doSomethingOne;
+import static com.tngtech.archunit.example.layers.controller.one.UseCaseOneTwoController.someString;
+import static com.tngtech.archunit.example.layers.controller.three.UseCaseThreeController.doSomethingThree;
+import static com.tngtech.archunit.example.layers.controller.two.UseCaseTwoController.doSomethingTwo;
+import static com.tngtech.archunit.example.layers.core.VeryCentralCore.DO_CORE_STUFF_METHOD_NAME;
+import static com.tngtech.archunit.example.layers.persistence.layerviolation.DaoCallingService.violateLayerRules;
+import static com.tngtech.archunit.example.layers.service.ServiceViolatingLayerRules.dependentMethod;
+import static com.tngtech.archunit.example.layers.service.ServiceViolatingLayerRules.illegalAccessToController;
 import static com.tngtech.archunit.testutils.CyclicErrorMatcher.cycle;
 import static com.tngtech.archunit.testutils.ExpectedAccess.callFromConstructor;
 import static com.tngtech.archunit.testutils.ExpectedAccess.callFromMethod;
@@ -721,9 +734,9 @@ class ExamplesIntegrationTest {
                         expectedTestFailures
                                 .ofRule(memberName,
                                         "Layered architecture consisting of" + lineSeparator() +
-                                                "layer 'Controllers' ('com.tngtech.archunit.example.controller..')" + lineSeparator() +
-                                                "layer 'Services' ('com.tngtech.archunit.example.service..')" + lineSeparator() +
-                                                "layer 'Persistence' ('com.tngtech.archunit.example.persistence..')" + lineSeparator() +
+                                                "layer 'Controllers' ('com.tngtech.archunit.example.layers.controller..')" + lineSeparator() +
+                                                "layer 'Services' ('com.tngtech.archunit.example.layers.service..')" + lineSeparator() +
+                                                "layer 'Persistence' ('com.tngtech.archunit.example.layers.persistence..')" + lineSeparator() +
                                                 "where layer 'Controllers' may not be accessed by any layer" + lineSeparator() +
                                                 "where layer 'Services' may only be accessed by layers ['Controllers']" + lineSeparator() +
                                                 "where layer 'Persistence' may only be accessed by layers ['Services']")
@@ -773,6 +786,60 @@ class ExamplesIntegrationTest {
                 .by(field(SomeMediator.class, "service").ofType(ServiceViolatingLayerRules.class));
 
         addExpectedCommonFailure.accept("layer_dependencies_are_respected_with_exception", expectedTestFailures);
+
+        return expectedTestFailures.toDynamicTests();
+    }
+
+    @TestFactory
+    Stream<DynamicTest> OnionArchitectureTest() {
+        ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
+                .forTests(
+                        com.tngtech.archunit.exampletest.OnionArchitectureTest.class,
+                        com.tngtech.archunit.exampletest.junit4.OnionArchitectureTest.class,
+                        com.tngtech.archunit.exampletest.junit5.OnionArchitectureTest.class)
+
+                .ofRule("Onion architecture consisting of" + lineSeparator() +
+                        "domain models ('..domain.model..')" + lineSeparator() +
+                        "domain services ('..domain.service..')" + lineSeparator() +
+                        "application services ('..application..')" + lineSeparator() +
+                        "adapter 'cli' ('..adapter.cli..')" + lineSeparator() +
+                        "adapter 'persistence' ('..adapter.persistence..')" + lineSeparator() +
+                        "adapter 'rest' ('..adapter.rest..')")
+
+                .by(constructor(OrderItem.class).withParameter(OrderQuantity.class))
+                .by(constructor(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class).withParameter(ProductId.class))
+                .by(constructor(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class).withParameter(ProductName.class))
+                .by(constructor(ShoppingCart.class).withParameter(ShoppingCartId.class))
+                .by(constructor(ShoppingService.class).withParameter(ProductRepository.class))
+                .by(constructor(ShoppingService.class).withParameter(ShoppingCartRepository.class))
+
+                .by(field(OrderItem.class, "quantity").ofType(OrderQuantity.class))
+                .by(field(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class, "id").ofType(ProductId.class))
+                .by(field(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class, "name").ofType(ProductName.class))
+                .by(field(ShoppingCart.class, "id").ofType(ShoppingCartId.class))
+                .by(field(ShoppingService.class, "productRepository").ofType(ProductRepository.class))
+                .by(field(ShoppingService.class, "shoppingCartRepository").ofType(ShoppingCartRepository.class))
+
+                .by(callFromMethod(AdministrationCLI.class, "handle", String[].class, AdministrationPort.class)
+                        .toMethod(ProductRepository.class, "getTotalCount")
+                        .inLine(17).asDependency())
+                .by(callFromMethod(ShoppingController.class, "addToShoppingCart", UUID.class, UUID.class, int.class)
+                        .toConstructor(ProductId.class, UUID.class)
+                        .inLine(20).asDependency())
+                .by(callFromMethod(ShoppingController.class, "addToShoppingCart", UUID.class, UUID.class, int.class)
+                        .toConstructor(ShoppingCartId.class, UUID.class)
+                        .inLine(20).asDependency())
+                .by(method(ShoppingService.class, "addToShoppingCart").withParameter(ProductId.class))
+                .by(method(ShoppingService.class, "addToShoppingCart").withParameter(ShoppingCartId.class))
+                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
+                        .toMethod(ShoppingCartRepository.class, "read", ShoppingCartId.class)
+                        .inLine(21).asDependency())
+                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
+                        .toMethod(ProductRepository.class, "read", ProductId.class)
+                        .inLine(22).asDependency())
+                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
+                        .toMethod(ShoppingCartRepository.class, "save", ShoppingCart.class)
+                        .inLine(25).asDependency());
 
         return expectedTestFailures.toDynamicTests();
     }
@@ -948,11 +1015,11 @@ class ExamplesIntegrationTest {
                         .inLine(19));
 
         addExpectedFailure.accept("classes that reside in a package 'java.security..' "
-                + "should only be accessed by any package ['..example.security..', 'java.security..'], "
+                + "should only be accessed by any package ['..example.layers.security..', 'java.security..'], "
                 + "because we want to have one isolated cross-cutting concern 'security'");
 
         addExpectedFailure.accept("classes that reside in a package 'java.security.cert..' "
-                + "should only be accessed by any package ['..example.security..', 'java..', '..sun..', 'javax..', 'apple.security..']");
+                + "should only be accessed by any package ['..example.layers.security..', 'java..', '..sun..', 'javax..', 'apple.security..']");
 
         return expectedTestFailures.toDynamicTests();
     }

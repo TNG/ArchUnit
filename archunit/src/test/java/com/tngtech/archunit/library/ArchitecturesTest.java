@@ -13,8 +13,15 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.library.Architectures.LayeredArchitecture;
+import com.tngtech.archunit.library.Architectures.OnionArchitecture;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
 import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.cli.CliAdapterLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.persistence.PersistenceAdapterLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.rest.RestAdapterLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.application.ApplicationLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.model.DomainModelLayerClass;
+import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.service.DomainServiceLayerClass;
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubClass;
@@ -30,6 +37,8 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
+import static com.tngtech.archunit.library.Architectures.onionArchitecture;
+import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +51,7 @@ public class ArchitecturesTest {
     public final ExpectedException thrown = ExpectedException.none();
 
     @Test
-    public void description_of_layered_architecture() {
+    public void layered_architecture_description() {
         LayeredArchitecture architecture = layeredArchitecture()
                 .layer("One").definedBy("some.pkg..")
                 .layer("Two").definedBy("first.any.pkg..", "second.any.pkg..")
@@ -62,7 +71,7 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void overridden_description_of_layered_architecture() {
+    public void layered_architecture_overridden_description() {
         LayeredArchitecture architecture = layeredArchitecture()
                 .layer("One").definedBy("some.pkg..")
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
@@ -72,7 +81,7 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void because_clause_on_layered_architecture() {
+    public void layered_architecture_because_clause() {
         ArchRule architecture = layeredArchitecture()
                 .layer("One").definedBy("some.pkg..")
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
@@ -83,7 +92,7 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void defining_constraint_on_non_existing_target_layer_is_rejected() {
+    public void layered_architecture_defining_constraint_on_non_existing_target_layer_is_rejected() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("no layer");
         thrown.expectMessage("NotThere");
@@ -94,7 +103,7 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void defining_constraint_on_non_existing_origin_is_rejected() {
+    public void layered_architecture_defining_constraint_on_non_existing_origin_is_rejected() {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("no layer");
         thrown.expectMessage("NotThere");
@@ -105,7 +114,7 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void gathers_all_layer_violations() {
+    public void layered_architecture_gathers_all_layer_violations() {
         LayeredArchitecture architecture = layeredArchitecture()
                 .layer("One").definedBy(absolute("some.pkg.."))
                 .layer("Two").definedBy(absolute("first.any.pkg..", "second.any.pkg.."))
@@ -148,7 +157,7 @@ public class ArchitecturesTest {
 
     @Test
     @UseDataProvider("toIgnore")
-    public void ignores_specified_violations(RuleWithIgnore layeredArchitectureWithIgnore) {
+    public void layered_architecture_ignores_specified_violations(RuleWithIgnore layeredArchitectureWithIgnore) {
         JavaClasses classes = new ClassFileImporter().importClasses(
                 FirstAnyPkgClass.class, SomePkgSubClass.class,
                 SecondThreeAnyClass.class, SomePkgClass.class);
@@ -163,7 +172,7 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void combines_multiple_ignores() {
+    public void layered_architecture_combines_multiple_ignores() {
         JavaClasses classes = new ClassFileImporter().importClasses(
                 FirstAnyPkgClass.class, SomePkgSubClass.class,
                 SecondThreeAnyClass.class, SomePkgClass.class);
@@ -181,6 +190,91 @@ public class ArchitecturesTest {
         assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
     }
 
+    @Test
+    public void onion_architecture_description() {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModels("onionarchitecture.domain.model..")
+                .domainServices("onionarchitecture.domain.service..")
+                .applicationServices("onionarchitecture.application..")
+                .adapter("cli", "onionarchitecture.adapter.cli..")
+                .adapter("persistence", "onionarchitecture.adapter.persistence..")
+                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..");
+
+        assertThat(architecture.getDescription()).isEqualTo(
+                "Onion architecture consisting of" + lineSeparator() +
+                        "domain models ('onionarchitecture.domain.model..')" + lineSeparator() +
+                        "domain services ('onionarchitecture.domain.service..')" + lineSeparator() +
+                        "application services ('onionarchitecture.application..')" + lineSeparator() +
+                        "adapter 'cli' ('onionarchitecture.adapter.cli..')" + lineSeparator() +
+                        "adapter 'persistence' ('onionarchitecture.adapter.persistence..')" + lineSeparator() +
+                        "adapter 'rest' ('onionarchitecture.adapter.rest.command..', 'onionarchitecture.adapter.rest.query..')"
+        );
+    }
+
+    @Test
+    public void onion_architecture_description_with_missing_layers() {
+        OnionArchitecture architecture = onionArchitecture();
+
+        assertThat(architecture.getDescription()).isEqualTo("Onion architecture consisting of");
+    }
+
+    @Test
+    public void onion_architecture_overridden_description() {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModels("onionarchitecture.domain.model..")
+                .domainServices("onionarchitecture.domain.service..")
+                .applicationServices("onionarchitecture.application..")
+                .adapter("cli", "onionarchitecture.adapter.cli..")
+                .adapter("persistence", "onionarchitecture.adapter.persistence..")
+                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..")
+                .as("overridden");
+
+        assertThat(architecture.getDescription()).isEqualTo("overridden");
+    }
+
+    @Test
+    public void onion_architecture_because_clause() {
+        ArchRule architecture = onionArchitecture()
+                .domainModels("onionarchitecture.domain.model..")
+                .domainServices("onionarchitecture.domain.service..")
+                .applicationServices("onionarchitecture.application..")
+                .adapter("cli", "onionarchitecture.adapter.cli..")
+                .adapter("persistence", "onionarchitecture.adapter.persistence..")
+                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..")
+                .as("overridden")
+                .because("some reason");
+
+        assertThat(architecture.getDescription()).isEqualTo("overridden, because some reason");
+    }
+
+    @Test
+    public void onion_architecture_gathers_all_violations() {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModels(absolute("onionarchitecture.domain.model"))
+                .domainServices(absolute("onionarchitecture.domain.service"))
+                .applicationServices(absolute("onionarchitecture.application"))
+                .adapter("cli", absolute("onionarchitecture.adapter.cli"))
+                .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
+                .adapter("rest", absolute("onionarchitecture.adapter.rest"));
+        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses.onionarchitecture");
+
+        EvaluationResult result = architecture.evaluate(classes);
+
+        ExpectedOnionViolations expectedViolations = new ExpectedOnionViolations();
+        expectedViolations.from(DomainModelLayerClass.class)
+                .to(DomainServiceLayerClass.class, ApplicationLayerClass.class, CliAdapterLayerClass.class,
+                        PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(DomainServiceLayerClass.class)
+                .to(ApplicationLayerClass.class, CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(ApplicationLayerClass.class)
+                .to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(CliAdapterLayerClass.class).to(PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(PersistenceAdapterLayerClass.class).to(CliAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(RestAdapterLayerClass.class).to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class);
+
+        assertPatternMatches(result.getFailureReport().getDetails(), expectedViolations.toPatterns());
+    }
+
     private String singleLine(EvaluationResult result) {
         return Joiner.on(NEW_LINE_REPLACE).join(result.getFailureReport().getDetails()).replace("\n", NEW_LINE_REPLACE);
     }
@@ -192,6 +286,7 @@ public class ArchitecturesTest {
                 Assert.fail("Line " + line + " didn't match any pattern in " + expectedRegexes);
             }
         }
+        assertThat(toMatch).as("Unmatched Patterns").isEmpty();
     }
 
     private boolean matchIteratorAndRemove(Set<String> toMatch, String line) {
@@ -204,12 +299,12 @@ public class ArchitecturesTest {
         return false;
     }
 
-    private String expectedAccessViolationPattern(Class<?> from, String fromMethod, Class<?> to, String toMethod) {
+    private static String expectedAccessViolationPattern(Class<?> from, String fromMethod, Class<?> to, String toMethod) {
         return String.format(".*%s.%s().*%s.%s().*", quote(from.getName()), fromMethod, quote(to.getName()), toMethod);
     }
 
-    private String fieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {
-        return String.format("Field .*%s\\.%s.* has type .*%s.*", owner.getSimpleName(), fieldName, fieldType.getSimpleName());
+    private static String fieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {
+        return String.format("Field .*%s\\.%s.* has type .*<%s>.*", owner.getSimpleName(), fieldName, fieldType.getName());
     }
 
     private static String[] absolute(String... pkgSuffix) {
@@ -218,7 +313,7 @@ public class ArchitecturesTest {
             String absolute = ArchitecturesTest.class.getPackage().getName() + ".testclasses." + s;
             result.add(absolute.replaceAll("\\.\\.\\.+", ".."));
         }
-        return result.toArray(new String[result.size()]);
+        return result.toArray(new String[0]);
     }
 
     private static class RuleWithIgnore {
@@ -233,6 +328,58 @@ public class ArchitecturesTest {
         @Override
         public String toString() {
             return description;
+        }
+    }
+
+    private static class ExpectedOnionViolations {
+        private final Set<ExpectedOnionViolation> expected = new HashSet<>();
+
+        From from(Class<?> from) {
+            return new From(from);
+        }
+
+        private ExpectedOnionViolations add(ExpectedOnionViolation expectedOnionViolation) {
+            expected.add(expectedOnionViolation);
+            return this;
+        }
+
+        Set<String> toPatterns() {
+            ImmutableSet.Builder<String> result = ImmutableSet.builder();
+            for (ExpectedOnionViolation expectedOnionViolation : expected) {
+                result.addAll(expectedOnionViolation.toPatterns());
+            }
+            return result.build();
+        }
+
+        class From {
+            private final Class<?> from;
+
+            private From(Class<?> from) {
+                this.from = from;
+            }
+
+            ExpectedOnionViolations to(Class<?>... to) {
+                return ExpectedOnionViolations.this.add(new ExpectedOnionViolation(from, to));
+            }
+        }
+    }
+
+    private static class ExpectedOnionViolation {
+        private final Class<?> from;
+        private final Set<Class<?>> tos;
+
+        private ExpectedOnionViolation(Class<?> from, Class<?>[] tos) {
+            this.from = from;
+            this.tos = ImmutableSet.copyOf(tos);
+        }
+
+        Set<String> toPatterns() {
+            ImmutableSet.Builder<String> result = ImmutableSet.builder();
+            for (Class<?> to : tos) {
+                result.add(expectedAccessViolationPattern(from, "call", to, "callMe"))
+                        .add(fieldTypePattern(from, decapitalize(to.getSimpleName()), to));
+            }
+            return result.build();
         }
     }
 }

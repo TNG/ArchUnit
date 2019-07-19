@@ -1,7 +1,7 @@
 package com.tngtech.archunit.exampletest.junit4;
 
-import com.tngtech.archunit.example.SomeBusinessInterface;
-import com.tngtech.archunit.example.SomeOtherBusinessInterface;
+import com.tngtech.archunit.example.layers.SomeBusinessInterface;
+import com.tngtech.archunit.example.layers.SomeOtherBusinessInterface;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
@@ -14,7 +14,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 @Category(Example.class)
 @RunWith(ArchUnitRunner.class)
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class RestrictNumberOfClassesWithACertainPropertyTest {
     @ArchTest
     public static final ArchRule no_new_classes_should_implement_SomeBusinessInterface =

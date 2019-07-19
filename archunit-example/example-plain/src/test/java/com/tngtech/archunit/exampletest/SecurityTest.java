@@ -16,10 +16,10 @@ public class SecurityTest {
     @Test
     public void only_security_infrastructure_should_use_java_security() {
         ArchRule rule = classes().that().resideInAPackage("java.security..")
-                .should().onlyBeAccessed().byAnyPackage("..example.security..", "java.security..")
+                .should().onlyBeAccessed().byAnyPackage("..example.layers.security..", "java.security..")
                 .because("we want to have one isolated cross-cutting concern 'security'");
 
-        JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example", "java.security");
+        JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example.layers", "java.security");
 
         rule.check(classes);
     }
@@ -27,7 +27,7 @@ public class SecurityTest {
     @Test
     public void only_security_infrastructure_should_use_java_security_on_whole_classpath() {
         ArchRule rule = classes().that().resideInAPackage("java.security.cert..")
-                .should().onlyBeAccessed().byAnyPackage("..example.security..", "java..", "..sun..", "javax..", "apple.security..");
+                .should().onlyBeAccessed().byAnyPackage("..example.layers.security..", "java..", "..sun..", "javax..", "apple.security..");
 
         JavaClasses classes = new ClassFileImporter().importClasspath(onlyAppAndRuntime());
 

@@ -3,8 +3,8 @@ package com.tngtech.archunit.exampletest;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.cycle.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
-import com.tngtech.archunit.example.cycle.complexcycles.slice3.ClassCallingConstructorInSliceFive;
+import com.tngtech.archunit.example.cycles.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
+import com.tngtech.archunit.example.cycles.complexcycles.slice3.ClassCallingConstructorInSliceFive;
 import com.tngtech.archunit.library.dependencies.SliceAssignment;
 import com.tngtech.archunit.library.dependencies.SliceIdentifier;
 import org.junit.Test;
@@ -17,7 +17,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 @Category(Example.class)
 public class CyclicDependencyRulesTest {
 
-    private final JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example.cycle");
+    private final JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example.cycles");
 
     @Test
     public void no_cycles_by_method_calls_between_slices() {

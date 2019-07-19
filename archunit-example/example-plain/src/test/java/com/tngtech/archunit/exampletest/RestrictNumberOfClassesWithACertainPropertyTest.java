@@ -2,8 +2,8 @@ package com.tngtech.archunit.exampletest;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.SomeBusinessInterface;
-import com.tngtech.archunit.example.SomeOtherBusinessInterface;
+import com.tngtech.archunit.example.layers.SomeBusinessInterface;
+import com.tngtech.archunit.example.layers.SomeOtherBusinessInterface;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -13,7 +13,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 @Category(Example.class)
 public class RestrictNumberOfClassesWithACertainPropertyTest {
 
-    private final JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example");
+    private final JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example.layers");
 
     @Test
     public void no_new_classes_should_implement_SomeBusinessInterface() {

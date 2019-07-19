@@ -4,8 +4,8 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.controller.one.UseCaseOneTwoController;
-import com.tngtech.archunit.example.controller.two.UseCaseTwoController;
+import com.tngtech.archunit.example.layers.controller.one.UseCaseOneTwoController;
+import com.tngtech.archunit.example.layers.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.library.dependencies.Slice;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -16,7 +16,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 @Category(Example.class)
 public class SlicesIsolationTest {
 
-    private final JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example");
+    private final JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example.layers");
 
     @Test
     public void controllers_should_only_use_their_own_slice() {

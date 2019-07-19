@@ -35,7 +35,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @Category(Example.class)
 @RunWith(ArchUnitRunner.class)
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class SessionBeanRulesTest {
 
     @ArchTest

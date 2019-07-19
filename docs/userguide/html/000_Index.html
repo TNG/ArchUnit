@@ -513,6 +513,7 @@ h4 {
 <li><a href="#_slices">8.2. Slices</a></li>
 <li><a href="#_general_coding_rules">8.3. General Coding Rules</a></li>
 <li><a href="#_plantuml_component_diagrams_as_rules">8.4. PlantUML Component Diagrams as rules</a></li>
+<li><a href="#_freezing_arch_rules">8.5. Freezing Arch Rules</a></li>
 </ul>
 </li>
 <li><a href="#_junit_support">9. JUnit Support</a>
@@ -1751,9 +1752,71 @@ slices (compare <a href="#_what_to_check">What to Check</a>).</p>
 </div>
 </div>
 <div class="paragraph">
-<p>At the moment this only provides a convenient check for a layered architecture (compare
-<a href="#_what_to_check">What to Check</a>), but in the future it might be extended for styles like a hexagonal
-architecture, pipes and filters, separation of business logic and technical infrastructure, etc.</p>
+<p>At the moment this only provides a convenient check for a layered architecture and onion architecture.
+But in the future it might be extended for styles like a pipes and filters,
+separation of business logic and technical infrastructure, etc.</p>
+</div>
+<div class="sect3">
+<h4 id="_layered_architecture"><a class="anchor" href="#_layered_architecture"></a>8.1.1. Layered Architecture</h4>
+<div class="paragraph">
+<p>In layered architectures, we define different layers and how those interact with each other.
+An example setup for a simple 3-tier architecture can be found in <a href="#_layer_checks">Layer Checks</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_onion_architecture"><a class="anchor" href="#_onion_architecture"></a>8.1.2. Onion Architecture</h4>
+<div class="paragraph">
+<p>In an "Onion Architecture" (also known as "Hexagonal Architecture" or "Ports and Adapters"),
+we can define domain packages and adapter packages as follows.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">onionArchitecture()
+        .domainModels("com.myapp.domain.model..")
+        .domainServices("com.myapp.domain.service..")
+        .applicationServices("com.myapp.application..")
+        .adapter("cli", "com.myapp.adapter.cli..")
+        .adapter("persistence", "com.myapp.adapter.persistence..")
+        .adapter("rest", "com.myapp.adapter.rest..");</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The semantic follows the descriptions in <a href="https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/" class="bare">https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/</a>.
+More precisely, the following holds:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>domain</code> package is the core of the application. It consists of two parts.</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The <code>domainModels</code> packages contain the domain entities.</p>
+</li>
+<li>
+<p>The packages in <code>domainServices</code> contains services that use the entities in the <code>domainModel</code> packages.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>The <code>applicationServices</code> packages contain services and configuration to run the application and use cases.
+It can use the items of the <code>domain</code> package but there must not be any dependency from the <code>domain</code>
+to the <code>application</code> packages.</p>
+</li>
+<li>
+<p>The <code>adapter</code> package contains logic to connect to external systems and/or infrastructure.
+No adapter may depend on another adapter. Adapters can use both the items of the <code>domain</code> as well as
+the <code>application</code> packages. Vice versa, neither the <code>domain</code> nor the <code>application</code> packages must
+contain dependencies on any <code>adapter</code> package.</p>
+</li>
+</ul>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="onion-architecture-check.png" alt="onion architecture check" width="1058" height="743">
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -1948,6 +2011,122 @@ an arbitrary number of packages; compare the core API)</p>
 <div class="paragraph">
 <p>You can compare this
 <a href="https://github.com/TNG/ArchUnit-Examples/blob/master/example-plain/src/test/resources/com/tngtech/archunit/exampletest/shopping_example.puml">diagram of ArchUnit-Examples</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_freezing_arch_rules"><a class="anchor" href="#_freezing_arch_rules"></a>8.5. Freezing Arch Rules</h3>
+<div class="paragraph">
+<p>When rules are introduced in grown projects, there are often hundreds or even thousands of violations,
+way too many to fix immediately. The only way to tackle such extensive violations is to establish an
+iterative approach, which prevents the code base from further deterioration.</p>
+</div>
+<div class="paragraph">
+<p><code>FreezingArchRule</code> can help in these scenarios by recording all existing violations to a <code>ViolationStore</code>.
+Consecutive runs will then only report new violations and ignore known violations.
+If violations are fixed, <code>FreezingArchRule</code> will automatically reduce the known stored violations to prevent any regression.</p>
+</div>
+<div class="sect3">
+<h4 id="_usage"><a class="anchor" href="#_usage"></a>8.5.1. Usage</h4>
+<div class="paragraph">
+<p>To freeze an arbitrary <code>ArchRule</code> just wrap it into a <code>FreezingArchRule</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchRule rule = FreezingArchRule.freeze(classes().should()./*complete ArchRule*/);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>On the first run all violations of that rule will be stored as the current state. On consecutive runs only
+new violations will be reported. By default <code>FreezingArchRule</code> will ignore line numbers, i.e. if a
+violation is just shifted to a different line, it will still count as previously recorded
+and will not be reported.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_configuration"><a class="anchor" href="#_configuration"></a>8.5.2. Configuration</h4>
+<div class="paragraph">
+<p>By default <code>FreezingArchRule</code> will use a simple <code>ViolationStore</code> based on plain text files.
+This is sufficient to add these files to any version control system to continuously track the progress.
+You can configure the location of the violation store within <code>archunit.properties</code> (compare <a href="#_advanced_configuration">Advanced Configuration</a>):</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>freeze.store.default.path=/some/path/in/a/vcs/repo</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_extension"><a class="anchor" href="#_extension"></a>8.5.3. Extension</h4>
+<div class="paragraph">
+<p><code>FreezingArchRule</code> provides two extension points to adjust the behavior to custom needs.
+The first one is the <code>ViolationStore</code>, i.e. the store violations will be recorded to. The second one
+is the <code>ViolationLineMatcher</code>, i.e. how <code>FreezingArchRule</code> will associate lines of stored violations
+with lines of actual violations. As mentioned, by default this is a line matcher that ignores the
+line numbers of violations within the same class.</p>
+</div>
+<div class="sect4">
+<h5 id="_violation_store"><a class="anchor" href="#_violation_store"></a>Violation Store</h5>
+<div class="paragraph">
+<p>As mentioned in <a href="#_configuration">Configuration</a>, the default <code>ViolationStore</code> is a simple text based store.
+It can be exchanged though, for example to store violations in a database.
+To provide your own implementation, implement <code>com.tngtech.archunit.library.freeze.ViolationStore</code> and
+configure <code>FreezingArchRule</code> to use it. This can either be done programmatically:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">FreezingArchRule.freeze(rule).persistIn(customViolationStore);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively it can be configured via <code>archunit.properties</code> (compare <a href="#_advanced_configuration">Advanced Configuration</a>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>freeze.store=fully.qualified.name.of.MyCustomViolationStore</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can supply properties to initialize the store by using the namespace <code>freeze.store</code>.
+For properties</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>freeze.store.propOne=valueOne
+freeze.store.propTwo=valueTwo</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>the method <code>ViolationStore.initialize(props)</code> will be called with the properties</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>propOne=valueOne
+propTwo=valueTwo</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_violation_line_matcher"><a class="anchor" href="#_violation_line_matcher"></a>Violation Line Matcher</h5>
+<div class="paragraph">
+<p>The <code>ViolationLineMatcher</code> compares lines from occurred violations with lines from the store.
+The default implementation ignores line numbers and counts lines as equivalent when all other details match.
+A custom <code>ViolationLineMatcher</code> can again either be defined programmatically:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">FreezingArchRule.freeze(rule).associateViolationLinesVia(customLineMatcher);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or via <code>archunit.properties</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>freeze.lineMatcher=fully.qualified.name.of.MyCustomLineMatcher</code></pre>
+</div>
+</div>
 </div>
 </div>
 </div>
