@@ -5,7 +5,7 @@ import javax.persistence.EntityManager;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.ClassViolatingCodingRules;
+import com.tngtech.archunit.example.layers.ClassViolatingCodingRules;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import com.tngtech.archunit.library.freeze.ViolationLineMatcher;
 import com.tngtech.archunit.library.freeze.ViolationStore;

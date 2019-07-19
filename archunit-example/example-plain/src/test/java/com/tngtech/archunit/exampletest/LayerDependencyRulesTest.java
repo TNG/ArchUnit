@@ -2,7 +2,7 @@ package com.tngtech.archunit.exampletest;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.ClassViolatingCodingRules;
+import com.tngtech.archunit.example.layers.ClassViolatingCodingRules;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 

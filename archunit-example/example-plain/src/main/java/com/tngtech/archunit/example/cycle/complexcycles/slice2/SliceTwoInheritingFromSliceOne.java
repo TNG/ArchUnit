@@ -1,6 +1,0 @@
-package com.tngtech.archunit.example.cycle.complexcycles.slice2;
-
-import com.tngtech.archunit.example.cycle.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
-
-public class SliceTwoInheritingFromSliceOne extends SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree {
-}

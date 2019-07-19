@@ -6,7 +6,7 @@ import java.util.Objects;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.ClassViolatingCodingRules;
+import com.tngtech.archunit.example.layers.ClassViolatingCodingRules;
 import com.tngtech.archunit.exampletest.extension.EvaluatedRuleEvent;
 import com.tngtech.archunit.exampletest.extension.ExampleExtension;
 import com.tngtech.archunit.lang.ArchRule;

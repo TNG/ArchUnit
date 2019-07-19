@@ -5,9 +5,9 @@ import java.net.URL;
 import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.shopping.catalog.ProductCatalog;
-import com.tngtech.archunit.example.shopping.order.Order;
-import com.tngtech.archunit.example.shopping.product.Product;
+import com.tngtech.archunit.example.plantuml.catalog.ProductCatalog;
+import com.tngtech.archunit.example.plantuml.order.Order;
+import com.tngtech.archunit.example.plantuml.product.Product;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -22,7 +22,7 @@ import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.adhere
 
 @Category(Example.class)
 public class PlantUmlArchitectureTest {
-    private final JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example.shopping");
+    private final JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.example.plantuml");
     private final URL plantUmlDiagram = PlantUmlArchitectureTest.class.getResource("shopping_example.puml");
 
     @Test

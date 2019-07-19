@@ -9,7 +9,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @ArchTag("example")
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class LayerDependencyRulesTest {
 
     // 'access' catches only violations by real accesses, i.e. accessing a field, calling a method; compare 'dependOn' further down

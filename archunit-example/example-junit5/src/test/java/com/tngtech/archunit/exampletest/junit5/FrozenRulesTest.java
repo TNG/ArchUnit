@@ -25,7 +25,7 @@ import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
  * i.e. if you only change the line numbers of frozen violations, the test will still pass.
  */
 @ArchTag("example")
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class FrozenRulesTest {
 
     @ArchTest

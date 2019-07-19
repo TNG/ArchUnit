@@ -3,8 +3,8 @@ package com.tngtech.archunit.exampletest.junit5;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWithProblem;
-import com.tngtech.archunit.example.thirdparty.ThirdPartyClassWorkaroundFactory;
+import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWithProblem;
+import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWorkaroundFactory;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
@@ -24,7 +24,7 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 @ArchTag("example")
-@AnalyzeClasses(packages = "com.tngtech.archunit.example")
+@AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class ThirdPartyRulesTest {
 
     @ArchTest

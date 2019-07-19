@@ -7,9 +7,9 @@ import javax.persistence.EntityManager;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.persistence.first.InWrongPackageDao;
-import com.tngtech.archunit.example.persistence.second.dao.OtherDao;
-import com.tngtech.archunit.example.service.ServiceViolatingDaoRules;
+import com.tngtech.archunit.example.layers.persistence.first.InWrongPackageDao;
+import com.tngtech.archunit.example.layers.persistence.second.dao.OtherDao;
+import com.tngtech.archunit.example.layers.service.ServiceViolatingDaoRules;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 

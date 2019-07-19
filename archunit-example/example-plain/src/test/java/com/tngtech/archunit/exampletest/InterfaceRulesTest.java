@@ -2,9 +2,9 @@ package com.tngtech.archunit.exampletest;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.example.SomeBusinessInterface;
-import com.tngtech.archunit.example.persistence.first.dao.SomeDao;
-import com.tngtech.archunit.example.service.impl.SomeInterfacePlacedInTheWrongPackage;
+import com.tngtech.archunit.example.layers.SomeBusinessInterface;
+import com.tngtech.archunit.example.layers.persistence.first.dao.SomeDao;
+import com.tngtech.archunit.example.layers.service.impl.SomeInterfacePlacedInTheWrongPackage;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
