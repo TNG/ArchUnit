@@ -46,4 +46,26 @@
         <Method name="readProperties"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+    <Match>
+        <!-- False positive on try-with-resources statement with JDK-9 and JDK-10 (https://github.com/TNG/ArchUnit/issues/199):
+             In method com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties.loadRulesFrom(File)
+             Reference type java.io.InputStream
+             1 instances of obligation remaining
+             Obligation to clean up resource created at ViolationStoreFactory.java:[line 192] is not discharged
+        -->
+        <Class name="com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties"/>
+        <Method name="loadRulesFrom"/>
+        <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
+    </Match>
+    <Match>
+        <!-- False positive on try-with-resources statement with JDK-9 and JDK-10 (https://github.com/TNG/ArchUnit/issues/199):
+             In method com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties.syncFileSystem()
+             Reference type java.io.OutputStream
+             1 instances of obligation remaining
+             Obligation to clean up resource created at ViolationStoreFactory.java:[line 214] is not discharged
+        -->
+        <Class name="com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties"/>
+        <Method name="syncFileSystem"/>
+        <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
+    </Match>
 </FindBugsFilter>
