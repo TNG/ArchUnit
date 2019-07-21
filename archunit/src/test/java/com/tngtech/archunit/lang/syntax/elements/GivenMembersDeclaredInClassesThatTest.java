@@ -3,7 +3,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Constructor;
+import java.lang.ref.Reference;
 import java.text.AttributedString;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -173,17 +173,18 @@ public class GivenMembersDeclaredInClassesThatTest {
 
     @Test
     public void resideInAnyPackage() {
-        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().resideInAnyPackage("..tngtech..", "java.lang.reflect"))
-                .on(getClass(), String.class, Constructor.class);
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat()
+                .resideInAnyPackage("..tngtech..", "java.lang.ref")
+        ).on(getClass(), String.class, Reference.class);
 
-        assertThatMembers(members).matchInAnyOrderMembersOf(getClass(), Constructor.class);
+        assertThatMembers(members).matchInAnyOrderMembersOf(getClass(), Reference.class);
     }
 
     @Test
     public void resideOutsideOfPackages() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat()
-                .resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
-        ).on(getClass(), String.class, Constructor.class);
+                .resideOutsideOfPackages("..tngtech..", "java.lang.ref")
+        ).on(getClass(), String.class, Reference.class);
 
         assertThatMembers(members).matchInAnyOrderMembersOf(String.class);
     }
