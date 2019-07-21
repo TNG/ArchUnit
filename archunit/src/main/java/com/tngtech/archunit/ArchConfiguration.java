@@ -29,6 +29,8 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -46,6 +48,8 @@ public final class ArchConfiguration {
     @Internal
     public static final String ENABLE_MD5_IN_CLASS_SOURCES = "enableMd5InClassSources";
     private static final String EXTENSION_PREFIX = "extension";
+
+    private static final Logger LOG = LoggerFactory.getLogger(ArchConfiguration.class);
 
     private static final Map<String, String> PROPERTY_DEFAULTS = ImmutableMap.of(
             RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, Boolean.TRUE.toString(),
@@ -80,7 +84,10 @@ public final class ArchConfiguration {
         properties.clear();
         try (InputStream inputStream = getClass().getResourceAsStream(propertiesResourceName)) {
             if (inputStream != null) {
+                LOG.info("reading ArchUnit properties from " + propertiesResourceName);
                 properties.load(inputStream);
+            } else {
+                LOG.debug("no ArchUnit properties file found, therefore going with default behavior");
             }
         } catch (IOException ignore) {
         }
