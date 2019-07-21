@@ -90,6 +90,7 @@ public final class ArchConfiguration {
                 LOG.debug("no ArchUnit properties file found, therefore going with default behavior");
             }
         } catch (IOException ignore) {
+            LOG.warn("problem while accessing/reading ArchUnit properties file " + propertiesResourceName,ignore);
         }
     }
 
