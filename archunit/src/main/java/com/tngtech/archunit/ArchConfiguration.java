@@ -17,6 +17,7 @@ package com.tngtech.archunit;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,8 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -46,6 +49,8 @@ public final class ArchConfiguration {
     @Internal
     public static final String ENABLE_MD5_IN_CLASS_SOURCES = "enableMd5InClassSources";
     private static final String EXTENSION_PREFIX = "extension";
+
+    private static final Logger LOG = LoggerFactory.getLogger(ArchConfiguration.class);
 
     private static final Map<String, String> PROPERTY_DEFAULTS = ImmutableMap.of(
             RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, Boolean.TRUE.toString(),
@@ -78,11 +83,18 @@ public final class ArchConfiguration {
 
     private void readProperties(String propertiesResourceName) {
         properties.clear();
-        try (InputStream inputStream = getClass().getResourceAsStream(propertiesResourceName)) {
-            if (inputStream != null) {
-                properties.load(inputStream);
-            }
-        } catch (IOException ignore) {
+
+        URL archUnitPropertiesUrl = getClass().getResource(propertiesResourceName);
+        if (archUnitPropertiesUrl == null) {
+            LOG.debug("No configuration found in classpath at {} => Using default configuration", propertiesResourceName);
+            return;
+        }
+
+        try (InputStream inputStream = archUnitPropertiesUrl.openStream()) {
+            LOG.info("Reading ArchUnit properties from {}", archUnitPropertiesUrl);
+            properties.load(inputStream);
+        } catch (IOException e) {
+            LOG.warn("Error reading ArchUnit properties from " + archUnitPropertiesUrl, e);
         }
     }
 
