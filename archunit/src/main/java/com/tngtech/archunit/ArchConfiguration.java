@@ -17,6 +17,7 @@ package com.tngtech.archunit;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -82,15 +83,18 @@ public final class ArchConfiguration {
 
     private void readProperties(String propertiesResourceName) {
         properties.clear();
-        try (InputStream inputStream = getClass().getResourceAsStream(propertiesResourceName)) {
-            if (inputStream != null) {
-                LOG.info("reading ArchUnit properties from " + propertiesResourceName);
-                properties.load(inputStream);
-            } else {
-                LOG.debug("no ArchUnit properties file found, therefore going with default behavior");
-            }
-        } catch (IOException ignore) {
-            LOG.warn("problem while accessing/reading ArchUnit properties file " + propertiesResourceName,ignore);
+
+        URL archUnitPropertiesUrl = getClass().getResource(propertiesResourceName);
+        if (archUnitPropertiesUrl == null) {
+            LOG.debug("No configuration found in classpath at {} => Using default configuration", propertiesResourceName);
+            return;
+        }
+
+        try (InputStream inputStream = archUnitPropertiesUrl.openStream()) {
+            LOG.info("Reading ArchUnit properties from {}", archUnitPropertiesUrl);
+            properties.load(inputStream);
+        } catch (IOException e) {
+            LOG.warn("Error reading ArchUnit properties from " + archUnitPropertiesUrl, e);
         }
     }
 
