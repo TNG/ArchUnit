@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.RuntimeRetentionAnnotation;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
@@ -23,8 +25,7 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClass;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.theClass;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.FAILURE_REPORT_NEWLINE_MARKER;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.accessTargetIs;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.accessesFieldRegex;
@@ -1386,6 +1387,25 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassAccessingWrongField.class.getName()));
     }
 
+    @Test
+    public void haveOnlyPrivateConstructors_rule() {
+        assertNoViolation_HaveOnlyPrivateConstructors(ClassWithPrivateConstructors.class);
+        assertViolation_HaveOnlyPrivateConstructors(ClassWithPublicConstructorAndPrivateConstructor.class);
+        assertViolation_HaveOnlyPrivateConstructors(ClassWithPublicConstructors.class);
+    }
+
+    private void assertNoViolation_HaveOnlyPrivateConstructors(Class<?> clazz) {
+        JavaClasses jclasses = new ClassFileImporter().importClasses(clazz);
+        EvaluationResult eresult = classes().should().haveOnlyPrivateConstructors().evaluate(jclasses);
+        assertNoViolation(eresult);
+    }
+
+    private void assertViolation_HaveOnlyPrivateConstructors(Class<?> clazz) {
+        JavaClasses jclasses = new ClassFileImporter().importClasses(clazz);
+        EvaluationResult eresult = classes().should().haveOnlyPrivateConstructors().evaluate(jclasses);
+        assertViolation(eresult);
+    }
+
     private RuleEvaluationAsserter assertThatRules(ArchRule satisfiedRule, ArchRule unsatisfiedRule, Class<?>... classesToImport) {
         return new RuleEvaluationAsserter(satisfiedRule, unsatisfiedRule, classesToImport);
     }
@@ -1436,6 +1456,10 @@ public class GivenClassShouldTest {
 
     private static void assertNoViolation(EvaluationResult result) {
         assertThat(result.hasViolation()).as("result has violation").isFalse();
+    }
+
+    private static void assertViolation(EvaluationResult result) {
+        assertThat(result.hasViolation()).as("result has violation").isTrue();
     }
 
     private static class ClassWithField {
@@ -1493,5 +1517,30 @@ public class GivenClassShouldTest {
 
     @RuntimeRetentionAnnotation
     private static class SomeAnnotatedClass {
+    }
+
+    private static class ClassWithPrivateConstructors {
+        private ClassWithPrivateConstructors() { /* private constructor */ }
+        private ClassWithPrivateConstructors(String foo) { /* private constructor */ }
+    }
+
+    private static class ClassWithPublicConstructors {
+        public ClassWithPublicConstructors(String s) {
+            super();
+        }
+
+        public ClassWithPublicConstructors(Integer i) {
+            this(i.toString());
+        }
+    }
+
+    private static class ClassWithPublicConstructorAndPrivateConstructor {
+        public ClassWithPublicConstructorAndPrivateConstructor(String s) {
+            super();
+        }
+
+        private ClassWithPublicConstructorAndPrivateConstructor(Integer i) {
+            this(i.toString());
+        }
     }
 }
