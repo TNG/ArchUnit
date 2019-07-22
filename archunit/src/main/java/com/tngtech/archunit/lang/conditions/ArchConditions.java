@@ -89,8 +89,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
-import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
-import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
+import static com.tngtech.archunit.core.domain.JavaModifier.*;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
@@ -622,6 +621,11 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveOnlyPrivateConstructors() {
+        return new HaveOnlyPrivateConstructorsCondition();
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             Class<? extends Annotation> type) {
         return new IsConditionByPredicate<>(annotatedWith(type));
@@ -914,6 +918,27 @@ public final class ArchConditions {
             }
             return notFinalFieldNames;
         }
+    }
+
+    private static class HaveOnlyPrivateConstructorsCondition extends ArchCondition<JavaClass> {
+        HaveOnlyPrivateConstructorsCondition() {
+            super("have only private constructors");
+        }
+
+        @Override
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            SortedSet<String> notPrivateConstructors = new TreeSet<String>();
+            for (JavaConstructor constructor : javaClass.getConstructors()) {
+                if (!constructor.getModifiers().contains(PRIVATE)) {
+                    notPrivateConstructors.add(constructor.getFullName());
+                }
+            }
+            boolean satisfied = notPrivateConstructors.isEmpty();
+            String message = createMessage(javaClass,
+                    satisfied ? "all constructors are private" : "has one or more non-private constructors " + notPrivateConstructors);
+            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
+        }
+
     }
 
     private static class ImplementsCondition extends ArchCondition<JavaClass> {
