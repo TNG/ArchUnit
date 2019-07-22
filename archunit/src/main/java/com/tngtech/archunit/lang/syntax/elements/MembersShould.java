@@ -68,6 +68,42 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
     CONJUNCTION haveNameNotMatching(String regex);
 
     /**
+     * Asserts that members have a certain full name.
+     *
+     * @param fullName The member's full name
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveFullName(String fullName);
+
+    /**
+     * Asserts that members do not have a certain full name.
+     *
+     * @param fullName The member's full name
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION notHaveFullName(String fullName);
+
+    /**
+     * Asserts that members have a full name matching a given regular expression.
+     *
+     * @param regex A regular expression
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveFullNameMatching(String regex);
+
+    /**
+     * Asserts that members have a full name not matching a given regular expression.
+     *
+     * @param regex A regular expression
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveFullNameNotMatching(String regex);
+
+    /**
      * Asserts that members are public.
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule

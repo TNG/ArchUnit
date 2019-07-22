@@ -44,8 +44,8 @@ public interface HasName {
              * Matches full names against a regular expression.
              */
             @PublicAPI(usage = ACCESS)
-            public static DescribedPredicate<HasName.AndFullName> fullNameMatching(String regex) {
-                return new FullNameMatchingPredicate(regex);
+            public static <HAS_FULL_NAME extends HasName.AndFullName> DescribedPredicate<HAS_FULL_NAME> fullNameMatching(String regex) {
+                return new FullNameMatchingPredicate<>(regex);
             }
 
             private static class FullNameEqualsPredicate extends DescribedPredicate<HasName.AndFullName> {
@@ -62,7 +62,7 @@ public interface HasName {
                 }
             }
 
-            private static class FullNameMatchingPredicate extends DescribedPredicate<HasName.AndFullName> {
+            private static class FullNameMatchingPredicate<HAS_FULL_NAME extends HasName.AndFullName> extends DescribedPredicate<HAS_FULL_NAME> {
                 private final Pattern pattern;
 
                 FullNameMatchingPredicate(String regex) {
@@ -86,8 +86,8 @@ public interface HasName {
          * Matches names against a regular expression.
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasName> nameMatching(final String regex) {
-            return new NameMatchingPredicate(regex);
+        public static <HAS_NAME extends HasName> DescribedPredicate<HAS_NAME> nameMatching(final String regex) {
+            return new NameMatchingPredicate<>(regex);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -95,7 +95,7 @@ public interface HasName {
             return new NameEqualsPredicate(name);
         }
 
-        private static class NameMatchingPredicate extends DescribedPredicate<HasName> {
+        private static class NameMatchingPredicate<HAS_NAME extends HasName> extends DescribedPredicate<HAS_NAME> {
             private final Pattern pattern;
 
             NameMatchingPredicate(String regex) {

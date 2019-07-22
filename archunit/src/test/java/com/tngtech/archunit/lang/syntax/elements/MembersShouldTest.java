@@ -100,6 +100,7 @@ public class MembersShouldTest {
 
     @DataProvider
     public static Object[][] restricted_property_rule_ends() {
+        String classNameDot = ClassWithVariousMembers.class.getName() + ".";
         ImmutableList.Builder<Object[]> data = ImmutableList.<Object[]>builder().add(
                 $(members().should().haveName(FIELD_A), allMembersExcept(FIELD_A)),
                 $(codeUnits().should().haveName(FIELD_A), ALL_CODE_UNIT_DESCRIPTIONS),
@@ -130,6 +131,32 @@ public class MembersShouldTest {
                 $(methods().should().haveNameNotMatching("m.*A"), ImmutableSet.of(METHOD_A)),
                 $(codeUnits().should().haveNameNotMatching(".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
                 $(constructors().should().haveNameNotMatching(".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+
+                $(members().should().haveFullName(classNameDot + FIELD_A), allMembersExcept(FIELD_A)),
+                $(fields().should().haveFullName(classNameDot + FIELD_A), allFieldsExcept(FIELD_A)),
+                $(codeUnits().should().haveFullName(classNameDot + FIELD_A), ALL_CODE_UNIT_DESCRIPTIONS),
+                $(methods().should().haveFullName(classNameDot + METHOD_A), allMethodsExcept(METHOD_A)),
+                $(codeUnits().should().haveFullName(classNameDot + METHOD_A), allCodeUnitsExcept(METHOD_A)),
+                $(members().should().notHaveFullName(classNameDot + FIELD_A), ImmutableSet.of(FIELD_A)),
+                $(fields().should().notHaveFullName(classNameDot + FIELD_A), ImmutableSet.of(FIELD_A)),
+                $(codeUnits().should().notHaveFullName(classNameDot + FIELD_A), emptySet()),
+                $(methods().should().notHaveFullName(classNameDot + METHOD_A), ImmutableSet.of(METHOD_A)),
+                $(codeUnits().should().notHaveFullName(classNameDot + METHOD_A), ImmutableSet.of(METHOD_A)),
+
+                $(members().should().haveFullNameMatching(quote(classNameDot) + ".*A\\(?\\)?"), allMembersExcept(FIELD_A, METHOD_A)),
+                $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + ".*A"), ALL_CODE_UNIT_DESCRIPTIONS),
+                $(fields().should().haveFullNameMatching(quote(classNameDot) + ".*A"), allFieldsExcept(FIELD_A)),
+                $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + ".*A" + quote("()")), allCodeUnitsExcept(METHOD_A)),
+                $(methods().should().haveFullNameMatching(quote(classNameDot) + ".*A" + quote("()")), allMethodsExcept(METHOD_A)),
+                $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + "..*init.*"), ALL_METHOD_DESCRIPTIONS),
+                $(constructors().should().haveFullNameMatching(quote(classNameDot) + ".*init.*"), emptySet()),
+                $(members().should().haveFullNameNotMatching(quote(classNameDot) + ".*A\\(?\\)?"), ImmutableSet.of(FIELD_A, METHOD_A)),
+                $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*A"), emptySet()),
+                $(fields().should().haveFullNameNotMatching(quote(classNameDot) + ".*A"), ImmutableSet.of(FIELD_A)),
+                $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*A" + quote("()")), ImmutableSet.of(METHOD_A)),
+                $(methods().should().haveFullNameNotMatching(quote(classNameDot) + ".*A" + quote("()")), ImmutableSet.of(METHOD_A)),
+                $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(constructors().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
 
                 $(members().should().bePublic(), allMembersExcept(
                         FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),

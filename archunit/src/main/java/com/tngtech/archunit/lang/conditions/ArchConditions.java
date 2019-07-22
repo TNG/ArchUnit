@@ -98,8 +98,8 @@ import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
+import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullName;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
@@ -452,6 +452,16 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
+    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME> haveFullName(String fullName) {
+        return new HaveConditionByPredicate<>(fullName(fullName));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME> notHaveFullName(String fullName) {
+        return not(new HaveConditionByPredicate<HAS_FULL_NAME>(fullName(fullName)));
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveFullyQualifiedName(final String name) {
         return new HaveConditionByPredicate<>(fullyQualifiedName(name));
     }
@@ -516,13 +526,24 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> haveNameMatching(final String regex) {
-        final DescribedPredicate<HasName> haveNameMatching = have(nameMatching(regex));
-        return new NameMatchingCondition<>(haveNameMatching, regex);
+        final DescribedPredicate<HAS_NAME> haveNameMatching = have(HasName.Predicates.<HAS_NAME>nameMatching(regex));
+        return new MatchingCondition<>(haveNameMatching, regex);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> haveNameNotMatching(String regex) {
         return not(ArchConditions.<HAS_NAME>haveNameMatching(regex)).as("have name not matching '%s'", regex);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME> haveFullNameMatching(String regex) {
+        final DescribedPredicate<HAS_FULL_NAME> haveFullNameMatching = have(HasName.AndFullName.Predicates.<HAS_FULL_NAME>fullNameMatching(regex));
+        return new MatchingCondition<HAS_FULL_NAME>(haveFullNameMatching, regex);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME> haveFullNameNotMatching(String regex) {
+        return not(ArchConditions.<HAS_FULL_NAME>haveFullNameMatching(regex)).as("have full name not matching '%s'", regex);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1095,22 +1116,22 @@ public final class ArchConditions {
         }
     }
 
-    private static class NameMatchingCondition<HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> extends ArchCondition<HAS_NAME> {
-        private final DescribedPredicate<HasName> haveNameMatching;
+    private static class MatchingCondition<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
+        private final DescribedPredicate<T> matcher;
         private final String regex;
 
-        NameMatchingCondition(DescribedPredicate<HasName> haveNameMatching, String regex) {
-            super(haveNameMatching.getDescription());
-            this.haveNameMatching = haveNameMatching;
+        MatchingCondition(DescribedPredicate<T> matcher, String regex) {
+            super(matcher.getDescription());
+            this.matcher = matcher;
             this.regex = regex;
         }
 
         @Override
-        public void check(HAS_NAME hasName, ConditionEvents events) {
-            boolean satisfied = haveNameMatching.apply(hasName);
-            String message = createMessage(hasName,
+        public void check(T item, ConditionEvents events) {
+            boolean satisfied = matcher.apply(item);
+            String message = createMessage(item,
                     String.format("%s '%s'", satisfied ? "matches" : "does not match", regex));
-            events.add(new SimpleConditionEvent(hasName, satisfied, message));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
         }
     }
 
