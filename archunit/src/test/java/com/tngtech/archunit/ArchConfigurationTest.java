@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.entry;
 
 public class ArchConfigurationTest {
     private static final String PROPERTIES_FILE_NAME = "archconfigtest.properties";
-    private static final String PROPERTIES_RESOURCE_NAME = "/" + PROPERTIES_FILE_NAME;
     private final File testPropsFile = new File(getClass().getResource("/").getFile(), PROPERTIES_FILE_NAME);
 
     @Rule
@@ -50,7 +49,7 @@ public class ArchConfigurationTest {
     public void empty_property_file() {
         writeProperties(Collections.<String, String>emptyMap());
 
-        assertDefault(testConfiguration(PROPERTIES_RESOURCE_NAME));
+        assertDefault(testConfiguration(PROPERTIES_FILE_NAME));
     }
 
     @Test
@@ -60,7 +59,7 @@ public class ArchConfigurationTest {
                 ArchConfiguration.ENABLE_MD5_IN_CLASS_SOURCES, true
         ));
 
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
         assertThat(configuration.md5InClassSourcesEnabled()).isTrue();
@@ -75,7 +74,7 @@ public class ArchConfigurationTest {
                 ArchConfiguration.CLASS_RESOLVER_ARGS, "one.foo,two.bar"
         ));
 
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         assertThat(configuration.getClassResolver()).contains("some.Resolver");
         assertThat(configuration.getClassResolverArguments()).containsExactly("one.foo", "two.bar");
@@ -83,7 +82,7 @@ public class ArchConfigurationTest {
 
     @Test
     public void reset_works() {
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
 
         configuration.setResolveMissingDependenciesFromClassPath(false);
@@ -102,7 +101,7 @@ public class ArchConfigurationTest {
 
     @Test
     public void can_set_extension_properties() {
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         configuration.setExtensionProperties("test", singleProperty("key", "value"));
 
@@ -112,7 +111,7 @@ public class ArchConfigurationTest {
 
     @Test
     public void set_extension_properties_are_copied() {
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         Properties properties = singleProperty("key", "value");
         configuration.setExtensionProperties("test", properties);
@@ -124,7 +123,7 @@ public class ArchConfigurationTest {
 
     @Test
     public void can_change_extension_properties() {
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         configuration.setExtensionProperties("test",
                 properties("one", "valueOne", "two", "valueTwo"));
@@ -141,14 +140,14 @@ public class ArchConfigurationTest {
 
     @Test
     public void if_no_extension_properties_are_found_empty_properties_are_returned() {
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         assertThat(configuration.getExtensionProperties("not-there")).isEmpty();
     }
 
     @Test
     public void returned_properties_are_copied() {
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         String original = "value";
         configuration.setExtensionProperties("test", singleProperty("key", original));
@@ -171,7 +170,7 @@ public class ArchConfigurationTest {
                 "extension.other-extension.other-prop", "other value"
         ));
 
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         Properties properties = configuration.getExtensionProperties("test-extension");
         assertThat(properties).containsOnly(
@@ -190,7 +189,7 @@ public class ArchConfigurationTest {
                 "toignore", "toignore"
         ));
 
-        ArchConfiguration configuration = testConfiguration(PROPERTIES_RESOURCE_NAME);
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         assertThat(configuration.getProperty("some.custom.booleanproperty")).isEqualTo("true");
         assertThat(configuration.getSubProperties("some.custom"))
