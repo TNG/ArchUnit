@@ -38,6 +38,7 @@ import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 
 import static com.google.common.io.Resources.readLines;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -107,7 +108,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
         }
 
         private static Set<Pattern> readPatternsFrom(String fileNameInClassPath) {
-            URL ignorePatternsResource = Assertions.class.getResource('/' + fileNameInClassPath);
+            URL ignorePatternsResource = getCurrentClassLoader(Assertions.class).getResource(fileNameInClassPath);
             if (ignorePatternsResource == null) {
                 return Collections.emptySet();
             }

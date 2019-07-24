@@ -35,13 +35,14 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 
 /**
  * Allows access to configured properties in {@value ARCHUNIT_PROPERTIES_RESOURCE_NAME}.
  */
 public final class ArchConfiguration {
     @Internal // {@value ...} does not work on non public constants outside of the package
-    public static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "/archunit.properties";
+    public static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "archunit.properties";
     @Internal // {@value ...} does not work on non public constants outside of the package
     public static final String RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH = "resolveMissingDependenciesFromClassPath";
     static final String CLASS_RESOLVER = "classResolver";
@@ -84,7 +85,7 @@ public final class ArchConfiguration {
     private void readProperties(String propertiesResourceName) {
         properties.clear();
 
-        URL archUnitPropertiesUrl = getClass().getResource(propertiesResourceName);
+        URL archUnitPropertiesUrl = getCurrentClassLoader(getClass()).getResource(propertiesResourceName);
         if (archUnitPropertiesUrl == null) {
             LOG.debug("No configuration found in classpath at {} => Using default configuration", propertiesResourceName);
             return;
