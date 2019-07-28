@@ -26,6 +26,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
@@ -190,62 +191,87 @@ public class DomainObjectCreationContext {
             }
 
             private Supplier<Set<JavaFieldAccess>> getFieldAccessesTo(final JavaField field) {
-                return newAccessSupplier(field.getOwner(), fieldAccessTargetResolvesTo(field));
+                return Suppliers.memoize(new AccessSupplier<>(field.getOwner(), fieldAccessTargetResolvesTo(field)));
             }
 
             private Function<JavaClass, Set<JavaFieldAccess>> fieldAccessTargetResolvesTo(final JavaField field) {
-                return new Function<JavaClass, Set<JavaFieldAccess>>() {
-                    @Override
-                    public Set<JavaFieldAccess> apply(JavaClass input) {
-                        Set<JavaFieldAccess> result = new HashSet<>();
-                        for (JavaFieldAccess access : fieldAccessesByTarget.get(input)) {
-                            if (access.getTarget().resolveField().asSet().contains(field)) {
-                                result.add(access);
-                            }
-                        }
-                        return result;
-                    }
-                };
+                return new ClassToFieldAccessesToSelf(fieldAccessesByTarget, field);
             }
 
             private Supplier<Set<JavaMethodCall>> getMethodCallsOf(final JavaMethod method) {
-                return newAccessSupplier(method.getOwner(), methodCallTargetResolvesTo(method));
+                return Suppliers.memoize(new AccessSupplier<>(method.getOwner(), methodCallTargetResolvesTo(method)));
             }
 
             private Function<JavaClass, Set<JavaMethodCall>> methodCallTargetResolvesTo(final JavaMethod method) {
-                return new Function<JavaClass, Set<JavaMethodCall>>() {
-                    @Override
-                    public Set<JavaMethodCall> apply(JavaClass input) {
-                        Set<JavaMethodCall> result = new HashSet<>();
-                        for (JavaMethodCall call : methodCallsByTarget.get(input)) {
-                            if (call.getTarget().resolve().contains(method)) {
-                                result.add(call);
-                            }
-                        }
-                        return result;
-                    }
-                };
+                return new ClassToMethodCallsToSelf(methodCallsByTarget, method);
             }
 
-            private <T> Supplier<Set<T>> newAccessSupplier(final JavaClass owner, final Function<JavaClass, Set<T>> doWithEachClass) {
+            private static class ClassToFieldAccessesToSelf implements Function<JavaClass, Set<JavaFieldAccess>> {
+                private final Multimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget;
+                private final JavaField field;
 
-                return Suppliers.memoize(new Supplier<Set<T>>() {
-                    @Override
-                    public Set<T> get() {
-                        ImmutableSet.Builder<T> result = ImmutableSet.builder();
-                        for (final JavaClass javaClass : getPossibleTargetClassesForAccess()) {
-                            result.addAll(doWithEachClass.apply(javaClass));
+                ClassToFieldAccessesToSelf(SetMultimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget, JavaField field) {
+                    this.fieldAccessesByTarget = fieldAccessesByTarget;
+                    this.field = field;
+                }
+
+                @Override
+                public Set<JavaFieldAccess> apply(JavaClass input) {
+                    Set<JavaFieldAccess> result = new HashSet<>();
+                    for (JavaFieldAccess access : fieldAccessesByTarget.get(input)) {
+                        if (access.getTarget().resolveField().asSet().contains(field)) {
+                            result.add(access);
                         }
-                        return result.build();
                     }
+                    return result;
+                }
+            }
 
-                    private Set<JavaClass> getPossibleTargetClassesForAccess() {
-                        return ImmutableSet.<JavaClass>builder()
-                                .add(owner)
-                                .addAll(owner.getAllSubClasses())
-                                .build();
+            private static class ClassToMethodCallsToSelf implements Function<JavaClass, Set<JavaMethodCall>> {
+                private final Multimap<JavaClass, JavaMethodCall> methodCallsByTarget;
+                private final JavaMethod method;
+
+                ClassToMethodCallsToSelf(SetMultimap<JavaClass, JavaMethodCall> methodCallsByTarget, JavaMethod method) {
+                    this.methodCallsByTarget = methodCallsByTarget;
+                    this.method = method;
+                }
+
+                @Override
+                public Set<JavaMethodCall> apply(JavaClass input) {
+                    Set<JavaMethodCall> result = new HashSet<>();
+                    for (JavaMethodCall call : methodCallsByTarget.get(input)) {
+                        if (call.getTarget().resolve().contains(method)) {
+                            result.add(call);
+                        }
                     }
-                });
+                    return result;
+                }
+            }
+
+            private static class AccessSupplier<T extends JavaAccess<?>> implements Supplier<Set<T>> {
+                private final JavaClass owner;
+                private final Function<JavaClass, Set<T>> mapToAccesses;
+
+                AccessSupplier(JavaClass owner, Function<JavaClass, Set<T>> mapToAccesses) {
+                    this.owner = owner;
+                    this.mapToAccesses = mapToAccesses;
+                }
+
+                @Override
+                public Set<T> get() {
+                    ImmutableSet.Builder<T> result = ImmutableSet.builder();
+                    for (final JavaClass javaClass : getPossibleTargetClassesForAccess()) {
+                        result.addAll(mapToAccesses.apply(javaClass));
+                    }
+                    return result.build();
+                }
+
+                private Set<JavaClass> getPossibleTargetClassesForAccess() {
+                    return ImmutableSet.<JavaClass>builder()
+                            .add(owner)
+                            .addAll(owner.getAllSubClasses())
+                            .build();
+                }
             }
         }
     }

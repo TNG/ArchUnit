@@ -156,12 +156,7 @@ public final class DomainBuilders {
         }
 
         public Supplier<Map<String, JavaAnnotation>> getAnnotations() {
-            return Suppliers.memoize(new Supplier<Map<String, JavaAnnotation>>() {
-                @Override
-                public Map<String, JavaAnnotation> get() {
-                    return buildAnnotations(annotations, importedClasses);
-                }
-            });
+            return Suppliers.memoize(new AnnotationsSupplier(annotations, importedClasses));
         }
 
         public String getDescriptor() {
@@ -181,6 +176,21 @@ public final class DomainBuilders {
             this.owner = owner;
             this.importedClasses = importedClasses;
             return construct(self(), importedClasses);
+        }
+
+        private static class AnnotationsSupplier implements Supplier<Map<String, JavaAnnotation>> {
+            private final Set<JavaAnnotationBuilder> annotations;
+            private final ClassesByTypeName importedClasses;
+
+            AnnotationsSupplier(Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
+                this.annotations = annotations;
+                this.importedClasses = importedClasses;
+            }
+
+            @Override
+            public Map<String, JavaAnnotation> get() {
+                return buildAnnotations(annotations, importedClasses);
+            }
         }
     }
 
