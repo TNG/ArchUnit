@@ -1,13 +1,17 @@
 package com.tngtech.archunit.base;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.base.DescribedPredicate.allElements;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
+import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
+import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.doesNot;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
@@ -16,7 +20,6 @@ import static com.tngtech.archunit.base.DescribedPredicate.greaterThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.lessThan;
 import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -176,6 +179,28 @@ public class DescribedPredicateTest {
         assertThat(equalTo(5).onResultOf(constant(4))).rejects(new Object());
         assertThat(equalTo(5).onResultOf(constant(5))).accepts(new Object());
         assertThat(equalTo(5).onResultOf(constant(6))).rejects(new Object());
+    }
+
+    @Test
+    public void anyElementThat_works() {
+        assertThat(anyElementThat(equalTo(5)))
+                .hasDescription("any element that equal to '5'")
+                .accepts(ImmutableList.of(5))
+                .accepts(ImmutableList.of(-1, 0, 5, 6))
+                .accepts(ImmutableList.of(-1, 0, 5, 5, 6))
+                .rejects(ImmutableList.of(-1, 0, 6))
+                .rejects(ImmutableList.<Integer>of());
+    }
+
+    @Test
+    public void allElements_works() {
+        assertThat(allElements(equalTo(5)))
+                .hasDescription("all elements equal to '5'")
+                .accepts(ImmutableList.of(5))
+                .accepts(ImmutableList.of(5, 5, 5))
+                .rejects(ImmutableList.of(5, 5, 6))
+                .rejects(ImmutableList.of(-1, 0, 5, 6))
+                .accepts(ImmutableList.<Integer>of());
     }
 
     private Function<Object, Integer> constant(final int integer) {
