@@ -62,6 +62,9 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         fullName = formatMethod(getOwner().getName(), getName(), getRawParameterTypes());
     }
 
+    /**
+     * @return The full name of this {@link JavaCodeUnit}, i.e. a string containing {@code ${declaringClass}.${name}(${parameterTypes})}
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public String getFullName() {

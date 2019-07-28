@@ -3,8 +3,10 @@ package com.tngtech.archunit.core.domain.properties;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
+import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Functions.GET_FULL_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullName;
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
+import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -51,6 +53,13 @@ public class HasNameTest {
                 .accepts(newHasNameAndFullName("method", "some.Foo.method()"))
                 .rejects(newHasNameAndFullName("method", "some.Foo.method"))
                 .hasDescription("full name matching '.*method\\(.*\\)'");
+    }
+
+    @Test
+    public void functions() {
+        HasName.AndFullName test = newHasNameAndFullName("simple", "full");
+        assertThat(GET_NAME.apply(test)).isEqualTo("simple");
+        assertThat(GET_FULL_NAME.apply(test)).isEqualTo("full");
     }
 
     private AbstractBooleanAssert assertNameMatches(String input, String regex) {

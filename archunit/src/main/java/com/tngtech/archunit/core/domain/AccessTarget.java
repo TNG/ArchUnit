@@ -91,6 +91,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         return owner;
     }
 
+    /**
+     * @return The full name of this {@link AccessTarget}, i.e. a string containing {@code ${declaringClass}.${name}} for a field and
+     *         {@code ${declaringClass}.${name}(${parameterTypes})} for a code unit
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public String getFullName() {

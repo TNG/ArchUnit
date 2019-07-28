@@ -46,6 +46,7 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ALL_OTH
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ALL_OTHER_MEMBER_DESCRIPTIONS;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ALL_OTHER_METHOD_DESCRIPTIONS;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.CONSTRUCTOR_ANNOTATED_WITH_A;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.CONSTRUCTOR_ONE_ARG;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.CONSTRUCTOR_PACKAGE_PRIVATE;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.CONSTRUCTOR_PRIVATE;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.CONSTRUCTOR_PROTECTED;
@@ -149,14 +150,15 @@ public class MembersShouldTest {
                 $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + ".*A" + quote("()")), allCodeUnitsExcept(METHOD_A)),
                 $(methods().should().haveFullNameMatching(quote(classNameDot) + ".*A" + quote("()")), allMethodsExcept(METHOD_A)),
                 $(codeUnits().should().haveFullNameMatching(quote(classNameDot) + "..*init.*"), ALL_METHOD_DESCRIPTIONS),
-                $(constructors().should().haveFullNameMatching(quote(classNameDot) + ".*init.*"), emptySet()),
+                $(constructors().should().haveFullNameMatching(quote(classNameDot) + ".*init.*String\\)"),
+                        allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
                 $(members().should().haveFullNameNotMatching(quote(classNameDot) + ".*A\\(?\\)?"), ImmutableSet.of(FIELD_A, METHOD_A)),
                 $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*A"), emptySet()),
                 $(fields().should().haveFullNameNotMatching(quote(classNameDot) + ".*A"), ImmutableSet.of(FIELD_A)),
                 $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*A" + quote("()")), ImmutableSet.of(METHOD_A)),
                 $(methods().should().haveFullNameNotMatching(quote(classNameDot) + ".*A" + quote("()")), ImmutableSet.of(METHOD_A)),
                 $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
-                $(constructors().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(constructors().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*String\\)"), ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
 
                 $(members().should().bePublic(), allMembersExcept(
                         FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),

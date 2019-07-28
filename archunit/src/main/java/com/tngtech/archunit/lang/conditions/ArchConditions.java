@@ -99,7 +99,9 @@ import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predica
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullName;
+import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
@@ -452,12 +454,14 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME> haveFullName(String fullName) {
+    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation>
+    ArchCondition<HAS_FULL_NAME> haveFullName(String fullName) {
         return new HaveConditionByPredicate<>(fullName(fullName));
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME> notHaveFullName(String fullName) {
+    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation>
+    ArchCondition<HAS_FULL_NAME> notHaveFullName(String fullName) {
         return not(new HaveConditionByPredicate<HAS_FULL_NAME>(fullName(fullName)));
     }
 
@@ -526,7 +530,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> haveNameMatching(final String regex) {
-        final DescribedPredicate<HAS_NAME> haveNameMatching = have(HasName.Predicates.<HAS_NAME>nameMatching(regex));
+        final DescribedPredicate<HAS_NAME> haveNameMatching = have(nameMatching(regex)).forSubType();
         return new MatchingCondition<>(haveNameMatching, regex);
     }
 
@@ -536,13 +540,15 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME> haveFullNameMatching(String regex) {
-        final DescribedPredicate<HAS_FULL_NAME> haveFullNameMatching = have(HasName.AndFullName.Predicates.<HAS_FULL_NAME>fullNameMatching(regex));
-        return new MatchingCondition<HAS_FULL_NAME>(haveFullNameMatching, regex);
+    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation>
+    ArchCondition<HAS_FULL_NAME> haveFullNameMatching(String regex) {
+        final DescribedPredicate<HAS_FULL_NAME> haveFullNameMatching = have(fullNameMatching(regex)).forSubType();
+        return new MatchingCondition<>(haveFullNameMatching, regex);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME> haveFullNameNotMatching(String regex) {
+    public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME>
+    haveFullNameNotMatching(String regex) {
         return not(ArchConditions.<HAS_FULL_NAME>haveFullNameMatching(regex)).as("have full name not matching '%s'", regex);
     }
 

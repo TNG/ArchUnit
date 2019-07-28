@@ -109,6 +109,9 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         javaPackage = JavaPackage.simple(this);
     }
 
+    /**
+     * @return The {@link Source} of this {@link JavaClass}, i.e. where this class has been imported from
+     */
     @PublicAPI(usage = ACCESS)
     public Optional<Source> getSource() {
         return source;
@@ -126,12 +129,18 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         return "Class <" + getName() + ">";
     }
 
+    /**
+     * @return The fully qualified name of this {@link JavaClass}, compare {@link Class#getName()} of the Reflection API
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public String getName() {
         return javaType.getName();
     }
 
+    /**
+     * @return The fully qualified name of this {@link JavaClass}, i.e. the result is the same as invoking {@link #getName()}
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public String getFullName() {

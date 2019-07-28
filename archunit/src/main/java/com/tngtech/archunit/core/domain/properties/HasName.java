@@ -28,6 +28,9 @@ public interface HasName {
     String getName();
 
     interface AndFullName extends HasName {
+        /**
+         * @return The full name of the given object. Varies by context, for details consult Javadoc of the concrete subclass.
+         */
         @PublicAPI(usage = ACCESS)
         String getFullName();
 
@@ -44,8 +47,8 @@ public interface HasName {
              * Matches full names against a regular expression.
              */
             @PublicAPI(usage = ACCESS)
-            public static <HAS_FULL_NAME extends HasName.AndFullName> DescribedPredicate<HAS_FULL_NAME> fullNameMatching(String regex) {
-                return new FullNameMatchingPredicate<>(regex);
+            public static DescribedPredicate<HasName.AndFullName> fullNameMatching(String regex) {
+                return new FullNameMatchingPredicate(regex);
             }
 
             private static class FullNameEqualsPredicate extends DescribedPredicate<HasName.AndFullName> {
@@ -62,7 +65,7 @@ public interface HasName {
                 }
             }
 
-            private static class FullNameMatchingPredicate<HAS_FULL_NAME extends HasName.AndFullName> extends DescribedPredicate<HAS_FULL_NAME> {
+            private static class FullNameMatchingPredicate extends DescribedPredicate<HasName.AndFullName> {
                 private final Pattern pattern;
 
                 FullNameMatchingPredicate(String regex) {
@@ -76,18 +79,23 @@ public interface HasName {
                 }
             }
         }
+
+        final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<HasName.AndFullName, String> GET_FULL_NAME = new ChainableFunction<HasName.AndFullName, String>() {
+                @Override
+                public String apply(HasName.AndFullName input) {
+                    return input.getFullName();
+                }
+            };
+        }
     }
 
     final class Predicates {
         private Predicates() {
-        }
-
-        /**
-         * Matches names against a regular expression.
-         */
-        @PublicAPI(usage = ACCESS)
-        public static <HAS_NAME extends HasName> DescribedPredicate<HAS_NAME> nameMatching(final String regex) {
-            return new NameMatchingPredicate<>(regex);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -95,18 +103,12 @@ public interface HasName {
             return new NameEqualsPredicate(name);
         }
 
-        private static class NameMatchingPredicate<HAS_NAME extends HasName> extends DescribedPredicate<HAS_NAME> {
-            private final Pattern pattern;
-
-            NameMatchingPredicate(String regex) {
-                super(String.format("name matching '%s'", regex));
-                this.pattern = Pattern.compile(regex);
-            }
-
-            @Override
-            public boolean apply(HasName input) {
-                return pattern.matcher(input.getName()).matches();
-            }
+        /**
+         * Matches names against a regular expression.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasName> nameMatching(final String regex) {
+            return new NameMatchingPredicate(regex);
         }
 
         private static class NameEqualsPredicate extends DescribedPredicate<HasName> {
@@ -120,6 +122,20 @@ public interface HasName {
             @Override
             public boolean apply(HasName input) {
                 return input.getName().equals(name);
+            }
+        }
+
+        private static class NameMatchingPredicate extends DescribedPredicate<HasName> {
+            private final Pattern pattern;
+
+            NameMatchingPredicate(String regex) {
+                super(String.format("name matching '%s'", regex));
+                this.pattern = Pattern.compile(regex);
+            }
+
+            @Override
+            public boolean apply(HasName input) {
+                return pattern.matcher(input.getName()).matches();
             }
         }
     }
