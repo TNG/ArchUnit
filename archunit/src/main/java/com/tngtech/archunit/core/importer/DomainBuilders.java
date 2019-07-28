@@ -53,6 +53,7 @@ import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.ThrowsClause;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
@@ -252,13 +253,13 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaMethodBuilder extends JavaCodeUnitBuilder<JavaMethod, JavaMethodBuilder> {
-        private Optional<JavaAnnotationBuilder.ValueBuilder> annotationDefaultValueBuilder = Optional.absent();
+        private Optional<ValueBuilder> annotationDefaultValueBuilder = Optional.absent();
         private Supplier<Optional<Object>> annotationDefaultValue = Suppliers.ofInstance(Optional.absent());
 
         JavaMethodBuilder() {
         }
 
-        JavaMethodBuilder withAnnotationDefaultValue(JavaAnnotationBuilder.ValueBuilder defaultValue) {
+        JavaMethodBuilder withAnnotationDefaultValue(ValueBuilder defaultValue) {
             annotationDefaultValueBuilder = Optional.of(defaultValue);
             return this;
         }
@@ -270,14 +271,24 @@ public final class DomainBuilders {
         @Override
         JavaMethod construct(JavaMethodBuilder builder, final ClassesByTypeName importedClasses) {
             if (annotationDefaultValueBuilder.isPresent()) {
-                annotationDefaultValue = Suppliers.memoize(new Supplier<Optional<Object>>() {
-                    @Override
-                    public Optional<Object> get() {
-                        return annotationDefaultValueBuilder.get().build(importedClasses);
-                    }
-                });
+                annotationDefaultValue = Suppliers.memoize(new DefaultValueSupplier(annotationDefaultValueBuilder.get(), importedClasses));
             }
             return DomainObjectCreationContext.createJavaMethod(builder);
+        }
+
+        private static class DefaultValueSupplier implements Supplier<Optional<Object>> {
+            private final ValueBuilder valueBuilder;
+            private final ClassesByTypeName importedClasses;
+
+            DefaultValueSupplier(ValueBuilder valueBuilder, ClassesByTypeName importedClasses) {
+                this.valueBuilder = valueBuilder;
+                this.importedClasses = importedClasses;
+            }
+
+            @Override
+            public Optional<Object> get() {
+                return valueBuilder.build(importedClasses);
+            }
         }
     }
 
