@@ -148,6 +148,10 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return new AnyElementPredicate<>(predicate);
     }
 
+    public static <T> DescribedPredicate<Iterable<T>> allElements(final DescribedPredicate<T> predicate) {
+        return new AllElementsPredicate<>(predicate);
+    }
+
     private static class AsPredicate<T> extends DescribedPredicate<T> {
         private final DescribedPredicate<T> current;
 
@@ -324,6 +328,25 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
                 }
             }
             return false;
+        }
+    }
+
+    private static class AllElementsPredicate<T> extends DescribedPredicate<Iterable<T>> {
+        private final DescribedPredicate<T> predicate;
+
+        AllElementsPredicate(DescribedPredicate<T> predicate) {
+            super("all elements " + predicate.getDescription());
+            this.predicate = predicate;
+        }
+
+        @Override
+        public boolean apply(Iterable<T> iterable) {
+            for (T javaClass : iterable) {
+                if (!predicate.apply(javaClass)) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
