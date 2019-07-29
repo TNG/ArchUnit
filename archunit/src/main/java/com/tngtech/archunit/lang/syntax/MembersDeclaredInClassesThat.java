@@ -369,6 +369,11 @@ class MembersDeclaredInClassesThat<MEMBER extends JavaMember, CONJUNCTION extend
         return givenWith(are(not(INTERFACES)));
     }
 
+    @Override
+    public CONJUNCTION belongToAnyOf(final Class... classes) {
+        return givenWith(JavaClass.Predicates.belongToAnyOf(classes));
+    }
+
     private CONJUNCTION givenWith(DescribedPredicate<? super JavaClass> predicate) {
         return predicateAggregator.apply(predicate);
     }

@@ -1283,6 +1283,46 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
             return new EquivalentToPredicate(clazz);
         }
 
+        /**
+         * A predicate to determine if a {@link JavaClass} "belongs" to one of the passed {@link Class classes},
+         * where we define "belong" as being equivalent to the class itself or any inner/anonymous class of this class.
+         *
+         * @param classes The {@link Class classes} to check the {@link JavaClass} against
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} is equivalent to
+         * one of the supplied {@link Class classes} or to one of its inner/anonymous classes.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> belongToAnyOf(Class... classes) {
+            return new BelongToAnyOfPredicate(classes);
+        }
+
+        private static class BelongToAnyOfPredicate extends DescribedPredicate<JavaClass> {
+            private final Class[] classes;
+
+            BelongToAnyOfPredicate(Class... classes) {
+                super("belong to any of " + JavaClass.namesOf(classes));
+                this.classes = classes;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                for (Class clazz : classes) {
+                    if (belongsTo(input, clazz)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            private boolean belongsTo(JavaClass input, Class clazz) {
+                JavaClass toTest = input;
+                while (!toTest.isEquivalentTo(clazz) && toTest.getEnclosingClass().isPresent()) {
+                    toTest = toTest.getEnclosingClass().get();
+                }
+                return toTest.isEquivalentTo(clazz);
+            }
+        }
+
         private static class SimpleNameStartingWithPredicate extends DescribedPredicate<JavaClass> {
             private final String prefix;
 

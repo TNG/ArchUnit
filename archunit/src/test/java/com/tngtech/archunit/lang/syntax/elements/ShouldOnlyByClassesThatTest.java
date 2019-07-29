@@ -838,6 +838,20 @@ public class ShouldOnlyByClassesThatTest {
         assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
     }
 
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void belongToAnyOf(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterViolationCausesInFailureReport(
+                classesShouldOnlyBeBy.belongToAnyOf(ClassWithInnerClasses.class))
+                .on(ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class,
+                        ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                        AnotherClassWithInnerClasses.class, AnotherClassWithInnerClasses.InnerClass.class,
+                        AnotherClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                        ClassBeingAccessedByInnerClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(AnotherClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class);
+    }
+
     @DataProvider
     public static Object[][] byClassesThat_predicate_rules() {
         return testForEach(
@@ -1083,5 +1097,34 @@ public class ShouldOnlyByClassesThatTest {
     }
 
     private static class ClassDependingViaImplementing implements InterfaceBeingDependedOnByImplementing {
+    }
+
+    private static class ClassWithInnerClasses {
+        private static class InnerClass {
+            private static class EvenMoreInnerClass {
+                ClassBeingAccessedByInnerClass classBeingAccessedByInnerClass;
+
+                void access() {
+                    classBeingAccessedByInnerClass.callMe();
+                }
+            }
+        }
+    }
+
+    private static class AnotherClassWithInnerClasses {
+        private static class InnerClass {
+            private static class EvenMoreInnerClass {
+                ClassBeingAccessedByInnerClass classBeingAccessedByInnerClass;
+
+                void access() {
+                    classBeingAccessedByInnerClass.callMe();
+                }
+            }
+        }
+    }
+
+    private static class ClassBeingAccessedByInnerClass {
+        void callMe() {
+        }
     }
 }
