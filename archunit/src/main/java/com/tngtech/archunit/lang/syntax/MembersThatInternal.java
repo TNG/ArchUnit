@@ -31,6 +31,8 @@ import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
+import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullName;
+import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
@@ -69,6 +71,26 @@ class MembersThatInternal<
     @Override
     public CONJUNCTION haveNameNotMatching(String regex) {
         return givenWith(SyntaxPredicates.haveNameNotMatching(regex));
+    }
+
+    @Override
+    public CONJUNCTION haveFullName(String fullName) {
+        return givenWith(have(fullName(fullName)));
+    }
+
+    @Override
+    public CONJUNCTION doNotHaveFullName(String fullName) {
+        return givenWith(doNot(have(fullName(fullName))));
+    }
+
+    @Override
+    public CONJUNCTION haveFullNameMatching(String regex) {
+        return givenWith(have(fullNameMatching(regex)));
+    }
+
+    @Override
+    public CONJUNCTION haveFullNameNotMatching(String regex) {
+        return givenWith(have(not(fullNameMatching(regex)).as("full name not matching '%s'", regex)));
     }
 
     @Override

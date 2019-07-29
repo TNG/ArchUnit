@@ -21,6 +21,9 @@ import com.tngtech.archunit.core.domain.SourceCodeLocation;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface HasSourceCodeLocation {
+    /**
+     * @return The {@link SourceCodeLocation} of this object, i.e. how to locate the respective object within the set of source files.
+     */
     @PublicAPI(usage = ACCESS)
     SourceCodeLocation getSourceCodeLocation();
 }

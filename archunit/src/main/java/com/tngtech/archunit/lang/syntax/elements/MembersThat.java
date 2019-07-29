@@ -68,6 +68,42 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
     CONJUNCTION haveNameNotMatching(String regex);
 
     /**
+     * Matches members by their full name.
+     *
+     * @param fullName The member's full name
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveFullName(String fullName);
+
+    /**
+     * Matches members that do not have a certain full name.
+     *
+     * @param fullName The member's full name
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotHaveFullName(String fullName);
+
+    /**
+     * Matches members with a full name matching a given regular expression.
+     *
+     * @param regex A regular expression
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveFullNameMatching(String regex);
+
+    /**
+     * Matches members with a full name not matching a given regular expression.
+     *
+     * @param regex A regular expression
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveFullNameNotMatching(String regex);
+
+    /**
      * Matches public members.
      *
      * @return A syntax conjunction element, which can be completed to form a full rule

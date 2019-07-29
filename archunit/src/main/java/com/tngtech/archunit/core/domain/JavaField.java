@@ -42,6 +42,9 @@ public class JavaField extends JavaMember implements HasType {
         fieldSupplier = Suppliers.memoize(new ReflectFieldSupplier());
     }
 
+    /**
+     * @return The full name of this {@link JavaField}, i.e. a string containing {@code ${declaringClass}.${name}}
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public String getFullName() {

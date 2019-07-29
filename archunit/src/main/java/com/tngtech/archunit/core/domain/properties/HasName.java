@@ -28,12 +28,79 @@ public interface HasName {
     String getName();
 
     interface AndFullName extends HasName {
+        /**
+         * @return The full name of the given object. Varies by context, for details consult Javadoc of the concrete subclass.
+         */
         @PublicAPI(usage = ACCESS)
         String getFullName();
+
+        final class Predicates {
+            private Predicates() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static DescribedPredicate<HasName.AndFullName> fullName(String fullName) {
+                return new FullNameEqualsPredicate(fullName);
+            }
+
+            /**
+             * Matches full names against a regular expression.
+             */
+            @PublicAPI(usage = ACCESS)
+            public static DescribedPredicate<HasName.AndFullName> fullNameMatching(String regex) {
+                return new FullNameMatchingPredicate(regex);
+            }
+
+            private static class FullNameEqualsPredicate extends DescribedPredicate<HasName.AndFullName> {
+                private final String fullName;
+
+                FullNameEqualsPredicate(String fullName) {
+                    super(String.format("full name '%s'", fullName));
+                    this.fullName = fullName;
+                }
+
+                @Override
+                public boolean apply(HasName.AndFullName input) {
+                    return input.getFullName().equals(fullName);
+                }
+            }
+
+            private static class FullNameMatchingPredicate extends DescribedPredicate<HasName.AndFullName> {
+                private final Pattern pattern;
+
+                FullNameMatchingPredicate(String regex) {
+                    super(String.format("full name matching '%s'", regex));
+                    this.pattern = Pattern.compile(regex);
+                }
+
+                @Override
+                public boolean apply(HasName.AndFullName input) {
+                    return pattern.matcher(input.getFullName()).matches();
+                }
+            }
+        }
+
+        final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<HasName.AndFullName, String> GET_FULL_NAME = new ChainableFunction<HasName.AndFullName, String>() {
+                @Override
+                public String apply(HasName.AndFullName input) {
+                    return input.getFullName();
+                }
+            };
+        }
     }
 
     final class Predicates {
         private Predicates() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasName> name(final String name) {
+            return new NameEqualsPredicate(name);
         }
 
         /**
@@ -42,25 +109,6 @@ public interface HasName {
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasName> nameMatching(final String regex) {
             return new NameMatchingPredicate(regex);
-        }
-
-        @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasName> name(final String name) {
-            return new NameEqualsPredicate(name);
-        }
-
-        private static class NameMatchingPredicate extends DescribedPredicate<HasName> {
-            private final Pattern pattern;
-
-            NameMatchingPredicate(String regex) {
-                super(String.format("name matching '%s'", regex));
-                this.pattern = Pattern.compile(regex);
-            }
-
-            @Override
-            public boolean apply(HasName input) {
-                return pattern.matcher(input.getName()).matches();
-            }
         }
 
         private static class NameEqualsPredicate extends DescribedPredicate<HasName> {
@@ -74,6 +122,20 @@ public interface HasName {
             @Override
             public boolean apply(HasName input) {
                 return input.getName().equals(name);
+            }
+        }
+
+        private static class NameMatchingPredicate extends DescribedPredicate<HasName> {
+            private final Pattern pattern;
+
+            NameMatchingPredicate(String regex) {
+                super(String.format("name matching '%s'", regex));
+                this.pattern = Pattern.compile(regex);
+            }
+
+            @Override
+            public boolean apply(HasName input) {
+                return pattern.matcher(input.getName()).matches();
             }
         }
     }

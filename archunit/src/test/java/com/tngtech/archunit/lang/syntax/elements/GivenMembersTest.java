@@ -52,6 +52,7 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -147,6 +148,7 @@ public class GivenMembersTest {
 
     @DataProvider
     public static Object[][] restricted_property_rule_starts() {
+        String classNameDot = ClassWithVariousMembers.class.getName() + ".";
         ImmutableList.Builder<Object[]> data = ImmutableList.<Object[]>builder().add(
                 $(described(members().that().haveName(FIELD_A)), ImmutableSet.of(FIELD_A)),
                 $(described(codeUnits().that().haveName(FIELD_A)), ImmutableSet.of()),
@@ -185,6 +187,32 @@ public class GivenMembersTest {
                 $(described(methods().that().haveNameNotMatching("m.*A")), allMethodsExcept(METHOD_A)),
                 $(described(codeUnits().that().haveNameNotMatching(".*init.*")), ALL_METHOD_DESCRIPTIONS),
                 $(described(constructors().that().haveNameNotMatching(".*init.*")), emptySet()),
+
+                $(described(members().that().haveFullName(classNameDot + FIELD_A)), ImmutableSet.of(FIELD_A)),
+                $(described(codeUnits().that().haveFullName(classNameDot + METHOD_A)), ImmutableSet.of(METHOD_A)),
+                $(described(methods().that().haveFullName(classNameDot + METHOD_A)), ImmutableSet.of(METHOD_A)),
+                $(described(constructors().that().haveFullName(classNameDot + CONSTRUCTOR_ONE_ARG)), ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
+                $(described(fields().that().haveFullName(classNameDot + FIELD_A)), ImmutableSet.of(FIELD_A)),
+                $(described(members().that().doNotHaveFullName(classNameDot + FIELD_A)), union(allFieldsExcept(FIELD_A), ALL_CODE_UNIT_DESCRIPTIONS)),
+                $(described(codeUnits().that().doNotHaveFullName(classNameDot + METHOD_A)), allCodeUnitsExcept(METHOD_A)),
+                $(described(methods().that().doNotHaveFullName(classNameDot + METHOD_A)), allMethodsExcept(METHOD_A)),
+                $(described(constructors().that().doNotHaveFullName(classNameDot + CONSTRUCTOR_ONE_ARG)), allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
+                $(described(fields().that().doNotHaveFullName(classNameDot + FIELD_A)), allFieldsExcept(FIELD_A)),
+
+                $(described(members().that().haveFullNameMatching(quote(classNameDot) + ".*A.*")), ImmutableSet.of(FIELD_A, METHOD_A)),
+                $(described(codeUnits().that().haveFullNameMatching(quote(classNameDot) + ".*A.*")), ImmutableSet.of(METHOD_A)),
+                $(described(methods().that().haveFullNameMatching(quote(classNameDot) + ".*A.*")), ImmutableSet.of(METHOD_A)),
+                $(described(constructors().that().haveFullNameMatching(quote(classNameDot) + ".*init.*String\\)")),
+                        ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
+                $(described(fields().that().haveFullNameMatching(quote(classNameDot) + ".*A.*")), ImmutableSet.of(FIELD_A)),
+                $(described(members().that().haveFullNameNotMatching(quote(classNameDot) + "f.*A.*")), union(
+                        allFieldsExcept(FIELD_A),
+                        ALL_CODE_UNIT_DESCRIPTIONS)),
+                $(described(codeUnits().that().haveFullNameNotMatching(quote(classNameDot) + "f.*A.*")), ALL_CODE_UNIT_DESCRIPTIONS),
+                $(described(methods().that().haveFullNameNotMatching(quote(classNameDot) + ".*A.*")), allMethodsExcept(METHOD_A)),
+                $(described(constructors().that().haveFullNameNotMatching(quote(classNameDot) + ".*init.*String\\)")),
+                        allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
+                $(described(fields().that().haveFullNameNotMatching(quote(classNameDot) + ".*A.*")), allFieldsExcept(FIELD_A)),
 
                 $(described(members().that().arePublic()), ImmutableSet.of(
                         FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
