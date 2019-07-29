@@ -26,6 +26,7 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;
@@ -72,9 +73,11 @@ import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_TO_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CALLS_FROM_SELF;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTOR_CALLS_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_DIRECT_DEPENDENCIES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_DIRECT_DEPENDENCIES_TO_SELF;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELD_ACCESSES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_METHOD_CALLS_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE_NAME;
@@ -90,6 +93,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
+import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
@@ -618,7 +622,12 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveOnlyFinalFields() {
-        return new HaveOnlyFinalFieldsCondition();
+        return new HaveOnlyModifiersCondition<>("final fields", FINAL, GET_FIELDS);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> haveOnlyPrivateConstructors() {
+        return new HaveOnlyModifiersCondition<>("private constructors", PRIVATE, GET_CONSTRUCTORS);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -891,28 +900,26 @@ public final class ArchConditions {
         return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
     }
 
-    private static class HaveOnlyFinalFieldsCondition extends ArchCondition<JavaClass> {
-        HaveOnlyFinalFieldsCondition() {
-            super("have only final fields");
+    private static class HaveOnlyModifiersCondition<T extends HasModifiers & HasDescription & HasSourceCodeLocation>
+            extends AllAttributesMatchCondition<T> {
+
+        private final Function<JavaClass, ? extends Collection<T>> getHasModifiers;
+
+        HaveOnlyModifiersCondition(String description, final JavaModifier modifier, Function<JavaClass, ? extends Collection<T>> getHasModifiers) {
+            super("have only " + description, new ArchCondition<T>("") {
+                @Override
+                public void check(T hasModifiers, ConditionEvents events) {
+                    boolean satisfied = hasModifiers.getModifiers().contains(modifier);
+                    String infix = (satisfied ? "is " : "is not ") + modifier.toString().toLowerCase();
+                    events.add(new SimpleConditionEvent(hasModifiers, satisfied, createMessage(hasModifiers, infix)));
+                }
+            });
+            this.getHasModifiers = getHasModifiers;
         }
 
         @Override
-        public void check(JavaClass javaClass, ConditionEvents events) {
-            SortedSet<String> notFinalFieldNames = getNonFinalFieldNamesOf(javaClass);
-            boolean satisfied = notFinalFieldNames.isEmpty();
-            String message = createMessage(javaClass,
-                    satisfied ? "does not have any non-final fields" : "has non-final fields " + notFinalFieldNames);
-            events.add(new SimpleConditionEvent(javaClass, satisfied, message));
-        }
-
-        private SortedSet<String> getNonFinalFieldNamesOf(JavaClass javaClass) {
-            TreeSet<String> notFinalFieldNames = new TreeSet<>();
-            for (JavaField field : javaClass.getFields()) {
-                if (!field.getModifiers().contains(FINAL)) {
-                    notFinalFieldNames.add(field.getName());
-                }
-            }
-            return notFinalFieldNames;
+        Collection<T> relevantAttributes(JavaClass javaClass) {
+            return getHasModifiers.apply(javaClass);
         }
     }
 

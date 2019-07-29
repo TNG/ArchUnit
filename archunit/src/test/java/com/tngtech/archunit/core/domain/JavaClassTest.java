@@ -35,6 +35,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_MEMBERS;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_METHODS;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
@@ -456,6 +461,17 @@ public class JavaClassTest {
         assertThat(JavaClass.Functions.GET_PACKAGE_NAME.apply(javaClass))
                 .as("result of GET_PACKAGE_NAME(clazz)")
                 .isEqualTo(javaClass.getPackageName());
+    }
+
+    @Test
+    public void functions_get_members() {
+        JavaClass javaClass = importClassWithContext(ClassWithSeveralConstructorsFieldsAndMethods.class);
+
+        assertThat(GET_MEMBERS.apply(javaClass)).isEqualTo(javaClass.getMembers());
+        assertThat(GET_FIELDS.apply(javaClass)).isEqualTo(javaClass.getFields());
+        assertThat(GET_CODE_UNITS.apply(javaClass)).isEqualTo(javaClass.getCodeUnits());
+        assertThat(GET_METHODS.apply(javaClass)).isEqualTo(javaClass.getMethods());
+        assertThat(GET_CONSTRUCTORS.apply(javaClass)).isEqualTo(javaClass.getConstructors());
     }
 
     @Test
@@ -972,6 +988,7 @@ public class JavaClassTest {
         }
     }
 
+    @SuppressWarnings("unused")
     static class ClassWithTwoFieldsAndTwoMethods extends SuperClassWithFieldAndMethod {
         String stringField;
         private int intField;
@@ -984,6 +1001,7 @@ public class JavaClassTest {
         }
     }
 
+    @SuppressWarnings("unused")
     abstract static class SuperClassWithFieldAndMethod extends Parent implements InterfaceWithMethod {
         private Object objectField;
 
@@ -1001,7 +1019,11 @@ public class JavaClassTest {
     abstract static class Parent {
     }
 
+    @SuppressWarnings("unused")
     static class ClassWithSeveralConstructors {
+        String stringField;
+        private int intField;
+
         private ClassWithSeveralConstructors() {
         }
 
@@ -1009,6 +1031,25 @@ public class JavaClassTest {
         }
 
         public ClassWithSeveralConstructors(int number, Object[] objects) {
+        }
+
+        void voidMethod() {
+        }
+
+        protected String stringMethod() {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    static class ClassWithSeveralConstructorsFieldsAndMethods {
+        private ClassWithSeveralConstructorsFieldsAndMethods() {
+        }
+
+        ClassWithSeveralConstructorsFieldsAndMethods(String string) {
+        }
+
+        public ClassWithSeveralConstructorsFieldsAndMethods(int number, Object[] objects) {
         }
     }
 

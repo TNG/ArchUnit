@@ -23,6 +23,8 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.haveOnlyPrivateConstructors;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClass;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.theClass;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.FAILURE_REPORT_NEWLINE_MARKER;
@@ -31,10 +33,11 @@ import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.access
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.containsPartOfRegex;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locationPattern;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.singleLineFailureReportOf;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class GivenClassShouldTest {
@@ -704,7 +707,10 @@ public class GivenClassShouldTest {
                         ClassWithFinalFields.class.getName())
                 .haveFailingRuleText("the class %s should have only final fields",
                         ClassWithNonFinalFields.class.getName())
-                .containFailureDetail(String.format("Class <%s> has non-final fields \\[integerField, stringField\\] in %s",
+                .containFailureDetail(String.format("Field <%s.integerField> is not final in %s",
+                        quote(ClassWithNonFinalFields.class.getName()),
+                        locationPattern(GivenClassShouldTest.class)))
+                .containFailureDetail(String.format("Field <%s.stringField> is not final in %s",
                         quote(ClassWithNonFinalFields.class.getName()),
                         locationPattern(GivenClassShouldTest.class)))
                 .doNotContainFailureDetail(quote(ClassWithFinalFields.class.getName()));
@@ -732,12 +738,29 @@ public class GivenClassShouldTest {
                         ClassWithNonFinalFields.class.getName())
                 .haveFailingRuleText("no class %s should have only final fields",
                         ClassWithFinalFields.class.getName())
-                .containFailureDetail(String.format("Class <%s> does not have any non-final fields in %s",
+                .containFailureDetail(String.format("Field <%s.stringField> is final in %s",
                         quote(ClassWithFinalFields.class.getName()),
-                        locationPattern(GivenClassShouldTest.class)))
+                        locationPattern(getClass())))
                 .doNotContainFailureDetail(quote(ClassWithNonFinalFields.class.getName()));
     }
 
+    @DataProvider
+    public static Object[][] classes_should_have_only_private_constructor_rules() {
+        return testForEach(
+                classes().should().haveOnlyPrivateConstructors(),
+                classes().should(haveOnlyPrivateConstructors()));
+    }
+
+    @Test
+    @UseDataProvider("classes_should_have_only_private_constructor_rules")
+    public void classes_should_have_only_private_constructor(ArchRule rule) {
+        assertThat(rule).hasDescriptionContaining("classes should have only private constructors");
+        assertThat(rule).checking(importClasses(ClassWithPrivateConstructors.class))
+                .hasNoViolation();
+        assertThat(rule).checking(importClasses(ClassWithPublicAndPrivateConstructor.class))
+                .hasOnlyViolations(String.format("Constructor <%s.<init>(%s)> is not private in (%s.java:0)",
+                        ClassWithPublicAndPrivateConstructor.class.getName(), String.class.getName(), getClass().getSimpleName()));
+    }
 
     @DataProvider
     public static Object[][] theClass_should_beProtected_rules() {
@@ -1438,6 +1461,10 @@ public class GivenClassShouldTest {
         assertThat(result.hasViolation()).as("result has violation").isFalse();
     }
 
+    private static void assertViolation(EvaluationResult result) {
+        assertThat(result.hasViolation()).as("result has violation").isTrue();
+    }
+
     private static class ClassWithField {
         String field;
     }
@@ -1478,11 +1505,13 @@ public class GivenClassShouldTest {
     private static class PrivateClass {
     }
 
+    @SuppressWarnings("unused")
     private static class ClassWithNonFinalFields {
         String stringField;
         int integerField;
     }
 
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private static class ClassWithFinalFields {
         private final String stringField;
 
@@ -1493,5 +1522,24 @@ public class GivenClassShouldTest {
 
     @RuntimeRetentionAnnotation
     private static class SomeAnnotatedClass {
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithPrivateConstructors {
+        private ClassWithPrivateConstructors() {
+        }
+
+        private ClassWithPrivateConstructors(String foo) {
+        }
+    }
+
+    @SuppressWarnings({"unused", "WeakerAccess"})
+    private static class ClassWithPublicAndPrivateConstructor {
+        public ClassWithPublicAndPrivateConstructor(String s) {
+        }
+
+        private ClassWithPublicAndPrivateConstructor(Integer i) {
+            this(i.toString());
+        }
     }
 }
