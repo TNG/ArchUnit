@@ -724,6 +724,19 @@ public class ShouldClassesThatTest {
     }
 
     @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void belongToAnyOf(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.belongToAnyOf(ClassWithInnerClasses.class, String.class))
+                .on(ClassAccessingNestedInnerClass.class, ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class,
+                        ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingNestedInnerClass.class,
+                ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class, ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                ClassAccessingString.class);
+    }
+
+    @Test
     @UseDataProvider("classes_should_only_that_rule_starts")
     public void only_haveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
@@ -1565,5 +1578,23 @@ public class ShouldClassesThatTest {
 
     @MetaAnnotatedAnnotation
     private static class MetaAnnotatedClass {
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassAccessingNestedInnerClass {
+        ClassWithInnerClasses.InnerClass.EvenMoreInnerClass evenMoreInnerClass;
+
+        void access() {
+            evenMoreInnerClass.callMe();
+        }
+    }
+
+    private static class ClassWithInnerClasses {
+        private static class InnerClass {
+            private static class EvenMoreInnerClass {
+                void callMe() {
+                }
+            }
+        }
     }
 }

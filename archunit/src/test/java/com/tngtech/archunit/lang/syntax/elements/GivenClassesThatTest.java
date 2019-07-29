@@ -636,6 +636,17 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void belongToAnyOf() {
+        List<JavaClass> classes = filterResultOf(classes().that().belongToAnyOf(ClassWithInnerClasses.class, String.class))
+                .on(ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class, ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                        List.class, String.class, Iterable.class, StringBuilder.class);
+
+        assertThatClasses(classes).matchInAnyOrder(
+                ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class, ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                String.class);
+    }
+
+    @Test
     public void and_conjunction() {
         List<JavaClass> classes = filterResultOf(
                 classes().that().haveNameMatching(".*\\..*i.*")
@@ -742,5 +753,12 @@ public class GivenClassesThatTest {
 
     @MetaAnnotatedAnnotation
     private static class MetaAnnotatedClass {
+    }
+
+    private static class ClassWithInnerClasses {
+        private static class InnerClass {
+            private static class EvenMoreInnerClass {
+            }
+        }
     }
 }
