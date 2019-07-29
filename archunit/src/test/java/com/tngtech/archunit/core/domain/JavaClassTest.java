@@ -35,12 +35,12 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_MEMBERS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_METHODS;
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
@@ -107,7 +107,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_constructors() {
-        JavaClass javaClass = importClassWithContext(ClassWithSeveralConstructors.class);
+        JavaClass javaClass = importClassWithContext(ClassWithSeveralConstructorsFieldsAndMethods.class);
 
         assertThat(javaClass.getConstructors()).hasSize(3);
         assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME)));
@@ -1011,6 +1011,7 @@ public class JavaClassTest {
         }
     }
 
+    @SuppressWarnings("unused")
     interface InterfaceWithMethod {
         Object objectMethod();
     }
@@ -1020,29 +1021,10 @@ public class JavaClassTest {
     }
 
     @SuppressWarnings("unused")
-    static class ClassWithSeveralConstructors {
+    static class ClassWithSeveralConstructorsFieldsAndMethods {
         String stringField;
         private int intField;
 
-        private ClassWithSeveralConstructors() {
-        }
-
-        ClassWithSeveralConstructors(String string) {
-        }
-
-        public ClassWithSeveralConstructors(int number, Object[] objects) {
-        }
-
-        void voidMethod() {
-        }
-
-        protected String stringMethod() {
-            return null;
-        }
-    }
-
-    @SuppressWarnings("unused")
-    static class ClassWithSeveralConstructorsFieldsAndMethods {
         private ClassWithSeveralConstructorsFieldsAndMethods() {
         }
 
@@ -1050,6 +1032,13 @@ public class JavaClassTest {
         }
 
         public ClassWithSeveralConstructorsFieldsAndMethods(int number, Object[] objects) {
+        }
+
+        void voidMethod() {
+        }
+
+        protected String stringMethod() {
+            return null;
         }
     }
 
@@ -1082,6 +1071,7 @@ public class JavaClassTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class ChildWithFieldAndMethod extends ParentWithFieldAndMethod {
         static class Members {
             // If we put this in the class, we affect tests for members
@@ -1102,6 +1092,7 @@ public class JavaClassTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private interface InterfaceWithFieldAndMethod {
         class Members {
             // If we put this in the class, we affect tests for members
@@ -1115,6 +1106,7 @@ public class JavaClassTest {
         void parentMethod();
     }
 
+    @SuppressWarnings("unused")
     private static class ClassWithNamedAndAnonymousInnerClasses {
         static final String name_of_fieldIndicatingOuterAnonymousInnerClass = "fieldIndicatingOuterAnonymousInnerClass";
         static final String name_of_fieldIndicatingNestedAnonymousInnerClass = "fieldIndicatingNestedAnonymousInnerClass";
