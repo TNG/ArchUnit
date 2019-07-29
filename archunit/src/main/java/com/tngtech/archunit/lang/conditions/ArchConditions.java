@@ -906,20 +906,29 @@ public final class ArchConditions {
         private final Function<JavaClass, ? extends Collection<T>> getHasModifiers;
 
         HaveOnlyModifiersCondition(String description, final JavaModifier modifier, Function<JavaClass, ? extends Collection<T>> getHasModifiers) {
-            super("have only " + description, new ArchCondition<T>("") {
-                @Override
-                public void check(T hasModifiers, ConditionEvents events) {
-                    boolean satisfied = hasModifiers.getModifiers().contains(modifier);
-                    String infix = (satisfied ? "is " : "is not ") + modifier.toString().toLowerCase();
-                    events.add(new SimpleConditionEvent(hasModifiers, satisfied, createMessage(hasModifiers, infix)));
-                }
-            });
+            super("have only " + description, new ModifierCondition<T>(modifier));
             this.getHasModifiers = getHasModifiers;
         }
 
         @Override
         Collection<T> relevantAttributes(JavaClass javaClass) {
             return getHasModifiers.apply(javaClass);
+        }
+    }
+
+    private static class ModifierCondition<T extends HasModifiers & HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
+        private final JavaModifier modifier;
+
+        ModifierCondition(JavaModifier modifier) {
+            super("modifier " + modifier);
+            this.modifier = modifier;
+        }
+
+        @Override
+        public void check(T hasModifiers, ConditionEvents events) {
+            boolean satisfied = hasModifiers.getModifiers().contains(modifier);
+            String infix = (satisfied ? "is " : "is not ") + modifier.toString().toLowerCase();
+            events.add(new SimpleConditionEvent(hasModifiers, satisfied, createMessage(hasModifiers, infix)));
         }
     }
 
