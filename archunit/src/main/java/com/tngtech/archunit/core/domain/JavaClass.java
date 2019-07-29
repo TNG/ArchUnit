@@ -1070,6 +1070,48 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         };
 
         @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<JavaMember>> GET_MEMBERS = new ChainableFunction<JavaClass, Set<JavaMember>>() {
+            @Override
+            public Set<JavaMember> apply(JavaClass input) {
+                return input.getMembers();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<JavaField>> GET_FIELDS = new ChainableFunction<JavaClass, Set<JavaField>>() {
+            @Override
+            public Set<JavaField> apply(JavaClass input) {
+                return input.getFields();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<JavaCodeUnit>> GET_CODE_UNITS =
+                new ChainableFunction<JavaClass, Set<JavaCodeUnit>>() {
+                    @Override
+                    public Set<JavaCodeUnit> apply(JavaClass input) {
+                        return input.getCodeUnits();
+                    }
+                };
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<JavaMethod>> GET_METHODS = new ChainableFunction<JavaClass, Set<JavaMethod>>() {
+            @Override
+            public Set<JavaMethod> apply(JavaClass input) {
+                return input.getMethods();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<JavaConstructor>> GET_CONSTRUCTORS =
+                new ChainableFunction<JavaClass, Set<JavaConstructor>>() {
+                    @Override
+                    public Set<JavaConstructor> apply(JavaClass input) {
+                        return input.getConstructors();
+                    }
+                };
+
+        @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaClass, Set<JavaFieldAccess>> GET_FIELD_ACCESSES_FROM_SELF =
                 new ChainableFunction<JavaClass, Set<JavaFieldAccess>>() {
                     @Override

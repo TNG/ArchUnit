@@ -6,11 +6,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.RuntimeRetentionAnnotation;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
@@ -25,17 +23,21 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.haveOnlyPrivateConstructors;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClass;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.theClass;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.FAILURE_REPORT_NEWLINE_MARKER;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.accessTargetIs;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.accessesFieldRegex;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.containsPartOfRegex;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locationPattern;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.singleLineFailureReportOf;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class GivenClassShouldTest {
@@ -705,7 +707,10 @@ public class GivenClassShouldTest {
                         ClassWithFinalFields.class.getName())
                 .haveFailingRuleText("the class %s should have only final fields",
                         ClassWithNonFinalFields.class.getName())
-                .containFailureDetail(String.format("Class <%s> has non-final fields \\[integerField, stringField\\] in %s",
+                .containFailureDetail(String.format("Field <%s.integerField> is not final in %s",
+                        quote(ClassWithNonFinalFields.class.getName()),
+                        locationPattern(GivenClassShouldTest.class)))
+                .containFailureDetail(String.format("Field <%s.stringField> is not final in %s",
                         quote(ClassWithNonFinalFields.class.getName()),
                         locationPattern(GivenClassShouldTest.class)))
                 .doNotContainFailureDetail(quote(ClassWithFinalFields.class.getName()));
@@ -733,12 +738,29 @@ public class GivenClassShouldTest {
                         ClassWithNonFinalFields.class.getName())
                 .haveFailingRuleText("no class %s should have only final fields",
                         ClassWithFinalFields.class.getName())
-                .containFailureDetail(String.format("Class <%s> does not have any non-final fields in %s",
+                .containFailureDetail(String.format("Field <%s.stringField> is final in %s",
                         quote(ClassWithFinalFields.class.getName()),
-                        locationPattern(GivenClassShouldTest.class)))
+                        locationPattern(getClass())))
                 .doNotContainFailureDetail(quote(ClassWithNonFinalFields.class.getName()));
     }
 
+    @DataProvider
+    public static Object[][] classes_should_have_only_private_constructor_rules() {
+        return testForEach(
+                classes().should().haveOnlyPrivateConstructors(),
+                classes().should(haveOnlyPrivateConstructors()));
+    }
+
+    @Test
+    @UseDataProvider("classes_should_have_only_private_constructor_rules")
+    public void classes_should_have_only_private_constructor(ArchRule rule) {
+        assertThat(rule).hasDescriptionContaining("classes should have only private constructors");
+        assertThat(rule).checking(importClasses(ClassWithPrivateConstructors.class))
+                .hasNoViolation();
+        assertThat(rule).checking(importClasses(ClassWithPublicAndPrivateConstructor.class))
+                .hasOnlyViolations(String.format("Constructor <%s.<init>(%s)> is not private in (%s.java:0)",
+                        ClassWithPublicAndPrivateConstructor.class.getName(), String.class.getName(), getClass().getSimpleName()));
+    }
 
     @DataProvider
     public static Object[][] theClass_should_beProtected_rules() {
@@ -1387,25 +1409,6 @@ public class GivenClassShouldTest {
                 .doNotContainFailureDetail(quote(ClassAccessingWrongField.class.getName()));
     }
 
-    @Test
-    public void haveOnlyPrivateConstructors_rule() {
-        assertNoViolation_HaveOnlyPrivateConstructors(ClassWithPrivateConstructors.class);
-        assertViolation_HaveOnlyPrivateConstructors(ClassWithPublicConstructorAndPrivateConstructor.class);
-        assertViolation_HaveOnlyPrivateConstructors(ClassWithPublicConstructors.class);
-    }
-
-    private void assertNoViolation_HaveOnlyPrivateConstructors(Class<?> clazz) {
-        JavaClasses jclasses = new ClassFileImporter().importClasses(clazz);
-        EvaluationResult eresult = classes().should().haveOnlyPrivateConstructors().evaluate(jclasses);
-        assertNoViolation(eresult);
-    }
-
-    private void assertViolation_HaveOnlyPrivateConstructors(Class<?> clazz) {
-        JavaClasses jclasses = new ClassFileImporter().importClasses(clazz);
-        EvaluationResult eresult = classes().should().haveOnlyPrivateConstructors().evaluate(jclasses);
-        assertViolation(eresult);
-    }
-
     private RuleEvaluationAsserter assertThatRules(ArchRule satisfiedRule, ArchRule unsatisfiedRule, Class<?>... classesToImport) {
         return new RuleEvaluationAsserter(satisfiedRule, unsatisfiedRule, classesToImport);
     }
@@ -1502,11 +1505,13 @@ public class GivenClassShouldTest {
     private static class PrivateClass {
     }
 
+    @SuppressWarnings("unused")
     private static class ClassWithNonFinalFields {
         String stringField;
         int integerField;
     }
 
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private static class ClassWithFinalFields {
         private final String stringField;
 
@@ -1519,27 +1524,21 @@ public class GivenClassShouldTest {
     private static class SomeAnnotatedClass {
     }
 
+    @SuppressWarnings("unused")
     private static class ClassWithPrivateConstructors {
-        private ClassWithPrivateConstructors() { /* private constructor */ }
-        private ClassWithPrivateConstructors(String foo) { /* private constructor */ }
-    }
-
-    private static class ClassWithPublicConstructors {
-        public ClassWithPublicConstructors(String s) {
-            super();
+        private ClassWithPrivateConstructors() {
         }
 
-        public ClassWithPublicConstructors(Integer i) {
-            this(i.toString());
+        private ClassWithPrivateConstructors(String foo) {
         }
     }
 
-    private static class ClassWithPublicConstructorAndPrivateConstructor {
-        public ClassWithPublicConstructorAndPrivateConstructor(String s) {
-            super();
+    @SuppressWarnings({"unused", "WeakerAccess"})
+    private static class ClassWithPublicAndPrivateConstructor {
+        public ClassWithPublicAndPrivateConstructor(String s) {
         }
 
-        private ClassWithPublicConstructorAndPrivateConstructor(Integer i) {
+        private ClassWithPublicAndPrivateConstructor(Integer i) {
             this(i.toString());
         }
     }
