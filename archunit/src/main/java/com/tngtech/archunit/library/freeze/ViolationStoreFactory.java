@@ -155,13 +155,22 @@ class ViolationStoreFactory {
         }
 
         private List<String> readLines(String ruleDetailsFileName) {
+            String violationsText = readStoreFile(ruleDetailsFileName);
+            List<String> lines = Splitter.on(UNESCAPED_LINE_BREAK_PATTERN).splitToList(violationsText);
+            return unescape(lines);
+        }
+
+        private String readStoreFile(String fileName) {
             try {
-                String violationsText = new String(toByteArray(new File(storeFolder, ruleDetailsFileName)), UTF_8);
-                List<String> lines = Splitter.on(UNESCAPED_LINE_BREAK_PATTERN).splitToList(violationsText);
-                return unescape(lines);
+                String result = new String(toByteArray(new File(storeFolder, fileName)), UTF_8);
+                return ensureUnixLineBreaks(result);
             } catch (IOException e) {
                 throw new StoreReadException(e);
             }
+        }
+
+        private String ensureUnixLineBreaks(String string) {
+            return string.replaceAll("\r\n", "\n");
         }
 
         private static class FileSyncedProperties {
