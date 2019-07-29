@@ -80,6 +80,25 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
     }
 
     @Override
+    public SELF haveFullName(String fullName) {
+        return addCondition(ArchConditions.haveFullName(fullName));
+    }
+
+    @Override
+    public SELF notHaveFullName(String fullName) {
+        return addCondition(ArchConditions.notHaveFullName(fullName));
+    }
+
+    @Override
+    public SELF haveFullNameMatching(String regex) {
+        return addCondition(ArchConditions.haveFullNameMatching(regex));
+    }
+
+    @Override
+    public SELF haveFullNameNotMatching(String regex) {
+        return addCondition(ArchConditions.haveFullNameNotMatching(regex));
+    }
+    @Override
     public SELF bePublic() {
         return addCondition(ArchConditions.bePublic());
     }
