@@ -1,0 +1,111 @@
+import java.nio.file.Files
+import java.time.LocalDateTime
+import java.util.jar.JarFile
+import java.util.jar.Manifest
+
+File scriptRoot = currentScriptRootOf this
+def rootUrl =  {
+    if (!project.hasProperty('tngRepoId')) {
+        throw new IllegalArgumentException(
+                'You must pass the repo id (see Sonatype Repository Manager -> comtngtech-${repoId}) as parameter, e.g. -P tngRepoId=1162')
+    }
+    "https://oss.sonatype.org/service/local/repositories/comtngtech-${tngRepoId}/content/com/tngtech/archunit"
+}
+
+def createArtifactUrl = { String artifactId ->
+    "${rootUrl()}/${artifactId}/${version}/${artifactId}-${version}"
+}
+
+def getUploadedFile = { String artifactId, String ending, String suffix ->
+    def fullEnding = (!suffix.isEmpty() ? "-${suffix}" : '') + ".${ending}"
+    File result = Files.createTempFile(artifactId, fullEnding).toFile()
+    result.bytes = new URL("${createArtifactUrl(artifactId)}${fullEnding}").bytes
+    result
+}
+
+def getUploadedFileText = { String artifactId, String ending ->
+    new URL("${createArtifactUrl(artifactId)}.${ending}").text.stripIndent()
+}
+
+def getExpectedFile = { String artifactId, String ending ->
+    new File(scriptRoot, "expected/${artifactId}.${ending}").text.replace('${archunit.version}', version).stripIndent()
+}
+
+def checkPom = { String artifactId ->
+    println "Verifying correct POM of ${artifactId}"
+
+    String actual = getUploadedFileText(artifactId, 'pom')
+    String expected = getExpectedFile(artifactId, 'pom')
+    if (actual.replaceAll("\\s", "") != expected.replaceAll("\\s", "")) {
+        throw new AssertionError("""POM of artifact '${artifactId}' does not match:
+--------
+Actual: 
+${actual}
+--------
+Expected:
+${expected}
+--------
+""")
+    }
+}
+
+def checkManifest = { String artifactId, Manifest manifest ->
+    println "Verifying correct Manifest of ${artifactId}"
+
+    def checkAttributes = { expected ->
+        expected.each { key, value ->
+            assert manifest.mainAttributes.getValue(key) == value
+        }
+    }
+    checkAttributes([
+            'Specification-Title'   : "ArchUnit - Module '${artifactId}'",
+            'Specification-Version' : version,
+            'Specification-Vendor'  : 'TNG Technology Consulting GmbH',
+            'Implementation-Title'  : "com.tngtech.${artifactId.replace('-', '.')}",
+            'Implementation-Version': version,
+            'Implementation-Vendor' : 'TNG Technology Consulting GmbH',
+            'Issue-Tracker'         : 'https://github.com/TNG/ArchUnit/issues',
+            'Documentation-URL'     : 'https://github.com/TNG/ArchUnit',
+            'Copyright'             : "${LocalDateTime.now().year} TNG Technology Consulting GmbH",
+            'License'               : 'The Apache Software License, Version 2.0',
+            'Automatic-Module-Name' : "com.tngtech.${artifactId.replaceFirst('-', '.').replaceFirst('-', '.').replace('-', '')}"
+    ])
+}
+
+def checkThirdParty = { JarFile jarFile ->
+    assert jarFile.getEntry('com/tngtech/archunit/thirdparty/org/objectweb/asm/ClassVisitor.class') != null: 'ASM is missing from 3rd party'
+    assert jarFile.getEntry('com/tngtech/archunit/thirdparty/org/objectweb/asm/asm.license') != null: 'ASM license is missing from 3rd party'
+    assert jarFile.getEntry('com/tngtech/archunit/thirdparty/com/google/common/collect/ImmutableSet.class') != null: 'Guava is missing from 3rd party'
+}
+
+def checkNoThirdParty = { JarFile jarFile ->
+    assert jarFile.getEntry('com/tngtech/archunit/thirdparty') == null: 'There exists a third party folder'
+}
+
+def checkSourcesExist = { String artifactId ->
+    assert getUploadedFile(artifactId, 'jar', 'sources') != null
+}
+
+def checkJavadocExists = { String artifactId ->
+    assert getUploadedFile(artifactId, 'jar', 'javadoc') != null
+}
+
+task checkUploadedArtifacts {
+    doLast {
+        releaseProjects.each { Project project ->
+            checkPom(project.name)
+            checkSourcesExist(project.name)
+            checkJavadocExists(project.name)
+
+            JarFile jarFile = new JarFile(getUploadedFile(project.name, 'jar', ''))
+            checkManifest(project.name, jarFile.manifest)
+            if (project.repackagesAsm) {
+                println "Artifact ${project.name} is configured to repackage 3rd party libs -> checking existence of 3rd party package..."
+                checkThirdParty(jarFile)
+            } else {
+                println "Artifact ${project.name} is configured to not repackage 3rd party libs -> checking absense of 3rd party package..."
+                checkNoThirdParty(jarFile)
+            }
+        }
+    }
+}
