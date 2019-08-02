@@ -1,0 +1,29 @@
+import java.time.LocalDate
+
+import static java.time.format.DateTimeFormatter.ofPattern
+
+def createArticleText = { dateText, version ->
+    """
+    ---
+    layout: splash
+    title:  "New release of ArchUnit (v${version})"
+    date:   ${dateText} 12:00:00
+    categories: news release
+    ---
+    
+    A new release of ArchUnit (v${version}) is out. For details see [the release on GitHub](https://github.com/TNG/ArchUnit/releases/tag/v${
+        version
+    } "ArchUnit v${version} on GitHub").
+""".stripIndent().trim()
+}
+
+task createReleaseNews {
+    doLast {
+        String dateYYYYMMDDWithDash = LocalDate.now().format(ofPattern('yyyy-MM-dd'))
+        String relativeNewsPath = "docs/_posts/${dateYYYYMMDDWithDash}-release-v${version}.markdown"
+        File target = new File(rootDir, relativeNewsPath)
+
+        assert !target.exists(): "News article ${target} already exists"
+        target.text = createArticleText(dateYYYYMMDDWithDash, version)
+    }
+}
