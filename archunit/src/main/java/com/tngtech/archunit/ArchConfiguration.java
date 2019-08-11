@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -53,11 +54,6 @@ public final class ArchConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ArchConfiguration.class);
 
-    private static final Map<String, String> PROPERTY_DEFAULTS = ImmutableMap.of(
-            RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, Boolean.TRUE.toString(),
-            ENABLE_MD5_IN_CLASS_SOURCES, Boolean.FALSE.toString()
-    );
-
     private static final Supplier<ArchConfiguration> INSTANCE = Suppliers.memoize(new Supplier<ArchConfiguration>() {
         @Override
         public ArchConfiguration get() {
@@ -71,7 +67,7 @@ public final class ArchConfiguration {
     }
 
     private final String propertiesResourceName;
-    private final Properties properties = new Properties();
+    private final PropertiesOverwritableBySystemProperties properties = new PropertiesOverwritableBySystemProperties();
 
     private ArchConfiguration() {
         this(ARCHUNIT_PROPERTIES_RESOURCE_NAME);
@@ -106,7 +102,7 @@ public final class ArchConfiguration {
 
     @PublicAPI(usage = ACCESS)
     public boolean resolveMissingDependenciesFromClassPath() {
-        return Boolean.valueOf(propertyOrDefault(properties, RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH));
+        return Boolean.parseBoolean(properties.getProperty(RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -116,7 +112,7 @@ public final class ArchConfiguration {
 
     @PublicAPI(usage = ACCESS)
     public boolean md5InClassSourcesEnabled() {
-        return Boolean.valueOf(propertyOrDefault(properties, ENABLE_MD5_IN_CLASS_SOURCES));
+        return Boolean.parseBoolean(properties.getProperty(ENABLE_MD5_IN_CLASS_SOURCES));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -156,7 +152,7 @@ public final class ArchConfiguration {
         clearPropertiesWithPrefix(propertyPrefix);
         for (String propertyName : properties.stringPropertyNames()) {
             String fullPropertyName = propertyPrefix + "." + propertyName;
-            this.properties.put(fullPropertyName, properties.getProperty(propertyName));
+            this.properties.setProperty(fullPropertyName, properties.getProperty(propertyName));
         }
     }
 
@@ -197,6 +193,10 @@ public final class ArchConfiguration {
      */
     @PublicAPI(usage = ACCESS)
     public Properties getSubProperties(String propertyPrefix) {
+        return getSubProperties(propertyPrefix, properties.getMergedProperties());
+    }
+
+    private static Properties getSubProperties(String propertyPrefix, Properties properties) {
         Properties result = new Properties();
         for (String key : filterNamesWithPrefix(properties.stringPropertyNames(), propertyPrefix)) {
             String extensionPropertyKey = removePrefix(key, propertyPrefix);
@@ -205,7 +205,7 @@ public final class ArchConfiguration {
         return result;
     }
 
-    private Iterable<String> filterNamesWithPrefix(Iterable<String> propertyNames, String prefix) {
+    private static Iterable<String> filterNamesWithPrefix(Iterable<String> propertyNames, String prefix) {
         List<String> result = new ArrayList<>();
         String fullPrefix = prefix + ".";
         for (String propertyName : propertyNames) {
@@ -216,7 +216,7 @@ public final class ArchConfiguration {
         return result;
     }
 
-    private String removePrefix(String string, String prefix) {
+    private static String removePrefix(String string, String prefix) {
         return string.substring(prefix.length() + 1);
     }
 
@@ -256,8 +256,62 @@ public final class ArchConfiguration {
         properties.setProperty(propertyName, value);
     }
 
-    private String propertyOrDefault(Properties properties, String propertyName) {
-        return properties.getProperty(propertyName, PROPERTY_DEFAULTS.get(propertyName));
+    private static class PropertiesOverwritableBySystemProperties {
+        private static final Properties PROPERTY_DEFAULTS = createProperties(ImmutableMap.of(
+                RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, Boolean.TRUE.toString(),
+                ENABLE_MD5_IN_CLASS_SOURCES, Boolean.FALSE.toString()
+        ));
+
+        private final Properties properties = createProperties(PROPERTY_DEFAULTS);
+
+        void clear() {
+            properties.clear();
+            properties.putAll(PROPERTY_DEFAULTS);
+        }
+
+        void load(InputStream inputStream) throws IOException {
+            properties.load(inputStream);
+        }
+
+        Set<String> stringPropertyNames() {
+            return getMergedProperties().stringPropertyNames();
+        }
+
+        boolean containsKey(String propertyName) {
+            return getMergedProperties().containsKey(propertyName);
+        }
+
+        String getProperty(String propertyName) {
+            return getMergedProperties().getProperty(propertyName);
+        }
+
+        String getProperty(String propertyName, String defaultValue) {
+            return getMergedProperties().getProperty(propertyName, defaultValue);
+        }
+
+        void setProperty(String propertyName, String value) {
+            properties.setProperty(propertyName, value);
+        }
+
+        void remove(String propertyName) {
+            properties.remove(propertyName);
+        }
+
+        Properties getMergedProperties() {
+            Properties result = createProperties(this.properties);
+            Properties overwritten = getSubProperties("archunit", System.getProperties());
+            if (!overwritten.isEmpty()) {
+                LOG.info("Merging properties: The following properties have been overwritten by system properties: {}", overwritten);
+            }
+            result.putAll(overwritten);
+            return result;
+        }
+
+        private static Properties createProperties(Map<?, ?> entries) {
+            Properties result = new Properties();
+            result.putAll(entries);
+            return result;
+        }
     }
 
     public final class ExtensionProperties {
