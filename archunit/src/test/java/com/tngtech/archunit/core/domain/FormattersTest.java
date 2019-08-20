@@ -88,6 +88,11 @@ public class FormattersTest {
         assertThat(Formatters.ensureSimpleName("org.example.Dummy$NestedClass$MoreNestedClass")).isEqualTo("MoreNestedClass");
     }
 
+    @Test
+    public void ensureSimpleName_withLocalClass() {
+        assertThat(Formatters.ensureSimpleName("org.example.Dummy$123LocalClass")).isEqualTo("LocalClass");
+    }
+
     private static class SomeClass {
         public SomeClass() {
             new ArrayList<>();
