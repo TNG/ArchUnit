@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Joiner;
-import com.google.common.primitives.Ints;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
@@ -106,20 +105,43 @@ public final class Formatters {
      */
     @PublicAPI(usage = ACCESS)
     public static String ensureSimpleName(String name) {
-        int innerClassStart = name.lastIndexOf('$');
-        int classStart = name.lastIndexOf('.');
-        if (innerClassStart < 0 && classStart < 0) {
-            return name;
+        int mostNestedClassStart = name.lastIndexOf('$');
+        if (mostNestedClassStart > -1) {
+            String lastPart = name.substring(mostNestedClassStart + 1);
+            // lastPart contains "1" for anonymous classes, "NestedClass" for nested classes, and "1LocalClass" for local classes
+
+            int javaIdentifierStart = indexOfJavaIdentifierStart(lastPart);
+            if (javaIdentifierStart > -1) {
+                return lastPart.substring(javaIdentifierStart);
+            } else {
+                // name is an anonymous class
+                // return empty string, because java.lang.Class.getSimpleName() also returns empty string
+                return "";
+            }
         }
 
-        String lastPart = innerClassStart >= 0 ? name.substring(innerClassStart + 1) : name.substring(classStart + 1);
-        return isAnonymousRest(lastPart) ? "" : lastPart;
+        int classStart = name.lastIndexOf('.');
+        if (classStart > -1) {
+            return name.substring(classStart + 1);
+        }
+
+        // name may be a class in default package or may be empty
+        return name;
     }
 
-    // NOTE: Anonymous classes (e.g. clazz.getName() == some.Type$1) return an empty clazz.getSimpleName(),
-    //       so we mimic this behavior
-    private static boolean isAnonymousRest(String lastPart) {
-        return Ints.tryParse(lastPart) != null;
+    /**
+     * Returns the index of the first character, that is permissible as the first character in a Java identifier.
+     * Returns -1 if there is no such character.
+     *
+     * See also JLS 3.8
+     */
+    private static int indexOfJavaIdentifierStart(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isJavaIdentifierStart(s.charAt(i))) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
