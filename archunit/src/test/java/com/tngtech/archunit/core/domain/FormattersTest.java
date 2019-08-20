@@ -3,6 +3,7 @@ package com.tngtech.archunit.core.domain;
 import java.util.ArrayList;
 
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,6 +42,50 @@ public class FormattersTest {
             }
         }
         throw new RuntimeException("Could not create any java class without source");
+    }
+
+    @Test
+    public void ensureSimpleName_withNullString() {
+        try {
+            Formatters.ensureSimpleName(null);
+            Assert.fail("NullPointerException expected, but not thrown");
+        } catch (NullPointerException expected) {
+        }
+    }
+
+    @Test
+    public void ensureSimpleName_withEmptyString() {
+        assertThat(Formatters.ensureSimpleName("")).isEqualTo("");
+    }
+
+    @Test
+    public void ensureSimpleName_withClassInDefaultPackage() {
+        assertThat(Formatters.ensureSimpleName("Dummy")).isEqualTo("Dummy");
+    }
+
+    @Test
+    public void ensureSimpleName_withClassInPackage() {
+        assertThat(Formatters.ensureSimpleName("org.example.Dummy")).isEqualTo("Dummy");
+    }
+
+    @Test
+    public void ensureSimpleName_withAnonymousClass() {
+        assertThat(Formatters.ensureSimpleName("org.example.Dummy$123")).isEqualTo("");
+    }
+
+    @Test
+    public void ensureSimpleName_withNestedClass() {
+        assertThat(Formatters.ensureSimpleName("org.example.Dummy$NestedClass")).isEqualTo("NestedClass");
+    }
+
+    @Test
+    public void ensureSimpleName_withAnonymousClassInNestedClass() {
+        assertThat(Formatters.ensureSimpleName("org.example.Dummy$NestedClass$123")).isEqualTo("");
+    }
+
+    @Test
+    public void ensureSimpleName_withDeeplyNestedClass() {
+        assertThat(Formatters.ensureSimpleName("org.example.Dummy$NestedClass$MoreNestedClass")).isEqualTo("MoreNestedClass");
     }
 
     private static class SomeClass {
