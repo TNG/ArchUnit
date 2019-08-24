@@ -10,4 +10,10 @@ public class ClassWithNestedClass {
 
     public static class StaticNestedClass {
     }
+
+    public interface NestedInterface {
+    }
+
+    public static interface StaticNestedInterface {
+    }
 }

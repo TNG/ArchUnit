@@ -306,7 +306,20 @@ public class ClassFileImporterTest {
                 ClassWithNestedClass.class,
                 ClassWithNestedClass.NestedClass.class,
                 ClassWithNestedClass.StaticNestedClass.class,
+                ClassWithNestedClass.NestedInterface.class,
+                ClassWithNestedClass.StaticNestedInterface.class,
                 Class.forName(ClassWithNestedClass.class.getName() + "$PrivateNestedClass"));
+    }
+
+    @Test
+    public void handles_static_modifier_of_nested_classes() throws Exception {
+        JavaClasses classes = classesIn("testexamples/nestedimport").classes;
+
+        assertThat(classes.get(ClassWithNestedClass.class).getModifiers()).as("modifiers of ClassWithNestedClass").doesNotContain(STATIC);
+        assertThat(classes.get(ClassWithNestedClass.NestedClass.class).getModifiers()).as("modifiers of ClassWithNestedClass.NestedClass").doesNotContain(STATIC);
+        assertThat(classes.get(ClassWithNestedClass.StaticNestedClass.class).getModifiers()).as("modifiers of ClassWithNestedClass.StaticNestedClass").contains(STATIC);
+        assertThat(classes.get(ClassWithNestedClass.NestedInterface.class).getModifiers()).as("modifiers of ClassWithNestedClass.NestedInterface").contains(STATIC);
+        assertThat(classes.get(ClassWithNestedClass.StaticNestedInterface.class).getModifiers()).as("modifiers of ClassWithNestedClass.StaticNestedInterface").contains(STATIC);
     }
 
     @Test
