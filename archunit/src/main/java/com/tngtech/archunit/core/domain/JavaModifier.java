@@ -34,7 +34,7 @@ public enum JavaModifier {
     @PublicAPI(usage = ACCESS)
     PRIVATE(EnumSet.allOf(ApplicableType.class), Opcodes.ACC_PRIVATE),
     @PublicAPI(usage = ACCESS)
-    STATIC(EnumSet.of(ApplicableType.FIELD, ApplicableType.METHOD), Opcodes.ACC_STATIC),
+    STATIC(EnumSet.allOf(ApplicableType.class), Opcodes.ACC_STATIC),
     @PublicAPI(usage = ACCESS)
     FINAL(EnumSet.allOf(ApplicableType.class), Opcodes.ACC_FINAL),
     @PublicAPI(usage = ACCESS)
