@@ -25,8 +25,6 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class Formatters {
-    private static final String LOCATION_TEMPLATE = "(%s:%d)";
-
     private Formatters() {
     }
 
@@ -98,6 +96,11 @@ public final class Formatters {
         return Joiner.on(", ").join(typeNames);
     }
 
+    // Excluding the '$' character might be incorrect, but since '$' is a valid character of a class name
+    // and also the delimiter within the fully qualified name between an inner class and its enclosing class,
+    // there is no clean way to derive the simple name from just a fully qualified class name without
+    // further information
+    // Luckily for imported classes we can read this information from the bytecode
     /**
      * @param name A possibly fully qualified class name
      * @return A best guess of the simple name, i.e. prefixes like 'a.b.c.' cut off, 'Some$' of 'Some$Inner' as well.
@@ -105,43 +108,18 @@ public final class Formatters {
      */
     @PublicAPI(usage = ACCESS)
     public static String ensureSimpleName(String name) {
-        int mostNestedClassStart = name.lastIndexOf('$');
-        if (mostNestedClassStart > -1) {
-            String lastPart = name.substring(mostNestedClassStart + 1);
-            // lastPart contains "1" for anonymous classes, "NestedClass" for nested classes, and "1LocalClass" for local classes
+        int lastIndexOfDot = name.lastIndexOf('.');
+        String partAfterDot = lastIndexOfDot >= 0 ? name.substring(lastIndexOfDot + 1) : name;
 
-            int javaIdentifierStart = indexOfJavaIdentifierStart(lastPart);
-            if (javaIdentifierStart > -1) {
-                return lastPart.substring(javaIdentifierStart);
-            } else {
-                // name is an anonymous class
-                // return empty string, because java.lang.Class.getSimpleName() also returns empty string
-                return "";
+        int lastIndexOf$ = partAfterDot.lastIndexOf('$');
+        String simpleNameCandidate = lastIndexOf$ >= 0 ? partAfterDot.substring(lastIndexOf$ + 1) : partAfterDot;
+
+        for (int i = 0; i < simpleNameCandidate.length(); i++) {
+            if (Character.isJavaIdentifierStart(simpleNameCandidate.charAt(i))) {
+                return simpleNameCandidate.substring(i);
             }
         }
-
-        int classStart = name.lastIndexOf('.');
-        if (classStart > -1) {
-            return name.substring(classStart + 1);
-        }
-
-        // name may be a class in default package or may be empty
-        return name;
-    }
-
-    /**
-     * Returns the index of the first character, that is permissible as the first character in a Java identifier.
-     * Returns -1 if there is no such character.
-     *
-     * See also JLS 3.8
-     */
-    private static int indexOfJavaIdentifierStart(String s) {
-        for (int i = 0; i < s.length(); i++) {
-            if (Character.isJavaIdentifierStart(s.charAt(i))) {
-                return i;
-            }
-        }
-        return -1;
+        return "";
     }
 
     /**

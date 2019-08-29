@@ -3,16 +3,26 @@ package com.tngtech.archunit.core.domain;
 import java.util.ArrayList;
 
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import org.junit.Assert;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.Formatters.formatLocation;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 
+@RunWith(DataProviderRunner.class)
 public class FormattersTest {
+    @Rule
+    public final ExpectedException thrown = ExpectedException.none();
+
     @Rule
     public final ArchConfigurationRule configuration = new ArchConfigurationRule();
 
@@ -46,51 +56,34 @@ public class FormattersTest {
 
     @Test
     public void ensureSimpleName_withNullString() {
-        try {
-            Formatters.ensureSimpleName(null);
-            Assert.fail("NullPointerException expected, but not thrown");
-        } catch (NullPointerException expected) {
-        }
+        thrown.expect(NullPointerException.class);
+
+        Formatters.ensureSimpleName(null);
+    }
+
+    @DataProvider
+    public static Object[][] simple_name_test_cases() {
+        return $$(
+                $("", ""),
+                $("Dummy", "Dummy"),
+                $("org.example.Dummy", "Dummy"),
+                $("org.example.Dummy$123", ""),
+                $("org.example.Dummy$NestedClass", "NestedClass"),
+                $("org.example.Dummy$NestedClass123", "NestedClass123"),
+                $("org.example.Dummy$NestedClass$123", ""),
+                $("org.example.Dummy$NestedClass$MoreNestedClass", "MoreNestedClass"),
+                $("org.example.Dummy$123LocalClass", "LocalClass"),
+                $("org.example.Dummy$Inner$123LocalClass", "LocalClass"),
+                $("org.example.Dummy$Inner$123LocalClass123", "LocalClass123"),
+                $("Dummy[]", "Dummy[]"),
+                $("org.example.Dummy[]", "Dummy[]"),
+                $("org.example.Dummy$Inner[][]", "Inner[][]"));
     }
 
     @Test
-    public void ensureSimpleName_withEmptyString() {
-        assertThat(Formatters.ensureSimpleName("")).isEqualTo("");
-    }
-
-    @Test
-    public void ensureSimpleName_withClassInDefaultPackage() {
-        assertThat(Formatters.ensureSimpleName("Dummy")).isEqualTo("Dummy");
-    }
-
-    @Test
-    public void ensureSimpleName_withClassInPackage() {
-        assertThat(Formatters.ensureSimpleName("org.example.Dummy")).isEqualTo("Dummy");
-    }
-
-    @Test
-    public void ensureSimpleName_withAnonymousClass() {
-        assertThat(Formatters.ensureSimpleName("org.example.Dummy$123")).isEqualTo("");
-    }
-
-    @Test
-    public void ensureSimpleName_withNestedClass() {
-        assertThat(Formatters.ensureSimpleName("org.example.Dummy$NestedClass")).isEqualTo("NestedClass");
-    }
-
-    @Test
-    public void ensureSimpleName_withAnonymousClassInNestedClass() {
-        assertThat(Formatters.ensureSimpleName("org.example.Dummy$NestedClass$123")).isEqualTo("");
-    }
-
-    @Test
-    public void ensureSimpleName_withDeeplyNestedClass() {
-        assertThat(Formatters.ensureSimpleName("org.example.Dummy$NestedClass$MoreNestedClass")).isEqualTo("MoreNestedClass");
-    }
-
-    @Test
-    public void ensureSimpleName_withLocalClass() {
-        assertThat(Formatters.ensureSimpleName("org.example.Dummy$123LocalClass")).isEqualTo("LocalClass");
+    @UseDataProvider("simple_name_test_cases")
+    public void ensureSimpleName(String input, String expected) {
+        assertThat(Formatters.ensureSimpleName(input)).isEqualTo(expected);
     }
 
     private static class SomeClass {

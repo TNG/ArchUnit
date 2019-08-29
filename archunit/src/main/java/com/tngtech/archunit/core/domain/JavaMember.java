@@ -85,7 +85,7 @@ public abstract class JavaMember implements
     public JavaAnnotation getAnnotationOfType(String typeName) {
         return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(String.format(
                 "Member %s is not annotated with @%s",
-                getFullName(), Formatters.ensureSimpleName(typeName))));
+                getFullName(), typeName)));
     }
 
     @Override
