@@ -250,7 +250,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     @PublicAPI(usage = ACCESS)
     public JavaAnnotation getAnnotationOfType(String typeName) {
         return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(
-                String.format("Type %s is not annotated with @%s", getSimpleName(), Formatters.ensureSimpleName(typeName))));
+                String.format("Type %s is not annotated with @%s", getSimpleName(), typeName)));
     }
 
     @Override

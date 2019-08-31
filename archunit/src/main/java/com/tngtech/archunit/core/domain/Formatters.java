@@ -19,15 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Joiner;
-import com.google.common.primitives.Ints;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class Formatters {
-    private static final String LOCATION_TEMPLATE = "(%s:%d)";
-
     private Formatters() {
     }
 
@@ -99,6 +96,11 @@ public final class Formatters {
         return Joiner.on(", ").join(typeNames);
     }
 
+    // Excluding the '$' character might be incorrect, but since '$' is a valid character of a class name
+    // and also the delimiter within the fully qualified name between an inner class and its enclosing class,
+    // there is no clean way to derive the simple name from just a fully qualified class name without
+    // further information
+    // Luckily for imported classes we can read this information from the bytecode
     /**
      * @param name A possibly fully qualified class name
      * @return A best guess of the simple name, i.e. prefixes like 'a.b.c.' cut off, 'Some$' of 'Some$Inner' as well.
@@ -106,20 +108,18 @@ public final class Formatters {
      */
     @PublicAPI(usage = ACCESS)
     public static String ensureSimpleName(String name) {
-        int innerClassStart = name.lastIndexOf('$');
-        int classStart = name.lastIndexOf('.');
-        if (innerClassStart < 0 && classStart < 0) {
-            return name;
+        int lastIndexOfDot = name.lastIndexOf('.');
+        String partAfterDot = lastIndexOfDot >= 0 ? name.substring(lastIndexOfDot + 1) : name;
+
+        int lastIndexOf$ = partAfterDot.lastIndexOf('$');
+        String simpleNameCandidate = lastIndexOf$ >= 0 ? partAfterDot.substring(lastIndexOf$ + 1) : partAfterDot;
+
+        for (int i = 0; i < simpleNameCandidate.length(); i++) {
+            if (Character.isJavaIdentifierStart(simpleNameCandidate.charAt(i))) {
+                return simpleNameCandidate.substring(i);
+            }
         }
-
-        String lastPart = innerClassStart >= 0 ? name.substring(innerClassStart + 1) : name.substring(classStart + 1);
-        return isAnonymousRest(lastPart) ? "" : lastPart;
-    }
-
-    // NOTE: Anonymous classes (e.g. clazz.getName() == some.Type$1) return an empty clazz.getSimpleName(),
-    //       so we mimic this behavior
-    private static boolean isAnonymousRest(String lastPart) {
-        return Ints.tryParse(lastPart) != null;
+        return "";
     }
 
     /**
