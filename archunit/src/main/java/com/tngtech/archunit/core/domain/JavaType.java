@@ -59,6 +59,8 @@ public interface JavaType {
 
     boolean isArray();
 
+    JavaType withSimpleName(String simpleName);
+
     @Internal
     final class From {
         private static final LoadingCache<String, JavaType> typeCache = CacheBuilder.newBuilder().build(new CacheLoader<String, JavaType>() {
@@ -221,7 +223,16 @@ public interface JavaType {
 
         private static class ObjectType extends AbstractType {
             ObjectType(String fullName) {
-                super(fullName, ensureSimpleName(fullName), createPackage(fullName));
+                this(fullName, ensureSimpleName(fullName), createPackage(fullName));
+            }
+
+            private ObjectType(String fullName, String simpleName, String packageName) {
+                super(fullName, simpleName, packageName);
+            }
+
+            @Override
+            public JavaType withSimpleName(String simpleName) {
+                return new ObjectType(getName(), simpleName, getPackageName());
             }
         }
 
@@ -245,11 +256,20 @@ public interface JavaType {
             public boolean isPrimitive() {
                 return true;
             }
+
+            @Override
+            public JavaType withSimpleName(String simpleName) {
+                throw new UnsupportedOperationException("It should never make sense to override the simple type of a primitive");
+            }
         }
 
         private static class ArrayType extends AbstractType {
             ArrayType(String fullName) {
-                super(fullName, createSimpleName(fullName), createPackageOfComponentType(fullName));
+                this(fullName, createSimpleName(fullName), createPackageOfComponentType(fullName));
+            }
+
+            private ArrayType(String fullName, String simpleName, String packageName) {
+                super(fullName, simpleName, packageName);
             }
 
             private static String createPackageOfComponentType(String fullName) {
@@ -268,6 +288,11 @@ public interface JavaType {
             @Override
             public boolean isArray() {
                 return true;
+            }
+
+            @Override
+            public JavaType withSimpleName(String simpleName) {
+                return new ArrayType(getName(), simpleName, getPackageName());
             }
 
             @Override

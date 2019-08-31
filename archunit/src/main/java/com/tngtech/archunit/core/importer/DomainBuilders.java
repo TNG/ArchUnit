@@ -355,6 +355,11 @@ public final class DomainBuilders {
             return this;
         }
 
+        JavaClassBuilder withSimpleName(String simpleName) {
+            this.javaType = javaType.withSimpleName(simpleName);
+            return this;
+        }
+
         JavaClass build() {
             return DomainObjectCreationContext.createJavaClass(this);
         }

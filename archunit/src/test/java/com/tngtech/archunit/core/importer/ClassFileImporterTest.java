@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +34,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.ForwardingCollection;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
@@ -168,6 +168,7 @@ import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImpor
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportTwo;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.InterfaceToImport;
+import com.tngtech.archunit.core.importer.testexamples.simplenames.SimpleNameExamples;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
 import com.tngtech.archunit.testutil.LogTestRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
@@ -266,6 +267,7 @@ public class ClassFileImporterTest {
         assertThat(javaClass.isEnum()).as("is enum").isFalse();
         assertThat(javaClass.getEnclosingClass()).as("enclosing class").isAbsent();
         assertThat(javaClass.isInnerClass()).as("is inner class").isFalse();
+        assertThat(javaClass.isAnonymous()).as("is anonymous class").isFalse();
 
         assertThat(classes.get(ClassToImportTwo.class).getModifiers()).containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
     }
@@ -283,6 +285,52 @@ public class ClassFileImporterTest {
         assertThatClasses(javaClass.getAllInterfaces()).matchInAnyOrder(Enum.class.getInterfaces());
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isTrue();
+    }
+
+    @Test
+    public void imports_simple_inner_class() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/innerclassimport");
+        JavaClass innerClass = classes.get(ClassWithInnerClass.Inner.class);
+
+        assertThat(innerClass).matches(ClassWithInnerClass.Inner.class);
+        assertThat(innerClass.isInnerClass()).as("is inner class").isTrue();
+        assertThat(innerClass.isAnonymous()).as("is anonymous class").isFalse();
+    }
+
+    @Test
+    public void imports_simple_anonymous_class() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/innerclassimport");
+        JavaClass anonymousClass = classes.get(ClassWithInnerClass.class.getName() + "$1");
+
+        assertThat(anonymousClass).matches(Class.forName(anonymousClass.getName()));
+        assertThat(anonymousClass.isInnerClass()).as("is inner class").isTrue();
+        assertThat(anonymousClass.isAnonymous()).as("class is anonymous").isTrue();
+    }
+
+    @Test
+    public void imports_simple_local_class() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/innerclassimport");
+        JavaClass localClass = classes.get(ClassWithInnerClass.class.getName() + "$1LocalCaller");
+
+        assertThat(localClass).matches(Class.forName(localClass.getName()));
+        assertThat(localClass.isInnerClass()).as("is inner class").isTrue();
+        assertThat(localClass.isAnonymous()).as("class is anonymous").isFalse();
+    }
+
+    @Test
+    public void imports_simple_class_names_of_generated_types_correctly() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/simplenames");
+
+        assertSameSimpleNameOfArchUnitAndReflection(classes, SimpleNameExamples.class);
+        assertSameSimpleNameOfArchUnitAndReflection(classes, SimpleNameExamples.Crazy$InnerClass$$LikeAByteCodeGenerator_might_create.class);
+        assertSameSimpleNameOfArchUnitAndReflection(classes, SimpleNameExamples.class.getName() + "$1");
+        assertSameSimpleNameOfArchUnitAndReflection(classes, SimpleNameExamples.class.getName() + "$1Crazy$LocalClass");
+        assertSameSimpleNameOfArchUnitAndReflection(classes,
+                SimpleNameExamples.Crazy$InnerClass$$LikeAByteCodeGenerator_might_create.NestedInnerClass$Also$$_crazy.class);
+        assertSameSimpleNameOfArchUnitAndReflection(classes,
+                SimpleNameExamples.Crazy$InnerClass$$LikeAByteCodeGenerator_might_create.class.getName() + "$1");
+        assertSameSimpleNameOfArchUnitAndReflection(classes,
+                SimpleNameExamples.Crazy$InnerClass$$LikeAByteCodeGenerator_might_create.class.getName() + "$1Crazy$$NestedLocalClass");
     }
 
     @Test
@@ -994,26 +1042,21 @@ public class ClassFileImporterTest {
         JavaClass classWithInnerClass = classes.get(ClassWithInnerClass.class);
         JavaClass innerClass = classes.get(ClassWithInnerClass.Inner.class);
         JavaClass anonymousClass = classes.get(ClassWithInnerClass.class.getName() + "$1");
+        JavaClass localClass = classes.get(ClassWithInnerClass.class.getName() + "$1LocalCaller");
         JavaMethod calledTarget = getOnlyElement(classes.get(CalledClass.class).getMethods());
 
-        assertThat(classWithInnerClass.isAnonymous()).as("class is anonymous").isFalse();
-        assertThat(innerClass.isAnonymous()).as("class is anonymous").isFalse();
-
-        assertThat(innerClass.isInnerClass()).isTrue();
         assertThat(innerClass.getEnclosingClass()).contains(classWithInnerClass);
-        assertThat(innerClass).matches(ClassWithInnerClass.Inner.class);
         assertThat(anonymousClass.getEnclosingClass()).contains(classWithInnerClass);
-        assertThat(anonymousClass.getName()).isEqualTo(ClassWithInnerClass.class.getName() + "$1");
-        assertThat(anonymousClass.isAnonymous()).as("class is anonymous").isTrue();
-        assertThat(anonymousClass.getSimpleName()).as("simple name").isEmpty();
-        assertThat(anonymousClass.getPackageName()).as("package name").isEqualTo(ClassWithInnerClass.class.getPackage().getName());
+        assertThat(localClass.getEnclosingClass()).contains(classWithInnerClass);
 
         JavaMethodCall call = getOnlyElement(innerClass.getCodeUnitWithParameterTypes("call").getMethodCallsFromSelf());
+        assertThatCall(call).isFrom("call").isTo(calledTarget).inLineNumber(31);
 
-        assertThatCall(call).isFrom("call").isTo(calledTarget).inLineNumber(20);
         call = getOnlyElement(anonymousClass.getCodeUnitWithParameterTypes("call").getMethodCallsFromSelf());
+        assertThatCall(call).isFrom("call").isTo(calledTarget).inLineNumber(11);
 
-        assertThatCall(call).isFrom("call").isTo(calledTarget).inLineNumber(10);
+        call = getOnlyElement(localClass.getCodeUnitWithParameterTypes("call").getMethodCallsFromSelf());
+        assertThatCall(call).isFrom("call").isTo(calledTarget).inLineNumber(21);
     }
 
     @Test
@@ -1961,6 +2004,14 @@ public class ClassFileImporterTest {
         assertThat(classes).isEmpty();
     }
 
+    private void assertSameSimpleNameOfArchUnitAndReflection(ImportedClasses classes, String className) throws ClassNotFoundException {
+        assertSameSimpleNameOfArchUnitAndReflection(classes, Class.forName(className));
+    }
+
+    private void assertSameSimpleNameOfArchUnitAndReflection(ImportedClasses classes, Class<?> clazz) {
+        assertThat(classes.get(clazz.getName()).getSimpleName()).isEqualTo(clazz.getSimpleName());
+    }
+
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {
         Set<Dependency> result = new HashSet<>();
         for (Dependency dependency : dependencies) {
@@ -2149,7 +2200,7 @@ public class ClassFileImporterTest {
         return new ImportedClasses(path);
     }
 
-    private class ImportedClasses implements Iterable<JavaClass> {
+    private class ImportedClasses extends ForwardingCollection<JavaClass> {
         private final ClassFileImporter importer = new ClassFileImporter();
         private final JavaClasses classes;
 
@@ -2166,8 +2217,8 @@ public class ClassFileImporterTest {
         }
 
         @Override
-        public Iterator<JavaClass> iterator() {
-            return classes.iterator();
+        protected Collection<JavaClass> delegate() {
+            return classes;
         }
 
         Set<JavaCodeUnit> getCodeUnits() {

@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
@@ -144,20 +145,31 @@ class JavaClassProcessor extends ClassVisitor {
             return;
         }
 
-        if (name != null && outerName != null) {
-            String innerTypeName = createTypeName(name);
-            correctModifiersForNestedClass(innerTypeName, access);
+        String innerTypeName = createTypeName(name);
+        if (!visitingCurrentClass(innerTypeName)) {
+            return;
+        }
+
+        javaClassBuilder.withSimpleName(nullToEmpty(innerName));
+
+        if (isNamedNestedClass(outerName)) {
+            javaClassBuilder.withModifiers(JavaModifier.getModifiersForClass(access));
             declarationHandler.registerEnclosingClass(innerTypeName, createTypeName(outerName));
         }
     }
 
-    // Modifier handling is somewhat counter intuitive for nested classes, even though we 'visit' the nested class
+    // visitInnerClass is called for named inner classes, even if we are currently importing
+    // this class itself (i.e. visit(..) and visitInnerClass(..) are called with the same class name.
+    // visitInnerClass offers some more properties like correct modifiers.
+    // Modifier handling is somewhat counter intuitive for nested named classes, even though we 'visit' the nested class
     // like any outer class in visit(..) before, the modifiers like 'PUBLIC' or 'PRIVATE'
     // are found in the access flags of visitInnerClass(..)
-    private void correctModifiersForNestedClass(String innerTypeName, int access) {
-        if (innerTypeName.equals(className)) {
-            javaClassBuilder.withModifiers(JavaModifier.getModifiersForClass(access));
-        }
+    private boolean visitingCurrentClass(String innerTypeName) {
+        return innerTypeName.equals(className);
+    }
+
+    private boolean isNamedNestedClass(String outerName) {
+        return outerName != null;
     }
 
     @Override
