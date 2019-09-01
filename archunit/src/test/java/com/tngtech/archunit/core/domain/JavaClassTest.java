@@ -744,6 +744,24 @@ public class JavaClassTest {
                 .rejects(classes.get(getClass()));
     }
 
+    @Test
+    public void isNestedClass() {
+        JavaClasses classes = importClasses(JavaClassTest.class, ClassWithInnerClass.class, ClassWithInnerClass.Inner.class);
+
+        assertThat(classes.get(JavaClassTest.class).isNestedClass()).as("top-level-class").isFalse();
+        assertThat(classes.get(ClassWithInnerClass.class).isNestedClass()).as("static nested class").isTrue();
+        assertThat(classes.get(ClassWithInnerClass.Inner.class).isNestedClass()).as("non-static nested class").isTrue();
+    }
+
+    @Test
+    public void isInnerClass() {
+        JavaClasses classes = importClasses(JavaClassTest.class, ClassWithInnerClass.class, ClassWithInnerClass.Inner.class);
+
+        assertThat(classes.get(JavaClassTest.class).isInnerClass()).as("top-level-class").isFalse();
+        assertThat(classes.get(ClassWithInnerClass.class).isInnerClass()).as("static nested class").isFalse();
+        assertThat(classes.get(ClassWithInnerClass.Inner.class).isInnerClass()).as("non-static nested class").isTrue();
+    }
+
     private JavaClass getOnlyClassSettingField(JavaClasses classes, final String fieldName) {
         return getOnlyElement(classes.that(new DescribedPredicate<JavaClass>("") {
             @Override

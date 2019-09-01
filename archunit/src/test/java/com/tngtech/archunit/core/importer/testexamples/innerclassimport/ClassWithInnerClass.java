@@ -23,7 +23,7 @@ public class ClassWithInnerClass {
         }
     }
 
-    public static class Inner implements CanBeCalled {
+    public class Inner implements CanBeCalled {
         private CalledClass calledClass;
 
         @Override
