@@ -28,6 +28,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ENUMS;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
@@ -272,12 +274,22 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
 
     @Override
     public CONJUNCTION areInterfaces() {
-        return givenWith(are(JavaClass.Predicates.INTERFACES));
+        return givenWith(are(INTERFACES));
     }
 
     @Override
     public CONJUNCTION areNotInterfaces() {
-        return givenWith(are(not(JavaClass.Predicates.INTERFACES)));
+        return givenWith(are(not(INTERFACES)));
+    }
+
+    @Override
+    public CONJUNCTION areEnums() {
+        return givenWith(are(ENUMS));
+    }
+
+    @Override
+    public CONJUNCTION areNotEnums() {
+        return givenWith(are(not(ENUMS)));
     }
 
     @Override

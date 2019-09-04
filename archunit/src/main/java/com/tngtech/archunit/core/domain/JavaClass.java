@@ -1219,6 +1219,14 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         };
 
         @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> ENUMS = new DescribedPredicate<JavaClass>("enums") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isEnum();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> type(final Class<?> type) {
             return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("type " + type.getName());
         }

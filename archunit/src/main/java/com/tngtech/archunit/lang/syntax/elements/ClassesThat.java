@@ -627,6 +627,22 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION areNotInterfaces();
 
     /**
+     * Matches enums.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areEnums();
+
+    /**
+     * Matches everything except enums.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotEnums();
+
+    /**
      * Matches every class in the supplied list and any of their named/anonymous inner classes,
      * no matter how deeply nested. E.g. consider
      *

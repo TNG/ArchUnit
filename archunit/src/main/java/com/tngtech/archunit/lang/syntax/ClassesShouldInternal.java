@@ -575,6 +575,16 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction beEnums() {
+        return addCondition(ArchConditions.beEnums());
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeEnums() {
+        return addCondition(ArchConditions.notBeEnums());
+    }
+
+    @Override
     public ClassesShouldConjunction containNumberOfElements(DescribedPredicate<Integer> predicate) {
         return addCondition(ArchConditions.containNumberOfElements(predicate));
     }

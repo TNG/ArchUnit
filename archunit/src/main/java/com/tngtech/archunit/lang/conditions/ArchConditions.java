@@ -821,12 +821,22 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beInterfaces() {
-        return new InterfacesCondition();
+        return InterfacesCondition.BE_INTERFACES;
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeInterfaces() {
-        return not(beInterfaces());
+        return not(InterfacesCondition.BE_INTERFACES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beEnums() {
+        return EnumsCondition.BE_ENUMS;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeEnums() {
+        return not(EnumsCondition.BE_ENUMS);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -979,6 +989,8 @@ public final class ArchConditions {
     }
 
     private static class InterfacesCondition extends ArchCondition<JavaClass> {
+        private static final InterfacesCondition BE_INTERFACES = new InterfacesCondition();
+
         InterfacesCondition() {
             super("be interfaces");
         }
@@ -989,6 +1001,22 @@ public final class ArchConditions {
             String message = createMessage(javaClass,
                     (isInterface ? "is an" : "is not an") + " interface");
             events.add(new SimpleConditionEvent(javaClass, isInterface, message));
+        }
+    }
+
+    private static class EnumsCondition extends ArchCondition<JavaClass> {
+        private static final EnumsCondition BE_ENUMS = new EnumsCondition();
+
+        EnumsCondition() {
+            super("be enums");
+        }
+
+        @Override
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean isEnum = javaClass.isEnum();
+            String message = createMessage(javaClass,
+                    (isEnum ? "is an" : "is not an") + " enum");
+            events.add(new SimpleConditionEvent(javaClass, isEnum, message));
         }
     }
 
