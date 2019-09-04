@@ -840,6 +840,26 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
+    public void areEnums_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areEnums())
+                .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByEnum.class, EnumAccessingAClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, SimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areNotEnums_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areNotEnums())
+                .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByEnum.class, EnumAccessingAClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByEnum.class, EnumAccessingAClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
     public void belongToAnyOf(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterViolationCausesInFailureReport(
                 classesShouldOnlyBeBy.belongToAnyOf(ClassWithInnerClasses.class))
@@ -1125,6 +1145,19 @@ public class ShouldOnlyByClassesThatTest {
 
     private static class ClassBeingAccessedByInnerClass {
         void callMe() {
+        }
+    }
+
+    private static class ClassBeingAccessedByEnum {
+        private static final Object OBJECT = new Object();
+    }
+
+    private enum  EnumAccessingAClass {
+        VALUE;
+
+        @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
+        static void access() {
+            ClassBeingAccessedByEnum.OBJECT.toString();
         }
     }
 }
