@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -721,6 +722,26 @@ public class ShouldClassesThatTest {
                         ClassAccessingCollection.class, ClassAccessingSimpleClass.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areEnums_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areEnums())
+                .on(ClassAccessingEnum.class, ClassAccessingString.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingEnum.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areNotEnums_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areNotEnums())
+                .on(ClassAccessingEnum.class, ClassAccessingString.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class);
     }
 
     @Test
@@ -1595,6 +1616,13 @@ public class ShouldClassesThatTest {
                 void callMe() {
                 }
             }
+        }
+    }
+
+    private static class ClassAccessingEnum {
+        @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
+        void access() {
+            StandardCopyOption.ATOMIC_MOVE.name();
         }
     }
 }

@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.ref.Reference;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.text.AttributedString;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -631,6 +633,22 @@ public class GivenMembersDeclaredInClassesThatTest {
                 .on(List.class, String.class, Collection.class, Integer.class);
 
         assertThatMembers(members).matchInAnyOrderMembersOf(String.class, Integer.class);
+    }
+
+    @Test
+    public void areEnums_predicate() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areEnums())
+                .on(StandardCopyOption.class, StandardOpenOption.class, Collection.class, Integer.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(StandardCopyOption.class, StandardOpenOption.class);
+    }
+
+    @Test
+    public void areNotEnums_predicate() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNotEnums())
+                .on(StandardCopyOption.class, StandardOpenOption.class, Collection.class, Integer.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(Collection.class, Integer.class);
     }
 
     @Test
