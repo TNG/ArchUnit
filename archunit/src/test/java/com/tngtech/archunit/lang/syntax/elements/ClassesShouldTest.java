@@ -2,6 +2,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.nio.file.StandardCopyOption;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1288,6 +1289,66 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
+    public static Object[][] notBeInterfaces_rules() {
+        return $$(
+                $(classes().should().notBeInterfaces(), String.class, Collection.class),
+                $(classes().should(ArchConditions.notBeInterfaces()), String.class, Collection.class));
+    }
+
+    @Test
+    @UseDataProvider("notBeInterfaces_rules")
+    public void notBeInterfaces(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be interfaces")
+                .containsPattern(String.format("Class <%s> is an interface in %s",
+                        quote(violated.getName()),
+                        locationPattern(violated)))
+                .doesNotMatch(String.format(".*%s.* interface.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] beEnums_rules() {
+        return $$(
+                $(classes().should().beEnums(), StandardCopyOption.class, String.class),
+                $(classes().should(ArchConditions.beEnums()), StandardCopyOption.class, String.class));
+    }
+
+    @Test
+    @UseDataProvider("beEnums_rules")
+    public void beEnums(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should be enums")
+                .containsPattern(String.format("Class <%s> is not an enum in %s",
+                        quote(violated.getName()),
+                        locationPattern(violated)))
+                .doesNotMatch(String.format(".*%s.* enum.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notBeEnums_rules() {
+        return $$(
+                $(classes().should().notBeEnums(), String.class, StandardCopyOption.class),
+                $(classes().should(ArchConditions.notBeEnums()), String.class, StandardCopyOption.class));
+    }
+
+    @Test
+    @UseDataProvider("notBeEnums_rules")
+    public void notBeEnums(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be enums")
+                .containsPattern(String.format("Class <%s> is an enum in %s",
+                        quote(violated.getName()),
+                        locationPattern(violated)))
+                .doesNotMatch(String.format(".*%s.* enum.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
     public static Object[][] containNumberOfElements_rules() {
         return $$(
                 $(equalTo(999)),
@@ -1311,26 +1372,6 @@ public class ClassesShouldTest {
         assertThat(singleLineFailureReportOf(result))
                 .contains("contain number of elements " + predicate.getDescription())
                 .contains("there is/are 2 element(s) in classes [java.lang.Integer, java.lang.String]");
-    }
-
-    @DataProvider
-    public static Object[][] notBeInterfaces_rules() {
-        return $$(
-                $(classes().should().notBeInterfaces(), String.class, Collection.class),
-                $(classes().should(ArchConditions.notBeInterfaces()), String.class, Collection.class));
-    }
-
-    @Test
-    @UseDataProvider("notBeInterfaces_rules")
-    public void notBeInterfaces(ArchRule rule, Class<?> satisfied, Class<?> violated) {
-        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
-
-        assertThat(singleLineFailureReportOf(result))
-                .contains("classes should not be interfaces")
-                .containsPattern(String.format("Class <%s> is an interface in %s",
-                        quote(violated.getName()),
-                        locationPattern(violated)))
-                .doesNotMatch(String.format(".*%s.* interface.*", quote(satisfied.getName())));
     }
 
     @DataProvider
@@ -1387,7 +1428,7 @@ public class ClassesShouldTest {
         return result.getFailureReport().toString().replaceAll("\\r?\\n", FAILURE_REPORT_NEWLINE_MARKER);
     }
 
-    static DescribedPredicate<JavaAnnotation> annotation(final Class<? extends Annotation> type) {
+    private static DescribedPredicate<JavaAnnotation> annotation(final Class<? extends Annotation> type) {
         return new DescribedPredicate<JavaAnnotation>("@" + type.getSimpleName()) {
             @Override
             public boolean apply(JavaAnnotation input) {

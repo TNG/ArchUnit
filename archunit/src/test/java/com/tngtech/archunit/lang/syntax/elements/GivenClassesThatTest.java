@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Constructor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.text.AttributedString;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -633,6 +635,22 @@ public class GivenClassesThatTest {
                 .on(List.class, String.class, Collection.class, Integer.class);
 
         assertThatClasses(classes).matchInAnyOrder(String.class, Integer.class);
+    }
+
+    @Test
+    public void areEnums_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().areEnums())
+                .on(StandardCopyOption.class, StandardOpenOption.class, Collection.class, Integer.class);
+
+        assertThatClasses(classes).matchInAnyOrder(StandardCopyOption.class, StandardOpenOption.class);
+    }
+
+    @Test
+    public void areNotEnums_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().areNotEnums())
+                .on(StandardCopyOption.class, StandardOpenOption.class, Collection.class, Integer.class);
+
+        assertThatClasses(classes).matchInAnyOrder(Collection.class, Integer.class);
     }
 
     @Test

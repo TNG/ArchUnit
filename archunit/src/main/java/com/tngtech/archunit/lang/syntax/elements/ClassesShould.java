@@ -973,6 +973,22 @@ public interface ClassesShould {
     ClassesShouldConjunction notBeInterfaces();
 
     /**
+     * Asserts that classes are enums.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beEnums();
+
+    /**
+     * Asserts that classes are not enums.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeEnums();
+
+    /**
      * Asserts that the rule matches exactly the given class.
      *
      * @param clazz the only class the should be matched
