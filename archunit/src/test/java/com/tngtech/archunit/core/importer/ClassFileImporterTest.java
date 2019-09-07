@@ -288,11 +288,23 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void imports_simple_static_nested_class() throws Exception {
+        ImportedClasses classes = classesIn("testexamples/innerclassimport");
+        JavaClass staticNestedClass = classes.get(ClassWithInnerClass.Nested.class);
+
+        assertThat(staticNestedClass).matches(ClassWithInnerClass.Nested.class);
+        assertThat(staticNestedClass.isNestedClass()).as("is nested class").isTrue();
+        assertThat(staticNestedClass.isInnerClass()).as("is inner class").isFalse();
+        assertThat(staticNestedClass.isAnonymous()).as("is anonymous class").isFalse();
+    }
+
+    @Test
     public void imports_simple_inner_class() throws Exception {
         ImportedClasses classes = classesIn("testexamples/innerclassimport");
         JavaClass innerClass = classes.get(ClassWithInnerClass.Inner.class);
 
         assertThat(innerClass).matches(ClassWithInnerClass.Inner.class);
+        assertThat(innerClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(innerClass.isInnerClass()).as("is inner class").isTrue();
         assertThat(innerClass.isAnonymous()).as("is anonymous class").isFalse();
     }
@@ -303,6 +315,7 @@ public class ClassFileImporterTest {
         JavaClass anonymousClass = classes.get(ClassWithInnerClass.class.getName() + "$1");
 
         assertThat(anonymousClass).matches(Class.forName(anonymousClass.getName()));
+        assertThat(anonymousClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(anonymousClass.isInnerClass()).as("is inner class").isTrue();
         assertThat(anonymousClass.isAnonymous()).as("class is anonymous").isTrue();
     }
@@ -313,6 +326,7 @@ public class ClassFileImporterTest {
         JavaClass localClass = classes.get(ClassWithInnerClass.class.getName() + "$1LocalCaller");
 
         assertThat(localClass).matches(Class.forName(localClass.getName()));
+        assertThat(localClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(localClass.isInnerClass()).as("is inner class").isTrue();
         assertThat(localClass.isAnonymous()).as("class is anonymous").isFalse();
     }

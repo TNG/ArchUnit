@@ -30,6 +30,19 @@ public class ClassWithInnerClass {
         public void call() {
             calledClass.doIt();
         }
+
+        void accessOuterClass() {
+            System.out.println("Can access outer instance: " + ClassWithInnerClass.this.toString());
+        }
+    }
+
+    public static class Nested implements CanBeCalled {
+        private CalledClass calledClass;
+
+        @Override
+        public void call() {
+            calledClass.doIt();
+        }
     }
 
     public interface CanBeCalled {
