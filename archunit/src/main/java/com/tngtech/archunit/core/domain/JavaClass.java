@@ -186,9 +186,22 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         return javaType.isArray();
     }
 
+    /**
+     * @return Returns true if this class is declared within another class.
+     *         Returns false for top-level classes.
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isNestedClass() {
+        return enclosingClass.isPresent();
+    }
+
+    /**
+     * @return Returns true if this class is a non-static nested class.
+     *         Returns false otherwise.
+     */
     @PublicAPI(usage = ACCESS)
     public boolean isInnerClass() {
-        return enclosingClass.isPresent();
+        return isNestedClass() && !getModifiers().contains(JavaModifier.STATIC);
     }
 
     @Override
