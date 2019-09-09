@@ -969,8 +969,14 @@ public class ClassesShouldTest {
                 .containsPattern(accessesFieldRegex(
                         ClassAccessingWrongField.class, "(sets|gets|accesses)",
                         ClassAccessingField.class, "classWithField"))
+                .containsPattern(accessesFieldRegex(
+                        ClassAccessingField.class, "(sets|gets|accesses)",
+                        ClassAccessingField.class, "classWithField"))
                 .doesNotMatch(accessesFieldRegex(
                         ClassAccessingField.class, "(sets|gets|accesses)",
+                        ClassWithField.class, "field"))
+                .doesNotMatch(accessesFieldRegex(
+                        ClassWithField.class, "(sets|gets|accesses)",
                         ClassWithField.class, "field"));
     }
 
@@ -1013,7 +1019,7 @@ public class ClassesShouldTest {
     @UseDataProvider("callMethodWhere_rules")
     public void callMethodWhere(ArchRule rule) {
         EvaluationResult result = rule.evaluate(importClasses(
-                ClassWithMethod.class, ClassCallingMethod.class, ClassCallingWrongMethod.class));
+                ClassWithMethod.class, ClassCallingMethod.class, ClassCallingWrongMethod.class, ClassCallingSelf.class));
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should call method where target is %s",
@@ -1021,6 +1027,9 @@ public class ClassesShouldTest {
                 .containsPattern(callMethodRegex(
                         ClassCallingWrongMethod.class,
                         ClassCallingMethod.class, "call"))
+                .containsPattern(callMethodRegex(
+                        ClassCallingSelf.class,
+                        ClassCallingSelf.class, "target"))
                 .doesNotMatch(callMethodRegex(
                         ClassCallingMethod.class,
                         ClassWithMethod.class, "method", String.class));
@@ -1428,6 +1437,7 @@ public class ClassesShouldTest {
         return result.getFailureReport().toString().replaceAll("\\r?\\n", FAILURE_REPORT_NEWLINE_MARKER);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static DescribedPredicate<JavaAnnotation> annotation(final Class<? extends Annotation> type) {
         return new DescribedPredicate<JavaAnnotation>("@" + type.getSimpleName()) {
             @Override
@@ -1451,6 +1461,7 @@ public class ClassesShouldTest {
                 quote(clazz.getName()), quote(packageIdentifier), locationPattern(clazz));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private String doesntResideInAnyPackagePatternFor(Class<?> clazz, String[] packageIdentifiers) {
         return String.format("Class <%s> does not reside in any package \\['%s'\\] in %s",
                 quote(clazz.getName()), quote(Joiner.on("', '").join(packageIdentifiers)), locationPattern(clazz));
@@ -1542,6 +1553,7 @@ public class ClassesShouldTest {
         String field;
     }
 
+    @SuppressWarnings("unused")
     private static class ClassAccessingField {
         ClassWithField classWithField;
 
@@ -1551,7 +1563,7 @@ public class ClassesShouldTest {
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
+    @SuppressWarnings({"ConstantConditions", "unused"})
     private static class ClassAccessingWrongField {
         ClassAccessingField classAccessingField;
 
@@ -1561,6 +1573,7 @@ public class ClassesShouldTest {
         }
     }
 
+    @SuppressWarnings({"SameParameterValue", "unused"})
     private static class ClassWithMethod {
         void method(String param) {
         }
@@ -1574,6 +1587,7 @@ public class ClassesShouldTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class ClassCallingWrongMethod {
         ClassCallingMethod classCallingMethod;
 
@@ -1582,11 +1596,23 @@ public class ClassesShouldTest {
         }
     }
 
+    @SuppressWarnings("unused")
+    private static class ClassCallingSelf {
+        void origin() {
+            target();
+        }
+
+        void target() {
+        }
+    }
+
+    @SuppressWarnings("unused")
     private static class ClassWithConstructor {
         ClassWithConstructor(String param) {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class ClassCallingConstructor {
         ClassCallingConstructor(int number, Date date) {
         }
@@ -1596,12 +1622,14 @@ public class ClassesShouldTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class ClassCallingWrongConstructor {
         void callWrong() {
             new ClassCallingConstructor(0, null);
         }
     }
 
+    @SuppressWarnings({"unused", "SameParameterValue"})
     private static class ClassWithFieldMethodAndConstructor {
         String field;
 
@@ -1612,6 +1640,7 @@ public class ClassesShouldTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class ClassAccessingFieldMethodAndConstructor {
         String wrongField;
 
@@ -1625,6 +1654,7 @@ public class ClassesShouldTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class ClassAccessingWrongFieldMethodAndConstructor {
         void callWrong() {
             ClassAccessingFieldMethodAndConstructor instance = new ClassAccessingFieldMethodAndConstructor(0, null);
