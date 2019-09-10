@@ -9,7 +9,6 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasType;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.access.ClassAccessingOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.accessed.ClassBeingAccessedByOtherClass;
@@ -917,20 +916,6 @@ public class ShouldOnlyByClassesThatTest {
         assertThat(classes).isEmpty();
     }
 
-    @DataProvider
-    public static Object[][] rule_starts_where_a_class_accesses_itself() {
-        return testForEach(
-                classes().should().onlyBeAccessed().byClassesThat(classWithNameOf(ClassAccessingClassAccessingItself.class)),
-                classes().should().onlyHaveDependentClassesThat(classWithNameOf(ClassAccessingClassAccessingItself.class)));
-    }
-
-    @Test
-    @UseDataProvider("rule_starts_where_a_class_accesses_itself")
-    public void accesses_by_the_class_itself_are_ignored(ArchRule rule) {
-        rule.check(new ClassFileImporter().importClasses(
-                ClassAccessingItself.class, ClassAccessingClassAccessingItself.class));
-    }
-
     private static DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
         return GET_NAME.is(equalTo(type.getName()));
     }
@@ -1119,6 +1104,7 @@ public class ShouldOnlyByClassesThatTest {
     private static class ClassDependingViaImplementing implements InterfaceBeingDependedOnByImplementing {
     }
 
+    @SuppressWarnings({"unused"})
     private static class ClassWithInnerClasses {
         private static class InnerClass {
             private static class EvenMoreInnerClass {
@@ -1131,6 +1117,7 @@ public class ShouldOnlyByClassesThatTest {
         }
     }
 
+    @SuppressWarnings({"unused"})
     private static class AnotherClassWithInnerClasses {
         private static class InnerClass {
             private static class EvenMoreInnerClass {
@@ -1149,15 +1136,14 @@ public class ShouldOnlyByClassesThatTest {
     }
 
     private static class ClassBeingAccessedByEnum {
-        private static final Object OBJECT = new Object();
     }
 
-    private enum  EnumAccessingAClass {
+    @SuppressWarnings({"unused"})
+    private enum EnumAccessingAClass {
         VALUE;
 
-        @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
         static void access() {
-            ClassBeingAccessedByEnum.OBJECT.toString();
+            new ClassBeingAccessedByEnum();
         }
     }
 }
