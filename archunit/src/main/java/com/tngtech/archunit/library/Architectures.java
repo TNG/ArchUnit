@@ -36,9 +36,12 @@ import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.Priority;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.PredicateAggregator;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -152,6 +155,15 @@ public final class Architectures {
         @PublicAPI(usage = ACCESS)
         public EvaluationResult evaluate(JavaClasses classes) {
             EvaluationResult result = new EvaluationResult(this, Priority.MEDIUM);
+
+            for (LayerDefinition layerDefinition : layerDefinitions.values()) {
+
+                EvaluationResult partial = classes().that(resideInPackagesOfLayerDefinition(layerDefinition))
+                        .should(notBeEmptyFor(layerDefinition))
+                        .evaluate(classes);
+                result.add(partial);
+            }
+
             for (LayerDependencySpecification specification : dependencySpecifications) {
                 SortedSet<String> packagesOfOwnLayer = packagesOf(specification.layerName);
                 SortedSet<String> packagesOfAllowedAccessors = packagesOf(specification.allowedAccessors);
@@ -166,6 +178,10 @@ public final class Architectures {
             return result;
         }
 
+        private DescribedPredicate<JavaClass> resideInPackagesOfLayerDefinition(final LayerDefinition layerDefinition) {
+            return JavaClass.Predicates.resideInAnyPackage(toArray(layerDefinition.packageIdentifiers));
+        }
+
         private DescribedPredicate<Dependency> originPackageMatchesIfDependencyIsRelevant(SortedSet<String> packagesOfAllowedAccessors) {
             DescribedPredicate<Dependency> originPackageMatches =
                     dependencyOrigin(JavaClass.Functions.GET_PACKAGE_NAME.is(PackageMatchers.of(toArray(packagesOfAllowedAccessors))));
@@ -173,6 +189,35 @@ public final class Architectures {
             return irrelevantDependenciesPredicate.isPresent() ?
                     originPackageMatches.or(irrelevantDependenciesPredicate.get()) :
                     originPackageMatches;
+        }
+
+        private static ArchCondition<JavaClass> notBeEmptyFor(final LayeredArchitecture.LayerDefinition layerDefinition) {
+            return new IsLayerNotEmpty(layerDefinition);
+        }
+
+        private static class IsLayerNotEmpty extends ArchCondition<JavaClass> {
+            private final DescribedPredicate<Integer> predicate;
+            private final LayeredArchitecture.LayerDefinition layerDefinition;
+            private SortedSet<String> allClassNames;
+
+            IsLayerNotEmpty(final LayeredArchitecture.LayerDefinition layerDefinition) {
+                super("layer should not empty");
+                this.predicate = DescribedPredicate.greaterThan(0);
+                this.layerDefinition = layerDefinition;
+                allClassNames = new TreeSet<>();
+            }
+
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                allClassNames.add(item.getName());
+            }
+
+            @Override
+            public void finish(ConditionEvents events) {
+                boolean conditionSatisfied = predicate.apply(allClassNames.size());
+                String message = String.format("Layer '%s' should not be empty", layerDefinition.name);
+                events.add(new SimpleConditionEvent(layerDefinition, conditionSatisfied, message));
+            }
         }
 
         @Override
@@ -316,10 +361,10 @@ public final class Architectures {
         }
 
         private OnionArchitecture(String[] domainModelPackageIdentifiers,
-                 String[] domainServicePackageIdentifiers,
-                 String[] applicationPackageIdentifiers,
-                 Map<String, String[]> adapterPackageIdentifiers,
-                 Optional<String> overriddenDescription) {
+                String[] domainServicePackageIdentifiers,
+                String[] applicationPackageIdentifiers,
+                Map<String, String[]> adapterPackageIdentifiers,
+                Optional<String> overriddenDescription) {
             this.domainModelPackageIdentifiers = domainModelPackageIdentifiers;
             this.domainServicePackageIdentifiers = domainServicePackageIdentifiers;
             this.applicationPackageIdentifiers = applicationPackageIdentifiers;
