@@ -18,7 +18,7 @@
         </Or>
     </Match>
     <Match>
-        <!-- False positive on try-with-resources statement with JDK-11?
+        <!-- False positive on try-with-resources statement with JDK-11
             Nullcheck of in at line 189 of value previously dereferenced in com.tngtech.archunit.core.domain.Source$Md5sum.read(URI)
             Bug type RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE
             In class com.tngtech.archunit.core.domain.Source$Md5sum
@@ -33,7 +33,7 @@
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
     <Match>
-        <!-- False positive on try-with-resources statement with JDK-11?
+        <!-- False positive on try-with-resources statement with JDK-11
             Redundant nullcheck of inputStream, which is known to be non-null in com.tngtech.archunit.ArchConfiguration.readProperties(String)
             Bug type RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE
             In class com.tngtech.archunit.ArchConfiguration
@@ -80,6 +80,20 @@
                     params="java.io.File, java.lang.String, com.tngtech.archunit.lang.EvaluationResult" returns="void"/>
         </Or>
         <Bug code="OBL"/>
+    </Match>
+    <Match>
+        <!-- False positive on try-with-resources statement with JDK-11
+            Redundant nullcheck of inputStream at line 71 of value previously dereferenced in com.tngtech.archunit.htmlvisualization.Visualizer.copyFiles()
+            In class com.tngtech.archunit.htmlvisualization.Visualizer
+            In method com.tngtech.archunit.htmlvisualization.Visualizer.copyFiles()
+            Value loaded from inputStream
+            Return value of java.net.URL.openStream() of type java.io.InputStream
+            At Visualizer.java:[line 71]
+            Redundant null check at Visualizer.java:[line 72]
+        -->
+        <Class name="com.tngtech.archunit.htmlvisualization.Visualizer"/>
+        <Method name="copyFiles"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
     <Match>
         <!-- exclude these fields, as they are marked as unread, but they are read by Gson through the annotations -->
