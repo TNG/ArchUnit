@@ -215,7 +215,7 @@ public final class Architectures {
             @Override
             public void finish(ConditionEvents events) {
                 boolean conditionSatisfied = predicate.apply(allClassNames.size());
-                String message = String.format("Layer '%s' should not be empty", layerDefinition.name);
+                String message = String.format("Layer '%s' is empty", layerDefinition.name);
                 events.add(new SimpleConditionEvent(layerDefinition, conditionSatisfied, message));
             }
         }
