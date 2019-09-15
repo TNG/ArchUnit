@@ -114,6 +114,21 @@ public class ArchitecturesTest {
     }
 
     @Test
+    public void layered_architecture_defining_empty_layers_is_rejected() {
+        LayeredArchitecture architecture = layeredArchitecture()
+                .layer("Some").definedBy(absolute("should.not.be.found.."))
+                .layer("Other").definedBy(absolute("also.not.found"))
+                .layer("Okay").definedBy("..testclasses..");
+
+        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses");
+
+        EvaluationResult result = architecture.evaluate(classes);
+        assertThat(result.hasViolation()).isTrue();
+        assertPatternMatches(result.getFailureReport().getDetails(),
+                ImmutableSet.of(expectedEmptyLayer("Some"), expectedEmptyLayer("Other")));
+    }
+
+    @Test
     public void layered_architecture_gathers_all_layer_violations() {
         LayeredArchitecture architecture = layeredArchitecture()
                 .layer("One").definedBy(absolute("some.pkg.."))
@@ -283,7 +298,7 @@ public class ArchitecturesTest {
         Set<String> toMatch = new HashSet<>(expectedRegexes);
         for (String line : input) {
             if (!matchIteratorAndRemove(toMatch, line)) {
-                Assert.fail("Line " + line + " didn't match any pattern in " + expectedRegexes);
+                Assert.fail("Line '" + line + "' didn't match any pattern in " + expectedRegexes);
             }
         }
         assertThat(toMatch).as("Unmatched Patterns").isEmpty();
@@ -301,6 +316,10 @@ public class ArchitecturesTest {
 
     private static String expectedAccessViolationPattern(Class<?> from, String fromMethod, Class<?> to, String toMethod) {
         return String.format(".*%s.%s().*%s.%s().*", quote(from.getName()), fromMethod, quote(to.getName()), toMethod);
+    }
+
+    private static String expectedEmptyLayer(String layerName) {
+        return String.format("Layer '%s' is empty", layerName);
     }
 
     private static String fieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {

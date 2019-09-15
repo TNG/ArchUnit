@@ -36,7 +36,9 @@ import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.PredicateAggregator;
@@ -50,6 +52,7 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsWhere;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.lang.System.lineSeparator;
@@ -152,18 +155,29 @@ public final class Architectures {
         @PublicAPI(usage = ACCESS)
         public EvaluationResult evaluate(JavaClasses classes) {
             EvaluationResult result = new EvaluationResult(this, Priority.MEDIUM);
+            for (LayerDefinition layerDefinition : layerDefinitions.values()) {
+                result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
+            }
             for (LayerDependencySpecification specification : dependencySpecifications) {
-                SortedSet<String> packagesOfOwnLayer = packagesOf(specification.layerName);
-                SortedSet<String> packagesOfAllowedAccessors = packagesOf(specification.allowedAccessors);
-                packagesOfAllowedAccessors.addAll(packagesOfOwnLayer);
-
-                EvaluationResult partial = classes().that().resideInAnyPackage(toArray(packagesOfOwnLayer))
-                        .should(onlyHaveDependentsWhere(originPackageMatchesIfDependencyIsRelevant(packagesOfAllowedAccessors)))
-                        .evaluate(classes);
-
-                result.add(partial);
+                result.add(evaluateDependenciesShouldBeSatisfied(classes, specification));
             }
             return result;
+        }
+
+        private EvaluationResult evaluateLayersShouldNotBeEmpty(JavaClasses classes, LayerDefinition layerDefinition) {
+            return classes().that().resideInAnyPackage(toArray(layerDefinition.packageIdentifiers))
+                    .should(notBeEmptyFor(layerDefinition))
+                    .evaluate(classes);
+        }
+
+        private EvaluationResult evaluateDependenciesShouldBeSatisfied(JavaClasses classes, LayerDependencySpecification specification) {
+            SortedSet<String> packagesOfOwnLayer = packagesOf(specification.layerName);
+            SortedSet<String> packagesOfAllowedAccessors = packagesOf(specification.allowedAccessors);
+            packagesOfAllowedAccessors.addAll(packagesOfOwnLayer);
+
+            return classes().that().resideInAnyPackage(toArray(packagesOfOwnLayer))
+                    .should(onlyHaveDependentsWhere(originPackageMatchesIfDependencyIsRelevant(packagesOfAllowedAccessors)))
+                    .evaluate(classes);
         }
 
         private DescribedPredicate<Dependency> originPackageMatchesIfDependencyIsRelevant(SortedSet<String> packagesOfAllowedAccessors) {
@@ -173,6 +187,32 @@ public final class Architectures {
             return irrelevantDependenciesPredicate.isPresent() ?
                     originPackageMatches.or(irrelevantDependenciesPredicate.get()) :
                     originPackageMatches;
+        }
+
+        private static ArchCondition<JavaClass> notBeEmptyFor(final LayeredArchitecture.LayerDefinition layerDefinition) {
+            return new LayerShouldNotBeEmptyCondition(layerDefinition);
+        }
+
+        private static class LayerShouldNotBeEmptyCondition extends ArchCondition<JavaClass> {
+            private final LayeredArchitecture.LayerDefinition layerDefinition;
+            private boolean empty = true;
+
+            LayerShouldNotBeEmptyCondition(final LayeredArchitecture.LayerDefinition layerDefinition) {
+                super("not be empty");
+                this.layerDefinition = layerDefinition;
+            }
+
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                empty = false;
+            }
+
+            @Override
+            public void finish(ConditionEvents events) {
+                if (empty) {
+                    events.add(violated(layerDefinition, String.format("Layer '%s' is empty", layerDefinition.name)));
+                }
+            }
         }
 
         @Override
@@ -316,10 +356,10 @@ public final class Architectures {
         }
 
         private OnionArchitecture(String[] domainModelPackageIdentifiers,
-                 String[] domainServicePackageIdentifiers,
-                 String[] applicationPackageIdentifiers,
-                 Map<String, String[]> adapterPackageIdentifiers,
-                 Optional<String> overriddenDescription) {
+                String[] domainServicePackageIdentifiers,
+                String[] applicationPackageIdentifiers,
+                Map<String, String[]> adapterPackageIdentifiers,
+                Optional<String> overriddenDescription) {
             this.domainModelPackageIdentifiers = domainModelPackageIdentifiers;
             this.domainServicePackageIdentifiers = domainServicePackageIdentifiers;
             this.applicationPackageIdentifiers = applicationPackageIdentifiers;
