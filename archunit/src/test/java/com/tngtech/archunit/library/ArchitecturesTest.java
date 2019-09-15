@@ -118,8 +118,7 @@ public class ArchitecturesTest {
         LayeredArchitecture architecture = layeredArchitecture()
                 .layer("Some").definedBy(absolute("should.not.be.found.."))
                 .layer("Other").definedBy(absolute("also.not.found"))
-                .whereLayer("Some").mayNotBeAccessedByAnyLayer()
-                .whereLayer("Other").mayNotBeAccessedByAnyLayer();
+                .layer("Okay").definedBy("..testclasses..");
 
         JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses");
 
@@ -320,7 +319,7 @@ public class ArchitecturesTest {
     }
 
     private static String expectedEmptyLayer(String layerName) {
-        return String.format("Layer '%s' should not be empty", layerName);
+        return String.format("Layer '%s' is empty", layerName);
     }
 
     private static String fieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {
