@@ -298,7 +298,7 @@ public class ArchitecturesTest {
         Set<String> toMatch = new HashSet<>(expectedRegexes);
         for (String line : input) {
             if (!matchIteratorAndRemove(toMatch, line)) {
-                Assert.fail("Line " + line + " didn't match any pattern in " + expectedRegexes);
+                Assert.fail("Line '" + line + "' didn't match any pattern in " + expectedRegexes);
             }
         }
         assertThat(toMatch).as("Unmatched Patterns").isEmpty();
