@@ -158,7 +158,7 @@ public final class Architectures {
 
             for (LayerDefinition layerDefinition : layerDefinitions.values()) {
 
-                EvaluationResult partial = classes().that(resideInPackagesOfLayerDefinition(layerDefinition))
+                EvaluationResult partial = classes().that().resideInAnyPackage(toArray(layerDefinition.packageIdentifiers))
                         .should(notBeEmptyFor(layerDefinition))
                         .evaluate(classes);
                 result.add(partial);
@@ -176,10 +176,6 @@ public final class Architectures {
                 result.add(partial);
             }
             return result;
-        }
-
-        private DescribedPredicate<JavaClass> resideInPackagesOfLayerDefinition(final LayerDefinition layerDefinition) {
-            return JavaClass.Predicates.resideInAnyPackage(toArray(layerDefinition.packageIdentifiers));
         }
 
         private DescribedPredicate<Dependency> originPackageMatchesIfDependencyIsRelevant(SortedSet<String> packagesOfAllowedAccessors) {
