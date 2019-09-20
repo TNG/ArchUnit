@@ -271,11 +271,11 @@ public final class Architectures {
 
         @PublicAPI(usage = ACCESS)
         public LayerDependencySpecification whereLayer(String name) {
-            checkLayersExist(name);
+            checkLayerNamesExist(name);
             return new LayerDependencySpecification(name);
         }
 
-        private void checkLayersExist(String... layerNames) {
+        private void checkLayerNamesExist(String... layerNames) {
             for (String layerName : layerNames) {
                 checkArgument(layerDefinitions.containsKey(layerName), "There is no layer named '%s'", layerName);
             }
@@ -319,7 +319,7 @@ public final class Architectures {
 
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyBeAccessedByLayers(String... layerNames) {
-                checkLayersExist(layerNames);
+                checkLayerNamesExist(layerNames);
                 allowedAccessors.addAll(asList(layerNames));
                 descriptionSuffix = String.format("may only be accessed by layers ['%s']",
                         Joiner.on("', '").join(allowedAccessors));
