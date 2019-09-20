@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
@@ -194,6 +195,25 @@ public class ArchitecturesTest {
 
         LayeredArchitecture layeredArchitecture = layeredArchitecture()
                 .layer("One").definedBy(absolute("some.pkg.."))
+                .whereLayer("One").mayNotBeAccessedByAnyLayer()
+                .ignoreDependency(FirstAnyPkgClass.class, SomePkgSubClass.class);
+
+        assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isTrue();
+
+        layeredArchitecture = layeredArchitecture
+                .ignoreDependency(SecondThreeAnyClass.class, SomePkgClass.class);
+
+        assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
+    }
+
+    @Test
+    public void layered_architecture_combines_multiple_ignores_using_predicate_definition() {
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                FirstAnyPkgClass.class, SomePkgSubClass.class,
+                SecondThreeAnyClass.class, SomePkgClass.class);
+
+        LayeredArchitecture layeredArchitecture = layeredArchitecture()
+                .layer("One").definedBy(JavaClass.Predicates.simpleNameStartingWith("SomePkg"))
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
                 .ignoreDependency(FirstAnyPkgClass.class, SomePkgSubClass.class);
 

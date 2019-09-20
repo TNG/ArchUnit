@@ -24,15 +24,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -44,6 +40,7 @@ import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.PredicateAggregator;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.newArrayList;
@@ -51,6 +48,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsWhere;
@@ -165,24 +163,39 @@ public final class Architectures {
         }
 
         private EvaluationResult evaluateLayersShouldNotBeEmpty(JavaClasses classes, LayerDefinition layerDefinition) {
-            return classes().that().resideInAnyPackage(toArray(layerDefinition.packageIdentifiers))
+            return classes().that(matchLayerDefinition(layerDefinition.name))
                     .should(notBeEmptyFor(layerDefinition))
                     .evaluate(classes);
         }
 
         private EvaluationResult evaluateDependenciesShouldBeSatisfied(JavaClasses classes, LayerDependencySpecification specification) {
-            SortedSet<String> packagesOfOwnLayer = packagesOf(specification.layerName);
-            SortedSet<String> packagesOfAllowedAccessors = packagesOf(specification.allowedAccessors);
-            packagesOfAllowedAccessors.addAll(packagesOfOwnLayer);
 
-            return classes().that().resideInAnyPackage(toArray(packagesOfOwnLayer))
-                    .should(onlyHaveDependentsWhere(originPackageMatchesIfDependencyIsRelevant(packagesOfAllowedAccessors)))
+            return classes().that(matchLayerDefinition(specification.layerName))
+                    .should(onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedAccessors)))
                     .evaluate(classes);
         }
 
-        private DescribedPredicate<Dependency> originPackageMatchesIfDependencyIsRelevant(SortedSet<String> packagesOfAllowedAccessors) {
+        private DescribedPredicate<JavaClass> matchLayerDefinition(String layerName) {
+            return matchLayerDefinition(Collections.singleton(layerName));
+        }
+
+        private DescribedPredicate<JavaClass> matchLayerDefinition(final Collection<String> layerNames) {
+            return new DescribedPredicate<JavaClass>("any element") {
+                @Override
+                public boolean apply(JavaClass input) {
+                    for (String layerName : layerNames) {
+                        if (layerDefinitions.get(layerName).describedPredicate.apply(input)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            };
+        }
+
+        private DescribedPredicate<Dependency> originMatchesIfDependencyIsRelevant(String ownLayer, Set<String> allowedAccessors) {
             DescribedPredicate<Dependency> originPackageMatches =
-                    dependencyOrigin(JavaClass.Functions.GET_PACKAGE_NAME.is(PackageMatchers.of(toArray(packagesOfAllowedAccessors))));
+                    dependencyOrigin(matchLayerDefinition(allowedAccessors)).or(dependencyOrigin(matchLayerDefinition(ownLayer)));
 
             return irrelevantDependenciesPredicate.isPresent() ?
                     originPackageMatches.or(irrelevantDependenciesPredicate.get()) :
@@ -253,22 +266,6 @@ public final class Architectures {
                     irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription);
         }
 
-        private String[] toArray(Set<String> strings) {
-            return strings.toArray(new String[0]);
-        }
-
-        private SortedSet<String> packagesOf(String layerName) {
-            return packagesOf(Collections.singleton(layerName));
-        }
-
-        private SortedSet<String> packagesOf(Set<String> allowedAccessorLayerNames) {
-            SortedSet<String> packageIdentifiers = new TreeSet<>();
-            for (String accessor : allowedAccessorLayerNames) {
-                packageIdentifiers.addAll(layerDefinitions.get(accessor).packageIdentifiers);
-            }
-            return packageIdentifiers;
-        }
-
         @PublicAPI(usage = ACCESS)
         public LayerDependencySpecification whereLayer(String name) {
             checkLayerNamesExist(name);
@@ -283,7 +280,7 @@ public final class Architectures {
 
         public final class LayerDefinition {
             private final String name;
-            private Set<String> packageIdentifiers;
+            private DescribedPredicate<JavaClass> describedPredicate;
 
             private LayerDefinition(String name) {
                 checkState(!isNullOrEmpty(name), "Layer name must be present");
@@ -291,14 +288,20 @@ public final class Architectures {
             }
 
             @PublicAPI(usage = ACCESS)
-            public LayeredArchitecture definedBy(String... packageIdentifiers) {
-                this.packageIdentifiers = ImmutableSet.copyOf(packageIdentifiers);
+            public LayeredArchitecture definedBy(DescribedPredicate<JavaClass> predicate) {
+                checkNotNull(predicate, "predicate must be present");
+                this.describedPredicate = predicate;
                 return LayeredArchitecture.this.addLayerDefinition(this);
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture definedBy(String... packageIdentifiers) {
+                return definedBy(resideInAnyPackage(packageIdentifiers).as(Joiner.on("', '").join(packageIdentifiers)));
             }
 
             @Override
             public String toString() {
-                return String.format("layer '%s' ('%s')", name, Joiner.on("', '").join(packageIdentifiers));
+                return String.format("layer '%s' ('%s')", name, describedPredicate);
             }
         }
 
