@@ -192,7 +192,7 @@ public class PublicAPIRules {
         return new DescribedPredicate<JavaClass>("anonymous class") {
             @Override
             public boolean apply(JavaClass input) {
-                return input.isAnonymous();
+                return input.isAnonymousClass();
             }
         };
     }

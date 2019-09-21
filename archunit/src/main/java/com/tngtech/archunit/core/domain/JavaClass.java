@@ -68,6 +68,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     private JavaPackage javaPackage;
     private final boolean isInterface;
     private final boolean isEnum;
+    private final boolean isAnonymousClass;
+    private final boolean isMemberClass;
     private final Set<JavaModifier> modifiers;
     private final Supplier<Class<?>> reflectSupplier;
     private Set<JavaField> fields = emptySet();
@@ -102,6 +104,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         javaType = checkNotNull(builder.getJavaType());
         isInterface = builder.isInterface();
         isEnum = builder.isEnum();
+        isAnonymousClass = builder.isAnonymousClass();
+        isMemberClass = builder.isMemberClass();
         modifiers = checkNotNull(builder.getModifiers());
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
         sourceCodeLocation = SourceCodeLocation.of(this);
@@ -237,6 +241,17 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     }
 
     /**
+     * A top level class is a class that is not a nested class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isTopLevelClass() {
+        return !isNestedClass();
+    }
+
+    /**
+     * A nested class is any class whose declaration occurs
+     * within the body of another class or interface.
+     *
      * @return Returns true if this class is declared within another class.
      *         Returns false for top-level classes.
      */
@@ -246,12 +261,36 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     }
 
     /**
+     * A member class is a class whose declaration is directly enclosed
+     * in the body of another class or interface declaration.
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isMemberClass() {
+        return isNestedClass() && isMemberClass;
+    }
+
+    /**
+     * An inner class is a nested class that is not explicitly or implicitly declared static.
+     *
      * @return Returns true if this class is a non-static nested class.
      *         Returns false otherwise.
      */
     @PublicAPI(usage = ACCESS)
     public boolean isInnerClass() {
         return isNestedClass() && !getModifiers().contains(JavaModifier.STATIC);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnonymousClass() {
+        return isAnonymousClass;
+    }
+
+    /**
+     * A local class is a nested class that is not a member of any class and that has a name.
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isLocalClass() {
+        return isNestedClass() && !isMemberClass() && !getSimpleName().isEmpty();
     }
 
     @Override
@@ -945,9 +984,13 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         return result;
     }
 
+    /**
+     * @deprecated use {@link #isAnonymousClass()} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public boolean isAnonymous() {
-        return getSimpleName().isEmpty();
+        return isAnonymousClass();
     }
 
     public static final class Functions {
