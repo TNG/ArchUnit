@@ -13,15 +13,32 @@ framework.
 ## An Example
 
 #### Add the Maven Central dependency to your project
+Arch Unit provides separate dependencies for JUnit 4 and JUnit 5.
 
 ###### Gradle
 
+Junit 4
+```
+testCompile 'com.tngtech.archunit:archunit-junit4:0.11.0'
+```
+
+JUnit 5
 ```
 testCompile 'com.tngtech.archunit:archunit:0.11.0'
 ```
 
 ###### Maven
+JUnit 4
+```
+<dependency>
+    <groupId>com.tngtech.archunit</groupId>
+    <artifactId>archunit-junit4</artifactId>
+    <version>0.11.0</version>
+    <scope>test</scope>
+</dependency>
+```
 
+JUnit 5
 ```
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
