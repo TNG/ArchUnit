@@ -170,6 +170,7 @@ import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.InterfaceToImport;
 import com.tngtech.archunit.core.importer.testexamples.simplenames.SimpleNameExamples;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
+import com.tngtech.archunit.core.importer.testexamples.syntheticimport.ClassWithSynthetics;
 import com.tngtech.archunit.testutil.LogTestRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -194,11 +195,13 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
+import static com.tngtech.archunit.core.domain.JavaModifier.BRIDGE;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.JavaModifier.PROTECTED;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
+import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.domain.JavaModifier.VOLATILE;
 import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
@@ -382,6 +385,20 @@ public class ClassFileImporterTest {
         assertThat(classes.get(ClassWithNestedClass.StaticNestedClass.class).getModifiers()).as("modifiers of ClassWithNestedClass.StaticNestedClass").contains(STATIC);
         assertThat(classes.get(ClassWithNestedClass.NestedInterface.class).getModifiers()).as("modifiers of ClassWithNestedClass.NestedInterface").contains(STATIC);
         assertThat(classes.get(ClassWithNestedClass.StaticNestedInterface.class).getModifiers()).as("modifiers of ClassWithNestedClass.StaticNestedInterface").contains(STATIC);
+    }
+
+    @Test
+    public void handles_synthetic_modifiers() throws Exception {
+        JavaClasses classes = classesIn("testexamples/syntheticimport").classes;
+
+        assertThat(classes.get(ClassWithSynthetics.ClassWithSyntheticField.class).getFields().size()).isEqualTo(1);
+        assertThat(classes.get(ClassWithSynthetics.ClassWithSyntheticField.class).getFields().toArray(new JavaField[]{})[0].getModifiers()).as("modifiers of field in ClassWithSynthetics.ClassWithSyntheticField").contains(SYNTHETIC);
+
+        assertThat(classes.get(ClassWithSynthetics.ClassWithSyntheticMethod.class).getMethods().size()).isEqualTo(1);
+        assertThat(classes.get(ClassWithSynthetics.ClassWithSyntheticMethod.class).getMethods().toArray(new JavaMethod[]{})[0].getModifiers()).as("modifiers of method in ClassWithSynthetics.ClassWithSyntheticMethod").contains(SYNTHETIC);
+
+        assertThat(classes.get(ClassWithSynthetics.class).getMethod("compare", Object.class, Object.class).getModifiers()).as("modifiers of bridge method in ClassWithSynthetics").contains(BRIDGE);
+        assertThat(classes.get(ClassWithSynthetics.class).getMethod("compare", Object.class, Object.class).getModifiers()).as("modifiers of bridge method in ClassWithSynthetics").contains(SYNTHETIC);
     }
 
     @Test
