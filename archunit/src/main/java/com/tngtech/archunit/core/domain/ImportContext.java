@@ -56,4 +56,6 @@ public interface ImportContext {
     Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass);
 
     Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass);
+
+    Optional<JavaClass> resolveComponentType(JavaType type);
 }

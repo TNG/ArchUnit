@@ -40,6 +40,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
+import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
@@ -273,6 +274,16 @@ class ClassGraphCreator implements ImportContext {
         return enclosingClassName.isPresent() ?
                 Optional.of(classes.getOrResolve(enclosingClassName.get())) :
                 Optional.<JavaClass>absent();
+    }
+
+    @Override
+    public Optional<JavaClass> resolveComponentType(JavaType array) {
+        return array.tryGetComponentType().transform(new Function<JavaType, JavaClass>() {
+            @Override
+            public JavaClass apply(JavaType input) {
+                return classes.getOrResolve(input.getName());
+            }
+        });
     }
 
     private static class MemberDependenciesByTarget {

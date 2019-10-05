@@ -23,6 +23,9 @@ import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
 import com.tngtech.archunit.core.domain.testobjects.IsArrayTestClass;
 import com.tngtech.archunit.core.domain.testobjects.SuperA;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.testexamples.arrays.ClassAccessingOneDimensionalArray;
+import com.tngtech.archunit.core.importer.testexamples.arrays.ClassAccessingTwoDimensionalArray;
+import com.tngtech.archunit.core.importer.testexamples.arrays.ClassUsedInArray;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -80,6 +83,7 @@ public class JavaClassTest {
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("anArray");
 
         assertThat(method.getRawReturnType().isArray()).isTrue();
+        assertThat(method.getRawReturnType().tryGetComponentType().get().getName()).isEqualTo("java.lang.Object");
     }
 
     @Test
@@ -87,6 +91,20 @@ public class JavaClassTest {
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("notAnArray");
 
         assertThat(method.getRawReturnType().isArray()).isFalse();
+        assertThat(method.getRawReturnType().tryGetComponentType().isPresent()).isFalse();
+    }
+
+    @Test
+    public void finds_multidimensional_array_type() {
+        JavaClasses classes = importClassesWithContext(ClassUsedInArray.class, ClassAccessingOneDimensionalArray.class, ClassAccessingTwoDimensionalArray.class);
+        JavaClass type = classes.get(ClassUsedInArray.class);
+        JavaClass oneDimArray = classes.get(ClassAccessingOneDimensionalArray.class).getField("array").getRawType();
+        JavaClass twoDimArray = classes.get(ClassAccessingTwoDimensionalArray.class).getField("array").getRawType();
+
+        assertThat(oneDimArray.isArray()).isTrue();
+        assertThat(oneDimArray.tryGetComponentType().get()).isEqualTo(type);
+        assertThat(twoDimArray.isArray()).isTrue();
+        assertThat(twoDimArray.tryGetComponentType().get()).isEqualTo(oneDimArray);
     }
 
     @Test
