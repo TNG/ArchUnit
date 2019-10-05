@@ -428,5 +428,10 @@ public class ImportTestUtils {
         public Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
+
+        @Override
+        public Optional<JavaClass> resolveComponentType(JavaType type) {
+            return Optional.absent();
+        }
     }
 }

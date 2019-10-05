@@ -81,6 +81,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     private final Set<JavaClass> interfaces = new HashSet<>();
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
+    private Optional<JavaClass> componentType = Optional.absent();
     private Supplier<Map<String, JavaAnnotation>> annotations =
             Suppliers.ofInstance(Collections.<String, JavaAnnotation>emptyMap());
     private Supplier<Set<JavaMethod>> allMethods;
@@ -184,6 +185,11 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     @PublicAPI(usage = ACCESS)
     public boolean isArray() {
         return javaType.isArray();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    Optional<JavaClass> tryGetComponentType() {
+        return componentType;
     }
 
     /**
@@ -841,6 +847,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     }
 
     CompletionProcess completeFrom(ImportContext context) {
+        componentType = context.resolveComponentType(javaType);
         enclosingClass = context.createEnclosingClass(this);
         memberDependenciesOnClass = new MemberDependenciesOnClass(
                 context.getFieldsOfType(this),
