@@ -1157,6 +1157,54 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         };
 
         @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> TOP_LEVEL_CLASSES = new DescribedPredicate<JavaClass>("top level classes") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isTopLevelClass();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> NESTED_CLASSES = new DescribedPredicate<JavaClass>("nested classes") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isNestedClass();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> MEMBER_CLASSES = new DescribedPredicate<JavaClass>("member classes") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isMemberClass();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> INNER_CLASSES = new DescribedPredicate<JavaClass>("inner classes") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isInnerClass();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> ANONYMOUS_CLASSES = new DescribedPredicate<JavaClass>("anonymous classes") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAnonymousClass();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> LOCAL_CLASSES = new DescribedPredicate<JavaClass>("local classes") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isLocalClass();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> type(final Class<?> type) {
             return equalTo(type.getName()).<JavaClass>onResultOf(GET_NAME).as("type " + type.getName());
         }

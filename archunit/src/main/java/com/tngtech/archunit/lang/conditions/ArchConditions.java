@@ -840,6 +840,66 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beTopLevelClasses() {
+        return ClassKindCondition.BE_TOP_LEVEL_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeTopLevelClasses() {
+        return not(ClassKindCondition.BE_TOP_LEVEL_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beNestedClasses() {
+        return ClassKindCondition.BE_NESTED_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeNestedClasses() {
+        return not(ClassKindCondition.BE_NESTED_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beMemberClasses() {
+        return ClassKindCondition.BE_MEMBER_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeMemberClasses() {
+        return not(ClassKindCondition.BE_MEMBER_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beInnerClasses() {
+        return ClassKindCondition.BE_INNER_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeInnerClasses() {
+        return not(ClassKindCondition.BE_INNER_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beAnonymousClasses() {
+        return ClassKindCondition.BE_ANONYMOUS_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeAnonymousClasses() {
+        return not(ClassKindCondition.BE_ANONYMOUS_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beLocalClasses() {
+        return ClassKindCondition.BE_LOCAL_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeLocalClasses() {
+        return not(ClassKindCondition.BE_LOCAL_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> containNumberOfElements(DescribedPredicate<? super Integer> predicate) {
         return new NumberOfElementsCondition(predicate);
     }
@@ -1017,6 +1077,34 @@ public final class ArchConditions {
             String message = createMessage(javaClass,
                     (isEnum ? "is an" : "is not an") + " enum");
             events.add(new SimpleConditionEvent(javaClass, isEnum, message));
+        }
+    }
+
+    private static class ClassKindCondition extends ArchCondition<JavaClass> {
+
+        private static final ClassKindCondition BE_TOP_LEVEL_CLASSES =
+                new ClassKindCondition("a top level class", JavaClass.Predicates.TOP_LEVEL_CLASSES);
+        private static final ClassKindCondition BE_NESTED_CLASSES = new ClassKindCondition("a nested class", JavaClass.Predicates.NESTED_CLASSES);
+        private static final ClassKindCondition BE_MEMBER_CLASSES = new ClassKindCondition("a member class", JavaClass.Predicates.MEMBER_CLASSES);
+        private static final ClassKindCondition BE_INNER_CLASSES = new ClassKindCondition("an inner class", JavaClass.Predicates.INNER_CLASSES);
+        private static final ClassKindCondition BE_ANONYMOUS_CLASSES =
+                new ClassKindCondition("an anonymous class", JavaClass.Predicates.ANONYMOUS_CLASSES);
+        private static final ClassKindCondition BE_LOCAL_CLASSES = new ClassKindCondition("a local class", JavaClass.Predicates.LOCAL_CLASSES);
+
+        private final String kind;
+        private final DescribedPredicate<JavaClass> predicate;
+
+        private ClassKindCondition(String kind, DescribedPredicate<JavaClass> predicate) {
+            super("be " + predicate.getDescription());
+            this.kind = kind;
+            this.predicate = predicate;
+        }
+
+        @Override
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean isSatisfied = predicate.apply(javaClass);
+            String message = createMessage(javaClass, (isSatisfied ? "is" : "is not") + " " + kind);
+            events.add(new SimpleConditionEvent(javaClass, isSatisfied, message));
         }
     }
 

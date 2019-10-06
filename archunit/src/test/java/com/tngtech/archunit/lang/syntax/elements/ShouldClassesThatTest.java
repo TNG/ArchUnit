@@ -774,6 +774,126 @@ public class ShouldClassesThatTest {
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areTopLevelClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areTopLevelClasses())
+                .on(ClassAccessingTopLevelClass.class, ClassAccessingStaticNestedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingTopLevelClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areNotTopLevelClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areNotTopLevelClasses())
+                .on(ClassAccessingTopLevelClass.class, ClassAccessingStaticNestedClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areNestedClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areNestedClasses())
+                .on(ClassAccessingStaticNestedClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areNotNestedClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areNotNestedClasses())
+                .on(ClassAccessingStaticNestedClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingTopLevelClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areMemberClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areMemberClasses())
+                .on(ClassAccessingStaticNestedClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areNotMemberClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areNotMemberClasses())
+                .on(ClassAccessingStaticNestedClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingTopLevelClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areInnerClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areInnerClasses())
+                .on(ClassAccessingNonStaticNestedClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingNonStaticNestedClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areNotInnerClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areNotInnerClasses())
+                .on(ClassAccessingNonStaticNestedClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingTopLevelClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areAnonymousClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areAnonymousClasses())
+                .on(ClassAccessingAnonymousClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnonymousClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areNotAnonymousClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areNotAnonymousClasses())
+                .on(ClassAccessingAnonymousClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingTopLevelClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areLocalClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areLocalClasses())
+                .on(ClassAccessingLocalClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingLocalClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areNotLocalClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areNotLocalClasses())
+                .on(ClassAccessingLocalClass.class, ClassAccessingTopLevelClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingTopLevelClass.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
     public void belongToAnyOf(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.belongToAnyOf(ClassWithInnerClasses.class, String.class))
@@ -1679,6 +1799,59 @@ public class ShouldClassesThatTest {
         @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
         void access() {
             StandardCopyOption.ATOMIC_MOVE.name();
+        }
+    }
+
+    private static class ClassAccessingTopLevelClass {
+        @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
+        void access() {
+            String.valueOf(123);
+        }
+    }
+
+    private static class ClassAccessingStaticNestedClass {
+        @SuppressWarnings("unused")
+        void access() {
+            StaticNestedClass.access();
+        }
+    }
+
+    private static class StaticNestedClass {
+        static void access() {
+        }
+    }
+
+    private static class ClassAccessingNonStaticNestedClass {
+        @SuppressWarnings("unused")
+        void access() {
+            new NonStaticNestedClass().access();
+        }
+
+        @SuppressWarnings("InnerClassMayBeStatic")
+        private class NonStaticNestedClass {
+            void access() {
+            }
+        }
+    }
+
+    private static class ClassAccessingAnonymousClass {
+        @SuppressWarnings("unused")
+        void access() {
+            new Serializable() {
+                void access() {
+                }
+            }.access();
+        }
+    }
+
+    private static class ClassAccessingLocalClass {
+        @SuppressWarnings("unused")
+        void access() {
+            class LocalClass {
+                void access() {
+                }
+            }
+            new LocalClass().access();
         }
     }
 }

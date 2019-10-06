@@ -28,8 +28,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ANONYMOUS_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ENUMS;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INNER_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.LOCAL_CLASSES;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.MEMBER_CLASSES;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.NESTED_CLASSES;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.TOP_LEVEL_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
@@ -290,6 +296,66 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     @Override
     public CONJUNCTION areNotEnums() {
         return givenWith(are(not(ENUMS)));
+    }
+
+    @Override
+    public CONJUNCTION areTopLevelClasses() {
+        return givenWith(are(TOP_LEVEL_CLASSES));
+    }
+
+    @Override
+    public CONJUNCTION areNotTopLevelClasses() {
+        return givenWith(are(not(TOP_LEVEL_CLASSES)));
+    }
+
+    @Override
+    public CONJUNCTION areNestedClasses() {
+        return givenWith(are(NESTED_CLASSES));
+    }
+
+    @Override
+    public CONJUNCTION areNotNestedClasses() {
+        return givenWith(are(not(NESTED_CLASSES)));
+    }
+
+    @Override
+    public CONJUNCTION areMemberClasses() {
+        return givenWith(are(MEMBER_CLASSES));
+    }
+
+    @Override
+    public CONJUNCTION areNotMemberClasses() {
+        return givenWith(are(not(MEMBER_CLASSES)));
+    }
+
+    @Override
+    public CONJUNCTION areInnerClasses() {
+        return givenWith(are(INNER_CLASSES));
+    }
+
+    @Override
+    public CONJUNCTION areNotInnerClasses() {
+        return givenWith(are(not(INNER_CLASSES)));
+    }
+
+    @Override
+    public CONJUNCTION areAnonymousClasses() {
+        return givenWith(are(ANONYMOUS_CLASSES));
+    }
+
+    @Override
+    public CONJUNCTION areNotAnonymousClasses() {
+        return givenWith(are(not(ANONYMOUS_CLASSES)));
+    }
+
+    @Override
+    public CONJUNCTION areLocalClasses() {
+        return givenWith(are(LOCAL_CLASSES));
+    }
+
+    @Override
+    public CONJUNCTION areNotLocalClasses() {
+        return givenWith(are(not(LOCAL_CLASSES)));
     }
 
     @Override
