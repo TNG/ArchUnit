@@ -642,6 +642,42 @@ public interface ClassesThat<CONJUNCTION> {
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotEnums();
 
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areTopLevelClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotTopLevelClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNestedClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotNestedClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areMemberClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotMemberClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areInnerClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotInnerClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areAnonymousClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotAnonymousClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areLocalClasses();
+
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotLocalClasses();
+
     /**
      * Matches every class in the supplied list and any of their named/anonymous inner classes,
      * no matter how deeply nested. E.g. consider
