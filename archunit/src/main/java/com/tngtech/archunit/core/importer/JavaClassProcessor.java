@@ -155,12 +155,14 @@ class JavaClassProcessor extends ClassVisitor {
         javaClassBuilder.withSimpleName(nullToEmpty(innerName));
 
         // Javadoc for innerName: "May be null for anonymous inner classes."
-        javaClassBuilder.withAnonymousClass(innerName == null);
+        boolean isAnonymousClass = innerName == null;
+        javaClassBuilder.withAnonymousClass(isAnonymousClass);
 
         // Javadoc for outerName: "May be null for not member classes."
-        javaClassBuilder.withMemberClass(outerName != null);
+        boolean isMemberClass = outerName != null;
+        javaClassBuilder.withMemberClass(isMemberClass);
 
-        if (isNamedNestedClass(outerName)) {
+        if (isMemberClass) {
             javaClassBuilder.withModifiers(JavaModifier.getModifiersForClass(access));
             declarationHandler.registerEnclosingClass(innerTypeName, createTypeName(outerName));
         }
@@ -174,10 +176,6 @@ class JavaClassProcessor extends ClassVisitor {
     // are found in the access flags of visitInnerClass(..)
     private boolean visitingCurrentClass(String innerTypeName) {
         return innerTypeName.equals(className);
-    }
-
-    private boolean isNamedNestedClass(String outerName) {
-        return outerName != null;
     }
 
     @Override
