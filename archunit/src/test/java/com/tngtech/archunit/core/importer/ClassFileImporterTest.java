@@ -666,6 +666,15 @@ public class ClassFileImporterTest {
         assertThat(clazz.getMethod("complex", String.class, long.class, long.class, Serializable.class, Serializable.class))
                 .isEquivalentTo(ClassWithComplexMethod.class.getDeclaredMethod(
                         "complex", String.class, long.class, long.class, Serializable.class, Serializable.class));
+        assertThat(clazz.tryGetMethod("complex", String.class, long.class, long.class, Serializable.class, Serializable.class).get())
+                .isEquivalentTo(ClassWithComplexMethod.class.getDeclaredMethod(
+                        "complex", String.class, long.class, long.class, Serializable.class, Serializable.class));
+        assertThat(clazz.getMethod("complex", "java.lang.String", "long", "long", "java.io.Serializable", "java.io.Serializable"))
+                .isEquivalentTo(ClassWithComplexMethod.class.getDeclaredMethod(
+                        "complex", String.class, long.class, long.class, Serializable.class, Serializable.class));
+        assertThat(clazz.tryGetMethod("complex", "java.lang.String", "long", "long", "java.io.Serializable", "java.io.Serializable").get())
+                .isEquivalentTo(ClassWithComplexMethod.class.getDeclaredMethod(
+                        "complex", String.class, long.class, long.class, Serializable.class, Serializable.class));
     }
 
     @Test
@@ -891,7 +900,11 @@ public class ClassFileImporterTest {
         assertThat(clazz.getConstructor()).isEquivalentTo(ClassWithSimpleConstructors.class.getDeclaredConstructor());
         assertThat(clazz.getConstructor(Object.class))
                 .isEquivalentTo(ClassWithSimpleConstructors.class.getDeclaredConstructor(Object.class));
+        assertThat(clazz.getConstructor("java.lang.Object"))
+                .isEquivalentTo(ClassWithSimpleConstructors.class.getDeclaredConstructor(Object.class));
         assertThat(clazz.getConstructor(int.class, int.class))
+                .isEquivalentTo(ClassWithSimpleConstructors.class.getDeclaredConstructor(int.class, int.class));
+        assertThat(clazz.getConstructor("int", "int"))
                 .isEquivalentTo(ClassWithSimpleConstructors.class.getDeclaredConstructor(int.class, int.class));
     }
 
