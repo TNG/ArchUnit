@@ -15,16 +15,16 @@
  */
 package com.tngtech.archunit.htmlvisualization;
 
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.lang.EvaluationResult;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
-
-import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.lang.EvaluationResult;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -64,9 +64,12 @@ public final class Visualizer {
 
     private void copyFiles() {
         URL url = getClass().getResource(VISUALIZATION_FILE_NAME);
-        //FIXME: the url null found when using the IntelliJ-Test-Runner
-        // -> hard to fix out of the box, the bundled visualization is missing from IntelliJ's out folder
-        //    either copy it manually or set up JUnit execution to copy it before, but no matter what it's not working without manual tweaking
+        if (url == null) {
+            throw new RuntimeException("The template file " + VISUALIZATION_FILE_NAME + " was not found in the build folder. " +
+                    "This happens if you run tests with the IntelliJRunner. To resolve this error copy the visualization file " +
+                    "from the gradle build folder 'build/resources/main/com/tngtech/archunit/htmlvisualization' to " +
+                    "'out/test/resources/com/tngtech/archunit/htmlvisualization'.");
+        }
         try (InputStream inputStream = url.openStream()) {
             Files.copy(inputStream, targetFile.toPath(), REPLACE_EXISTING);
         } catch (IOException e) {
