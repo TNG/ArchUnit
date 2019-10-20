@@ -35,9 +35,11 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.library.Architectures.onionArchitecture;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
 import static java.util.regex.Pattern.quote;
@@ -50,21 +52,39 @@ public class ArchitecturesTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
-    @Test
-    public void layered_architecture_description() {
-        LayeredArchitecture architecture = layeredArchitecture()
-                .layer("One").definedBy("some.pkg..")
-                .layer("Two").definedBy("first.any.pkg..", "second.any.pkg..")
-                .layer("Three").definedBy("..three..")
-                .whereLayer("One").mayNotBeAccessedByAnyLayer()
-                .whereLayer("Two").mayOnlyBeAccessedByLayers("One")
-                .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two");
+    @DataProvider
+    public static Object[][] layeredArchitectureDefinitions() {
+        return testForEach(
+                layeredArchitecture()
+                        .layer("One").definedBy("..library.testclasses.some.pkg..")
+                        .layer("Two").definedBy("..library.testclasses.first.any.pkg..", "..library.testclasses.second.any.pkg..")
+                        .layer("Three").definedBy("..library.testclasses..three..")
+                        .whereLayer("One").mayNotBeAccessedByAnyLayer()
+                        .whereLayer("Two").mayOnlyBeAccessedByLayers("One")
+                        .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two"),
+                layeredArchitecture()
+                        .layer("One").definedBy(
+                        resideInAnyPackage("..library.testclasses.some.pkg..")
+                                .as("'..library.testclasses.some.pkg..'"))
+                        .layer("Two").definedBy(
+                        resideInAnyPackage("..library.testclasses.first.any.pkg..", "..library.testclasses.second.any.pkg..")
+                                .as("'..library.testclasses.first.any.pkg..', '..library.testclasses.second.any.pkg..'"))
+                        .layer("Three").definedBy(
+                        resideInAnyPackage("..library.testclasses..three..")
+                                .as("'..library.testclasses..three..'"))
+                        .whereLayer("One").mayNotBeAccessedByAnyLayer()
+                        .whereLayer("Two").mayOnlyBeAccessedByLayers("One")
+                        .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two"));
+    }
 
+    @Test
+    @UseDataProvider("layeredArchitectureDefinitions")
+    public void layered_architecture_description(LayeredArchitecture architecture) {
         assertThat(architecture.getDescription()).isEqualTo(
                 "Layered architecture consisting of" + lineSeparator() +
-                        "layer 'One' ('some.pkg..')" + lineSeparator() +
-                        "layer 'Two' ('first.any.pkg..', 'second.any.pkg..')" + lineSeparator() +
-                        "layer 'Three' ('..three..')" + lineSeparator() +
+                        "layer 'One' ('..library.testclasses.some.pkg..')" + lineSeparator() +
+                        "layer 'Two' ('..library.testclasses.first.any.pkg..', '..library.testclasses.second.any.pkg..')" + lineSeparator() +
+                        "layer 'Three' ('..library.testclasses..three..')" + lineSeparator() +
                         "where layer 'One' may not be accessed by any layer" + lineSeparator() +
                         "where layer 'Two' may only be accessed by layers ['One']" + lineSeparator() +
                         "where layer 'Three' may only be accessed by layers ['One', 'Two']");
@@ -123,21 +143,14 @@ public class ArchitecturesTest {
         JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses");
 
         EvaluationResult result = architecture.evaluate(classes);
-        assertThat(result.hasViolation()).isTrue();
+        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isTrue();
         assertPatternMatches(result.getFailureReport().getDetails(),
                 ImmutableSet.of(expectedEmptyLayer("Some"), expectedEmptyLayer("Other")));
     }
 
     @Test
-    public void layered_architecture_gathers_all_layer_violations() {
-        LayeredArchitecture architecture = layeredArchitecture()
-                .layer("One").definedBy(absolute("some.pkg.."))
-                .layer("Two").definedBy(absolute("first.any.pkg..", "second.any.pkg.."))
-                .layer("Three").definedBy(absolute("..three.."))
-                .whereLayer("One").mayNotBeAccessedByAnyLayer()
-                .whereLayer("Two").mayOnlyBeAccessedByLayers("One")
-                .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two");
-
+    @UseDataProvider("layeredArchitectureDefinitions")
+    public void layered_architecture_gathers_all_layer_violations(LayeredArchitecture architecture) {
         JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses");
 
         EvaluationResult result = architecture.evaluate(classes);
