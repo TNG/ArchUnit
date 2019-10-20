@@ -391,14 +391,14 @@ public class ClassFileImporterTest {
     public void handles_synthetic_modifiers() throws Exception {
         JavaClasses classes = classesIn("testexamples/syntheticimport").classes;
 
-        assertThat(classes.get(ClassWithSynthetics.ClassWithSyntheticField.class).getFields().size()).isEqualTo(1);
-        assertThat(classes.get(ClassWithSynthetics.ClassWithSyntheticField.class).getFields().toArray(new JavaField[]{})[0].getModifiers()).as("modifiers of field in ClassWithSynthetics.ClassWithSyntheticField").contains(SYNTHETIC);
+        JavaField syntheticField = getOnlyElement(classes.get(ClassWithSynthetics.ClassWithSyntheticField.class).getFields());
+        assertThat(syntheticField.getModifiers()).as("modifiers of field in ClassWithSynthetics.ClassWithSyntheticField").contains(SYNTHETIC);
 
-        assertThat(classes.get(ClassWithSynthetics.ClassWithSyntheticMethod.class).getMethods().size()).isEqualTo(1);
-        assertThat(classes.get(ClassWithSynthetics.ClassWithSyntheticMethod.class).getMethods().toArray(new JavaMethod[]{})[0].getModifiers()).as("modifiers of method in ClassWithSynthetics.ClassWithSyntheticMethod").contains(SYNTHETIC);
+        JavaMethod syntheticMethod = getOnlyElement(classes.get(ClassWithSynthetics.ClassWithSyntheticMethod.class).getMethods());
+        assertThat(syntheticMethod.getModifiers()).as("modifiers of method in ClassWithSynthetics.ClassWithSyntheticMethod").contains(SYNTHETIC);
 
-        assertThat(classes.get(ClassWithSynthetics.class).getMethod("compare", Object.class, Object.class).getModifiers()).as("modifiers of bridge method in ClassWithSynthetics").contains(BRIDGE);
-        assertThat(classes.get(ClassWithSynthetics.class).getMethod("compare", Object.class, Object.class).getModifiers()).as("modifiers of bridge method in ClassWithSynthetics").contains(SYNTHETIC);
+        JavaMethod compareMethod = classes.get(ClassWithSynthetics.class).getMethod("compare", Object.class, Object.class);
+        assertThat(compareMethod.getModifiers()).as("modifiers of bridge method in ClassWithSynthetics").contains(BRIDGE, SYNTHETIC);
     }
 
     @Test
