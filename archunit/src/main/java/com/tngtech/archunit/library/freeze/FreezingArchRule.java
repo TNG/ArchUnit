@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.library.freeze.ViolationStoreFactory.FREEZE_STORE_PROPERTY;
+import static com.tngtech.archunit.library.freeze.ViolationStoreFactory.FREEZE_STORE_PROPERTY_NAME;
 
 /**
  * A decorator around an existing {@link ArchRule} that "freezes" the state of all violations on the first call instead of failing the test.
@@ -102,7 +102,7 @@ public final class FreezingArchRule implements ArchRule {
     @Override
     @PublicAPI(usage = ACCESS)
     public EvaluationResult evaluate(JavaClasses classes) {
-        store.initialize(ArchConfiguration.get().getSubProperties(FREEZE_STORE_PROPERTY));
+        store.initialize(ArchConfiguration.get().getSubProperties(FREEZE_STORE_PROPERTY_NAME));
 
         EvaluationResult result = delegate.evaluate(classes);
         if (!store.contains(delegate)) {
@@ -129,7 +129,9 @@ public final class FreezingArchRule implements ArchRule {
     private void removeObsoleteViolationsFromStore(CategorizedViolations categorizedViolations) {
         List<String> solvedViolations = categorizedViolations.getStoredSolvedViolations();
         log.debug("Removing {} obsolete violations from store: {}", solvedViolations.size(), solvedViolations);
-        store.save(delegate, categorizedViolations.getStoredUnsolvedViolations());
+        if (!solvedViolations.isEmpty()) {
+            store.save(delegate, categorizedViolations.getStoredUnsolvedViolations());
+        }
     }
 
     private EvaluationResult filterOutKnownViolations(EvaluationResult result, final Set<String> knownActualViolations) {

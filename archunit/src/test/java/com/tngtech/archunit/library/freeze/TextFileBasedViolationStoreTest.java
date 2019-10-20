@@ -37,7 +37,9 @@ public class TextFileBasedViolationStoreTest {
     public void setUp() throws Exception {
         configuredFolder = new File(temporaryFolder.newFolder(), "notyetthere");
 
-        store.initialize(propertiesOf("default.path", configuredFolder.getAbsolutePath()));
+        store.initialize(propertiesOf(
+                "default.path", configuredFolder.getAbsolutePath(),
+                "default.allowStoreCreation", String.valueOf(true)));
     }
 
     @Test
