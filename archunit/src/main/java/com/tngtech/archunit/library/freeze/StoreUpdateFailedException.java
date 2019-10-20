@@ -16,6 +16,10 @@
 package com.tngtech.archunit.library.freeze;
 
 class StoreUpdateFailedException extends RuntimeException {
+    StoreUpdateFailedException(String message) {
+        super(message);
+    }
+
     StoreUpdateFailedException(Throwable cause) {
         super(cause);
     }

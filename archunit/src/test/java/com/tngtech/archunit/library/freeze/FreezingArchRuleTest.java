@@ -21,18 +21,28 @@ import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@RunWith(DataProviderRunner.class)
 public class FreezingArchRuleTest {
+
+    private static final String STORE_DEFAULT_PATH_PROPERTY_NAME = "freeze.store.default.path";
+    private static final String ALLOW_STORE_CREATION_PROPERTY_NAME = "freeze.store.default.allowStoreCreation";
+    private static final String ALLOW_STORE_UPDATE_PROPERTY_NAME = "freeze.store.default.allowStoreUpdate";
+    private static final String LINE_MATCHER_PROPERTY_NAME = "freeze.lineMatcher";
 
     @Rule
     public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
@@ -239,8 +249,8 @@ public class FreezingArchRuleTest {
 
     @Test
     public void default_violation_store_works() throws IOException {
-        File folder = temporaryFolder.newFolder();
-        ArchConfiguration.get().setProperty("freeze.store.default.path", folder.getAbsolutePath());
+        useTemporaryDefaultStorePath();
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
 
         String[] frozenViolations = {"first violation", "second violation"};
         FreezingArchRule frozen = freeze(rule("some description")
@@ -266,8 +276,23 @@ public class FreezingArchRuleTest {
     }
 
     @Test
+    public void existing_violation_store_can_be_updated_when_creation_is_disabled() throws IOException {
+        useTemporaryDefaultStorePath();
+
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
+        freeze(rule("first, store must be created").withoutViolations()).check(importClasses(getClass()));
+
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "false");
+        RuleCreator second = rule("second, store exists");
+        assertThat(freeze(second.withViolations("first"))).checking(importClasses(getClass()))
+                .hasNoViolation();
+        assertThat(freeze(second.withViolations("first", "second"))).checking(importClasses(getClass()))
+                .hasOnlyViolations("second");
+    }
+
+    @Test
     public void allows_to_customize_ViolationLineMatcher_by_configuration() {
-        ArchConfiguration.get().setProperty("freeze.lineMatcher", ConsiderAllLinesWithTheSameStartLetterTheSame.class.getName());
+        ArchConfiguration.get().setProperty(LINE_MATCHER_PROPERTY_NAME, ConsiderAllLinesWithTheSameStartLetterTheSame.class.getName());
         TestViolationStore violationStore = new TestViolationStore();
 
         createFrozen(violationStore, rule("some description")
@@ -286,7 +311,7 @@ public class FreezingArchRuleTest {
     @Test
     public void rejects_illegal_ViolationLineMatcher_configuration() {
         String wrongConfig = "SomeBogus";
-        ArchConfiguration.get().setProperty("freeze.lineMatcher", wrongConfig);
+        ArchConfiguration.get().setProperty(LINE_MATCHER_PROPERTY_NAME, wrongConfig);
 
         thrown.expect(ViolationLineMatcherInitializationFailedException.class);
         thrown.expectMessage("freeze.lineMatcher=" + wrongConfig);
@@ -315,12 +340,72 @@ public class FreezingArchRuleTest {
                 .hasOnlyViolations(locationClassDoesNotMatch, descriptionDoesNotMatch);
     }
 
+    @Test
+    public void can_prevent_default_ViolationStore_from_creation() throws IOException {
+        useTemporaryDefaultStorePath();
+
+        // Store creation is disabled by default
+        assertExceptionDueToDisabledViolationStoreCreationWhenCheckingFreezingArchRule();
+
+        // Explicitly disabling store creation has the same effect
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "false");
+        assertExceptionDueToDisabledViolationStoreCreationWhenCheckingFreezingArchRule();
+    }
+
+    private void assertExceptionDueToDisabledViolationStoreCreationWhenCheckingFreezingArchRule() {
+        assertThatThrownBy(new ThrowingCallable() {
+            @Override
+            public void call() {
+                freeze(rule("some description").withoutViolations()).check(importClasses(getClass()));
+            }
+        }).isInstanceOf(StoreInitializationFailedException.class)
+                .hasMessage("Creating new violation store is disabled (enable by configuration " + ALLOW_STORE_CREATION_PROPERTY_NAME + "=true)");
+    }
+
+    @Test
+    public void can_prevent_default_ViolationStore_from_freezing_unknown_rules() throws IOException {
+        useTemporaryDefaultStorePath();
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
+
+        freeze(rule("new rule, updates enabled by default").withoutViolations()).check(importClasses(getClass()));
+
+        ArchConfiguration.get().setProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, "true");
+        freeze(rule("new rule, updates enabled explicitly").withoutViolations()).check(importClasses(getClass()));
+
+        ArchConfiguration.get().setProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, "false");
+        expectStoreUpdateDisabledException();
+        freeze(rule("new rule, updates disabled").withoutViolations()).check(importClasses(getClass()));
+    }
+
+    @Test
+    public void can_prevent_default_ViolationStore_from_updating_existing_rules() throws IOException {
+        useTemporaryDefaultStorePath();
+        ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "true");
+
+        RuleCreator someRule = rule("some description");
+        freeze(someRule.withViolations("remaining", "will be solved")).check(importClasses(getClass()));
+
+        ArchConfiguration.get().setProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, "false");
+        expectStoreUpdateDisabledException();
+        freeze(someRule.withViolations("remaining")).check(importClasses(getClass()));
+    }
+
+    private void expectStoreUpdateDisabledException() {
+        thrown.expect(StoreUpdateFailedException.class);
+        thrown.expectMessage("Updating frozen violations is disabled (enable by configuration " + ALLOW_STORE_UPDATE_PROPERTY_NAME + "=true)");
+    }
+
     private void createFrozen(TestViolationStore violationStore, ArchRule rule) {
         FreezingArchRule frozen = freeze(rule).persistIn(violationStore);
 
         assertThat(frozen)
                 .checking(importClasses(getClass()))
                 .hasNoViolation();
+    }
+
+    private void useTemporaryDefaultStorePath() throws IOException {
+        File folder = temporaryFolder.newFolder();
+        ArchConfiguration.get().setProperty(STORE_DEFAULT_PATH_PROPERTY_NAME, folder.getAbsolutePath());
     }
 
     private static RuleCreator rule(String description) {

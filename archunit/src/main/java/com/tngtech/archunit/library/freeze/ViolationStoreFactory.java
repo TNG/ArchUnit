@@ -39,14 +39,16 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.io.Files.toByteArray;
 import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 class ViolationStoreFactory {
-    static final String FREEZE_STORE_PROPERTY = "freeze.store";
+    static final String FREEZE_STORE_PROPERTY_NAME = "freeze.store";
 
     static ViolationStore create() {
-        return ArchConfiguration.get().containsProperty(FREEZE_STORE_PROPERTY)
-                ? createInstance(ArchConfiguration.get().getProperty(FREEZE_STORE_PROPERTY))
+        return ArchConfiguration.get().containsProperty(FREEZE_STORE_PROPERTY_NAME)
+                ? createInstance(ArchConfiguration.get().getProperty(FREEZE_STORE_PROPERTY_NAME))
                 : new TextFileBasedViolationStore();
     }
 
@@ -56,7 +58,7 @@ class ViolationStoreFactory {
             return (ViolationStore) newInstanceOf(Class.forName(violationStoreClassName));
         } catch (Exception e) {
             String message = String.format("Could not instantiate %s of configured type '%s=%s'",
-                    ViolationStore.class.getSimpleName(), FREEZE_STORE_PROPERTY, violationStoreClassName);
+                    ViolationStore.class.getSimpleName(), FREEZE_STORE_PROPERTY_NAME, violationStoreClassName);
             throw new StoreInitializationFailedException(message, e);
         }
     }
@@ -66,18 +68,40 @@ class ViolationStoreFactory {
         private static final Logger log = LoggerFactory.getLogger(TextFileBasedViolationStore.class);
 
         private static final Pattern UNESCAPED_LINE_BREAK_PATTERN = Pattern.compile("(?<!\\\\)\n");
+        private static final String STORE_PATH_PROPERTY_NAME = "default.path";
+        private static final String STORE_PATH_DEFAULT = "archunit_store";
+        private static final String STORED_RULES_FILE_NAME = "stored.rules";
+        private static final String ALLOW_STORE_CREATION_PROPERTY_NAME = "default.allowStoreCreation";
+        private static final String ALLOW_STORE_CREATION_DEFAULT = "false";
+        private static final String ALLOW_STORE_UPDATE_PROPERTY_NAME = "default.allowStoreUpdate";
+        private static final String ALLOW_STORE_UPDATE_DEFAULT = "true";
+
+        private boolean storeCreationAllowed;
+        private boolean storeUpdateAllowed;
         private File storeFolder;
         private FileSyncedProperties storedRules;
 
         @Override
         public void initialize(Properties properties) {
-            String path = properties.getProperty("default.path", "archunit_store");
+            storeCreationAllowed = Boolean.parseBoolean(properties.getProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, ALLOW_STORE_CREATION_DEFAULT));
+            storeUpdateAllowed = Boolean.parseBoolean(properties.getProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, ALLOW_STORE_UPDATE_DEFAULT));
+            String path = properties.getProperty(STORE_PATH_PROPERTY_NAME, STORE_PATH_DEFAULT);
             storeFolder = new File(path);
             ensureExistence(storeFolder);
-            File storedRulesFile = new File(storeFolder, "stored.rules");
+            File storedRulesFile = getStoredRulesFile();
             log.info("Initializing {} at {}", TextFileBasedViolationStore.class.getSimpleName(), storedRulesFile.getAbsolutePath());
             storedRules = new FileSyncedProperties(storedRulesFile);
             checkInitialization(storedRules.initializationSuccessful(), "Cannot create rule store at %s", storedRulesFile.getAbsolutePath());
+        }
+
+        private File getStoredRulesFile() {
+            File rulesFile = new File(storeFolder, STORED_RULES_FILE_NAME);
+            if (!rulesFile.exists() && !storeCreationAllowed) {
+                throw new StoreInitializationFailedException(String.format(
+                        "Creating new violation store is disabled (enable by configuration %s.%s=true)",
+                        FREEZE_STORE_PROPERTY_NAME, ALLOW_STORE_CREATION_PROPERTY_NAME));
+            }
+            return rulesFile;
         }
 
         private void ensureExistence(File folder) {
@@ -98,6 +122,11 @@ class ViolationStoreFactory {
         @Override
         public void save(ArchRule rule, List<String> violations) {
             log.debug("Storing evaluated rule '{}' with {} violations: {}", rule.getDescription(), violations.size(), violations);
+            if (!storeUpdateAllowed) {
+                throw new StoreUpdateFailedException(String.format(
+                        "Updating frozen violations is disabled (enable by configuration %s.%s=true)",
+                        FREEZE_STORE_PROPERTY_NAME, ALLOW_STORE_UPDATE_PROPERTY_NAME));
+            }
             String ruleFileName = ensureRuleFileName(rule);
             write(violations, new File(storeFolder, ruleFileName));
         }
