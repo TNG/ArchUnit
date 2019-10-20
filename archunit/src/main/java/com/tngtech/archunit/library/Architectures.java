@@ -18,21 +18,18 @@ package com.tngtech.archunit.library;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -44,19 +41,23 @@ import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.PredicateAggregator;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsWhere;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 
 /**
  * Offers convenience to assert typical architectures, like a {@link #layeredArchitecture()}.
@@ -97,19 +98,19 @@ public final class Architectures {
     }
 
     public static final class LayeredArchitecture implements ArchRule {
-        private final Map<String, LayerDefinition> layerDefinitions;
+        private final LayerDefinitions layerDefinitions;
         private final Set<LayerDependencySpecification> dependencySpecifications;
         private final PredicateAggregator<Dependency> irrelevantDependenciesPredicate;
         private final Optional<String> overriddenDescription;
 
         private LayeredArchitecture() {
-            this(new LinkedHashMap<String, LayerDefinition>(),
+            this(new LayerDefinitions(),
                     new LinkedHashSet<LayerDependencySpecification>(),
                     new PredicateAggregator<Dependency>().thatORs(),
                     Optional.<String>absent());
         }
 
-        private LayeredArchitecture(Map<String, LayerDefinition> layerDefinitions,
+        private LayeredArchitecture(LayerDefinitions layerDefinitions,
                 Set<LayerDependencySpecification> dependencySpecifications,
                 PredicateAggregator<Dependency> irrelevantDependenciesPredicate,
                 Optional<String> overriddenDescription) {
@@ -120,7 +121,7 @@ public final class Architectures {
         }
 
         private LayeredArchitecture addLayerDefinition(LayerDefinition definition) {
-            layerDefinitions.put(definition.name, definition);
+            layerDefinitions.add(definition);
             return this;
         }
 
@@ -142,7 +143,7 @@ public final class Architectures {
             }
 
             List<String> lines = newArrayList("Layered architecture consisting of");
-            for (LayerDefinition definition : layerDefinitions.values()) {
+            for (LayerDefinition definition : layerDefinitions) {
                 lines.add(definition.toString());
             }
             for (LayerDependencySpecification specification : dependencySpecifications) {
@@ -152,10 +153,15 @@ public final class Architectures {
         }
 
         @Override
+        public String toString() {
+            return getDescription();
+        }
+
+        @Override
         @PublicAPI(usage = ACCESS)
         public EvaluationResult evaluate(JavaClasses classes) {
             EvaluationResult result = new EvaluationResult(this, Priority.MEDIUM);
-            for (LayerDefinition layerDefinition : layerDefinitions.values()) {
+            for (LayerDefinition layerDefinition : layerDefinitions) {
                 result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
             }
             for (LayerDependencySpecification specification : dependencySpecifications) {
@@ -165,24 +171,21 @@ public final class Architectures {
         }
 
         private EvaluationResult evaluateLayersShouldNotBeEmpty(JavaClasses classes, LayerDefinition layerDefinition) {
-            return classes().that().resideInAnyPackage(toArray(layerDefinition.packageIdentifiers))
+            return classes().that(layerDefinitions.containsPredicateFor(layerDefinition.name))
                     .should(notBeEmptyFor(layerDefinition))
                     .evaluate(classes);
         }
 
         private EvaluationResult evaluateDependenciesShouldBeSatisfied(JavaClasses classes, LayerDependencySpecification specification) {
-            SortedSet<String> packagesOfOwnLayer = packagesOf(specification.layerName);
-            SortedSet<String> packagesOfAllowedAccessors = packagesOf(specification.allowedAccessors);
-            packagesOfAllowedAccessors.addAll(packagesOfOwnLayer);
 
-            return classes().that().resideInAnyPackage(toArray(packagesOfOwnLayer))
-                    .should(onlyHaveDependentsWhere(originPackageMatchesIfDependencyIsRelevant(packagesOfAllowedAccessors)))
+            return classes().that(layerDefinitions.containsPredicateFor(specification.layerName))
+                    .should(onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedAccessors)))
                     .evaluate(classes);
         }
 
-        private DescribedPredicate<Dependency> originPackageMatchesIfDependencyIsRelevant(SortedSet<String> packagesOfAllowedAccessors) {
+        private DescribedPredicate<Dependency> originMatchesIfDependencyIsRelevant(String ownLayer, Set<String> allowedAccessors) {
             DescribedPredicate<Dependency> originPackageMatches =
-                    dependencyOrigin(JavaClass.Functions.GET_PACKAGE_NAME.is(PackageMatchers.of(toArray(packagesOfAllowedAccessors))));
+                    dependencyOrigin(layerDefinitions.containsPredicateFor(allowedAccessors)).or(dependencyOrigin(layerDefinitions.containsPredicateFor(ownLayer)));
 
             return irrelevantDependenciesPredicate.isPresent() ?
                     originPackageMatches.or(irrelevantDependenciesPredicate.get()) :
@@ -253,37 +256,58 @@ public final class Architectures {
                     irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription);
         }
 
-        private String[] toArray(Set<String> strings) {
-            return strings.toArray(new String[0]);
-        }
-
-        private SortedSet<String> packagesOf(String layerName) {
-            return packagesOf(Collections.singleton(layerName));
-        }
-
-        private SortedSet<String> packagesOf(Set<String> allowedAccessorLayerNames) {
-            SortedSet<String> packageIdentifiers = new TreeSet<>();
-            for (String accessor : allowedAccessorLayerNames) {
-                packageIdentifiers.addAll(layerDefinitions.get(accessor).packageIdentifiers);
-            }
-            return packageIdentifiers;
-        }
-
         @PublicAPI(usage = ACCESS)
         public LayerDependencySpecification whereLayer(String name) {
-            checkLayersExist(name);
+            checkLayerNamesExist(name);
             return new LayerDependencySpecification(name);
         }
 
-        private void checkLayersExist(String... layerNames) {
+        private void checkLayerNamesExist(String... layerNames) {
             for (String layerName : layerNames) {
-                checkArgument(layerDefinitions.containsKey(layerName), "There is no layer named '%s'", layerName);
+                checkArgument(layerDefinitions.containLayer(layerName), "There is no layer named '%s'", layerName);
+            }
+        }
+
+        private static final class LayerDefinitions implements Iterable<LayerDefinition> {
+            private final Map<String, LayerDefinition> layerDefinitions = new LinkedHashMap<>();
+
+            void add(LayerDefinition definition) {
+                layerDefinitions.put(definition.name, definition);
+            }
+
+            boolean containLayer(String layerName) {
+                return layerDefinitions.containsKey(layerName);
+            }
+
+            DescribedPredicate<JavaClass> containsPredicateFor(String layerName) {
+                return containsPredicateFor(singleton(layerName));
+            }
+
+            DescribedPredicate<JavaClass> containsPredicateFor(final Collection<String> layerNames) {
+                DescribedPredicate<JavaClass> result = alwaysFalse();
+                for (LayerDefinition definition : get(layerNames)) {
+                    result = result.or(definition.containsPredicate());
+                }
+                return result;
+            }
+
+            private Iterable<LayerDefinition> get(Collection<String> layerNames) {
+                Set<LayerDefinition> result = new HashSet<>();
+                for (String layerName : layerNames) {
+                    result.add(layerDefinitions.get(layerName));
+                }
+                return result;
+            }
+
+            @Override
+            public Iterator<LayerDefinition> iterator() {
+                return layerDefinitions.values().iterator();
             }
         }
 
         public final class LayerDefinition {
             private final String name;
-            private Set<String> packageIdentifiers;
+            private DescribedPredicate<JavaClass> containsPredicate;
 
             private LayerDefinition(String name) {
                 checkState(!isNullOrEmpty(name), "Layer name must be present");
@@ -291,14 +315,25 @@ public final class Architectures {
             }
 
             @PublicAPI(usage = ACCESS)
-            public LayeredArchitecture definedBy(String... packageIdentifiers) {
-                this.packageIdentifiers = ImmutableSet.copyOf(packageIdentifiers);
+            public LayeredArchitecture definedBy(DescribedPredicate<JavaClass> predicate) {
+                checkNotNull(predicate, "Supplied predicate must not be null");
+                this.containsPredicate = predicate;
                 return LayeredArchitecture.this.addLayerDefinition(this);
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture definedBy(String... packageIdentifiers) {
+                String description = String.format("'%s'", Joiner.on("', '").join(packageIdentifiers));
+                return definedBy(resideInAnyPackage(packageIdentifiers).as(description));
+            }
+
+            DescribedPredicate<JavaClass> containsPredicate() {
+                return containsPredicate;
             }
 
             @Override
             public String toString() {
-                return String.format("layer '%s' ('%s')", name, Joiner.on("', '").join(packageIdentifiers));
+                return String.format("layer '%s' (%s)", name, containsPredicate);
             }
         }
 
@@ -319,7 +354,7 @@ public final class Architectures {
 
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyBeAccessedByLayers(String... layerNames) {
-                checkLayersExist(layerNames);
+                checkLayerNamesExist(layerNames);
                 allowedAccessors.addAll(asList(layerNames));
                 descriptionSuffix = String.format("may only be accessed by layers ['%s']",
                         Joiner.on("', '").join(allowedAccessors));
