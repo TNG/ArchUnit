@@ -83,7 +83,7 @@ public class JavaClassTest {
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("anArray");
 
         assertThat(method.getRawReturnType().isArray()).isTrue();
-        assertThat(method.getRawReturnType().tryGetComponentType().get().getName()).isEqualTo("java.lang.Object");
+        assertThat(method.getRawReturnType().tryGetComponentType().get()).matches(Object.class);
     }
 
     @Test
@@ -91,7 +91,7 @@ public class JavaClassTest {
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("notAnArray");
 
         assertThat(method.getRawReturnType().isArray()).isFalse();
-        assertThat(method.getRawReturnType().tryGetComponentType().isPresent()).isFalse();
+        assertThat(method.getRawReturnType().tryGetComponentType()).isAbsent();
     }
 
     @Test
