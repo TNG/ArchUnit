@@ -32,7 +32,7 @@ ext {
     guavaRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
 
     dependency = [
-            asm                 : 'org.ow2.asm:asm:7.1',
+            asm                 : 'org.ow2.asm:asm:7.2',
             guava               : 'com.google.guava:guava:20.0',
             slf4j               : 'org.slf4j:slf4j-api:1.7.25',
             log4j_api           : 'org.apache.logging.log4j:log4j-api:2.11.1',
