@@ -523,8 +523,9 @@ h4 {
 </li>
 <li><a href="#_advanced_configuration">10. Advanced Configuration</a>
 <ul class="sectlevel2">
-<li><a href="#_configuring_the_resolution_behavior">10.1. Configuring the Resolution Behavior</a></li>
-<li><a href="#_md5_sums_of_classes">10.2. MD5 Sums of Classes</a></li>
+<li><a href="#_overriding_configuration">10.1. Overriding configuration</a></li>
+<li><a href="#_configuring_the_resolution_behavior">10.2. Configuring the Resolution Behavior</a></li>
+<li><a href="#_md5_sums_of_classes">10.3. MD5 Sums of Classes</a></li>
 </ul>
 </li>
 </ul>
@@ -2056,6 +2057,35 @@ You can configure the location of the violation store within <code>archunit.prop
 <pre class="highlightjs highlight nowrap"><code>freeze.store.default.path=/some/path/in/a/vcs/repo</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Furthermore, it is possible to configure</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code># must be set to true to allow the creation of a new violation store
+# default is false
+freeze.store.default.allowStoreCreation=true
+
+# can be set to false to forbid updates of the violations stored for frozen rules
+# default is true
+freeze.store.default.allowStoreUpdate=false</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This can help in CI environments to prevent misconfiguration:
+For example, a CI build should probably never create a new the violation store, but operate on
+an existing one.</p>
+</div>
+<div class="paragraph">
+<p>As mentioned in <a href="#_overriding_configuration">Overriding configuration</a>, these properties can be passed as system properties as needed.
+For example to allow the creation of the violation store in a specific environment, it is possible to pass the system property via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>-Darchunit.freeze.store.default.allowStoreCreation=true</code></pre>
+</div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_extension"><a class="anchor" href="#_extension"></a>8.5.3. Extension</h4>
@@ -2361,11 +2391,35 @@ in different projects or modules.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Some behavior of ArchUnit can be centrally configured by adding a file <code>archunit.properties</code>
-to the root of the classpath (e.g. under <code>src/test/resources</code>). This section will outline
-those configuration options.</p>
+to the root of the classpath (e.g. under <code>src/test/resources</code>).
+This section will outline some global configuration options.</p>
 </div>
 <div class="sect2">
-<h3 id="_configuring_the_resolution_behavior"><a class="anchor" href="#_configuring_the_resolution_behavior"></a>10.1. Configuring the Resolution Behavior</h3>
+<h3 id="_overriding_configuration"><a class="anchor" href="#_overriding_configuration"></a>10.1. Overriding configuration</h3>
+<div class="paragraph">
+<p>ArchUnit will use exactly the <code>archunit.properties</code> file returned by the context
+<code>ClassLoader</code> from the classpath root, via the standard Java resource loading mechanism.</p>
+</div>
+<div class="paragraph">
+<p>It is possible to override any property from <code>archunit.properties</code>, by passing a system property
+to the respective JVM process executing ArchUnit:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>-Darchunit.propertyName=propertyValue</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>E.g. to override the property <code>resolveMissingDependenciesFromClassPath</code> described in the next section, it would be possible to pass:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code>-Darchunit.resolveMissingDependenciesFromClassPath=false</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuring_the_resolution_behavior"><a class="anchor" href="#_configuring_the_resolution_behavior"></a>10.2. Configuring the Resolution Behavior</h3>
 <div class="paragraph">
 <p>As mentioned in <a href="#_dealing_with_missing_classes">Dealing with Missing Classes</a>, it might be preferable to configure a different
 import behavior if dealing with missing classes wastes too much performance.
@@ -2429,7 +2483,7 @@ argument, and supply the concrete arguments as</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_md5_sums_of_classes"><a class="anchor" href="#_md5_sums_of_classes"></a>10.2. MD5 Sums of Classes</h3>
+<h3 id="_md5_sums_of_classes"><a class="anchor" href="#_md5_sums_of_classes"></a>10.3. MD5 Sums of Classes</h3>
 <div class="paragraph">
 <p>Sometimes it can be valuable to record the MD5 sums of classes being imported to track
 unexpected behavior. Since this has a performance impact, it is disabled by default,

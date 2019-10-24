@@ -1,8 +1,6 @@
 package com.tngtech.archunit.core.importer.resolvers;
 
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Properties;
 
 import com.google.common.base.Preconditions;
 import com.tngtech.archunit.ArchConfiguration;
@@ -64,7 +62,7 @@ public class ClassResolverFactoryTest {
 
     @Test
     public void wrong_resolver_class_name() {
-        setConfiguredResolverClass("not.There");
+        ArchConfiguration.get().setProperty("classResolver", "not.There");
 
         thrown.expect(ClassResolverConfigurationException.class);
         thrown.expectMessage("Error loading resolver class not.There");
@@ -126,17 +124,6 @@ public class ClassResolverFactoryTest {
                 description.appendText(String.format("cause with cause with message containing '%s'", message));
             }
         };
-    }
-
-    private void setConfiguredResolverClass(String className) {
-        try {
-            Field field = ArchConfiguration.class.getDeclaredField("properties");
-            field.setAccessible(true);
-            Properties props = (Properties) field.get(ArchConfiguration.get());
-            props.setProperty("classResolver", className);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     static class TestResolver implements ClassResolver {
