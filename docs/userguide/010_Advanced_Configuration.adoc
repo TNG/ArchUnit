@@ -1,8 +1,28 @@
 == Advanced Configuration
 
 Some behavior of ArchUnit can be centrally configured by adding a file `archunit.properties`
-to the root of the classpath (e.g. under `src/test/resources`). This section will outline
-those configuration options.
+to the root of the classpath (e.g. under `src/test/resources`).
+This section will outline some global configuration options.
+
+=== Overriding configuration
+
+ArchUnit will use exactly the `archunit.properties` file returned by the context
+`ClassLoader` from the classpath root, via the standard Java resource loading mechanism.
+
+It is possible to override any property from `archunit.properties`, by passing a system property
+to the respective JVM process executing ArchUnit:
+
+[source,options="nowrap"]
+----
+-Darchunit.propertyName=propertyValue
+----
+
+E.g. to override the property `resolveMissingDependenciesFromClassPath` described in the next section, it would be possible to pass:
+
+[source,options="nowrap"]
+----
+-Darchunit.resolveMissingDependenciesFromClassPath=false
+----
 
 === Configuring the Resolution Behavior
 

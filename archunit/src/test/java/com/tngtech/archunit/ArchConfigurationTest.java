@@ -3,17 +3,17 @@ package com.tngtech.archunit;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
-import java.util.Collections;
-import java.util.Map;
+import java.util.Arrays;
 import java.util.Properties;
 
-import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.testutil.SystemPropertiesRule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
@@ -27,6 +27,9 @@ public class ArchConfigurationTest {
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
 
     @Before
     public void setUp() {
@@ -47,17 +50,17 @@ public class ArchConfigurationTest {
 
     @Test
     public void empty_property_file() {
-        writeProperties(Collections.<String, String>emptyMap());
+        writeProperties();
 
         assertDefault(testConfiguration(PROPERTIES_FILE_NAME));
     }
 
     @Test
     public void simple_properties_explicitly_set() {
-        writeProperties(ImmutableMap.of(
+        writeProperties(
                 ArchConfiguration.RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, true,
                 ArchConfiguration.ENABLE_MD5_IN_CLASS_SOURCES, true
-        ));
+        );
 
         ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
@@ -69,10 +72,10 @@ public class ArchConfigurationTest {
 
     @Test
     public void resolver_explicitly_set() {
-        writeProperties(ImmutableMap.of(
+        writeProperties(
                 ArchConfiguration.CLASS_RESOLVER, "some.Resolver",
                 ArchConfiguration.CLASS_RESOLVER_ARGS, "one.foo,two.bar"
-        ));
+        );
 
         ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
@@ -162,13 +165,13 @@ public class ArchConfigurationTest {
 
     @Test
     public void creates_extension_properties_from_prefix() {
-        writeProperties(ImmutableMap.of(
+        writeProperties(
                 "extension.test-extension.enabled", true,
                 "extension.test-extension.some-prop", "some value",
                 "extension.test-extension.other_prop", 88,
                 "extension.other-extension.enabled", false,
                 "extension.other-extension.other-prop", "other value"
-        ));
+        );
 
         ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
@@ -183,11 +186,11 @@ public class ArchConfigurationTest {
 
     @Test
     public void allows_to_specify_custom_properties() {
-        writeProperties(ImmutableMap.of(
+        writeProperties(
                 "some.custom.booleanproperty", "true",
                 "some.custom.stringproperty", "value",
                 "toignore", "toignore"
-        ));
+        );
 
         ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
@@ -208,21 +211,58 @@ public class ArchConfigurationTest {
         configuration.getProperty("not.there");
     }
 
-    private void writeProperties(Map<String, ?> props) {
-        Properties save = new Properties();
-        for (Map.Entry<String, ?> entry : props.entrySet()) {
-            save.setProperty(entry.getKey(), "" + entry.getValue());
+    @Test
+    public void allows_to_override_any_property_via_system_property() {
+        String customPropertyName = "my.custom.property";
+        String otherPropertyName = "my.other.property";
+        writeProperties(
+                ArchConfiguration.ENABLE_MD5_IN_CLASS_SOURCES, false,
+                customPropertyName, "original",
+                otherPropertyName, "other"
+        );
+
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
+
+        assertThat(configuration.md5InClassSourcesEnabled()).as("MD5 sum in class sources enabled").isFalse();
+        assertThat(configuration.getProperty(customPropertyName)).as("custom property").isEqualTo("original");
+
+        System.setProperty("archunit." + ArchConfiguration.ENABLE_MD5_IN_CLASS_SOURCES, "true");
+        System.setProperty("archunit." + customPropertyName, "changed");
+
+        assertThat(configuration.md5InClassSourcesEnabled()).as("MD5 sum in class sources enabled").isTrue();
+        assertThat(configuration.getProperty(customPropertyName)).as("custom property").isEqualTo("changed");
+        assertThat(configuration.getSubProperties(subPropertyKeyOf(customPropertyName))).containsExactly(
+                entry(subPropertyNameOf(customPropertyName), "changed"),
+                entry(subPropertyNameOf(otherPropertyName), "other"));
+    }
+
+    private String subPropertyKeyOf(String customPropertyName) {
+        return customPropertyName.split("\\.")[0];
+    }
+
+    private String subPropertyNameOf(String customPropertyName) {
+        return customPropertyName.split("\\.", 2)[1];
+    }
+
+    private void writeProperties(Object... props) {
+        checkArgument(props.length % 2 == 0, "There are more keys than values inside of %s", Arrays.toString(props));
+        Properties properties = new Properties();
+        for (int i = 0; i < props.length; i += 2) {
+            checkArgument(props[i] instanceof String, "Array entry %s is supposed to be a property name, but is no string", props[i]);
+            properties.setProperty((String) props[i], "" + props[i + 1]);
         }
         try (FileOutputStream outputStream = new FileOutputStream(testPropsFile)) {
-            save.store(outputStream, "");
+            properties.store(outputStream, "");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     private void assertDefault(ArchConfiguration configuration) {
-        assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
-        assertThat(configuration.md5InClassSourcesEnabled()).isFalse();
+        assertThat(configuration.resolveMissingDependenciesFromClassPath())
+                .as("configuration.resolveMissingDependenciesFromClassPath()").isTrue();
+        assertThat(configuration.md5InClassSourcesEnabled())
+                .as("configuration.md5InClassSourcesEnabled()").isFalse();
     }
 
     private ArchConfiguration testConfiguration(String resourceName) {
