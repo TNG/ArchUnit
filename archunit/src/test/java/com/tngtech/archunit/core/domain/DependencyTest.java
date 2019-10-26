@@ -8,7 +8,11 @@ import com.google.common.base.MoreObjects;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.testutil.Assertions;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
@@ -20,7 +24,9 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
+@RunWith(DataProviderRunner.class)
 public class DependencyTest {
     @Test
     public void Dependency_from_access() {
@@ -65,44 +71,51 @@ public class DependencyTest {
                 .contains("Method <" + origin.getFullName() + "> throws type <" + IOException.class.getName() + ">");
     }
 
-    @Test
-    public void Dependency_from_annotation_on_class() {
-        JavaClass origin = importClassesWithContext(ClassWithDependencyOnAnnotation.class, SomeAnnotation.class)
-                .get(ClassWithDependencyOnAnnotation.class);
+    @DataProvider
+    public static Object[][] annotated_classes() {
+        JavaClasses classes = importClassesWithContext(
+                ClassWithDependencyOnAnnotation.class, InterfaceWithDependencyOnAnnotation.class, SomeAnnotation.class);
 
-        JavaAnnotation annotation = origin.getAnnotations().iterator().next();
-        Class<?> annotationClass = annotation.getRawType().reflect();
-
-        Dependency dependency = Dependency.fromAnnotation(origin, annotation, origin);
-        assertThat(dependency.getOriginClass()).matches(ClassWithDependencyOnAnnotation.class);
-        assertThat(dependency.getTargetClass()).matches(annotationClass);
-        assertThat(dependency.getDescription()).as("description")
-                .contains("Class <" + origin.getName() + "> is annotated with <" + annotationClass.getName() + ">");
-
-        origin = importClassesWithContext(InterfaceWithDependencyOnAnnotation.class, SomeAnnotation.class)
-                .get(InterfaceWithDependencyOnAnnotation.class);
-
-        dependency = Dependency.fromAnnotation(origin, annotation, origin);
-        assertThat(dependency.getOriginClass()).matches(InterfaceWithDependencyOnAnnotation.class);
-        assertThat(dependency.getTargetClass()).matches(annotationClass);
-        assertThat(dependency.getDescription()).as("description")
-                .contains("Class <" + origin.getName() + "> is annotated with <" + annotationClass.getName() + ">");
+        return testForEach(
+                classes.get(ClassWithDependencyOnAnnotation.class),
+                classes.get(InterfaceWithDependencyOnAnnotation.class));
     }
 
     @Test
-    public void Dependency_from_annotation_on_member() {
-        JavaField origin = importClassesWithContext(ClassWithAnnotatedField.class, SomeAnnotation.class)
-                .get(ClassWithAnnotatedField.class)
-                .getField("obj");
-
-        JavaAnnotation annotation = origin.getAnnotations().iterator().next();
+    @UseDataProvider("annotated_classes")
+    public void Dependency_from_annotation_on_class(JavaClass annotatedClass) {
+        JavaAnnotation annotation = annotatedClass.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
-        Dependency dependency = Dependency.fromAnnotation(origin, annotation, origin.getOwner());
-        assertThat(dependency.getOriginClass()).matches(ClassWithAnnotatedField.class);
+        Dependency dependency = Dependency.fromAnnotation(annotatedClass, annotation, annotatedClass);
+        assertThat(dependency.getOriginClass()).isEqualTo(annotatedClass);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
-                .contains(origin.getDescription() + " is annotated with <" + annotationClass.getName() + ">");
+                .contains("Class <" + annotatedClass.getName() + "> is annotated with <" + annotationClass.getName() + ">");
+    }
+
+    @DataProvider
+    public static Object[][] annotated_members() {
+        JavaClass javaClass = importClassesWithContext(ClassWithAnnotatedMembers.class, SomeAnnotation.class)
+                .get(ClassWithAnnotatedMembers.class);
+
+        return testForEach(
+                javaClass.getField("annotatedField"),
+                javaClass.getConstructor(Object.class),
+                javaClass.getMethod("annotatedMethod"));
+    }
+
+    @Test
+    @UseDataProvider("annotated_members")
+    public void Dependency_from_annotation_on_member(JavaMember annotatedMember) {
+        JavaAnnotation annotation = annotatedMember.getAnnotations().iterator().next();
+        Class<?> annotationClass = annotation.getRawType().reflect();
+
+        Dependency dependency = Dependency.fromAnnotation(annotatedMember, annotation, annotatedMember.getOwner());
+        assertThat(dependency.getOriginClass()).matches(ClassWithAnnotatedMembers.class);
+        assertThat(dependency.getTargetClass()).matches(annotationClass);
+        assertThat(dependency.getDescription()).as("description")
+                .contains(annotatedMember.getDescription() + " is annotated with <" + annotationClass.getName() + ">");
     }
 
     @Test
@@ -231,8 +244,18 @@ public class DependencyTest {
     @SomeAnnotation
     private interface InterfaceWithDependencyOnAnnotation { }
 
-    private static class ClassWithAnnotatedField {
-        @SomeAnnotation private Object obj;
-    }
+    @SuppressWarnings("unused")
+    private static class ClassWithAnnotatedMembers {
+        @SomeAnnotation
+        private Object annotatedField;
 
+        @SomeAnnotation
+        public ClassWithAnnotatedMembers(Object annotatedField) {
+            this.annotatedField = annotatedField;
+        }
+
+        @SomeAnnotation
+        void annotatedMethod() {
+        }
+    }
 }
