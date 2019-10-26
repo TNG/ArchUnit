@@ -93,29 +93,26 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
-    static Dependency fromAnnotation(HasDescription origin, JavaAnnotation target, JavaClass owner) {
-        return createDependencyFromDescribable(origin, "is annotated with", target.getRawType(), owner);
+    static Dependency fromAnnotation(HasDescription annotatedElement, JavaAnnotation target, JavaClass owner) {
+        return createDependency(owner, target.getRawType(), annotatedElement, "is annotated with");
     }
 
-    static Dependency fromAnnotationMember(HasDescription origin, JavaClass memberType, JavaClass owner) {
-        return createDependencyFromDescribable(origin, "has annotation member of type", memberType, owner);
+    static Dependency fromAnnotationMember(HasDescription annotatedElement, JavaClass memberType, JavaClass owner) {
+        return createDependency(owner, memberType, annotatedElement, "has annotation member of type");
     }
 
     private static Dependency createDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
-        String originDescription = origin.getDescription();
-        String targetDescription = bracketFormat(target.getName());
-        String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
-        String description = dependencyDescription + " in " + origin.getOwner().getSourceCodeLocation();
-        return new Dependency(origin.getOwner(), target, 0, description);
+        return createDependency(origin.getOwner(), target, origin, dependencyType);
     }
 
-    private static Dependency createDependencyFromDescribable(HasDescription hasDescription, String dependencyType,
-            JavaClass target, JavaClass owner) {
-        String originDescription = hasDescription.getDescription();
-        String targetDescription = bracketFormat(target.getName());
+    private static Dependency createDependency(
+            JavaClass originClass, JavaClass targetClass, HasDescription hasOriginDescription, String dependencyType) {
+
+        String originDescription = hasOriginDescription.getDescription();
+        String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
-        String description = dependencyDescription + " in " + owner.getSourceCodeLocation();
-        return new Dependency(owner, target, 0, description);
+        String description = dependencyDescription + " in " + originClass.getSourceCodeLocation();
+        return new Dependency(originClass, targetClass, 0, description);
     }
 
     private static String bracketFormat(String name) {
