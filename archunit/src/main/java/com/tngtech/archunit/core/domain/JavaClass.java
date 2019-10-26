@@ -761,7 +761,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     }
 
     /**
-     * @return {@link JavaAnnotation} of all imported classes that have the type of this class.
+     * @return All imported {@link JavaAnnotation JavaAnnotations} that have the annotation type of this class.
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaAnnotation> getAnnotationsWithTypeOfSelf() {
