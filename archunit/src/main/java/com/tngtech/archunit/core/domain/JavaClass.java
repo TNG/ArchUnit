@@ -1131,14 +1131,14 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         for (JavaAnnotation annotation : getAnnotationsWithTypeOfSelf()) {
             result.add(Dependency.fromAnnotation(annotation.getOwner(), annotation, annotation.getOwner()));
         }
-        for (JavaAnnotation annotation : memberDependenciesOnClass.annotationsWithParameterOfTypeClass) {
+        for (JavaAnnotation annotation : memberDependenciesOnClass.getAnnotationsWithParameterTypeOfClass()) {
             result.add(Dependency.fromAnnotationMember(annotation.getOwner(), this, annotation.getOwner()));
         }
-        for (JavaMember member : memberDependenciesOnClass.membersWithAnnotationOfTypeClass) {
+        for (JavaMember member : memberDependenciesOnClass.getMembersWithAnnotationTypeOfClass()) {
             JavaAnnotation annotation = member.getAnnotationOfType(getName());
             result.add(Dependency.fromAnnotation(member, annotation, annotation.getOwner()));
         }
-        for (JavaMember member : memberDependenciesOnClass.membersWithAnnotationParameterOfTypeClass) {
+        for (JavaMember member : memberDependenciesOnClass.getMembersWithAnnotationParameterTypeOfClass()) {
             result.add(Dependency.fromAnnotationMember(member, this, member.getOwner()));
         }
         return result;
@@ -1176,9 +1176,9 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         private final Set<JavaConstructor> constructorsWithParameterTypeOfClass;
         private final Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass;
         private final Set<JavaAnnotation> annotationsWithTypeOfClass;
-        private final Set<JavaAnnotation> annotationsWithParameterOfTypeClass;
-        private final Set<JavaMember> membersWithAnnotationOfTypeClass;
-        private final Set<JavaMember> membersWithAnnotationParameterOfTypeClass;
+        private final Set<JavaAnnotation> annotationsWithParameterTypeOfClass;
+        private final Set<JavaMember> membersWithAnnotationTypeOfClass;
+        private final Set<JavaMember> membersWithAnnotationParameterTypeOfClass;
 
         MemberDependenciesOnClass(
                 Set<JavaField> fieldsWithTypeOfClass,
@@ -1188,9 +1188,9 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 Set<JavaConstructor> constructorsWithParameterTypeOfClass,
                 Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass,
                 Set<JavaAnnotation> annotationsWithTypeOfClass,
-                Set<JavaAnnotation> annotationsWithParameterOfTypeClass,
-                Set<JavaMember> membersWithAnnotationOfTypeClass,
-                Set<JavaMember> membersWithAnnotationParameterOfTypeClass) {
+                Set<JavaAnnotation> annotationsWithParameterTypeOfClass,
+                Set<JavaMember> membersWithAnnotationTypeOfClass,
+                Set<JavaMember> membersWithAnnotationParameterTypeOfClass) {
 
             this.fieldsWithTypeOfClass = ImmutableSet.copyOf(fieldsWithTypeOfClass);
             this.methodsWithParameterTypeOfClass = ImmutableSet.copyOf(methodsWithParameterTypeOfClass);
@@ -1199,9 +1199,9 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
             this.constructorsWithParameterTypeOfClass = ImmutableSet.copyOf(constructorsWithParameterTypeOfClass);
             this.constructorsWithThrowsDeclarationTypeOfClass = ImmutableSet.copyOf(constructorsWithThrowsDeclarationTypeOfClass);
             this.annotationsWithTypeOfClass = ImmutableSet.copyOf(annotationsWithTypeOfClass);
-            this.annotationsWithParameterOfTypeClass = ImmutableSet.copyOf(annotationsWithParameterOfTypeClass);
-            this.membersWithAnnotationOfTypeClass = ImmutableSet.copyOf(membersWithAnnotationOfTypeClass);
-            this.membersWithAnnotationParameterOfTypeClass = ImmutableSet.copyOf(membersWithAnnotationParameterOfTypeClass);
+            this.annotationsWithParameterTypeOfClass = ImmutableSet.copyOf(annotationsWithParameterTypeOfClass);
+            this.membersWithAnnotationTypeOfClass = ImmutableSet.copyOf(membersWithAnnotationTypeOfClass);
+            this.membersWithAnnotationParameterTypeOfClass = ImmutableSet.copyOf(membersWithAnnotationParameterTypeOfClass);
         }
 
         Set<JavaField> getFieldsWithTypeOfClass() {
@@ -1236,16 +1236,16 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
             return annotationsWithTypeOfClass;
         }
 
-        Set<JavaAnnotation> getAnnotationsWithParameterOfTypeClass() {
-            return annotationsWithParameterOfTypeClass;
+        Set<JavaAnnotation> getAnnotationsWithParameterTypeOfClass() {
+            return annotationsWithParameterTypeOfClass;
         }
 
-        Set<JavaMember> getMembersWithAnnotationOfTypeClass() {
-            return membersWithAnnotationOfTypeClass;
+        Set<JavaMember> getMembersWithAnnotationTypeOfClass() {
+            return membersWithAnnotationTypeOfClass;
         }
 
-        Set<JavaMember> getMembersWithAnnotationParameterOfTypeClass() {
-            return membersWithAnnotationParameterOfTypeClass;
+        Set<JavaMember> getMembersWithAnnotationParameterTypeOfClass() {
+            return membersWithAnnotationParameterTypeOfClass;
         }
     }
 
