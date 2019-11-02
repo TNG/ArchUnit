@@ -20,7 +20,7 @@ public class JavaAnnotationAssertion {
     public static Set<Map<String, Object>> propertiesOf(Set<? extends JavaAnnotation<?>> annotations) {
         List<Annotation> converted = new ArrayList<>();
         for (JavaAnnotation<?> annotation : annotations) {
-            converted.add(annotation.as((Class) annotation.getType().reflect()));
+            converted.add(annotation.as((Class) annotation.getRawType().reflect()));
         }
         return propertiesOf(converted.toArray(new Annotation[0]));
     }
