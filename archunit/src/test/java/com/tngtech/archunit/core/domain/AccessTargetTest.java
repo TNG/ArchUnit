@@ -44,10 +44,10 @@ public class AccessTargetTest {
     public void isAnnotatedWith_predicate_on_resolved_target() {
         JavaCall<?> call = simulateCall().from(Origin.class, "call").to(Target.class, "called");
 
-        assertThat(call.getTarget().isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+        assertThat(call.getTarget().isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("target is annotated with anything")
                 .isTrue();
-        assertThat(call.getTarget().isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+        assertThat(call.getTarget().isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
                 .as("target is annotated with nothing")
                 .isFalse();
     }
@@ -62,7 +62,7 @@ public class AccessTargetTest {
         assertThat(call.getTarget().isAnnotatedWith(QueriedAnnotation.class.getName()))
                 .as("target is annotated with @" + QueriedAnnotation.class.getSimpleName())
                 .isFalse();
-        assertThat(call.getTarget().isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+        assertThat(call.getTarget().isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("target is annotated with anything")
                 .isFalse();
     }
@@ -98,10 +98,10 @@ public class AccessTargetTest {
         JavaClasses classes = importClassesWithContext(Origin.class, Target.class, QueriedAnnotation.class);
         JavaCall<?> call = simulateCall().from(classes.get(Origin.class), "call").to(classes.get(Target.class).getMethod("called"));
 
-        assertThat(call.getTarget().isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+        assertThat(call.getTarget().isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("target is meta-annotated with anything")
                 .isTrue();
-        assertThat(call.getTarget().isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+        assertThat(call.getTarget().isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
                 .as("target is meta-annotated with nothing")
                 .isFalse();
     }
@@ -117,7 +117,7 @@ public class AccessTargetTest {
         assertThat(call.getTarget().isMetaAnnotatedWith(Retention.class.getName()))
                 .as("target is meta-annotated with @" + Retention.class.getSimpleName())
                 .isFalse();
-        assertThat(call.getTarget().isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+        assertThat(call.getTarget().isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("target is meta-annotated with anything")
                 .isFalse();
     }
@@ -163,7 +163,7 @@ public class AccessTargetTest {
                 .hasDescription("declared in " + Target.class.getName());
         assertThat(declaredIn(Target.class.getName()))
                 .accepts(call.getTarget())
-                .hasDescription("declared in " + Target.class.getName());;
+                .hasDescription("declared in " + Target.class.getName());
         assertThat(declaredIn(equivalentTo(Target.class).as("custom")))
                 .accepts(call.getTarget())
                 .hasDescription("declared in custom");

@@ -62,7 +62,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
-public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifiers, HasDescription, HasSourceCodeLocation {
+public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
     private final Optional<Source> source;
     private final SourceCodeLocation sourceCodeLocation;
     private final JavaType javaType;
@@ -82,8 +82,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Optional<JavaClass> componentType = Optional.absent();
-    private Supplier<Map<String, JavaAnnotation>> annotations =
-            Suppliers.ofInstance(Collections.<String, JavaAnnotation>emptyMap());
+    private Supplier<Map<String, JavaAnnotation<JavaClass>>> annotations =
+            Suppliers.ofInstance(Collections.<String, JavaAnnotation<JavaClass>>emptyMap());
     private Supplier<Set<JavaMethod>> allMethods;
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
@@ -249,7 +249,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
     }
 
@@ -267,7 +267,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.get().values(), predicate);
     }
 
@@ -286,14 +286,14 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaAnnotation getAnnotationOfType(String typeName) {
+    public JavaAnnotation<JavaClass> getAnnotationOfType(String typeName) {
         return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(
                 String.format("Type %s is not annotated with @%s", getSimpleName(), typeName)));
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public Set<JavaAnnotation> getAnnotations() {
+    public Set<JavaAnnotation<JavaClass>> getAnnotations() {
         return ImmutableSet.copyOf(annotations.get().values());
     }
 
@@ -315,7 +315,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName) {
+    public Optional<JavaAnnotation<JavaClass>> tryGetAnnotationOfType(String typeName) {
         return Optional.fromNullable(annotations.get().get(typeName));
     }
 
@@ -764,7 +764,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      * @return All imported {@link JavaAnnotation JavaAnnotations} that have the annotation type of this class.
      */
     @PublicAPI(usage = ACCESS)
-    public Set<JavaAnnotation> getAnnotationsWithTypeOfSelf() {
+    public Set<JavaAnnotation<?>> getAnnotationsWithTypeOfSelf() {
         return memberDependenciesOnClass.getAnnotationsWithTypeOfClass();
     }
 
@@ -897,9 +897,9 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 .addAll(methods)
                 .addAll(constructors)
                 .build();
-        this.annotations = Suppliers.memoize(new Supplier<Map<String, JavaAnnotation>>() {
+        this.annotations = Suppliers.memoize(new Supplier<Map<String, JavaAnnotation<JavaClass>>>() {
             @Override
-            public Map<String, JavaAnnotation> get() {
+            public Map<String, JavaAnnotation<JavaClass>> get() {
                 return context.createAnnotations(JavaClass.this);
             }
         });
@@ -1026,7 +1026,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 .build();
     }
 
-    private <T extends HasDescription & HasAnnotations> Set<Dependency> annotationDependencies(Set<T> annotatedObjects) {
+    private <T extends HasDescription & HasAnnotations<?>> Set<Dependency> annotationDependencies(Set<T> annotatedObjects) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (T annotated : annotatedObjects) {
             result.addAll(annotationDependencies(annotated));
@@ -1034,18 +1034,17 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         return result.build();
     }
 
-    private <T extends HasDescription & HasAnnotations> Set<Dependency> annotationDependencies(T annotated) {
+    private <T extends HasDescription & HasAnnotations<?>> Set<Dependency> annotationDependencies(T annotated) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        Set<JavaAnnotation> annotations = annotated.getAnnotations();
-        for (JavaAnnotation annotation : annotations) {
-            result.add(Dependency.fromAnnotation(annotated, annotation, this));
-            result.addAll(annotationParametersDependencies(annotation, annotated));
+        for (JavaAnnotation<?> annotation : annotated.getAnnotations()) {
+            result.add(Dependency.fromAnnotation(annotation));
+            result.addAll(annotationParametersDependencies(annotation));
             result.addAll(annotationDependencies(annotation.getRawType()));
         }
         return result.build();
     }
 
-    private Set<Dependency> annotationParametersDependencies(JavaAnnotation annotation, HasDescription origin) {
+    private Set<Dependency> annotationParametersDependencies(JavaAnnotation<?> annotation) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
             Object value = entry.getValue();
@@ -1053,27 +1052,27 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 if (!value.getClass().getComponentType().isPrimitive()) {
                     Object[] values = (Object[]) value;
                     for (Object o : values) {
-                        result.addAll(annotationParameterDependencies(origin, o));
+                        result.addAll(annotationParameterDependencies(annotation, o));
                     }
                 }
             } else {
-                result.addAll(annotationParameterDependencies(origin, value));
+                result.addAll(annotationParameterDependencies(annotation, value));
             }
         }
         return result.build();
     }
 
-    private Set<Dependency> annotationParameterDependencies(HasDescription origin, Object value) {
+    private Set<Dependency> annotationParameterDependencies(JavaAnnotation<?> origin, Object value) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         if (value instanceof JavaClass) {
             JavaClass annotationMember = (JavaClass) value;
-            result.add(Dependency.fromAnnotationMember(origin, annotationMember, this));
+            result.add(Dependency.fromAnnotationMember(origin, annotationMember));
             result.addAll(annotationDependencies(annotationMember));
-        } else if (value instanceof JavaAnnotation) {
-            JavaAnnotation nestedAnnotation = (JavaAnnotation) value;
-            result.add(Dependency.fromAnnotationMember(origin, nestedAnnotation.getRawType(), this));
+        } else if (value instanceof JavaAnnotation<?>) {
+            JavaAnnotation<?> nestedAnnotation = (JavaAnnotation<?>) value;
+            result.add(Dependency.fromAnnotationMember(origin, nestedAnnotation.getRawType()));
             result.addAll(annotationDependencies(nestedAnnotation.getRawType()));
-            result.addAll(annotationParametersDependencies(nestedAnnotation, origin));
+            result.addAll(annotationParametersDependencies(nestedAnnotation));
         }
         return result.build();
     }
@@ -1128,18 +1127,19 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
 
     private Iterable<? extends Dependency> annotationDependenciesToSelf() {
         Set<Dependency> result = new HashSet<>();
-        for (JavaAnnotation annotation : getAnnotationsWithTypeOfSelf()) {
-            result.add(Dependency.fromAnnotation(annotation.getOwner(), annotation, annotation.getOwner()));
+        for (JavaAnnotation<?> annotation : getAnnotationsWithTypeOfSelf()) {
+            result.add(Dependency.fromAnnotation(annotation));
         }
-        for (JavaAnnotation annotation : memberDependenciesOnClass.getAnnotationsWithParameterTypeOfClass()) {
-            result.add(Dependency.fromAnnotationMember(annotation.getOwner(), this, annotation.getOwner()));
+        for (JavaAnnotation<?> annotation : memberDependenciesOnClass.getAnnotationsWithParameterTypeOfClass()) {
+            result.add(Dependency.fromAnnotationMember(annotation, this));
         }
         for (JavaMember member : memberDependenciesOnClass.getMembersWithAnnotationTypeOfClass()) {
-            JavaAnnotation annotation = member.getAnnotationOfType(getName());
-            result.add(Dependency.fromAnnotation(member, annotation, annotation.getOwner()));
+            JavaAnnotation<?> annotation = member.getAnnotationOfType(getName());
+            result.add(Dependency.fromAnnotation(annotation));
         }
         for (JavaMember member : memberDependenciesOnClass.getMembersWithAnnotationParameterTypeOfClass()) {
-            result.add(Dependency.fromAnnotationMember(member, this, member.getOwner()));
+            JavaAnnotation<?> annotation = member.getAnnotationOfType(getName());
+            result.add(Dependency.fromAnnotationMember(annotation, this));
         }
         return result;
     }
@@ -1175,8 +1175,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         private final Set<ThrowsDeclaration<JavaMethod>> methodsWithThrowsDeclarationTypeOfClass;
         private final Set<JavaConstructor> constructorsWithParameterTypeOfClass;
         private final Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass;
-        private final Set<JavaAnnotation> annotationsWithTypeOfClass;
-        private final Set<JavaAnnotation> annotationsWithParameterTypeOfClass;
+        private final Set<JavaAnnotation<?>> annotationsWithTypeOfClass;
+        private final Set<JavaAnnotation<?>> annotationsWithParameterTypeOfClass;
         private final Set<JavaMember> membersWithAnnotationTypeOfClass;
         private final Set<JavaMember> membersWithAnnotationParameterTypeOfClass;
 
@@ -1187,8 +1187,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 Set<ThrowsDeclaration<JavaMethod>> methodsWithThrowsDeclarationTypeOfClass,
                 Set<JavaConstructor> constructorsWithParameterTypeOfClass,
                 Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass,
-                Set<JavaAnnotation> annotationsWithTypeOfClass,
-                Set<JavaAnnotation> annotationsWithParameterTypeOfClass,
+                Set<JavaAnnotation<?>> annotationsWithTypeOfClass,
+                Set<JavaAnnotation<?>> annotationsWithParameterTypeOfClass,
                 Set<JavaMember> membersWithAnnotationTypeOfClass,
                 Set<JavaMember> membersWithAnnotationParameterTypeOfClass) {
 
@@ -1232,11 +1232,11 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
             return union(methodsWithThrowsDeclarationTypeOfClass, constructorsWithThrowsDeclarationTypeOfClass);
         }
 
-        Set<JavaAnnotation> getAnnotationsWithTypeOfClass() {
+        Set<JavaAnnotation<?>> getAnnotationsWithTypeOfClass() {
             return annotationsWithTypeOfClass;
         }
 
-        Set<JavaAnnotation> getAnnotationsWithParameterTypeOfClass() {
+        Set<JavaAnnotation<?>> getAnnotationsWithParameterTypeOfClass() {
             return annotationsWithParameterTypeOfClass;
         }
 
@@ -1550,21 +1550,21 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
          * one of the supplied {@link Class classes} or to one of its inner/anonymous classes.
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> belongToAnyOf(Class... classes) {
+        public static DescribedPredicate<JavaClass> belongToAnyOf(Class<?>... classes) {
             return new BelongToAnyOfPredicate(classes);
         }
 
         private static class BelongToAnyOfPredicate extends DescribedPredicate<JavaClass> {
-            private final Class[] classes;
+            private final Class<?>[] classes;
 
-            BelongToAnyOfPredicate(Class... classes) {
+            BelongToAnyOfPredicate(Class<?>... classes) {
                 super("belong to any of " + JavaClass.namesOf(classes));
                 this.classes = classes;
             }
 
             @Override
             public boolean apply(JavaClass input) {
-                for (Class clazz : classes) {
+                for (Class<?> clazz : classes) {
                     if (belongsTo(input, clazz)) {
                         return true;
                     }
@@ -1572,7 +1572,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 return false;
             }
 
-            private boolean belongsTo(JavaClass input, Class clazz) {
+            private boolean belongsTo(JavaClass input, Class<?> clazz) {
                 JavaClass toTest = input;
                 while (!toTest.isEquivalentTo(clazz) && toTest.getEnclosingClass().isPresent()) {
                     toTest = toTest.getEnclosingClass().get();

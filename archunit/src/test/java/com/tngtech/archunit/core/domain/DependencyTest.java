@@ -74,7 +74,7 @@ public class DependencyTest {
     @DataProvider
     public static Object[][] annotated_classes() {
         JavaClasses classes = importClassesWithContext(
-                ClassWithDependencyOnAnnotation.class, InterfaceWithDependencyOnAnnotation.class, SomeAnnotation.class);
+                ClassWithDependencyOnAnnotation.class, InterfaceWithDependencyOnAnnotation.class, SomeAnnotation.class, SomeMemberType.class);
 
         return testForEach(
                 classes.get(ClassWithDependencyOnAnnotation.class),
@@ -84,10 +84,10 @@ public class DependencyTest {
     @Test
     @UseDataProvider("annotated_classes")
     public void Dependency_from_annotation_on_class(JavaClass annotatedClass) {
-        JavaAnnotation annotation = annotatedClass.getAnnotations().iterator().next();
+        JavaAnnotation<?> annotation = annotatedClass.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
-        Dependency dependency = Dependency.fromAnnotation(annotatedClass, annotation, annotatedClass);
+        Dependency dependency = Dependency.fromAnnotation(annotation);
         assertThat(dependency.getOriginClass()).isEqualTo(annotatedClass);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
@@ -96,7 +96,7 @@ public class DependencyTest {
 
     @DataProvider
     public static Object[][] annotated_members() {
-        JavaClass javaClass = importClassesWithContext(ClassWithAnnotatedMembers.class, SomeAnnotation.class)
+        JavaClass javaClass = importClassesWithContext(ClassWithAnnotatedMembers.class, SomeAnnotation.class, SomeMemberType.class)
                 .get(ClassWithAnnotatedMembers.class);
 
         return testForEach(
@@ -108,10 +108,10 @@ public class DependencyTest {
     @Test
     @UseDataProvider("annotated_members")
     public void Dependency_from_annotation_on_member(JavaMember annotatedMember) {
-        JavaAnnotation annotation = annotatedMember.getAnnotations().iterator().next();
+        JavaAnnotation<?> annotation = annotatedMember.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
-        Dependency dependency = Dependency.fromAnnotation(annotatedMember, annotation, annotatedMember.getOwner());
+        Dependency dependency = Dependency.fromAnnotation(annotation);
         assertThat(dependency.getOriginClass()).matches(ClassWithAnnotatedMembers.class);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
@@ -119,16 +119,29 @@ public class DependencyTest {
     }
 
     @Test
-    public void Dependency_from_class_annotation_member() {
-        JavaClasses context = importClassesWithContext(Origin.class, Target.class);
-        JavaClass origin = context.get(Origin.class);
-        JavaClass target = context.get(Target.class);
+    @UseDataProvider("annotated_classes")
+    public void Dependency_from_class_annotation_member(JavaClass annotatedClass) {
+        JavaAnnotation<?> annotation = annotatedClass.getAnnotationOfType(SomeAnnotation.class.getName());
+        JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
-        Dependency dependency = Dependency.fromAnnotationMember(origin, target, origin);
-        assertThat(dependency.getOriginClass()).matches(Origin.class);
-        assertThat(dependency.getTargetClass()).matches(Target.class);
+        Dependency dependency = Dependency.fromAnnotationMember(annotation, memberType);
+        assertThat(dependency.getOriginClass()).isEqualTo(annotatedClass);
+        assertThat(dependency.getTargetClass()).isEqualTo(memberType);
         assertThat(dependency.getDescription()).as("description")
-                .contains("Class <" + origin.getName() + "> has annotation member of type <" + target.getName() + ">");
+                .contains("Class <" + annotatedClass.getName() + "> has annotation member of type <" + memberType.getName() + ">");
+    }
+
+    @Test
+    @UseDataProvider("annotated_members")
+    public void Dependency_from_member_annotation_member(JavaMember annotatedMember) {
+        JavaAnnotation<?> annotation = annotatedMember.getAnnotationOfType(SomeAnnotation.class.getName());
+        JavaClass memberType = ((JavaClass) annotation.get("value").get());
+
+        Dependency dependency = Dependency.fromAnnotationMember(annotation, memberType);
+        assertThat(dependency.getOriginClass()).isEqualTo(annotatedMember.getOwner());
+        assertThat(dependency.getTargetClass()).isEqualTo(memberType);
+        assertThat(dependency.getDescription()).as("description")
+                .contains(annotatedMember.getDescription() + " has annotation member of type <" + memberType.getName() + ">");
     }
 
     @Test
@@ -235,26 +248,31 @@ public class DependencyTest {
         }
     }
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface SomeAnnotation {}
+    private static class SomeMemberType {
+    }
 
-    @SomeAnnotation
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface SomeAnnotation {
+        Class<?> value();
+    }
+
+    @SomeAnnotation(SomeMemberType.class)
     private static class ClassWithDependencyOnAnnotation { }
 
-    @SomeAnnotation
+    @SomeAnnotation(SomeMemberType.class)
     private interface InterfaceWithDependencyOnAnnotation { }
 
     @SuppressWarnings("unused")
     private static class ClassWithAnnotatedMembers {
-        @SomeAnnotation
+        @SomeAnnotation(SomeMemberType.class)
         private Object annotatedField;
 
-        @SomeAnnotation
+        @SomeAnnotation(SomeMemberType.class)
         public ClassWithAnnotatedMembers(Object annotatedField) {
             this.annotatedField = annotatedField;
         }
 
-        @SomeAnnotation
+        @SomeAnnotation(SomeMemberType.class)
         void annotatedMethod() {
         }
     }

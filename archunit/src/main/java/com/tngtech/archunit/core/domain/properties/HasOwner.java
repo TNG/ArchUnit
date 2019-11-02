@@ -18,10 +18,24 @@ package com.tngtech.archunit.core.domain.properties;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaMember;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * A highly context dependent definition of something that has a higher order "owner". In general the owner
+ * refers to a concept where this object is part of. For example a <code>{@link JavaMember}</code> is owned
+ * by the <code>{@link JavaClass}</code> that declares this member (i.e. "belongs to" this <code>{@link JavaClass}</code>).<br>
+ * In general the owner is an instance of the next more complex concept where this object is a part of. A declared <code>Throwable</code>
+ * is owned by the declaration which is in turn owned by the method that declares it,
+ * an annotation parameter is owned by the annotation that declares it, etc.
+ * @param <T> The type of the "owner", e.g. a <code>{@link JavaClass}</code> as the owner of a <code>{@link JavaMember}</code>
+ */
 public interface HasOwner<T> {
+    /**
+     * @return The "owner" of this object, compare {@link HasOwner}
+     */
     @PublicAPI(usage = ACCESS)
     T getOwner();
 

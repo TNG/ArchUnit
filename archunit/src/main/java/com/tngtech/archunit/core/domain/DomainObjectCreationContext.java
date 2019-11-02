@@ -30,6 +30,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
@@ -78,8 +79,8 @@ public class DomainObjectCreationContext {
         javaClass.completeMembers(importContext);
     }
 
-    public static JavaAnnotation createJavaAnnotation(JavaAnnotationBuilder builder) {
-        return new JavaAnnotation(builder);
+    public static <T extends HasDescription> JavaAnnotation<T> createJavaAnnotation(T owner, JavaAnnotationBuilder builder) {
+        return new JavaAnnotation<>(owner, builder);
     }
 
     public static JavaClassList createJavaClassList(List<JavaClass> elements) {

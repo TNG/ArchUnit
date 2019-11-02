@@ -31,10 +31,10 @@ public class JavaMemberTest {
     @Test
     public void isAnnotatedWith_predicate() {
         assertThat(importField(SomeClass.class, "someField")
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(importField(SomeClass.class, "someField")
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
@@ -63,10 +63,10 @@ public class JavaMemberTest {
         JavaClass clazz = importClassesWithContext(SomeClass.class, Deprecated.class).get(SomeClass.class);
 
         assertThat(clazz.getField("someField")
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(clazz.getField("someField")
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 

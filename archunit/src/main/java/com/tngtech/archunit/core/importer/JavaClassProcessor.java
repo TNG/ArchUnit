@@ -37,6 +37,7 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -45,6 +46,7 @@ import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -392,7 +394,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void add(DomainBuilders.JavaAnnotationBuilder annotation) {
-            setArrayResult(DomainBuilders.JavaAnnotationBuilder.ValueBuilder.from(annotation));
+            setArrayResult(ValueBuilder.from(annotation));
         }
 
         @Override
@@ -406,7 +408,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public void setArrayResult(DomainBuilders.JavaAnnotationBuilder.ValueBuilder valueBuilder) {
+        public void setArrayResult(ValueBuilder valueBuilder) {
             methodBuilder.withAnnotationDefaultValue(valueBuilder);
         }
     }
@@ -522,7 +524,7 @@ class JavaClassProcessor extends ClassVisitor {
                 }
 
                 @Override
-                public void setArrayResult(DomainBuilders.JavaAnnotationBuilder.ValueBuilder valueBuilder) {
+                public void setArrayResult(ValueBuilder valueBuilder) {
                     annotationBuilder.addProperty(name, valueBuilder);
                 }
             });
@@ -547,7 +549,7 @@ class JavaClassProcessor extends ClassVisitor {
         return new TakesAnnotationBuilder() {
             @Override
             public void add(DomainBuilders.JavaAnnotationBuilder builder) {
-                annotationBuilder.addProperty(name, DomainBuilders.JavaAnnotationBuilder.ValueBuilder.from(builder));
+                annotationBuilder.addProperty(name, ValueBuilder.from(builder));
             }
         };
     }
@@ -559,7 +561,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static class AnnotationArrayProcessor extends AnnotationVisitor {
         private final AnnotationArrayContext annotationArrayContext;
         private Class<?> derivedComponentType;
-        private final List<DomainBuilders.JavaAnnotationBuilder.ValueBuilder> values = new ArrayList<>();
+        private final List<ValueBuilder> values = new ArrayList<>();
 
         private AnnotationArrayProcessor(AnnotationArrayContext annotationArrayContext) {
             super(ASM_API_VERSION);
@@ -578,7 +580,7 @@ class JavaClassProcessor extends ClassVisitor {
             return new AnnotationProcessor(new TakesAnnotationBuilder() {
                 @Override
                 public void add(DomainBuilders.JavaAnnotationBuilder annotationBuilder) {
-                    values.add(DomainBuilders.JavaAnnotationBuilder.ValueBuilder.from(annotationBuilder));
+                    values.add(ValueBuilder.from(annotationBuilder));
                 }
             }, annotationBuilderFor(desc));
         }
@@ -610,9 +612,9 @@ class JavaClassProcessor extends ClassVisitor {
             annotationArrayContext.setArrayResult(new ArrayValueBuilder());
         }
 
-        private class ArrayValueBuilder extends DomainBuilders.JavaAnnotationBuilder.ValueBuilder {
+        private class ArrayValueBuilder extends ValueBuilder {
             @Override
-            public Optional<Object> build(JavaClass owner, ClassesByTypeName importedClasses) {
+            public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
                 Optional<Class<?>> componentType = determineComponentType(importedClasses);
                 if (!componentType.isPresent()) {
                     return Optional.absent();
@@ -643,9 +645,9 @@ class JavaClassProcessor extends ClassVisitor {
                 return values.toArray((Object[]) Array.newInstance(componentType, values.size()));
             }
 
-            private List<Object> buildValues(JavaClass owner, ClassesByTypeName importedClasses) {
+            private <T extends HasDescription> List<Object> buildValues(T owner, ClassesByTypeName importedClasses) {
                 List<Object> result = new ArrayList<>();
-                for (DomainBuilders.JavaAnnotationBuilder.ValueBuilder value : values) {
+                for (ValueBuilder value : values) {
                     result.addAll(value.build(owner, importedClasses).asSet());
                 }
                 return result;
@@ -690,7 +692,7 @@ class JavaClassProcessor extends ClassVisitor {
                 // it's not completely consistent, but we'll just treat this as Object array for now and see
                 // if this will ever make a problem, since annotation proxy would to the conversion backwards
                 // and if one has to handle get(property): Object, this to be an empty Object[]
-                // instead of a JavaEnumConstant[] or JavaAnnotation[] should hardly cause any real problems
+                // instead of a JavaEnumConstant[] or JavaAnnotation<?>[] should hardly cause any real problems
                 return Optional.<Class<?>>of(Object.class);
             }
 
@@ -709,13 +711,13 @@ class JavaClassProcessor extends ClassVisitor {
 
         String getDeclaringAnnotationMemberName();
 
-        void setArrayResult(DomainBuilders.JavaAnnotationBuilder.ValueBuilder valueBuilder);
+        void setArrayResult(ValueBuilder valueBuilder);
     }
 
-    private static DomainBuilders.JavaAnnotationBuilder.ValueBuilder javaEnumBuilder(final String desc, final String value) {
-        return new DomainBuilders.JavaAnnotationBuilder.ValueBuilder() {
+    private static ValueBuilder javaEnumBuilder(final String desc, final String value) {
+        return new ValueBuilder() {
             @Override
-            public Optional<Object> build(JavaClass owner, ClassesByTypeName importedClasses) {
+            public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
                 return Optional.<Object>of(
                         new DomainBuilders.JavaEnumConstantBuilder()
                                 .withDeclaringClass(importedClasses.get(Type.getType(desc).getClassName()))
@@ -731,14 +733,14 @@ class JavaClassProcessor extends ClassVisitor {
                 Class.class.getName(), JavaClass.class,
                 Class[].class.getName(), JavaClass[].class
         );
-        private static final Map<Class<?>, Function<Object, DomainBuilders.JavaAnnotationBuilder.ValueBuilder>> importedValueToInternalValue =
-                ImmutableMap.<Class<?>, Function<Object, DomainBuilders.JavaAnnotationBuilder.ValueBuilder>>of(
-                        Type.class, new Function<Object, DomainBuilders.JavaAnnotationBuilder.ValueBuilder>() {
+        private static final Map<Class<?>, Function<Object, ValueBuilder>> importedValueToInternalValue =
+                ImmutableMap.<Class<?>, Function<Object, ValueBuilder>>of(
+                        Type.class, new Function<Object, ValueBuilder>() {
                             @Override
-                            public DomainBuilders.JavaAnnotationBuilder.ValueBuilder apply(final Object input) {
-                                return new DomainBuilders.JavaAnnotationBuilder.ValueBuilder() {
+                            public ValueBuilder apply(final Object input) {
+                                return new ValueBuilder() {
                                     @Override
-                                    public Optional<Object> build(JavaClass owner, ClassesByTypeName importedClasses) {
+                                    public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
                                         return Optional.<Object>of(importedClasses.get(((Type) input).getClassName()));
                                     }
                                 };
@@ -758,10 +760,10 @@ class JavaClassProcessor extends ClassVisitor {
                     Optional.<Class<?>>absent();
         }
 
-        static DomainBuilders.JavaAnnotationBuilder.ValueBuilder convert(Object value) {
+        static ValueBuilder convert(Object value) {
             return importedValueToInternalValue.containsKey(value.getClass()) ?
                     importedValueToInternalValue.get(value.getClass()).apply(value) :
-                    DomainBuilders.JavaAnnotationBuilder.ValueBuilder.ofFinished(value);
+                    ValueBuilder.ofFinished(value);
         }
     }
 }

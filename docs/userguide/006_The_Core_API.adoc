@@ -314,7 +314,7 @@ If you need to access this annotation without it being on the classpath, you mus
 
 [source,java,options="nowrap"]
 ----
-JavaAnnotation annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnotation");
+JavaAnnotation<?> annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnotation");
 // result is untyped, since it might not be on the classpath (e.g. enums)
 Object value = annotation.get("value");
 ----

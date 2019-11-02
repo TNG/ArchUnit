@@ -228,7 +228,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void wrong_annotation_type_is_rejected() {
-        JavaAnnotation mismatch = javaAnnotationFrom(TestAnnotation.class.getAnnotation(Retention.class), getClass());
+        JavaAnnotation<?> mismatch = javaAnnotationFrom(TestAnnotation.class.getAnnotation(Retention.class), getClass());
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(Retention.class.getSimpleName());
@@ -240,7 +240,7 @@ public class AnnotationProxyTest {
     @Test
     public void array_is_converted_to_the_correct_type() {
         ImportTestUtils.ImportedTestClasses importedClasses = simpleImportedClasses();
-        JavaAnnotation annotation = new JavaAnnotationTestBuilder()
+        JavaAnnotation<?> annotation = new JavaAnnotationTestBuilder()
                 .withType(JavaType.From.name(TestAnnotation.class.getName()))
                 .addProperty("types", new Object[0])
                 .addProperty("enumConstants", new Object[0])
@@ -422,7 +422,7 @@ public class AnnotationProxyTest {
     }
 
     private <A extends Annotation> A getProxyFor(Class<A> annotationType) {
-        JavaAnnotation toProxy = javaAnnotationFrom(Irrelevant.class.getAnnotation(annotationType), Irrelevant.class);
+        JavaAnnotation<?> toProxy = javaAnnotationFrom(Irrelevant.class.getAnnotation(annotationType), Irrelevant.class);
         return AnnotationProxy.of(annotationType, toProxy);
     }
 }

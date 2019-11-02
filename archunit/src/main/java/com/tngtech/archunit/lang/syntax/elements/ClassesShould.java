@@ -325,7 +325,7 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction beAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    ClassesShouldConjunction beAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Asserts that classes are not annotated with a certain annotation, where matching annotations are
@@ -335,7 +335,7 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    ClassesShouldConjunction notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Asserts that classes are meta-annotated with a certain type of annotation. A meta-annotation is
@@ -385,7 +385,7 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    ClassesShouldConjunction beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Asserts that classes are not meta-annotated with a certain annotation, where matching meta-annotations are
@@ -395,7 +395,7 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    ClassesShouldConjunction notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Asserts that classes implement a certain interface.

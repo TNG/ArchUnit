@@ -62,6 +62,7 @@ import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.importPackagesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -227,10 +228,10 @@ public class JavaClassTest {
     @Test
     public void isAnnotatedWith_predicate() {
         assertThat(importClassWithContext(Parent.class)
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(importClassWithContext(Parent.class)
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
@@ -259,10 +260,10 @@ public class JavaClassTest {
         JavaClass clazz = importClassesWithContext(Parent.class, SomeAnnotation.class).get(Parent.class);
 
         assertThat(clazz
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(clazz
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
@@ -520,7 +521,7 @@ public class JavaClassTest {
 
     @Test
     public void direct_dependencies_to_self_by_annotation() {
-        JavaClasses javaClasses = importClasses(ClassWithAnnotationDependencies.class, OnClass.class);
+        JavaClasses javaClasses = importPackagesOf(getClass());
 
         assertThat(javaClasses.get(OnClass.class).getDirectDependenciesToSelf())
                 .areAtLeastOne(annotationTypeDependency()
@@ -528,15 +529,11 @@ public class JavaClassTest {
                         .to(OnClass.class)
                         .inLineNumber(0));
 
-        javaClasses = importClasses(ClassWithAnnotationDependencies.class, OnField.class);
-
         assertThat(javaClasses.get(OnField.class).getDirectDependenciesToSelf())
                 .areAtLeastOne(annotationTypeDependency()
                         .from(ClassWithAnnotationDependencies.class)
                         .to(OnField.class)
                         .inLineNumber(0));
-
-        javaClasses = importClasses(ClassWithAnnotationDependencies.class, OnMethod.class);
 
         assertThat(javaClasses.get(OnMethod.class).getDirectDependenciesToSelf())
                 .areAtLeastOne(annotationTypeDependency()
@@ -544,23 +541,17 @@ public class JavaClassTest {
                         .to(OnMethod.class)
                         .inLineNumber(0));
 
-        javaClasses = importClasses(ClassWithAnnotationDependencies.class, OnConstructor.class);
-
         assertThat(javaClasses.get(OnConstructor.class).getDirectDependenciesToSelf())
                 .areAtLeastOne(annotationTypeDependency()
                         .from(ClassWithAnnotationDependencies.class)
                         .to(OnConstructor.class)
                         .inLineNumber(0));
 
-        javaClasses = importClasses(ClassWithAnnotationDependencies.class, WithType.class);
-
         assertThat(javaClasses.get(WithType.class).getDirectDependenciesToSelf())
                 .areAtLeastOne(annotationMemberOfTypeDependency()
                         .from(ClassWithAnnotationDependencies.class)
                         .to(WithType.class)
                         .inLineNumber(0));
-
-        javaClasses = importClasses(ClassWithAnnotationDependencies.class, B.class);
 
         assertThat(javaClasses.get(B.class).getDirectDependenciesToSelf())
                 .areAtLeastOne(annotationMemberOfTypeDependency()
@@ -885,7 +876,7 @@ public class JavaClassTest {
 
     private JavaClass classWithHierarchy(Class<?> clazz) {
         Set<Class<?>> classesToImport = getHierarchy(clazz);
-        return importClasses(classesToImport.toArray(new Class[0])).get(clazz);
+        return importClasses(classesToImport.toArray(new Class<?>[0])).get(clazz);
     }
 
     private static DependencyConditionCreation callDependency() {
@@ -956,9 +947,11 @@ public class JavaClassTest {
 
         private class Step2 {
             private final Class<?> origin;
+            private String originDescription;
 
             Step2(Class<?> origin) {
                 this.origin = origin;
+                originDescription = origin.getName();
             }
 
             Step3 to(Class<?> target) {
@@ -985,7 +978,7 @@ public class JavaClassTest {
 
                 Condition<Dependency> inLineNumber(final int lineNumber) {
                     return new Condition<Dependency>(String.format(
-                            "%s %s %s in line %d", origin.getName(), descriptionPart, targetDescription, lineNumber)) {
+                            "%s %s %s in line %d", originDescription, descriptionPart, targetDescription, lineNumber)) {
                         @Override
                         public boolean matches(Dependency value) {
                             return value.getOriginClass().isEquivalentTo(origin) &&

@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
@@ -149,6 +150,24 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     @PublicAPI(usage = ACCESS)
     public boolean isConstructor() {
         return false;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this code unit
+    public Set<? extends JavaAnnotation<? extends JavaCodeUnit>> getAnnotations() {
+        return (Set<? extends JavaAnnotation<? extends JavaCodeUnit>>) super.getAnnotations();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this code unit
+    public JavaAnnotation<? extends JavaCodeUnit> getAnnotationOfType(String typeName) {
+        return (JavaAnnotation<? extends JavaCodeUnit>) super.getAnnotationOfType(typeName);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this code unit
+    public Optional<? extends JavaAnnotation<? extends JavaCodeUnit>> tryGetAnnotationOfType(String typeName) {
+        return (Optional<? extends JavaAnnotation<? extends JavaCodeUnit>>) super.tryGetAnnotationOfType(typeName);
     }
 
     AccessContext.Part completeFrom(ImportContext context) {

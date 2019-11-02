@@ -45,7 +45,7 @@ class AnnotationProxy {
         DomainPlugin.Loader.loadForCurrentPlatform().plugInAnnotationValueFormatter(valueFormatter);
     }
 
-    public static <A extends Annotation> A of(Class<A> annotationType, JavaAnnotation toProxy) {
+    public static <A extends Annotation> A of(Class<A> annotationType, JavaAnnotation<?> toProxy) {
         checkArgument(annotationType.getName().equals(toProxy.getRawType().getName()),
                 "Requested annotation type %s is incompatible with %s of type %s",
                 annotationType.getSimpleName(), JavaAnnotation.class.getSimpleName(), toProxy.getRawType().getSimpleName());
@@ -54,7 +54,7 @@ class AnnotationProxy {
     }
 
     @SuppressWarnings("unchecked") // annotationType A will be implemented
-    private static <A extends Annotation> A newProxy(Class<A> annotationType, JavaAnnotation toProxy) {
+    private static <A extends Annotation> A newProxy(Class<A> annotationType, JavaAnnotation<?> toProxy) {
         return (A) Proxy.newProxyInstance(
                 annotationType.getClassLoader(),
                 new Class[]{annotationType},
@@ -62,11 +62,11 @@ class AnnotationProxy {
     }
 
     private static class AnnotationMethodInvocationHandler implements InvocationHandler {
-        private final JavaAnnotation toProxy;
+        private final JavaAnnotation<?> toProxy;
         private final Conversions conversions;
         private final Map<MethodKey, SpecificHandler> handlersByMethod;
 
-        private AnnotationMethodInvocationHandler(Class<?> annotationType, JavaAnnotation toProxy) {
+        private AnnotationMethodInvocationHandler(Class<?> annotationType, JavaAnnotation<?> toProxy) {
             this.toProxy = toProxy;
             conversions = initConversions(annotationType);
             handlersByMethod = initHandlersByMethod(annotationType, toProxy, conversions);
@@ -86,7 +86,7 @@ class AnnotationProxy {
         }
 
         private ImmutableMap<MethodKey, SpecificHandler> initHandlersByMethod(
-                Class<?> annotationType, JavaAnnotation toProxy, Conversions conversions) {
+                Class<?> annotationType, JavaAnnotation<?> toProxy, Conversions conversions) {
             return ImmutableMap.of(
                     new MethodKey("annotationType"), new ConstantReturnValueHandler(annotationType),
                     new MethodKey("equals", Object.class.getName()), new EqualsHandler(),
@@ -186,7 +186,7 @@ class AnnotationProxy {
         }
     }
 
-    private static class JavaAnnotationConversion implements Conversion<JavaAnnotation> {
+    private static class JavaAnnotationConversion implements Conversion<JavaAnnotation<?>> {
         private final ClassLoader classLoader;
 
         private JavaAnnotationConversion(ClassLoader classLoader) {
@@ -194,8 +194,8 @@ class AnnotationProxy {
         }
 
         @Override
-        public Annotation convert(JavaAnnotation input, Class<?> returnType) {
-            // JavaAnnotation#getType() will return the type name of a Class<? extends Annotation>
+        public Annotation convert(JavaAnnotation<?> input, Class<?> returnType) {
+            // JavaAnnotation.getType() will return the type name of a Class<? extends Annotation>
             @SuppressWarnings("unchecked")
             Class<? extends Annotation> type = (Class<? extends Annotation>)
                     JavaType.From.javaClass(input.getRawType()).resolveClass(classLoader);
@@ -268,10 +268,10 @@ class AnnotationProxy {
 
     private static class ToStringHandler implements SpecificHandler {
         private final Class<?> annotationType;
-        private final JavaAnnotation toProxy;
+        private final JavaAnnotation<?> toProxy;
         private final Conversions conversions;
 
-        private ToStringHandler(Class<?> annotationType, JavaAnnotation toProxy, Conversions conversions) {
+        private ToStringHandler(Class<?> annotationType, JavaAnnotation<?> toProxy, Conversions conversions) {
             this.annotationType = annotationType;
             this.toProxy = toProxy;
             this.conversions = conversions;
