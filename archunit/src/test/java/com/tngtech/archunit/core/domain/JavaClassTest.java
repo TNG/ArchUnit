@@ -447,7 +447,6 @@ public class JavaClassTest {
                         .to(B.class)
                         .inLineNumber(0))
         ;
-        // TODO test meta annotations
         // TODO test that annotation dependencies do not lead to a infinite loop
     }
 
