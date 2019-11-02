@@ -20,12 +20,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 
+import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
@@ -42,6 +44,8 @@ class JavaClassDependencies {
     private final Set<JavaAnnotation<?>> annotationsWithParameterTypeOfClass;
     private final Set<JavaMember> membersWithAnnotationTypeOfClass;
     private final Set<JavaMember> membersWithAnnotationParameterTypeOfClass;
+    private final Supplier<Set<Dependency>> directDependenciesFromClass;
+    private final Supplier<Set<Dependency>> directDependenciesToClass;
 
     JavaClassDependencies(JavaClass javaClass, ImportContext context) {
         this.javaClass = javaClass;
@@ -55,32 +59,52 @@ class JavaClassDependencies {
         this.annotationsWithParameterTypeOfClass = context.getAnnotationsWithParameterOfType(javaClass);
         this.membersWithAnnotationTypeOfClass = context.getMembersAnnotatedWithType(javaClass);
         this.membersWithAnnotationParameterTypeOfClass = context.getMembersWithParametersOfType(javaClass);
+        this.directDependenciesFromClass = getDirectDependenciesFromClassSupplier();
+        this.directDependenciesToClass = getDirectDependenciesToClassSupplier();
+    }
+
+    private Supplier<Set<Dependency>> getDirectDependenciesFromClassSupplier() {
+        return memoize(new Supplier<Set<Dependency>>() {
+            @Override
+            public Set<Dependency> get() {
+                ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+                result.addAll(dependenciesFromAccesses(javaClass.getAccessesFromSelf()));
+                result.addAll(inheritanceDependenciesFromSelf());
+                result.addAll(fieldDependenciesFromSelf());
+                result.addAll(returnTypeDependenciesFromSelf());
+                result.addAll(methodParameterDependenciesFromSelf());
+                result.addAll(throwsDeclarationDependenciesFromSelf());
+                result.addAll(constructorParameterDependenciesFromSelf());
+                result.addAll(annotationDependenciesFromSelf());
+                return result.build();
+            }
+        });
+    }
+
+    private Supplier<Set<Dependency>> getDirectDependenciesToClassSupplier() {
+        return memoize(new Supplier<Set<Dependency>>() {
+            @Override
+            public Set<Dependency> get() {
+                ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+                result.addAll(dependenciesFromAccesses(javaClass.getAccessesToSelf()));
+                result.addAll(inheritanceDependenciesToSelf());
+                result.addAll(fieldDependenciesToSelf());
+                result.addAll(returnTypeDependenciesToSelf());
+                result.addAll(methodParameterDependenciesToSelf());
+                result.addAll(throwsDeclarationDependenciesToSelf());
+                result.addAll(constructorParameterDependenciesToSelf());
+                result.addAll(annotationDependenciesToSelf());
+                return result.build();
+            }
+        });
     }
 
     Set<Dependency> getDirectDependenciesFromClass() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        result.addAll(dependenciesFromAccesses(javaClass.getAccessesFromSelf()));
-        result.addAll(inheritanceDependenciesFromSelf());
-        result.addAll(fieldDependenciesFromSelf());
-        result.addAll(returnTypeDependenciesFromSelf());
-        result.addAll(methodParameterDependenciesFromSelf());
-        result.addAll(throwsDeclarationDependenciesFromSelf());
-        result.addAll(constructorParameterDependenciesFromSelf());
-        result.addAll(annotationDependenciesFromSelf());
-        return result.build();
+        return directDependenciesFromClass.get();
     }
 
     Set<Dependency> getDirectDependenciesToClass() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        result.addAll(dependenciesFromAccesses(javaClass.getAccessesToSelf()));
-        result.addAll(inheritanceDependenciesToSelf());
-        result.addAll(fieldDependenciesToSelf());
-        result.addAll(returnTypeDependenciesToSelf());
-        result.addAll(methodParameterDependenciesToSelf());
-        result.addAll(throwsDeclarationDependenciesToSelf());
-        result.addAll(constructorParameterDependenciesToSelf());
-        result.addAll(annotationDependenciesToSelf());
-        return result.build();
+        return directDependenciesToClass.get();
     }
 
     Set<JavaField> getFieldsWithTypeOfClass() {
