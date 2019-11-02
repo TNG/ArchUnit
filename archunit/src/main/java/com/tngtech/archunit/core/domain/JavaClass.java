@@ -17,7 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -27,14 +26,12 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
@@ -59,7 +56,6 @@ import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NA
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
-import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
@@ -97,7 +93,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
                     .build();
         }
     });
-    private MemberDependenciesOnClass memberDependenciesOnClass;
+    private JavaClassDependencies javaClassDependencies;
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
@@ -644,16 +640,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        result.addAll(dependenciesFromAccesses(getAccessesFromSelf()));
-        result.addAll(inheritanceDependenciesFromSelf());
-        result.addAll(fieldDependenciesFromSelf());
-        result.addAll(returnTypeDependenciesFromSelf());
-        result.addAll(methodParameterDependenciesFromSelf());
-        result.addAll(throwsDeclarationDependenciesFromSelf());
-        result.addAll(constructorParameterDependenciesFromSelf());
-        result.addAll(annotationDependenciesFromSelf());
-        return result.build();
+        return javaClassDependencies.getDirectDependenciesFromClass();
     }
 
     /**
@@ -664,16 +651,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesToSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        result.addAll(dependenciesFromAccesses(getAccessesToSelf()));
-        result.addAll(inheritanceDependenciesToSelf());
-        result.addAll(fieldDependenciesToSelf());
-        result.addAll(returnTypeDependenciesToSelf());
-        result.addAll(methodParameterDependenciesToSelf());
-        result.addAll(throwsDeclarationDependenciesToSelf());
-        result.addAll(constructorParameterDependenciesToSelf());
-        result.addAll(annotationDependenciesToSelf());
-        return result.build();
+        return javaClassDependencies.getDirectDependenciesToClass();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -717,7 +695,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaField> getFieldsWithTypeOfSelf() {
-        return memberDependenciesOnClass.getFieldsWithTypeOfClass();
+        return javaClassDependencies.getFieldsWithTypeOfClass();
     }
 
     /**
@@ -725,7 +703,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethodsWithParameterTypeOfSelf() {
-        return memberDependenciesOnClass.getMethodsWithParameterTypeOfClass();
+        return javaClassDependencies.getMethodsWithParameterTypeOfClass();
     }
 
     /**
@@ -733,7 +711,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethodsWithReturnTypeOfSelf() {
-        return memberDependenciesOnClass.getMethodsWithReturnTypeOfClass();
+        return javaClassDependencies.getMethodsWithReturnTypeOfClass();
     }
 
     /**
@@ -741,7 +719,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      */
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsWithTypeOfSelf() {
-        return memberDependenciesOnClass.getMethodThrowsDeclarationsWithTypeOfClass();
+        return javaClassDependencies.getMethodThrowsDeclarationsWithTypeOfClass();
     }
 
     /**
@@ -749,7 +727,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructor> getConstructorsWithParameterTypeOfSelf() {
-        return memberDependenciesOnClass.getConstructorsWithParameterTypeOfClass();
+        return javaClassDependencies.getConstructorsWithParameterTypeOfClass();
     }
 
     /**
@@ -757,7 +735,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      */
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaConstructor>> getConstructorsWithThrowsDeclarationTypeOfSelf() {
-        return memberDependenciesOnClass.getConstructorsWithThrowsDeclarationTypeOfClass();
+        return javaClassDependencies.getConstructorsWithThrowsDeclarationTypeOfClass();
     }
 
     /**
@@ -765,7 +743,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaAnnotation<?>> getAnnotationsWithTypeOfSelf() {
-        return memberDependenciesOnClass.getAnnotationsWithTypeOfClass();
+        return javaClassDependencies.getAnnotationsWithTypeOfClass();
     }
 
     /**
@@ -908,17 +886,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     CompletionProcess completeFrom(ImportContext context) {
         completeComponentType(context);
         enclosingClass = context.createEnclosingClass(this);
-        memberDependenciesOnClass = new MemberDependenciesOnClass(
-                context.getFieldsOfType(this),
-                context.getMethodsWithParameterOfType(this),
-                context.getMethodsWithReturnType(this),
-                context.getMethodThrowsDeclarationsOfType(this),
-                context.getConstructorsWithParameterOfType(this),
-                context.getConstructorThrowsDeclarationsOfType(this),
-                context.getAnnotationsOfType(this),
-                context.getAnnotationsWithParameterOfType(this),
-                context.getMembersAnnotatedWithType(this),
-                context.getMembersWithParametersOfType(this));
+        javaClassDependencies = new JavaClassDependencies(this, context);
         return new CompletionProcess();
     }
 
@@ -955,296 +923,6 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         return getSimpleName().isEmpty();
     }
 
-    private Set<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaAccess<?> access : filterNoSelfAccess(accesses)) {
-            result.add(Dependency.from(access));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> inheritanceDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaClass superType : FluentIterable.from(getInterfaces()).append(getSuperClass().asSet())) {
-            result.add(Dependency.fromInheritance(this, superType));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> fieldDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaField field : nonPrimitive(getFields(), GET_RAW_TYPE)) {
-            result.add(Dependency.fromField(field));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> returnTypeDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaMethod method : nonPrimitive(getMethods(), GET_RAW_RETURN_TYPE)) {
-            result.add(Dependency.fromReturnType(method));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> methodParameterDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaMethod method : getMethods()) {
-            for (JavaClass parameter : nonPrimitive(method.getRawParameterTypes())) {
-                result.add(Dependency.fromParameter(method, parameter));
-            }
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> throwsDeclarationDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : getCodeUnits()) {
-            for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : codeUnit.getThrowsClause()) {
-                result.add(Dependency.fromThrowsDeclaration(throwsDeclaration));
-            }
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> constructorParameterDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaConstructor constructor : getConstructors()) {
-            for (JavaClass parameter : nonPrimitive(constructor.getRawParameterTypes())) {
-                result.add(Dependency.fromParameter(constructor, parameter));
-            }
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> annotationDependenciesFromSelf() {
-        return new ImmutableSet.Builder<Dependency>()
-                .addAll(annotationDependencies(this))
-                .addAll(annotationDependencies(getFields()))
-                .addAll(annotationDependencies(getMethods()))
-                .addAll(annotationDependencies(getConstructors()))
-                .build();
-    }
-
-    private <T extends HasDescription & HasAnnotations<?>> Set<Dependency> annotationDependencies(Set<T> annotatedObjects) {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (T annotated : annotatedObjects) {
-            result.addAll(annotationDependencies(annotated));
-        }
-        return result.build();
-    }
-
-    private <T extends HasDescription & HasAnnotations<?>> Set<Dependency> annotationDependencies(T annotated) {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaAnnotation<?> annotation : annotated.getAnnotations()) {
-            result.add(Dependency.fromAnnotation(annotation));
-            result.addAll(annotationParametersDependencies(annotation));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> annotationParametersDependencies(JavaAnnotation<?> annotation) {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
-            Object value = entry.getValue();
-            if (value.getClass().isArray()) {
-                if (!value.getClass().getComponentType().isPrimitive()) {
-                    Object[] values = (Object[]) value;
-                    for (Object o : values) {
-                        result.addAll(annotationParameterDependencies(annotation, o));
-                    }
-                }
-            } else {
-                result.addAll(annotationParameterDependencies(annotation, value));
-            }
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> annotationParameterDependencies(JavaAnnotation<?> origin, Object value) {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        if (value instanceof JavaClass) {
-            JavaClass annotationMember = (JavaClass) value;
-            result.add(Dependency.fromAnnotationMember(origin, annotationMember));
-        } else if (value instanceof JavaAnnotation<?>) {
-            JavaAnnotation<?> nestedAnnotation = (JavaAnnotation<?>) value;
-            result.add(Dependency.fromAnnotationMember(origin, nestedAnnotation.getRawType()));
-            result.addAll(annotationParametersDependencies(nestedAnnotation));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> inheritanceDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaClass subClass : getSubClasses()) {
-            result.add(Dependency.fromInheritance(subClass, this));
-        }
-        return result;
-    }
-
-    private Set<Dependency> fieldDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaField field : getFieldsWithTypeOfSelf()) {
-            result.add(Dependency.fromField(field));
-        }
-        return result;
-    }
-
-    private Set<Dependency> returnTypeDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaMethod method : getMethodsWithReturnTypeOfSelf()) {
-            result.add(Dependency.fromReturnType(method));
-        }
-        return result;
-    }
-
-    private Set<Dependency> methodParameterDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaMethod method : getMethodsWithParameterTypeOfSelf()) {
-            result.add(Dependency.fromParameter(method, this));
-        }
-        return result;
-    }
-
-    private Set<Dependency> throwsDeclarationDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : memberDependenciesOnClass.getThrowsDeclarationsWithTypeOfClass()) {
-            result.add(Dependency.fromThrowsDeclaration(throwsDeclaration));
-        }
-        return result;
-    }
-
-    private Set<Dependency> constructorParameterDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaConstructor constructor : getConstructorsWithParameterTypeOfSelf()) {
-            result.add(Dependency.fromParameter(constructor, this));
-        }
-        return result;
-    }
-
-    private Iterable<? extends Dependency> annotationDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaAnnotation<?> annotation : getAnnotationsWithTypeOfSelf()) {
-            result.add(Dependency.fromAnnotation(annotation));
-        }
-        for (JavaAnnotation<?> annotation : memberDependenciesOnClass.getAnnotationsWithParameterTypeOfClass()) {
-            result.add(Dependency.fromAnnotationMember(annotation, this));
-        }
-        for (JavaMember member : memberDependenciesOnClass.getMembersWithAnnotationTypeOfClass()) {
-            JavaAnnotation<?> annotation = member.getAnnotationOfType(getName());
-            result.add(Dependency.fromAnnotation(annotation));
-        }
-        for (JavaMember member : memberDependenciesOnClass.getMembersWithAnnotationParameterTypeOfClass()) {
-            JavaAnnotation<?> annotation = member.getAnnotationOfType(getName());
-            result.add(Dependency.fromAnnotationMember(annotation, this));
-        }
-        return result;
-    }
-
-    private Set<JavaAccess<?>> filterNoSelfAccess(Set<? extends JavaAccess<?>> accesses) {
-        Set<JavaAccess<?>> result = new HashSet<>();
-        for (JavaAccess<?> access : accesses) {
-            if (!access.getTargetOwner().equals(access.getOriginOwner())) {
-                result.add(access);
-            }
-        }
-        return result;
-    }
-
-    private Set<JavaClass> nonPrimitive(Collection<JavaClass> classes) {
-        return nonPrimitive(classes, com.tngtech.archunit.base.Function.Functions.<JavaClass>identity());
-    }
-
-    private <T> Set<T> nonPrimitive(Collection<T> members, Function<? super T, JavaClass> getRelevantType) {
-        ImmutableSet.Builder<T> result = ImmutableSet.builder();
-        for (T member : members) {
-            if (!getRelevantType.apply(member).isPrimitive()) {
-                result.add(member);
-            }
-        }
-        return result.build();
-    }
-
-    private static class MemberDependenciesOnClass {
-        private final Set<JavaField> fieldsWithTypeOfClass;
-        private final Set<JavaMethod> methodsWithParameterTypeOfClass;
-        private final Set<JavaMethod> methodsWithReturnTypeOfClass;
-        private final Set<ThrowsDeclaration<JavaMethod>> methodsWithThrowsDeclarationTypeOfClass;
-        private final Set<JavaConstructor> constructorsWithParameterTypeOfClass;
-        private final Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass;
-        private final Set<JavaAnnotation<?>> annotationsWithTypeOfClass;
-        private final Set<JavaAnnotation<?>> annotationsWithParameterTypeOfClass;
-        private final Set<JavaMember> membersWithAnnotationTypeOfClass;
-        private final Set<JavaMember> membersWithAnnotationParameterTypeOfClass;
-
-        MemberDependenciesOnClass(
-                Set<JavaField> fieldsWithTypeOfClass,
-                Set<JavaMethod> methodsWithParameterTypeOfClass,
-                Set<JavaMethod> methodsWithReturnTypeOfClass,
-                Set<ThrowsDeclaration<JavaMethod>> methodsWithThrowsDeclarationTypeOfClass,
-                Set<JavaConstructor> constructorsWithParameterTypeOfClass,
-                Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass,
-                Set<JavaAnnotation<?>> annotationsWithTypeOfClass,
-                Set<JavaAnnotation<?>> annotationsWithParameterTypeOfClass,
-                Set<JavaMember> membersWithAnnotationTypeOfClass,
-                Set<JavaMember> membersWithAnnotationParameterTypeOfClass) {
-
-            this.fieldsWithTypeOfClass = ImmutableSet.copyOf(fieldsWithTypeOfClass);
-            this.methodsWithParameterTypeOfClass = ImmutableSet.copyOf(methodsWithParameterTypeOfClass);
-            this.methodsWithReturnTypeOfClass = ImmutableSet.copyOf(methodsWithReturnTypeOfClass);
-            this.methodsWithThrowsDeclarationTypeOfClass = ImmutableSet.copyOf(methodsWithThrowsDeclarationTypeOfClass);
-            this.constructorsWithParameterTypeOfClass = ImmutableSet.copyOf(constructorsWithParameterTypeOfClass);
-            this.constructorsWithThrowsDeclarationTypeOfClass = ImmutableSet.copyOf(constructorsWithThrowsDeclarationTypeOfClass);
-            this.annotationsWithTypeOfClass = ImmutableSet.copyOf(annotationsWithTypeOfClass);
-            this.annotationsWithParameterTypeOfClass = ImmutableSet.copyOf(annotationsWithParameterTypeOfClass);
-            this.membersWithAnnotationTypeOfClass = ImmutableSet.copyOf(membersWithAnnotationTypeOfClass);
-            this.membersWithAnnotationParameterTypeOfClass = ImmutableSet.copyOf(membersWithAnnotationParameterTypeOfClass);
-        }
-
-        Set<JavaField> getFieldsWithTypeOfClass() {
-            return fieldsWithTypeOfClass;
-        }
-
-        Set<JavaMethod> getMethodsWithParameterTypeOfClass() {
-            return methodsWithParameterTypeOfClass;
-        }
-
-        Set<JavaMethod> getMethodsWithReturnTypeOfClass() {
-            return methodsWithReturnTypeOfClass;
-        }
-
-        Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsWithTypeOfClass() {
-            return methodsWithThrowsDeclarationTypeOfClass;
-        }
-
-        Set<JavaConstructor> getConstructorsWithParameterTypeOfClass() {
-            return constructorsWithParameterTypeOfClass;
-        }
-
-        Set<ThrowsDeclaration<JavaConstructor>> getConstructorsWithThrowsDeclarationTypeOfClass() {
-            return constructorsWithThrowsDeclarationTypeOfClass;
-        }
-
-        Set<ThrowsDeclaration<? extends JavaCodeUnit>> getThrowsDeclarationsWithTypeOfClass() {
-            return union(methodsWithThrowsDeclarationTypeOfClass, constructorsWithThrowsDeclarationTypeOfClass);
-        }
-
-        Set<JavaAnnotation<?>> getAnnotationsWithTypeOfClass() {
-            return annotationsWithTypeOfClass;
-        }
-
-        Set<JavaAnnotation<?>> getAnnotationsWithParameterTypeOfClass() {
-            return annotationsWithParameterTypeOfClass;
-        }
-
-        Set<JavaMember> getMembersWithAnnotationTypeOfClass() {
-            return membersWithAnnotationTypeOfClass;
-        }
-
-        Set<JavaMember> getMembersWithAnnotationParameterTypeOfClass() {
-            return membersWithAnnotationParameterTypeOfClass;
-        }
-    }
 
     public static final class Functions {
         private Functions() {
