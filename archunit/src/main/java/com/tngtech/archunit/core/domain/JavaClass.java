@@ -1039,7 +1039,6 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         for (JavaAnnotation<?> annotation : annotated.getAnnotations()) {
             result.add(Dependency.fromAnnotation(annotation));
             result.addAll(annotationParametersDependencies(annotation));
-            result.addAll(annotationDependencies(annotation.getRawType()));
         }
         return result.build();
     }
@@ -1067,11 +1066,9 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         if (value instanceof JavaClass) {
             JavaClass annotationMember = (JavaClass) value;
             result.add(Dependency.fromAnnotationMember(origin, annotationMember));
-            result.addAll(annotationDependencies(annotationMember));
         } else if (value instanceof JavaAnnotation<?>) {
             JavaAnnotation<?> nestedAnnotation = (JavaAnnotation<?>) value;
             result.add(Dependency.fromAnnotationMember(origin, nestedAnnotation.getRawType()));
-            result.addAll(annotationDependencies(nestedAnnotation.getRawType()));
             result.addAll(annotationParametersDependencies(nestedAnnotation));
         }
         return result.build();

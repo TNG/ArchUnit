@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
@@ -39,6 +40,9 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.Guava.toGuava;
+import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
+import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
@@ -66,6 +70,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importPackagesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
@@ -447,7 +452,20 @@ public class JavaClassTest {
                         .to(B.class)
                         .inLineNumber(0))
         ;
-        // TODO test that annotation dependencies do not lead to a infinite loop
+    }
+
+    @Test
+    public void direct_dependencies_from_self_finds_correct_set_of_target_types() {
+        JavaClass javaClass = importPackagesOf(getClass()).get(ClassWithAnnotationDependencies.class);
+
+        Set<JavaClass> targets = FluentIterable.from(javaClass.getDirectDependenciesFromSelf())
+                .transform(toGuava(GET_TARGET_CLASS)).toSet();
+
+        assertThatClasses(targets).matchInAnyOrder(
+                B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
+                List.class, Serializable.class, SomeSuperClass.class,
+                WithType.class, WithNestedAnnotations.class, OnClass.class,
+                OnMethod.class, OnConstructor.class, OnField.class, MetaAnnotated.class);
     }
 
     @Test
@@ -557,6 +575,25 @@ public class JavaClassTest {
                         .from(ClassWithAnnotationDependencies.class)
                         .to(B.class)
                         .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_finds_correct_set_of_origin_types() {
+        JavaClasses classes = importPackagesOf(getClass());
+
+        Set<JavaClass> origins = getOriginsOfDependenciesTo(classes.get(WithType.class));
+
+        assertThatClasses(origins).matchInAnyOrder(ClassWithAnnotationDependencies.class, OnMethodParam.class);
+
+        origins = getOriginsOfDependenciesTo(classes.get(B.class));
+
+        assertThatClasses(origins).matchInAnyOrder(
+                ClassWithAnnotationDependencies.class, OnMethodParam.class, AAccessingB.class, AhavingMembersOfTypeB.class);
+    }
+
+    private Set<JavaClass> getOriginsOfDependenciesTo(JavaClass withType) {
+        return FluentIterable.from(withType.getDirectDependenciesToSelf())
+                .transform(toGuava(GET_ORIGIN_CLASS)).toSet();
     }
 
     @Test
@@ -1260,25 +1297,31 @@ public class JavaClassTest {
         }
     }
 
+    private static class SomeSuperClass {
+    }
+
     @OnClass
     @WithNestedAnnotations(
+            outerType = AhavingMembersOfTypeB.class,
             nested = {
                     @WithType(type = B.class)
             }
     )
     @MetaAnnotated
-    public class ClassWithAnnotationDependencies {
+    public static class ClassWithAnnotationDependencies extends SomeSuperClass {
         @OnField
         Object field;
 
         @OnConstructor
-        ClassWithAnnotationDependencies() {}
-
-        @OnMethod
-        void method() {
+        ClassWithAnnotationDependencies(Serializable param) {
         }
 
-        void method(@OnMethodParam Object obj) {
+        @OnMethod
+        List<?> method() {
+            return null;
+        }
+
+        void method(@OnMethodParam String param) {
         }
     }
 
@@ -1286,16 +1329,26 @@ public class JavaClassTest {
     @interface OnField {}
     @interface OnConstructor {}
     @interface OnMethod {}
+
+    @WithType(type = B.class)
     @interface OnMethodParam {}
+
+    @Retention(RUNTIME)
     @interface WithType { Class<?> type(); }
+
+    @Retention(RUNTIME)
     @interface WithNestedAnnotations {
+        Class<?> outerType();
+
         WithType[] nested();
     }
 
+    @Retention(RUNTIME)
     @MetaAnnotation
     @interface MetaAnnotation {
     }
 
+    @Retention(RUNTIME)
     @MetaAnnotation
     @interface MetaAnnotated {
     }

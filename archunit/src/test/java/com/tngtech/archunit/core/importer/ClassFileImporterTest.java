@@ -226,6 +226,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
+import static com.tngtech.archunit.testutil.TestUtils.namesOf;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
@@ -2249,14 +2250,6 @@ public class ClassFileImporterTest {
         Set<Integer> result = new HashSet<>();
         for (JavaFieldAccess access : fieldAccesses) {
             result.add(access.getLineNumber());
-        }
-        return result;
-    }
-
-    private Set<String> namesOf(Iterable<? extends HasName> thingsWithNames) {
-        Set<String> result = new HashSet<>();
-        for (HasName hasName : thingsWithNames) {
-            result.add(hasName.getName());
         }
         return result;
     }
