@@ -230,7 +230,7 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION beAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    CONJUNCTION beAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Asserts that members are not annotated with an annotation matching the supplied predicate.
@@ -239,7 +239,7 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    CONJUNCTION notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Asserts that members are meta-annotated with a certain type of annotation. A meta-annotation is
@@ -289,7 +289,7 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    CONJUNCTION beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Asserts that members are not meta-annotated with an annotation matching the supplied predicate.
@@ -299,7 +299,7 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    CONJUNCTION notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Asserts that members are declared within the supplied class.

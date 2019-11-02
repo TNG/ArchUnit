@@ -160,7 +160,7 @@ public class ImportTestUtils {
                 return javaAnnotationFrom((Annotation) result, owner);
             }
             if (result instanceof Annotation[]) {
-                return javaAnnotationsFrom((Annotation[]) result, owner);
+                return javaAnnotationsFrom((Annotation[]) result, owner).toArray(new JavaAnnotation<?>[0]);
             }
             return result;
         } catch (Exception e) {
@@ -184,16 +184,16 @@ public class ImportTestUtils {
         return result.toArray(new JavaEnumConstant[0]);
     }
 
-    private static JavaAnnotation[] javaAnnotationsFrom(Annotation[] annotations, Class<?> owner) {
+    private static List<? extends JavaAnnotation<?>> javaAnnotationsFrom(Annotation[] annotations, Class<?> owner) {
         return javaAnnotationsFrom(annotations, simpleImportedClasses(), owner);
     }
 
-    private static JavaAnnotation[] javaAnnotationsFrom(Annotation[] annotations, ClassesByTypeName importedClasses, Class<?> owner) {
-        List<JavaAnnotation> result = new ArrayList<>();
+    private static List<JavaAnnotation<JavaClass>> javaAnnotationsFrom(Annotation[] annotations, ClassesByTypeName importedClasses, Class<?> owner) {
+        List<JavaAnnotation<JavaClass>> result = new ArrayList<>();
         for (Annotation a : annotations) {
             result.add(ImportTestUtils.javaAnnotationFrom(a, owner, importedClasses));
         }
-        return result.toArray(new JavaAnnotation[0]);
+        return result;
     }
 
     public static JavaMethodCall newMethodCall(JavaMethod origin, MethodCallTarget target, int lineNumber) {
@@ -259,11 +259,11 @@ public class ImportTestUtils {
                 .build();
     }
 
-    public static JavaAnnotation javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass) {
+    public static JavaAnnotation<JavaClass> javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass) {
         return javaAnnotationFrom(annotation, annotatedClass, ImportTestUtils.simpleImportedClasses());
     }
 
-    private static JavaAnnotation javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass, ClassesByTypeName importedClasses) {
+    private static JavaAnnotation<JavaClass> javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass, ClassesByTypeName importedClasses) {
         return javaAnnotationBuilderFrom(annotation, annotatedClass, importedClasses).build(importedClasses.get(annotatedClass.getName()), importedClasses);
     }
 
@@ -307,17 +307,17 @@ public class ImportTestUtils {
             }
 
             @Override
-            public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
+            public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
                 return annotationsFor(inputClass, importedClasses);
             }
         };
     }
 
-    private static ImmutableMap<String, JavaAnnotation> annotationsFor(Class<?> inputClass, ImportedTestClasses importedClasses) {
+    private static ImmutableMap<String, JavaAnnotation<JavaClass>> annotationsFor(Class<?> inputClass, ImportedTestClasses importedClasses) {
         return FluentIterable.from(javaAnnotationsFrom(inputClass.getAnnotations(), importedClasses, inputClass))
-                .uniqueIndex(new Function<JavaAnnotation, String>() {
+                .uniqueIndex(new Function<JavaAnnotation<?>, String>() {
                     @Override
-                    public String apply(JavaAnnotation input) {
+                    public String apply(JavaAnnotation<?> input) {
                         return input.getRawType().getName();
                     }
                 });
@@ -377,7 +377,7 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
+        public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
             return Collections.emptyMap();
         }
 
@@ -432,10 +432,12 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Set<JavaAnnotation> getAnnotationsOfType(JavaClass javaClass) { return Collections.emptySet(); }
+        public Set<JavaAnnotation<?>> getAnnotationsOfType(JavaClass javaClass) {
+            return Collections.emptySet();
+        }
 
         @Override
-        public Set<JavaAnnotation> getAnnotationsWithParameterOfType(JavaClass javaClass) {
+        public Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
 

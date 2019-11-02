@@ -17,9 +17,9 @@ import static com.tngtech.archunit.testutil.TestUtils.invoke;
 
 public class JavaAnnotationAssertion {
     @SuppressWarnings("rawtypes")
-    public static Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
+    public static Set<Map<String, Object>> propertiesOf(Set<? extends JavaAnnotation<?>> annotations) {
         List<Annotation> converted = new ArrayList<>();
-        for (JavaAnnotation annotation : annotations) {
+        for (JavaAnnotation<?> annotation : annotations) {
             converted.add(annotation.as((Class) annotation.getType().reflect()));
         }
         return propertiesOf(converted.toArray(new Annotation[0]));

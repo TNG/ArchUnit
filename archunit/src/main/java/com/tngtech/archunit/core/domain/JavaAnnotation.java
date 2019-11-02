@@ -19,7 +19,9 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
@@ -65,16 +67,47 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  *   someAnnotation.get("type"); // --&gt; returns JavaClass{String}
  *   someAnnotation.as(SomeAnnotation.class).type(); // --&gt; returns String.class
  * </code></pre>
+ *
+ * @param <OWNER> The type of the closest "parent" of this annotation. If this annotation
+ *                is annotated on a class or member, it is that class or member. If this
+ *                annotation is a member of another annotation, it is that annotation.
  */
-public final class JavaAnnotation implements HasType, HasOwner<JavaClass> {
+public final class JavaAnnotation<OWNER extends HasDescription> implements HasType, HasOwner<OWNER>, HasDescription {
     private final JavaClass type;
-    private final JavaClass owner;
+    private final OWNER owner;
+    private final CanBeAnnotated annotatedElement;
+    private final String description;
     private final Map<String, Object> values;
 
-    JavaAnnotation(JavaAnnotationBuilder builder) {
+    JavaAnnotation(OWNER owner, JavaAnnotationBuilder builder) {
         this.type = checkNotNull(builder.getType());
-        this.owner = checkNotNull(builder.getOwner());
-        this.values = checkNotNull(builder.getValues());
+        this.owner = checkNotNull(owner);
+        this.annotatedElement = getAnnotatedElement(owner);
+        this.description = createDescription();
+        this.values = checkNotNull(builder.getValues(this));
+    }
+
+    private CanBeAnnotated getAnnotatedElement(Object owner) {
+        Object candiate = owner;
+        while (!(candiate instanceof JavaClass) && !(candiate instanceof JavaMember) && (candiate instanceof HasOwner<?>)) {
+            candiate = ((HasOwner<?>) candiate).getOwner();
+        }
+        if (!(candiate instanceof CanBeAnnotated)) {
+            throw new IllegalArgumentException("Cannot derive annotated element from annotation owner: " + owner);
+        }
+        return (CanBeAnnotated) candiate;
+    }
+
+    private String createDescription() {
+        CanBeAnnotated annotatedElement = getAnnotatedElement();
+        String descriptionSuffix = annotatedElement instanceof HasDescription
+                ? " on " + startWithLowerCase((HasDescription) annotatedElement)
+                : "";
+        return "Annotation <" + type.getName() + ">" + descriptionSuffix;
+    }
+
+    private String startWithLowerCase(HasDescription annotatedElement) {
+        return annotatedElement.getDescription().substring(0, 1).toLowerCase() + annotatedElement.getDescription().substring(1);
     }
 
     /**
@@ -93,9 +126,38 @@ public final class JavaAnnotation implements HasType, HasOwner<JavaClass> {
         return type;
     }
 
+    /**
+     * Compare documentation of {@code OWNER} on {@link JavaAnnotation}
+     */
     @Override
-    public JavaClass getOwner() {
+    public OWNER getOwner() {
         return owner;
+    }
+
+    /**
+     * Returns either the element annotated with this {@link JavaAnnotation} (a class or member)
+     * or in case this annotation is an annotation parameter, the element annotated with an
+     * annotation that transitively declares this annotation as an annotation parameter.
+     * <br><br>
+     * Example:
+     * <pre><code>
+     * (1){@literal @}SomeAnnotation class SomeClass {}
+     * (2) class SomeClass {
+     *        {@literal @}SomeAnnotation SomeField someField;
+     *     }
+     * (3){@literal @}ComplexAnnotation(param = @SomeAnnotation) class SomeClass {}
+     * </code></pre>
+     * For case <code>(1)</code> the result of <code>someAnnotation.getAnnotatedElement()</code>
+     * would be <code>SomeClass</code>, for case <code>(2)</code>
+     * the result of <code>someAnnotation.getAnnotatedElement()</code> would be <code>someField</code>
+     * and for <code>(3)</code> the result of <code>someAnnotation.getAnnotatedElement()</code> would
+     * also be <code>SomeClass</code>, even though <code>@SomeAnnotation</code> is a parameter of
+     * <code>@ComplexAnnotation</code>.
+     * @return The closest element traversing up the tree, that can be annotated
+     */
+    @PublicAPI(usage = ACCESS)
+    public CanBeAnnotated getAnnotatedElement() {
+        return annotatedElement;
     }
 
     /**
@@ -138,7 +200,12 @@ public final class JavaAnnotation implements HasType, HasOwner<JavaClass> {
     }
 
     @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
     public String toString() {
-        return getClass().getSimpleName() + '{' + getRawType().getFullName() + '}';
+        return getClass().getSimpleName() + '{' + type.getName() + '}';
     }
 }

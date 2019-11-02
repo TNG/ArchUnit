@@ -19,25 +19,26 @@ import java.lang.annotation.Annotation;
 import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
-public interface HasAnnotations extends CanBeAnnotated {
+public interface HasAnnotations<SELF extends HasAnnotations<SELF>> extends CanBeAnnotated, HasDescription {
     @PublicAPI(usage = ACCESS)
-    Set<JavaAnnotation> getAnnotations();
+    Set<? extends JavaAnnotation<? extends SELF>> getAnnotations();
 
     @PublicAPI(usage = ACCESS)
     <A extends Annotation> A getAnnotationOfType(Class<A> type);
 
     @PublicAPI(usage = ACCESS)
-    JavaAnnotation getAnnotationOfType(String typeName);
+    JavaAnnotation<? extends SELF> getAnnotationOfType(String typeName);
 
     @PublicAPI(usage = ACCESS)
     <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type);
 
     @PublicAPI(usage = ACCESS)
-    Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName);
+    Optional<? extends JavaAnnotation<? extends SELF>> tryGetAnnotationOfType(String typeName);
 }

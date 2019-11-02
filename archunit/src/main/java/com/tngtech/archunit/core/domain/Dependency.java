@@ -93,22 +93,36 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
-    static Dependency fromAnnotation(HasDescription annotatedElement, JavaAnnotation target, JavaClass owner) {
-        return createDependency(owner, target.getRawType(), annotatedElement, "is annotated with");
+    static Dependency fromAnnotation(JavaAnnotation<?> target) {
+        Origin origin = findSuitableOrigin(target);
+        return createDependency(origin.originClass, origin.originDescription, "is annotated with", target.getRawType());
     }
 
-    static Dependency fromAnnotationMember(HasDescription annotatedElement, JavaClass memberType, JavaClass owner) {
-        return createDependency(owner, memberType, annotatedElement, "has annotation member of type");
+    static Dependency fromAnnotationMember(JavaAnnotation<?> annotation, JavaClass memberType) {
+        Origin origin = findSuitableOrigin(annotation);
+        return createDependency(origin.originClass, origin.originDescription, "has annotation member of type", memberType);
+    }
+
+    private static Origin findSuitableOrigin(JavaAnnotation<?> annotation) {
+        Object annotatedElement = annotation.getAnnotatedElement();
+        if (annotatedElement instanceof JavaMember) {
+            JavaMember member = (JavaMember) annotatedElement;
+            return new Origin(member.getOwner(), member.getDescription());
+        }
+        if (annotatedElement instanceof JavaClass) {
+            JavaClass clazz = (JavaClass) annotatedElement;
+            return new Origin(clazz, clazz.getDescription());
+        }
+        throw new IllegalStateException("Could not find suitable dependency origin for " + annotation);
     }
 
     private static Dependency createDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
-        return createDependency(origin.getOwner(), target, origin, dependencyType);
+        return createDependency(origin.getOwner(), origin.getDescription(), dependencyType, target);
     }
 
     private static Dependency createDependency(
-            JavaClass originClass, JavaClass targetClass, HasDescription hasOriginDescription, String dependencyType) {
+            JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass) {
 
-        String originDescription = hasOriginDescription.getDescription();
         String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
         String description = dependencyDescription + " in " + originClass.getSourceCodeLocation();
@@ -187,6 +201,16 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
             classes.add(dependency.getTargetClass());
         }
         return JavaClasses.of(classes);
+    }
+
+    private static class Origin {
+        private final JavaClass originClass;
+        private final String originDescription;
+
+        private Origin(JavaClass originClass, String originDescription) {
+            this.originClass = originClass;
+            this.originDescription = originDescription;
+        }
     }
 
     public static final class Predicates {

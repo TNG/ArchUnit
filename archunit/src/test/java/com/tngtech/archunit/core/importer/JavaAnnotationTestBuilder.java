@@ -19,7 +19,7 @@ public class JavaAnnotationTestBuilder {
         return this;
     }
 
-    public JavaAnnotation build(JavaClass owner, ClassesByTypeName byTypeName) {
+    public JavaAnnotation<?> build(JavaClass owner, ClassesByTypeName byTypeName) {
         return delegate.build(owner, byTypeName);
     }
 }
