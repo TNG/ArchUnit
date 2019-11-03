@@ -178,6 +178,7 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Condition;
+import org.assertj.core.util.Objects;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -663,9 +664,14 @@ public class ClassFileImporterTest {
         JavaClass clazz = classesIn("testexamples/complexmethodimport").get(ClassWithComplexMethod.class);
 
         assertThat(clazz.getMethods()).as("Methods of %s", ClassWithComplexMethod.class.getSimpleName()).hasSize(1);
-        assertThat(clazz.getMethod("complex", String.class, long.class, long.class, Serializable.class, Serializable.class))
-                .isEquivalentTo(ClassWithComplexMethod.class.getDeclaredMethod(
-                        "complex", String.class, long.class, long.class, Serializable.class, Serializable.class));
+
+        Class<?>[] parameterTypes = {String.class, long.class, long.class, Serializable.class, Serializable.class};
+        Method expectedMethod = ClassWithComplexMethod.class.getDeclaredMethod("complex", parameterTypes);
+
+        assertThat(clazz.getMethod("complex", parameterTypes)).isEquivalentTo(expectedMethod);
+        assertThat(clazz.tryGetMethod("complex", parameterTypes).get()).isEquivalentTo(expectedMethod);
+        assertThat(clazz.getMethod("complex", Objects.namesOf(parameterTypes))).isEquivalentTo(expectedMethod);
+        assertThat(clazz.tryGetMethod("complex", Objects.namesOf(parameterTypes)).get()).isEquivalentTo(expectedMethod);
     }
 
     @Test
@@ -889,10 +895,16 @@ public class ClassFileImporterTest {
 
         assertThat(clazz.getConstructors()).as("Constructors").hasSize(3);
         assertThat(clazz.getConstructor()).isEquivalentTo(ClassWithSimpleConstructors.class.getDeclaredConstructor());
-        assertThat(clazz.getConstructor(Object.class))
-                .isEquivalentTo(ClassWithSimpleConstructors.class.getDeclaredConstructor(Object.class));
-        assertThat(clazz.getConstructor(int.class, int.class))
-                .isEquivalentTo(ClassWithSimpleConstructors.class.getDeclaredConstructor(int.class, int.class));
+
+        Class<?>[] parameterTypes = {Object.class};
+        Constructor<ClassWithSimpleConstructors> expectedConstructor = ClassWithSimpleConstructors.class.getDeclaredConstructor(parameterTypes);
+        assertThat(clazz.getConstructor(parameterTypes)).isEquivalentTo(expectedConstructor);
+        assertThat(clazz.getConstructor(Objects.namesOf(parameterTypes))).isEquivalentTo(expectedConstructor);
+
+        parameterTypes = new Class[]{int.class, int.class};
+        expectedConstructor = ClassWithSimpleConstructors.class.getDeclaredConstructor(parameterTypes);
+        assertThat(clazz.getConstructor(parameterTypes)).isEquivalentTo(expectedConstructor);
+        assertThat(clazz.getConstructor(Objects.namesOf(parameterTypes))).isEquivalentTo(expectedConstructor);
     }
 
     @Test

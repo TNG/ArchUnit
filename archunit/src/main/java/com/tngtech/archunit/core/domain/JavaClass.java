@@ -502,13 +502,33 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     }
 
     @PublicAPI(usage = ACCESS)
+    public JavaMethod getMethod(String name) {
+        return findMatchingCodeUnit(methods, name, Collections.<String>emptyList());
+    }
+
+    @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name, Class<?>... parameters) {
         return findMatchingCodeUnit(methods, name, namesOf(parameters));
     }
 
     @PublicAPI(usage = ACCESS)
+    public JavaMethod getMethod(String name, String... parameters) {
+        return findMatchingCodeUnit(methods, name, ImmutableList.copyOf(parameters));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaMethod> tryGetMethod(String name) {
+        return tryFindMatchingCodeUnit(methods, name, Collections.<String>emptyList());
+    }
+
+    @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name, Class<?>... parameters) {
         return tryFindMatchingCodeUnit(methods, name, namesOf(parameters));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaMethod> tryGetMethod(String name, String... parameters) {
+        return tryFindMatchingCodeUnit(methods, name, ImmutableList.copyOf(parameters));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -523,8 +543,18 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     }
 
     @PublicAPI(usage = ACCESS)
+    public JavaConstructor getConstructor() {
+        return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, Collections.<String>emptyList());
+    }
+
+    @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor(Class<?>... parameters) {
         return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, namesOf(parameters));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public JavaConstructor getConstructor(String... parameters) {
+        return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, ImmutableList.copyOf(parameters));
     }
 
     @PublicAPI(usage = ACCESS)
