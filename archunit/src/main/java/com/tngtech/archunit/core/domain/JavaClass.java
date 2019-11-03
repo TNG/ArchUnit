@@ -187,6 +187,25 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
         return javaType.isArray();
     }
 
+    /**
+     * This is a convenience method for {@link #tryGetComponentType()} in cases where
+     * clients know that this type is certainly an array type and thus the component type present.
+     * @throws IllegalArgumentException if this class is no array
+     * @return The result of {@link #tryGetComponentType()}
+     */
+    @PublicAPI(usage = ACCESS)
+    public JavaClass getComponentType() {
+        return tryGetComponentType().getOrThrow(new IllegalArgumentException(
+                String.format("Type %s is no array", getSimpleName())));
+    }
+
+    /**
+     * Returns the component type of this class, if this class is an array, otherwise
+     * {@link Optional#absent()}. The component type is the type of the elements of an array type.
+     * Consider {@code String[]}, then the component type would be {@code String}.
+     * Likewise for {@code String[][]} the component type would be {@code String[]}.
+     * @return The component type, if this type is an array, otherwise {@link Optional#absent()}
+     */
     @PublicAPI(usage = ACCESS)
     Optional<JavaClass> tryGetComponentType() {
         return componentType;

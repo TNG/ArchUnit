@@ -118,13 +118,13 @@ public class JavaClassTest {
                 .get(OnlyReferencingMultiDimArray.class);
 
         JavaClass arrayType = javaClass.getField("field").getRawType();
-        JavaClass twoDim = arrayType.tryGetComponentType().get();
+        JavaClass twoDim = arrayType.getComponentType();
         assertThat(twoDim.getName()).isEqualTo(OnlyReferencingMultiDimArray[][].class.getName());
 
-        JavaClass oneDim = twoDim.tryGetComponentType().get();
+        JavaClass oneDim = twoDim.getComponentType();
         assertThat(oneDim.getName()).isEqualTo(OnlyReferencingMultiDimArray[].class.getName());
 
-        JavaClass original = oneDim.tryGetComponentType().get();
+        JavaClass original = oneDim.getComponentType();
         assertThat(original).isEqualTo(javaClass);
     }
 
