@@ -275,6 +275,11 @@ class ClassGraphCreator implements ImportContext {
                 Optional.<JavaClass>absent();
     }
 
+    @Override
+    public JavaClass resolveClass(String fullyQualifiedClassName) {
+        return classes.getOrResolve(fullyQualifiedClassName);
+    }
+
     private static class MemberDependenciesByTarget {
         private final SetMultimap<JavaClass, JavaField> fieldTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaMethod> methodParameterTypeDependencies = HashMultimap.create();
