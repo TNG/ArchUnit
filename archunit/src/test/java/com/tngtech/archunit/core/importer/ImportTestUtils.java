@@ -428,5 +428,10 @@ public class ImportTestUtils {
         public Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
+
+        @Override
+        public JavaClass resolveClass(String fullyQualifiedClassName) {
+            throw new UnsupportedOperationException("Override me where necessary");
+        }
     }
 }
