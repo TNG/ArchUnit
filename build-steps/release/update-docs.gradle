@@ -1,6 +1,6 @@
 import java.nio.file.Files
 
-final String archunitGitRepo = 'https://github.com/TNG/ArchUnit.git'
+final String archunitGitRepo = 'git@github.com:TNG/ArchUnit.git'
 final File checkoutDir = new File(project.buildDir, 'docs-update')
 
 task checkoutArchUnitDocs {
