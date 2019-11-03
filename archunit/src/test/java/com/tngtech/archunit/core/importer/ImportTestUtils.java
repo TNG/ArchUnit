@@ -430,8 +430,8 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Optional<JavaClass> resolveComponentType(JavaType type) {
-            return Optional.absent();
+        public JavaClass resolveClass(String fullyQualifiedClassName) {
+            throw new UnsupportedOperationException("Override me where necessary");
         }
     }
 }

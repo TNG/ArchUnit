@@ -105,6 +105,27 @@ public class JavaClassTest {
         assertThat(oneDimArray.tryGetComponentType().get()).isEqualTo(type);
         assertThat(twoDimArray.isArray()).isTrue();
         assertThat(twoDimArray.tryGetComponentType().get()).isEqualTo(oneDimArray);
+        assertThat(twoDimArray.tryGetComponentType().get().tryGetComponentType().get()).isEqualTo(type);
+    }
+
+    @Test
+    public void finds_component_type_chain_of_otherwise_unreferenced_component_type() {
+        class OnlyReferencingMultiDimArray {
+            OnlyReferencingMultiDimArray[][][] field;
+        }
+
+        JavaClass javaClass = importClassesWithContext(OnlyReferencingMultiDimArray.class)
+                .get(OnlyReferencingMultiDimArray.class);
+
+        JavaClass arrayType = javaClass.getField("field").getRawType();
+        JavaClass twoDim = arrayType.tryGetComponentType().get();
+        assertThat(twoDim.getName()).isEqualTo(OnlyReferencingMultiDimArray[][].class.getName());
+
+        JavaClass oneDim = twoDim.tryGetComponentType().get();
+        assertThat(oneDim.getName()).isEqualTo(OnlyReferencingMultiDimArray[].class.getName());
+
+        JavaClass original = oneDim.tryGetComponentType().get();
+        assertThat(original).isEqualTo(javaClass);
     }
 
     @Test

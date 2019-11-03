@@ -847,7 +847,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     }
 
     CompletionProcess completeFrom(ImportContext context) {
-        componentType = context.resolveComponentType(javaType);
+        completeComponentType(context);
         enclosingClass = context.createEnclosingClass(this);
         memberDependenciesOnClass = new MemberDependenciesOnClass(
                 context.getFieldsOfType(this),
@@ -857,6 +857,15 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 context.getConstructorsWithParameterOfType(this),
                 context.getConstructorThrowsDeclarationsOfType(this));
         return new CompletionProcess();
+    }
+
+    private void completeComponentType(ImportContext context) {
+        JavaClass current = this;
+        while (current.isArray() && !current.componentType.isPresent()) {
+            JavaClass componentType = context.resolveClass(current.javaType.tryGetComponentType().get().getName());
+            current.componentType = Optional.of(componentType);
+            current = componentType;
+        }
     }
 
     @Override
