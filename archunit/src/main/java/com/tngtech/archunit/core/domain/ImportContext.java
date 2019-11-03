@@ -57,5 +57,5 @@ public interface ImportContext {
 
     Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass);
 
-    Optional<JavaClass> resolveComponentType(JavaType type);
+    JavaClass resolveClass(String fullyQualifiedClassName);
 }
