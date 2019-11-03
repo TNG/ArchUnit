@@ -7,7 +7,7 @@ ifndef::env-site[:toc: left]
 :page-layout: splash
 :page-description: {description}
 :page-keywords: {keywords}
-:version: 0.11.0
+:version: 0.12.0
 :icons: font
 :source-highlighter: coderay
 :prewrap!:

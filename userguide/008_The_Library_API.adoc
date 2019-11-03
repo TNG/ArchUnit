@@ -318,6 +318,32 @@ You can configure the location of the violation store within `archunit.propertie
 freeze.store.default.path=/some/path/in/a/vcs/repo
 ----
 
+Furthermore, it is possible to configure
+
+[source,options="nowrap"]
+.archunit.properties
+----
+# must be set to true to allow the creation of a new violation store
+# default is false
+freeze.store.default.allowStoreCreation=true
+
+# can be set to false to forbid updates of the violations stored for frozen rules
+# default is true
+freeze.store.default.allowStoreUpdate=false
+----
+
+This can help in CI environments to prevent misconfiguration:
+For example, a CI build should probably never create a new the violation store, but operate on
+an existing one.
+
+As mentioned in <<Overriding configuration>>, these properties can be passed as system properties as needed.
+For example to allow the creation of the violation store in a specific environment, it is possible to pass the system property via
+
+[source,options="nowrap"]
+----
+-Darchunit.freeze.store.default.allowStoreCreation=true
+----
+
 ==== Extension
 
 `FreezingArchRule` provides two extension points to adjust the behavior to custom needs.

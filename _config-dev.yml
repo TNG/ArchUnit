@@ -21,7 +21,7 @@ twitter:
 author:
   name             : "Peter Gafert"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "I'm a Senior Consultant at TNG Technology Consulting GmbH and everyday software architecture enthusiast striving for a clear, common understanding of architecture in agile environments. Besides my daily project work, I develop the open source library ArchUnit to support everyday architecture maintenance and consistency."
+  bio: "I'm a Principal Consultant at TNG Technology Consulting GmbH and everyday software architecture enthusiast striving for a clear, common understanding of architecture in agile environments. Besides my daily project work, I develop the open source library ArchUnit to support everyday architecture maintenance and consistency."
   location         : "Munich"
   email            : "peter.gafert@tngtech.com"
   github           : "codecholeric"
