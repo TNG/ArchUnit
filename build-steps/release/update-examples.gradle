@@ -2,7 +2,7 @@ import groovy.io.FileType
 
 import java.util.regex.Pattern
 
-final String archunitExamplesGitRepo = 'https://github.com/TNG/ArchUnit-Examples.git'
+final String archunitExamplesGitRepo = 'git@github.com:TNG/ArchUnit-Examples.git'
 final File checkoutDir = new File(project.buildDir, 'example-update')
 final List<String> exampleFolders = ['example-plain', 'example-junit4', 'example-junit5']
 
