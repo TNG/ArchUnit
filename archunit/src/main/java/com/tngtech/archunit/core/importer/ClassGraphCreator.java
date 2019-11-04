@@ -148,13 +148,13 @@ class ClassGraphCreator implements ImportContext {
             // By invoking the .get method of the annotations supplier, annotations are registered into the ImportContext
             javaClass.getAnnotations();
             for (JavaMember member : javaClass.getFields()) {
-                memberDependenciesByTarget.registerMemberWithAnnotations(member);
+                memberDependenciesByTarget.registerMemberAnnotations(member);
             }
             for (JavaMember member : javaClass.getMethods()) {
-                memberDependenciesByTarget.registerMemberWithAnnotations(member);
+                memberDependenciesByTarget.registerMemberAnnotations(member);
             }
             for (JavaMember member : javaClass.getConstructors()) {
-                memberDependenciesByTarget.registerMemberWithAnnotations(member);
+                memberDependenciesByTarget.registerMemberAnnotations(member);
             }
         }
     }
@@ -235,16 +235,6 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
         return memberDependenciesByTarget.getAnnotationsWithParameterOfType(javaClass);
-    }
-
-    @Override
-    public Set<JavaMember> getMembersAnnotatedWithType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getMembersAnnotatedWithType(javaClass);
-    }
-
-    @Override
-    public Set<JavaMember> getMembersWithParametersOfType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getMembersWithParametersOfType(javaClass);
     }
 
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
@@ -330,8 +320,6 @@ class ClassGraphCreator implements ImportContext {
         private final SetMultimap<JavaClass, ThrowsDeclaration<JavaConstructor>> constructorThrowsDeclarationDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationParameterTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaMember> memberAnnotatedWithTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaMember> memberAnnotatedWithParameterOfTypeDependencies = HashMultimap.create();
 
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
@@ -395,37 +383,11 @@ class ClassGraphCreator implements ImportContext {
             }
         }
 
-        void registerMemberWithAnnotations(JavaMember member) {
+        void registerMemberAnnotations(JavaMember member) {
             Set<? extends JavaAnnotation<? extends JavaMember>> annotations = member.getAnnotations();
             for (JavaAnnotation<?> annotation : annotations) {
-                memberAnnotatedWithTypeDependencies.put(annotation.getRawType(), member);
-                registerMemberAnnotationParameters(member, annotation);
-            }
-        }
-
-        void registerMemberAnnotationParameters(JavaMember member, JavaAnnotation<?> annotation) {
-            for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
-                Object value = entry.getValue();
-                if (value.getClass().isArray()) {
-                    if (!value.getClass().getComponentType().isPrimitive()) {
-                        Object[] values = (Object[]) value;
-                        for (Object o : values) {
-                            registerMemberAnnotationParameter(member, o);
-                        }
-                    }
-                } else {
-                    registerMemberAnnotationParameter(member, value);
-                }
-            }
-        }
-
-        private void registerMemberAnnotationParameter(JavaMember member, Object value) {
-            if (value instanceof JavaClass) {
-                memberAnnotatedWithParameterOfTypeDependencies.put((JavaClass) value, member);
-            } else if (value instanceof JavaAnnotation<?>) {
-                JavaAnnotation<?> memberAnnotation = (JavaAnnotation<?>) value;
-                memberAnnotatedWithParameterOfTypeDependencies.put(memberAnnotation.getRawType(), member);
-                registerMemberAnnotationParameters(member, memberAnnotation);
+                annotationTypeDependencies.put(annotation.getRawType(), annotation);
+                registerAnnotationParameters(annotation);
             }
         }
 
@@ -460,14 +422,5 @@ class ClassGraphCreator implements ImportContext {
         Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
             return annotationParameterTypeDependencies.get(javaClass);
         }
-
-        Set<JavaMember> getMembersAnnotatedWithType(JavaClass javaClass) {
-            return memberAnnotatedWithTypeDependencies.get(javaClass);
-        }
-
-        Set<JavaMember> getMembersWithParametersOfType(JavaClass javaClass) {
-            return memberAnnotatedWithParameterOfTypeDependencies.get(javaClass);
-        }
-
     }
 }

@@ -32,7 +32,6 @@ import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
-import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -438,16 +437,6 @@ public class ImportTestUtils {
 
         @Override
         public Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaMember> getMembersAnnotatedWithType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaMember> getMembersWithParametersOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
 
