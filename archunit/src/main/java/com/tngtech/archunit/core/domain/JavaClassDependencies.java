@@ -42,8 +42,6 @@ class JavaClassDependencies {
     private final Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass;
     private final Set<JavaAnnotation<?>> annotationsWithTypeOfClass;
     private final Set<JavaAnnotation<?>> annotationsWithParameterTypeOfClass;
-    private final Set<JavaMember> membersWithAnnotationTypeOfClass;
-    private final Set<JavaMember> membersWithAnnotationParameterTypeOfClass;
     private final Supplier<Set<Dependency>> directDependenciesFromClass;
     private final Supplier<Set<Dependency>> directDependenciesToClass;
 
@@ -57,8 +55,6 @@ class JavaClassDependencies {
         this.constructorsWithThrowsDeclarationTypeOfClass = context.getConstructorThrowsDeclarationsOfType(javaClass);
         this.annotationsWithTypeOfClass = context.getAnnotationsOfType(javaClass);
         this.annotationsWithParameterTypeOfClass = context.getAnnotationsWithParameterOfType(javaClass);
-        this.membersWithAnnotationTypeOfClass = context.getMembersAnnotatedWithType(javaClass);
-        this.membersWithAnnotationParameterTypeOfClass = context.getMembersWithParametersOfType(javaClass);
         this.directDependenciesFromClass = getDirectDependenciesFromClassSupplier();
         this.directDependenciesToClass = getDirectDependenciesToClassSupplier();
     }
@@ -137,18 +133,6 @@ class JavaClassDependencies {
 
     Set<JavaAnnotation<?>> getAnnotationsWithTypeOfClass() {
         return annotationsWithTypeOfClass;
-    }
-
-    private Set<JavaAnnotation<?>> getAnnotationsWithParameterTypeOfClass() {
-        return annotationsWithParameterTypeOfClass;
-    }
-
-    private Set<JavaMember> getMembersWithAnnotationTypeOfClass() {
-        return membersWithAnnotationTypeOfClass;
-    }
-
-    private Set<JavaMember> getMembersWithAnnotationParameterTypeOfClass() {
-        return membersWithAnnotationParameterTypeOfClass;
     }
 
     private Set<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
@@ -320,18 +304,10 @@ class JavaClassDependencies {
 
     private Iterable<? extends Dependency> annotationDependenciesToSelf() {
         Set<Dependency> result = new HashSet<>();
-        for (JavaAnnotation<?> annotation : javaClass.getAnnotationsWithTypeOfSelf()) {
+        for (JavaAnnotation<?> annotation : annotationsWithTypeOfClass) {
             result.add(Dependency.fromAnnotation(annotation));
         }
-        for (JavaAnnotation<?> annotation : getAnnotationsWithParameterTypeOfClass()) {
-            result.add(Dependency.fromAnnotationMember(annotation, javaClass));
-        }
-        for (JavaMember member : getMembersWithAnnotationTypeOfClass()) {
-            JavaAnnotation<?> annotation = member.getAnnotationOfType(javaClass.getName());
-            result.add(Dependency.fromAnnotation(annotation));
-        }
-        for (JavaMember member : getMembersWithAnnotationParameterTypeOfClass()) {
-            JavaAnnotation<?> annotation = member.getAnnotationOfType(javaClass.getName());
+        for (JavaAnnotation<?> annotation : annotationsWithParameterTypeOfClass) {
             result.add(Dependency.fromAnnotationMember(annotation, javaClass));
         }
         return result;
