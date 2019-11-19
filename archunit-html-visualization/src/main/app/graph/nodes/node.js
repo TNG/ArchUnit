@@ -364,9 +364,9 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
      * '*' matches any number of arbitrary characters.
      */
     _getNameFilter() {
-      const stringEqualsSubstring = predicates.stringEquals(this._nameFilterString);
+      const matchesPatternSubstring = predicates.matchesPattern(this._nameFilterString);
       const nodeNameSatisfies = stringPredicate => node => stringPredicate(node.getFullName());
-      return node => !node.isPackage() && nodeNameSatisfies(stringEqualsSubstring)(node);
+      return node => !node.isPackage() && nodeNameSatisfies(matchesPatternSubstring)(node);
     }
 
     _getTypeFilter(showInterfaces, showClasses) {

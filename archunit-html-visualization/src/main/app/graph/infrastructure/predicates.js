@@ -36,22 +36,21 @@ const joinToRegexOptions = optionsStrings => optionsStrings.join('|');
  * of the united optional string starting with '~' is the result set of matching strings.
  * The '*' represents arbitrary many characters.
  * E.g.
- * - stringEquals('')('anystring') => true
- * - stringEquals('foobar')('foobar') => true
- * - stringEquals('foo|bar')('foo') => true
- * - stringEquals('foo|bar')('bar') => true
- * - stringEquals('foo')('foobar') => false
- * - stringEquals('f*ar')('foobar') => true
- * - stringEquals('f*ar|~foobar')('foobar') => false
+ * - matchesPattern('')('anystring') => true
+ * - matchesPattern('foobar')('foobar') => true
+ * - matchesPattern('foo|bar')('foo') => true
+ * - matchesPattern('foo|bar')('bar') => true
+ * - matchesPattern('foo')('foobar') => false
+ * - matchesPattern('f*ar')('foobar') => true
+ * - matchesPattern('f*ar|~foobar')('foobar') => false
  * Left and right whitespaces are ignored (for each of the optional strings).
  *
  * @param filterExpression string out of any number of optional strings, which must be separated by '|'
  * and can start with '~' to signal that this string should be excluded.
  */
-  //FIXME: rename, matchesPattern...
-const stringEquals = filterExpression => {
+const matchesPattern = filterExpression => {
   const withoutLeadingOrClosingWhitespace = filterExpression
-  //remove leading whitespaces
+    //remove leading whitespaces
     .replace(/^\s+/, '')
     //remove leading whitespaces before the "options" separated by |
     .replace(/\|\s+/g, '|')
@@ -84,4 +83,4 @@ const stringEquals = filterExpression => {
   }
 };
 
-module.exports = {not, and, stringEquals};
+module.exports = {not, and, matchesPattern};
