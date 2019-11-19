@@ -15,6 +15,9 @@
  */
 package com.tngtech.archunit.htmlvisualization;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,9 +26,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.util.regex.Matcher;
-
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -76,8 +76,7 @@ class VisualizationFile {
     }
 
     private void checkContent() {
-        // FIXME: Why once '>1' and once '!=1' ?? Shouldn't it be both !=1 ?
-        if (countOccurrencesInContent(jsonRootMarker) > 1) {
+        if (countOccurrencesInContent(jsonRootMarker) != 1) {
             throw new RuntimeException(jsonRootMarker + " may exactly occur once in " + file.getName());
         }
         if (countOccurrencesInContent(jsonViolationMarker) != 1) {
