@@ -25,6 +25,8 @@ describe('matching strings by checking for a certain equal string or prefix-stri
     testMatchesPattern('foo.bar').against('foo.bar').is(true);
     testMatchesPattern('foo.bar').against('foo.bar.baz').is(true);
     testMatchesPattern('foo.bar').against('foo.bar$baz').is(true);
+    testMatchesPattern('foo-bar').against('foo-bar').is(true);
+    testMatchesPattern('foo/bar').against('foo/bar').is(true);
 
     testMatchesPattern('foo.bar').against('foo.barbaz').is(false);
     testMatchesPattern('bar').against('foobar').is(false);

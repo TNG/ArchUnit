@@ -13,9 +13,8 @@ const not = predicate => input => !predicate(input);
 const and = (...predicates) => input => predicates.every(p => p(input));
 
 const escapeRegExp = str => {
-  //FIXME: is this correct??
   //* and | are not escaped, as they have special meaning for the filter
-  return str.replace(/[-[\]/{}()+?.\\^$]/g, '\\$&');
+  return str.replace(/[[\]{}()+?.\\^$]/g, '\\$&');
 };
 
 const formatStarAsWildcard = str => str.replace(/\*/g, '.*');
