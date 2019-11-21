@@ -15,8 +15,8 @@
  */
 package com.tngtech.archunit.htmlvisualization;
 
-public class VisualizationCreationException extends RuntimeException {
-    public VisualizationCreationException(Throwable cause) {
+class VisualizationCreationException extends RuntimeException {
+    VisualizationCreationException(Throwable cause) {
         super("Failed to create HTML visualization", cause);
     }
 }

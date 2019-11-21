@@ -49,8 +49,7 @@ class VisualizationFile {
         try {
             encodedContent = Files.readAllBytes(file.toPath());
         } catch (IOException e) {
-            // FIXME: Custom Exception, is this the only place we read file content?
-            throw new RuntimeException(e);
+            throw new VisualizationTemplateException(e);
         }
         content = new String(encodedContent, Charsets.UTF_8);
         defineJsonMarkers();
@@ -63,7 +62,7 @@ class VisualizationFile {
                 return s;
             }
         }
-        throw new RuntimeException("The " + file.getName() + "-file does not contain one of " + Joiner.on(", ").join(markers));
+        throw new VisualizationTemplateException("The " + file.getName() + "-file does not contain one of " + Joiner.on(", ").join(markers));
     }
 
     private void defineJsonMarkers() {
@@ -77,10 +76,10 @@ class VisualizationFile {
 
     private void checkContent() {
         if (countOccurrencesInContent(jsonRootMarker) != 1) {
-            throw new RuntimeException(jsonRootMarker + " may exactly occur once in " + file.getName());
+            throw new VisualizationTemplateException(jsonRootMarker + " may exactly occur once in " + file.getName());
         }
         if (countOccurrencesInContent(jsonViolationMarker) != 1) {
-            throw new RuntimeException(jsonViolationMarker + " may exactly occur once in " + file.getName());
+            throw new VisualizationTemplateException(jsonViolationMarker + " may exactly occur once in " + file.getName());
         }
     }
 
@@ -100,7 +99,7 @@ class VisualizationFile {
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8))) {
             writer.write(content);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new VisualizationCreationException(e);
         }
     }
 }
