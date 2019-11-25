@@ -319,20 +319,23 @@ public class FreezingArchRuleTest {
     }
 
     @Test
-    public void default_ViolationLineMatcher_ignores_line_numbers() {
+    public void default_ViolationLineMatcher_ignores_line_numbers_and_auto_generated_numbers() {
         TestViolationStore violationStore = new TestViolationStore();
 
         createFrozen(violationStore, rule("some description")
                 .withViolations(
                         "first violation one in (SomeClass.java:12) and first violation two in (SomeClass.java:13)",
                         "second violation in (SomeClass.java:77)",
-                        "third violation in (OtherClass.java:123)"));
+                        "third violation in (OtherClass.java:123)",
+                        "Method <MyClass.lambda$myFunction$2()> has a violation in (MyClass.java:123)"
+                ));
 
         String onlyLineNumberChanged = "first violation one in (SomeClass.java:98) and first violation two in (SomeClass.java:99)";
         String locationClassDoesNotMatch = "second violation in (OtherClass.java:77)";
-        String descriptionDoesNotMatch = "unknown violation in (SomeClass.java:77";
+        String descriptionDoesNotMatch = "unknown violation in (SomeClass.java:77)";
+        String lambdaWithDifferentNumber = "Method <MyClass.lambda$myFunction$10()> has a violation in (MyClass.java:123)";
         FreezingArchRule updatedViolations = freeze(rule("some description")
-                .withViolations(onlyLineNumberChanged, locationClassDoesNotMatch, descriptionDoesNotMatch))
+                .withViolations(onlyLineNumberChanged, locationClassDoesNotMatch, descriptionDoesNotMatch, lambdaWithDifferentNumber))
                 .persistIn(violationStore);
 
         assertThat(updatedViolations)

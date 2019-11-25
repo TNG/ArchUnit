@@ -59,7 +59,8 @@ import static com.tngtech.archunit.library.freeze.ViolationStoreFactory.FREEZE_S
  * </li>
  * <li>
  *   a {@link ViolationLineMatcher} to decide which violations are "known", i.e. have already been present in the previous evaluation.<br>
- *   The default {@link ViolationLineMatcher} compares violations ignoring the line number of their source code location.<br>
+ *   The default {@link ViolationLineMatcher} compares violations ignoring the line number of their source code location
+ *   and auto-generated numbers of anonymous classes or lambda expressions.<br>
  *   A custom implementation can be configured in two ways.
  *   Again either programmatically via {@link #associateViolationLinesVia(ViolationLineMatcher)}, or within
  *   {@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}, e.g.
