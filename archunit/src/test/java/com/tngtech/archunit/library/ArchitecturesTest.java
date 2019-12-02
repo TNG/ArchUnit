@@ -144,7 +144,7 @@ public class ArchitecturesTest {
             architecture.allowEmptyLayers(allowEmptyLayers);
         }
 
-        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses");
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
         EvaluationResult result = architecture.evaluate(classes);
         boolean expectViolation = allowEmptyLayers != Boolean.TRUE;
@@ -160,7 +160,7 @@ public class ArchitecturesTest {
     @Test
     @UseDataProvider("layeredArchitectureDefinitions")
     public void layered_architecture_gathers_all_layer_violations(LayeredArchitecture architecture) {
-        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses");
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
         EvaluationResult result = architecture.evaluate(classes);
 
@@ -293,7 +293,7 @@ public class ArchitecturesTest {
                 .adapter("cli", absolute("onionarchitecture.adapter.cli"))
                 .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
                 .adapter("rest", absolute("onionarchitecture.adapter.rest"));
-        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses.onionarchitecture");
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
 
         EvaluationResult result = architecture.evaluate(classes);
 
