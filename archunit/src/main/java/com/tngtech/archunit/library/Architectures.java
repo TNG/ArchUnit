@@ -102,22 +102,32 @@ public final class Architectures {
         private final Set<LayerDependencySpecification> dependencySpecifications;
         private final PredicateAggregator<Dependency> irrelevantDependenciesPredicate;
         private final Optional<String> overriddenDescription;
+        private boolean allowEmptyLayers;
 
         private LayeredArchitecture() {
             this(new LayerDefinitions(),
                     new LinkedHashSet<LayerDependencySpecification>(),
                     new PredicateAggregator<Dependency>().thatORs(),
-                    Optional.<String>absent());
+                    Optional.<String>absent(),
+                    false);
         }
 
         private LayeredArchitecture(LayerDefinitions layerDefinitions,
                 Set<LayerDependencySpecification> dependencySpecifications,
                 PredicateAggregator<Dependency> irrelevantDependenciesPredicate,
-                Optional<String> overriddenDescription) {
+                Optional<String> overriddenDescription,
+                boolean allowEmptyLayers) {
             this.layerDefinitions = layerDefinitions;
             this.dependencySpecifications = dependencySpecifications;
             this.irrelevantDependenciesPredicate = irrelevantDependenciesPredicate;
             this.overriddenDescription = overriddenDescription;
+            this.allowEmptyLayers = allowEmptyLayers;
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public LayeredArchitecture allowEmptyLayers(boolean allowEmptyLayers) {
+            this.allowEmptyLayers = allowEmptyLayers;
+            return this;
         }
 
         private LayeredArchitecture addLayerDefinition(LayerDefinition definition) {
@@ -161,8 +171,10 @@ public final class Architectures {
         @PublicAPI(usage = ACCESS)
         public EvaluationResult evaluate(JavaClasses classes) {
             EvaluationResult result = new EvaluationResult(this, Priority.MEDIUM);
-            for (LayerDefinition layerDefinition : layerDefinitions) {
-                result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
+            if (!allowEmptyLayers) {
+                for (LayerDefinition layerDefinition : layerDefinitions) {
+                    result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
+                }
             }
             for (LayerDependencySpecification specification : dependencySpecifications) {
                 result.add(evaluateDependenciesShouldBeSatisfied(classes, specification));
@@ -235,7 +247,7 @@ public final class Architectures {
         public LayeredArchitecture as(String newDescription) {
             return new LayeredArchitecture(
                     layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate, Optional.of(newDescription));
+                    irrelevantDependenciesPredicate, Optional.of(newDescription), allowEmptyLayers);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -253,7 +265,7 @@ public final class Architectures {
                 DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
             return new LayeredArchitecture(
                     layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription);
+                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription, allowEmptyLayers);
         }
 
         @PublicAPI(usage = ACCESS)

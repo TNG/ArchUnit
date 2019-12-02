@@ -134,18 +134,27 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void layered_architecture_defining_empty_layers_is_rejected() {
+    @DataProvider(value = {"true", "false", "null"})
+    public void layered_architecture_allows_or_rejects_empty_layers(Boolean allowEmptyLayers) {
         LayeredArchitecture architecture = layeredArchitecture()
                 .layer("Some").definedBy(absolute("should.not.be.found.."))
                 .layer("Other").definedBy(absolute("also.not.found"))
                 .layer("Okay").definedBy("..testclasses..");
+        if (allowEmptyLayers != null) {
+            architecture.allowEmptyLayers(allowEmptyLayers);
+        }
 
         JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses");
 
         EvaluationResult result = architecture.evaluate(classes);
-        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isTrue();
-        assertPatternMatches(result.getFailureReport().getDetails(),
-                ImmutableSet.of(expectedEmptyLayer("Some"), expectedEmptyLayer("Other")));
+        boolean expectViolation = allowEmptyLayers != Boolean.TRUE;
+        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isEqualTo(expectViolation);
+        if (expectViolation) {
+            assertPatternMatches(result.getFailureReport().getDetails(),
+                    ImmutableSet.of(expectedEmptyLayer("Some"), expectedEmptyLayer("Other")));
+        } else {
+            assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
+        }
     }
 
     @Test
