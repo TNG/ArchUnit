@@ -312,6 +312,32 @@ public class ArchitecturesTest {
         assertPatternMatches(result.getFailureReport().getDetails(), expectedViolations.toPatterns());
     }
 
+    @Test
+    @DataProvider(value = {"true", "false", "null"})
+    public void onion_architecture_allows_or_rejects_empty_layers(Boolean allowEmptyLayers) {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModels(absolute("onionarchitecture.domain.model.does.not.exist"))
+                .domainServices(absolute("onionarchitecture.domain.service.not.there"))
+                .applicationServices(absolute("onionarchitecture.application.http410"));
+        if (allowEmptyLayers != null) {
+            architecture.allowEmptyLayers(allowEmptyLayers);
+        }
+
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
+
+        EvaluationResult result = architecture.evaluate(classes);
+        boolean expectViolation = allowEmptyLayers != Boolean.TRUE;
+        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isEqualTo(expectViolation);
+        if (expectViolation) {
+            assertPatternMatches(result.getFailureReport().getDetails(), ImmutableSet.of(
+                    expectedEmptyLayer("adapter"), expectedEmptyLayer("application service"),
+                    expectedEmptyLayer("domain model"), expectedEmptyLayer("domain service")
+            ));
+        } else {
+            assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
+        }
+    }
+
     private String singleLine(EvaluationResult result) {
         return Joiner.on(NEW_LINE_REPLACE).join(result.getFailureReport().getDetails()).replace("\n", NEW_LINE_REPLACE);
     }

@@ -391,12 +391,12 @@ public final class Architectures {
         private static final String APPLICATION_SERVICE_LAYER = "application service";
         private static final String ADAPTER_LAYER = "adapter";
 
+        private final Optional<String> overriddenDescription;
         private String[] domainModelPackageIdentifiers = new String[0];
         private String[] domainServicePackageIdentifiers = new String[0];
         private String[] applicationPackageIdentifiers = new String[0];
         private Map<String, String[]> adapterPackageIdentifiers = new LinkedHashMap<>();
-
-        private final Optional<String> overriddenDescription;
+        private boolean allowEmptyLayers = false;
 
         private OnionArchitecture() {
             overriddenDescription = Optional.absent();
@@ -438,6 +438,12 @@ public final class Architectures {
             return this;
         }
 
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture allowEmptyLayers(boolean allowEmptyLayers) {
+            this.allowEmptyLayers = allowEmptyLayers;
+            return this;
+        }
+
         private LayeredArchitecture layeredArchitectureDelegate() {
             LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture()
                     .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPackageIdentifiers)
@@ -446,7 +452,8 @@ public final class Architectures {
                     .layer(ADAPTER_LAYER).definedBy(concatenateAll(adapterPackageIdentifiers.values()))
                     .whereLayer(DOMAIN_MODEL_LAYER).mayOnlyBeAccessedByLayers(DOMAIN_SERVICE_LAYER, APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
                     .whereLayer(DOMAIN_SERVICE_LAYER).mayOnlyBeAccessedByLayers(APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
-                    .whereLayer(APPLICATION_SERVICE_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER);
+                    .whereLayer(APPLICATION_SERVICE_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER)
+                    .allowEmptyLayers(allowEmptyLayers);
 
             for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
                 String adapterLayer = getAdapterLayer(adapter.getKey());
