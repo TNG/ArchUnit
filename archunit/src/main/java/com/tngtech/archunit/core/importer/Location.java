@@ -49,7 +49,7 @@ import static java.util.Collections.emptySet;
 
 /**
  * Handles various forms of location from where classes can be imported in a consistent way. Any location
- * will be treated like an {@link URI}, thus there will not be any platform dependent file separator problems.<br><br>
+ * will be treated like a {@link URI}, thus there will not be any platform dependent file separator problems.<br><br>
  * Examples for locations could be
  * <ul>
  *     <li><code>file:///home/someuser/workspace/myproject/target/classes/myproject/Foo.class</code></li>
