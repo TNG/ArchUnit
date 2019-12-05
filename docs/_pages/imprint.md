@@ -11,8 +11,8 @@ due to our sometimes strange, inconsistent and user-unfriendly data privacy laws
 Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV bzw. Angaben gemäß § 5 TMG:
 
 Peter Gafert<br>
-Säbener Str. 7<br>
-81547 München
+Rosenkavalierplatz 9<br>
+81925 München
 
 ### Haftung für Inhalte
 Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, 
