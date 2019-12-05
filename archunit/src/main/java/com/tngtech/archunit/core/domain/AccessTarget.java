@@ -455,7 +455,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     }
 
     /**
-     * Represents an {@link CodeUnitCallTarget CodeUnitCallTarget} where the target is a method. For further elaboration about the necessity to distinguish
+     * Represents a {@link CodeUnitCallTarget} where the target is a method. For further elaboration about the necessity to distinguish
      * {@link MethodCallTarget MethodCallTarget} from {@link JavaMethod}, refer to the documentation at {@link AccessTarget} and in particular the
      * documentation at {@link #resolve()}.
      */
