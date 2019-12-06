@@ -134,27 +134,47 @@ public class ArchitecturesTest {
     }
 
     @Test
-    @DataProvider(value = {"true", "false", "null"})
-    public void layered_architecture_allows_or_rejects_empty_layers(Boolean allowEmptyLayers) {
-        LayeredArchitecture architecture = layeredArchitecture()
-                .layer("Some").definedBy(absolute("should.not.be.found.."))
-                .layer("Other").definedBy(absolute("also.not.found"))
-                .layer("Okay").definedBy("..testclasses..");
-        if (allowEmptyLayers != null) {
-            architecture.allowEmptyLayers(allowEmptyLayers);
-        }
+    public void layered_architecture_rejects_empty_layers_by_default() {
+        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers();
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
         EvaluationResult result = architecture.evaluate(classes);
-        boolean expectViolation = allowEmptyLayers != Boolean.TRUE;
-        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isEqualTo(expectViolation);
-        if (expectViolation) {
-            assertPatternMatches(result.getFailureReport().getDetails(),
-                    ImmutableSet.of(expectedEmptyLayer("Some"), expectedEmptyLayer("Other")));
-        } else {
-            assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
-        }
+        assertFailureLayeredArchitectureWithEmptyLayers(result);
+    }
+
+    @Test
+    public void layered_architecture_allows_empty_layers_if_configured_to_allow() {
+        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().allowEmptyLayers(true);
+
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
+
+        EvaluationResult result = architecture.evaluate(classes);
+        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isFalse();
+        assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
+    }
+
+    @Test
+    public void layered_architecture_rejects_empty_layers_if_explicitly_configured_to_not_allow() {
+        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().allowEmptyLayers(false);
+
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
+
+        EvaluationResult result = architecture.evaluate(classes);
+        assertFailureLayeredArchitectureWithEmptyLayers(result);
+    }
+
+    private LayeredArchitecture aLayeredArchitectureWithEmptyLayers() {
+        return layeredArchitecture()
+                .layer("Some").definedBy(absolute("should.not.be.found.."))
+                .layer("Other").definedBy(absolute("also.not.found"))
+                .layer("Okay").definedBy("..testclasses..");
+    }
+
+    private void assertFailureLayeredArchitectureWithEmptyLayers(EvaluationResult result) {
+        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isTrue();
+        assertPatternMatches(result.getFailureReport().getDetails(),
+                ImmutableSet.of(expectedEmptyLayer("Some"), expectedEmptyLayer("Other")));
     }
 
     @Test
@@ -313,29 +333,49 @@ public class ArchitecturesTest {
     }
 
     @Test
-    @DataProvider(value = {"true", "false", "null"})
-    public void onion_architecture_allows_or_rejects_empty_layers(Boolean allowEmptyLayers) {
-        OnionArchitecture architecture = onionArchitecture()
-                .domainModels(absolute("onionarchitecture.domain.model.does.not.exist"))
-                .domainServices(absolute("onionarchitecture.domain.service.not.there"))
-                .applicationServices(absolute("onionarchitecture.application.http410"));
-        if (allowEmptyLayers != null) {
-            architecture.allowEmptyLayers(allowEmptyLayers);
-        }
+    public void onion_architecture_rejects_empty_layers_by_default() {
+        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers();
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
 
         EvaluationResult result = architecture.evaluate(classes);
-        boolean expectViolation = allowEmptyLayers != Boolean.TRUE;
-        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isEqualTo(expectViolation);
-        if (expectViolation) {
-            assertPatternMatches(result.getFailureReport().getDetails(), ImmutableSet.of(
-                    expectedEmptyLayer("adapter"), expectedEmptyLayer("application service"),
-                    expectedEmptyLayer("domain model"), expectedEmptyLayer("domain service")
-            ));
-        } else {
-            assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
-        }
+        assertFailureOnionArchitectureWithEmptyLayers(result);
+    }
+
+    @Test
+    public void onion_architecture_allows_empty_layers_if_configured_to_allow() {
+        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().allowEmptyLayers(true);
+
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
+
+        EvaluationResult result = architecture.evaluate(classes);
+        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isFalse();
+        assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
+    }
+
+    @Test
+    public void onion_architecture_rejects_empty_layers_if_explicitly_configured_to_not_allow() {
+        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().allowEmptyLayers(false);
+
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
+
+        EvaluationResult result = architecture.evaluate(classes);
+        assertFailureOnionArchitectureWithEmptyLayers(result);
+    }
+
+    private OnionArchitecture anOnionArchitectureWithEmptyLayers() {
+        return onionArchitecture()
+                    .domainModels(absolute("onionarchitecture.domain.model.does.not.exist"))
+                    .domainServices(absolute("onionarchitecture.domain.service.not.there"))
+                    .applicationServices(absolute("onionarchitecture.application.http410"));
+    }
+
+    private void assertFailureOnionArchitectureWithEmptyLayers(EvaluationResult result) {
+        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isTrue();
+        assertPatternMatches(result.getFailureReport().getDetails(), ImmutableSet.of(
+                expectedEmptyLayer("adapter"), expectedEmptyLayer("application service"),
+                expectedEmptyLayer("domain model"), expectedEmptyLayer("domain service")
+        ));
     }
 
     private String singleLine(EvaluationResult result) {
