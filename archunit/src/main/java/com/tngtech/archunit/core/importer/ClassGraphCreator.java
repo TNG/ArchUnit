@@ -49,6 +49,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
+import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
 import static com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter.BuildFinisher.build;
@@ -146,14 +147,8 @@ class ClassGraphCreator implements ImportContext {
     private void completeAnnotations() {
         for (JavaClass javaClass : classes.getAll().values()) {
             DomainObjectCreationContext.completeAnnotations(javaClass, this);
-            for (JavaMember member : javaClass.getFields()) {
-                memberDependenciesByTarget.registerMemberAnnotations(member);
-            }
-            for (JavaMember member : javaClass.getMethods()) {
-                memberDependenciesByTarget.registerMemberAnnotations(member);
-            }
-            for (JavaMember member : javaClass.getConstructors()) {
-                memberDependenciesByTarget.registerMemberAnnotations(member);
+            for (JavaMember member : concat(javaClass.getFields(), javaClass.getMethods(), javaClass.getConstructors())) {
+                memberDependenciesByTarget.registerAnnotations(member.getAnnotations());
             }
         }
     }
@@ -379,14 +374,6 @@ class ClassGraphCreator implements ImportContext {
                 JavaAnnotation<?> memberAnnotation = (JavaAnnotation<?>) value;
                 annotationParameterTypeDependencies.put(memberAnnotation.getRawType(), annotation);
                 registerAnnotationParameters(memberAnnotation);
-            }
-        }
-
-        void registerMemberAnnotations(JavaMember member) {
-            Set<? extends JavaAnnotation<? extends JavaMember>> annotations = member.getAnnotations();
-            for (JavaAnnotation<?> annotation : annotations) {
-                annotationTypeDependencies.put(annotation.getRawType(), annotation);
-                registerAnnotationParameters(annotation);
             }
         }
 
