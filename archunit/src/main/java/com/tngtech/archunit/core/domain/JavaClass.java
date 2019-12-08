@@ -57,6 +57,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static java.util.Collections.emptyMap;
 
 public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
     private final Optional<Source> source;
@@ -78,8 +79,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Optional<JavaClass> componentType = Optional.absent();
-    private Supplier<Map<String, JavaAnnotation<JavaClass>>> annotations =
-            Suppliers.ofInstance(Collections.<String, JavaAnnotation<JavaClass>>emptyMap());
+    private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
     private Supplier<Set<JavaMethod>> allMethods;
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
@@ -240,13 +240,13 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(String annotationTypeName) {
-        return annotations.get().containsKey(annotationTypeName);
+        return annotations.containsKey(annotationTypeName);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
+        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.values(), predicate);
     }
 
     @Override
@@ -264,7 +264,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.get().values(), predicate);
+        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
     }
 
     /**
@@ -290,7 +290,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaAnnotation<JavaClass>> getAnnotations() {
-        return ImmutableSet.copyOf(annotations.get().values());
+        return ImmutableSet.copyOf(annotations.values());
     }
 
     /**
@@ -312,7 +312,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @Override
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation<JavaClass>> tryGetAnnotationOfType(String typeName) {
-        return Optional.fromNullable(annotations.get().get(typeName));
+        return Optional.fromNullable(annotations.get(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -875,12 +875,10 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
                 .addAll(methods)
                 .addAll(constructors)
                 .build();
-        this.annotations = Suppliers.memoize(new Supplier<Map<String, JavaAnnotation<JavaClass>>>() {
-            @Override
-            public Map<String, JavaAnnotation<JavaClass>> get() {
-                return context.createAnnotations(JavaClass.this);
-            }
-        });
+    }
+
+    void completeAnnotations(final ImportContext context) {
+        this.annotations = context.createAnnotations(this);
     }
 
     CompletionProcess completeFrom(ImportContext context) {

@@ -79,6 +79,10 @@ public class DomainObjectCreationContext {
         javaClass.completeMembers(importContext);
     }
 
+    public static void completeAnnotations(JavaClass javaClass, ImportContext importContext) {
+        javaClass.completeAnnotations(importContext);
+    }
+
     public static <T extends HasDescription> JavaAnnotation<T> createJavaAnnotation(T owner, JavaAnnotationBuilder builder) {
         return new JavaAnnotation<>(owner, builder);
     }
