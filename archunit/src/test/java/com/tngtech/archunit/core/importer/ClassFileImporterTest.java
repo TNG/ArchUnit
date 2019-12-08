@@ -1868,6 +1868,15 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void classes_know_which_annotations_have_their_type() {
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithOneAnnotation.class, SimpleAnnotation.class);
+
+        Set<JavaAnnotation<?>> annotations = classes.get(SimpleAnnotation.class).getAnnotationsWithTypeOfSelf();
+
+        assertThat(getOnlyElement(annotations).getOwner()).isEqualTo(classes.get(ClassWithOneAnnotation.class));
+    }
+
+    @Test
     public void reflect_works() throws Exception {
         ImportedClasses classes = classesIn("testexamples/innerclassimport");
 
