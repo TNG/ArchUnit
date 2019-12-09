@@ -55,13 +55,7 @@ A typical Maven configuration could look like this:
     ...
     <dependency>
         <groupId>com.tngtech.archunit</groupId>
-        <artifactId>archunit-junit5-api</artifactId>
-        <version>0.12.0</version>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>com.tngtech.archunit</groupId>
-        <artifactId>archunit-junit5-engine</artifactId>
+        <artifactId>archunit-junit5</artifactId>
         <version>0.12.0</version>
         <scope>test</scope>
     </dependency>
@@ -80,8 +74,7 @@ The configuration for Gradle allows to clearly distinguish a test runtime scope:
 ----
 dependencies {
     ...
-    testCompile 'com.tngtech.archunit:archunit-junit5-api:0.12.0'
-    testRuntime 'com.tngtech.archunit:archunit-junit5-engine:0.12.0'
+    testCompile 'com.tngtech.archunit:archunit-junit5:0.12.0'
 }
 ----
 
