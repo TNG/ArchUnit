@@ -13,6 +13,9 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.library.Architectures.LayeredArchitecture;
+import com.tngtech.archunit.library.testclasses.coveringallclasses.first.First;
+import com.tngtech.archunit.library.testclasses.coveringallclasses.second.Second;
+import com.tngtech.archunit.library.testclasses.coveringallclasses.third.Third;
 import com.tngtech.archunit.library.testclasses.dependencysettings.DependencySettingsOutsideOfLayersAccessingLayers;
 import com.tngtech.archunit.library.testclasses.dependencysettings.forbidden_backwards.DependencySettingsForbiddenByMayOnlyBeAccessed;
 import com.tngtech.archunit.library.testclasses.dependencysettings.forbidden_forwards.DependencySettingsForbiddenByMayOnlyAccess;
@@ -34,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
@@ -377,6 +381,46 @@ public class LayeredArchitectureTest {
         assertThat(layeredArchitecture.getDescription()).startsWith(
                 "Layered architecture considering only dependencies in layers, consisting of");
         assertPatternMatches(result.getFailureReport().getDetails(), dependencySettingsViolationsInLayers());
+    }
+
+    @Test
+    public void layered_architecture_ensure_all_classes_are_contained_in_architecture() {
+        JavaClasses classes = new ClassFileImporter().importClasses(First.class, Second.class);
+
+        LayeredArchitecture architectureNotCoveringAllClasses = layeredArchitecture().consideringAllDependencies()
+                .layer("One").definedBy("..first..")
+                .ensureAllClassesAreContainedInArchitecture();
+
+        assertThatRule(architectureNotCoveringAllClasses).checking(classes)
+                .hasOnlyOneViolation("Class <" + Second.class.getName() + "> is not contained in architecture");
+
+        LayeredArchitecture architectureCoveringAllClasses = architectureNotCoveringAllClasses
+                .layer("Two").definedBy("..second..");
+        assertThatRule(architectureCoveringAllClasses).checking(classes).hasNoViolation();
+    }
+
+    @Test
+    public void layered_architecture_ensure_all_classes_are_contained_in_architecture_ignoring_packages() {
+        JavaClasses classes = new ClassFileImporter().importClasses(First.class, Second.class, Third.class);
+
+        LayeredArchitecture architecture = layeredArchitecture().consideringAllDependencies()
+                .layer("One").definedBy("..first..")
+                .ensureAllClassesAreContainedInArchitectureIgnoring("..second..");
+
+        assertThatRule(architecture).checking(classes)
+                .hasOnlyOneViolation("Class <" + Third.class.getName() + "> is not contained in architecture");
+    }
+
+    @Test
+    public void layered_architecture_ensure_all_classes_are_contained_in_architecture_ignoring_predicate() {
+        JavaClasses classes = new ClassFileImporter().importClasses(First.class, Second.class, Third.class);
+
+        LayeredArchitecture architecture = layeredArchitecture().consideringAllDependencies()
+                .layer("One").definedBy("..first..")
+                .ensureAllClassesAreContainedInArchitectureIgnoring(simpleName("Second"));
+
+        assertThatRule(architecture).checking(classes)
+                .hasOnlyOneViolation("Class <" + Third.class.getName() + "> is not contained in architecture");
     }
 
     private LayeredArchitecture defineLayeredArchitectureForDependencySettings(LayeredArchitecture layeredArchitecture) {
