@@ -57,13 +57,9 @@ class ViolationLineMatcherFactory {
             RelevantPartIterator relevantPart1 = new RelevantPartIterator(str1);
             RelevantPartIterator relevantPart2 = new RelevantPartIterator(str2);
             while (relevantPart1.hasNext() && relevantPart2.hasNext()) {
-                relevantPart1.findEnd();
-                relevantPart2.findEnd();
-                if (!relevantPart1.relevantSubstringMatches(relevantPart2)) {
+                if (!relevantPart1.next().equals(relevantPart2.next())) {
                     return false;
                 }
-                relevantPart1.skipIgnoredPart();
-                relevantPart2.skipIgnoredPart();
             }
             return !relevantPart1.hasNext() && !relevantPart2.hasNext();
         }
@@ -73,7 +69,7 @@ class ViolationLineMatcherFactory {
             private final int length;
             // (start, end) is the (first, last) index of current relevant part, moved through string during iteration:
             private int start = 0;
-            private int end;
+            private int end = -1;
 
             RelevantPartIterator(String str) {
                 this.str = str;
@@ -81,39 +77,42 @@ class ViolationLineMatcherFactory {
             }
 
             boolean hasNext() {
+                if (start >= length) {
+                    return false;
+                }
+                if (end >= 0) {
+                    start = findStartIndexOfNextRelevantPart();
+                }
                 return start < length;
             }
 
-            void findEnd() {
+            public String next() {
                 end = Math.min(nextIndexOfCharacterOrEndOfString(':'), nextIndexOfCharacterOrEndOfString('$'));
+                return str.substring(start, end + 1);
             }
 
             private int nextIndexOfCharacterOrEndOfString(char ch) {
                 int i = str.indexOf(ch, start);
-                return i < 0 ? length - 1 : i;
+                return i >= 0 ? i : length - 1;
             }
 
-            boolean relevantSubstringMatches(RelevantPartIterator other) {
-                return this.end - this.start == other.end - other.start
-                        && this.getRelevantSubstring().equals(other.getRelevantSubstring());
-            }
-
-            private String getRelevantSubstring() {
-                return str.substring(start, end + 1);
-            }
-
-            void skipIgnoredPart() {
-                int i = start = end + 1;
-                while (i < length && isDigit(str.charAt(i))) {
-                    i++;
-                }
+            private int findStartIndexOfNextRelevantPart() {
+                final int startOfIgnoredPart = end + 1;
+                int indexOfNonDigit = findIndexOfNextNonDigitChar(startOfIgnoredPart);
                 if (str.charAt(end) == ':') {
-                    boolean foundNumber = i > start;
-                    boolean foundClosingParenthesisAfterNumber = foundNumber && i < length && str.charAt(i) == ')';
-                    start = foundClosingParenthesisAfterNumber ? i + 1 : start;
+                    boolean foundNumber = indexOfNonDigit > startOfIgnoredPart;
+                    boolean foundClosingParenthesisAfterNumber = foundNumber && indexOfNonDigit < length && str.charAt(indexOfNonDigit) == ')';
+                    return foundClosingParenthesisAfterNumber ? indexOfNonDigit + 1 : startOfIgnoredPart;
                 } else {  // str.charAt(end) == '$'
-                    start = i;
+                    return indexOfNonDigit;
                 }
+            }
+
+            private int findIndexOfNextNonDigitChar(int index) {
+                while (index < length && isDigit(str.charAt(index))) {
+                    index++;
+                }
+                return index;
             }
         }
     }
