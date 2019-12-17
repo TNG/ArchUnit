@@ -67,7 +67,7 @@ public final class SliceDependency implements HasDescription {
     @Override
     @PublicAPI(usage = ACCESS)
     public String getDescription() {
-        return String.format("%s calls %s:%n%s",
+        return String.format("%s depends on %s:%n%s",
                 origin.getDescription(),
                 target.getDescription(),
                 joinDependencies(relevantDependencies));
