@@ -1128,7 +1128,7 @@ class ExamplesIntegrationTest {
                         expectedTestFailures
                                 .ofRule(memberName, "Controllers should not depend on each other")
                                 .by(sliceDependency()
-                                        .described("Controller one calls Controller three")
+                                        .described("Controller one depends on Controller three")
                                         .by(callFromMethod(UseCaseOneThreeController.class, doSomethingOne)
                                                 .toConstructor(UseCaseThreeController.class)
                                                 .inLine(13))
@@ -1136,7 +1136,7 @@ class ExamplesIntegrationTest {
                                                 .toMethod(UseCaseThreeController.class, doSomethingThree)
                                                 .inLine(13)))
                                 .by(sliceDependency()
-                                        .described("Controller two calls Controller one")
+                                        .described("Controller two depends on Controller one")
                                         .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                                 .toConstructor(UseCaseOneTwoController.class)
                                                 .inLine(10))
@@ -1154,7 +1154,7 @@ class ExamplesIntegrationTest {
         addExpectedCommonFailureFor_controllers_should_only_use_their_own_slice
                 .accept("controllers_should_only_use_their_own_slice", expectedTestFailures);
         expectedTestFailures.by(sliceDependency()
-                .described("Controller one calls Controller two")
+                .described("Controller one depends on Controller two")
                 .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
                         .toConstructor(UseCaseTwoController.class)
                         .inLine(10))
@@ -1162,7 +1162,7 @@ class ExamplesIntegrationTest {
                         .toMethod(UseCaseTwoController.class, doSomethingTwo)
                         .inLine(10)))
                 .by(sliceDependency()
-                        .described("Controller three calls Controller one")
+                        .described("Controller three depends on Controller one")
                         .by(callFromMethod(UseCaseThreeController.class, doSomethingThree)
                                 .toConstructor(UseCaseOneTwoController.class)
                                 .inLine(9))
@@ -1178,7 +1178,7 @@ class ExamplesIntegrationTest {
         expectedTestFailures
                 .ofRule("Controllers one and two should not depend on each other")
                 .by(sliceDependency()
-                        .described("Controller one calls Controller two")
+                        .described("Controller one depends on Controller two")
                         .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
                                 .toConstructor(UseCaseTwoController.class)
                                 .inLine(10))
@@ -1186,7 +1186,7 @@ class ExamplesIntegrationTest {
                                 .toMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .inLine(10)))
                 .by(sliceDependency()
-                        .described("Controller two calls Controller one")
+                        .described("Controller two depends on Controller one")
                         .by(callFromMethod(UseCaseTwoController.class, doSomethingTwo)
                                 .toConstructor(UseCaseOneTwoController.class)
                                 .inLine(10))
