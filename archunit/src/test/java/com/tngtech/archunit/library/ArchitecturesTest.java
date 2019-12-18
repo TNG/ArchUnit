@@ -58,7 +58,7 @@ public class ArchitecturesTest {
                 layeredArchitecture()
                         .layer("One").definedBy("..library.testclasses.some.pkg..")
                         .layer("Two").definedBy("..library.testclasses.first.any.pkg..", "..library.testclasses.second.any.pkg..")
-                        .layer("Three").definedBy("..library.testclasses..three..")
+                        .optionalLayer("Three").definedBy("..library.testclasses..three..")
                         .whereLayer("One").mayNotBeAccessedByAnyLayer()
                         .whereLayer("Two").mayOnlyBeAccessedByLayers("One")
                         .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two"),
@@ -69,7 +69,7 @@ public class ArchitecturesTest {
                         .layer("Two").definedBy(
                         resideInAnyPackage("..library.testclasses.first.any.pkg..", "..library.testclasses.second.any.pkg..")
                                 .as("'..library.testclasses.first.any.pkg..', '..library.testclasses.second.any.pkg..'"))
-                        .layer("Three").definedBy(
+                        .optionalLayer("Three").definedBy(
                         resideInAnyPackage("..library.testclasses..three..")
                                 .as("'..library.testclasses..three..'"))
                         .whereLayer("One").mayNotBeAccessedByAnyLayer()
@@ -84,7 +84,7 @@ public class ArchitecturesTest {
                 "Layered architecture consisting of" + lineSeparator() +
                         "layer 'One' ('..library.testclasses.some.pkg..')" + lineSeparator() +
                         "layer 'Two' ('..library.testclasses.first.any.pkg..', '..library.testclasses.second.any.pkg..')" + lineSeparator() +
-                        "layer 'Three' ('..library.testclasses..three..')" + lineSeparator() +
+                        "optional layer 'Three' ('..library.testclasses..three..')" + lineSeparator() +
                         "where layer 'One' may not be accessed by any layer" + lineSeparator() +
                         "where layer 'Two' may only be accessed by layers ['One']" + lineSeparator() +
                         "where layer 'Three' may only be accessed by layers ['One', 'Two']");
@@ -175,6 +175,18 @@ public class ArchitecturesTest {
         assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isTrue();
         assertPatternMatches(result.getFailureReport().getDetails(),
                 ImmutableSet.of(expectedEmptyLayer("Some"), expectedEmptyLayer("Other")));
+    }
+
+    @Test
+    public void layered_architecture_allows_empty_optionalLayer() {
+        LayeredArchitecture architecture = layeredArchitecture()
+                .optionalLayer("can be absent").definedBy(absolute("should.not.be.found.."));
+
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
+
+        EvaluationResult result = architecture.evaluate(classes);
+        assertThat(result.hasViolation()).as("result of evaluating empty optionalLayer has violation").isFalse();
+        assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
     }
 
     @Test
