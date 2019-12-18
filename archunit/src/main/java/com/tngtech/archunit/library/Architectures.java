@@ -69,7 +69,7 @@ public final class Architectures {
     /**
      * Can be used to assert a typical layered architecture, e.g. with an UI layer, a business logic layer and
      * a persistence layer, where specific access rules should be adhered to, like UI may not access persistence
-     * and each layer may only access lower layers, i.e. UI --&gt; business logic --&gt; persistence.
+     * and each layer may only access lower layers, i.e. UI &rarr; business logic &rarr; persistence.
      * <br><br>
      * A layered architecture can for example be defined like this:
      * <pre><code>layeredArchitecture()
@@ -86,7 +86,7 @@ public final class Architectures {
      * layer 'Persistence' MAY NOT access layer 'Business Logic' AND MAY NOT access layer 'UI' (black list).<br>
      * {@link LayeredArchitecture LayeredArchitecture} only supports the white list way, because it prevents detours "outside of
      * the architecture", e.g.<br>
-     * 'Persistence' --&gt; 'my.application.somehelper' --&gt; 'Business Logic'<br>
+     * 'Persistence' &rarr; 'my.application.somehelper' &rarr; 'Business Logic'<br>
      * The white list way enforces that every class that wants to interact with classes inside of
      * the layered architecture must be part of the layered architecture itself and thus adhere to the same rules.
      *
@@ -124,6 +124,11 @@ public final class Architectures {
             this.allowEmptyLayers = allowEmptyLayers;
         }
 
+        /**
+         * By default, layers defined with {@link #layer(String)} must not be empty, i.e. contain at least one class.
+         * <code>allowEmptyLayers(true)</code> can be used to skip this consistency check for all layers.
+         * @see #optionalLayer(String)
+         */
         @PublicAPI(usage = ACCESS)
         public LayeredArchitecture allowEmptyLayers(boolean allowEmptyLayers) {
             this.allowEmptyLayers = allowEmptyLayers;
@@ -140,11 +145,23 @@ public final class Architectures {
             return this;
         }
 
+        /**
+         * Starts the definition of a new layer within the current {@link #layeredArchitecture() LayeredArchitecture}.
+         * <br>
+         * Unless {@link #allowEmptyLayers(boolean) allowEmptyLayers(true)} is used, this layer must not be empty.
+         * @see #allowEmptyLayers(boolean)
+         * @see #optionalLayer(String)
+         */
         @PublicAPI(usage = ACCESS)
         public LayerDefinition layer(String name) {
             return new LayerDefinition(name, false);
         }
 
+        /**
+         * Starts the definition of a new layer within the current {@link #layeredArchitecture() LayeredArchitecture}.
+         * <br>
+         * The only difference to a layer defined with {@link #layer(String)} is that an optional layer may be empty.
+         */
         @PublicAPI(usage = ACCESS)
         public LayerDefinition optionalLayer(String name) {
             return new LayerDefinition(name, true);
