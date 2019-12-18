@@ -23,6 +23,7 @@ const init = (getNodeView, getRootView, getDependencyView, getDetailedDependency
     getVisualizationFunctions: () => visualizationFunctions.newInstance(),
     getDependencyVisualizationFunctions: () => dependencyVisualizationFunctions.newInstance(),
     getRoot: () => node.init(getNodeView(), getRootView(), result.getVisualizationFunctions(), getVisualizationStyles()),
+    getDependencyView,
     getDetailedDependencyView,
     getDependencyCreator: () => dependency.init(getDependencyView(), result.getDetailedDependencyView(), result.getDependencyVisualizationFunctions()),
     getDependencies: () => dependencies.init(() => result.getDependencyCreator()),
