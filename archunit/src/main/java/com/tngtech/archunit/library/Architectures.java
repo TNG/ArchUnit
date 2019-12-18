@@ -142,7 +142,12 @@ public final class Architectures {
 
         @PublicAPI(usage = ACCESS)
         public LayerDefinition layer(String name) {
-            return new LayerDefinition(name);
+            return new LayerDefinition(name, false);
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public LayerDefinition optionalLayer(String name) {
+            return new LayerDefinition(name, true);
         }
 
         @Override
@@ -171,15 +176,21 @@ public final class Architectures {
         @PublicAPI(usage = ACCESS)
         public EvaluationResult evaluate(JavaClasses classes) {
             EvaluationResult result = new EvaluationResult(this, Priority.MEDIUM);
-            if (!allowEmptyLayers) {
-                for (LayerDefinition layerDefinition : layerDefinitions) {
-                    result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
-                }
-            }
+            checkEmptyLayers(classes, result);
             for (LayerDependencySpecification specification : dependencySpecifications) {
                 result.add(evaluateDependenciesShouldBeSatisfied(classes, specification));
             }
             return result;
+        }
+
+        private void checkEmptyLayers(JavaClasses classes, EvaluationResult result) {
+            if (!allowEmptyLayers) {
+                for (LayerDefinition layerDefinition : layerDefinitions) {
+                    if (!layerDefinition.isOptional()) {
+                        result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
+                    }
+                }
+            }
         }
 
         private EvaluationResult evaluateLayersShouldNotBeEmpty(JavaClasses classes, LayerDefinition layerDefinition) {
@@ -319,11 +330,13 @@ public final class Architectures {
 
         public final class LayerDefinition {
             private final String name;
+            private final boolean optional;
             private DescribedPredicate<JavaClass> containsPredicate;
 
-            private LayerDefinition(String name) {
+            private LayerDefinition(String name, boolean optional) {
                 checkState(!isNullOrEmpty(name), "Layer name must be present");
                 this.name = name;
+                this.optional = optional;
             }
 
             @PublicAPI(usage = ACCESS)
@@ -339,13 +352,17 @@ public final class Architectures {
                 return definedBy(resideInAnyPackage(packageIdentifiers).as(description));
             }
 
+            boolean isOptional() {
+                return optional;
+            }
+
             DescribedPredicate<JavaClass> containsPredicate() {
                 return containsPredicate;
             }
 
             @Override
             public String toString() {
-                return String.format("layer '%s' (%s)", name, containsPredicate);
+                return String.format("%slayer '%s' (%s)", optional ? "optional " : "", name, containsPredicate);
             }
         }
 
