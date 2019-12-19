@@ -126,7 +126,9 @@ public final class Architectures {
 
         /**
          * By default, layers defined with {@link #layer(String)} must not be empty, i.e. contain at least one class.
-         * <code>withOptionalLayers(true)</code> can be used to make all layers optional.
+         * <br>
+         * <code>withOptionalLayers(true)</code> can be used to make all layers optional.<br>
+         * <code>withOptionalLayers(false)</code> still allows to define individual optional layers with {@link #optionalLayer(String)}.
          * @see #optionalLayer(String)
          */
         @PublicAPI(usage = ACCESS)
