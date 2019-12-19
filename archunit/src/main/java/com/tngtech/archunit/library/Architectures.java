@@ -175,7 +175,7 @@ public final class Architectures {
                 return overriddenDescription.get();
             }
 
-            List<String> lines = newArrayList("Layered architecture consisting of");
+            List<String> lines = newArrayList("Layered architecture consisting of" + (optionalLayers ? " (optional)" : ""));
             for (LayerDefinition definition : layerDefinitions) {
                 lines.add(definition.toString());
             }
@@ -538,7 +538,7 @@ public final class Architectures {
                 return overriddenDescription.get();
             }
 
-            List<String> lines = newArrayList("Onion architecture consisting of");
+            List<String> lines = newArrayList("Onion architecture consisting of" + (optionalLayers ? " (optional)" : ""));
             if (domainModelPackageIdentifiers.length > 0) {
                 lines.add(String.format("domain models ('%s')", Joiner.on("', '").join(domainModelPackageIdentifiers)));
             }

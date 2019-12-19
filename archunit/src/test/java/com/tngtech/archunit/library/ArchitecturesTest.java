@@ -146,6 +146,7 @@ public class ArchitecturesTest {
     @Test
     public void layered_architecture_allows_empty_layers_if_all_layers_are_optional() {
         LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().withOptionalLayers(true);
+        assertThat(architecture.getDescription()).startsWith("Layered architecture consisting of (optional)");
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
@@ -357,6 +358,7 @@ public class ArchitecturesTest {
     @Test
     public void onion_architecture_allows_empty_layers_if_all_layers_are_optional() {
         OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().withOptionalLayers(true);
+        assertThat(architecture.getDescription()).startsWith("Onion architecture consisting of (optional)");
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
 
