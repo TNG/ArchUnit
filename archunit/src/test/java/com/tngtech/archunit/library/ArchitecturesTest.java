@@ -144,8 +144,8 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void layered_architecture_allows_empty_layers_if_configured_to_allow() {
-        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().allowEmptyLayers(true);
+    public void layered_architecture_allows_empty_layers_if_all_layers_are_optional() {
+        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().withOptionalLayers(true);
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
@@ -155,8 +155,8 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void layered_architecture_rejects_empty_layers_if_explicitly_configured_to_not_allow() {
-        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().allowEmptyLayers(false);
+    public void layered_architecture_rejects_empty_layers_if_layers_are_explicity_not_optional_by_default() {
+        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().withOptionalLayers(false);
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
@@ -178,7 +178,7 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void layered_architecture_allows_empty_optionalLayer() {
+    public void layered_architecture_allows_individual_empty_optionalLayer() {
         LayeredArchitecture architecture = layeredArchitecture()
                 .optionalLayer("can be absent").definedBy(absolute("should.not.be.found.."));
 
@@ -355,8 +355,8 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void onion_architecture_allows_empty_layers_if_configured_to_allow() {
-        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().allowEmptyLayers(true);
+    public void onion_architecture_allows_empty_layers_if_all_layers_are_optional() {
+        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().withOptionalLayers(true);
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
 
@@ -366,8 +366,8 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void onion_architecture_rejects_empty_layers_if_explicitly_configured_to_not_allow() {
-        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().allowEmptyLayers(false);
+    public void onion_architecture_rejects_empty_layers_if_layers_are_explicitly_not_optional_by_default() {
+        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().withOptionalLayers(false);
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
 

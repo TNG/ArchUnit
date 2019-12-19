@@ -102,7 +102,7 @@ public final class Architectures {
         private final Set<LayerDependencySpecification> dependencySpecifications;
         private final PredicateAggregator<Dependency> irrelevantDependenciesPredicate;
         private final Optional<String> overriddenDescription;
-        private boolean allowEmptyLayers;
+        private boolean optionalLayers;
 
         private LayeredArchitecture() {
             this(new LayerDefinitions(),
@@ -116,22 +116,22 @@ public final class Architectures {
                 Set<LayerDependencySpecification> dependencySpecifications,
                 PredicateAggregator<Dependency> irrelevantDependenciesPredicate,
                 Optional<String> overriddenDescription,
-                boolean allowEmptyLayers) {
+                boolean optionalLayers) {
             this.layerDefinitions = layerDefinitions;
             this.dependencySpecifications = dependencySpecifications;
             this.irrelevantDependenciesPredicate = irrelevantDependenciesPredicate;
             this.overriddenDescription = overriddenDescription;
-            this.allowEmptyLayers = allowEmptyLayers;
+            this.optionalLayers = optionalLayers;
         }
 
         /**
          * By default, layers defined with {@link #layer(String)} must not be empty, i.e. contain at least one class.
-         * <code>allowEmptyLayers(true)</code> can be used to skip this consistency check for all layers.
+         * <code>withOptionalLayers(true)</code> can be used to make all layers optional.
          * @see #optionalLayer(String)
          */
         @PublicAPI(usage = ACCESS)
-        public LayeredArchitecture allowEmptyLayers(boolean allowEmptyLayers) {
-            this.allowEmptyLayers = allowEmptyLayers;
+        public LayeredArchitecture withOptionalLayers(boolean optionalLayers) {
+            this.optionalLayers = optionalLayers;
             return this;
         }
 
@@ -148,8 +148,7 @@ public final class Architectures {
         /**
          * Starts the definition of a new layer within the current {@link #layeredArchitecture() LayeredArchitecture}.
          * <br>
-         * Unless {@link #allowEmptyLayers(boolean) allowEmptyLayers(true)} is used, this layer must not be empty.
-         * @see #allowEmptyLayers(boolean)
+         * Unless {@link #withOptionalLayers(boolean) withOptionalLayers(true}} is used, this layer must not be empty.
          * @see #optionalLayer(String)
          */
         @PublicAPI(usage = ACCESS)
@@ -158,9 +157,11 @@ public final class Architectures {
         }
 
         /**
-         * Starts the definition of a new layer within the current {@link #layeredArchitecture() LayeredArchitecture}.
+         * Starts the definition of a new optional layer within the current {@link #layeredArchitecture() LayeredArchitecture}.
          * <br>
-         * The only difference to a layer defined with {@link #layer(String)} is that an optional layer may be empty.
+         * An optional layer will not fail if it is empty, i.e. does not contain any classes.
+         * When {@link #withOptionalLayers(boolean) withOptionalLayers(true)} is used, all layers are optional by default,
+         * such that there is no difference between {@link #optionalLayer(String)} and {@link #layer(String)} anymore
          */
         @PublicAPI(usage = ACCESS)
         public LayerDefinition optionalLayer(String name) {
@@ -201,7 +202,7 @@ public final class Architectures {
         }
 
         private void checkEmptyLayers(JavaClasses classes, EvaluationResult result) {
-            if (!allowEmptyLayers) {
+            if (!optionalLayers) {
                 for (LayerDefinition layerDefinition : layerDefinitions) {
                     if (!layerDefinition.isOptional()) {
                         result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
@@ -275,7 +276,7 @@ public final class Architectures {
         public LayeredArchitecture as(String newDescription) {
             return new LayeredArchitecture(
                     layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate, Optional.of(newDescription), allowEmptyLayers);
+                    irrelevantDependenciesPredicate, Optional.of(newDescription), optionalLayers);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -293,7 +294,7 @@ public final class Architectures {
                 DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
             return new LayeredArchitecture(
                     layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription, allowEmptyLayers);
+                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription, optionalLayers);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -430,7 +431,7 @@ public final class Architectures {
         private String[] domainServicePackageIdentifiers = new String[0];
         private String[] applicationPackageIdentifiers = new String[0];
         private Map<String, String[]> adapterPackageIdentifiers = new LinkedHashMap<>();
-        private boolean allowEmptyLayers = false;
+        private boolean optionalLayers = false;
 
         private OnionArchitecture() {
             overriddenDescription = Optional.absent();
@@ -473,8 +474,8 @@ public final class Architectures {
         }
 
         @PublicAPI(usage = ACCESS)
-        public OnionArchitecture allowEmptyLayers(boolean allowEmptyLayers) {
-            this.allowEmptyLayers = allowEmptyLayers;
+        public OnionArchitecture withOptionalLayers(boolean optionalLayers) {
+            this.optionalLayers = optionalLayers;
             return this;
         }
 
@@ -487,7 +488,7 @@ public final class Architectures {
                     .whereLayer(DOMAIN_MODEL_LAYER).mayOnlyBeAccessedByLayers(DOMAIN_SERVICE_LAYER, APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
                     .whereLayer(DOMAIN_SERVICE_LAYER).mayOnlyBeAccessedByLayers(APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
                     .whereLayer(APPLICATION_SERVICE_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER)
-                    .allowEmptyLayers(allowEmptyLayers);
+                    .withOptionalLayers(optionalLayers);
 
             for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
                 String adapterLayer = getAdapterLayer(adapter.getKey());
