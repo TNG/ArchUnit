@@ -391,7 +391,8 @@ propTwo=valueTwo
 ===== Violation Line Matcher
 
 The `ViolationLineMatcher` compares lines from occurred violations with lines from the store.
-The default implementation ignores line numbers and counts lines as equivalent when all other details match.
+The default implementation ignores line numbers and numbers of anonymous classes or lambda expressions,
+and counts lines as equivalent when all other details match.
 A custom `ViolationLineMatcher` can again either be defined programmatically:
 
 [source,java,options="nowrap"]
