@@ -1,0 +1,10 @@
+ext.moduleName = 'com.tngtech.archunit.junit5'
+
+dependencies {
+	compile(project(":archunit-junit5-api"))
+	runtime(project(":archunit-junit5-engine"))
+}
+
+shadowJar {
+	exclude '**'
+}
