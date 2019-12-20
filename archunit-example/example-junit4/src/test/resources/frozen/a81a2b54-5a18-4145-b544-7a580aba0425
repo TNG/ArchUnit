@@ -1,4 +1,5 @@
 Class <com.tngtech.archunit.example.layers.persistence.layerviolation.DaoCallingService> implements interface <com.tngtech.archunit.example.layers.service.ServiceInterface> in (DaoCallingService.java:0)
+Class <com.tngtech.archunit.example.layers.service.ServiceViolatingLayerRules> has annotation member of type <com.tngtech.archunit.example.layers.service.ServiceType> in (ServiceViolatingLayerRules.java:0)
 Class <com.tngtech.archunit.example.layers.service.ServiceViolatingLayerRules> has annotation member of type <com.tngtech.archunit.example.layers.service.SimpleServiceAnnotation> in (ServiceViolatingLayerRules.java:0)
 Class <com.tngtech.archunit.example.layers.service.ServiceViolatingLayerRules> is annotated with <com.tngtech.archunit.example.layers.service.ComplexServiceAnnotation> in (ServiceViolatingLayerRules.java:0)
 Class <com.tngtech.archunit.example.layers.service.impl.ServiceImplementation> implements interface <com.tngtech.archunit.example.layers.service.ServiceInterface> in (ServiceImplementation.java:0)

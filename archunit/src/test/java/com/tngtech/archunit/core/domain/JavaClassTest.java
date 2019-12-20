@@ -465,7 +465,9 @@ public class JavaClassTest {
                 B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
                 List.class, Serializable.class, SomeSuperClass.class,
                 WithType.class, WithNestedAnnotations.class, OnClass.class,
-                OnMethod.class, OnConstructor.class, OnField.class, MetaAnnotated.class);
+                OnMethod.class, OnConstructor.class, OnField.class, MetaAnnotated.class, WithEnum.class,
+                SomeEnumAsAnnotationParameter.class, SomeEnumAsAnnotationArrayParameter.class,
+                SomeEnumAsNestedAnnotationParameter.class, SomeEnumAsDefaultParameter.class);
     }
 
     @Test
@@ -1305,11 +1307,15 @@ public class JavaClassTest {
             outerType = AhavingMembersOfTypeB.class,
             nested = {
                     @WithType(type = B.class)
-            }
+            },
+            withEnum = @WithEnum(
+                    someEnum = SomeEnumAsNestedAnnotationParameter.NESTED_ANNOTATION_PARAMETER,
+                    enumArray = {SomeEnumAsAnnotationArrayParameter.ANNOTATION_ARRAY_PARAMETER}
+            )
     )
     @MetaAnnotated
     public static class ClassWithAnnotationDependencies extends SomeSuperClass {
-        @OnField
+        @OnField(SomeEnumAsAnnotationParameter.ANNOTATION_PARAMETER)
         Object field;
 
         @OnConstructor
@@ -1325,22 +1331,35 @@ public class JavaClassTest {
         }
     }
 
-    @interface OnClass {}
-    @interface OnField {}
-    @interface OnConstructor {}
-    @interface OnMethod {}
+    @interface OnClass {
+    }
+
+    @interface OnField {
+        SomeEnumAsAnnotationParameter value();
+    }
+
+    @interface OnConstructor {
+    }
+
+    @interface OnMethod {
+    }
 
     @WithType(type = B.class)
-    @interface OnMethodParam {}
+    @interface OnMethodParam {
+    }
 
     @Retention(RUNTIME)
-    @interface WithType { Class<?> type(); }
+    @interface WithType {
+        Class<?> type();
+    }
 
     @Retention(RUNTIME)
     @interface WithNestedAnnotations {
         Class<?> outerType();
 
         WithType[] nested();
+
+        WithEnum withEnum();
     }
 
     @Retention(RUNTIME)
@@ -1351,5 +1370,29 @@ public class JavaClassTest {
     @Retention(RUNTIME)
     @MetaAnnotation
     @interface MetaAnnotated {
+    }
+
+    @interface WithEnum {
+        SomeEnumAsDefaultParameter enumWithDefault() default SomeEnumAsDefaultParameter.DEFAULT_PARAMETER;
+
+        SomeEnumAsNestedAnnotationParameter someEnum();
+
+        SomeEnumAsAnnotationArrayParameter[] enumArray();
+    }
+
+    enum SomeEnumAsAnnotationParameter {
+        ANNOTATION_PARAMETER
+    }
+
+    enum SomeEnumAsNestedAnnotationParameter {
+        NESTED_ANNOTATION_PARAMETER
+    }
+
+    enum SomeEnumAsDefaultParameter {
+        DEFAULT_PARAMETER
+    }
+
+    enum SomeEnumAsAnnotationArrayParameter {
+        ANNOTATION_ARRAY_PARAMETER
     }
 }

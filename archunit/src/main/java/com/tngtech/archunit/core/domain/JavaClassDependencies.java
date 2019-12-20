@@ -246,6 +246,9 @@ class JavaClassDependencies {
         if (value instanceof JavaClass) {
             JavaClass annotationMember = (JavaClass) value;
             result.add(Dependency.fromAnnotationMember(origin, annotationMember));
+        } else if (value instanceof JavaEnumConstant) {
+            JavaEnumConstant enumConstant = (JavaEnumConstant) value;
+            result.add(Dependency.fromAnnotationMember(origin, enumConstant.getDeclaringClass()));
         } else if (value instanceof JavaAnnotation<?>) {
             JavaAnnotation<?> nestedAnnotation = (JavaAnnotation<?>) value;
             result.add(Dependency.fromAnnotationMember(origin, nestedAnnotation.getRawType()));
