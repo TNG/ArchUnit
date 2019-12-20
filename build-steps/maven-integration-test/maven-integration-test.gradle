@@ -115,7 +115,7 @@ def addMavenTest = { config ->
                                         .replace('#{archunitTestArtifact}', config.archunitTestArtifact)
                                         .replace('#{repositories}', repositories)
                                         .replace('#{javaVersion}', "${config.javaVersion}")
-                                        .replace('#{surefireDependencies}', config.surefireDependencies ?: '')
+                                        .replace('#{additionalDependencies}', config.additionalDependencies ?: '')
                                         .replace('#{surefireExampleConfiguration}', config.surefireExampleConfiguration)
 
                 copy {
@@ -216,25 +216,14 @@ javaConfigs.findAll { it.suffix.endsWith('junit4') }*.with {
 def archUnitVersion = version
 javaConfigs.findAll { it.suffix.endsWith('junit5') }*.with {
     surefireExampleConfiguration = '<groups>example</groups>'
-    archunitTestArtifact = 'archunit-junit5-api'
-    surefireDependencies = """
-            <dependencies>
-                <dependency>
-                    <groupId>org.junit.platform</groupId>
-                    <artifactId>junit-platform-surefire-provider</artifactId>
-                    <version>1.3.2</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.tngtech.archunit</groupId>
-                    <artifactId>archunit-junit5-engine</artifactId>
-                    <version>${archUnitVersion}</version>
-                </dependency>
-                <dependency>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                    <version>5.4.0</version>
-                </dependency>
-            </dependencies>"""
+    archunitTestArtifact = 'archunit-junit5'
+    additionalDependencies = """
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.5.2</version>
+            <scope>test</scope>
+        </dependency>"""
 }
 
 javaConfigs.each { config ->
