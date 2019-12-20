@@ -15,9 +15,6 @@
  */
 package com.tngtech.archunit.library.freeze;
 
-import java.util.Iterator;
-
-import com.google.common.base.Splitter;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 
@@ -26,7 +23,7 @@ import static java.lang.Character.isDigit;
 
 class ViolationLineMatcherFactory {
     private static final String FREEZE_LINE_MATCHER_PROPERTY = "freeze.lineMatcher";
-    private static final FuzzyLineNumberMatcher DEFAULT_MATCHER = new FuzzyLineNumberMatcher();
+    private static final ViolationLineMatcher DEFAULT_MATCHER = new FuzzyViolationLineMatcher();
 
     static ViolationLineMatcher create() {
         return ArchConfiguration.get().containsProperty(FREEZE_LINE_MATCHER_PROPERTY)
@@ -45,32 +42,78 @@ class ViolationLineMatcherFactory {
         }
     }
 
-    private static class FuzzyLineNumberMatcher implements ViolationLineMatcher {
+    /**
+     * ignores numbers that are potentially line numbers (digits following a ':' and preceding a ')')
+     * or compiler-generated numbers of anonymous classes or lambda expressions (digits following a '$').
+     */
+    private static class FuzzyViolationLineMatcher implements ViolationLineMatcher {
         @Override
-        public boolean matches(String lineFromFirstViolation, String lineFromSecondViolation) {
-            return ignorePotentialLineNumbers(lineFromFirstViolation).equals(ignorePotentialLineNumbers(lineFromSecondViolation));
+        public boolean matches(String str1, String str2) {
+            // Compare relevant substrings, in a more performant way than a regex solution like this:
+            //
+            // normalize = str -> str.replaceAll(":\\d+\\)", ":0)").replaceAll("\\$\\d+", "\\$0");
+            // return normalize.apply(str1).equals(normalize.apply(str2));
+
+            RelevantPartIterator relevantPart1 = new RelevantPartIterator(str1);
+            RelevantPartIterator relevantPart2 = new RelevantPartIterator(str2);
+            while (relevantPart1.hasNext() && relevantPart2.hasNext()) {
+                if (!relevantPart1.next().equals(relevantPart2.next())) {
+                    return false;
+                }
+            }
+            return !relevantPart1.hasNext() && !relevantPart2.hasNext();
         }
 
-        // Would be nicer to use a regex here, but unfortunately that would have a massive performance impact.
-        // So we do some low level character processing instead.
-        private String ignorePotentialLineNumbers(String violation) {
-            Iterator<String> parts = Splitter.on(":").split(violation).iterator();
-            StringBuilder removedLineNumbers = new StringBuilder(parts.next());
-            while (parts.hasNext()) {
-                removedLineNumbers.append(removeNumberIfPresent(parts.next()));
-            }
-            return removedLineNumbers.toString();
-        }
+        static class RelevantPartIterator {
+            private final String str;
+            private final int length;
+            // (start, end) is the (first, last) index of current relevant part, moved through string during iteration:
+            private int start = 0;
+            private int end = -1;
 
-        private String removeNumberIfPresent(String part) {
-            int i = 0;
-            while (part.length() > i && isDigit(part.charAt(i))) {
-                i++;
+            RelevantPartIterator(String str) {
+                this.str = str;
+                this.length = str.length();
             }
-            boolean foundClosingBracketFollowingDigits = i > 0 && part.length() > i && part.charAt(i) == ')';
-            return foundClosingBracketFollowingDigits
-                    ? part.substring(i)
-                    : part;
+
+            boolean hasNext() {
+                if (start >= length) {
+                    return false;
+                }
+                if (end >= 0) {
+                    start = findStartIndexOfNextRelevantPart();
+                }
+                return start < length;
+            }
+
+            public String next() {
+                end = Math.min(nextIndexOfCharacterOrEndOfString(':'), nextIndexOfCharacterOrEndOfString('$'));
+                return str.substring(start, end + 1);
+            }
+
+            private int nextIndexOfCharacterOrEndOfString(char ch) {
+                int i = str.indexOf(ch, start);
+                return i >= 0 ? i : length - 1;
+            }
+
+            private int findStartIndexOfNextRelevantPart() {
+                final int startOfIgnoredPart = end + 1;
+                int indexOfNonDigit = findIndexOfNextNonDigitChar(startOfIgnoredPart);
+                if (str.charAt(end) == ':') {
+                    boolean foundNumber = indexOfNonDigit > startOfIgnoredPart;
+                    boolean foundClosingParenthesisAfterNumber = foundNumber && indexOfNonDigit < length && str.charAt(indexOfNonDigit) == ')';
+                    return foundClosingParenthesisAfterNumber ? indexOfNonDigit + 1 : startOfIgnoredPart;
+                } else {  // str.charAt(end) == '$'
+                    return indexOfNonDigit;
+                }
+            }
+
+            private int findIndexOfNextNonDigitChar(int index) {
+                while (index < length && isDigit(str.charAt(index))) {
+                    index++;
+                }
+                return index;
+            }
         }
     }
 }
