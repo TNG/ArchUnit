@@ -92,12 +92,12 @@ public interface HasParameterTypes {
          */
         @Deprecated
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasParameterTypes> parameterTypes(final DescribedPredicate<JavaClassList> predicate) {
+        public static DescribedPredicate<HasParameterTypes> parameterTypes(final DescribedPredicate<? super JavaClassList> predicate) {
             return adjustDeprecatedDescription(new RawParameterTypesPredicate(predicate));
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(final DescribedPredicate<List<JavaClass>> predicate) {
+        public static DescribedPredicate<HasParameterTypes> rawParameterTypes(final DescribedPredicate<? super List<JavaClass>> predicate) {
             return new RawParameterTypesPredicate(predicate);
         }
 

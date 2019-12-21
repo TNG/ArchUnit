@@ -54,7 +54,7 @@ public final class AnyDependencyCondition extends AnyAttributeMatchesCondition<D
     }
 
     @PublicAPI(usage = ACCESS)
-    public AnyDependencyCondition ignoreDependency(DescribedPredicate<Dependency> ignorePredicate) {
+    public AnyDependencyCondition ignoreDependency(DescribedPredicate<? super Dependency> ignorePredicate) {
         return new AnyDependencyCondition(getDescription(),
                 conditionPredicate,
                 javaClassToRelevantDependencies,
