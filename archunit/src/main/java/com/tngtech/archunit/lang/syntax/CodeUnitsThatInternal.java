@@ -61,12 +61,12 @@ class CodeUnitsThatInternal<
     }
 
     @Override
-    public CONJUNCTION haveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate) {
+    public CONJUNCTION haveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate) {
         return withPredicate(have(rawParameterTypes(predicate)));
     }
 
     @Override
-    public CONJUNCTION doNotHaveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate) {
+    public CONJUNCTION doNotHaveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate) {
         return withPredicate(doNot(have(rawParameterTypes(predicate))));
     }
 
@@ -91,12 +91,12 @@ class CodeUnitsThatInternal<
     }
 
     @Override
-    public CONJUNCTION haveRawReturnType(DescribedPredicate<JavaClass> predicate) {
+    public CONJUNCTION haveRawReturnType(DescribedPredicate<? super JavaClass> predicate) {
         return withPredicate(have(rawReturnType(predicate)));
     }
 
     @Override
-    public CONJUNCTION doNotHaveRawReturnType(DescribedPredicate<JavaClass> predicate) {
+    public CONJUNCTION doNotHaveRawReturnType(DescribedPredicate<? super JavaClass> predicate) {
         return withPredicate(doNot(have(rawReturnType(predicate))));
     }
 
@@ -129,16 +129,16 @@ class CodeUnitsThatInternal<
     }
 
     @Override
-    public CONJUNCTION declareThrowableOfType(DescribedPredicate<JavaClass> predicate) {
+    public CONJUNCTION declareThrowableOfType(DescribedPredicate<? super JavaClass> predicate) {
         return withPredicate(declareThrowableOfTypePredicate(predicate));
     }
 
-    private DescribedPredicate<HasThrowsClause<?>> declareThrowableOfTypePredicate(DescribedPredicate<JavaClass> predicate) {
+    private DescribedPredicate<HasThrowsClause<?>> declareThrowableOfTypePredicate(DescribedPredicate<? super JavaClass> predicate) {
         return throwsClauseContainingType(predicate).as("declare throwable of type " + predicate.getDescription());
     }
 
     @Override
-    public CONJUNCTION doNotDeclareThrowableOfType(DescribedPredicate<JavaClass> predicate) {
+    public CONJUNCTION doNotDeclareThrowableOfType(DescribedPredicate<? super JavaClass> predicate) {
         return withPredicate(doNot(declareThrowableOfTypePredicate(predicate)));
     }
 

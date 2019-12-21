@@ -1030,5 +1030,5 @@ public interface ClassesShould {
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
     @PublicAPI(usage = ACCESS)
-    ClassesShouldConjunction containNumberOfElements(DescribedPredicate<Integer> predicate);
+    ClassesShouldConjunction containNumberOfElements(DescribedPredicate<? super Integer> predicate);
 }

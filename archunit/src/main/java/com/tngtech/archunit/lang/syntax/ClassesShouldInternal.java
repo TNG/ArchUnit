@@ -585,7 +585,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
-    public ClassesShouldConjunction containNumberOfElements(DescribedPredicate<Integer> predicate) {
+    public ClassesShouldConjunction containNumberOfElements(DescribedPredicate<? super Integer> predicate) {
         return addCondition(ArchConditions.containNumberOfElements(predicate));
     }
 

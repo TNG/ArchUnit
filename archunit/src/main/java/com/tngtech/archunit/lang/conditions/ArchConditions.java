@@ -840,7 +840,7 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaClass> containNumberOfElements(final DescribedPredicate<Integer> predicate) {
+    public static ArchCondition<JavaClass> containNumberOfElements(DescribedPredicate<? super Integer> predicate) {
         return new NumberOfElementsCondition(predicate);
     }
 
@@ -897,7 +897,7 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> haveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate) {
+    public static ArchCondition<JavaCodeUnit> haveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate) {
         return new HaveConditionByPredicate<>(rawParameterTypes(predicate));
     }
 
@@ -912,7 +912,7 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> haveRawReturnType(DescribedPredicate<JavaClass> predicate) {
+    public static ArchCondition<JavaCodeUnit> haveRawReturnType(DescribedPredicate<? super JavaClass> predicate) {
         return new HaveConditionByPredicate<>(rawReturnType(predicate));
     }
 
@@ -1024,9 +1024,9 @@ public final class ArchConditions {
         private final DescribedPredicate<Integer> predicate;
         private SortedSet<String> allClassNames;
 
-        NumberOfElementsCondition(DescribedPredicate<Integer> predicate) {
+        NumberOfElementsCondition(DescribedPredicate<? super Integer> predicate) {
             super("contain number of elements " + predicate.getDescription());
-            this.predicate = predicate;
+            this.predicate = predicate.forSubType();
             allClassNames = new TreeSet<>();
         }
 
@@ -1190,7 +1190,7 @@ public final class ArchConditions {
     private static class IsConditionByPredicate<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
         private final DescribedPredicate<T> predicate;
 
-        private IsConditionByPredicate(DescribedPredicate<? super T> predicate) {
+        IsConditionByPredicate(DescribedPredicate<? super T> predicate) {
             super(ArchPredicates.be(predicate).getDescription());
             this.predicate = predicate.forSubType();
         }
