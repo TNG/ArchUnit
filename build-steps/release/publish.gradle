@@ -1,90 +1,18 @@
+ext.isReleaseVersion = !project.version.endsWith("-SNAPSHOT")
+
+if (!hasProperty("sonatypeUsername")) {
+    ext.sonatypeUsername = ""
+}
+if (!hasProperty("sonatypePassword")) {
+    ext.sonatypePassword = ""
+}
+
 releaseProjects*.with {
-    apply plugin: 'maven'
-    apply plugin: 'signing'
+    apply plugin: "maven-publish"
+    apply plugin: "signing"
 
-    install.dependsOn(build)
-    uploadArchives.dependsOn(build)
-
-    signing {
-        // requires gradle.properties, see http://www.gradle.org/docs/current/userguide/signing_plugin.html
-        required {
-            gradle.taskGraph.hasTask('uploadArchives') && project.hasProperty('sonatypeUsername')
-        }
-        sign configurations.archives
-    }
-    signArchives.dependsOn finishArchive
-
-    uploadArchives {
-        doFirst {
-            assert project.property('org.gradle.parallel') == 'false':
-                    'uploading archives with parallel execution seems to lead to broken uploads in Sonatype Nexus'
-        }
-
-        repositories {
-            mavenDeployer {
-                beforeDeployment { deployment ->
-                    signing.signPom(deployment)
-                }
-
-                // respective username and password can be configured in ~/.gradle/gradle.properties
-                if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePassword')) {
-                    repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-                        authentication(userName: sonatypeUsername, password: sonatypePassword)
-                    }
-                    snapshotRepository(url: 'https://oss.sonatype.org/content/repositories/snapshots/') {
-                        authentication(userName: sonatypeUsername, password: sonatypePassword)
-                    }
-                }
-                if (project.hasProperty('tngNexusUsername') && project.hasProperty('tngNexusPassword')) {
-                    repository(url: 'https://nexus.int.tngtech.com/repository/maven-releases/') {
-                        authentication(userName: tngNexusUsername, password: tngNexusPassword)
-                    }
-                    snapshotRepository(url: 'https://nexus.int.tngtech.com/repository/maven-snapshots/') {
-                        authentication(userName: tngNexusUsername, password: tngNexusPassword)
-                    }
-                }
-            }
-        }
-    }
-
-    def installer = install.repositories.mavenInstaller
-    def deployer = uploadArchives.repositories.mavenDeployer
-
-    [installer, deployer]*.pom*.whenConfigured {
-        project {
-            name app.name
-            description description
-            url app.urls.entry
-
-            organization {
-                name company.name
-                url company.url
-            }
-
-            scm {
-                url app.urls.source
-                connection "scm:${app.gitRepo}"
-                developerConnection "scm:${app.gitRepo}"
-            }
-
-            developers {
-                developer {
-                    id 'codecholeric'
-                    name 'Peter Gafert'
-                    email 'peter.gafert@tngtech.com'
-                }
-                developer {
-                    id 'rweisleder'
-                    name 'Roland Weisleder'
-                    email 'roland.weisleder@googlemail.com'
-                }
-                developer {
-                    id 'hankem'
-                    name 'Manfred Hanke'
-                    email 'manfred.hanke@tngtech.com'
-                }
-            }
-        }
+    tasks.withType(GenerateModuleMetadata) {
+        enabled = isReleaseVersion // signing of these artifacts causes failure for snapshot versions
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -106,7 +34,79 @@ releaseProjects*.with {
         }
     }
 
-    artifacts {
-        archives sourcesJar, javadocJar
+    publish.dependsOn(build)
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = project.archivesBaseName
+                from components.java
+                artifact tasks.sourcesJar
+                artifact tasks.javadocJar
+                pom {
+                    name = app.name
+                    packaging = "jar"
+                    description = project.description
+                    url = app.urls.entry
+
+                    developers {
+                        developer {
+                            id = 'codecholeric'
+                            name = 'Peter Gafert'
+                            email = 'peter.gafert@tngtech.com'
+                        }
+                        developer {
+                            id = 'rweisleder'
+                            name = 'Roland Weisleder'
+                            email = 'roland.weisleder@googlemail.com'
+                        }
+                        developer {
+                            id = 'hankem'
+                            name = 'Manfred Hanke'
+                            email = 'manfred.hanke@tngtech.com'
+                        }
+                    }
+
+                    organization {
+                        name = company.name
+                        url = company.url
+                    }
+
+                    scm {
+                        url = app.urls.source
+                        connection = "scm:${app.gitRepo}"
+                        developerConnection = "scm:${app.gitRepo}"
+                    }
+                }
+            }
+        }
+
+        repositories {
+            // respective username and password can be configured in ~/.gradle/gradle.properties
+            if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePassword')) {
+                maven {
+                    def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                    def snapshotRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+                    url = isReleaseVersion ? releasesRepoUrl : snapshotRepoUrl
+
+                    credentials {
+                        username = sonatypeUsername
+                        password = sonatypePassword
+                    }
+
+                    metadataSources {
+                        gradleMetadata()
+                    }
+                }
+            }
+        }
+    }
+
+    signing {
+        // requires gradle.properties, see http://www.gradle.org/docs/current/userguide/signing_plugin.html
+        required {
+            isReleaseVersion && gradle.taskGraph.hasTask('publish') && project.hasProperty('sonatypeUsername')
+        }
+        sign publishing.publications.mavenJava
     }
 }

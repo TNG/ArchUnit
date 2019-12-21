@@ -36,8 +36,10 @@ shadowJar {
     }
 }
 
-def configureDependencies = { pom ->
-    // dependencies to archunit only cover annotations; we can skip those without breaking consumers to keep the dependency slim
-    pom.dependencies.removeAll { it.artifactId != 'junit-platform-engine' }
+// dependencies to archunit only cover annotations; we can skip those without breaking consumers to keep the dependency slim
+def configureDependencies = { deps ->
+    deps.children().removeIf{ dep ->
+        dep.artifactId.text() != 'junit-platform-engine'
+    }
 }
 this.with project(':archunit-junit').configureJUnitArchive(configureDependencies)
