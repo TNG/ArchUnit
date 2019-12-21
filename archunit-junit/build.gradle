@@ -84,8 +84,15 @@ ext.configureJUnitArchive = { configureDependencies ->
         delegate.with addCleanThirdPartyTask
         compileJava.dependsOn project(':archunit-junit').finishArchive
 
-        install.repositories.mavenInstaller.pom.whenConfigured configureDependencies
-        uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependencies
+        publishing{
+            publications{
+                mavenJava{
+                    pom.withXml {
+                        configureDependencies(asNode().dependencies.first()) // there is only one "dependencies" element
+                    }
+                }
+            }
+        }
     }
 }
 

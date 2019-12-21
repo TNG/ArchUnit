@@ -30,13 +30,18 @@ shadowJar {
 }
 
 /* Besides SLF4J we'll shadow everything we need into the JAR to avoid conflicts with other libraries*/
-def configureDependenciesAfterShadow = { pom ->
-    pom.dependencies.removeAll {
-        it.artifactId != 'slf4j-api' || it.scope != 'compile'
+publishing{
+    publications{
+        mavenJava{
+            pom.withXml {
+                def deps = asNode().dependencies.first() // there is only one "dependencies" element
+                deps.children().removeIf { dep ->
+                    dep.artifactId.text() != 'slf4j-api' || dep.scope.text() != 'compile'
+                }
+            }
+        }
     }
 }
-install.repositories.mavenInstaller.pom.whenConfigured configureDependenciesAfterShadow
-uploadArchives.repositories.mavenDeployer.pom.whenConfigured configureDependenciesAfterShadow
 
 addTestJarTo this
 configureSlowTestsFor this
