@@ -174,7 +174,7 @@ def addMavenTest = { config ->
         tasks.create(name: runMavenTest, dependsOn: [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest])
 
         def executeRulesTask = tasks[executeRules]
-        releaseProjects.with {
+        releaseProjects*.with {
             [install, uploadArchives].each { executeRulesTask.mustRunAfter it }
         }
     }
@@ -213,7 +213,6 @@ javaConfigs.findAll { it.suffix.endsWith('junit4') }*.with {
     archunitTestArtifact = 'archunit-junit4'
 }
 
-def archUnitVersion = version
 javaConfigs.findAll { it.suffix.endsWith('junit5') }*.with {
     surefireExampleConfiguration = '<groups>example</groups>'
     archunitTestArtifact = 'archunit-junit5'

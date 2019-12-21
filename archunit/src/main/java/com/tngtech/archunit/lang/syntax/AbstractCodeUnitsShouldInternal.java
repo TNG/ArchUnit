@@ -79,12 +79,12 @@ abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, S
     }
 
     @Override
-    public SELF haveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate) {
+    public SELF haveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate) {
         return addCondition(ArchConditions.haveRawParameterTypes(predicate));
     }
 
     @Override
-    public SELF notHaveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate) {
+    public SELF notHaveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate) {
         return addCondition(not(ArchConditions.haveRawParameterTypes(predicate)));
     }
 
@@ -109,12 +109,12 @@ abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, S
     }
 
     @Override
-    public SELF haveRawReturnType(DescribedPredicate<JavaClass> predicate) {
+    public SELF haveRawReturnType(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(ArchConditions.haveRawReturnType(predicate));
     }
 
     @Override
-    public SELF notHaveRawReturnType(DescribedPredicate<JavaClass> predicate) {
+    public SELF notHaveRawReturnType(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(not(ArchConditions.haveRawReturnType(predicate)));
     }
 
@@ -139,12 +139,12 @@ abstract class AbstractCodeUnitsShouldInternal<CODE_UNIT extends JavaCodeUnit, S
     }
 
     @Override
-    public SELF declareThrowableOfType(DescribedPredicate<JavaClass> predicate) {
+    public SELF declareThrowableOfType(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(ArchConditions.declareThrowableOfType(predicate));
     }
 
     @Override
-    public SELF notDeclareThrowableOfType(DescribedPredicate<JavaClass> predicate) {
+    public SELF notDeclareThrowableOfType(DescribedPredicate<? super JavaClass> predicate) {
         return addCondition(not(ArchConditions.declareThrowableOfType(predicate)));
     }
 

@@ -32,8 +32,8 @@ public class ArchPredicates {
      * @return The original predicate with adjusted description
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<T> is(DescribedPredicate<T> predicate) {
-        return predicate.as("is " + predicate.getDescription());
+    public static <T> DescribedPredicate<T> is(DescribedPredicate<? super T> predicate) {
+        return predicate.as("is " + predicate.getDescription()).forSubType();
     }
 
     /**
@@ -44,8 +44,8 @@ public class ArchPredicates {
      * @return The original predicate with adjusted description
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<T> are(DescribedPredicate<T> predicate) {
-        return predicate.as("are " + predicate.getDescription());
+    public static <T> DescribedPredicate<T> are(DescribedPredicate<? super T> predicate) {
+        return predicate.as("are " + predicate.getDescription()).forSubType();
     }
 
     /**
@@ -56,8 +56,8 @@ public class ArchPredicates {
      * @return The original predicate with adjusted description
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<T> has(DescribedPredicate<T> predicate) {
-        return predicate.as("has " + predicate.getDescription());
+    public static <T> DescribedPredicate<T> has(DescribedPredicate<? super T> predicate) {
+        return predicate.as("has " + predicate.getDescription()).forSubType();
     }
 
     /**
@@ -68,8 +68,8 @@ public class ArchPredicates {
      * @return The original predicate with adjusted description
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<T> have(DescribedPredicate<T> predicate) {
-        return predicate.as("have " + predicate.getDescription());
+    public static <T> DescribedPredicate<T> have(DescribedPredicate<? super T> predicate) {
+        return predicate.as("have " + predicate.getDescription()).forSubType();
     }
 
     /**
@@ -80,7 +80,7 @@ public class ArchPredicates {
      * @return The original predicate with adjusted description
      */
     @PublicAPI(usage = ACCESS)
-    public static <T> DescribedPredicate<T> be(DescribedPredicate<T> predicate) {
-        return predicate.as("be " + predicate.getDescription());
+    public static <T> DescribedPredicate<T> be(DescribedPredicate<? super T> predicate) {
+        return predicate.as("be " + predicate.getDescription()).forSubType();
     }
 }

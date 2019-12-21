@@ -120,7 +120,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION haveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate);
+    CONJUNCTION haveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate);
 
     /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that do not have raw parameter types matching the given predicate.
@@ -139,7 +139,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION doNotHaveRawParameterTypes(DescribedPredicate<List<JavaClass>> predicate);
+    CONJUNCTION doNotHaveRawParameterTypes(DescribedPredicate<? super List<JavaClass>> predicate);
 
     /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that have the specified raw return types.
@@ -234,7 +234,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION haveRawReturnType(DescribedPredicate<JavaClass> predicate);
+    CONJUNCTION haveRawReturnType(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that do not have raw return types matching the given predicate.
@@ -253,7 +253,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION doNotHaveRawReturnType(DescribedPredicate<JavaClass> predicate);
+    CONJUNCTION doNotHaveRawReturnType(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that declare a {@link Throwable} of the specified type in their throws clause.
@@ -348,7 +348,7 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION declareThrowableOfType(DescribedPredicate<JavaClass> predicate);
+    CONJUNCTION declareThrowableOfType(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * Matches {@link JavaCodeUnit JavaCodeUnits} that do not declare a {@link Throwable} which matches the given predicate.
@@ -367,5 +367,5 @@ public interface CodeUnitsThat<CONJUNCTION extends GivenCodeUnitsConjunction<?>>
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION doNotDeclareThrowableOfType(DescribedPredicate<JavaClass> predicate);
+    CONJUNCTION doNotDeclareThrowableOfType(DescribedPredicate<? super JavaClass> predicate);
 }

@@ -1,14 +1,19 @@
 package com.tngtech.archunit;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.List;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -21,6 +26,7 @@ import com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer;
 
 import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
@@ -31,10 +37,14 @@ import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
+import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
+import static java.util.Arrays.stream;
 
 public class PublicAPIRules {
     @ArchTest
@@ -101,6 +111,21 @@ public class PublicAPIRules {
                     .and().arePublic()
                     .and().doNotHaveName("adhereToPlantUmlDiagram")
                     .should().haveRawParameterTypes(thatArePublic());
+
+    @ArchTest
+    public static final ArchRule predicate_parameters_of_public_API_code_units_should_be_contravariant =
+            codeUnits()
+                    .that().haveRawParameterTypes(anyElementThat(is(assignableTo(DescribedPredicate.class))))
+                    .and(are(declaredIn(modifier(PUBLIC))))
+                    .and(are(not(declaredIn(annotatedWith(Internal.class)))))
+                    .and(have(modifier(PUBLIC)))
+                    .should(haveContravariantPredicateParameterTypes())
+                    .as(String.format(
+                            "Public API methods that take a %s<PARAM> should declare the type parameter contravariantly (i.e. %s<? super PARAM>)",
+                            DescribedPredicate.class.getSimpleName(), DescribedPredicate.class.getSimpleName()))
+                    .because(String.format(
+                            "any predicate for a super type is also a predicate for a subtype (otherwise one could for example not pass `%s.name(\"foo\")` to a method taking `%s<JavaClass>`)",
+                            HasName.Predicates.class.getName(), DescribedPredicate.class.getSimpleName()));
 
     @ArchTest
     public static final ArchRule Guava_should_not_leak_into_public_API =
@@ -324,6 +349,30 @@ public class PublicAPIRules {
                     }
                 }
                 return true;
+            }
+        };
+    }
+
+    private static ArchCondition<? super JavaCodeUnit> haveContravariantPredicateParameterTypes() {
+        return new ArchCondition<JavaCodeUnit>("have contravariant predicate parameter types") {
+            @Override
+            public void check(JavaCodeUnit javaCodeUnit, ConditionEvents events) {
+                Type[] parameterTypes = javaCodeUnit.isConstructor()
+                        ? ((JavaConstructor) javaCodeUnit).reflect().getGenericParameterTypes()
+                        : ((JavaMethod) javaCodeUnit).reflect().getGenericParameterTypes();
+
+                stream(parameterTypes)
+                        .filter(type -> type instanceof ParameterizedType)
+                        .map(type -> (ParameterizedType) type)
+                        .filter(type -> type.getRawType().equals(DescribedPredicate.class))
+                        .map(predicateType -> predicateType.getActualTypeArguments()[0])
+                        .filter(predicateTypeParameter -> !(predicateTypeParameter instanceof WildcardType)
+                                || ((WildcardType) predicateTypeParameter).getLowerBounds().length == 0)
+                        .forEach(type -> {
+                            String message = String.format("%s has a parameter %s<%s> instead of a contravariant type parameter in %s",
+                                    javaCodeUnit.getDescription(), DescribedPredicate.class.getSimpleName(), type.getTypeName(), javaCodeUnit.getSourceCodeLocation());
+                            events.add(violated(javaCodeUnit, message));
+                        });
             }
         };
     }

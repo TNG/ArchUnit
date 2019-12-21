@@ -112,43 +112,43 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return new GreaterThanOrEqualToPredicate<>(value);
     }
 
-    public static <T> DescribedPredicate<T> describe(String description, Predicate<T> predicate) {
-        return new DescribePredicate<>(description, predicate);
+    public static <T> DescribedPredicate<T> describe(String description, Predicate<? super T> predicate) {
+        return new DescribePredicate<>(description, predicate).forSubType();
     }
 
     /**
      * @deprecated Decided to consistently never use contractions -&gt; use {@link #doesNot(DescribedPredicate)}
      */
     @Deprecated
-    public static <T> DescribedPredicate<T> doesnt(final DescribedPredicate<T> predicate) {
-        return not(predicate).as("doesn't %s", predicate.getDescription());
+    public static <T> DescribedPredicate<T> doesnt(final DescribedPredicate<? super T> predicate) {
+        return not(predicate).as("doesn't %s", predicate.getDescription()).forSubType();
     }
 
     /**
      * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNot(DescribedPredicate)}
      */
     @Deprecated
-    public static <T> DescribedPredicate<T> dont(final DescribedPredicate<T> predicate) {
-        return not(predicate).as("don't %s", predicate.getDescription());
+    public static <T> DescribedPredicate<T> dont(final DescribedPredicate<? super T> predicate) {
+        return not(predicate).as("don't %s", predicate.getDescription()).forSubType();
     }
 
-    public static <T> DescribedPredicate<T> doesNot(final DescribedPredicate<T> predicate) {
-        return not(predicate).as("does not %s", predicate.getDescription());
+    public static <T> DescribedPredicate<T> doesNot(final DescribedPredicate<? super T> predicate) {
+        return not(predicate).as("does not %s", predicate.getDescription()).forSubType();
     }
 
-    public static <T> DescribedPredicate<T> doNot(final DescribedPredicate<T> predicate) {
-        return not(predicate).as("do not %s", predicate.getDescription());
+    public static <T> DescribedPredicate<T> doNot(final DescribedPredicate<? super T> predicate) {
+        return not(predicate).as("do not %s", predicate.getDescription()).forSubType();
     }
 
-    public static <T> DescribedPredicate<T> not(final DescribedPredicate<T> predicate) {
+    public static <T> DescribedPredicate<T> not(final DescribedPredicate<? super T> predicate) {
         return new NotPredicate<>(predicate);
     }
 
-    public static <T> DescribedPredicate<Iterable<T>> anyElementThat(final DescribedPredicate<T> predicate) {
+    public static <T> DescribedPredicate<Iterable<T>> anyElementThat(final DescribedPredicate<? super T> predicate) {
         return new AnyElementPredicate<>(predicate);
     }
 
-    public static <T> DescribedPredicate<Iterable<T>> allElements(final DescribedPredicate<T> predicate) {
+    public static <T> DescribedPredicate<Iterable<T>> allElements(final DescribedPredicate<? super T> predicate) {
         return new AllElementsPredicate<>(predicate);
     }
 
@@ -217,9 +217,9 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     private static class NotPredicate<T> extends DescribedPredicate<T> {
         private final DescribedPredicate<T> predicate;
 
-        NotPredicate(DescribedPredicate<T> predicate) {
+        NotPredicate(DescribedPredicate<? super T> predicate) {
             super("not " + predicate.getDescription());
-            this.predicate = checkNotNull(predicate);
+            this.predicate = checkNotNull(predicate).forSubType();
         }
 
         @Override
@@ -315,9 +315,9 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     private static class AnyElementPredicate<T> extends DescribedPredicate<Iterable<T>> {
         private final DescribedPredicate<T> predicate;
 
-        AnyElementPredicate(DescribedPredicate<T> predicate) {
+        AnyElementPredicate(DescribedPredicate<? super T> predicate) {
             super("any element that " + predicate.getDescription());
-            this.predicate = predicate;
+            this.predicate = predicate.forSubType();
         }
 
         @Override
@@ -334,9 +334,9 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     private static class AllElementsPredicate<T> extends DescribedPredicate<Iterable<T>> {
         private final DescribedPredicate<T> predicate;
 
-        AllElementsPredicate(DescribedPredicate<T> predicate) {
+        AllElementsPredicate(DescribedPredicate<? super T> predicate) {
             super("all elements " + predicate.getDescription());
-            this.predicate = predicate;
+            this.predicate = predicate.forSubType();
         }
 
         @Override
