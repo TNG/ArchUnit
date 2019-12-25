@@ -15,19 +15,30 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitTestEngine.SharedCache;
 import com.tngtech.archunit.junit.testexamples.ClassWithPrivateTests;
+import com.tngtech.archunit.junit.testexamples.ComplexMetaTags;
 import com.tngtech.archunit.junit.testexamples.ComplexRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.ComplexTags;
 import com.tngtech.archunit.junit.testexamples.FullAnalyzeClassesSpec;
 import com.tngtech.archunit.junit.testexamples.LibraryWithPrivateTests;
 import com.tngtech.archunit.junit.testexamples.SimpleRuleLibrary;
+import com.tngtech.archunit.junit.testexamples.TestClassWithMetaTag;
+import com.tngtech.archunit.junit.testexamples.TestClassWithMetaTags;
 import com.tngtech.archunit.junit.testexamples.TestClassWithTags;
+import com.tngtech.archunit.junit.testexamples.TestFieldWithMetaTag;
+import com.tngtech.archunit.junit.testexamples.TestFieldWithMetaTags;
 import com.tngtech.archunit.junit.testexamples.TestFieldWithTags;
+import com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTag;
+import com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTags;
 import com.tngtech.archunit.junit.testexamples.TestMethodWithTags;
 import com.tngtech.archunit.junit.testexamples.UnwantedClass;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredClass;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredField;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredLibrary;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredMethod;
+import com.tngtech.archunit.junit.testexamples.ignores.MetaIgnoredClass;
+import com.tngtech.archunit.junit.testexamples.ignores.MetaIgnoredField;
+import com.tngtech.archunit.junit.testexamples.ignores.MetaIgnoredLibrary;
+import com.tngtech.archunit.junit.testexamples.ignores.MetaIgnoredMethod;
 import com.tngtech.archunit.junit.testexamples.subone.SimpleRuleField;
 import com.tngtech.archunit.junit.testexamples.subone.SimpleRuleMethod;
 import com.tngtech.archunit.junit.testexamples.subtwo.SimpleRules;
@@ -59,7 +70,11 @@ import static com.tngtech.archunit.junit.ArchUnitTestDescriptor.CLASS_SEGMENT_TY
 import static com.tngtech.archunit.junit.ArchUnitTestDescriptor.FIELD_SEGMENT_TYPE;
 import static com.tngtech.archunit.junit.ArchUnitTestDescriptor.METHOD_SEGMENT_TYPE;
 import static com.tngtech.archunit.junit.EngineExecutionTestListener.onlyElement;
+import static com.tngtech.archunit.junit.testexamples.TestFieldWithMetaTag.FIELD_WITH_META_TAG_NAME;
+import static com.tngtech.archunit.junit.testexamples.TestFieldWithMetaTags.FIELD_WITH_META_TAGS_NAME;
 import static com.tngtech.archunit.junit.testexamples.TestFieldWithTags.FIELD_WITH_TAG_NAME;
+import static com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTag.METHOD_WITH_META_TAG_NAME;
+import static com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTags.METHOD_WITH_META_TAGS_NAME;
 import static com.tngtech.archunit.junit.testexamples.TestMethodWithTags.METHOD_WITH_TAG_NAME;
 import static com.tngtech.archunit.junit.testexamples.subone.SimpleRuleField.SIMPLE_RULE_FIELD_NAME;
 import static com.tngtech.archunit.junit.testexamples.subone.SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME;
@@ -464,6 +479,38 @@ class ArchUnitTestEngineTest {
         }
 
         @Test
+        void meta_tag_of_test_classes() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestClassWithMetaTag.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+            assertThat(testClass.getTags()).containsOnly(TestTag.create("meta-tag-one"), TestTag.create("meta-tag-two"));
+
+            Set<? extends TestDescriptor> concreteRules = getAllLeafs(testClass);
+            assertThat(concreteRules).as("concrete rules").hasSize(3);
+            concreteRules.forEach(concreteRule ->
+                    assertThat(concreteRule.getTags()).containsOnly(TestTag.create("meta-tag-one"), TestTag.create("meta-tag-two"))
+            );
+        }
+
+        @Test
+        void meta_tags_of_test_classes() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(TestClassWithMetaTags.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+            assertThat(testClass.getTags()).containsOnly(TestTag.create("meta-tags-one"), TestTag.create("meta-tags-two"));
+
+            Set<? extends TestDescriptor> concreteRules = getAllLeafs(testClass);
+            assertThat(concreteRules).as("concrete rules").hasSize(3);
+            concreteRules.forEach(concreteRule ->
+                    assertThat(concreteRule.getTags()).containsOnly(TestTag.create("meta-tags-one"), TestTag.create("meta-tags-two"))
+            );
+        }
+
+        @Test
         void tags_of_rule_fields() {
             TestDescriptor testField = getOnlyChildWithDescriptorContaining(FIELD_WITH_TAG_NAME, TestFieldWithTags.class);
 
@@ -471,10 +518,38 @@ class ArchUnitTestEngineTest {
         }
 
         @Test
+        void meta_tag_of_rule_fields() {
+            TestDescriptor testField = getOnlyChildWithDescriptorContaining(FIELD_WITH_META_TAG_NAME, TestFieldWithMetaTag.class);
+
+            assertThat(testField.getTags()).containsOnly(TestTag.create("field-meta-tag-one"), TestTag.create("field-meta-tag-two"));
+        }
+
+        @Test
+        void meta_tags_of_rule_fields() {
+            TestDescriptor testField = getOnlyChildWithDescriptorContaining(FIELD_WITH_META_TAGS_NAME, TestFieldWithMetaTags.class);
+
+            assertThat(testField.getTags()).containsOnly(TestTag.create("field-meta-tags-one"), TestTag.create("field-meta-tags-two"));
+        }
+
+        @Test
         void tags_of_rule_methods() {
             TestDescriptor testMethod = getOnlyChildWithDescriptorContaining(METHOD_WITH_TAG_NAME, TestMethodWithTags.class);
 
             assertThat(testMethod.getTags()).containsOnly(TestTag.create("method-tag-one"), TestTag.create("method-tag-two"));
+        }
+
+        @Test
+        void meta_tag_of_rule_methods() {
+            TestDescriptor testMethod = getOnlyChildWithDescriptorContaining(METHOD_WITH_META_TAG_NAME, TestMethodWithMetaTag.class);
+
+            assertThat(testMethod.getTags()).containsOnly(TestTag.create("method-meta-tag-one"), TestTag.create("method-meta-tag-two"));
+        }
+
+        @Test
+        void meta_tags_of_rule_methods() {
+            TestDescriptor testMethod = getOnlyChildWithDescriptorContaining(METHOD_WITH_META_TAGS_NAME, TestMethodWithMetaTags.class);
+
+            assertThat(testMethod.getTags()).containsOnly(TestTag.create("method-meta-tags-one"), TestTag.create("method-meta-tags-two"));
         }
 
         @Test
@@ -512,6 +587,57 @@ class ArchUnitTestEngineTest {
                     .containsOnly(
                             TestTag.create("library-tag"),
                             TestTag.create("method-tag"));
+        }
+
+        @Test
+        void complex_meta_tags() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ComplexMetaTags.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            Map<UniqueId, Set<TestTag>> tagsById = new HashMap<>();
+            descriptor.accept(d -> tagsById.put(d.getUniqueId(), d.getTags()));
+
+            assertThat(getTagsForIdEndingIn(ComplexMetaTags.class.getSimpleName(), tagsById))
+                    .containsOnly(TestTag.create("library-meta-tag"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithMetaTag.class.getSimpleName(), tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("rules-meta-tag"),
+                            TestTag.create("meta-tag-one"),
+                            TestTag.create("meta-tag-two"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithMetaTags.class.getSimpleName(), tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("rules-meta-tag"),
+                            TestTag.create("meta-tags-one"),
+                            TestTag.create("meta-tags-two"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithMetaTag.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("rules-meta-tag"),
+                            TestTag.create("meta-tag-one"),
+                            TestTag.create("meta-tag-two"));
+
+            assertThat(getTagsForIdEndingIn(TestClassWithMetaTags.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("rules-meta-tag"),
+                            TestTag.create("meta-tags-one"),
+                            TestTag.create("meta-tags-two"));
+
+            assertThat(getTagsForIdEndingIn(ComplexMetaTags.FIELD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("field-meta-tag"));
+
+            assertThat(getTagsForIdEndingIn(ComplexMetaTags.METHOD_RULE_NAME, tagsById))
+                    .containsOnly(
+                            TestTag.create("library-meta-tag"),
+                            TestTag.create("method-meta-tag"));
         }
 
         @Test
@@ -881,6 +1007,105 @@ class ArchUnitTestEngineTest {
             UniqueId ignoredId = engineId
                     .append(CLASS_SEGMENT_TYPE, IgnoredField.class.getName())
                     .append(FIELD_SEGMENT_TYPE, IgnoredField.IGNORED_RULE_FIELD);
+            testListener.verifySkipped(ignoredId, "some example description");
+        }
+    }
+
+    @Nested
+    class MetaIgnores {
+        @Test
+        void fields() {
+            simulateCachedClassesForTest(MetaIgnoredField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredField.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredField.IGNORED_RULE_FIELD));
+
+            testListener.verifyViolation(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredField.UNIGNORED_RULE_FIELD));
+        }
+
+        @Test
+        void methods() {
+            simulateCachedClassesForTest(MetaIgnoredMethod.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredMethod.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredMethod.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, MetaIgnoredMethod.IGNORED_RULE_METHOD));
+
+            testListener.verifyViolation(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredMethod.class.getName())
+                    .append(METHOD_SEGMENT_TYPE, MetaIgnoredMethod.UNIGNORED_RULE_METHOD));
+        }
+
+        @Test
+        void classes() {
+            simulateCachedClassesForTest(MetaIgnoredClass.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredClass.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredClass.class.getName()));
+
+            testListener.verifyNoOtherStartExceptHierarchyOf(engineId);
+        }
+
+        @Test
+        void libraries() {
+            simulateCachedClassesForTest(MetaIgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredLibrary.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredLibrary.IGNORED_LIB_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, SimpleRules.class.getName()));
+        }
+
+        @Test
+        void library_referenced_classes() {
+            simulateCachedClassesForTest(MetaIgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredLibrary.class);
+
+            testListener.verifySkipped(engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredLibrary.UNIGNORED_LIB_ONE_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredClass.class.getName()));
+        }
+
+        @Test
+        void library_sub_rules() {
+            simulateCachedClassesForTest(MetaIgnoredLibrary.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredLibrary.class);
+
+            UniqueId classWithIgnoredMethod = engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredLibrary.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredLibrary.UNIGNORED_LIB_TWO_FIELD)
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredMethod.class.getName());
+
+            testListener.verifySkipped(classWithIgnoredMethod
+                    .append(METHOD_SEGMENT_TYPE, MetaIgnoredMethod.IGNORED_RULE_METHOD));
+
+            testListener.verifyViolation(classWithIgnoredMethod
+                    .append(METHOD_SEGMENT_TYPE, MetaIgnoredMethod.UNIGNORED_RULE_METHOD));
+        }
+
+        @Test
+        void with_reason() {
+            simulateCachedClassesForTest(MetaIgnoredField.class, UnwantedClass.CLASS_VIOLATING_RULES);
+
+            EngineExecutionTestListener testListener = execute(engineId, MetaIgnoredField.class);
+
+            UniqueId ignoredId = engineId
+                    .append(CLASS_SEGMENT_TYPE, MetaIgnoredField.class.getName())
+                    .append(FIELD_SEGMENT_TYPE, MetaIgnoredField.IGNORED_RULE_FIELD);
             testListener.verifySkipped(ignoredId, "some example description");
         }
     }
