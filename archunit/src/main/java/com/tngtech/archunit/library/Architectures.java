@@ -766,6 +766,7 @@ public final class Architectures {
         private Map<String, DescribedPredicate<? super JavaClass>> adapterPredicates = new LinkedHashMap<>();
         private boolean optionalLayers = false;
         private List<IgnoredDependency> ignoredDependencies = new ArrayList<>();
+        private AllClassesAreContainedInArchitectureCheck allClassesAreContainedInArchitectureCheck = new AllClassesAreContainedInArchitectureCheck.Disabled();
 
         private OnionArchitecture() {
             overriddenDescription = Optional.empty();
@@ -856,6 +857,46 @@ public final class Architectures {
             return this;
         }
 
+        /**
+         * Ensure that all classes under test are contained within a defined onion architecture component.
+         *
+         * @see #ensureAllClassesAreContainedInArchitectureIgnoring(String...)
+         * @see #ensureAllClassesAreContainedInArchitectureIgnoring(DescribedPredicate)
+         */
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture ensureAllClassesAreContainedInArchitecture() {
+            return ensureAllClassesAreContainedInArchitectureIgnoring(alwaysFalse());
+        }
+
+        /**
+         * Like {@link #ensureAllClassesAreContainedInArchitecture()} but will ignore classes in packages matching
+         * the specified {@link PackageMatcher packageIdentifiers}.
+         *
+         * @param packageIdentifiers {@link PackageMatcher packageIdentifiers} specifying which classes may live outside the architecture
+         *
+         * @see #ensureAllClassesAreContainedInArchitecture()
+         * @see #ensureAllClassesAreContainedInArchitectureIgnoring(DescribedPredicate)
+         */
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture ensureAllClassesAreContainedInArchitectureIgnoring(String... packageIdentifiers) {
+            return ensureAllClassesAreContainedInArchitectureIgnoring(resideInAnyPackage(packageIdentifiers));
+        }
+
+        /**
+         * Like {@link #ensureAllClassesAreContainedInArchitecture()} but will ignore classes in packages matching
+         * the specified {@link DescribedPredicate predicate}.
+         *
+         * @param predicate {@link DescribedPredicate predicate} specifying which classes may live outside the architecture
+         *
+         * @see #ensureAllClassesAreContainedInArchitecture()
+         * @see #ensureAllClassesAreContainedInArchitectureIgnoring(String...)
+         */
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture ensureAllClassesAreContainedInArchitectureIgnoring(DescribedPredicate<? super JavaClass> predicate) {
+            allClassesAreContainedInArchitectureCheck = new AllClassesAreContainedInArchitectureCheck.Enabled(predicate);
+            return this;
+        }
+
         private DescribedPredicate<JavaClass> byPackagePredicate(String[] packageIdentifiers) {
             return resideInAnyPackage(packageIdentifiers).as(joinSingleQuoted(packageIdentifiers));
         }
@@ -877,9 +918,13 @@ public final class Architectures {
                         .layer(adapterLayer).definedBy(adapter.getValue())
                         .whereLayer(adapterLayer).mayNotBeAccessedByAnyLayer();
             }
+
             for (IgnoredDependency ignoredDependency : this.ignoredDependencies) {
                 layeredArchitectureDelegate = ignoredDependency.ignoreFor(layeredArchitectureDelegate);
             }
+
+            layeredArchitectureDelegate = allClassesAreContainedInArchitectureCheck.configure(layeredArchitectureDelegate);
+
             return layeredArchitectureDelegate.as(getDescription());
         }
 
@@ -953,6 +998,30 @@ public final class Architectures {
 
             LayeredArchitecture ignoreFor(LayeredArchitecture layeredArchitecture) {
                 return layeredArchitecture.ignoreDependency(origin, target);
+            }
+        }
+
+        private abstract static class AllClassesAreContainedInArchitectureCheck {
+            abstract LayeredArchitecture configure(LayeredArchitecture layeredArchitecture);
+
+            static class Enabled extends AllClassesAreContainedInArchitectureCheck {
+                private final DescribedPredicate<? super JavaClass> ignorePredicate;
+
+                private Enabled(DescribedPredicate<? super JavaClass> ignorePredicate) {
+                    this.ignorePredicate = ignorePredicate;
+                }
+
+                @Override
+                LayeredArchitecture configure(LayeredArchitecture layeredArchitecture) {
+                    return layeredArchitecture.ensureAllClassesAreContainedInArchitectureIgnoring(ignorePredicate);
+                }
+            }
+
+            static class Disabled extends AllClassesAreContainedInArchitectureCheck {
+                @Override
+                LayeredArchitecture configure(LayeredArchitecture layeredArchitecture) {
+                    return layeredArchitecture;
+                }
             }
         }
     }
