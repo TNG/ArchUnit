@@ -464,8 +464,8 @@ public class JavaClassTest {
         assertThatClasses(targets).matchInAnyOrder(
                 B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
                 List.class, Serializable.class, SomeSuperClass.class,
-                WithType.class, WithNestedAnnotations.class, OnClass.class,
-                OnMethod.class, OnConstructor.class, OnField.class, MetaAnnotated.class, WithEnum.class,
+                WithType.class, WithNestedAnnotations.class, OnClass.class, OnMethod.class,
+                OnConstructor.class, OnField.class, MetaAnnotated.class, WithEnum.class, WithPrimitive.class,
                 SomeEnumAsAnnotationParameter.class, SomeEnumAsAnnotationArrayParameter.class,
                 SomeEnumAsNestedAnnotationParameter.class, SomeEnumAsDefaultParameter.class);
     }
@@ -1303,6 +1303,7 @@ public class JavaClassTest {
     }
 
     @OnClass
+    @WithPrimitive(someInt = 5, someInts = {1, 2}, someString = "test", someStrings = {"test1", "test2"})
     @WithNestedAnnotations(
             outerType = AhavingMembersOfTypeB.class,
             nested = {
@@ -1378,6 +1379,17 @@ public class JavaClassTest {
         SomeEnumAsNestedAnnotationParameter someEnum();
 
         SomeEnumAsAnnotationArrayParameter[] enumArray();
+    }
+
+    @Retention(RUNTIME)
+    @interface WithPrimitive {
+        int someInt();
+
+        int[] someInts();
+
+        String someString();
+
+        String[] someStrings();
     }
 
     enum SomeEnumAsAnnotationParameter {

@@ -17,7 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
@@ -225,14 +224,11 @@ class JavaClassDependencies {
 
     private Set<Dependency> annotationParametersDependencies(JavaAnnotation<?> annotation) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
-            Object value = entry.getValue();
-            if (value.getClass().isArray()) {
-                if (!value.getClass().getComponentType().isPrimitive()) {
-                    Object[] values = (Object[]) value;
-                    for (Object o : values) {
-                        result.addAll(annotationParameterDependencies(annotation, o));
-                    }
+        for (Object value : annotation.getProperties().values()) {
+            if (value instanceof Object[]) {
+                Object[] values = (Object[]) value;
+                for (Object o : values) {
+                    result.addAll(annotationParameterDependencies(annotation, o));
                 }
             } else {
                 result.addAll(annotationParameterDependencies(annotation, value));
