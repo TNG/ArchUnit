@@ -19,6 +19,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -37,12 +38,14 @@ import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.Wi
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.beAnnotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.dependOnClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 
 /**
  * When checking these rules, it is always important to remember that all necessary classes need to be
@@ -151,4 +154,35 @@ public final class GeneralCodingRules {
     @PublicAPI(usage = ACCESS)
     public static final ArchRule NO_CLASSES_SHOULD_USE_JODATIME =
             noClasses().should(USE_JODATIME).because("modern Java projects use the [java.time] API instead");
+
+    /**
+     * For information about checking this condition, refer to {@link GeneralCodingRules}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final ArchCondition<JavaField> BE_ANNOTATED_WITH_AN_INJECTION_ANNOTATION = beAnnotatedWithAnInjectionAnnotation();
+
+    private static ArchCondition<JavaField> beAnnotatedWithAnInjectionAnnotation() {
+        ArchCondition<JavaField> annotatedWithSpringAutowired = beAnnotatedWith("org.springframework.beans.factory.annotation.Autowired");
+        ArchCondition<JavaField> annotatedWithSpringValue = beAnnotatedWith("org.springframework.beans.factory.annotation.Value");
+        ArchCondition<JavaField> annotatedWithGuiceInject = beAnnotatedWith("com.google.inject.Inject");
+        ArchCondition<JavaField> annotatedWithJakartaInject = beAnnotatedWith("javax.inject.Inject");
+        ArchCondition<JavaField> annotatedWithJakartaResource = beAnnotatedWith("javax.annotation.Resource");
+        return annotatedWithSpringAutowired.or(annotatedWithSpringValue)
+                .or(annotatedWithGuiceInject)
+                .or(annotatedWithJakartaInject).or(annotatedWithJakartaResource)
+                .as("be annotated with an injection annotation");
+    }
+
+    /**
+     * Field injection is seen as an anti-pattern.
+     * It is a good practice to use constructor injection for mandatory dependencies and setter injection for optional dependencies.
+     * <br>
+     * For information about checking this rule, refer to {@link GeneralCodingRules}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final ArchRule NO_CLASSES_SHOULD_USE_FIELD_INJECTION =
+            noFields().should(BE_ANNOTATED_WITH_AN_INJECTION_ANNOTATION)
+                    .as("no classes should use field injection")
+                    .because("field injection is considered harmful; use constructor injection or setter injection instead; "
+                            + "see https://stackoverflow.com/q/39890849 for detailed explanations");
 }
