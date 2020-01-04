@@ -33,6 +33,7 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.Predicate;
+import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -49,6 +50,7 @@ public final class JavaPackage implements HasName {
     private final String name;
     private final String relativeName;
     private final Set<JavaClass> classes;
+    private final Optional<? extends HasAnnotations> packageInfo;
     private final Map<String, JavaPackage> subPackages;
     private Optional<JavaPackage> parent = Optional.absent();
 
@@ -56,6 +58,7 @@ public final class JavaPackage implements HasName {
         this.name = checkNotNull(name);
         relativeName = name.substring(name.lastIndexOf(".") + 1);
         this.classes = ImmutableSet.copyOf(classes);
+        this.packageInfo = tryGetClassWithSimpleName("package-info");
         this.subPackages = ImmutableMap.copyOf(subPackages);
     }
 
@@ -74,6 +77,17 @@ public final class JavaPackage implements HasName {
     @PublicAPI(usage = ACCESS)
     public String getRelativeName() {
         return relativeName;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public HasAnnotations getPackageInfo() {
+        return tryGetPackageInfo().getOrThrow(
+                new IllegalArgumentException(String.format("Package %s does not contain a package-info.java", getName())));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Optional<? extends HasAnnotations> tryGetPackageInfo() {
+        return packageInfo;
     }
 
     /**

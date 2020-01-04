@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.domain.packageexamples.third.sub.ThirdSub1;
 import com.tngtech.archunit.core.domain.packageexamples.unrelated.AnyClass;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -36,6 +37,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatPackages;
 import static java.util.regex.Pattern.quote;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JavaPackageTest {
     @Rule
@@ -318,6 +320,30 @@ public class JavaPackageTest {
 
         assertThat(examplePackage.getPackage("unrelated").getPackageDependenciesToSelf())
                 .isEmpty();
+    }
+
+    @Test
+    public void test_getPackageInfo() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        final JavaPackage notAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.getPackageInfo()).isNotNull();
+
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() {
+                notAnnotatedPackage.getPackageInfo();
+            }
+        }).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(".packageexamples does not contain a package-info.java");
+    }
+
+    @Test
+    public void test_tryGetPackageInfo() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage notAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.tryGetPackageInfo()).isPresent();
+        assertThat(notAnnotatedPackage.tryGetPackageInfo()).isAbsent();
     }
 
     @Test
