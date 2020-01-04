@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -31,6 +33,7 @@ import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
@@ -42,15 +45,17 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
-public final class JavaPackage implements HasName {
+public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     private final String name;
     private final String relativeName;
     private final Set<JavaClass> classes;
-    private final Optional<? extends HasAnnotations> packageInfo;
+    private final Optional<JavaClass> packageInfo;
     private final Map<String, JavaPackage> subPackages;
     private Optional<JavaPackage> parent = Optional.absent();
 
@@ -80,14 +85,108 @@ public final class JavaPackage implements HasName {
     }
 
     @PublicAPI(usage = ACCESS)
-    public HasAnnotations getPackageInfo() {
+    public HasAnnotations<?> getPackageInfo() {
         return tryGetPackageInfo().getOrThrow(
                 new IllegalArgumentException(String.format("Package %s does not contain a package-info.java", getName())));
     }
 
     @PublicAPI(usage = ACCESS)
-    public Optional<? extends HasAnnotations> tryGetPackageInfo() {
+    public Optional<? extends HasAnnotations<?>> tryGetPackageInfo() {
         return packageInfo;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public Set<? extends JavaAnnotation<JavaPackage>> getAnnotations() {
+        if (packageInfo.isPresent()) {
+            return FluentIterable.from(packageInfo.get().getAnnotations()).transform(toGuava(withSelfAsOwner)).toSet();
+        }
+        return emptySet();
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
+        return getAnnotationOfType(type.getName()).as(type);
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public JavaAnnotation<JavaPackage> getAnnotationOfType(String typeName) {
+        return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(
+                String.format("Package %s is not annotated with @%s", getName(), typeName)));
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
+        if (packageInfo.isPresent()) {
+            return packageInfo.get().tryGetAnnotationOfType(type);
+        }
+        return Optional.absent();
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaAnnotation<JavaPackage>> tryGetAnnotationOfType(String typeName) {
+        if (packageInfo.isPresent()) {
+            return packageInfo.get().tryGetAnnotationOfType(typeName).transform(withSelfAsOwner);
+        }
+        return Optional.absent();
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnnotatedWith(Class<? extends Annotation> annotationType) {
+        if (packageInfo.isPresent()) {
+            return packageInfo.get().isAnnotatedWith(annotationType);
+        }
+        return false;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnnotatedWith(String annotationTypeName) {
+        if (packageInfo.isPresent()) {
+            return packageInfo.get().isAnnotatedWith(annotationTypeName);
+        }
+        return false;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        if (packageInfo.isPresent()) {
+            return packageInfo.get().isAnnotatedWith(predicate);
+        }
+        return false;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+        if (packageInfo.isPresent()) {
+            return packageInfo.get().isMetaAnnotatedWith(annotationType);
+        }
+        return false;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isMetaAnnotatedWith(String annotationTypeName) {
+        if (packageInfo.isPresent()) {
+            return packageInfo.get().isMetaAnnotatedWith(annotationTypeName);
+        }
+        return false;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        if (packageInfo.isPresent()) {
+            return packageInfo.get().isMetaAnnotatedWith(predicate);
+        }
+        return false;
     }
 
     /**
@@ -388,9 +487,22 @@ public final class JavaPackage implements HasName {
     }
 
     @Override
+    public String getDescription() {
+        return "Package <" + name + ">";
+    }
+
+    @Override
     public String toString() {
         return getClass().getSimpleName() + "[" + getName() + "]";
     }
+
+    private final Function<? super JavaAnnotation<JavaClass>, JavaAnnotation<JavaPackage>> withSelfAsOwner =
+            new Function<JavaAnnotation<JavaClass>, JavaAnnotation<JavaPackage>>() {
+                @Override
+                public JavaAnnotation<JavaPackage> apply(JavaAnnotation<JavaClass> input) {
+                    return input.withOwner(JavaPackage.this);
+                }
+            };
 
     static JavaPackage simple(JavaClass javaClass) {
         String packageName = javaClass.getPackageName();
