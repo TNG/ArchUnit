@@ -599,6 +599,11 @@ public class JavaClassTest {
 
         assertThatClasses(origins).matchInAnyOrder(
                 ClassWithAnnotationDependencies.class, OnMethodParam.class, AAccessingB.class, AhavingMembersOfTypeB.class);
+
+        origins = getOriginsOfDependenciesTo(classes.get(SomeEnumAsNestedAnnotationParameter.class));
+
+        assertThatClasses(origins).matchInAnyOrder(
+                ClassWithAnnotationDependencies.class, WithEnum.class);
     }
 
     private Set<JavaClass> getOriginsOfDependenciesTo(JavaClass withType) {

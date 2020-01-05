@@ -36,6 +36,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMember;
@@ -370,6 +371,9 @@ class ClassGraphCreator implements ImportContext {
         private void registerAnnotationParameter(JavaAnnotation<?> annotation, Object value) {
             if (value instanceof JavaClass) {
                 annotationParameterTypeDependencies.put((JavaClass) value, annotation);
+            } else if (value instanceof JavaEnumConstant) {
+                JavaEnumConstant enumConstant = (JavaEnumConstant) value;
+                annotationParameterTypeDependencies.put(enumConstant.getDeclaringClass(), annotation);
             } else if (value instanceof JavaAnnotation<?>) {
                 JavaAnnotation<?> memberAnnotation = (JavaAnnotation<?>) value;
                 annotationParameterTypeDependencies.put(memberAnnotation.getRawType(), annotation);
