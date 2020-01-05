@@ -136,7 +136,7 @@ public class TestUtils {
     }
 
     public static Dependency dependencyFrom(JavaAccess<?> access) {
-        return Dependency.from(access);
+        return Dependency.tryCreateFromAccess(access).get();
     }
 
     public static class AccessesSimulator {

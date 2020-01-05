@@ -365,6 +365,14 @@ public class JavaClassTest {
     }
 
     @Test
+    public void has_no_self_dependencies() {
+        JavaClass javaClass = importClassWithContext(ClassWithSelfReferences.class);
+
+        assertThat(javaClass.getDirectDependenciesFromSelf()).doNotHave(anyDependency().toClassEquivalentTo(ClassWithSelfReferences.class));
+        assertThat(javaClass.getDirectDependenciesToSelf()).doNotHave(anyDependency().fromClassEquivalentTo(ClassWithSelfReferences.class));
+    }
+
+    @Test
     public void direct_dependencies_from_self_by_accesses() {
         JavaClass javaClass = importClasses(AAccessingB.class, B.class).get(AAccessingB.class);
 
@@ -585,7 +593,7 @@ public class JavaClassTest {
 
         Set<JavaClass> origins = getOriginsOfDependenciesTo(classes.get(WithType.class));
 
-        assertThatClasses(origins).matchInAnyOrder(ClassWithAnnotationDependencies.class, OnMethodParam.class);
+        assertThatClasses(origins).matchInAnyOrder(ClassWithAnnotationDependencies.class, ClassWithSelfReferences.class, OnMethodParam.class);
 
         origins = getOriginsOfDependenciesTo(classes.get(B.class));
 
@@ -963,10 +971,28 @@ public class JavaClassTest {
 
     private static class AnyDependencyConditionCreation {
         Condition<Dependency> toPrimitives() {
-            return new Condition<Dependency>("any dependencies to primitives") {
+            return new Condition<Dependency>("any dependency to primitives") {
                 @Override
                 public boolean matches(Dependency value) {
                     return value.getTargetClass().isPrimitive();
+                }
+            };
+        }
+
+        Condition<Dependency> toClassEquivalentTo(final Class<?> clazz) {
+            return new Condition<Dependency>("any dependency to class " + clazz.getName()) {
+                @Override
+                public boolean matches(Dependency value) {
+                    return value.getTargetClass().isEquivalentTo(clazz);
+                }
+            };
+        }
+
+        Condition<Dependency> fromClassEquivalentTo(final Class<?> clazz) {
+            return new Condition<Dependency>("any dependency from class " + clazz.getName()) {
+                @Override
+                public boolean matches(Dependency value) {
+                    return value.getOriginClass().isEquivalentTo(clazz);
                 }
             };
         }
@@ -1406,5 +1432,48 @@ public class JavaClassTest {
 
     enum SomeEnumAsAnnotationArrayParameter {
         ANNOTATION_ARRAY_PARAMETER
+    }
+
+    @SuppressWarnings("ALL")
+    private static class ClassWithSelfReferences extends Exception {
+        static {
+            ClassWithSelfReferences selfReference = new ClassWithSelfReferences(null, null);
+        }
+
+        ClassWithSelfReferences fieldSelfReference;
+
+        ClassWithSelfReferences() throws ClassWithSelfReferences {
+        }
+
+        ClassWithSelfReferences(Object any, ClassWithSelfReferences selfReference) {
+        }
+
+        ClassWithSelfReferences methodReturnTypeSelfReference() {
+            return null;
+        }
+
+        void methodParameterSelfReference(Object any, ClassWithSelfReferences selfReference) {
+        }
+
+        void methodCallSelfReference() {
+            ClassWithSelfReferences self = null;
+            self.methodParameterSelfReference(null, null);
+        }
+
+        void constructorCallSelfReference() {
+            new ClassWithSelfReferences(null, null);
+        }
+
+        void fieldAccessSelfReference() {
+            ClassWithSelfReferences self = null;
+            self.fieldSelfReference = null;
+        }
+
+        @WithType(type = ClassWithSelfReferences.class)
+        void annotationSelfReference() {
+        }
+
+        void throwableSelfReference() throws ClassWithSelfReferences {
+        }
     }
 }
