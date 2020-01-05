@@ -15,21 +15,17 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.Sets.union;
-import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
-import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 class JavaClassDependencies {
     private final JavaClass javaClass;
@@ -136,8 +132,8 @@ class JavaClassDependencies {
 
     private Set<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaAccess<?> access : filterNoSelfAccess(accesses)) {
-            result.add(Dependency.from(access));
+        for (JavaAccess<?> access : accesses) {
+            result.addAll(Dependency.tryCreateFromAccess(access).asSet());
         }
         return result.build();
     }
@@ -152,16 +148,16 @@ class JavaClassDependencies {
 
     private Set<Dependency> fieldDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaField field : nonPrimitive(javaClass.getFields(), GET_RAW_TYPE)) {
-            result.add(Dependency.fromField(field));
+        for (JavaField field : javaClass.getFields()) {
+            result.addAll(Dependency.tryCreateFromField(field).asSet());
         }
         return result.build();
     }
 
     private Set<Dependency> returnTypeDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaMethod method : nonPrimitive(javaClass.getMethods(), GET_RAW_RETURN_TYPE)) {
-            result.add(Dependency.fromReturnType(method));
+        for (JavaMethod method : javaClass.getMethods()) {
+            result.addAll(Dependency.tryCreateFromReturnType(method).asSet());
         }
         return result.build();
     }
@@ -169,8 +165,8 @@ class JavaClassDependencies {
     private Set<Dependency> methodParameterDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaMethod method : javaClass.getMethods()) {
-            for (JavaClass parameter : nonPrimitive(method.getRawParameterTypes())) {
-                result.add(Dependency.fromParameter(method, parameter));
+            for (JavaClass parameter : method.getRawParameterTypes()) {
+                result.addAll(Dependency.tryCreateFromParameter(method, parameter).asSet());
             }
         }
         return result.build();
@@ -180,7 +176,7 @@ class JavaClassDependencies {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaCodeUnit codeUnit : javaClass.getCodeUnits()) {
             for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : codeUnit.getThrowsClause()) {
-                result.add(Dependency.fromThrowsDeclaration(throwsDeclaration));
+                result.addAll(Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration).asSet());
             }
         }
         return result.build();
@@ -189,8 +185,8 @@ class JavaClassDependencies {
     private Set<Dependency> constructorParameterDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaConstructor constructor : javaClass.getConstructors()) {
-            for (JavaClass parameter : nonPrimitive(constructor.getRawParameterTypes())) {
-                result.add(Dependency.fromParameter(constructor, parameter));
+            for (JavaClass parameter : constructor.getRawParameterTypes()) {
+                result.addAll(Dependency.tryCreateFromParameter(constructor, parameter).asSet());
             }
         }
         return result.build();
@@ -216,7 +212,7 @@ class JavaClassDependencies {
     private <T extends HasDescription & HasAnnotations<?>> Set<Dependency> annotationDependencies(T annotated) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaAnnotation<?> annotation : annotated.getAnnotations()) {
-            result.add(Dependency.fromAnnotation(annotation));
+            result.addAll(Dependency.tryCreateFromAnnotation(annotation).asSet());
             result.addAll(annotationParametersDependencies(annotation));
         }
         return result.build();
@@ -241,13 +237,13 @@ class JavaClassDependencies {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         if (value instanceof JavaClass) {
             JavaClass annotationMember = (JavaClass) value;
-            result.add(Dependency.fromAnnotationMember(origin, annotationMember));
+            result.addAll(Dependency.tryCreateFromAnnotationMember(origin, annotationMember).asSet());
         } else if (value instanceof JavaEnumConstant) {
             JavaEnumConstant enumConstant = (JavaEnumConstant) value;
-            result.add(Dependency.fromAnnotationMember(origin, enumConstant.getDeclaringClass()));
+            result.addAll(Dependency.tryCreateFromAnnotationMember(origin, enumConstant.getDeclaringClass()).asSet());
         } else if (value instanceof JavaAnnotation<?>) {
             JavaAnnotation<?> nestedAnnotation = (JavaAnnotation<?>) value;
-            result.add(Dependency.fromAnnotationMember(origin, nestedAnnotation.getRawType()));
+            result.addAll(Dependency.tryCreateFromAnnotationMember(origin, nestedAnnotation.getRawType()).asSet());
             result.addAll(annotationParametersDependencies(nestedAnnotation));
         }
         return result.build();
@@ -264,7 +260,7 @@ class JavaClassDependencies {
     private Set<Dependency> fieldDependenciesToSelf() {
         Set<Dependency> result = new HashSet<>();
         for (JavaField field : javaClass.getFieldsWithTypeOfSelf()) {
-            result.add(Dependency.fromField(field));
+            result.addAll(Dependency.tryCreateFromField(field).asSet());
         }
         return result;
     }
@@ -272,7 +268,7 @@ class JavaClassDependencies {
     private Set<Dependency> returnTypeDependenciesToSelf() {
         Set<Dependency> result = new HashSet<>();
         for (JavaMethod method : javaClass.getMethodsWithReturnTypeOfSelf()) {
-            result.add(Dependency.fromReturnType(method));
+            result.addAll(Dependency.tryCreateFromReturnType(method).asSet());
         }
         return result;
     }
@@ -280,7 +276,7 @@ class JavaClassDependencies {
     private Set<Dependency> methodParameterDependenciesToSelf() {
         Set<Dependency> result = new HashSet<>();
         for (JavaMethod method : javaClass.getMethodsWithParameterTypeOfSelf()) {
-            result.add(Dependency.fromParameter(method, javaClass));
+            result.addAll(Dependency.tryCreateFromParameter(method, javaClass).asSet());
         }
         return result;
     }
@@ -288,7 +284,7 @@ class JavaClassDependencies {
     private Set<Dependency> throwsDeclarationDependenciesToSelf() {
         Set<Dependency> result = new HashSet<>();
         for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : getThrowsDeclarationsWithTypeOfClass()) {
-            result.add(Dependency.fromThrowsDeclaration(throwsDeclaration));
+            result.addAll(Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration).asSet());
         }
         return result;
     }
@@ -296,7 +292,7 @@ class JavaClassDependencies {
     private Set<Dependency> constructorParameterDependenciesToSelf() {
         Set<Dependency> result = new HashSet<>();
         for (JavaConstructor constructor : javaClass.getConstructorsWithParameterTypeOfSelf()) {
-            result.add(Dependency.fromParameter(constructor, javaClass));
+            result.addAll(Dependency.tryCreateFromParameter(constructor, javaClass).asSet());
         }
         return result;
     }
@@ -304,35 +300,11 @@ class JavaClassDependencies {
     private Iterable<? extends Dependency> annotationDependenciesToSelf() {
         Set<Dependency> result = new HashSet<>();
         for (JavaAnnotation<?> annotation : annotationsWithTypeOfClass) {
-            result.add(Dependency.fromAnnotation(annotation));
+            result.addAll(Dependency.tryCreateFromAnnotation(annotation).asSet());
         }
         for (JavaAnnotation<?> annotation : annotationsWithParameterTypeOfClass) {
-            result.add(Dependency.fromAnnotationMember(annotation, javaClass));
+            result.addAll(Dependency.tryCreateFromAnnotationMember(annotation, javaClass).asSet());
         }
         return result;
-    }
-
-    private Set<JavaAccess<?>> filterNoSelfAccess(Set<? extends JavaAccess<?>> accesses) {
-        Set<JavaAccess<?>> result = new HashSet<>();
-        for (JavaAccess<?> access : accesses) {
-            if (!access.getTargetOwner().equals(access.getOriginOwner())) {
-                result.add(access);
-            }
-        }
-        return result;
-    }
-
-    private Set<JavaClass> nonPrimitive(Collection<JavaClass> classes) {
-        return nonPrimitive(classes, com.tngtech.archunit.base.Function.Functions.<JavaClass>identity());
-    }
-
-    private <T> Set<T> nonPrimitive(Collection<T> members, Function<? super T, JavaClass> getRelevantType) {
-        ImmutableSet.Builder<T> result = ImmutableSet.builder();
-        for (T member : members) {
-            if (!getRelevantType.apply(member).isPrimitive()) {
-                result.add(member);
-            }
-        }
-        return result.build();
     }
 }

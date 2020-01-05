@@ -32,7 +32,7 @@ public class DependencyTest {
     public void Dependency_from_access() {
         JavaMethodCall call = simulateCall().from(getClass(), "toString").to(Object.class, "toString");
 
-        Dependency dependency = Dependency.from(call);
+        Dependency dependency = Dependency.tryCreateFromAccess(call).get();
         assertThat(dependency.getTargetClass()).as("target class").isEqualTo(call.getTargetOwner());
         assertThat(dependency.getDescription())
                 .as("description").isEqualTo(call.getDescription());
@@ -63,7 +63,7 @@ public class DependencyTest {
                 .get(ClassWithDependencyOnThrowable.class).getMethod("method");
         ThrowsDeclaration<JavaMethod> throwsDeclaration = getOnlyElement(origin.getThrowsClause());
 
-        Dependency dependency = Dependency.fromThrowsDeclaration(throwsDeclaration);
+        Dependency dependency = Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration).get();
 
         assertThat(dependency.getOriginClass()).matches(ClassWithDependencyOnThrowable.class);
         assertThat(dependency.getTargetClass()).matches(IOException.class);
@@ -87,7 +87,7 @@ public class DependencyTest {
         JavaAnnotation<?> annotation = annotatedClass.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
-        Dependency dependency = Dependency.fromAnnotation(annotation);
+        Dependency dependency = Dependency.tryCreateFromAnnotation(annotation).get();
         assertThat(dependency.getOriginClass()).isEqualTo(annotatedClass);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
@@ -111,7 +111,7 @@ public class DependencyTest {
         JavaAnnotation<?> annotation = annotatedMember.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
-        Dependency dependency = Dependency.fromAnnotation(annotation);
+        Dependency dependency = Dependency.tryCreateFromAnnotation(annotation).get();
         assertThat(dependency.getOriginClass()).matches(ClassWithAnnotatedMembers.class);
         assertThat(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
@@ -124,7 +124,7 @@ public class DependencyTest {
         JavaAnnotation<?> annotation = annotatedClass.getAnnotationOfType(SomeAnnotation.class.getName());
         JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
-        Dependency dependency = Dependency.fromAnnotationMember(annotation, memberType);
+        Dependency dependency = Dependency.tryCreateFromAnnotationMember(annotation, memberType).get();
         assertThat(dependency.getOriginClass()).isEqualTo(annotatedClass);
         assertThat(dependency.getTargetClass()).isEqualTo(memberType);
         assertThat(dependency.getDescription()).as("description")
@@ -137,7 +137,7 @@ public class DependencyTest {
         JavaAnnotation<?> annotation = annotatedMember.getAnnotationOfType(SomeAnnotation.class.getName());
         JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
-        Dependency dependency = Dependency.fromAnnotationMember(annotation, memberType);
+        Dependency dependency = Dependency.tryCreateFromAnnotationMember(annotation, memberType).get();
         assertThat(dependency.getOriginClass()).isEqualTo(annotatedMember.getOwner());
         assertThat(dependency.getTargetClass()).isEqualTo(memberType);
         assertThat(dependency.getDescription()).as("description")
