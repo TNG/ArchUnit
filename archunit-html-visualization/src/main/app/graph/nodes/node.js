@@ -168,7 +168,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
     callOnEveryPredecessorThenSelf(fun) {
       if (!this.isRoot()) {
-        this.parent().callOnEveryPredecessorThenSelf(fun);
+        this.parent.callOnEveryPredecessorThenSelf(fun);
       }
       fun(this);
     }
@@ -580,8 +580,8 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       const dependenciesWithinParent = this._root.getDependenciesDirectlyWithinNode(this.parent)
         .map(d => ({
           dependency: d,
-          siblingContainingOrigin: d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent()),
-          siblingContainingTarget: d.targetNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent())
+          siblingContainingOrigin: d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent),
+          siblingContainingTarget: d.targetNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent)
         }));
 
       const getDependentNodesWithDependenciesOf = node => {
