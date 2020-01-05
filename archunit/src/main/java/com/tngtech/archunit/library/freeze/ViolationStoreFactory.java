@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TNG Technology Consulting GmbH
+ * Copyright 2014-2020 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.io.Files.toByteArray;
 import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 class ViolationStoreFactory {
