@@ -170,7 +170,7 @@ class HandlingAssertion {
                 return emptySet();
             }
         }
-        return singleton("Unexpected access: " + violatingObject);
+        return singleton("Unexpected violation handling: " + violatingObject);
     }
 
     private Set<String> errorMessagesFrom(Set<?> set) {

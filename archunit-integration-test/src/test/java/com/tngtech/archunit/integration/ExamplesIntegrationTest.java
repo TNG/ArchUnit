@@ -797,6 +797,7 @@ class ExamplesIntegrationTest {
 
                                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(ComplexControllerAnnotation.class))
                                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SimpleControllerAnnotation.class))
+                                .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SomeEnum.class))
                                 .by(method(ComplexServiceAnnotation.class, "controllerAnnotation").withReturnType(ComplexControllerAnnotation.class))
                                 .by(method(ComplexServiceAnnotation.class, "controllerEnum").withReturnType(SomeEnum.class));
 
