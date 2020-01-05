@@ -98,18 +98,18 @@ describe("Node's public methods", () => {
     expect(root.getByName('my.company.SomeClass$SomeInnerClass').getFullName()).to.equal('my.company.SomeClass$SomeInnerClass');
   });
 
-  describe('#getParent()', () => {
+  describe('#parent', () => {
     it('returns itself for the default root', () => {
       const root = rootCreator.createRootFromClassNames('my.company.SomeClass');
-      expect(root.getByName('default').getParent()).to.equal(root.getByName('default'));
+      expect(root.getByName('default').parent).to.equal(root.getByName('default'));
     });
 
     it('returns the parent node of a node', () => {
       const root = rootCreator.createRootFromClassNames('my.company.SomeClass$SomeInnerClass');
 
-      expect(root.getByName('my.company').getParent()).to.equal(root.getByName('default'));
-      expect(root.getByName('my.company.SomeClass').getParent()).to.equal(root.getByName('my.company'));
-      expect(root.getByName('my.company.SomeClass$SomeInnerClass').getParent()).to.equal(root.getByName('my.company.SomeClass'));
+      expect(root.getByName('my.company').parent).to.equal(root.getByName('default'));
+      expect(root.getByName('my.company.SomeClass').parent).to.equal(root.getByName('my.company'));
+      expect(root.getByName('my.company.SomeClass$SomeInnerClass').parent).to.equal(root.getByName('my.company.SomeClass'));
     });
   });
 

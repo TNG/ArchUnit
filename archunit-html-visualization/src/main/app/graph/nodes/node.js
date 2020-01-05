@@ -81,10 +81,10 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
     isPredecessorOf(otherNode) {
       while (!otherNode.isRoot()) {
-        if (otherNode.getParent() === this) {
+        if (otherNode.parent === this) {
           return true;
         }
-        otherNode = otherNode.getParent();
+        otherNode = otherNode.parent;
       }
       return false;
     }
@@ -95,10 +95,10 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       }
 
       while (!otherNode.isRoot()) {
-        if (otherNode.getParent() === this) {
+        if (otherNode.parent === this) {
           return true;
         }
-        otherNode = otherNode.getParent();
+        otherNode = otherNode.parent;
       }
       return false;
     }
@@ -534,9 +534,9 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     overlapsWith(otherNode) {
-      const ownPredecessor = this.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(otherNode));
-      const otherPredecessor = otherNode.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(this));
-      if (ownPredecessor.getParent() === otherPredecessor || otherPredecessor.getParent() === ownPredecessor) {
+      const ownPredecessor = this.getSelfOrFirstPredecessorMatching(node => node.parent.isPredecessorOfNodeOrItself(otherNode));
+      const otherPredecessor = otherNode.getSelfOrFirstPredecessorMatching(node => node.parent.isPredecessorOfNodeOrItself(this));
+      if (ownPredecessor.parent === otherPredecessor || otherPredecessor.parent === ownPredecessor) {
         return false;
       } else {
         return ownPredecessor.liesInFrontOf(otherPredecessor) ? ownPredecessor._nodeShape.overlapsWith(otherNode._nodeShape) : otherPredecessor._nodeShape.overlapsWith(this._nodeShape);
@@ -548,9 +548,9 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     liesInFrontOf(otherNode) {
-      const ownPredecessor = this.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(otherNode));
-      const otherPredecessor = otherNode.getSelfOrFirstPredecessorMatching(node => node.getParent().isPredecessorOfNodeOrItself(this));
-      return ownPredecessor.getParent() === otherPredecessor || (otherPredecessor.getParent() !== ownPredecessor && ownPredecessor._layerWithinParentNode > otherPredecessor._layerWithinParentNode);
+      const ownPredecessor = this.getSelfOrFirstPredecessorMatching(node => node.parent.isPredecessorOfNodeOrItself(otherNode));
+      const otherPredecessor = otherNode.getSelfOrFirstPredecessorMatching(node => node.parent.isPredecessorOfNodeOrItself(this));
+      return ownPredecessor.parent === otherPredecessor || (otherPredecessor.parent !== ownPredecessor && ownPredecessor._layerWithinParentNode > otherPredecessor._layerWithinParentNode);
     }
 
     /**
@@ -577,11 +577,11 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     //FIXME: when right after loading the html page a node is dragged, an error occurs and the view stucks
     //TODO: maybe move this partly into graph??
     _focus() {
-      const dependenciesWithinParent = this._root.getDependenciesDirectlyWithinNode(this.parent())
+      const dependenciesWithinParent = this._root.getDependenciesDirectlyWithinNode(this.parent)
         .map(d => ({
           dependency: d,
-          siblingContainingOrigin: d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.getParent() === this.parent()),
-          siblingContainingTarget: d.targetNode.getSelfOrFirstPredecessorMatching(pred => pred.getParent() === this.parent())
+          siblingContainingOrigin: d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent()),
+          siblingContainingTarget: d.targetNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent())
         }));
 
       const getDependentNodesWithDependenciesOf = node => {
@@ -642,16 +642,16 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       // FIXME: A node should only know itself and its children, not siblings --> so: let his method operate on the children of a node
       nodesInDrawOrder.reverse().forEach(node => {
         node._view.detachFromParent();
-        this.parent()._view.addChildView(node._view);
+        this.parent._view.addChildView(node._view);
       });
 
       const nodeOverlapsDependencyEndPointButIsNotSibling = (siblingContainingEndNode, node, point) =>
         !siblingContainingEndNode !== node && node._nodeShape.containsPoint(point);
 
       dependenciesWithinParent.forEach(d => {
-        const siblingOverlappingStartNode = new Set(this.parent()._filteredChildren.filter(c =>
+        const siblingOverlappingStartNode = new Set(this.parent._filteredChildren.filter(c =>
           nodeOverlapsDependencyEndPointButIsNotSibling(d.siblingContainingOrigin, c, d.dependency.startPoint)));
-        const siblingOverlappingEndNode = new Set(this.parent()._filteredChildren.filter(c =>
+        const siblingOverlappingEndNode = new Set(this.parent._filteredChildren.filter(c =>
           nodeOverlapsDependencyEndPointButIsNotSibling(d.siblingContainingTarget, c, d.dependency.endPoint)));
 
         const endNodes = [d.siblingContainingOrigin, d.siblingContainingTarget];
