@@ -2,7 +2,6 @@
 
 const clickAreaWidth = 10;
 
-// FIXME: Write test for relevant logic (like style changes on property changes -> violation)
 const init = (transitionDuration) => {
 
   const View = class {

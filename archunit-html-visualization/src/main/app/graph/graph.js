@@ -19,7 +19,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
         this._view.svgElementForDetailedDependencies, () => this._view.svgElement.width);
 
       this._root.addListener(this._dependencies.createListener());
-      this._root.getLinks = () => this._dependencies.getAllLinks();
+      this._root.getLinks = () => this._dependencies.getAllDependencies();
       this._root.getVisibleViolationsFilter = () => this._dependencies.getVisibleViolationsNodeFilter();
       this._root.getDependenciesDirectlyWithinNode = node => this._dependencies.getDependenciesDirectlyWithinNode(node);
 

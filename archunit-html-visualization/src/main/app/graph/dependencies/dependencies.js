@@ -196,8 +196,7 @@ const init = (getDependencyCreator) => {
     }
 
     //TODO: maybe keep only one dependency of possible mutual dependencies
-    //FIXME: rename...
-    getAllLinks() {
+    getAllDependencies() {
       const createSimpleDependency = (from, to) => ({source: from, target: to});
       const simpleDependencies = this._getVisibleDependencies().map(dependency => createSimpleDependency(dependency.from, dependency.to));
 

@@ -122,7 +122,7 @@ describe('Dependencies', () => {
 
   describe('public API-methods', () => {
 
-    describe('#getAllLinks', () => {
+    describe('#getAllDependencies', () => {
       //TODO:
     });
 
