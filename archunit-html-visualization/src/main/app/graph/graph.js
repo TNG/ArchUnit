@@ -30,12 +30,17 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
       this._root.relayoutCompletely();
       this._violations = violations;
+
+      this._updateFiltersTimeout = null;
     }
 
     _updateFilterAndRelayout(filterKey) {
       this._root.doNextAndWaitFor(() => this._filterCollection.updateFilter(filterKey));
-      //FIXME: the initialization of the filters causes a delayed load of the html page --> reduce initial calls to one
-      this._root.enforceCompleteRelayout();
+      // the following setTimeout technique reduces the number of calls for a complete relayout to one, however, it cannot be guaranteed to have exactly one call especially on slow machines
+      if (this._updateFiltersTimeout !== null) {
+        clearTimeout(this._updateFiltersTimeout);
+      }
+      this._updateFiltersTimeout = setTimeout(() => this._root.enforceCompleteRelayout(), 0);
     }
 
     _createFilters() {
