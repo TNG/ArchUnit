@@ -32,7 +32,6 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -45,6 +44,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.union;
@@ -54,10 +54,12 @@ import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 
 public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
     private final Optional<Source> source;
@@ -68,11 +70,11 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     private final boolean isEnum;
     private final Set<JavaModifier> modifiers;
     private final Supplier<Class<?>> reflectSupplier;
-    private Set<JavaField> fields = new HashSet<>();
-    private Set<JavaCodeUnit> codeUnits = new HashSet<>();
-    private Set<JavaMethod> methods = new HashSet<>();
-    private Set<JavaMember> members = new HashSet<>();
-    private Set<JavaConstructor> constructors = new HashSet<>();
+    private Set<JavaField> fields = emptySet();
+    private Set<JavaCodeUnit> codeUnits = emptySet();
+    private Set<JavaMethod> methods = emptySet();
+    private Set<JavaMember> members = emptySet();
+    private Set<JavaConstructor> constructors = emptySet();
     private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
     private Optional<JavaClass> superClass = Optional.absent();
     private final Set<JavaClass> interfaces = new HashSet<>();
@@ -176,6 +178,33 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @PublicAPI(usage = ACCESS)
     public boolean isEnum() {
         return isEnum;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaEnumConstant> tryGetEnumConstant(String name) {
+        Optional<JavaField> field = tryGetField(name);
+        if (!field.isPresent() || !field.get().getModifiers().contains(ENUM)) {
+            return Optional.absent();
+        }
+        return Optional.of(new JavaEnumConstant(this, field.get().getName()));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public JavaEnumConstant getEnumConstant(String name) {
+        Optional<JavaEnumConstant> enumConstant = tryGetEnumConstant(name);
+        checkArgument(enumConstant.isPresent(), "There exists no enum constant with name '%s' in class %s", name, getName());
+        return enumConstant.get();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaEnumConstant> getEnumConstants() {
+        ImmutableSet.Builder<JavaEnumConstant> result = ImmutableSet.builder();
+        for (JavaField field : fields) {
+            if (field.getModifiers().contains(ENUM)) {
+                result.add(new JavaEnumConstant(this, field.getName()));
+            }
+        }
+        return result.build();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -899,7 +928,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     @Override
     public String toString() {
-        return "JavaClass{name='" + javaType.getName() + "\'}";
+        return "JavaClass{name='" + javaType.getName() + "'}";
     }
 
     @PublicAPI(usage = ACCESS)
@@ -920,7 +949,6 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     public boolean isAnonymous() {
         return getSimpleName().isEmpty();
     }
-
 
     public static final class Functions {
         private Functions() {

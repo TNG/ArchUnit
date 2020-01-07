@@ -42,6 +42,8 @@ public enum JavaModifier {
     @PublicAPI(usage = ACCESS)
     TRANSIENT(EnumSet.of(ApplicableType.FIELD), Opcodes.ACC_TRANSIENT),
     @PublicAPI(usage = ACCESS)
+    ENUM(EnumSet.of(ApplicableType.FIELD), Opcodes.ACC_ENUM),
+    @PublicAPI(usage = ACCESS)
     ABSTRACT(EnumSet.of(ApplicableType.CLASS, ApplicableType.METHOD), Opcodes.ACC_ABSTRACT),
     @PublicAPI(usage = ACCESS)
     SYNCHRONIZED(EnumSet.of(ApplicableType.METHOD), Opcodes.ACC_SYNCHRONIZED),

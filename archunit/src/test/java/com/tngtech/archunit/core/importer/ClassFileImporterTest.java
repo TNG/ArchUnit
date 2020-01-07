@@ -290,6 +290,12 @@ public class ClassFileImporterTest {
         assertThatClasses(javaClass.getAllInterfaces()).matchInAnyOrder(Enum.class.getInterfaces());
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isTrue();
+
+        JavaEnumConstant constant = javaClass.getEnumConstant(EnumToImport.FIRST.name());
+        assertThat(constant.getDeclaringClass()).as("declaring class").isEqualTo(javaClass);
+        assertThat(constant.name()).isEqualTo(EnumToImport.FIRST.name());
+        assertThat(javaClass.getEnumConstants()).extractingResultOf("name").as("enum constant names")
+                .containsOnly(EnumToImport.FIRST.name(), EnumToImport.SECOND.name());
     }
 
     @Test
