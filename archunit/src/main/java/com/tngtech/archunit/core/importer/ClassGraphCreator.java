@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaAnnotation.DefaultParameterVisitor;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
@@ -346,38 +347,25 @@ class ClassGraphCreator implements ImportContext {
         }
 
         void registerAnnotations(Collection<? extends JavaAnnotation<?>> annotations) {
-            for (JavaAnnotation<?> annotation : annotations) {
+            for (final JavaAnnotation<?> annotation : annotations) {
                 annotationTypeDependencies.put(annotation.getRawType(), annotation);
-                registerAnnotationParameters(annotation);
-            }
-        }
-
-        void registerAnnotationParameters(JavaAnnotation<?> annotation) {
-            for (Map.Entry<String, Object> entry : annotation.getProperties().entrySet()) {
-                Object value = entry.getValue();
-                if (value.getClass().isArray()) {
-                    if (!value.getClass().getComponentType().isPrimitive()) {
-                        Object[] values = (Object[]) value;
-                        for (Object o : values) {
-                            registerAnnotationParameter(annotation, o);
-                        }
+                annotation.accept(new DefaultParameterVisitor() {
+                    @Override
+                    public void visitClass(String propertyName, JavaClass javaClass) {
+                        annotationParameterTypeDependencies.put(javaClass, annotation);
                     }
-                } else {
-                    registerAnnotationParameter(annotation, value);
-                }
-            }
-        }
 
-        private void registerAnnotationParameter(JavaAnnotation<?> annotation, Object value) {
-            if (value instanceof JavaClass) {
-                annotationParameterTypeDependencies.put((JavaClass) value, annotation);
-            } else if (value instanceof JavaEnumConstant) {
-                JavaEnumConstant enumConstant = (JavaEnumConstant) value;
-                annotationParameterTypeDependencies.put(enumConstant.getDeclaringClass(), annotation);
-            } else if (value instanceof JavaAnnotation<?>) {
-                JavaAnnotation<?> memberAnnotation = (JavaAnnotation<?>) value;
-                annotationParameterTypeDependencies.put(memberAnnotation.getRawType(), annotation);
-                registerAnnotationParameters(memberAnnotation);
+                    @Override
+                    public void visitEnumConstant(String propertyName, JavaEnumConstant enumConstant) {
+                        annotationParameterTypeDependencies.put(enumConstant.getDeclaringClass(), annotation);
+                    }
+
+                    @Override
+                    public void visitAnnotation(String propertyName, JavaAnnotation<?> memberAnnotation) {
+                        annotationParameterTypeDependencies.put(memberAnnotation.getRawType(), annotation);
+                        memberAnnotation.accept(this);
+                    }
+                });
             }
         }
 

@@ -22,6 +22,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.domain.JavaAnnotation.DefaultParameterVisitor;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 
 import static com.google.common.base.Suppliers.memoize;
@@ -210,41 +211,26 @@ class JavaClassDependencies {
     }
 
     private <T extends HasDescription & HasAnnotations<?>> Set<Dependency> annotationDependencies(T annotated) {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaAnnotation<?> annotation : annotated.getAnnotations()) {
+        final ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (final JavaAnnotation<?> annotation : annotated.getAnnotations()) {
             result.addAll(Dependency.tryCreateFromAnnotation(annotation).asSet());
-            result.addAll(annotationParametersDependencies(annotation));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> annotationParametersDependencies(JavaAnnotation<?> annotation) {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (Object value : annotation.getProperties().values()) {
-            if (value instanceof Object[]) {
-                Object[] values = (Object[]) value;
-                for (Object o : values) {
-                    result.addAll(annotationParameterDependencies(annotation, o));
+            annotation.accept(new DefaultParameterVisitor() {
+                @Override
+                public void visitClass(String propertyName, JavaClass javaClass) {
+                    result.addAll(Dependency.tryCreateFromAnnotationMember(annotation, javaClass).asSet());
                 }
-            } else {
-                result.addAll(annotationParameterDependencies(annotation, value));
-            }
-        }
-        return result.build();
-    }
 
-    private Set<Dependency> annotationParameterDependencies(JavaAnnotation<?> origin, Object value) {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        if (value instanceof JavaClass) {
-            JavaClass annotationMember = (JavaClass) value;
-            result.addAll(Dependency.tryCreateFromAnnotationMember(origin, annotationMember).asSet());
-        } else if (value instanceof JavaEnumConstant) {
-            JavaEnumConstant enumConstant = (JavaEnumConstant) value;
-            result.addAll(Dependency.tryCreateFromAnnotationMember(origin, enumConstant.getDeclaringClass()).asSet());
-        } else if (value instanceof JavaAnnotation<?>) {
-            JavaAnnotation<?> nestedAnnotation = (JavaAnnotation<?>) value;
-            result.addAll(Dependency.tryCreateFromAnnotationMember(origin, nestedAnnotation.getRawType()).asSet());
-            result.addAll(annotationParametersDependencies(nestedAnnotation));
+                @Override
+                public void visitEnumConstant(String propertyName, JavaEnumConstant enumConstant) {
+                    result.addAll(Dependency.tryCreateFromAnnotationMember(annotation, enumConstant.getDeclaringClass()).asSet());
+                }
+
+                @Override
+                public void visitAnnotation(String propertyName, JavaAnnotation<?> memberAnnotation) {
+                    result.addAll(Dependency.tryCreateFromAnnotationMember(annotation, memberAnnotation.getRawType()).asSet());
+                    memberAnnotation.accept(this);
+                }
+            });
         }
         return result.build();
     }
