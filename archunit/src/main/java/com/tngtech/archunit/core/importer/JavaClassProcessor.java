@@ -108,11 +108,11 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         ImmutableSet<String> interfaceNames = createInterfaceNames(interfaces);
-        LOG.debug("Found interfaces {} on class '{}'", interfaceNames, name);
+        LOG.trace("Found interfaces {} on class '{}'", interfaceNames, name);
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
         boolean opCodeForEnumIsPresent = (access & Opcodes.ACC_ENUM) != 0;
         Optional<String> superClassName = getSuperClassName(superName, opCodeForInterfaceIsPresent);
-        LOG.debug("Found superclass {} on class '{}'", superClassName.orNull(), name);
+        LOG.trace("Found superclass {} on class '{}'", superClassName.orNull(), name);
 
         javaClassBuilder = new DomainBuilders.JavaClassBuilder()
                 .withSourceUri(sourceURI)
@@ -216,7 +216,7 @@ class JavaClassProcessor extends ClassVisitor {
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
 
-        LOG.debug("Analyzing method {}.{}:{}", className, name, desc);
+        LOG.trace("Analyzing method {}.{}:{}", className, name, desc);
         accessHandler.setContext(new CodeUnit(name, namesOf(Type.getArgumentTypes(desc)), className));
 
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
@@ -282,7 +282,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         declarationHandler.onDeclaredAnnotations(annotations);
-        LOG.debug("Done analyzing {}", className);
+        LOG.trace("Done analyzing {}", className);
     }
 
     private static List<String> namesOf(Type[] types) {
