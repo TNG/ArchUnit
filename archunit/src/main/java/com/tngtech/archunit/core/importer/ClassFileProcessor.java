@@ -139,7 +139,7 @@ class ClassFileProcessor {
         @Override
         public void handleFieldInstruction(int opcode, String owner, String name, String desc) {
             AccessType accessType = AccessType.forOpCode(opcode);
-            LOG.debug("Found {} access to field {}.{}:{} in line {}", accessType, owner, name, desc, lineNumber);
+            LOG.trace("Found {} access to field {}.{}:{} in line {}", accessType, owner, name, desc, lineNumber);
             TargetInfo target = new RawAccessRecord.FieldTargetInfo(owner, name, desc);
             importRecord.registerFieldAccess(filled(new RawAccessRecord.ForField.Builder(), target)
                     .withAccessType(accessType)
@@ -148,7 +148,7 @@ class ClassFileProcessor {
 
         @Override
         public void handleMethodInstruction(String owner, String name, String desc) {
-            LOG.debug("Found call of method {}.{}:{} in line {}", owner, name, desc, lineNumber);
+            LOG.trace("Found call of method {}.{}:{} in line {}", owner, name, desc, lineNumber);
             if (CONSTRUCTOR_NAME.equals(name)) {
                 TargetInfo target = new ConstructorTargetInfo(owner, name, desc);
                 importRecord.registerConstructorCall(filled(new RawAccessRecord.Builder(), target).build());
