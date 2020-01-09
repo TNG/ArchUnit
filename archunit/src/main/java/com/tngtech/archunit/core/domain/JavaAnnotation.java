@@ -40,8 +40,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  * </code></pre>
  * this annotation will be imported storing the association
  * <pre><code>
- *   name --&gt; "some name"
- *   anAttribute --&gt; 7
+ *   name &rarr; "some name"
+ *   anAttribute &rarr; 7
  * </code></pre>
  * Properties will be made available via {@link #get(String)}, e.g.
  * <pre><code>
@@ -52,7 +52,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  * be resolved on the classpath. It's then possible to access a simple proxy
  * <pre><code>
  *   MyAnnotation moreConvenient = myAnnotation.as(MyAnnotation.class);
- *   moreConvenient.anAttribute(); // --&gt; returns 7
+ *   moreConvenient.anAttribute(); // &rarr; returns 7
  * </code></pre>
  * ----------<br>
  * NOTE<br>
@@ -65,8 +65,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  * </code></pre>
  * Accesses to 'type' will be different for the proxied version:
  * <pre><code>
- *   someAnnotation.get("type"); // --&gt; returns JavaClass{String}
- *   someAnnotation.as(SomeAnnotation.class).type(); // --&gt; returns String.class
+ *   someAnnotation.get("type"); // &rarr; returns JavaClass{String}
+ *   someAnnotation.as(SomeAnnotation.class).type(); // &rarr; returns String.class
  * </code></pre>
  *
  * @param <OWNER> The type of the closest "parent" of this annotation. If this annotation
@@ -168,20 +168,20 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
      * class SomeAnnotatedClass {}
      * </code></pre>
      * the results will be
-     * <pre><code>       someAnnotation.get("value") --&gt; "someString"
-     * someAnnotation.get("types") --&gt; [JavaClass{SomeType}, JavaClass{AnotherType}]
+     * <pre><code>       someAnnotation.get("value") &rarr; "someString"
+     * someAnnotation.get("types") &rarr; [JavaClass{SomeType}, JavaClass{AnotherType}]
      * </code></pre>
      *
      * @param property The name of the annotation property, i.e. the declared method name
      * @return the value of the given property, where the result type is more precisely
      * <ul>
-     * <li>Class&lt;?&gt; --&gt; JavaClass{clazz}</li>
-     * <li>Class&lt;?&gt;[] --&gt; [JavaClass{clazz},...]</li>
-     * <li>Enum --&gt; JavaEnumConstant</li>
-     * <li>Enum[] --&gt; [JavaEnumConstant,...]</li>
-     * <li>Annotation --&gt; JavaAnnotation</li>
-     * <li>Annotation[] --&gt; [JavaAnnotation,...]</li>
-     * <li>anyOtherType --&gt; anyOtherType</li>
+     * <li>Class&lt;?&gt; &rarr; JavaClass{clazz}</li>
+     * <li>Class&lt;?&gt;[] &rarr; [JavaClass{clazz},...]</li>
+     * <li>Enum &rarr; JavaEnumConstant</li>
+     * <li>Enum[] &rarr; [JavaEnumConstant,...]</li>
+     * <li>Annotation &rarr; JavaAnnotation</li>
+     * <li>Annotation[] &rarr; [JavaAnnotation,...]</li>
+     * <li>anyOtherType &rarr; anyOtherType</li>
      * </ul>
      */
     @PublicAPI(usage = ACCESS)
@@ -190,7 +190,7 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
     }
 
     /**
-     * @return a map containing all [property --&gt; value], where each value correlates to {@link #get(String property)}
+     * @return a map containing all [property &rarr; value], where each value correlates to {@link #get(String property)}
      */
     @PublicAPI(usage = ACCESS)
     public Map<String, Object> getProperties() {
@@ -231,7 +231,7 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
      *     // parameter handling logic
      *
      *    {@literal @}Override
-     *     public void visitAnnotation(String propertyName, JavaAnnotation<?> nestedAnnotation) {
+     *     public void visitAnnotation(String propertyName, JavaAnnotation&lt;?&gt; nestedAnnotation) {
      *         nestedAnnotation.accept(this);
      *     }
      * });</code></pre>
