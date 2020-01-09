@@ -69,7 +69,7 @@ public final class Architectures {
     /**
      * Can be used to assert a typical layered architecture, e.g. with an UI layer, a business logic layer and
      * a persistence layer, where specific access rules should be adhered to, like UI may not access persistence
-     * and each layer may only access lower layers, i.e. UI --&gt; business logic --&gt; persistence.
+     * and each layer may only access lower layers, i.e. UI &rarr; business logic &rarr; persistence.
      * <br><br>
      * A layered architecture can for example be defined like this:
      * <pre><code>layeredArchitecture()
@@ -86,7 +86,7 @@ public final class Architectures {
      * layer 'Persistence' MAY NOT access layer 'Business Logic' AND MAY NOT access layer 'UI' (black list).<br>
      * {@link LayeredArchitecture LayeredArchitecture} only supports the white list way, because it prevents detours "outside of
      * the architecture", e.g.<br>
-     * 'Persistence' --&gt; 'my.application.somehelper' --&gt; 'Business Logic'<br>
+     * 'Persistence' &rarr; 'my.application.somehelper' &rarr; 'Business Logic'<br>
      * The white list way enforces that every class that wants to interact with classes inside of
      * the layered architecture must be part of the layered architecture itself and thus adhere to the same rules.
      *
@@ -102,22 +102,39 @@ public final class Architectures {
         private final Set<LayerDependencySpecification> dependencySpecifications;
         private final PredicateAggregator<Dependency> irrelevantDependenciesPredicate;
         private final Optional<String> overriddenDescription;
+        private boolean optionalLayers;
 
         private LayeredArchitecture() {
             this(new LayerDefinitions(),
                     new LinkedHashSet<LayerDependencySpecification>(),
                     new PredicateAggregator<Dependency>().thatORs(),
-                    Optional.<String>absent());
+                    Optional.<String>absent(),
+                    false);
         }
 
         private LayeredArchitecture(LayerDefinitions layerDefinitions,
                 Set<LayerDependencySpecification> dependencySpecifications,
                 PredicateAggregator<Dependency> irrelevantDependenciesPredicate,
-                Optional<String> overriddenDescription) {
+                Optional<String> overriddenDescription,
+                boolean optionalLayers) {
             this.layerDefinitions = layerDefinitions;
             this.dependencySpecifications = dependencySpecifications;
             this.irrelevantDependenciesPredicate = irrelevantDependenciesPredicate;
             this.overriddenDescription = overriddenDescription;
+            this.optionalLayers = optionalLayers;
+        }
+
+        /**
+         * By default, layers defined with {@link #layer(String)} must not be empty, i.e. contain at least one class.
+         * <br>
+         * <code>withOptionalLayers(true)</code> can be used to make all layers optional.<br>
+         * <code>withOptionalLayers(false)</code> still allows to define individual optional layers with {@link #optionalLayer(String)}.
+         * @see #optionalLayer(String)
+         */
+        @PublicAPI(usage = ACCESS)
+        public LayeredArchitecture withOptionalLayers(boolean optionalLayers) {
+            this.optionalLayers = optionalLayers;
+            return this;
         }
 
         private LayeredArchitecture addLayerDefinition(LayerDefinition definition) {
@@ -130,9 +147,27 @@ public final class Architectures {
             return this;
         }
 
+        /**
+         * Starts the definition of a new layer within the current {@link #layeredArchitecture() LayeredArchitecture}.
+         * <br>
+         * Unless {@link #withOptionalLayers(boolean) withOptionalLayers(true}} is used, this layer must not be empty.
+         * @see #optionalLayer(String)
+         */
         @PublicAPI(usage = ACCESS)
         public LayerDefinition layer(String name) {
-            return new LayerDefinition(name);
+            return new LayerDefinition(name, false);
+        }
+
+        /**
+         * Starts the definition of a new optional layer within the current {@link #layeredArchitecture() LayeredArchitecture}.
+         * <br>
+         * An optional layer will not fail if it is empty, i.e. does not contain any classes.
+         * When {@link #withOptionalLayers(boolean) withOptionalLayers(true)} is used, all layers are optional by default,
+         * such that there is no difference between {@link #optionalLayer(String)} and {@link #layer(String)} anymore
+         */
+        @PublicAPI(usage = ACCESS)
+        public LayerDefinition optionalLayer(String name) {
+            return new LayerDefinition(name, true);
         }
 
         @Override
@@ -142,7 +177,7 @@ public final class Architectures {
                 return overriddenDescription.get();
             }
 
-            List<String> lines = newArrayList("Layered architecture consisting of");
+            List<String> lines = newArrayList("Layered architecture consisting of" + (optionalLayers ? " (optional)" : ""));
             for (LayerDefinition definition : layerDefinitions) {
                 lines.add(definition.toString());
             }
@@ -161,13 +196,21 @@ public final class Architectures {
         @PublicAPI(usage = ACCESS)
         public EvaluationResult evaluate(JavaClasses classes) {
             EvaluationResult result = new EvaluationResult(this, Priority.MEDIUM);
-            for (LayerDefinition layerDefinition : layerDefinitions) {
-                result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
-            }
+            checkEmptyLayers(classes, result);
             for (LayerDependencySpecification specification : dependencySpecifications) {
                 result.add(evaluateDependenciesShouldBeSatisfied(classes, specification));
             }
             return result;
+        }
+
+        private void checkEmptyLayers(JavaClasses classes, EvaluationResult result) {
+            if (!optionalLayers) {
+                for (LayerDefinition layerDefinition : layerDefinitions) {
+                    if (!layerDefinition.isOptional()) {
+                        result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
+                    }
+                }
+            }
         }
 
         private EvaluationResult evaluateLayersShouldNotBeEmpty(JavaClasses classes, LayerDefinition layerDefinition) {
@@ -235,7 +278,7 @@ public final class Architectures {
         public LayeredArchitecture as(String newDescription) {
             return new LayeredArchitecture(
                     layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate, Optional.of(newDescription));
+                    irrelevantDependenciesPredicate, Optional.of(newDescription), optionalLayers);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -253,7 +296,7 @@ public final class Architectures {
                 DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
             return new LayeredArchitecture(
                     layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription);
+                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription, optionalLayers);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -307,11 +350,13 @@ public final class Architectures {
 
         public final class LayerDefinition {
             private final String name;
+            private final boolean optional;
             private DescribedPredicate<JavaClass> containsPredicate;
 
-            private LayerDefinition(String name) {
+            private LayerDefinition(String name, boolean optional) {
                 checkState(!isNullOrEmpty(name), "Layer name must be present");
                 this.name = name;
+                this.optional = optional;
             }
 
             @PublicAPI(usage = ACCESS)
@@ -327,13 +372,17 @@ public final class Architectures {
                 return definedBy(resideInAnyPackage(packageIdentifiers).as(description));
             }
 
+            boolean isOptional() {
+                return optional;
+            }
+
             DescribedPredicate<JavaClass> containsPredicate() {
                 return containsPredicate;
             }
 
             @Override
             public String toString() {
-                return String.format("layer '%s' (%s)", name, containsPredicate);
+                return String.format("%slayer '%s' (%s)", optional ? "optional " : "", name, containsPredicate);
             }
         }
 
@@ -379,12 +428,12 @@ public final class Architectures {
         private static final String APPLICATION_SERVICE_LAYER = "application service";
         private static final String ADAPTER_LAYER = "adapter";
 
+        private final Optional<String> overriddenDescription;
         private String[] domainModelPackageIdentifiers = new String[0];
         private String[] domainServicePackageIdentifiers = new String[0];
         private String[] applicationPackageIdentifiers = new String[0];
         private Map<String, String[]> adapterPackageIdentifiers = new LinkedHashMap<>();
-
-        private final Optional<String> overriddenDescription;
+        private boolean optionalLayers = false;
 
         private OnionArchitecture() {
             overriddenDescription = Optional.absent();
@@ -426,6 +475,12 @@ public final class Architectures {
             return this;
         }
 
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture withOptionalLayers(boolean optionalLayers) {
+            this.optionalLayers = optionalLayers;
+            return this;
+        }
+
         private LayeredArchitecture layeredArchitectureDelegate() {
             LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture()
                     .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPackageIdentifiers)
@@ -434,7 +489,8 @@ public final class Architectures {
                     .layer(ADAPTER_LAYER).definedBy(concatenateAll(adapterPackageIdentifiers.values()))
                     .whereLayer(DOMAIN_MODEL_LAYER).mayOnlyBeAccessedByLayers(DOMAIN_SERVICE_LAYER, APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
                     .whereLayer(DOMAIN_SERVICE_LAYER).mayOnlyBeAccessedByLayers(APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
-                    .whereLayer(APPLICATION_SERVICE_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER);
+                    .whereLayer(APPLICATION_SERVICE_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER)
+                    .withOptionalLayers(optionalLayers);
 
             for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
                 String adapterLayer = getAdapterLayer(adapter.getKey());
@@ -484,7 +540,7 @@ public final class Architectures {
                 return overriddenDescription.get();
             }
 
-            List<String> lines = newArrayList("Onion architecture consisting of");
+            List<String> lines = newArrayList("Onion architecture consisting of" + (optionalLayers ? " (optional)" : ""));
             if (domainModelPackageIdentifiers.length > 0) {
                 lines.add(String.format("domain models ('%s')", Joiner.on("', '").join(domainModelPackageIdentifiers)));
             }
