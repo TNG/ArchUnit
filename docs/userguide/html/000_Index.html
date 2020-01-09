@@ -1322,7 +1322,7 @@ Consider the following annotation:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaAnnotation annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnotation");
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaAnnotation<?> annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnotation");
 // result is untyped, since it might not be on the classpath (e.g. enums)
 Object value = annotation.get("value");</code></pre>
 </div>

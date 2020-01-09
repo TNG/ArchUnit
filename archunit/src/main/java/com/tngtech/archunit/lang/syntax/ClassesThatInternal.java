@@ -88,12 +88,12 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     }
 
     @Override
-    public CONJUNCTION areAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public CONJUNCTION areAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return givenWith(are(annotatedWith(predicate)));
     }
 
     @Override
-    public CONJUNCTION areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public CONJUNCTION areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return givenWith(are(not(annotatedWith(predicate))));
     }
 
@@ -118,12 +118,12 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     }
 
     @Override
-    public CONJUNCTION areMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public CONJUNCTION areMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return givenWith(are(metaAnnotatedWith(predicate)));
     }
 
     @Override
-    public CONJUNCTION areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public CONJUNCTION areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return givenWith(are(not(metaAnnotatedWith(predicate))));
     }
 
@@ -293,7 +293,7 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     }
 
     @Override
-    public CONJUNCTION belongToAnyOf(Class... classes) {
+    public CONJUNCTION belongToAnyOf(Class<?>... classes) {
         return givenWith(JavaClass.Predicates.belongToAnyOf(classes));
     }
 

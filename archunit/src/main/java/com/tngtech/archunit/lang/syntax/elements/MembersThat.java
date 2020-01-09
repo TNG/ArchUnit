@@ -227,7 +227,7 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION areAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    CONJUNCTION areAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Matches members not annotated with a certain annotation, where matching annotations are
@@ -237,7 +237,7 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    CONJUNCTION areNotAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Matches members meta-annotated with a certain type of annotation. A meta-annotation is
@@ -288,7 +288,7 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION areMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    CONJUNCTION areMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Matches members not meta-annotated with a certain annotation, where matching meta-annotations are
@@ -299,7 +299,7 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    CONJUNCTION areNotMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     /**
      * Matches members declared within the supplied class.

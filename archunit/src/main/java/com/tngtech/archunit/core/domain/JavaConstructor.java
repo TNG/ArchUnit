@@ -25,6 +25,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
@@ -67,6 +68,24 @@ public final class JavaConstructor extends JavaCodeUnit {
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getAccessesToSelf() {
         return callsToSelf;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this constructor
+    public Set<JavaAnnotation<JavaConstructor>> getAnnotations() {
+        return (Set<JavaAnnotation<JavaConstructor>>) super.getAnnotations();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this constructor
+    public JavaAnnotation<JavaConstructor> getAnnotationOfType(String typeName) {
+        return (JavaAnnotation<JavaConstructor>) super.getAnnotationOfType(typeName);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this constructor
+    public Optional<JavaAnnotation<JavaConstructor>> tryGetAnnotationOfType(String typeName) {
+        return (Optional<JavaAnnotation<JavaConstructor>>) super.tryGetAnnotationOfType(typeName);
     }
 
     @Override

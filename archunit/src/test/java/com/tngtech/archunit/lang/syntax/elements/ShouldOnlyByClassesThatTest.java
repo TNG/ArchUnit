@@ -515,16 +515,27 @@ public class ShouldOnlyByClassesThatTest {
     }
 
     @Test
-    @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotMetaAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+    public void areNotMetaAnnotatedWith_type_access() {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                classesShouldOnlyBeBy.areNotMetaAnnotatedWith(SomeAnnotation.class))
+                classes().should().onlyBeAccessed().byClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
                         ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_type_dependency() {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyHaveDependentClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class))
+                .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                        ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -542,16 +553,27 @@ public class ShouldOnlyByClassesThatTest {
     }
 
     @Test
-    @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotMetaAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+    public void areNotMetaAnnotatedWith_typeName_access() {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                classesShouldOnlyBeBy.areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                classes().should().onlyBeAccessed().byClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
                         ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_typeName_dependency() {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyHaveDependentClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                        ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -570,17 +592,29 @@ public class ShouldOnlyByClassesThatTest {
     }
 
     @Test
-    @UseDataProvider("should_only_be_by_rule_starts")
-    public void areNotMetaAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+    public void areNotMetaAnnotatedWith_predicate_access() {
         DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                classesShouldOnlyBeBy.areNotMetaAnnotatedWith(hasNamePredicate))
+                classes().should().onlyBeAccessed().byClassesThat().areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
                         ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_predicate_dependency() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyHaveDependentClassesThat().areNotMetaAnnotatedWith(hasNamePredicate))
+                .on(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                        ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+                        SimpleClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test

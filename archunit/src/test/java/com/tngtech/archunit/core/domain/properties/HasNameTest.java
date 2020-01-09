@@ -62,7 +62,7 @@ public class HasNameTest {
         assertThat(GET_FULL_NAME.apply(test)).isEqualTo("full");
     }
 
-    private AbstractBooleanAssert assertNameMatches(String input, String regex) {
+    private AbstractBooleanAssert<?> assertNameMatches(String input, String regex) {
         return assertThat(nameMatching(regex).apply(newHasName(input)))
                 .as(input + " =~ " + regex);
     }

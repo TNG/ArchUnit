@@ -13,14 +13,15 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
 
 public class JavaAnnotationAssertion {
     @SuppressWarnings("rawtypes")
-    public static Set<Map<String, Object>> propertiesOf(Set<JavaAnnotation> annotations) {
+    public static Set<Map<String, Object>> propertiesOf(Set<? extends JavaAnnotation<?>> annotations) {
         List<Annotation> converted = new ArrayList<>();
-        for (JavaAnnotation annotation : annotations) {
-            converted.add(annotation.as((Class) annotation.getType().reflect()));
+        for (JavaAnnotation<?> annotation : annotations) {
+            converted.add(annotation.as((Class) annotation.getRawType().reflect()));
         }
         return propertiesOf(converted.toArray(new Annotation[0]));
     }
@@ -43,6 +44,12 @@ public class JavaAnnotationAssertion {
     }
 
     private static Object valueOf(Object value) {
+        if (value.getClass().isArray() && value.getClass().getComponentType().isPrimitive()) {
+            return listFrom(value);
+        }
+        if (value instanceof String[]) {
+            return ImmutableList.copyOf((String[]) value);
+        }
         if (value instanceof Class) {
             return new SimpleTypeReference(((Class<?>) value).getName());
         }
@@ -62,6 +69,15 @@ public class JavaAnnotationAssertion {
             return propertiesOf((Annotation[]) value);
         }
         return value;
+    }
+
+    private static List<?> listFrom(Object primitiveArray) {
+        checkArgument(primitiveArray.getClass().getComponentType().equals(int.class), "Only supports int[] at the moment, please extend");
+        ImmutableList.Builder<Integer> result = ImmutableList.builder();
+        for (int anInt : (int[]) primitiveArray) {
+            result.add(anInt);
+        }
+        return result.build();
     }
 
     private static class SimpleTypeReference {

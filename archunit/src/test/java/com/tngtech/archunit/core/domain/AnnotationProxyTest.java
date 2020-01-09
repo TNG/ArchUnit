@@ -14,6 +14,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.InitialConfiguration;
+import com.tngtech.archunit.core.importer.ImportTestUtils;
 import com.tngtech.archunit.core.importer.JavaAnnotationTestBuilder;
 import org.assertj.core.api.Condition;
 import org.junit.Rule;
@@ -227,7 +228,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void wrong_annotation_type_is_rejected() {
-        JavaAnnotation mismatch = javaAnnotationFrom(TestAnnotation.class.getAnnotation(Retention.class));
+        JavaAnnotation<?> mismatch = javaAnnotationFrom(TestAnnotation.class.getAnnotation(Retention.class), getClass());
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(Retention.class.getSimpleName());
@@ -238,12 +239,13 @@ public class AnnotationProxyTest {
 
     @Test
     public void array_is_converted_to_the_correct_type() {
-        JavaAnnotation annotation = new JavaAnnotationTestBuilder()
+        ImportTestUtils.ImportedTestClasses importedClasses = simpleImportedClasses();
+        JavaAnnotation<?> annotation = new JavaAnnotationTestBuilder()
                 .withType(JavaType.From.name(TestAnnotation.class.getName()))
                 .addProperty("types", new Object[0])
                 .addProperty("enumConstants", new Object[0])
                 .addProperty("subAnnotations", new Object[0])
-                .build(simpleImportedClasses());
+                .build(importedClasses.get(getClass().getName()), importedClasses);
 
         TestAnnotation reflected = annotation.as(TestAnnotation.class);
         assertThat(reflected.types()).isEmpty();
@@ -420,7 +422,7 @@ public class AnnotationProxyTest {
     }
 
     private <A extends Annotation> A getProxyFor(Class<A> annotationType) {
-        JavaAnnotation toProxy = javaAnnotationFrom(Irrelevant.class.getAnnotation(annotationType));
+        JavaAnnotation<?> toProxy = javaAnnotationFrom(Irrelevant.class.getAnnotation(annotationType), Irrelevant.class);
         return AnnotationProxy.of(annotationType, toProxy);
     }
 }

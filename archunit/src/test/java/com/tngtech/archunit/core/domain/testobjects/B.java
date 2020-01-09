@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core.domain.testobjects;
 
+@DomainAnnotation
 public class B {
     String field;
 

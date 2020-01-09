@@ -52,6 +52,10 @@ public class TestUtils {
         return importClassWithContext(clazz).getMethod(methodName, params);
     }
 
+    public static JavaClasses importPackagesOf(Class<?>... classes) {
+        return new ClassFileImporter().importPackagesOf(classes);
+    }
+
     public static JavaClasses importClasses(Class<?>... classes) {
         return new ClassFileImporter().importClasses(classes);
     }
@@ -112,15 +116,15 @@ public class TestUtils {
         for (JavaClass javaClass : parameters) {
             result.add(javaClass.reflect());
         }
-        return result.toArray(new Class[0]);
+        return result.toArray(new Class<?>[0]);
     }
 
     static ImportedTestClasses simpleImportedClasses() {
         return ImportTestUtils.simpleImportedClasses();
     }
 
-    static JavaAnnotation javaAnnotationFrom(Annotation annotation) {
-        return ImportTestUtils.javaAnnotationFrom(annotation);
+    static JavaAnnotation<?> javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass) {
+        return ImportTestUtils.javaAnnotationFrom(annotation, annotatedClass);
     }
 
     public static FieldAccessTarget targetFrom(JavaField javaField) {
@@ -132,7 +136,7 @@ public class TestUtils {
     }
 
     public static Dependency dependencyFrom(JavaAccess<?> access) {
-        return Dependency.from(access);
+        return Dependency.tryCreateFromAccess(access).get();
     }
 
     public static class AccessesSimulator {

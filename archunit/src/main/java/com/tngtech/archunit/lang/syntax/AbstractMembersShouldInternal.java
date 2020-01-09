@@ -189,12 +189,12 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
     }
 
     @Override
-    public SELF beAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public SELF beAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return addCondition(ArchConditions.beAnnotatedWith(predicate));
     }
 
     @Override
-    public SELF notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public SELF notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return addCondition(ArchConditions.notBeAnnotatedWith(predicate));
     }
 
@@ -219,12 +219,12 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
     }
 
     @Override
-    public SELF beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public SELF beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return addCondition(ArchConditions.beMetaAnnotatedWith(predicate));
     }
 
     @Override
-    public SELF notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public SELF notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return addCondition(ArchConditions.notBeMetaAnnotatedWith(predicate));
     }
 

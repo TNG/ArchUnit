@@ -20,6 +20,7 @@ import java.util.Objects;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaEnumConstantBuilder;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class JavaEnumConstant {
@@ -27,8 +28,12 @@ public final class JavaEnumConstant {
     private final String name;
 
     JavaEnumConstant(JavaEnumConstantBuilder builder) {
-        this.declaringClass = builder.getDeclaringClass();
-        this.name = builder.getName();
+        this(builder.getDeclaringClass(), builder.getName());
+    }
+
+    JavaEnumConstant(JavaClass declaringClass, String name) {
+        this.declaringClass = checkNotNull(declaringClass);
+        this.name = checkNotNull(name);
     }
 
     @PublicAPI(usage = ACCESS)

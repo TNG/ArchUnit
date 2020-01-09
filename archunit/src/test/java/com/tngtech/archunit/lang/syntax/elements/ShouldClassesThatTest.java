@@ -430,14 +430,23 @@ public class ShouldClassesThatTest {
     }
 
     @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
-    public void areNotMetaAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+    public void areNotMetaAnnotatedWith_type_access() {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.areNotMetaAnnotatedWith(SomeAnnotation.class))
+                noClasses().should().accessClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_type_dependency() {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().dependOnClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -452,14 +461,23 @@ public class ShouldClassesThatTest {
     }
 
     @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
-    public void areNotMetaAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+    public void areNotMetaAnnotatedWith_typeName_access() {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                noClasses().should().accessClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_typeName_dependency() {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().dependOnClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -475,15 +493,25 @@ public class ShouldClassesThatTest {
     }
 
     @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
-    public void areNotMetaAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+    public void areNotMetaAnnotatedWith_predicate_access() {
         DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.areNotMetaAnnotatedWith(hasNamePredicate))
+                noClasses().should().accessClassesThat().areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void areNotMetaAnnotatedWith_predicate_dependency() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClasses().should().dependOnClassesThat().areNotMetaAnnotatedWith(hasNamePredicate))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -1085,14 +1113,23 @@ public class ShouldClassesThatTest {
     }
 
     @Test
-    @UseDataProvider("classes_should_only_that_rule_starts")
-    public void only_areMetaAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyThatRuleStart) {
+    public void only_areMetaAnnotatedWith_type_access() {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                classesShouldOnlyThatRuleStart.areMetaAnnotatedWith(SomeAnnotation.class))
+                classes().should().onlyAccessClassesThat().areMetaAnnotatedWith(SomeAnnotation.class))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void only_areMetaAnnotatedWith_type_dependency() {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyDependOnClassesThat().areMetaAnnotatedWith(SomeAnnotation.class))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -1107,14 +1144,23 @@ public class ShouldClassesThatTest {
     }
 
     @Test
-    @UseDataProvider("classes_should_only_that_rule_starts")
-    public void only_areMetaAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyThatRuleStart) {
+    public void only_areMetaAnnotatedWith_typeName_access() {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                classesShouldOnlyThatRuleStart.areMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                classes().should().onlyAccessClassesThat().areMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void only_areMetaAnnotatedWith_typeName_dependency() {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyDependOnClassesThat().areMetaAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -1129,15 +1175,25 @@ public class ShouldClassesThatTest {
     }
 
     @Test
-    @UseDataProvider("classes_should_only_that_rule_starts")
-    public void only_areMetaAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyThatRuleStart) {
+    public void only_areMetaAnnotatedWith_predicate_access() {
         DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                classesShouldOnlyThatRuleStart.areMetaAnnotatedWith(hasNamePredicate))
+                classes().should().onlyAccessClassesThat().areMetaAnnotatedWith(hasNamePredicate))
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+    }
+
+    @Test
+    public void only_areMetaAnnotatedWith_predicate_dependency() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.is(classWithNameOf(SomeAnnotation.class));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classes().should().onlyDependOnClassesThat().areMetaAnnotatedWith(hasNamePredicate))
+                .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
+                        MetaAnnotatedAnnotation.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test

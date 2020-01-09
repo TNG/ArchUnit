@@ -57,6 +57,6 @@ public class LayerDependencyRulesTest {
     @ArchTest
     public static final ArchRule services_should_only_depend_on_persistence_or_other_services =
             classes().that().resideInAPackage("..service..")
-                    .should().onlyDependOnClassesThat().resideInAnyPackage("..service..", "..persistence..", "java..");
+                    .should().onlyDependOnClassesThat().resideInAnyPackage("..service..", "..persistence..", "java..", "javax..");
 
 }

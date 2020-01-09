@@ -45,11 +45,11 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public abstract class JavaMember implements
-        HasName.AndFullName, HasDescriptor, HasAnnotations, HasModifiers, HasOwner<JavaClass>, HasDescription, HasSourceCodeLocation {
+        HasName.AndFullName, HasDescriptor, HasAnnotations<JavaMember>, HasModifiers, HasOwner<JavaClass>, HasSourceCodeLocation {
 
     private final String name;
     private final String descriptor;
-    private final Supplier<Map<String, JavaAnnotation>> annotations;
+    private final Supplier<Map<String, JavaAnnotation<JavaMember>>> annotations;
     private final JavaClass owner;
     private final SourceCodeLocation sourceCodeLocation;
     private final Set<JavaModifier> modifiers;
@@ -57,7 +57,7 @@ public abstract class JavaMember implements
     JavaMember(JavaMemberBuilder<?, ?> builder) {
         this.name = checkNotNull(builder.getName());
         this.descriptor = checkNotNull(builder.getDescriptor());
-        this.annotations = builder.getAnnotations();
+        this.annotations = builder.getAnnotations(this);
         this.owner = checkNotNull(builder.getOwner());
         this.sourceCodeLocation = SourceCodeLocation.of(owner);
         this.modifiers = checkNotNull(builder.getModifiers());
@@ -65,7 +65,7 @@ public abstract class JavaMember implements
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public Set<JavaAnnotation> getAnnotations() {
+    public Set<? extends JavaAnnotation<? extends JavaMember>> getAnnotations() {
         return ImmutableSet.copyOf(annotations.get().values());
     }
 
@@ -82,7 +82,7 @@ public abstract class JavaMember implements
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaAnnotation getAnnotationOfType(String typeName) {
+    public JavaAnnotation<? extends JavaMember> getAnnotationOfType(String typeName) {
         return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(String.format(
                 "Member %s is not annotated with @%s",
                 getFullName(), typeName)));
@@ -96,7 +96,7 @@ public abstract class JavaMember implements
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName) {
+    public Optional<? extends JavaAnnotation<? extends JavaMember>> tryGetAnnotationOfType(String typeName) {
         return Optional.fromNullable(annotations.get().get(typeName));
     }
 
@@ -114,7 +114,7 @@ public abstract class JavaMember implements
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
     }
 
@@ -132,7 +132,7 @@ public abstract class JavaMember implements
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.get().values(), predicate);
     }
 

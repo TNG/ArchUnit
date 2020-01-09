@@ -245,12 +245,12 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
-    public ClassesShouldConjunction beAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public ClassesShouldConjunction beAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return addCondition(ArchConditions.beAnnotatedWith(predicate));
     }
 
     @Override
-    public ClassesShouldConjunction notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public ClassesShouldConjunction notBeAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return addCondition(ArchConditions.notBeAnnotatedWith(predicate));
     }
 
@@ -275,12 +275,12 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
-    public ClassesShouldConjunction beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public ClassesShouldConjunction beMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return addCondition(ArchConditions.beMetaAnnotatedWith(predicate));
     }
 
     @Override
-    public ClassesShouldConjunction notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
+    public ClassesShouldConjunction notBeMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return addCondition(ArchConditions.notBeMetaAnnotatedWith(predicate));
     }
 
