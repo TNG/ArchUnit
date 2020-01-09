@@ -279,7 +279,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void matchExactly(Class<?>... classes) {
-            assertThat((Object[]) actual).as("classes").hasSize(classes.length);
+            assertThat(TestUtils.namesOf(actual)).as("classes").containsExactlyElementsOf(namesOf(classes));
             for (int i = 0; i < actual.length; i++) {
                 assertThat(actual[i]).as("Element %d", i).matches(classes[i]);
             }

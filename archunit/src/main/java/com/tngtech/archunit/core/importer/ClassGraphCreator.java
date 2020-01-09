@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,13 +31,16 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaAnnotation.DefaultParameterVisitor;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
@@ -47,6 +51,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
+import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
 import static com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter.BuildFinisher.build;
@@ -93,6 +98,7 @@ class ClassGraphCreator implements ImportContext {
         ensureCallTargetsArePresent();
         ensureClassHierarchies();
         completeMembers();
+        completeAnnotations();
         for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
             tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
         }
@@ -137,6 +143,15 @@ class ClassGraphCreator implements ImportContext {
     private void completeMembers() {
         for (JavaClass javaClass : classes.getAll().values()) {
             DomainObjectCreationContext.completeMembers(javaClass, this);
+        }
+    }
+
+    private void completeAnnotations() {
+        for (JavaClass javaClass : classes.getAll().values()) {
+            DomainObjectCreationContext.completeAnnotations(javaClass, this);
+            for (JavaMember member : concat(javaClass.getFields(), javaClass.getMethods(), javaClass.getConstructors())) {
+                memberDependenciesByTarget.registerAnnotations(member.getAnnotations());
+            }
         }
     }
 
@@ -208,6 +223,16 @@ class ClassGraphCreator implements ImportContext {
         return memberDependenciesByTarget.getConstructorThrowsDeclarationsOfType(javaClass);
     }
 
+    @Override
+    public Set<JavaAnnotation<?>> getAnnotationsOfType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getAnnotationsOfType(javaClass);
+    }
+
+    @Override
+    public Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getAnnotationsWithParameterOfType(javaClass);
+    }
+
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
     B accessBuilderFrom(B builder, AccessRecord<T> record) {
         return builder
@@ -263,8 +288,10 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Map<String, JavaAnnotation> createAnnotations(JavaClass owner) {
-        return buildAnnotations(importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
+    public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
+        Map<String, JavaAnnotation<JavaClass>> annotations = buildAnnotations(owner, importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
+        memberDependenciesByTarget.registerAnnotations(annotations.values());
+        return annotations;
     }
 
     @Override
@@ -287,6 +314,8 @@ class ClassGraphCreator implements ImportContext {
         private final SetMultimap<JavaClass, ThrowsDeclaration<JavaMethod>> methodsThrowsDeclarationDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaConstructor> constructorParameterTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, ThrowsDeclaration<JavaConstructor>> constructorThrowsDeclarationDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationTypeDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationParameterTypeDependencies = HashMultimap.create();
 
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
@@ -317,6 +346,29 @@ class ClassGraphCreator implements ImportContext {
             }
         }
 
+        void registerAnnotations(Collection<? extends JavaAnnotation<?>> annotations) {
+            for (final JavaAnnotation<?> annotation : annotations) {
+                annotationTypeDependencies.put(annotation.getRawType(), annotation);
+                annotation.accept(new DefaultParameterVisitor() {
+                    @Override
+                    public void visitClass(String propertyName, JavaClass javaClass) {
+                        annotationParameterTypeDependencies.put(javaClass, annotation);
+                    }
+
+                    @Override
+                    public void visitEnumConstant(String propertyName, JavaEnumConstant enumConstant) {
+                        annotationParameterTypeDependencies.put(enumConstant.getDeclaringClass(), annotation);
+                    }
+
+                    @Override
+                    public void visitAnnotation(String propertyName, JavaAnnotation<?> memberAnnotation) {
+                        annotationParameterTypeDependencies.put(memberAnnotation.getRawType(), annotation);
+                        memberAnnotation.accept(this);
+                    }
+                });
+            }
+        }
+
         Set<JavaField> getFieldsOfType(JavaClass javaClass) {
             return fieldTypeDependencies.get(javaClass);
         }
@@ -339,6 +391,14 @@ class ClassGraphCreator implements ImportContext {
 
         Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
             return constructorThrowsDeclarationDependencies.get(javaClass);
+        }
+
+        Set<JavaAnnotation<?>> getAnnotationsOfType(JavaClass javaClass) {
+            return annotationTypeDependencies.get(javaClass);
+        }
+
+        Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
+            return annotationParameterTypeDependencies.get(javaClass);
         }
     }
 }

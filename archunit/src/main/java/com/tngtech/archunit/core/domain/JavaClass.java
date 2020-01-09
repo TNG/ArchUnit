@@ -17,7 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -27,15 +26,12 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -48,6 +44,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.union;
@@ -57,12 +54,14 @@ import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
-import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 
-public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifiers, HasDescription, HasSourceCodeLocation {
+public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
     private final Optional<Source> source;
     private final SourceCodeLocation sourceCodeLocation;
     private final JavaType javaType;
@@ -71,19 +70,18 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     private final boolean isEnum;
     private final Set<JavaModifier> modifiers;
     private final Supplier<Class<?>> reflectSupplier;
-    private Set<JavaField> fields = new HashSet<>();
-    private Set<JavaCodeUnit> codeUnits = new HashSet<>();
-    private Set<JavaMethod> methods = new HashSet<>();
-    private Set<JavaMember> members = new HashSet<>();
-    private Set<JavaConstructor> constructors = new HashSet<>();
+    private Set<JavaField> fields = emptySet();
+    private Set<JavaCodeUnit> codeUnits = emptySet();
+    private Set<JavaMethod> methods = emptySet();
+    private Set<JavaMember> members = emptySet();
+    private Set<JavaConstructor> constructors = emptySet();
     private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
     private Optional<JavaClass> superClass = Optional.absent();
     private final Set<JavaClass> interfaces = new HashSet<>();
     private final Set<JavaClass> subClasses = new HashSet<>();
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Optional<JavaClass> componentType = Optional.absent();
-    private Supplier<Map<String, JavaAnnotation>> annotations =
-            Suppliers.ofInstance(Collections.<String, JavaAnnotation>emptyMap());
+    private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
     private Supplier<Set<JavaMethod>> allMethods;
     private Supplier<Set<JavaConstructor>> allConstructors;
     private Supplier<Set<JavaField>> allFields;
@@ -97,7 +95,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                     .build();
         }
     });
-    private MemberDependenciesOnClass memberDependenciesOnClass;
+    private JavaClassDependencies javaClassDependencies;
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
@@ -183,6 +181,33 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     }
 
     @PublicAPI(usage = ACCESS)
+    public Optional<JavaEnumConstant> tryGetEnumConstant(String name) {
+        Optional<JavaField> field = tryGetField(name);
+        if (!field.isPresent() || !field.get().getModifiers().contains(ENUM)) {
+            return Optional.absent();
+        }
+        return Optional.of(new JavaEnumConstant(this, field.get().getName()));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public JavaEnumConstant getEnumConstant(String name) {
+        Optional<JavaEnumConstant> enumConstant = tryGetEnumConstant(name);
+        checkArgument(enumConstant.isPresent(), "There exists no enum constant with name '%s' in class %s", name, getName());
+        return enumConstant.get();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaEnumConstant> getEnumConstants() {
+        ImmutableSet.Builder<JavaEnumConstant> result = ImmutableSet.builder();
+        for (JavaField field : fields) {
+            if (field.getModifiers().contains(ENUM)) {
+                result.add(new JavaEnumConstant(this, field.getName()));
+            }
+        }
+        return result.build();
+    }
+
+    @PublicAPI(usage = ACCESS)
     public boolean isArray() {
         return javaType.isArray();
     }
@@ -244,13 +269,13 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(String annotationTypeName) {
-        return annotations.get().containsKey(annotationTypeName);
+        return annotations.containsKey(annotationTypeName);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
-        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
+    public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.values(), predicate);
     }
 
     @Override
@@ -267,8 +292,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate) {
-        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.get().values(), predicate);
+    public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
     }
 
     /**
@@ -286,15 +311,15 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaAnnotation getAnnotationOfType(String typeName) {
+    public JavaAnnotation<JavaClass> getAnnotationOfType(String typeName) {
         return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(
                 String.format("Type %s is not annotated with @%s", getSimpleName(), typeName)));
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public Set<JavaAnnotation> getAnnotations() {
-        return ImmutableSet.copyOf(annotations.get().values());
+    public Set<JavaAnnotation<JavaClass>> getAnnotations() {
+        return ImmutableSet.copyOf(annotations.values());
     }
 
     /**
@@ -315,8 +340,8 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public Optional<JavaAnnotation> tryGetAnnotationOfType(String typeName) {
-        return Optional.fromNullable(annotations.get().get(typeName));
+    public Optional<JavaAnnotation<JavaClass>> tryGetAnnotationOfType(String typeName) {
+        return Optional.fromNullable(annotations.get(typeName));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -644,15 +669,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        result.addAll(dependenciesFromAccesses(getAccessesFromSelf()));
-        result.addAll(inheritanceDependenciesFromSelf());
-        result.addAll(fieldDependenciesFromSelf());
-        result.addAll(returnTypeDependenciesFromSelf());
-        result.addAll(methodParameterDependenciesFromSelf());
-        result.addAll(throwsDeclarationDependenciesFromSelf());
-        result.addAll(constructorParameterDependenciesFromSelf());
-        return result.build();
+        return javaClassDependencies.getDirectDependenciesFromClass();
     }
 
     /**
@@ -663,15 +680,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesToSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        result.addAll(dependenciesFromAccesses(getAccessesToSelf()));
-        result.addAll(inheritanceDependenciesToSelf());
-        result.addAll(fieldDependenciesToSelf());
-        result.addAll(returnTypeDependenciesToSelf());
-        result.addAll(methodParameterDependenciesToSelf());
-        result.addAll(throwsDeclarationDependenciesToSelf());
-        result.addAll(constructorParameterDependenciesToSelf());
-        return result.build();
+        return javaClassDependencies.getDirectDependenciesToClass();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -715,7 +724,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaField> getFieldsWithTypeOfSelf() {
-        return memberDependenciesOnClass.getFieldsWithTypeOfClass();
+        return javaClassDependencies.getFieldsWithTypeOfClass();
     }
 
     /**
@@ -723,7 +732,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethodsWithParameterTypeOfSelf() {
-        return memberDependenciesOnClass.getMethodsWithParameterTypeOfClass();
+        return javaClassDependencies.getMethodsWithParameterTypeOfClass();
     }
 
     /**
@@ -731,7 +740,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethodsWithReturnTypeOfSelf() {
-        return memberDependenciesOnClass.getMethodsWithReturnTypeOfClass();
+        return javaClassDependencies.getMethodsWithReturnTypeOfClass();
     }
 
     /**
@@ -739,7 +748,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsWithTypeOfSelf() {
-        return memberDependenciesOnClass.getMethodThrowsDeclarationsWithTypeOfClass();
+        return javaClassDependencies.getMethodThrowsDeclarationsWithTypeOfClass();
     }
 
     /**
@@ -747,7 +756,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructor> getConstructorsWithParameterTypeOfSelf() {
-        return memberDependenciesOnClass.getConstructorsWithParameterTypeOfClass();
+        return javaClassDependencies.getConstructorsWithParameterTypeOfClass();
     }
 
     /**
@@ -755,7 +764,15 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
      */
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaConstructor>> getConstructorsWithThrowsDeclarationTypeOfSelf() {
-        return memberDependenciesOnClass.getConstructorsWithThrowsDeclarationTypeOfClass();
+        return javaClassDependencies.getConstructorsWithThrowsDeclarationTypeOfClass();
+    }
+
+    /**
+     * @return All imported {@link JavaAnnotation JavaAnnotations} that have the annotation type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaAnnotation<?>> getAnnotationsWithTypeOfSelf() {
+        return javaClassDependencies.getAnnotationsWithTypeOfClass();
     }
 
     /**
@@ -887,24 +904,16 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 .addAll(methods)
                 .addAll(constructors)
                 .build();
-        this.annotations = Suppliers.memoize(new Supplier<Map<String, JavaAnnotation>>() {
-            @Override
-            public Map<String, JavaAnnotation> get() {
-                return context.createAnnotations(JavaClass.this);
-            }
-        });
+    }
+
+    void completeAnnotations(final ImportContext context) {
+        this.annotations = context.createAnnotations(this);
     }
 
     CompletionProcess completeFrom(ImportContext context) {
         completeComponentType(context);
         enclosingClass = context.createEnclosingClass(this);
-        memberDependenciesOnClass = new MemberDependenciesOnClass(
-                context.getFieldsOfType(this),
-                context.getMethodsWithParameterOfType(this),
-                context.getMethodsWithReturnType(this),
-                context.getMethodThrowsDeclarationsOfType(this),
-                context.getConstructorsWithParameterOfType(this),
-                context.getConstructorThrowsDeclarationsOfType(this));
+        javaClassDependencies = new JavaClassDependencies(this, context);
         return new CompletionProcess();
     }
 
@@ -919,7 +928,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
 
     @Override
     public String toString() {
-        return "JavaClass{name='" + javaType.getName() + "\'}";
+        return "JavaClass{name='" + javaType.getName() + "'}";
     }
 
     @PublicAPI(usage = ACCESS)
@@ -939,193 +948,6 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
     @PublicAPI(usage = ACCESS)
     public boolean isAnonymous() {
         return getSimpleName().isEmpty();
-    }
-
-    private Set<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaAccess<?> access : filterNoSelfAccess(accesses)) {
-            result.add(Dependency.from(access));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> inheritanceDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaClass superType : FluentIterable.from(getInterfaces()).append(getSuperClass().asSet())) {
-            result.add(Dependency.fromInheritance(this, superType));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> fieldDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaField field : nonPrimitive(getFields(), GET_RAW_TYPE)) {
-            result.add(Dependency.fromField(field));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> returnTypeDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaMethod method : nonPrimitive(getMethods(), GET_RAW_RETURN_TYPE)) {
-            result.add(Dependency.fromReturnType(method));
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> methodParameterDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaMethod method : getMethods()) {
-            for (JavaClass parameter : nonPrimitive(method.getRawParameterTypes())) {
-                result.add(Dependency.fromParameter(method, parameter));
-            }
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> throwsDeclarationDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : getCodeUnits()) {
-            for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : codeUnit.getThrowsClause()) {
-                result.add(Dependency.fromThrowsDeclaration(throwsDeclaration));
-            }
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> constructorParameterDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaConstructor constructor : getConstructors()) {
-            for (JavaClass parameter : nonPrimitive(constructor.getRawParameterTypes())) {
-                result.add(Dependency.fromParameter(constructor, parameter));
-            }
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> inheritanceDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaClass subClass : getSubClasses()) {
-            result.add(Dependency.fromInheritance(subClass, this));
-        }
-        return result;
-    }
-
-    private Set<Dependency> fieldDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaField field : getFieldsWithTypeOfSelf()) {
-            result.add(Dependency.fromField(field));
-        }
-        return result;
-    }
-
-    private Set<Dependency> returnTypeDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaMethod method : getMethodsWithReturnTypeOfSelf()) {
-            result.add(Dependency.fromReturnType(method));
-        }
-        return result;
-    }
-
-    private Set<Dependency> methodParameterDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaMethod method : getMethodsWithParameterTypeOfSelf()) {
-            result.add(Dependency.fromParameter(method, this));
-        }
-        return result;
-    }
-
-    private Set<Dependency> throwsDeclarationDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : memberDependenciesOnClass.getThrowsDeclarationsWithTypeOfClass()) {
-            result.add(Dependency.fromThrowsDeclaration(throwsDeclaration));
-        }
-        return result;
-    }
-
-    private Set<Dependency> constructorParameterDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaConstructor constructor : getConstructorsWithParameterTypeOfSelf()) {
-            result.add(Dependency.fromParameter(constructor, this));
-        }
-        return result;
-    }
-
-    private Set<JavaAccess<?>> filterNoSelfAccess(Set<? extends JavaAccess<?>> accesses) {
-        Set<JavaAccess<?>> result = new HashSet<>();
-        for (JavaAccess<?> access : accesses) {
-            if (!access.getTargetOwner().equals(access.getOriginOwner())) {
-                result.add(access);
-            }
-        }
-        return result;
-    }
-
-    private Set<JavaClass> nonPrimitive(Collection<JavaClass> classes) {
-        return nonPrimitive(classes, com.tngtech.archunit.base.Function.Functions.<JavaClass>identity());
-    }
-
-    private <T> Set<T> nonPrimitive(Collection<T> members, Function<? super T, JavaClass> getRelevantType) {
-        ImmutableSet.Builder<T> result = ImmutableSet.builder();
-        for (T member : members) {
-            if (!getRelevantType.apply(member).isPrimitive()) {
-                result.add(member);
-            }
-        }
-        return result.build();
-    }
-
-    private static class MemberDependenciesOnClass {
-        private final Set<JavaField> fieldsWithTypeOfClass;
-        private final Set<JavaMethod> methodsWithParameterTypeOfClass;
-        private final Set<JavaMethod> methodsWithReturnTypeOfClass;
-        private final Set<ThrowsDeclaration<JavaMethod>> methodsWithThrowsDeclarationTypeOfClass;
-        private final Set<JavaConstructor> constructorsWithParameterTypeOfClass;
-        private final Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass;
-
-        MemberDependenciesOnClass(
-                Set<JavaField> fieldsWithTypeOfClass,
-                Set<JavaMethod> methodsWithParameterTypeOfClass,
-                Set<JavaMethod> methodsWithReturnTypeOfClass,
-                Set<ThrowsDeclaration<JavaMethod>> methodsWithThrowsDeclarationTypeOfClass,
-                Set<JavaConstructor> constructorsWithParameterTypeOfClass,
-                Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass) {
-
-            this.fieldsWithTypeOfClass = ImmutableSet.copyOf(fieldsWithTypeOfClass);
-            this.methodsWithParameterTypeOfClass = ImmutableSet.copyOf(methodsWithParameterTypeOfClass);
-            this.methodsWithReturnTypeOfClass = ImmutableSet.copyOf(methodsWithReturnTypeOfClass);
-            this.methodsWithThrowsDeclarationTypeOfClass = ImmutableSet.copyOf(methodsWithThrowsDeclarationTypeOfClass);
-            this.constructorsWithParameterTypeOfClass = ImmutableSet.copyOf(constructorsWithParameterTypeOfClass);
-            this.constructorsWithThrowsDeclarationTypeOfClass = ImmutableSet.copyOf(constructorsWithThrowsDeclarationTypeOfClass);
-        }
-
-        Set<JavaField> getFieldsWithTypeOfClass() {
-            return fieldsWithTypeOfClass;
-        }
-
-        Set<JavaMethod> getMethodsWithParameterTypeOfClass() {
-            return methodsWithParameterTypeOfClass;
-        }
-
-        Set<JavaMethod> getMethodsWithReturnTypeOfClass() {
-            return methodsWithReturnTypeOfClass;
-        }
-
-        Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsWithTypeOfClass() {
-            return methodsWithThrowsDeclarationTypeOfClass;
-        }
-
-        Set<JavaConstructor> getConstructorsWithParameterTypeOfClass() {
-            return constructorsWithParameterTypeOfClass;
-        }
-
-        Set<ThrowsDeclaration<JavaConstructor>> getConstructorsWithThrowsDeclarationTypeOfClass() {
-            return constructorsWithThrowsDeclarationTypeOfClass;
-        }
-
-        Set<ThrowsDeclaration<? extends JavaCodeUnit>> getThrowsDeclarationsWithTypeOfClass() {
-            return union(methodsWithThrowsDeclarationTypeOfClass, constructorsWithThrowsDeclarationTypeOfClass);
-        }
     }
 
     public static final class Functions {
@@ -1429,21 +1251,21 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
          * one of the supplied {@link Class classes} or to one of its inner/anonymous classes.
          */
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaClass> belongToAnyOf(Class... classes) {
+        public static DescribedPredicate<JavaClass> belongToAnyOf(Class<?>... classes) {
             return new BelongToAnyOfPredicate(classes);
         }
 
         private static class BelongToAnyOfPredicate extends DescribedPredicate<JavaClass> {
-            private final Class[] classes;
+            private final Class<?>[] classes;
 
-            BelongToAnyOfPredicate(Class... classes) {
+            BelongToAnyOfPredicate(Class<?>... classes) {
                 super("belong to any of " + JavaClass.namesOf(classes));
                 this.classes = classes;
             }
 
             @Override
             public boolean apply(JavaClass input) {
-                for (Class clazz : classes) {
+                for (Class<?> clazz : classes) {
                     if (belongsTo(input, clazz)) {
                         return true;
                     }
@@ -1451,7 +1273,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations, HasModifi
                 return false;
             }
 
-            private boolean belongsTo(JavaClass input, Class clazz) {
+            private boolean belongsTo(JavaClass input, Class<?> clazz) {
                 JavaClass toTest = input;
                 while (!toTest.isEquivalentTo(clazz) && toTest.getEnclosingClass().isPresent()) {
                     toTest = toTest.getEnclosingClass().get();

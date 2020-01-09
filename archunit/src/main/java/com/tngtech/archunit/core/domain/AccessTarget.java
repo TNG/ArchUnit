@@ -174,7 +174,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      */
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
+    public boolean isAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return anyMember(new Predicate<JavaMember>() {
             @Override
             public boolean apply(JavaMember input) {
@@ -202,7 +202,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean isMetaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
+    public boolean isMetaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return anyMember(new Predicate<JavaMember>() {
             @Override
             public boolean apply(JavaMember input) {

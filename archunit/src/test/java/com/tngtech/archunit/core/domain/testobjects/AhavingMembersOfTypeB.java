@@ -1,5 +1,7 @@
 package com.tngtech.archunit.core.domain.testobjects;
 
+@DomainAnnotation
+@SuppressWarnings({"RedundantThrows", "unused"})
 public class AhavingMembersOfTypeB {
     private B b;
 

@@ -1438,10 +1438,10 @@ public class ClassesShouldTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private static DescribedPredicate<JavaAnnotation> annotation(final Class<? extends Annotation> type) {
-        return new DescribedPredicate<JavaAnnotation>("@" + type.getSimpleName()) {
+    private static DescribedPredicate<JavaAnnotation<?>> annotation(final Class<? extends Annotation> type) {
+        return new DescribedPredicate<JavaAnnotation<?>>("@" + type.getSimpleName()) {
             @Override
-            public boolean apply(JavaAnnotation input) {
+            public boolean apply(JavaAnnotation<?> input) {
                 return input.getRawType().getName().equals(type.getName());
             }
         };

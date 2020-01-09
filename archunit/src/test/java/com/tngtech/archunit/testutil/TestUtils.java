@@ -2,9 +2,13 @@ package com.tngtech.archunit.testutil;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.util.Files;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -48,6 +52,18 @@ public class TestUtils {
         Properties result = new Properties();
         for (int i = 0; i < keyValues.length; i += 2) {
             result.setProperty(keyValues[i], keyValues[i + 1]);
+        }
+        return result;
+    }
+
+    public static Set<String> namesOf(HasName[] thingsWithNames) {
+        return namesOf(ImmutableSet.copyOf(thingsWithNames));
+    }
+
+    public static Set<String> namesOf(Iterable<? extends HasName> thingsWithNames) {
+        Set<String> result = new LinkedHashSet<>();
+        for (HasName hasName : thingsWithNames) {
+            result.add(hasName.getName());
         }
         return result;
     }

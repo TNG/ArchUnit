@@ -25,6 +25,10 @@ public class ExpectedDependency implements ExpectedRelation {
         return new InheritanceCreator(clazz);
     }
 
+    public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {
+        return new AnnotationDependencyCreator(clazz);
+    }
+
     public static AccessCreator accessFrom(Class<?> clazz) {
         return new AccessCreator(clazz);
     }
@@ -135,8 +139,30 @@ public class ExpectedDependency implements ExpectedRelation {
             return new ExpectedDependency(owner, returnType, dependencyPattern);
         }
 
+        public ExpectedDependency withAnnotationType(Class<?> annotationType) {
+            return new ExpectedDependency(owner, annotationType, getDependencyPattern(getOriginName(), "is annotated with", annotationType.getName(), 0));
+        }
+
         private String getOriginName() {
             return owner.getName() + "." + memberName;
+        }
+    }
+
+    public static class AnnotationDependencyCreator {
+        private final Class<?> owner;
+
+        AnnotationDependencyCreator(Class<?> owner) {
+            this.owner = owner;
+        }
+
+        public ExpectedDependency annotatedWith(Class<?> annotationType) {
+            String dependencyPattern = getDependencyPattern(owner.getName(), "is annotated with", annotationType.getName(), 0);
+            return new ExpectedDependency(owner, annotationType, dependencyPattern);
+        }
+
+        public ExpectedDependency withAnnotationParameterType(Class<?> type) {
+            String dependencyPattern = getDependencyPattern(owner.getName(), "has annotation member of type", type.getName(), 0);
+            return new ExpectedDependency(owner, type, dependencyPattern);
         }
     }
 }

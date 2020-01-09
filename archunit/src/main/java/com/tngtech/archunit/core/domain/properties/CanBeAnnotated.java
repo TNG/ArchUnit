@@ -40,7 +40,7 @@ public interface CanBeAnnotated {
     boolean isAnnotatedWith(String annotationTypeName);
 
     @PublicAPI(usage = ACCESS)
-    boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     @PublicAPI(usage = ACCESS)
     boolean isMetaAnnotatedWith(Class<? extends Annotation> annotationType);
@@ -49,7 +49,7 @@ public interface CanBeAnnotated {
     boolean isMetaAnnotatedWith(String annotationTypeName);
 
     @PublicAPI(usage = ACCESS)
-    boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation> predicate);
+    boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
     final class Predicates {
         private Predicates() {
@@ -83,14 +83,14 @@ public interface CanBeAnnotated {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<CanBeAnnotated> annotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
+        public static DescribedPredicate<CanBeAnnotated> annotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
             return new AnnotatedPredicate(predicate);
         }
 
         private static class AnnotatedPredicate extends DescribedPredicate<CanBeAnnotated> {
-            private final DescribedPredicate<? super JavaAnnotation> predicate;
+            private final DescribedPredicate<? super JavaAnnotation<?>> predicate;
 
-            AnnotatedPredicate(DescribedPredicate<? super JavaAnnotation> predicate) {
+            AnnotatedPredicate(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
                 super("annotated with " + predicate.getDescription());
                 this.predicate = predicate;
             }
@@ -115,14 +115,14 @@ public interface CanBeAnnotated {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation> predicate) {
+        public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
             return new MetaAnnotatedPredicate(predicate);
         }
 
         private static class MetaAnnotatedPredicate extends DescribedPredicate<CanBeAnnotated> {
-            private final DescribedPredicate<? super JavaAnnotation> predicate;
+            private final DescribedPredicate<? super JavaAnnotation<?>> predicate;
 
-            MetaAnnotatedPredicate(DescribedPredicate<? super JavaAnnotation> predicate) {
+            MetaAnnotatedPredicate(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
                 super("meta-annotated with " + predicate.getDescription());
                 this.predicate = predicate;
             }
@@ -139,9 +139,11 @@ public interface CanBeAnnotated {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static boolean isAnnotatedWith(Collection<JavaAnnotation> annotations,
-                DescribedPredicate<? super JavaAnnotation> predicate) {
-            for (JavaAnnotation annotation : annotations) {
+        public static boolean isAnnotatedWith(
+                Collection<? extends JavaAnnotation<?>> annotations,
+                DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+
+            for (JavaAnnotation<?> annotation : annotations) {
                 if (predicate.apply(annotation)) {
                     return true;
                 }
@@ -150,8 +152,11 @@ public interface CanBeAnnotated {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static boolean isMetaAnnotatedWith(Collection<JavaAnnotation> annotations, DescribedPredicate<? super JavaAnnotation> predicate) {
-            for (JavaAnnotation annotation : annotations) {
+        public static boolean isMetaAnnotatedWith(
+                Collection<? extends JavaAnnotation<?>> annotations,
+                DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+
+            for (JavaAnnotation<?> annotation : annotations) {
                 if (annotation.getRawType().isAnnotatedWith(predicate) || annotation.getRawType().isMetaAnnotatedWith(predicate)) {
                     return true;
                 }
@@ -160,10 +165,10 @@ public interface CanBeAnnotated {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static <A extends Annotation> Function<JavaAnnotation, A> toAnnotationOfType(final Class<A> type) {
-            return new Function<JavaAnnotation, A>() {
+        public static <A extends Annotation> Function<JavaAnnotation<?>, A> toAnnotationOfType(final Class<A> type) {
+            return new Function<JavaAnnotation<?>, A>() {
                 @Override
-                public A apply(JavaAnnotation input) {
+                public A apply(JavaAnnotation<?> input) {
                     return input.as(type);
                 }
             };

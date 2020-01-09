@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
@@ -39,6 +40,9 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.Guava.toGuava;
+import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
+import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
@@ -62,9 +66,11 @@ import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static com.tngtech.archunit.core.domain.TestUtils.importPackagesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
@@ -227,10 +233,10 @@ public class JavaClassTest {
     @Test
     public void isAnnotatedWith_predicate() {
         assertThat(importClassWithContext(Parent.class)
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(importClassWithContext(Parent.class)
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
@@ -259,10 +265,10 @@ public class JavaClassTest {
         JavaClass clazz = importClassesWithContext(Parent.class, SomeAnnotation.class).get(Parent.class);
 
         assertThat(clazz
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysTrue()))
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(clazz
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation>alwaysFalse()))
+                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
@@ -359,6 +365,14 @@ public class JavaClassTest {
     }
 
     @Test
+    public void has_no_self_dependencies() {
+        JavaClass javaClass = importClassWithContext(ClassWithSelfReferences.class);
+
+        assertThat(javaClass.getDirectDependenciesFromSelf()).doNotHave(anyDependency().toClassEquivalentTo(ClassWithSelfReferences.class));
+        assertThat(javaClass.getDirectDependenciesToSelf()).doNotHave(anyDependency().fromClassEquivalentTo(ClassWithSelfReferences.class));
+    }
+
+    @Test
     public void direct_dependencies_from_self_by_accesses() {
         JavaClass javaClass = importClasses(AAccessingB.class, B.class).get(AAccessingB.class);
 
@@ -413,6 +427,55 @@ public class JavaClassTest {
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
                         .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_from_self_by_annotation() {
+        JavaClass javaClass = importClasses(ClassWithAnnotationDependencies.class)
+                .get(ClassWithAnnotationDependencies.class);
+
+        assertThat(javaClass.getDirectDependenciesFromSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnClass.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnField.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnConstructor.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnMethod.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(WithType.class)
+                        .inLineNumber(0))
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(B.class)
+                        .inLineNumber(0))
+        ;
+    }
+
+    @Test
+    public void direct_dependencies_from_self_finds_correct_set_of_target_types() {
+        JavaClass javaClass = importPackagesOf(getClass()).get(ClassWithAnnotationDependencies.class);
+
+        Set<JavaClass> targets = FluentIterable.from(javaClass.getDirectDependenciesFromSelf())
+                .transform(toGuava(GET_TARGET_CLASS)).toSet();
+
+        assertThatClasses(targets).matchInAnyOrder(
+                B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
+                List.class, Serializable.class, SomeSuperClass.class,
+                WithType.class, WithNestedAnnotations.class, OnClass.class, OnMethod.class,
+                OnConstructor.class, OnField.class, MetaAnnotated.class, WithEnum.class, WithPrimitive.class,
+                SomeEnumAsAnnotationParameter.class, SomeEnumAsAnnotationArrayParameter.class,
+                SomeEnumAsNestedAnnotationParameter.class, SomeEnumAsDefaultParameter.class);
     }
 
     @Test
@@ -481,6 +544,71 @@ public class JavaClassTest {
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.BException.class)
                         .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_annotation() {
+        JavaClasses javaClasses = importPackagesOf(getClass());
+
+        assertThat(javaClasses.get(OnClass.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnClass.class)
+                        .inLineNumber(0));
+
+        assertThat(javaClasses.get(OnField.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnField.class)
+                        .inLineNumber(0));
+
+        assertThat(javaClasses.get(OnMethod.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnMethod.class)
+                        .inLineNumber(0));
+
+        assertThat(javaClasses.get(OnConstructor.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnConstructor.class)
+                        .inLineNumber(0));
+
+        assertThat(javaClasses.get(WithType.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(WithType.class)
+                        .inLineNumber(0));
+
+        assertThat(javaClasses.get(B.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationMemberOfTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(B.class)
+                        .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_finds_correct_set_of_origin_types() {
+        JavaClasses classes = importPackagesOf(getClass());
+
+        Set<JavaClass> origins = getOriginsOfDependenciesTo(classes.get(WithType.class));
+
+        assertThatClasses(origins).matchInAnyOrder(ClassWithAnnotationDependencies.class, ClassWithSelfReferences.class, OnMethodParam.class);
+
+        origins = getOriginsOfDependenciesTo(classes.get(B.class));
+
+        assertThatClasses(origins).matchInAnyOrder(
+                ClassWithAnnotationDependencies.class, OnMethodParam.class, AAccessingB.class, AhavingMembersOfTypeB.class);
+
+        origins = getOriginsOfDependenciesTo(classes.get(SomeEnumAsNestedAnnotationParameter.class));
+
+        assertThatClasses(origins).matchInAnyOrder(
+                ClassWithAnnotationDependencies.class, WithEnum.class);
+    }
+
+    private Set<JavaClass> getOriginsOfDependenciesTo(JavaClass withType) {
+        return FluentIterable.from(withType.getDirectDependenciesToSelf())
+                .transform(toGuava(GET_ORIGIN_CLASS)).toSet();
     }
 
     @Test
@@ -799,7 +927,7 @@ public class JavaClassTest {
 
     private JavaClass classWithHierarchy(Class<?> clazz) {
         Set<Class<?>> classesToImport = getHierarchy(clazz);
-        return importClasses(classesToImport.toArray(new Class[0])).get(clazz);
+        return importClasses(classesToImport.toArray(new Class<?>[0])).get(clazz);
     }
 
     private static DependencyConditionCreation callDependency() {
@@ -834,16 +962,42 @@ public class JavaClassTest {
         return new DependencyConditionCreation("throws type");
     }
 
+    private static DependencyConditionCreation annotationTypeDependency() {
+        return new DependencyConditionCreation("is annotated with");
+    }
+
+    private static DependencyConditionCreation annotationMemberOfTypeDependency() {
+        return new DependencyConditionCreation("has annotation member of type");
+    }
+
     private static AnyDependencyConditionCreation anyDependency() {
         return new AnyDependencyConditionCreation();
     }
 
     private static class AnyDependencyConditionCreation {
         Condition<Dependency> toPrimitives() {
-            return new Condition<Dependency>("any dependencies to primitives") {
+            return new Condition<Dependency>("any dependency to primitives") {
                 @Override
                 public boolean matches(Dependency value) {
                     return value.getTargetClass().isPrimitive();
+                }
+            };
+        }
+
+        Condition<Dependency> toClassEquivalentTo(final Class<?> clazz) {
+            return new Condition<Dependency>("any dependency to class " + clazz.getName()) {
+                @Override
+                public boolean matches(Dependency value) {
+                    return value.getTargetClass().isEquivalentTo(clazz);
+                }
+            };
+        }
+
+        Condition<Dependency> fromClassEquivalentTo(final Class<?> clazz) {
+            return new Condition<Dependency>("any dependency from class " + clazz.getName()) {
+                @Override
+                public boolean matches(Dependency value) {
+                    return value.getOriginClass().isEquivalentTo(clazz);
                 }
             };
         }
@@ -862,9 +1016,11 @@ public class JavaClassTest {
 
         private class Step2 {
             private final Class<?> origin;
+            private String originDescription;
 
             Step2(Class<?> origin) {
                 this.origin = origin;
+                originDescription = origin.getName();
             }
 
             Step3 to(Class<?> target) {
@@ -891,7 +1047,7 @@ public class JavaClassTest {
 
                 Condition<Dependency> inLineNumber(final int lineNumber) {
                     return new Condition<Dependency>(String.format(
-                            "%s %s %s in line %d", origin.getName(), descriptionPart, targetDescription, lineNumber)) {
+                            "%s %s %s in line %d", originDescription, descriptionPart, targetDescription, lineNumber)) {
                         @Override
                         public boolean matches(Dependency value) {
                             return value.getOriginClass().isEquivalentTo(origin) &&
@@ -1171,6 +1327,158 @@ public class JavaClassTest {
         private class NamedInnerClass {
             private class NestedNamedInnerClass {
             }
+        }
+    }
+
+    private static class SomeSuperClass {
+    }
+
+    @OnClass
+    @WithPrimitive(someInt = 5, someInts = {1, 2}, someString = "test", someStrings = {"test1", "test2"})
+    @WithNestedAnnotations(
+            outerType = AhavingMembersOfTypeB.class,
+            nested = {
+                    @WithType(type = B.class)
+            },
+            withEnum = @WithEnum(
+                    someEnum = SomeEnumAsNestedAnnotationParameter.NESTED_ANNOTATION_PARAMETER,
+                    enumArray = {SomeEnumAsAnnotationArrayParameter.ANNOTATION_ARRAY_PARAMETER}
+            )
+    )
+    @MetaAnnotated
+    public static class ClassWithAnnotationDependencies extends SomeSuperClass {
+        @OnField(SomeEnumAsAnnotationParameter.ANNOTATION_PARAMETER)
+        Object field;
+
+        @OnConstructor
+        ClassWithAnnotationDependencies(Serializable param) {
+        }
+
+        @OnMethod
+        List<?> method() {
+            return null;
+        }
+
+        void method(@OnMethodParam String param) {
+        }
+    }
+
+    @interface OnClass {
+    }
+
+    @interface OnField {
+        SomeEnumAsAnnotationParameter value();
+    }
+
+    @interface OnConstructor {
+    }
+
+    @interface OnMethod {
+    }
+
+    @WithType(type = B.class)
+    @interface OnMethodParam {
+    }
+
+    @Retention(RUNTIME)
+    @interface WithType {
+        Class<?> type();
+    }
+
+    @Retention(RUNTIME)
+    @interface WithNestedAnnotations {
+        Class<?> outerType();
+
+        WithType[] nested();
+
+        WithEnum withEnum();
+    }
+
+    @Retention(RUNTIME)
+    @MetaAnnotation
+    @interface MetaAnnotation {
+    }
+
+    @Retention(RUNTIME)
+    @MetaAnnotation
+    @interface MetaAnnotated {
+    }
+
+    @interface WithEnum {
+        SomeEnumAsDefaultParameter enumWithDefault() default SomeEnumAsDefaultParameter.DEFAULT_PARAMETER;
+
+        SomeEnumAsNestedAnnotationParameter someEnum();
+
+        SomeEnumAsAnnotationArrayParameter[] enumArray();
+    }
+
+    @Retention(RUNTIME)
+    @interface WithPrimitive {
+        int someInt();
+
+        int[] someInts();
+
+        String someString();
+
+        String[] someStrings();
+    }
+
+    enum SomeEnumAsAnnotationParameter {
+        ANNOTATION_PARAMETER
+    }
+
+    enum SomeEnumAsNestedAnnotationParameter {
+        NESTED_ANNOTATION_PARAMETER
+    }
+
+    enum SomeEnumAsDefaultParameter {
+        DEFAULT_PARAMETER
+    }
+
+    enum SomeEnumAsAnnotationArrayParameter {
+        ANNOTATION_ARRAY_PARAMETER
+    }
+
+    @SuppressWarnings("ALL")
+    private static class ClassWithSelfReferences extends Exception {
+        static {
+            ClassWithSelfReferences selfReference = new ClassWithSelfReferences(null, null);
+        }
+
+        ClassWithSelfReferences fieldSelfReference;
+
+        ClassWithSelfReferences() throws ClassWithSelfReferences {
+        }
+
+        ClassWithSelfReferences(Object any, ClassWithSelfReferences selfReference) {
+        }
+
+        ClassWithSelfReferences methodReturnTypeSelfReference() {
+            return null;
+        }
+
+        void methodParameterSelfReference(Object any, ClassWithSelfReferences selfReference) {
+        }
+
+        void methodCallSelfReference() {
+            ClassWithSelfReferences self = null;
+            self.methodParameterSelfReference(null, null);
+        }
+
+        void constructorCallSelfReference() {
+            new ClassWithSelfReferences(null, null);
+        }
+
+        void fieldAccessSelfReference() {
+            ClassWithSelfReferences self = null;
+            self.fieldSelfReference = null;
+        }
+
+        @WithType(type = ClassWithSelfReferences.class)
+        void annotationSelfReference() {
+        }
+
+        void throwableSelfReference() throws ClassWithSelfReferences {
         }
     }
 }

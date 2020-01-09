@@ -226,6 +226,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
+import static com.tngtech.archunit.testutil.TestUtils.namesOf;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
@@ -289,6 +290,12 @@ public class ClassFileImporterTest {
         assertThatClasses(javaClass.getAllInterfaces()).matchInAnyOrder(Enum.class.getInterfaces());
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isTrue();
+
+        JavaEnumConstant constant = javaClass.getEnumConstant(EnumToImport.FIRST.name());
+        assertThat(constant.getDeclaringClass()).as("declaring class").isEqualTo(javaClass);
+        assertThat(constant.name()).isEqualTo(EnumToImport.FIRST.name());
+        assertThat(javaClass.getEnumConstants()).extractingResultOf("name").as("enum constant names")
+                .containsOnly(EnumToImport.FIRST.name(), EnumToImport.SECOND.name());
     }
 
     @Test
@@ -530,10 +537,10 @@ public class ClassFileImporterTest {
         assertThat(((JavaEnumConstant[]) annotationType.getMethod("enumArrayWithDefault")
                 .getDefaultValue().get()))
                 .as("default of enumArrayWithDefault()").matches(OTHER_VALUE);
-        assertThat(((JavaAnnotation) annotationType.getMethod("subAnnotationWithDefault")
+        assertThat(((JavaAnnotation<?>) annotationType.getMethod("subAnnotationWithDefault")
                 .getDefaultValue().get()).get("value").get())
                 .as("default of subAnnotationWithDefault()").isEqualTo("default");
-        assertThat(((JavaAnnotation[]) annotationType.getMethod("subAnnotationArrayWithDefault")
+        assertThat(((JavaAnnotation<?>[]) annotationType.getMethod("subAnnotationArrayWithDefault")
                 .getDefaultValue().get())[0].get("value").get())
                 .as("default of subAnnotationArrayWithDefault()").isEqualTo("first");
         assertThat((JavaClass) annotationType.getMethod("clazzWithDefault")
@@ -549,9 +556,10 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/annotationfieldimport");
 
         JavaField field = findAnyByName(classes.getFields(), "stringAnnotatedField");
-        JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithStringValue.class.getName());
+        JavaAnnotation<JavaField> annotation = field.getAnnotationOfType(FieldAnnotationWithStringValue.class.getName());
         assertThat(annotation.getRawType()).isEqualTo(classes.get(FieldAnnotationWithStringValue.class));
         assertThat(annotation.get("value").get()).isEqualTo("something");
+        assertThat(annotation.getOwner()).as("owning field").isEqualTo(field);
 
         assertThat(field).isEquivalentTo(field.getOwner().reflect().getDeclaredField("stringAnnotatedField"));
     }
@@ -563,6 +571,11 @@ public class ClassFileImporterTest {
         JavaField field = findAnyByName(fields, "stringAnnotatedField");
         assertThat(field.tryGetAnnotationOfType(FieldAnnotationWithStringValue.class)).isPresent();
         assertThat(field.tryGetAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class)).isAbsent();
+
+        Optional<JavaAnnotation<JavaField>> optionalAnnotation = field.tryGetAnnotationOfType(FieldAnnotationWithStringValue.class.getName());
+        assertThat(optionalAnnotation.get().getOwner()).as("owner of optional annotation").isEqualTo(field);
+        assertThat(field.tryGetAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class.getName()))
+                .as("optional annotation").isAbsent();
     }
 
     @Test
@@ -570,12 +583,15 @@ public class ClassFileImporterTest {
         Set<JavaField> fields = classesIn("testexamples/annotationfieldimport").getFields();
 
         JavaField field = findAnyByName(fields, "stringAndIntAnnotatedField");
-        assertThat(field.getAnnotations()).hasSize(2);
+        Set<JavaAnnotation<JavaField>> annotations = field.getAnnotations();
+        assertThat(annotations).hasSize(2);
+        assertThat(annotations).extractingResultOf("getOwner").containsOnly(field);
+        assertThat(annotations).extractingResultOf("getAnnotatedElement").containsOnly(field);
 
-        JavaAnnotation annotationWithString = field.getAnnotationOfType(FieldAnnotationWithStringValue.class.getName());
+        JavaAnnotation<JavaField> annotationWithString = field.getAnnotationOfType(FieldAnnotationWithStringValue.class.getName());
         assertThat(annotationWithString.get("value").get()).isEqualTo("otherThing");
 
-        JavaAnnotation annotationWithInt = field.getAnnotationOfType(FieldAnnotationWithIntValue.class.getName());
+        JavaAnnotation<JavaField> annotationWithInt = field.getAnnotationOfType(FieldAnnotationWithIntValue.class.getName());
         assertThat(annotationWithInt.get("intValue").get()).as("Annotation value with default").isEqualTo(0);
         assertThat(annotationWithInt.get("otherValue").get()).isEqualTo("overridden");
 
@@ -588,17 +604,22 @@ public class ClassFileImporterTest {
 
         JavaField field = findAnyByName(classes.getFields(), "enumAndArrayAnnotatedField");
 
-        JavaAnnotation annotation = field.getAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class.getName());
+        JavaAnnotation<JavaField> annotation = field.getAnnotationOfType(FieldAnnotationWithEnumClassAndArrayValue.class.getName());
         assertThat((JavaEnumConstant) annotation.get("value").get()).isEquivalentTo(OTHER_VALUE);
         assertThat((JavaEnumConstant) annotation.get("valueWithDefault").get()).isEquivalentTo(SOME_VALUE);
         assertThat(((JavaEnumConstant[]) annotation.get("enumArray").get())).matches(SOME_VALUE, OTHER_VALUE);
         assertThat(((JavaEnumConstant[]) annotation.get("enumArrayWithDefault").get())).matches(OTHER_VALUE);
-        assertThat(((JavaAnnotation) annotation.get("subAnnotation").get()).get("value").get()).isEqualTo("changed");
-        assertThat(((JavaAnnotation) annotation.get("subAnnotationWithDefault").get()).get("value").get())
+        JavaAnnotation<?> subAnnotation = (JavaAnnotation<?>) annotation.get("subAnnotation").get();
+        assertThat(subAnnotation.get("value").get()).isEqualTo("changed");
+        assertThat(subAnnotation.getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotation.getAnnotatedElement()).isEqualTo(field);
+        assertThat(((JavaAnnotation<?>) annotation.get("subAnnotationWithDefault").get()).get("value").get())
                 .isEqualTo("default");
-        assertThat(((JavaAnnotation[]) annotation.get("subAnnotationArray").get())[0].get("value").get())
-                .isEqualTo("another");
-        assertThat(((JavaAnnotation[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
+        JavaAnnotation<?>[] subAnnotationArray = (JavaAnnotation<?>[]) annotation.get("subAnnotationArray").get();
+        assertThat(subAnnotationArray[0].get("value").get()).isEqualTo("another");
+        assertThat(subAnnotationArray[0].getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotation.getAnnotatedElement()).isEqualTo(field);
+        assertThat(((JavaAnnotation<?>[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
                 .isEqualTo("first");
         assertThat((JavaClass) annotation.get("clazz").get()).matches(Map.class);
         assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
@@ -612,7 +633,7 @@ public class ClassFileImporterTest {
     public void imports_fields_with_annotation_with_empty_array() throws Exception {
         JavaClass clazz = classesIn("testexamples/annotationfieldimport").get(ClassWithAnnotatedFields.class);
 
-        JavaAnnotation annotation = clazz.getField("fieldAnnotatedWithEmptyArrays")
+        JavaAnnotation<?> annotation = clazz.getField("fieldAnnotatedWithEmptyArrays")
                 .getAnnotationOfType(FieldAnnotationWithArrays.class.getName());
 
         assertThat(Array.getLength(annotation.get("primitives").get())).isZero();
@@ -633,7 +654,7 @@ public class ClassFileImporterTest {
     public void imports_fields_annotated_with_unimported_annotation() throws Exception {
         JavaClass clazz = classesIn("testexamples/annotationfieldimport").get(ClassWithAnnotatedFields.class);
 
-        JavaAnnotation annotation = clazz.getField("fieldAnnotatedWithAnnotationFromParentPackage")
+        JavaAnnotation<?> annotation = clazz.getField("fieldAnnotatedWithAnnotationFromParentPackage")
                 .getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.get("mandatory")).contains("mandatory");
@@ -701,25 +722,25 @@ public class ClassFileImporterTest {
         JavaClass clazz = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class);
 
         JavaMethod method = findAnyByName(clazz.getMethods(), stringAnnotatedMethod);
-        JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
+        JavaAnnotation<JavaMethod> annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
         assertThat(annotation.getRawType()).matches(MethodAnnotationWithStringValue.class);
-
-        JavaAnnotation annotationByName = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
-        assertThat(annotationByName).isEqualTo(annotation);
-
-        JavaAnnotation rawAnnotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
-        assertThat(rawAnnotation.get("value").get()).isEqualTo("something");
+        assertThat(annotation.getOwner()).isEqualTo(method);
+        assertThat(annotation.get("value").get()).isEqualTo("something");
 
         assertThat(method).isEquivalentTo(ClassWithAnnotatedMethods.class.getMethod(stringAnnotatedMethod));
     }
 
     @Test
     public void methods_handle_optional_annotation_correctly() throws Exception {
-        Set<JavaCodeUnit> methods = classesIn("testexamples/annotationmethodimport").getCodeUnits();
+        Set<JavaMethod> methods = classesIn("testexamples/annotationmethodimport").getMethods();
 
-        JavaCodeUnit method = findAnyByName(methods, "stringAnnotatedMethod");
+        JavaMethod method = findAnyByName(methods, "stringAnnotatedMethod");
         assertThat(method.tryGetAnnotationOfType(MethodAnnotationWithStringValue.class)).isPresent();
         assertThat(method.tryGetAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class)).isAbsent();
+
+        Optional<JavaAnnotation<JavaMethod>> optionalAnnotation = method.tryGetAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
+        assertThat(optionalAnnotation.get().getOwner()).as("owner of optional annotation").isEqualTo(method);
+        assertThat(method.tryGetAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class.getName())).isAbsent();
     }
 
     @Test
@@ -727,12 +748,15 @@ public class ClassFileImporterTest {
         JavaClass clazz = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class);
 
         JavaMethod method = findAnyByName(clazz.getMethods(), stringAndIntAnnotatedMethod);
-        assertThat(method.getAnnotations()).hasSize(2);
+        Set<JavaAnnotation<JavaMethod>> annotations = method.getAnnotations();
+        assertThat(annotations).hasSize(2);
+        assertThat(annotations).extractingResultOf("getOwner").containsOnly(method);
+        assertThat(annotations).extractingResultOf("getAnnotatedElement").containsOnly(method);
 
-        JavaAnnotation annotationWithString = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
+        JavaAnnotation<?> annotationWithString = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
         assertThat(annotationWithString.get("value").get()).isEqualTo("otherThing");
 
-        JavaAnnotation annotationWithInt = method.getAnnotationOfType(MethodAnnotationWithIntValue.class.getName());
+        JavaAnnotation<?> annotationWithInt = method.getAnnotationOfType(MethodAnnotationWithIntValue.class.getName());
         assertThat(annotationWithInt.get("otherValue").get()).isEqualTo("overridden");
 
         assertThat(method).isEquivalentTo(ClassWithAnnotatedMethods.class.getMethod(stringAndIntAnnotatedMethod));
@@ -744,17 +768,22 @@ public class ClassFileImporterTest {
 
         JavaMethod method = findAnyByName(clazz.getMethods(), enumAndArrayAnnotatedMethod);
 
-        JavaAnnotation annotation = method.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class.getName());
+        JavaAnnotation<?> annotation = method.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class.getName());
         assertThat((JavaEnumConstant) annotation.get("value").get()).isEquivalentTo(OTHER_VALUE);
         assertThat((JavaEnumConstant) annotation.get("valueWithDefault").get()).isEquivalentTo(SOME_VALUE);
         assertThat(((JavaEnumConstant[]) annotation.get("enumArray").get())).matches(SOME_VALUE, OTHER_VALUE);
         assertThat(((JavaEnumConstant[]) annotation.get("enumArrayWithDefault").get())).matches(OTHER_VALUE);
-        assertThat(((JavaAnnotation) annotation.get("subAnnotation").get()).get("value").get()).isEqualTo("changed");
-        assertThat(((JavaAnnotation) annotation.get("subAnnotationWithDefault").get()).get("value").get())
+        JavaAnnotation<?> subAnnotation = (JavaAnnotation<?>) annotation.get("subAnnotation").get();
+        assertThat(subAnnotation.get("value").get()).isEqualTo("changed");
+        assertThat(subAnnotation.getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotation.getAnnotatedElement()).isEqualTo(method);
+        assertThat(((JavaAnnotation<?>) annotation.get("subAnnotationWithDefault").get()).get("value").get())
                 .isEqualTo("default");
-        assertThat(((JavaAnnotation[]) annotation.get("subAnnotationArray").get())[0].get("value").get())
-                .isEqualTo("another");
-        assertThat(((JavaAnnotation[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
+        JavaAnnotation<?>[] subAnnotationArray = (JavaAnnotation<?>[]) annotation.get("subAnnotationArray").get();
+        assertThat(subAnnotationArray[0].get("value").get()).isEqualTo("another");
+        assertThat(subAnnotationArray[0].getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotationArray[0].getAnnotatedElement()).isEqualTo(method);
+        assertThat(((JavaAnnotation<?>[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
                 .isEqualTo("first");
         assertThat((JavaClass) annotation.get("clazz").get()).matches(Map.class);
         assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
@@ -768,7 +797,7 @@ public class ClassFileImporterTest {
     public void imports_method_with_annotation_with_empty_array() throws Exception {
         JavaClass clazz = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class);
 
-        JavaAnnotation annotation = clazz.getMethod(methodAnnotatedWithEmptyArrays)
+        JavaAnnotation<?> annotation = clazz.getMethod(methodAnnotatedWithEmptyArrays)
                 .getAnnotationOfType(MethodAnnotationWithArrays.class.getName());
 
         assertThat(Array.getLength(annotation.get("primitives").get())).isZero();
@@ -789,7 +818,7 @@ public class ClassFileImporterTest {
     public void imports_methods_annotated_with_unimported_annotation() throws Exception {
         JavaClass clazz = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class);
 
-        JavaAnnotation annotation = clazz.getMethod(methodAnnotatedWithAnnotationFromParentPackage)
+        JavaAnnotation<?> annotation = clazz.getMethod(methodAnnotatedWithAnnotationFromParentPackage)
                 .getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.get("mandatory")).contains("mandatory");
@@ -805,10 +834,11 @@ public class ClassFileImporterTest {
     public void imports_class_with_one_annotation_correctly() throws Exception {
         JavaClass clazz = classesIn("testexamples/annotatedclassimport").get(ClassWithOneAnnotation.class);
 
-        JavaAnnotation annotation = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
+        JavaAnnotation<JavaClass> annotation = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
         assertThat(annotation.getRawType()).matches(SimpleAnnotation.class);
+        assertThat(annotation.getOwner()).isEqualTo(clazz);
 
-        JavaAnnotation annotationByName = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
+        JavaAnnotation<?> annotationByName = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
         assertThat(annotationByName).isEqualTo(annotation);
 
         assertThat(annotation.get("value").get()).isEqualTo("test");
@@ -830,17 +860,22 @@ public class ClassFileImporterTest {
 
         assertThat(clazz.getAnnotations()).as("annotations of " + clazz.getSimpleName()).hasSize(2);
 
-        JavaAnnotation annotation = clazz.getAnnotationOfType(TypeAnnotationWithEnumAndArrayValue.class.getName());
+        JavaAnnotation<JavaClass> annotation = clazz.getAnnotationOfType(TypeAnnotationWithEnumAndArrayValue.class.getName());
         assertThat((JavaEnumConstant) annotation.get("value").get()).isEquivalentTo(OTHER_VALUE);
         assertThat((JavaEnumConstant) annotation.get("valueWithDefault").get()).isEquivalentTo(SOME_VALUE);
         assertThat(((JavaEnumConstant[]) annotation.get("enumArray").get())).matches(SOME_VALUE, OTHER_VALUE);
         assertThat(((JavaEnumConstant[]) annotation.get("enumArrayWithDefault").get())).matches(OTHER_VALUE);
-        assertThat(((JavaAnnotation) annotation.get("subAnnotation").get()).get("value").get()).isEqualTo("sub");
-        assertThat(((JavaAnnotation) annotation.get("subAnnotationWithDefault").get()).get("value").get())
+        JavaAnnotation<?> subAnnotation = (JavaAnnotation<?>) annotation.get("subAnnotation").get();
+        assertThat(subAnnotation.get("value").get()).isEqualTo("sub");
+        assertThat(subAnnotation.getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotation.getAnnotatedElement()).isEqualTo(clazz);
+        assertThat(((JavaAnnotation<?>) annotation.get("subAnnotationWithDefault").get()).get("value").get())
                 .isEqualTo("default");
-        assertThat(((JavaAnnotation[]) annotation.get("subAnnotationArray").get())[0].get("value").get())
-                .isEqualTo("otherFirst");
-        assertThat(((JavaAnnotation[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
+        JavaAnnotation<?>[] subAnnotationArray = (JavaAnnotation<?>[]) annotation.get("subAnnotationArray").get();
+        assertThat(subAnnotationArray[0].get("value").get()).isEqualTo("otherFirst");
+        assertThat(subAnnotationArray[0].getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotationArray[0].getAnnotatedElement()).isEqualTo(clazz);
+        assertThat(((JavaAnnotation<?>[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
                 .isEqualTo("first");
         assertThat((JavaClass) annotation.get("clazz").get()).matches(Serializable.class);
         assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
@@ -854,7 +889,7 @@ public class ClassFileImporterTest {
     public void imports_class_with_annotation_with_empty_array() throws Exception {
         JavaClass clazz = classesIn("testexamples/annotatedclassimport").get(ClassWithAnnotationWithEmptyArrays.class);
 
-        JavaAnnotation annotation = clazz.getAnnotationOfType(ClassAnnotationWithArrays.class.getName());
+        JavaAnnotation<?> annotation = clazz.getAnnotationOfType(ClassAnnotationWithArrays.class.getName());
 
         assertThat(Array.getLength(annotation.get("primitives").get())).isZero();
         assertThat(Array.getLength(annotation.get("objects").get())).isZero();
@@ -874,7 +909,7 @@ public class ClassFileImporterTest {
     public void imports_class_annotated_with_unimported_annotation() throws Exception {
         JavaClass clazz = classesIn("testexamples/annotatedclassimport").get(ClassWithUnimportedAnnotation.class);
 
-        JavaAnnotation annotation = clazz.getAnnotationOfType(SomeAnnotation.class.getName());
+        JavaAnnotation<?> annotation = clazz.getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.get("mandatory")).contains("mandatory");
         // NOTE: If we haven't imported the annotation itself, the import can't determine default values
@@ -932,9 +967,18 @@ public class ClassFileImporterTest {
         JavaConstructor constructor = classesIn("testexamples/annotationmethodimport").get(ClassWithAnnotatedMethods.class)
                 .getConstructor();
 
-        JavaAnnotation annotation = constructor.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class.getName());
+        JavaAnnotation<JavaConstructor> annotation = constructor.getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class.getName());
         assertThat((Object[]) annotation.get("classes").get()).extracting("name")
                 .containsExactly(Object.class.getName(), Serializable.class.getName());
+        assertThat(annotation.getOwner()).isEqualTo(constructor);
+        JavaAnnotation<?> subAnnotation = (JavaAnnotation<?>) annotation.get("subAnnotation").get();
+        assertThat(subAnnotation.get("value").get()).isEqualTo("changed");
+        assertThat(subAnnotation.getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotation.getAnnotatedElement()).isEqualTo(constructor);
+        JavaAnnotation<?>[] subAnnotationArray = (JavaAnnotation<?>[]) annotation.get("subAnnotationArray").get();
+        assertThat(subAnnotationArray[0].get("value").get()).isEqualTo("another");
+        assertThat(subAnnotationArray[0].getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotationArray[0].getAnnotatedElement()).isEqualTo(constructor);
 
         assertThat(constructor).isEquivalentTo(ClassWithAnnotatedMethods.class.getConstructor());
     }
@@ -1830,6 +1874,15 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void classes_know_which_annotations_have_their_type() {
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithOneAnnotation.class, SimpleAnnotation.class);
+
+        Set<JavaAnnotation<?>> annotations = classes.get(SimpleAnnotation.class).getAnnotationsWithTypeOfSelf();
+
+        assertThat(getOnlyElement(annotations).getOwner()).isEqualTo(classes.get(ClassWithOneAnnotation.class));
+    }
+
+    @Test
     public void reflect_works() throws Exception {
         ImportedClasses classes = classesIn("testexamples/innerclassimport");
 
@@ -2212,14 +2265,6 @@ public class ClassFileImporterTest {
         Set<Integer> result = new HashSet<>();
         for (JavaFieldAccess access : fieldAccesses) {
             result.add(access.getLineNumber());
-        }
-        return result;
-    }
-
-    private Set<String> namesOf(Iterable<? extends HasName> thingsWithNames) {
-        Set<String> result = new HashSet<>();
-        for (HasName hasName : thingsWithNames) {
-            result.add(hasName.getName());
         }
         return result;
     }

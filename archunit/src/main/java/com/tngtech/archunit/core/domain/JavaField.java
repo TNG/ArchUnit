@@ -23,6 +23,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.properties.HasType;
@@ -71,6 +72,24 @@ public class JavaField extends JavaMember implements HasType {
     @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getAccessesToSelf() {
         return accessesToSelf.get();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this field
+    public Set<JavaAnnotation<JavaField>> getAnnotations() {
+        return (Set<JavaAnnotation<JavaField>>) super.getAnnotations();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this field
+    public JavaAnnotation<JavaField> getAnnotationOfType(String typeName) {
+        return (JavaAnnotation<JavaField>) super.getAnnotationOfType(typeName);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this field
+    public Optional<JavaAnnotation<JavaField>> tryGetAnnotationOfType(String typeName) {
+        return (Optional<JavaAnnotation<JavaField>>) super.tryGetAnnotationOfType(typeName);
     }
 
     @Override

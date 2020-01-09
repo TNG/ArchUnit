@@ -31,11 +31,11 @@ public @interface TypeAnnotationWithEnumAndArrayValue {
 
     SimpleAnnotation[] subAnnotationArrayWithDefault() default {@SimpleAnnotation("first"), @SimpleAnnotation("second")};
 
-    Class clazz();
+    Class<?> clazz();
 
-    Class clazzWithDefault() default String.class;
+    Class<?> clazzWithDefault() default String.class;
 
-    Class[] classes();
+    Class<?>[] classes();
 
-    Class[] classesWithDefault() default {Serializable.class, List.class};
+    Class<?>[] classesWithDefault() default {Serializable.class, List.class};
 }

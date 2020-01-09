@@ -306,10 +306,10 @@ public class PublicAPIRules {
         };
     }
 
-    private static DescribedPredicate<JavaAnnotation> publicApiForInheritance() {
-        return new DescribedPredicate<JavaAnnotation>("@%s(usage = %s)", PublicAPI.class.getSimpleName(), INHERITANCE) {
+    private static DescribedPredicate<JavaAnnotation<?>> publicApiForInheritance() {
+        return new DescribedPredicate<JavaAnnotation<?>>("@%s(usage = %s)", PublicAPI.class.getSimpleName(), INHERITANCE) {
             @Override
-            public boolean apply(JavaAnnotation input) {
+            public boolean apply(JavaAnnotation<?> input) {
                 return input.getRawType().isEquivalentTo(PublicAPI.class) &&
                         input.as(PublicAPI.class).usage() == INHERITANCE;
             }

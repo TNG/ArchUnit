@@ -35,7 +35,7 @@ public interface ImportContext {
 
     Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner);
 
-    Map<String, JavaAnnotation> createAnnotations(JavaClass owner);
+    Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner);
 
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
@@ -56,6 +56,10 @@ public interface ImportContext {
     Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass);
 
     Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass);
+
+    Set<JavaAnnotation<?>> getAnnotationsOfType(JavaClass javaClass);
+
+    Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass);
 
     JavaClass resolveClass(String fullyQualifiedClassName);
 }

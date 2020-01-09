@@ -25,9 +25,11 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
@@ -42,6 +44,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * <li>a class has a field with type of another class</li>
  * <li>a class has a method/constructor with parameter/return type of another class</li>
  * </ul>
+ * Note that a {@link Dependency} will by definition never be a self-reference,
+ * i.e. <code>origin</code> will never be equal to <code>target</code>.
  */
 public class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation {
     private final JavaClass originClass;
@@ -58,11 +62,17 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         this.sourceCodeLocation = SourceCodeLocation.of(originClass, lineNumber);
     }
 
-    static Dependency from(JavaAccess<?> access) {
-        return new Dependency(access.getOriginOwner(), access.getTargetOwner(), access.getLineNumber(), access.getDescription());
+    static Optional<Dependency> tryCreateFromAccess(JavaAccess<?> access) {
+        if (access.getOriginOwner().equals(access.getTargetOwner()) || access.getTargetOwner().isPrimitive()) {
+            return Optional.absent();
+        }
+        return Optional.of(new Dependency(access.getOriginOwner(), access.getTargetOwner(), access.getLineNumber(), access.getDescription()));
     }
 
     static Dependency fromInheritance(JavaClass origin, JavaClass targetSuperType) {
+        checkArgument(!origin.equals(targetSuperType) && !targetSuperType.isPrimitive(),
+                "It should never be possible to create an inheritance dependency to self or any primitive");
+
         String originType = origin.isInterface() ? "Interface" : "Class";
         String originDescription = originType + " " + bracketFormat(origin.getName());
 
@@ -77,28 +87,60 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return new Dependency(origin, targetSuperType, 0, description);
     }
 
-    static Dependency fromField(JavaField field) {
-        return createDependencyFromJavaMember(field, "has type", field.getRawType());
+    static Optional<Dependency> tryCreateFromField(JavaField field) {
+        return tryCreateDependencyFromJavaMember(field, "has type", field.getRawType());
     }
 
-    static Dependency fromReturnType(JavaMethod method) {
-        return createDependencyFromJavaMember(method, "has return type", method.getRawReturnType());
+    static Optional<Dependency> tryCreateFromReturnType(JavaMethod method) {
+        return tryCreateDependencyFromJavaMember(method, "has return type", method.getRawReturnType());
     }
 
-    static Dependency fromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {
-        return createDependencyFromJavaMember(codeUnit, "has parameter of type", parameter);
+    static Optional<Dependency> tryCreateFromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {
+        return tryCreateDependencyFromJavaMember(codeUnit, "has parameter of type", parameter);
     }
 
-    static Dependency fromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
-        return createDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
+    static Optional<Dependency> tryCreateFromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
+        return tryCreateDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
-    private static Dependency createDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
-        String originDescription = origin.getDescription();
-        String targetDescription = bracketFormat(target.getName());
+    static Optional<Dependency> tryCreateFromAnnotation(JavaAnnotation<?> target) {
+        Origin origin = findSuitableOrigin(target);
+        return tryCreateDependency(origin.originClass, origin.originDescription, "is annotated with", target.getRawType());
+    }
+
+    static Optional<Dependency> tryCreateFromAnnotationMember(JavaAnnotation<?> annotation, JavaClass memberType) {
+        Origin origin = findSuitableOrigin(annotation);
+        return tryCreateDependency(origin.originClass, origin.originDescription, "has annotation member of type", memberType);
+    }
+
+    private static Origin findSuitableOrigin(JavaAnnotation<?> annotation) {
+        Object annotatedElement = annotation.getAnnotatedElement();
+        if (annotatedElement instanceof JavaMember) {
+            JavaMember member = (JavaMember) annotatedElement;
+            return new Origin(member.getOwner(), member.getDescription());
+        }
+        if (annotatedElement instanceof JavaClass) {
+            JavaClass clazz = (JavaClass) annotatedElement;
+            return new Origin(clazz, clazz.getDescription());
+        }
+        throw new IllegalStateException("Could not find suitable dependency origin for " + annotation);
+    }
+
+    private static Optional<Dependency> tryCreateDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
+        return tryCreateDependency(origin.getOwner(), origin.getDescription(), dependencyType, target);
+    }
+
+    private static Optional<Dependency> tryCreateDependency(
+            JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass) {
+
+        if (originClass.equals(targetClass) || targetClass.isPrimitive()) {
+            return Optional.absent();
+        }
+
+        String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
-        String description = dependencyDescription + " in " + origin.getOwner().getSourceCodeLocation();
-        return new Dependency(origin.getOwner(), target, 0, description);
+        String description = dependencyDescription + " in " + originClass.getSourceCodeLocation();
+        return Optional.of(new Dependency(originClass, targetClass, 0, description));
     }
 
     private static String bracketFormat(String name) {
@@ -173,6 +215,16 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
             classes.add(dependency.getTargetClass());
         }
         return JavaClasses.of(classes);
+    }
+
+    private static class Origin {
+        private final JavaClass originClass;
+        private final String originDescription;
+
+        private Origin(JavaClass originClass, String originDescription) {
+            this.originClass = originClass;
+            this.originDescription = originDescription;
+        }
     }
 
     public static final class Predicates {

@@ -75,6 +75,24 @@ public class JavaMethod extends JavaCodeUnit {
     }
 
     @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this method
+    public Set<JavaAnnotation<JavaMethod>> getAnnotations() {
+        return (Set<JavaAnnotation<JavaMethod>>) super.getAnnotations();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this method
+    public JavaAnnotation<JavaMethod> getAnnotationOfType(String typeName) {
+        return (JavaAnnotation<JavaMethod>) super.getAnnotationOfType(typeName);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // we know the 'owning' member is this method
+    public Optional<JavaAnnotation<JavaMethod>> tryGetAnnotationOfType(String typeName) {
+        return (Optional<JavaAnnotation<JavaMethod>>) super.tryGetAnnotationOfType(typeName);
+    }
+
+    @Override
     @PublicAPI(usage = ACCESS)
     @ResolvesTypesViaReflection
     @MayResolveTypesViaReflection(reason = "This is not part of the import and a specific decision to rely on the classpath")
