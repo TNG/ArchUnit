@@ -1358,6 +1358,270 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
+    public static Object[][] beTopLevelClasses_rules() {
+        Class<?> topLevelClass = List.class;
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().beTopLevelClasses(), topLevelClass, staticNestedClass),
+                $(classes().should(ArchConditions.beTopLevelClasses()), topLevelClass, staticNestedClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("beTopLevelClasses_rules")
+    public void beTopLevelClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should be top level classes")
+                .containsPattern(String.format("Class <%s> is not a top level class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* top level class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notBeTopLevelClasses_rules() {
+        Class<?> topLevelClass = List.class;
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().notBeTopLevelClasses(), staticNestedClass, topLevelClass),
+                $(classes().should(ArchConditions.notBeTopLevelClasses()), staticNestedClass, topLevelClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("notBeTopLevelClasses_rules")
+    public void notBeTopLevelClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be top level classes")
+                .containsPattern(String.format("Class <%s> is a top level class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* top level class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] beNestedClasses_rules() {
+        Class<?> topLevelClass = List.class;
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().beNestedClasses(), staticNestedClass, topLevelClass),
+                $(classes().should(ArchConditions.beNestedClasses()), staticNestedClass, topLevelClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("beNestedClasses_rules")
+    public void beNestedClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should be nested classes")
+                .containsPattern(String.format("Class <%s> is not a nested class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* nested class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notBeNestedClasses_rules() {
+        Class<?> topLevelClass = List.class;
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().notBeNestedClasses(), topLevelClass, staticNestedClass),
+                $(classes().should(ArchConditions.notBeNestedClasses()), topLevelClass, staticNestedClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("notBeNestedClasses_rules")
+    public void notBeNestedClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be nested classes")
+                .containsPattern(String.format("Class <%s> is a nested class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* nested class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] beMemberClasses_rules() {
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+        Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
+
+        return $$(
+                $(classes().should().beMemberClasses(), staticNestedClass, anonymousClass),
+                $(classes().should(ArchConditions.beMemberClasses()), staticNestedClass, anonymousClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("beMemberClasses_rules")
+    public void beMemberClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should be member classes")
+                .containsPattern(String.format("Class <%s> is not a member class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* member class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notBeMemberClasses_rules() {
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+        Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
+
+        return $$(
+                $(classes().should().notBeMemberClasses(), anonymousClass, staticNestedClass),
+                $(classes().should(ArchConditions.notBeMemberClasses()), anonymousClass, staticNestedClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("notBeMemberClasses_rules")
+    public void notBeMemberClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be member classes")
+                .containsPattern(String.format("Class <%s> is a member class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* member class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] beInnerClasses_rules() {
+        Class<?> innerMemberClass = NestedClassWithSomeMoreClasses.InnerMemberClass.class;
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().beInnerClasses(), innerMemberClass, staticNestedClass),
+                $(classes().should(ArchConditions.beInnerClasses()), innerMemberClass, staticNestedClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("beInnerClasses_rules")
+    public void beInnerClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should be inner classes")
+                .containsPattern(String.format("Class <%s> is not an inner class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* inner class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notBeInnerClasses_rules() {
+        Class<?> nonStaticNestedClass = NestedClassWithSomeMoreClasses.InnerMemberClass.class;
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().notBeInnerClasses(), staticNestedClass, nonStaticNestedClass),
+                $(classes().should(ArchConditions.notBeInnerClasses()), staticNestedClass, nonStaticNestedClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("notBeInnerClasses_rules")
+    public void notBeInnerClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be inner classes")
+                .containsPattern(String.format("Class <%s> is an inner class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* inner class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] beAnonymousClasses_rules() {
+        Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().beAnonymousClasses(), anonymousClass, staticNestedClass),
+                $(classes().should(ArchConditions.beAnonymousClasses()), anonymousClass, staticNestedClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("beAnonymousClasses_rules")
+    public void beAnonymousClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should be anonymous classes")
+                .containsPattern(String.format("Class <%s> is not an anonymous class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* anonymous class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notBeAnonymousClasses_rules() {
+        Class<?> anonymousClass = NestedClassWithSomeMoreClasses.getAnonymousClass();
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().notBeAnonymousClasses(), staticNestedClass, anonymousClass),
+                $(classes().should(ArchConditions.notBeAnonymousClasses()), staticNestedClass, anonymousClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("notBeAnonymousClasses_rules")
+    public void notBeAnonymousClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be anonymous classes")
+                .containsPattern(String.format("Class <%s> is an anonymous class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* anonymous class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] beLocalClasses_rules() {
+        Class<?> localClass = NestedClassWithSomeMoreClasses.getLocalClass();
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().beLocalClasses(), localClass, staticNestedClass),
+                $(classes().should(ArchConditions.beLocalClasses()), localClass, staticNestedClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("beLocalClasses_rules")
+    public void beLocalClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should be local classes")
+                .containsPattern(String.format("Class <%s> is not a local class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* local class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notBeLocalClasses_rules() {
+        Class<?> localClass = NestedClassWithSomeMoreClasses.getLocalClass();
+        Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
+
+        return $$(
+                $(classes().should().notBeLocalClasses(), staticNestedClass, localClass),
+                $(classes().should(ArchConditions.notBeLocalClasses()), staticNestedClass, localClass)
+        );
+    }
+
+    @Test
+    @UseDataProvider("notBeLocalClasses_rules")
+    public void notBeLocalClasses(ArchRule rule, Class<?> satisfied, Class<?> violated) {
+        EvaluationResult result = rule.evaluate(importClasses(satisfied, violated));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be local classes")
+                .containsPattern(String.format("Class <%s> is a local class", quote(violated.getName())))
+                .doesNotMatch(String.format(".*%s.* local class.*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
     public static Object[][] containNumberOfElements_rules() {
         return $$(
                 $(equalTo(999)),
@@ -1681,4 +1945,26 @@ public class ClassesShouldTest {
     @RuntimeRetentionAnnotation
     private static class SomeAnnotatedClass {
     }
+
+    private static class NestedClassWithSomeMoreClasses {
+
+        static class StaticNestedClass {
+        }
+
+        @SuppressWarnings("InnerClassMayBeStatic")
+        class InnerMemberClass {
+        }
+
+        static Class<?> getAnonymousClass() {
+            return new Serializable() {
+            }.getClass();
+        }
+
+        static Class<?> getLocalClass() {
+            class LocalClass {
+            }
+            return LocalClass.class;
+        }
+    }
+
 }

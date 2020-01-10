@@ -893,6 +893,138 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
+    public void areTopLevelClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areTopLevelClasses())
+                .on(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class,
+                        ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areNotTopLevelClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areNotTopLevelClasses())
+                .on(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class,
+                        ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areNestedClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areNestedClasses())
+                .on(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class,
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areNotNestedClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areNotNestedClasses())
+                .on(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class,
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areMemberClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areMemberClasses())
+                .on(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class,
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areNotMemberClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areNotMemberClasses())
+                .on(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class,
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areInnerClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areInnerClasses())
+                .on(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class,
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areNotInnerClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areNotInnerClasses())
+                .on(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class,
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areAnonymousClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areAnonymousClasses())
+                .on(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass(),
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areNotAnonymousClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areNotAnonymousClasses())
+                .on(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass(),
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass());
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areLocalClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areLocalClasses())
+                .on(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass(),
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areNotLocalClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areNotLocalClasses())
+                .on(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass(),
+                        ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass());
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
     public void belongToAnyOf(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterViolationCausesInFailureReport(
                 classesShouldOnlyBeBy.belongToAnyOf(ClassWithInnerClasses.class))
@@ -1178,6 +1310,53 @@ public class ShouldOnlyByClassesThatTest {
 
         static void access() {
             new ClassBeingAccessedByEnum();
+        }
+    }
+
+    private static class ClassAccessingStaticNestedClass {
+        @SuppressWarnings("unused")
+        void access() {
+            new StaticNestedClassBeingAccessed();
+        }
+    }
+
+    private static class StaticNestedClassBeingAccessed {
+    }
+
+    private class ClassAccessingInnerMemberClass {
+        @SuppressWarnings("unused")
+        void access() {
+            new InnerMemberClassBeingAccessed();
+        }
+    }
+
+    @SuppressWarnings("InnerClassMayBeStatic")
+    private class InnerMemberClassBeingAccessed {
+    }
+
+    private static class ClassAccessingAnonymousClass {
+        @SuppressWarnings("unused")
+        void access() {
+            anonymousClassBeingAccessed.run();
+        }
+    }
+
+    private static Runnable anonymousClassBeingAccessed = new Runnable() {
+        @Override
+        public void run() {
+            new ClassAccessingAnonymousClass();
+        }
+    };
+
+    private static class ClassBeingAccessedByLocalClass {
+        static Class<?> getLocalClass() {
+            class LocalClass {
+                @SuppressWarnings("unused")
+                void access() {
+                    new ClassBeingAccessedByLocalClass();
+                }
+            }
+            return LocalClass.class;
         }
     }
 }

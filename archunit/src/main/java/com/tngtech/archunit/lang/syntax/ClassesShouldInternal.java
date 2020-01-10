@@ -585,6 +585,66 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction beTopLevelClasses() {
+        return addCondition(ArchConditions.beTopLevelClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeTopLevelClasses() {
+        return addCondition(ArchConditions.notBeTopLevelClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction beNestedClasses() {
+        return addCondition(ArchConditions.beNestedClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeNestedClasses() {
+        return addCondition(ArchConditions.notBeNestedClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction beMemberClasses() {
+        return addCondition(ArchConditions.beMemberClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeMemberClasses() {
+        return addCondition(ArchConditions.notBeMemberClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction beInnerClasses() {
+        return addCondition(ArchConditions.beInnerClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeInnerClasses() {
+        return addCondition(ArchConditions.notBeInnerClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction beAnonymousClasses() {
+        return addCondition(ArchConditions.beAnonymousClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeAnonymousClasses() {
+        return addCondition(ArchConditions.notBeAnonymousClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction beLocalClasses() {
+        return addCondition(ArchConditions.beLocalClasses());
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeLocalClasses() {
+        return addCondition(ArchConditions.notBeLocalClasses());
+    }
+
+    @Override
     public ClassesShouldConjunction containNumberOfElements(DescribedPredicate<? super Integer> predicate) {
         return addCondition(ArchConditions.containNumberOfElements(predicate));
     }

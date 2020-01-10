@@ -840,6 +840,66 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beTopLevelClasses() {
+        return BE_TOP_LEVEL_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeTopLevelClasses() {
+        return not(BE_TOP_LEVEL_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beNestedClasses() {
+        return BE_NESTED_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeNestedClasses() {
+        return not(BE_NESTED_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beMemberClasses() {
+        return BE_MEMBER_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeMemberClasses() {
+        return not(BE_MEMBER_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beInnerClasses() {
+        return BE_INNER_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeInnerClasses() {
+        return not(BE_INNER_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beAnonymousClasses() {
+        return BE_ANONYMOUS_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeAnonymousClasses() {
+        return not(BE_ANONYMOUS_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beLocalClasses() {
+        return BE_LOCAL_CLASSES;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeLocalClasses() {
+        return not(BE_LOCAL_CLASSES);
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> containNumberOfElements(DescribedPredicate<? super Integer> predicate) {
         return new NumberOfElementsCondition(predicate);
     }
@@ -936,6 +996,19 @@ public final class ArchConditions {
     private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
         return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
     }
+
+    private static final IsConditionByPredicate<JavaClass> BE_TOP_LEVEL_CLASSES =
+            new IsConditionByPredicate<>("a top level class", JavaClass.Predicates.TOP_LEVEL_CLASSES);
+    private static final IsConditionByPredicate<JavaClass> BE_NESTED_CLASSES =
+            new IsConditionByPredicate<>("a nested class", JavaClass.Predicates.NESTED_CLASSES);
+    private static final IsConditionByPredicate<JavaClass> BE_MEMBER_CLASSES =
+            new IsConditionByPredicate<>("a member class", JavaClass.Predicates.MEMBER_CLASSES);
+    private static final IsConditionByPredicate<JavaClass> BE_INNER_CLASSES =
+            new IsConditionByPredicate<>("an inner class", JavaClass.Predicates.INNER_CLASSES);
+    private static final IsConditionByPredicate<JavaClass> BE_ANONYMOUS_CLASSES =
+            new IsConditionByPredicate<>("an anonymous class", JavaClass.Predicates.ANONYMOUS_CLASSES);
+    private static final IsConditionByPredicate<JavaClass> BE_LOCAL_CLASSES =
+            new IsConditionByPredicate<>("a local class", JavaClass.Predicates.LOCAL_CLASSES);
 
     private static class HaveOnlyModifiersCondition<T extends HasModifiers & HasDescription & HasSourceCodeLocation>
             extends AllAttributesMatchCondition<T> {
@@ -1188,10 +1261,16 @@ public final class ArchConditions {
     }
 
     private static class IsConditionByPredicate<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
+        private final String eventDescription;
         private final DescribedPredicate<T> predicate;
 
         IsConditionByPredicate(DescribedPredicate<? super T> predicate) {
+            this(predicate.getDescription(), predicate);
+        }
+
+        IsConditionByPredicate(String eventDescription, DescribedPredicate<? super T> predicate) {
             super(ArchPredicates.be(predicate).getDescription());
+            this.eventDescription = eventDescription;
             this.predicate = predicate.forSubType();
         }
 
@@ -1199,7 +1278,7 @@ public final class ArchConditions {
         public void check(T member, ConditionEvents events) {
             boolean satisfied = predicate.apply(member);
             String message = createMessage(member,
-                    (satisfied ? "is " : "is not ") + predicate.getDescription());
+                    (satisfied ? "is " : "is not ") + eventDescription);
             events.add(new SimpleConditionEvent(member, satisfied, message));
         }
     }
