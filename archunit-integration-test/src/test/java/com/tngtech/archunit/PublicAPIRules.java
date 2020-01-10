@@ -29,6 +29,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ANONYMOUS_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -188,15 +189,6 @@ public class PublicAPIRules {
         };
     }
 
-    private static DescribedPredicate<JavaClass> anonymousClass() {
-        return new DescribedPredicate<JavaClass>("anonymous class") {
-            @Override
-            public boolean apply(JavaClass input) {
-                return input.isAnonymousClass();
-            }
-        };
-    }
-
     private static DescribedPredicate<JavaMember> declaredInClassIn(String packageIdentifier) {
         return declaredIn(resideInAPackage(packageIdentifier).as("class in '%s'", packageIdentifier));
     }
@@ -286,7 +278,7 @@ public class PublicAPIRules {
     private static DescribedPredicate<JavaMember> relevantArchUnitMembers() {
         return not(inheritedFromObjectOrEnum())
                 .and(not(declaredIn(assignableTo(Annotation.class))))
-                .and(not(declaredIn(anonymousClass())))
+                .and(not(declaredIn(ANONYMOUS_CLASSES)))
                 .and(not(declaredIn(internal())))
                 .and(not(declaredInClassIn(THIRDPARTY_PACKAGE_IDENTIFIER)))
                 .as("relevant members");
