@@ -241,7 +241,35 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     }
 
     /**
-     * A top level class is a class that is not a nested class.
+     * A <b>top level class</b> is a class that is not a nested class, i.e. not declared within the body
+     * of another class.<br><br>
+     *
+     * Example:
+     * <pre><code>
+     * public class TopLevel {
+     *     class NestedNonStatic {}
+     *     static class NestedStatic {}
+     *
+     *     void method() {
+     *         class NestedLocal {}
+     *
+     *         new NestedAnonymous() {}
+     *     }
+     * }
+     * </code></pre>
+     * Of all these class declarations only {@code TopLevel} is a top level class, since all
+     * other classes are declared within the body of {@code TopLevel} and are thereby nested classes.
+     * <br><br>
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     *     Java Language Specification</a>
+     *
+     * @see #isNestedClass()
+     * @see #isMemberClass()
+     * @see #isInnerClass()
+     * @see #isLocalClass()
+     * @see #isAnonymousClass()
+     * @return {@code true} if this class is a top level class, i.e. not nested inside of
+     *         any other class, {@code false} otherwise
      */
     @PublicAPI(usage = ACCESS)
     public boolean isTopLevelClass() {
@@ -249,11 +277,37 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     }
 
     /**
-     * A nested class is any class whose declaration occurs
-     * within the body of another class or interface.
+     * A <b>nested class</b> is any class whose declaration occurs
+     * within the body of another class or interface.<br><br>
      *
-     * @return Returns true if this class is declared within another class.
-     *         Returns false for top-level classes.
+     * Example:
+     * <pre><code>
+     * public class TopLevel {
+     *     class NestedNonStatic {}
+     *     static class NestedStatic {}
+     *
+     *     void method() {
+     *         class NestedLocal {}
+     *
+     *         new NestedAnonymous() {}
+     *     }
+     * }
+     * </code></pre>
+     * All classes {@code NestedNonStatic}, {@code NestedStatic}, {@code NestedLocal} and the class
+     * the compiler creates for the anonymous class derived from {@code "new NestedAnonymous() {}"}
+     * (which will have some generated name like {@code TopLevel$1})
+     * are considered nested classes. {@code TopLevel} on the other side is no nested class.
+     * <br><br>
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     *     Java Language Specification</a>
+     *
+     * @see #isTopLevelClass()
+     * @see #isMemberClass()
+     * @see #isInnerClass()
+     * @see #isLocalClass()
+     * @see #isAnonymousClass()
+     * @return {@code true} if this class is nested, i.e. declared within another class,
+     *         {@code false} otherwise (i.e. for top-level classes)
      */
     @PublicAPI(usage = ACCESS)
     public boolean isNestedClass() {
@@ -261,8 +315,39 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     }
 
     /**
-     * A member class is a class whose declaration is directly enclosed
-     * in the body of another class or interface declaration.
+     * A <b>member class</b> is a class whose declaration is <u>directly</u> enclosed
+     * in the body of another class or interface declaration.<br><br>
+     *
+     * Example:
+     * <pre><code>
+     * public class TopLevel {
+     *     class MemberClassNonStatic {}
+     *     static class MemberClassStatic {}
+     *
+     *     void method() {
+     *         class NoMemberLocal {}
+     *
+     *         new NoMemberAnonymous() {}
+     *     }
+     * }
+     * </code></pre>
+     * Both {@code MemberClassNonStatic} and {@code MemberClassStatic} are member classes,
+     * since they are directly declared within the body of {@code TopLevel}.
+     * On the other hand {@code NoMemberLocal} and the class
+     * the compiler creates for the anonymous class derived from {@code "new NoMemberAnonymous() {}"}
+     * (which will have some generated name like {@code TopLevel$1}), as well as {@code TopLevel}
+     * itself, are not considered member classes.
+     * <br><br>
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     *     Java Language Specification</a>
+     *
+     * @see #isTopLevelClass()
+     * @see #isNestedClass()
+     * @see #isInnerClass()
+     * @see #isLocalClass()
+     * @see #isAnonymousClass()
+     * @return {@code true} if this class is a member class, i.e. directly declared within
+     *         the body of another class, {@code false} otherwise
      */
     @PublicAPI(usage = ACCESS)
     public boolean isMemberClass() {
@@ -270,27 +355,125 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     }
 
     /**
-     * An inner class is a nested class that is not explicitly or implicitly declared static.
+     * An <b>inner class</b> is a nested class that is not explicitly or implicitly declared static.<br><br>
      *
-     * @return Returns true if this class is a non-static nested class.
-     *         Returns false otherwise.
+     * Example:
+     * <pre><code>
+     * public class TopLevel {
+     *     class InnerMemberClass {}
+     *     static class NoInnerClassSinceDeclaredStatic {}
+     *     interface NoInnerClassSinceInterface {}
+     *
+     *     void method() {
+     *         class InnerLocalClass {}
+     *
+     *         new InnerAnonymousClass() {}
+     *     }
+     * }
+     * </code></pre>
+     * The classes {@code InnerMemberClass}, {@code InnerLocalClass} and the class
+     * the compiler creates for the anonymous class derived from {@code "new InnerAnonymousClass() {}"}
+     * (which will have some generated name like {@code TopLevel$1})
+     * are inner classes since they are nested but not static.
+     * On the other hand {@code NoInnerClassSinceDeclaredStatic}, {@code NoInnerClassSinceInterface} and {@code TopLevel}
+     * are no inner classes, because the former two explicitly or implicitly have the
+     * {@code static} modifier while the latter one is a top level class.
+     * <br><br>
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     *     Java Language Specification</a>
+     *
+     * @see #isTopLevelClass()
+     * @see #isNestedClass()
+     * @see #isMemberClass()
+     * @see #isLocalClass()
+     * @see #isAnonymousClass()
+     * @return {@code true} if this class is an inner class (i.e. nested but non-static)
+     *         {@code false} otherwise
      */
     @PublicAPI(usage = ACCESS)
     public boolean isInnerClass() {
         return isNestedClass() && !getModifiers().contains(JavaModifier.STATIC);
     }
 
-    @PublicAPI(usage = ACCESS)
-    public boolean isAnonymousClass() {
-        return isAnonymousClass;
-    }
-
     /**
-     * A local class is a nested class that is not a member of any class and that has a name.
+     * A <b>local class</b> is a nested class that is not a member of any class and that has a name.<br><br>
+     *
+     * Example:
+     * <pre><code>
+     * public class TopLevel {
+     *     class InnerClass {}
+     *     static class NestedStaticClass {}
+     *
+     *     void method() {
+     *         class LocalClass {}
+     *
+     *         new AnonymousClass() {}
+     *     }
+     * }
+     * </code></pre>
+     * Only The class {@code LocalClass} is a local class, since it is a nested class that is not a member
+     * class, but it has the name "LocalClass".<br>
+     * All the other classes {@code TopLevel}, {@code InnerClass}, {@code NestedStaticClass} and
+     * the class the compiler creates for the anonymous class derived from {@code "new AnonymousClass() {}"}
+     * (which will have some generated name like {@code TopLevel$1}) are considered non-local, since they
+     * either are top level, directly declared within the body of {@code TopLevel} or are anonymous
+     * and thus have no name.
+     * <br><br>
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     *     Java Language Specification</a>
+     *
+     * @see #isTopLevelClass()
+     * @see #isNestedClass()
+     * @see #isMemberClass()
+     * @see #isInnerClass()
+     * @see #isAnonymousClass()
+     * @return {@code true} if this class is local class,
+     *         {@code false} otherwise
      */
     @PublicAPI(usage = ACCESS)
     public boolean isLocalClass() {
         return isNestedClass() && !isMemberClass() && !getSimpleName().isEmpty();
+    }
+
+    /**
+     * An <b>anonymous class</b> is an inner class that is automatically derived from a class
+     * creation expression with a declared class body, e.g. {@code new Example(){ <some-body> }}.<br>
+     * The compiler will automatically create a class backing this instance, typically with an
+     * autogenerated name like {@code SomeClass$1}, where {@code SomeClass} is the class holding
+     * the class creation expression.<br><br>
+     *
+     * Example:
+     * <pre><code>
+     * public class TopLevel {
+     *     class InnerClass {}
+     *     static class NestedStaticClass {}
+     *
+     *     void method() {
+     *         class LocalClass {}
+     *
+     *         new AnonymousClass() {}
+     *     }
+     * }
+     * </code></pre>
+     * Only the class the compiler creates for the anonymous class derived from {@code "new AnonymousClass() {}"}
+     * (which will have some generated name like {@code TopLevel$1}) is considered an anonymous class.<br>
+     * All the other classes {@code TopLevel}, {@code InnerClass}, {@code NestedStaticClass} and
+     * {@code LocalClass} are considered non-anonymous.
+     * <br><br>
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     *     Java Language Specification</a>
+     *
+     * @see #isTopLevelClass()
+     * @see #isNestedClass()
+     * @see #isMemberClass()
+     * @see #isInnerClass()
+     * @see #isLocalClass()
+     * @return {@code true} if this class is an anonymous class,
+     *         {@code false} otherwise
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnonymousClass() {
+        return isAnonymousClass;
     }
 
     @Override
@@ -1189,18 +1372,18 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         };
 
         @PublicAPI(usage = ACCESS)
-        public static final DescribedPredicate<JavaClass> ANONYMOUS_CLASSES = new DescribedPredicate<JavaClass>("anonymous classes") {
-            @Override
-            public boolean apply(JavaClass input) {
-                return input.isAnonymousClass();
-            }
-        };
-
-        @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> LOCAL_CLASSES = new DescribedPredicate<JavaClass>("local classes") {
             @Override
             public boolean apply(JavaClass input) {
                 return input.isLocalClass();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> ANONYMOUS_CLASSES = new DescribedPredicate<JavaClass>("anonymous classes") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAnonymousClass();
             }
         };
 
