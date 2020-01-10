@@ -36,13 +36,16 @@ public class ClassWithInnerClass {
         }
     }
 
-    public static class Nested implements CanBeCalled {
+    public static class NestedStatic implements CanBeCalled {
         private CalledClass calledClass;
 
         @Override
         public void call() {
             calledClass.doIt();
         }
+    }
+
+    public interface ImplicitlyNestedStatic {
     }
 
     public interface CanBeCalled {

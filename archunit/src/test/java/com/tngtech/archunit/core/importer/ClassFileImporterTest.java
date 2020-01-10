@@ -275,8 +275,8 @@ public class ClassFileImporterTest {
         assertThat(javaClass.isNestedClass()).as("is nested class").isFalse();
         assertThat(javaClass.isMemberClass()).as("is member class").isFalse();
         assertThat(javaClass.isInnerClass()).as("is inner class").isFalse();
-        assertThat(javaClass.isAnonymousClass()).as("is anonymous class").isFalse();
         assertThat(javaClass.isLocalClass()).as("is local class").isFalse();
+        assertThat(javaClass.isAnonymousClass()).as("is anonymous class").isFalse();
 
         assertThat(classes.get(ClassToImportTwo.class).getModifiers()).containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
     }
@@ -302,18 +302,24 @@ public class ClassFileImporterTest {
                 .containsOnly(EnumToImport.FIRST.name(), EnumToImport.SECOND.name());
     }
 
-    @Test
-    public void imports_simple_static_nested_class() throws Exception {
-        ImportedClasses classes = classesIn("testexamples/innerclassimport");
-        JavaClass staticNestedClass = classes.get(ClassWithInnerClass.Nested.class);
+    @DataProvider
+    public static Object[][] nested_static_classes() {
+        return testForEach(ClassWithInnerClass.NestedStatic.class, ClassWithInnerClass.ImplicitlyNestedStatic.class);
+    }
 
-        assertThat(staticNestedClass).matches(ClassWithInnerClass.Nested.class);
+    @Test
+    @UseDataProvider("nested_static_classes")
+    public void imports_simple_static_nested_class(Class<?> nestedStaticClass) throws Exception {
+        ImportedClasses classes = classesIn("testexamples/innerclassimport");
+        JavaClass staticNestedClass = classes.get(nestedStaticClass);
+
+        assertThat(staticNestedClass).matches(nestedStaticClass);
         assertThat(staticNestedClass.isTopLevelClass()).as("is top level class").isFalse();
         assertThat(staticNestedClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(staticNestedClass.isMemberClass()).as("is member class").isTrue();
         assertThat(staticNestedClass.isInnerClass()).as("is inner class").isFalse();
-        assertThat(staticNestedClass.isAnonymousClass()).as("is anonymous class").isFalse();
         assertThat(staticNestedClass.isLocalClass()).as("is local class").isFalse();
+        assertThat(staticNestedClass.isAnonymousClass()).as("is anonymous class").isFalse();
     }
 
     @Test
@@ -326,8 +332,8 @@ public class ClassFileImporterTest {
         assertThat(innerClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(innerClass.isMemberClass()).as("is member class").isTrue();
         assertThat(innerClass.isInnerClass()).as("is inner class").isTrue();
-        assertThat(innerClass.isAnonymousClass()).as("is anonymous class").isFalse();
         assertThat(innerClass.isLocalClass()).as("is local class").isFalse();
+        assertThat(innerClass.isAnonymousClass()).as("is anonymous class").isFalse();
     }
 
     @Test
@@ -340,8 +346,8 @@ public class ClassFileImporterTest {
         assertThat(anonymousClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(anonymousClass.isMemberClass()).as("is member class").isFalse();
         assertThat(anonymousClass.isInnerClass()).as("is inner class").isTrue();
-        assertThat(anonymousClass.isAnonymousClass()).as("is anonymous class").isTrue();
         assertThat(anonymousClass.isLocalClass()).as("is local class").isFalse();
+        assertThat(anonymousClass.isAnonymousClass()).as("is anonymous class").isTrue();
     }
 
     @Test
@@ -354,8 +360,8 @@ public class ClassFileImporterTest {
         assertThat(localClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(localClass.isMemberClass()).as("is member class").isFalse();
         assertThat(localClass.isInnerClass()).as("is inner class").isTrue();
-        assertThat(localClass.isAnonymousClass()).as("is anonymous class").isFalse();
         assertThat(localClass.isLocalClass()).as("is local class").isTrue();
+        assertThat(localClass.isAnonymousClass()).as("is anonymous class").isFalse();
     }
 
     @Test
