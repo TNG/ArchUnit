@@ -114,7 +114,7 @@ wrapper {
 
 allprojects {
     group = 'com.tngtech.archunit'
-    version = '0.13.0-SNAPSHOT'
+    version = '0.13.0'
 
     repositories {
         mavenCentral()
