@@ -962,7 +962,7 @@ public class ShouldOnlyByClassesThatTest {
     public void areInnerClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areInnerClasses())
-                .on(ClassAccessingNonStaticNestedClass.class, NonStaticNestedClassBeingAccessed.class,
+                .on(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class,
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
@@ -973,10 +973,10 @@ public class ShouldOnlyByClassesThatTest {
     public void areNotInnerClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotInnerClasses())
-                .on(ClassAccessingNonStaticNestedClass.class, NonStaticNestedClassBeingAccessed.class,
+                .on(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class,
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingNonStaticNestedClass.class, NonStaticNestedClassBeingAccessed.class);
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class);
     }
 
     @Test
@@ -1006,7 +1006,7 @@ public class ShouldOnlyByClassesThatTest {
     public void areLocalClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areLocalClasses())
-                .on(ClassAccessingLocalClass.class, ClassAccessingLocalClass.getLocalClass(),
+                .on(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
@@ -1017,10 +1017,10 @@ public class ShouldOnlyByClassesThatTest {
     public void areNotLocalClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotLocalClasses())
-                .on(ClassAccessingLocalClass.class, ClassAccessingLocalClass.getLocalClass(),
+                .on(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingLocalClass.class, ClassAccessingLocalClass.getLocalClass());
+        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass());
     }
 
     @Test
@@ -1323,15 +1323,15 @@ public class ShouldOnlyByClassesThatTest {
     private static class StaticNestedClassBeingAccessed {
     }
 
-    private class ClassAccessingNonStaticNestedClass {
+    private class ClassAccessingInnerMemberClass {
         @SuppressWarnings("unused")
         void access() {
-            new NonStaticNestedClassBeingAccessed();
+            new InnerMemberClassBeingAccessed();
         }
     }
 
     @SuppressWarnings("InnerClassMayBeStatic")
-    private class NonStaticNestedClassBeingAccessed {
+    private class InnerMemberClassBeingAccessed {
     }
 
     private static class ClassAccessingAnonymousClass {
@@ -1348,12 +1348,12 @@ public class ShouldOnlyByClassesThatTest {
         }
     };
 
-    private static class ClassAccessingLocalClass {
+    private static class ClassBeingAccessedByLocalClass {
         static Class<?> getLocalClass() {
             class LocalClass {
                 @SuppressWarnings("unused")
                 void access() {
-                    new ClassAccessingLocalClass();
+                    new ClassBeingAccessedByLocalClass();
                 }
             }
             return LocalClass.class;
