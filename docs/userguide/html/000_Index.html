@@ -611,7 +611,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;0.12.0&lt;/version&gt;
+    &lt;version&gt;0.13.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -620,7 +620,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-    testCompile 'com.tngtech.archunit:archunit-junit4:0.12.0'
+    testCompile 'com.tngtech.archunit:archunit-junit4:0.13.0'
 }</code></pre>
 </div>
 </div>
@@ -651,14 +651,8 @@ A typical Maven configuration could look like this:</p>
     ...
     &lt;dependency&gt;
         &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
-        &lt;artifactId&gt;archunit-junit5-api&lt;/artifactId&gt;
-        &lt;version&gt;0.12.0&lt;/version&gt;
-        &lt;scope&gt;test&lt;/scope&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
-        &lt;artifactId&gt;archunit-junit5-engine&lt;/artifactId&gt;
-        &lt;version&gt;0.12.0&lt;/version&gt;
+        &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
+        &lt;version&gt;0.13.0&lt;/version&gt;
         &lt;scope&gt;test&lt;/scope&gt;
     &lt;/dependency&gt;
 &lt;/dependencies&gt;
@@ -687,8 +681,7 @@ Unfortunately Maven lacks a test runtime scope, so the engine dependency must be
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
     ...
-    testCompile 'com.tngtech.archunit:archunit-junit5-api:0.12.0'
-    testRuntime 'com.tngtech.archunit:archunit-junit5-engine:0.12.0'
+    testCompile 'com.tngtech.archunit:archunit-junit5:0.13.0'
 }</code></pre>
 </div>
 </div>
@@ -705,7 +698,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.12.0&lt;/version&gt;
+    &lt;version&gt;0.13.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -714,7 +707,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-   testCompile 'com.tngtech.archunit:archunit:0.12.0'
+   testCompile 'com.tngtech.archunit:archunit:0.13.0'
 }</code></pre>
 </div>
 </div>
@@ -1322,7 +1315,7 @@ Consider the following annotation:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaAnnotation<?> annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnotation");
+<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaAnnotation&lt;?&gt; annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnotation");
 // result is untyped, since it might not be on the classpath (e.g. enums)
 Object value = annotation.get("value");</code></pre>
 </div>
@@ -2141,7 +2134,8 @@ propTwo=valueTwo</code></pre>
 <h5 id="_violation_line_matcher"><a class="anchor" href="#_violation_line_matcher"></a>Violation Line Matcher</h5>
 <div class="paragraph">
 <p>The <code>ViolationLineMatcher</code> compares lines from occurred violations with lines from the store.
-The default implementation ignores line numbers and counts lines as equivalent when all other details match.
+The default implementation ignores line numbers and numbers of anonymous classes or lambda expressions,
+and counts lines as equivalent when all other details match.
 A custom <code>ViolationLineMatcher</code> can again either be defined programmatically:</p>
 </div>
 <div class="listingblock">
