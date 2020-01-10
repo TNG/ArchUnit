@@ -988,6 +988,42 @@ public interface ClassesShould {
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeEnums();
 
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beTopLevelClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeTopLevelClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beNestedClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeNestedClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beMemberClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeMemberClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beInnerClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeInnerClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beAnonymousClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeAnonymousClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beLocalClasses();
+
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeLocalClasses();
+
     /**
      * Asserts that the rule matches exactly the given class.
      *

@@ -271,8 +271,12 @@ public class ClassFileImporterTest {
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isFalse();
         assertThat(javaClass.getEnclosingClass()).as("enclosing class").isAbsent();
+        assertThat(javaClass.isTopLevelClass()).as("is top level class").isTrue();
+        assertThat(javaClass.isNestedClass()).as("is nested class").isFalse();
+        assertThat(javaClass.isMemberClass()).as("is member class").isFalse();
         assertThat(javaClass.isInnerClass()).as("is inner class").isFalse();
-        assertThat(javaClass.isAnonymous()).as("is anonymous class").isFalse();
+        assertThat(javaClass.isLocalClass()).as("is local class").isFalse();
+        assertThat(javaClass.isAnonymousClass()).as("is anonymous class").isFalse();
 
         assertThat(classes.get(ClassToImportTwo.class).getModifiers()).containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
     }
@@ -298,15 +302,24 @@ public class ClassFileImporterTest {
                 .containsOnly(EnumToImport.FIRST.name(), EnumToImport.SECOND.name());
     }
 
-    @Test
-    public void imports_simple_static_nested_class() throws Exception {
-        ImportedClasses classes = classesIn("testexamples/innerclassimport");
-        JavaClass staticNestedClass = classes.get(ClassWithInnerClass.Nested.class);
+    @DataProvider
+    public static Object[][] nested_static_classes() {
+        return testForEach(ClassWithInnerClass.NestedStatic.class, ClassWithInnerClass.ImplicitlyNestedStatic.class);
+    }
 
-        assertThat(staticNestedClass).matches(ClassWithInnerClass.Nested.class);
+    @Test
+    @UseDataProvider("nested_static_classes")
+    public void imports_simple_static_nested_class(Class<?> nestedStaticClass) throws Exception {
+        ImportedClasses classes = classesIn("testexamples/innerclassimport");
+        JavaClass staticNestedClass = classes.get(nestedStaticClass);
+
+        assertThat(staticNestedClass).matches(nestedStaticClass);
+        assertThat(staticNestedClass.isTopLevelClass()).as("is top level class").isFalse();
         assertThat(staticNestedClass.isNestedClass()).as("is nested class").isTrue();
+        assertThat(staticNestedClass.isMemberClass()).as("is member class").isTrue();
         assertThat(staticNestedClass.isInnerClass()).as("is inner class").isFalse();
-        assertThat(staticNestedClass.isAnonymous()).as("is anonymous class").isFalse();
+        assertThat(staticNestedClass.isLocalClass()).as("is local class").isFalse();
+        assertThat(staticNestedClass.isAnonymousClass()).as("is anonymous class").isFalse();
     }
 
     @Test
@@ -315,9 +328,12 @@ public class ClassFileImporterTest {
         JavaClass innerClass = classes.get(ClassWithInnerClass.Inner.class);
 
         assertThat(innerClass).matches(ClassWithInnerClass.Inner.class);
+        assertThat(innerClass.isTopLevelClass()).as("is top level class").isFalse();
         assertThat(innerClass.isNestedClass()).as("is nested class").isTrue();
+        assertThat(innerClass.isMemberClass()).as("is member class").isTrue();
         assertThat(innerClass.isInnerClass()).as("is inner class").isTrue();
-        assertThat(innerClass.isAnonymous()).as("is anonymous class").isFalse();
+        assertThat(innerClass.isLocalClass()).as("is local class").isFalse();
+        assertThat(innerClass.isAnonymousClass()).as("is anonymous class").isFalse();
     }
 
     @Test
@@ -326,9 +342,12 @@ public class ClassFileImporterTest {
         JavaClass anonymousClass = classes.get(ClassWithInnerClass.class.getName() + "$1");
 
         assertThat(anonymousClass).matches(Class.forName(anonymousClass.getName()));
+        assertThat(anonymousClass.isTopLevelClass()).as("is top level class").isFalse();
         assertThat(anonymousClass.isNestedClass()).as("is nested class").isTrue();
+        assertThat(anonymousClass.isMemberClass()).as("is member class").isFalse();
         assertThat(anonymousClass.isInnerClass()).as("is inner class").isTrue();
-        assertThat(anonymousClass.isAnonymous()).as("class is anonymous").isTrue();
+        assertThat(anonymousClass.isLocalClass()).as("is local class").isFalse();
+        assertThat(anonymousClass.isAnonymousClass()).as("is anonymous class").isTrue();
     }
 
     @Test
@@ -337,9 +356,12 @@ public class ClassFileImporterTest {
         JavaClass localClass = classes.get(ClassWithInnerClass.class.getName() + "$1LocalCaller");
 
         assertThat(localClass).matches(Class.forName(localClass.getName()));
+        assertThat(localClass.isTopLevelClass()).as("is top level class").isFalse();
         assertThat(localClass.isNestedClass()).as("is nested class").isTrue();
+        assertThat(localClass.isMemberClass()).as("is member class").isFalse();
         assertThat(localClass.isInnerClass()).as("is inner class").isTrue();
-        assertThat(localClass.isAnonymous()).as("class is anonymous").isFalse();
+        assertThat(localClass.isLocalClass()).as("is local class").isTrue();
+        assertThat(localClass.isAnonymousClass()).as("is anonymous class").isFalse();
     }
 
     @Test
