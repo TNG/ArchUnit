@@ -1491,12 +1491,12 @@ public class ClassesShouldTest {
 
     @DataProvider
     public static Object[][] beInnerClasses_rules() {
-        Class<?> nonStaticNestedClass = NestedClassWithSomeMoreClasses.NonStaticNestedClass.class;
+        Class<?> innerMemberClass = NestedClassWithSomeMoreClasses.InnerMemberClass.class;
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return $$(
-                $(classes().should().beInnerClasses(), nonStaticNestedClass, staticNestedClass),
-                $(classes().should(ArchConditions.beInnerClasses()), nonStaticNestedClass, staticNestedClass)
+                $(classes().should().beInnerClasses(), innerMemberClass, staticNestedClass),
+                $(classes().should(ArchConditions.beInnerClasses()), innerMemberClass, staticNestedClass)
         );
     }
 
@@ -1513,7 +1513,7 @@ public class ClassesShouldTest {
 
     @DataProvider
     public static Object[][] notBeInnerClasses_rules() {
-        Class<?> nonStaticNestedClass = NestedClassWithSomeMoreClasses.NonStaticNestedClass.class;
+        Class<?> nonStaticNestedClass = NestedClassWithSomeMoreClasses.InnerMemberClass.class;
         Class<?> staticNestedClass = NestedClassWithSomeMoreClasses.StaticNestedClass.class;
 
         return $$(
@@ -1952,7 +1952,7 @@ public class ClassesShouldTest {
         }
 
         @SuppressWarnings("InnerClassMayBeStatic")
-        class NonStaticNestedClass {
+        class InnerMemberClass {
         }
 
         static Class<?> getAnonymousClass() {

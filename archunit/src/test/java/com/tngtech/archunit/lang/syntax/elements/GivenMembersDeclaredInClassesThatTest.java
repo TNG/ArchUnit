@@ -655,7 +655,7 @@ public class GivenMembersDeclaredInClassesThatTest {
     public void areTopLevelClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areTopLevelClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
 
         assertThatMembers(members).matchInAnyOrderMembersOf(String.class);
@@ -665,12 +665,12 @@ public class GivenMembersDeclaredInClassesThatTest {
     public void areNotTopLevelClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNotTopLevelClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
 
         assertThatMembers(members)
                 .matchInAnyOrderMembersOf(NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
     }
 
@@ -678,12 +678,12 @@ public class GivenMembersDeclaredInClassesThatTest {
     public void areNestedClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNestedClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
 
         assertThatMembers(members)
                 .matchInAnyOrderMembersOf(NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
     }
 
@@ -691,7 +691,7 @@ public class GivenMembersDeclaredInClassesThatTest {
     public void areNotNestedClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNotNestedClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
 
         assertThatMembers(members).matchInAnyOrderMembersOf(String.class);
@@ -701,19 +701,19 @@ public class GivenMembersDeclaredInClassesThatTest {
     public void areMemberClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areMemberClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
 
         assertThatMembers(members)
                 .matchInAnyOrderMembersOf(NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class);
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class);
     }
 
     @Test
     public void areNotMemberClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNotMemberClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
 
         assertThatMembers(members).matchInAnyOrderMembersOf(String.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
@@ -724,10 +724,10 @@ public class GivenMembersDeclaredInClassesThatTest {
     public void areInnerClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areInnerClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatMembers(members).matchInAnyOrderMembersOf(NestedClassWithSomeMoreClasses.NonStaticNestedClass.class,
+        assertThatMembers(members).matchInAnyOrderMembersOf(NestedClassWithSomeMoreClasses.InnerMemberClass.class,
                 NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
     }
 
@@ -735,7 +735,7 @@ public class GivenMembersDeclaredInClassesThatTest {
     public void areNotInnerClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNotInnerClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
-                        NestedClassWithSomeMoreClasses.NonStaticNestedClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+                        NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
 
         assertThatMembers(members)
@@ -905,7 +905,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         }
 
         @SuppressWarnings("InnerClassMayBeStatic")
-        class NonStaticNestedClass {
+        class InnerMemberClass {
             String member;
         }
 

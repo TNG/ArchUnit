@@ -837,9 +837,9 @@ public class ShouldClassesThatTest {
     public void areInnerClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areInnerClasses())
-                .on(ClassAccessingNonStaticNestedClass.class, ClassAccessingTopLevelClass.class);
+                .on(ClassAccessingInnerMemberClass.class, ClassAccessingTopLevelClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingNonStaticNestedClass.class);
+        assertThatClasses(classes).matchInAnyOrder(ClassAccessingInnerMemberClass.class);
     }
 
     @Test
@@ -847,7 +847,7 @@ public class ShouldClassesThatTest {
     public void areNotInnerClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areNotInnerClasses())
-                .on(ClassAccessingNonStaticNestedClass.class, ClassAccessingTopLevelClass.class);
+                .on(ClassAccessingInnerMemberClass.class, ClassAccessingTopLevelClass.class);
 
         assertThatClasses(classes).matchInAnyOrder(ClassAccessingTopLevelClass.class);
     }
@@ -1821,14 +1821,14 @@ public class ShouldClassesThatTest {
         }
     }
 
-    private static class ClassAccessingNonStaticNestedClass {
+    private static class ClassAccessingInnerMemberClass {
         @SuppressWarnings("unused")
         void access() {
-            new NonStaticNestedClass().access();
+            new InnerMemberClass().access();
         }
 
         @SuppressWarnings("InnerClassMayBeStatic")
-        private class NonStaticNestedClass {
+        private class InnerMemberClass {
             void access() {
             }
         }
