@@ -73,6 +73,11 @@ releaseProjects*.with {
                     name 'Peter Gafert'
                     email 'peter.gafert@tngtech.com'
                 }
+                developer {
+                    id 'rweisleder'
+                    name 'Roland Weisleder'
+                    email 'roland.weisleder@googlemail.com'
+                }
             }
         }
     }
