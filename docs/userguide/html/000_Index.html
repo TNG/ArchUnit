@@ -628,59 +628,28 @@ Maven Central:</p>
 <div class="sect2">
 <h3 id="_junit_5"><a class="anchor" href="#_junit_5"></a>2.2. JUnit 5</h3>
 <div class="paragraph">
-<p>ArchUnit&#8217;s JUnit 5 artifacts follows the pattern of JUnit Jupiter. There is one artifact containing
+<p>ArchUnit&#8217;s JUnit 5 artifacts follow the pattern of JUnit Jupiter. There is one artifact containing
 the API, i.e. the compile time dependencies to write tests. Then there is another artifact containing
-the actual <code>TestEngine</code> used at runtime. The dependencies can be obtained from Maven Central.
-A typical Maven configuration could look like this:</p>
+the actual <code>TestEngine</code> used at runtime. Just like JUnit Jupiter ArchUnit offers one convenience
+artifact transitively including both API and engine with the correct scope, which in turn can be added
+as a test compile dependency. Thus to include ArchUnit&#8217;s JUnit 5 support, simply add the following dependency
+from Maven Central:</p>
 </div>
 <div class="listingblock">
 <div class="title">pom.xml</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">...
-&lt;build&gt;
-    &lt;plugins&gt;
-        ...
-        &lt;plugin&gt;
-            &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
-            &lt;version&gt;2.22.0&lt;/version&gt;
-        &lt;/plugin&gt;
-    &lt;/plugins&gt;
-&lt;/build&gt;
-...
-&lt;dependencies&gt;
-    ...
-    &lt;dependency&gt;
-        &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
-        &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-        &lt;version&gt;0.13.0&lt;/version&gt;
-        &lt;scope&gt;test&lt;/scope&gt;
-    &lt;/dependency&gt;
-&lt;/dependencies&gt;
-...</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
+    &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
+    &lt;version&gt;0.13.0&lt;/version&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
 </div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-Unfortunately Maven lacks a test runtime scope, so the engine dependency must be added
-           to the test compile scope. Adding the engine dependency to the surefire-plugin
-           unfortunately does not work in the current version.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>The configuration for Gradle allows to clearly distinguish a test runtime scope:</p>
 </div>
 <div class="listingblock">
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code>dependencies {
-    ...
     testCompile 'com.tngtech.archunit:archunit-junit5:0.13.0'
 }</code></pre>
 </div>
