@@ -32,48 +32,28 @@ dependencies {
 
 === JUnit 5
 
-ArchUnit's JUnit 5 artifacts follows the pattern of JUnit Jupiter. There is one artifact containing
+ArchUnit's JUnit 5 artifacts follow the pattern of JUnit Jupiter. There is one artifact containing
 the API, i.e. the compile time dependencies to write tests. Then there is another artifact containing
-the actual `TestEngine` used at runtime. The dependencies can be obtained from Maven Central.
-A typical Maven configuration could look like this:
+the actual `TestEngine` used at runtime. Just like JUnit Jupiter ArchUnit offers one convenience
+artifact transitively including both API and engine with the correct scope, which in turn can be added
+as a test compile dependency. Thus to include ArchUnit's JUnit 5 support, simply add the following dependency
+from Maven Central:
 
 [source,xml,options="nowrap"]
 .pom.xml
 ----
-...
-<build>
-    <plugins>
-        ...
-        <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.22.0</version>
-        </plugin>
-    </plugins>
-</build>
-...
-<dependencies>
-    ...
-    <dependency>
-        <groupId>com.tngtech.archunit</groupId>
-        <artifactId>archunit-junit5</artifactId>
-        <version>0.13.0</version>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-...
+<dependency>
+    <groupId>com.tngtech.archunit</groupId>
+    <artifactId>archunit-junit5</artifactId>
+    <version>0.13.0</version>
+    <scope>test</scope>
+</dependency>
 ----
-
-IMPORTANT: Unfortunately Maven lacks a test runtime scope, so the engine dependency must be added
-           to the test compile scope. Adding the engine dependency to the surefire-plugin
-           unfortunately does not work in the current version.
-
-The configuration for Gradle allows to clearly distinguish a test runtime scope:
 
 [source,options="nowrap"]
 .build.gradle
 ----
 dependencies {
-    ...
     testCompile 'com.tngtech.archunit:archunit-junit5:0.13.0'
 }
 ----
