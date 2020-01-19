@@ -429,19 +429,6 @@ const SvgSelectionMock = class extends D3ElementMock {
     return Vector.between(this.absoluteStartPosition, this.absoluteEndPosition).length();
   }
 
-  /**
-   * checks if this svg-element, which is assumed to belong to a node, is in the foreground among all svg-element, that belong to nodes
-   * @return {*}
-   */
-  //FIXME: remove
-  isNodeInForeground() {
-    if (this._parent) {
-      return this._parent._subElements[this._parent._subElements.length - 1] === this && this._parent._parent.isNodeInForeground(); //skip the
-      //svg-element containing the children of the parent node
-    }
-    return true;
-  }
-
   isInForegroundWithinParent() {
     if (this._parent) {
       return this._parent._subElements[this._parent._subElements.length - 1] === this;
