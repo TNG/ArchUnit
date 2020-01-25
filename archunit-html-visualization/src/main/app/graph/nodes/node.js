@@ -583,23 +583,9 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
           siblingContainingTarget: d.targetNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent)
         }));
 
-      const getDependentNodesWithDependenciesOf = node => {
-        const dependenciesFromNode = dependenciesWithinParent.filter(d => d.siblingContainingOrigin === node);
-        const dependenciesToNode = dependenciesWithinParent.filter(d => d.siblingContainingTarget === node);
-
-        const nodesWithDependencies = new Map();
-        const dependentNodes = dependenciesFromNode.map(d => d.siblingContainingTarget)
-          .concat(dependenciesToNode.map(d => d.siblingContainingOrigin));
-        dependentNodes.forEach(node => nodesWithDependencies.set(node, []));
-
-        dependenciesFromNode.forEach(d => nodesWithDependencies.get(d.siblingContainingTarget).push(d));
-        dependenciesToNode.forEach(d => nodesWithDependencies.get(d.siblingContainingOrigin).push(d));
-        return nodesWithDependencies;
-      };
-
       const descendantsOfEachNode = new Map();
 
-      const dependentNodesWithDependencies = getDependentNodesWithDependenciesOf(this);
+      const dependentNodesWithDependencies = this._getDependentNodesOfNodeFrom(dependenciesWithinParent);
       const dependentNodesOfThis = [...dependentNodesWithDependencies.keys()];
 
       descendantsOfEachNode.set(this, dependentNodesOfThis);
@@ -671,6 +657,20 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
       this._parent._focus(this);
     }
+
+    _getDependentNodesOfNodeFrom(dependenciesWithinParent) {
+      const dependenciesFromNode = dependenciesWithinParent.filter(d => d.siblingContainingOrigin === this);
+      const dependenciesToNode = dependenciesWithinParent.filter(d => d.siblingContainingTarget === this);
+
+      const nodesWithDependencies = new Map();
+      const dependentNodes = dependenciesFromNode.map(d => d.siblingContainingTarget)
+      .concat(dependenciesToNode.map(d => d.siblingContainingOrigin));
+      dependentNodes.forEach(node => nodesWithDependencies.set(node, []));
+
+      dependenciesFromNode.forEach(d => nodesWithDependencies.get(d.siblingContainingTarget).push(d));
+      dependenciesToNode.forEach(d => nodesWithDependencies.get(d.siblingContainingOrigin).push(d));
+      return nodesWithDependencies;
+    };
 
     _hide() {
       this._view.hide();
