@@ -591,25 +591,15 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       descendantsOfEachNode.set(this, dependentNodesOfThis);
       dependentNodesOfThis.forEach(node => descendantsOfEachNode.set(node, []));
 
-      const getEndPointOfDependencyBelongingToNode = (dependency, node) => {
-        if (dependency.siblingContainingOrigin === node) {
-          return dependency.dependency.startPoint;
-        } else if (dependency.siblingContainingTarget === node) {
-          return dependency.dependency.endPoint;
-        } else {
-          throw new Error('the node must be one the predecessor in the current node of one of the end nodes of the dependency');
-        }
-      };
-
       dependentNodesOfThis.forEach((node1, i) =>
         dependentNodesOfThis.slice(i + 1).forEach(node2 => {
           if (node1._nodeShape.overlapsWith(node2._nodeShape)) {
             const dependencies1 = dependentNodesWithDependencies.get(node1);
             const dependencies2 = dependentNodesWithDependencies.get(node2);
 
-            if (dependencies1.some(d => node2._nodeShape.containsPoint(getEndPointOfDependencyBelongingToNode(d, node1)))) {
+            if (dependencies1.some(d => node2._nodeShape.containsPoint(this._getEndPointOfDependencyBelongingToNode(d, node1)))) {
               descendantsOfEachNode.get(node1).push(node2);
-            } else if (dependencies2.some(d => node1._nodeShape.containsPoint(getEndPointOfDependencyBelongingToNode(d, node2)))) {
+            } else if (dependencies2.some(d => node1._nodeShape.containsPoint(this._getEndPointOfDependencyBelongingToNode(d, node2)))) {
               descendantsOfEachNode.get(node2).push(node1);
             }
           }
@@ -657,6 +647,16 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
       this._parent._focus(this);
     }
+
+    _getEndPointOfDependencyBelongingToNode(dependency, node) {
+      if (dependency.siblingContainingOrigin === node) {
+        return dependency.dependency.startPoint;
+      } else if (dependency.siblingContainingTarget === node) {
+        return dependency.dependency.endPoint;
+      } else {
+        throw new Error('the node must be one the predecessor in the current node of one of the end nodes of the dependency');
+      }
+    };
 
     _getDependentNodesOfNodeFrom(dependenciesWithinParent) {
       const dependenciesFromNode = dependenciesWithinParent.filter(d => d.siblingContainingOrigin === this);
