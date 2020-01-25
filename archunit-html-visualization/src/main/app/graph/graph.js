@@ -35,7 +35,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
     }
 
     _updateFilterAndRelayout(filterKey) {
-      this._root.doNextAndWaitFor(() => this._filterCollection.updateFilter(filterKey));
+      this._root.scheduleAction(() => this._filterCollection.updateFilter(filterKey));
       // the following setTimeout technique reduces the number of calls for a complete relayout to one, however, it cannot be guaranteed to have exactly one call especially on slow machines
       if (this._updateFiltersTimeout !== null) {
         clearTimeout(this._updateFiltersTimeout);
@@ -86,7 +86,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
 
     _onNodeFilterStringChanged(newNodeFilterString) {
       this._menu.changeNodeNameFilter(newNodeFilterString);
-      this._root.doNextAndWaitFor(() => this._filterCollection.updateFilter('nodes.name'));
+      this._root.scheduleAction(() => this._filterCollection.updateFilter('nodes.name'));
     }
 
     _onHideNodesWithoutViolationsChanged(hide) {

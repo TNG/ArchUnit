@@ -412,7 +412,7 @@ describe('Filters', () => {
         it('when the name filter is empty at the beginning', async () => {
           const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.first.SomeClass', 'my.company.first.OtherClass',
             'my.company.second.SomeClass', 'my.company.second.OtherClass', {
-              onNodeFilterStringChanged: () => root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.name'))
+              onNodeFilterStringChanged: () => root.scheduleAction(() => filterCollection.updateFilter('nodes.name'))
             });
 
           const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
@@ -431,7 +431,7 @@ describe('Filters', () => {
           const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.first.SomeClass', 'my.company.first.OtherClass',
             'my.company.second.SomeClass', 'my.company.second.OtherClass',
             'my.company.third.SomeClass', {
-              onNodeFilterStringChanged: () => root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.name'))
+              onNodeFilterStringChanged: () => root.scheduleAction(() => filterCollection.updateFilter('nodes.name'))
             });
 
           const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
@@ -451,7 +451,7 @@ describe('Filters', () => {
         it('right after the name filter was changed, i.e. before the last relayout was finished', async () => {
           const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.first.SomeClass', 'my.company.first.OtherClass',
             'my.company.second.SomeClass', 'my.company.second.OtherClass', {
-              onNodeFilterStringChanged: () => root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.name'))
+              onNodeFilterStringChanged: () => root.scheduleAction(() => filterCollection.updateFilter('nodes.name'))
             });
 
           const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
@@ -467,7 +467,7 @@ describe('Filters', () => {
         it('when several nodes are clicked directly successively', async () => {
           const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.first.SomeClass', 'my.company.first.OtherClass',
             'my.company.second.SomeClass', 'my.company.second.OtherClass', 'my.otherCompany.first.SomeClass', 'my.otherCompany.first.OtherClass', {
-              onNodeFilterStringChanged: () => root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.name'))
+              onNodeFilterStringChanged: () => root.scheduleAction(() => filterCollection.updateFilter('nodes.name'))
             });
 
           const nodeListenerMock = createListenerMock('onLayoutChanged');
@@ -492,7 +492,7 @@ describe('Filters', () => {
 
       it('which does no relayout when the ctrl-key is kept pressed', async () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.first.SomeClass', 'my.company.first.OtherClass', {
-          onNodeFilterStringChanged: () => root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.name'))
+          onNodeFilterStringChanged: () => root.scheduleAction(() => filterCollection.updateFilter('nodes.name'))
         });
 
         const nodeListenerMock = createListenerMock('onLayoutChanged');
@@ -507,7 +507,7 @@ describe('Filters', () => {
 
       it('which does a single relayout when the ctrl-key is left again', async () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.first.SomeClass', 'my.company.first.OtherClass', {
-          onNodeFilterStringChanged: () => root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.name'))
+          onNodeFilterStringChanged: () => root.scheduleAction(() => filterCollection.updateFilter('nodes.name'))
         });
 
         const nodeListenerMock = createListenerMock('onLayoutChanged');
@@ -574,7 +574,7 @@ describe('Filters', () => {
         'my.company.second.SomeClass$OtherInnerClass', 'my.company.second.SomeInterface',
         'my.otherCompany.second.SomeClass', 'my.otherCompany.second.SomeInterface',
         'my.company.third.SomeClass', 'my.otherCompany.third.OtherClass', {
-          onNodeFilterStringChanged: () => root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.name'))
+          onNodeFilterStringChanged: () => root.scheduleAction(() => filterCollection.updateFilter('nodes.name'))
         });
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();
@@ -629,7 +629,7 @@ describe('Filters', () => {
         'my.company.second.SomeClass$OtherInnerClass', 'my.company.second.SomeInterface',
         'my.otherCompany.second.SomeClass', 'my.otherCompany.second.SomeInterface',
         'my.company.third.SomeClass', 'my.otherCompany.third.OtherClass', {
-          onNodeFilterStringChanged: () => root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.name'))
+          onNodeFilterStringChanged: () => root.scheduleAction(() => filterCollection.updateFilter('nodes.name'))
         });
 
       const filterCollection = buildFilterCollection().addFilterGroup(root.filterGroup).build();

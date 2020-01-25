@@ -6,10 +6,10 @@ const filterOn = (root, filterCollection) => {
 
   const applyFilters = () => {
     if (applyTypeFilter) {
-      root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.type'));
+      root.scheduleAction(() => filterCollection.updateFilter('nodes.type'));
     }
     if (applyNameFilter) {
-      root.doNextAndWaitFor(() => filterCollection.updateFilter('nodes.name'));
+      root.scheduleAction(() => filterCollection.updateFilter('nodes.name'));
     }
     root.enforceCompleteRelayout();
   };

@@ -249,12 +249,12 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     enforceCompleteRelayout() {
-      this.doNextAndWaitFor(() => this._relayoutCompletely());
+      this.scheduleAction(() => this._relayoutCompletely());
     }
 
     relayoutCompletely() {
       this._mustRelayout = true;
-      this.doNextAndWaitFor(() => {
+      this.scheduleAction(() => {
         if (this._mustRelayout) {
           this._mustRelayout = false;
           return this._relayoutCompletely();
@@ -262,8 +262,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       });
     }
 
-    //FIXME: rename to scheduleAction
-    doNextAndWaitFor(func) {
+    scheduleAction(func) {
       this._updatePromise = this._updatePromise.then(func);
     }
 
@@ -560,7 +559,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
      * @param dy The delta in y-direction
      */
     _drag(dx, dy) {
-      this._root.doNextAndWaitFor(() => {
+      this._root.scheduleAction(() => {
         this._nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
         this._listeners.forEach(listener => listener.onNodeRimChanged(this)); //FIXME: does this reallay make sense??
         this._focus();
@@ -713,7 +712,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
     _changeFoldIfInnerNodeAndRelayout() {
       if (!this._isLeaf()) {
-        this._root.doNextAndWaitFor(() => this._setFolded(!this._folded, () => this._listeners.forEach(listener => listener.onFoldFinished(this))));
+        this._root.scheduleAction(() => this._setFolded(!this._folded, () => this._listeners.forEach(listener => listener.onFoldFinished(this))));
         this._root.enforceCompleteRelayout();
       }
     }
