@@ -561,7 +561,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     _drag(dx, dy) {
       this._root.scheduleAction(() => {
         this._nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
-        this._listeners.forEach(listener => listener.onNodeRimChanged(this)); //FIXME: does this reallay make sense??
+        this._listeners.forEach(listener => listener.onNodeRimChanged(this)); //FIXME: does this really make sense??
         this._focus();
       });
     }
