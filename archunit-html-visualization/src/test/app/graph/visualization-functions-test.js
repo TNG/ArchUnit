@@ -104,5 +104,21 @@ describe('Calculate default radius', () => {
     expect(radius).to.equal(expectedWidth);
   });
 
-  //TODO: test for calculateDefaultRadiusForNodeWithOneChild
+  it('should calculate the default radius for a node with one child as square root of half text size and circle text padding', () => {
+    const calculateDefaultRadiusForNodeWithOneChild = visualizationFunctionsFactory.newInstance().calculateDefaultRadiusForNodeWithOneChild;
+    const nodeWithChild = nodeWithChildren('Long name');
+
+    const radius = calculateDefaultRadiusForNodeWithOneChild(nodeWithChild, 20, 20);
+
+    expect(radius).to.equal(44.070965498840614);
+  });
+
+  it(`should calculate the default radius for a node with one child as square root with respect to minimum ${expectedDefaultRadius}px`, () => {
+    const calculateDefaultRadiusForNodeWithOneChild = visualizationFunctionsFactory.newInstance().calculateDefaultRadiusForNodeWithOneChild;
+    const nodeWithChild = nodeWithChildren('Long name');
+
+    const radius = calculateDefaultRadiusForNodeWithOneChild(nodeWithChild, 10, 10);
+
+    expect(radius).to.equal(40);
+  });
 });
