@@ -185,7 +185,10 @@ def javaConfigs = [
         [suffix: "java8", javaVersion: JavaVersion.VERSION_1_8, jdkProp: "java8Home"],
         [suffix: "java9", javaVersion: JavaVersion.VERSION_1_9, jdkProp: "java9Home"],
         [suffix: "java10", javaVersion: JavaVersion.VERSION_1_10, jdkProp: "java10Home"],
-        [suffix: "java11", javaVersion: JavaVersion.VERSION_11, jdkProp: "java11Home"]
+        [suffix: "java11", javaVersion: JavaVersion.VERSION_11, jdkProp: "java11Home"],
+        [suffix: "java12", javaVersion: JavaVersion.VERSION_HIGHER, jdkProp: "java12Home"],
+        [suffix: "java13", javaVersion: JavaVersion.VERSION_HIGHER, jdkProp: "java13Home"],
+        [suffix: "java14", javaVersion: JavaVersion.VERSION_HIGHER, jdkProp: "java14Home"]
 ]
 
 javaConfigs = javaConfigs.findAll { project.hasProperty(it.jdkProp) }
