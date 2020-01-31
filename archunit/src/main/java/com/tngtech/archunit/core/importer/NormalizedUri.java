@@ -16,16 +16,25 @@
 package com.tngtech.archunit.core.importer;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Objects;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 
 class NormalizedUri {
     private final URI uri;
+    private final String firstSegment;
+    private final String tailSegments;
 
     private NormalizedUri(URI uri) {
-        String uriString = uri.toString();
+        String uriString = uri.normalize().toString();
         uriString = uriString.replaceAll("://*", ":/"); // this is how getClass().getResource(..) returns URLs
         uriString = !uriString.endsWith("/") && !uriString.endsWith(".class") ? uriString + "/" : uriString; // we always want folders to end in '/'
         this.uri = URI.create(uriString);
+        List<String> path = Splitter.on("/").omitEmptyStrings().splitToList(this.uri.toString().replaceAll("^.*:", ""));
+        firstSegment = path.get(0);
+        tailSegments = path.size() < 2 ? "" : Joiner.on("/").join(path.subList(1, path.size()));
     }
 
     URI toURI() {
@@ -34,6 +43,14 @@ class NormalizedUri {
 
     String getScheme() {
         return uri.getScheme();
+    }
+
+    public String getFirstSegment() {
+        return firstSegment;
+    }
+
+    public String getTailSegments() {
+        return tailSegments;
     }
 
     @Override
