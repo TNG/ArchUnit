@@ -2,8 +2,8 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.lang.module.ModuleFinder;
+import java.lang.module.ModuleReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
@@ -19,6 +19,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModuleLocationFactoryTest {
     private ModuleLocationFactory locationFactory = new ModuleLocationFactory();
+
+    @Test
+    public void reads_single_entry_of_jrt() throws URISyntaxException {
+        URI jrtJavaIoFile = uriOf(File.class);
+        Location jrtJavaIo = locationFactory.create(jrtJavaIoFile);
+
+        assertThat(jrtJavaIo.iterateEntries())
+                .containsOnly(NormalizedResourceName.from(File.class.getName().replace('.', '/') + ".class"));
+    }
 
     @Test
     public void iterates_package_of_jrt() throws URISyntaxException {
@@ -53,9 +62,8 @@ public class ModuleLocationFactoryTest {
     }
 
     @Test
-    @SuppressWarnings("ConstantConditions")
-    public void filters_out_module_infos() throws IOException {
-        URI jrtUri = ModuleFinder.ofSystem().find("java.base").get().location().get();
+    public void filters_out_module_infos() {
+        URI jrtUri = ModuleFinder.ofSystem().find("java.base").flatMap(ModuleReference::location).get();
 
         ClassFileSource source = Location.of(jrtUri).asClassFileSource(new ImportOptions());
 
@@ -67,6 +75,7 @@ public class ModuleLocationFactoryTest {
                 .isFalse();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private URI createModuleUriContaining(Class<?> clazz) throws URISyntaxException {
         URI someJrt = uriOf(clazz);
         String moduleUri = someJrt.toString().replaceAll("(jrt:/[^/]+).*", "$1");
