@@ -64,7 +64,7 @@ import static java.util.Collections.emptySet;
 public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
     private final Optional<Source> source;
     private final SourceCodeLocation sourceCodeLocation;
-    private final JavaType javaType;
+    private final JavaClassDescriptor descriptor;
     private JavaPackage javaPackage;
     private final boolean isInterface;
     private final boolean isEnum;
@@ -101,7 +101,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
-        javaType = checkNotNull(builder.getJavaType());
+        descriptor = checkNotNull(builder.getDescriptor());
         isInterface = builder.isInterface();
         isEnum = builder.isEnum();
         isAnonymousClass = builder.isAnonymousClass();
@@ -138,7 +138,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @Override
     @PublicAPI(usage = ACCESS)
     public String getName() {
-        return javaType.getName();
+        return descriptor.getFullyQualifiedClassName();
     }
 
     /**
@@ -152,7 +152,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     @PublicAPI(usage = ACCESS)
     public String getSimpleName() {
-        return javaType.getSimpleName();
+        return descriptor.getSimpleClassName();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -166,12 +166,12 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     @PublicAPI(usage = ACCESS)
     public String getPackageName() {
-        return javaType.getPackageName();
+        return descriptor.getPackageName();
     }
 
     @PublicAPI(usage = ACCESS)
     public boolean isPrimitive() {
-        return javaType.isPrimitive();
+        return descriptor.isPrimitive();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -213,7 +213,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     @PublicAPI(usage = ACCESS)
     public boolean isArray() {
-        return javaType.isArray();
+        return descriptor.isArray();
     }
 
     /**
@@ -1208,7 +1208,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     private void completeComponentType(ImportContext context) {
         JavaClass current = this;
         while (current.isArray() && !current.componentType.isPresent()) {
-            JavaClass componentType = context.resolveClass(current.javaType.tryGetComponentType().get().getName());
+            JavaClass componentType = context.resolveClass(current.descriptor.tryGetComponentType().get().getFullyQualifiedClassName());
             current.componentType = Optional.of(componentType);
             current = componentType;
         }
@@ -1216,7 +1216,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     @Override
     public String toString() {
-        return "JavaClass{name='" + javaType.getName() + "'}";
+        return "JavaClass{name='" + descriptor.getFullyQualifiedClassName() + "'}";
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1741,7 +1741,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     private class ReflectClassSupplier implements Supplier<Class<?>> {
         @Override
         public Class<?> get() {
-            return javaType.resolveClass(getCurrentClassLoader(getClass()));
+            return descriptor.resolveClass(getCurrentClassLoader(getClass()));
         }
     }
 }

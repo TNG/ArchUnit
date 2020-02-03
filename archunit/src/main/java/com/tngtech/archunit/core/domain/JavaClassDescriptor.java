@@ -40,10 +40,10 @@ import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 
 @Internal
-public interface JavaType {
-    String getName();
+public interface JavaClassDescriptor {
+    String getFullyQualifiedClassName();
 
-    String getSimpleName();
+    String getSimpleClassName();
 
     String getPackageName();
 
@@ -53,30 +53,31 @@ public interface JavaType {
     @ResolvesTypesViaReflection
     Class<?> resolveClass(ClassLoader classLoader);
 
-    Optional<JavaType> tryGetComponentType();
+    Optional<JavaClassDescriptor> tryGetComponentType();
 
     boolean isPrimitive();
 
     boolean isArray();
 
-    JavaType withSimpleName(String simpleName);
+    JavaClassDescriptor withSimpleClassName(String simpleName);
 
     @Internal
     final class From {
-        private static final LoadingCache<String, JavaType> typeCache = CacheBuilder.newBuilder().build(new CacheLoader<String, JavaType>() {
-            @Override
-            public JavaType load(String typeName) {
-                if (primitiveClassesByNameOrDescriptor.containsKey(typeName)) {
-                    return new PrimitiveType(Type.getType(primitiveClassesByNameOrDescriptor.get(typeName)).getClassName());
-                }
-                if (isArray(typeName)) {
-                    // NOTE: ASM uses the canonical name for arrays (i.e. java.lang.Object[]), but we want the class name,
-                    //       i.e. [Ljava.lang.Object;
-                    return new ArrayType(ensureCorrectArrayTypeName(typeName));
-                }
-                return new ObjectType(typeName);
-            }
-        });
+        private static final LoadingCache<String, JavaClassDescriptor> descriptorCache =
+                CacheBuilder.newBuilder().build(new CacheLoader<String, JavaClassDescriptor>() {
+                    @Override
+                    public JavaClassDescriptor load(String typeName) {
+                        if (primitiveClassesByNameOrDescriptor.containsKey(typeName)) {
+                            return new PrimitiveClassDescriptor(Type.getType(primitiveClassesByNameOrDescriptor.get(typeName)).getClassName());
+                        }
+                        if (isArray(typeName)) {
+                            // NOTE: ASM uses the canonical name for arrays (i.e. java.lang.Object[]), but we want the class name,
+                            //       i.e. [Ljava.lang.Object;
+                            return new ArrayClassDescriptor(ensureCorrectArrayTypeName(typeName));
+                        }
+                        return new ObjectClassDescriptor(typeName);
+                    }
+                });
         private static final ImmutableMap<String, Class<?>> primitiveClassesByName =
                 Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
                     @Override
@@ -97,8 +98,8 @@ public interface JavaType {
                         .putAll(primitiveClassesByDescriptor)
                         .build();
 
-        public static JavaType name(String typeName) {
-            return typeCache.getUnchecked(typeName);
+        public static JavaClassDescriptor name(String typeName) {
+            return descriptorCache.getUnchecked(typeName);
         }
 
         private static boolean isArray(String typeName) {
@@ -131,28 +132,28 @@ public interface JavaType {
             return "L" + componentTypeName + ";";
         }
 
-        static JavaType javaClass(JavaClass javaClass) {
+        static JavaClassDescriptor javaClass(JavaClass javaClass) {
             return name(javaClass.getName());
         }
 
-        private abstract static class AbstractType implements JavaType {
+        private abstract static class AbstractClassDescriptor implements JavaClassDescriptor {
             private final String name;
             private final String simpleName;
             private final String javaPackage;
 
-            private AbstractType(String name, String simpleName, String javaPackage) {
+            private AbstractClassDescriptor(String name, String simpleName, String javaPackage) {
                 this.name = name;
                 this.simpleName = simpleName;
                 this.javaPackage = javaPackage;
             }
 
             @Override
-            public String getName() {
+            public String getFullyQualifiedClassName() {
                 return name;
             }
 
             @Override
-            public String getSimpleName() {
+            public String getSimpleClassName() {
                 return simpleName;
             }
 
@@ -177,11 +178,11 @@ public interface JavaType {
 
             @MayResolveTypesViaReflection(reason = "This method is one of the known sources for resolving via reflection")
             Class<?> classForName(ClassLoader classLoader) throws ClassNotFoundException {
-                return Class.forName(getName(), false, classLoader);
+                return Class.forName(getFullyQualifiedClassName(), false, classLoader);
             }
 
             @Override
-            public Optional<JavaType> tryGetComponentType() {
+            public Optional<JavaClassDescriptor> tryGetComponentType() {
                 return Optional.absent();
             }
 
@@ -197,7 +198,7 @@ public interface JavaType {
 
             @Override
             public int hashCode() {
-                return Objects.hash(getName());
+                return Objects.hash(getFullyQualifiedClassName());
             }
 
             @Override
@@ -208,28 +209,28 @@ public interface JavaType {
                 if (obj == null || getClass() != obj.getClass()) {
                     return false;
                 }
-                final JavaType other = (JavaType) obj;
-                return Objects.equals(this.getName(), other.getName());
+                final JavaClassDescriptor other = (JavaClassDescriptor) obj;
+                return Objects.equals(this.getFullyQualifiedClassName(), other.getFullyQualifiedClassName());
             }
 
             @Override
             public String toString() {
-                return getClass().getSimpleName() + "{" + getName() + "}";
+                return getClass().getSimpleName() + "{" + getFullyQualifiedClassName() + "}";
             }
         }
 
-        private static class ObjectType extends AbstractType {
-            ObjectType(String fullName) {
+        private static class ObjectClassDescriptor extends AbstractClassDescriptor {
+            ObjectClassDescriptor(String fullName) {
                 this(fullName, ensureSimpleName(fullName), createPackage(fullName));
             }
 
-            private ObjectType(String fullName, String simpleName, String packageName) {
+            private ObjectClassDescriptor(String fullName, String simpleName, String packageName) {
                 super(fullName, simpleName, packageName);
             }
 
             @Override
-            public JavaType withSimpleName(String simpleName) {
-                return new ObjectType(getName(), simpleName, getPackageName());
+            public JavaClassDescriptor withSimpleClassName(String simpleName) {
+                return new ObjectClassDescriptor(getFullyQualifiedClassName(), simpleName, getPackageName());
             }
         }
 
@@ -238,15 +239,15 @@ public interface JavaType {
             return packageEnd >= 0 ? fullName.substring(0, packageEnd) : "";
         }
 
-        private static class PrimitiveType extends AbstractType {
-            PrimitiveType(String fullName) {
+        private static class PrimitiveClassDescriptor extends AbstractClassDescriptor {
+            PrimitiveClassDescriptor(String fullName) {
                 super(fullName, fullName, "");
                 checkArgument(primitiveClassesByName.containsKey(fullName), "'%s' must be a primitive name", fullName);
             }
 
             @Override
             Class<?> classForName(ClassLoader classLoader) {
-                return primitiveClassesByName.get(getName());
+                return primitiveClassesByName.get(getFullyQualifiedClassName());
             }
 
             @Override
@@ -255,17 +256,17 @@ public interface JavaType {
             }
 
             @Override
-            public JavaType withSimpleName(String simpleName) {
+            public JavaClassDescriptor withSimpleClassName(String simpleName) {
                 throw new UnsupportedOperationException("It should never make sense to override the simple type of a primitive");
             }
         }
 
-        private static class ArrayType extends AbstractType {
-            ArrayType(String fullName) {
+        private static class ArrayClassDescriptor extends AbstractClassDescriptor {
+            ArrayClassDescriptor(String fullName) {
                 this(fullName, createSimpleName(fullName), createPackageOfComponentType(fullName));
             }
 
-            private ArrayType(String fullName, String simpleName, String packageName) {
+            private ArrayClassDescriptor(String fullName, String simpleName, String packageName) {
                 super(fullName, simpleName, packageName);
             }
 
@@ -288,15 +289,15 @@ public interface JavaType {
             }
 
             @Override
-            public JavaType withSimpleName(String simpleName) {
-                return new ArrayType(getName(), simpleName, getPackageName());
+            public JavaClassDescriptor withSimpleClassName(String simpleName) {
+                return new ArrayClassDescriptor(getFullyQualifiedClassName(), simpleName, getPackageName());
             }
 
             @Override
-            public Optional<JavaType> tryGetComponentType() {
-                String canonicalName = getCanonicalName(getName());
+            public Optional<JavaClassDescriptor> tryGetComponentType() {
+                String canonicalName = getCanonicalName(getFullyQualifiedClassName());
                 String componentTypeName = canonicalName.substring(0, canonicalName.lastIndexOf("["));
-                return Optional.of(JavaType.From.name(componentTypeName));
+                return Optional.of(JavaClassDescriptor.From.name(componentTypeName));
             }
         }
     }

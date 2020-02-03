@@ -27,12 +27,12 @@ import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.properties.HasDescriptor;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
@@ -145,12 +145,12 @@ class RawAccessRecord {
     }
 
     abstract static class TargetInfo {
-        final JavaType owner;
+        final JavaClassDescriptor owner;
         final String name;
         final String desc;
 
         TargetInfo(String owner, String name, String desc) {
-            this.owner = JavaTypeImporter.createFromAsmObjectTypeName(owner);
+            this.owner = JavaClassDescriptorImporter.createFromAsmObjectTypeName(owner);
             this.name = name;
             this.desc = desc;
         }
@@ -159,7 +159,7 @@ class RawAccessRecord {
             if (!name.equals(member.getName()) || !desc.equals(member.getDescriptor())) {
                 return false;
             }
-            return owner.getName().equals(member.getOwner().getName()) ||
+            return owner.getFullyQualifiedClassName().equals(member.getOwner().getName()) ||
                     classHierarchyFrom(member).hasExactlyOneMatchFor(this);
         }
 
@@ -198,15 +198,15 @@ class RawAccessRecord {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{owner='" + owner.getName() + "', name='" + name + "', desc='" + desc + "'}";
+            return getClass().getSimpleName() + "{owner='" + owner.getFullyQualifiedClassName() + "', name='" + name + "', desc='" + desc + "'}";
         }
 
         private static class ClassHierarchyPath {
             private final List<JavaClass> path = new ArrayList<>();
 
-            private ClassHierarchyPath(JavaType childType, JavaClass parent) {
+            private ClassHierarchyPath(JavaClassDescriptor childType, JavaClass parent) {
                 Set<JavaClass> classesToSearchForChild = Sets.union(singleton(parent), parent.getAllSubClasses());
-                Optional<JavaClass> child = tryFind(classesToSearchForChild, nameMatching(quote(childType.getName())));
+                Optional<JavaClass> child = tryFind(classesToSearchForChild, nameMatching(quote(childType.getFullyQualifiedClassName())));
                 if (child.isPresent()) {
                     createPath(child.get(), parent);
                 }
