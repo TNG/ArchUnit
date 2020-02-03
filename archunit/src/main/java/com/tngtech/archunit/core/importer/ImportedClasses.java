@@ -23,8 +23,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT;
@@ -84,14 +84,14 @@ class ImportedClasses {
     }
 
     private static JavaClass simpleClassOf(String typeName) {
-        JavaType type = JavaType.From.name(typeName);
-        DomainBuilders.JavaClassBuilder builder = new DomainBuilders.JavaClassBuilder().withType(type);
-        addModifiersIfPossible(builder, type);
+        JavaClassDescriptor descriptor = JavaClassDescriptor.From.name(typeName);
+        DomainBuilders.JavaClassBuilder builder = new DomainBuilders.JavaClassBuilder().withDescriptor(descriptor);
+        addModifiersIfPossible(builder, descriptor);
         return builder.build();
     }
 
-    private static void addModifiersIfPossible(DomainBuilders.JavaClassBuilder builder, JavaType type) {
-        if (type.isPrimitive() || type.isArray()) {
+    private static void addModifiersIfPossible(DomainBuilders.JavaClassBuilder builder, JavaClassDescriptor descriptor) {
+        if (descriptor.isPrimitive() || descriptor.isArray()) {
             builder.withModifiers(PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS);
         }
     }

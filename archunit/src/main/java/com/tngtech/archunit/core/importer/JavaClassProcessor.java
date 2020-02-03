@@ -38,10 +38,10 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
@@ -98,8 +98,8 @@ class JavaClassProcessor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         LOG.debug("Analyzing class '{}'", name);
-        JavaType javaType = JavaTypeImporter.createFromAsmObjectTypeName(name);
-        if (alreadyImported(javaType)) {
+        JavaClassDescriptor descriptor = JavaClassDescriptorImporter.createFromAsmObjectTypeName(name);
+        if (alreadyImported(descriptor)) {
             return;
         }
 
@@ -112,17 +112,17 @@ class JavaClassProcessor extends ClassVisitor {
 
         javaClassBuilder = new DomainBuilders.JavaClassBuilder()
                 .withSourceDescriptor(sourceDescriptor)
-                .withType(javaType)
+                .withDescriptor(descriptor)
                 .withInterface(opCodeForInterfaceIsPresent)
                 .withEnum(opCodeForEnumIsPresent)
                 .withModifiers(JavaModifier.getModifiersForClass(access));
 
-        className = javaType.getName();
+        className = descriptor.getFullyQualifiedClassName();
         declarationHandler.onNewClass(className, superClassName, interfaceNames);
     }
 
-    private boolean alreadyImported(JavaType javaType) {
-        return !declarationHandler.isNew(javaType.getName());
+    private boolean alreadyImported(JavaClassDescriptor descriptor) {
+        return !declarationHandler.isNew(descriptor.getFullyQualifiedClassName());
     }
 
     // NOTE: For some reason ASM claims superName == java/lang/Object for Interfaces???
@@ -203,7 +203,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         DomainBuilders.JavaFieldBuilder fieldBuilder = new DomainBuilders.JavaFieldBuilder()
                 .withName(name)
-                .withType(JavaTypeImporter.importAsmType(desc))
+                .withType(JavaClassDescriptorImporter.importAsmType(desc))
                 .withModifiers(JavaModifier.getModifiersForField(access))
                 .withDescriptor(desc);
         declarationHandler.onDeclaredField(fieldBuilder);
@@ -217,7 +217,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         LOG.trace("Analyzing method {}.{}:{}", className, name, desc);
-        List<JavaType> parameters = JavaTypeImporter.importAsmMethodArgumentTypes(desc);
+        List<JavaClassDescriptor> parameters = JavaClassDescriptorImporter.importAsmMethodArgumentTypes(desc);
         accessHandler.setContext(new CodeUnit(name, namesOf(parameters), className));
 
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
@@ -225,18 +225,18 @@ class JavaClassProcessor extends ClassVisitor {
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
                 .withParameters(parameters)
-                .withReturnType(JavaTypeImporter.importAsmMethodReturnType(desc))
+                .withReturnType(JavaClassDescriptorImporter.importAsmMethodReturnType(desc))
                 .withDescriptor(desc)
                 .withThrowsClause(typesFrom(exceptions));
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);
     }
 
-    private List<JavaType> typesFrom(String[] throwsDeclarations) {
-        List<JavaType> result = new ArrayList<>();
+    private List<JavaClassDescriptor> typesFrom(String[] throwsDeclarations) {
+        List<JavaClassDescriptor> result = new ArrayList<>();
         if (throwsDeclarations != null) {
             for (String throwsDeclaration : throwsDeclarations) {
-                result.add(JavaTypeImporter.createFromAsmObjectTypeName(throwsDeclaration));
+                result.add(JavaClassDescriptorImporter.createFromAsmObjectTypeName(throwsDeclaration));
             }
         }
         return result;
@@ -277,10 +277,10 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.trace("Done analyzing {}", className);
     }
 
-    private static List<String> namesOf(Iterable<JavaType> types) {
+    private static List<String> namesOf(Iterable<JavaClassDescriptor> descriptors) {
         ImmutableList.Builder<String> result = ImmutableList.builder();
-        for (JavaType type : types) {
-            result.add(type.getName());
+        for (JavaClassDescriptor descriptor : descriptors) {
+            result.add(descriptor.getFullyQualifiedClassName());
         }
         return result.build();
     }
@@ -475,7 +475,7 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static DomainBuilders.JavaAnnotationBuilder annotationBuilderFor(String desc) {
-        return new DomainBuilders.JavaAnnotationBuilder().withType(JavaTypeImporter.importAsmType(desc));
+        return new DomainBuilders.JavaAnnotationBuilder().withType(JavaClassDescriptorImporter.importAsmType(desc));
     }
 
     private static class AnnotationProcessor extends AnnotationVisitor {
@@ -508,7 +508,7 @@ class JavaClassProcessor extends ClassVisitor {
             return new AnnotationArrayProcessor(new AnnotationArrayContext() {
                 @Override
                 public String getDeclaringAnnotationTypeName() {
-                    return annotationBuilder.getJavaType().getName();
+                    return annotationBuilder.getTypeDescriptor().getFullyQualifiedClassName();
                 }
 
                 @Override
@@ -669,13 +669,13 @@ class JavaClassProcessor extends ClassVisitor {
 
             @MayResolveTypesViaReflection(reason = "Resolving primitives does not really use reflection")
             private Optional<Class<?>> resolveComponentTypeFrom(String arrayTypeName) {
-                JavaType type = JavaType.From.name(arrayTypeName);
-                JavaType componentType = getComponentType(type);
+                JavaClassDescriptor descriptor = JavaClassDescriptor.From.name(arrayTypeName);
+                JavaClassDescriptor componentType = getComponentType(descriptor);
 
                 if (componentType.isPrimitive()) {
                     return Optional.<Class<?>>of(componentType.resolveClass());
                 }
-                if (String.class.getName().equals(componentType.getName())) {
+                if (String.class.getName().equals(componentType.getFullyQualifiedClassName())) {
                     return Optional.<Class<?>>of(String.class);
                 }
 
@@ -687,10 +687,10 @@ class JavaClassProcessor extends ClassVisitor {
                 return Optional.<Class<?>>of(Object.class);
             }
 
-            private JavaType getComponentType(JavaType type) {
-                Optional<JavaType> result = type.tryGetComponentType();
+            private JavaClassDescriptor getComponentType(JavaClassDescriptor descriptor) {
+                Optional<JavaClassDescriptor> result = descriptor.tryGetComponentType();
                 checkState(result.isPresent(), "Couldn't determine component type of array return type %s, " +
-                        "this is most likely a bug", type.getName());
+                        "this is most likely a bug", descriptor.getFullyQualifiedClassName());
 
                 return result.get();
             }
@@ -711,7 +711,7 @@ class JavaClassProcessor extends ClassVisitor {
             public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
                 return Optional.<Object>of(
                         new DomainBuilders.JavaEnumConstantBuilder()
-                                .withDeclaringClass(importedClasses.get(JavaTypeImporter.importAsmType(desc).getName()))
+                                .withDeclaringClass(importedClasses.get(JavaClassDescriptorImporter.importAsmType(desc).getFullyQualifiedClassName()))
                                 .withName(value)
                                 .build());
             }
@@ -720,12 +720,12 @@ class JavaClassProcessor extends ClassVisitor {
 
     private static class AnnotationTypeConversion {
         static ValueBuilder convert(Object input) {
-            final Object value = JavaTypeImporter.importAsmTypeIfPossible(input);
-            if (value instanceof JavaType) {
+            final Object value = JavaClassDescriptorImporter.importAsmTypeIfPossible(input);
+            if (value instanceof JavaClassDescriptor) {
                 return new ValueBuilder() {
                     @Override
                     public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
-                        return Optional.<Object>of(importedClasses.get(((JavaType) value).getName()));
+                        return Optional.<Object>of(importedClasses.get(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
                     }
                 };
             }

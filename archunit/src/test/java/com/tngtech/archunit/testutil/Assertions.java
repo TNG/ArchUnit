@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
@@ -35,7 +36,6 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaPackage;
-import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -158,8 +158,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaEnumConstantsAssertion(enumConstants);
     }
 
-    public static JavaTypeAssertion assertThat(JavaType javaType) {
-        return new JavaTypeAssertion(javaType);
+    public static JavaClassDescriptorAssertion assertThat(JavaClassDescriptor javaClassDescriptor) {
+        return new JavaClassDescriptorAssertion(javaClassDescriptor);
     }
 
     public static ThrowsDeclarationAssertion assertThat(ThrowsDeclaration<?> throwsDeclaration) {
@@ -541,14 +541,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, JavaType> {
-        private JavaTypeAssertion(JavaType actual) {
-            super(actual, JavaTypeAssertion.class);
+    public static class JavaClassDescriptorAssertion extends AbstractObjectAssert<JavaClassDescriptorAssertion, JavaClassDescriptor> {
+        private JavaClassDescriptorAssertion(JavaClassDescriptor actual) {
+            super(actual, JavaClassDescriptorAssertion.class);
         }
 
         public void isEquivalentTo(Class<?> clazz) {
-            assertThat(actual.getName()).as("name").isEqualTo(clazz.getName());
-            assertThat(actual.getSimpleName()).as("simple name").isEqualTo(clazz.getSimpleName());
+            assertThat(actual.getFullyQualifiedClassName()).as("name").isEqualTo(clazz.getName());
+            assertThat(actual.getSimpleClassName()).as("simple name").isEqualTo(clazz.getSimpleName());
             String expectedPackageName = getExpectedPackageName(clazz);
             assertThat(actual.getPackageName()).as("package").isEqualTo(expectedPackageName);
         }

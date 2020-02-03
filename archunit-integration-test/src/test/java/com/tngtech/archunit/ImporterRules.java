@@ -2,7 +2,7 @@ package com.tngtech.archunit;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.junit.ArchTest;
@@ -21,15 +21,15 @@ public class ImporterRules {
                     .should().accessClassesThat(belong_to_the_import_context());
 
     @ArchTest
-    public static final ArchRule ASM_type_is_only_accessed_within_JavaType_or_JavaTypeImporter =
+    public static final ArchRule ASM_type_is_only_accessed_within_JavaClassDescriptor_or_JavaClassDescriptorImporter =
             noClasses()
                     .that().resideOutsideOfPackage(THIRDPARTY_PACKAGE_IDENTIFIER)
-                    .and(not(belongToAnyOf(JavaType.class)))
-                    .and().doNotHaveFullyQualifiedName("com.tngtech.archunit.core.importer.JavaTypeImporter")
+                    .and(not(belongToAnyOf(JavaClassDescriptor.class)))
+                    .and().doNotHaveFullyQualifiedName("com.tngtech.archunit.core.importer.JavaClassDescriptorImporter")
                     .should().dependOnClassesThat().haveNameMatching(".*\\.asm\\..*Type")
-                    .as("org.objectweb.asm.Type should only be accessed within JavaType(Importer)")
+                    .as("org.objectweb.asm.Type should only be accessed within JavaClassDescriptor(Importer)")
                     .because("org.objectweb.asm.Type handles array types inconsistently (uses the canonical name instead of the class name), "
-                            + "so the correct behavior is implemented only within JavaType");
+                            + "so the correct behavior is implemented only within JavaClassDescriptor");
 
     private static DescribedPredicate<JavaClass> belong_to_the_import_context() {
         return new DescribedPredicate<JavaClass>("belong to the import context") {

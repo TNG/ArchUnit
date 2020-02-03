@@ -113,7 +113,7 @@ class ClassGraphCreator implements ImportContext {
 
     private void ensureCallTargetsArePresent() {
         for (RawAccessRecord record : importRecord.getAccessRecords()) {
-            classes.ensurePresent(record.target.owner.getName());
+            classes.ensurePresent(record.target.owner.getFullyQualifiedClassName());
         }
     }
 

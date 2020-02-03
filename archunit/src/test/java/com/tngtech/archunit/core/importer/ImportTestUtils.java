@@ -26,6 +26,7 @@ import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
@@ -36,7 +37,6 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
-import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import org.objectweb.asm.Type;
@@ -66,7 +66,7 @@ public class ImportTestUtils {
                     .withDescriptor(Type.getDescriptor(field.getType()))
                     .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations(), inputClass, importedClasses))
                     .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
-                    .withType(JavaType.From.name(field.getType().getName())));
+                    .withType(JavaClassDescriptor.From.name(field.getType().getName())));
         }
         return fieldBuilders;
     }
@@ -76,7 +76,7 @@ public class ImportTestUtils {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         for (Method method : inputClass.getDeclaredMethods()) {
             methodBuilders.add(new DomainBuilders.JavaMethodBuilder()
-                    .withReturnType(JavaType.From.name(method.getReturnType().getName()))
+                    .withReturnType(JavaClassDescriptor.From.name(method.getReturnType().getName()))
                     .withParameters(typesFrom(method.getParameterTypes()))
                     .withName(method.getName())
                     .withDescriptor(Type.getMethodDescriptor(method))
@@ -92,7 +92,7 @@ public class ImportTestUtils {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
             constructorBuilders.add(new DomainBuilders.JavaConstructorBuilder()
-                    .withReturnType(JavaType.From.name(void.class.getName()))
+                    .withReturnType(JavaClassDescriptor.From.name(void.class.getName()))
                     .withParameters(typesFrom(constructor.getParameterTypes()))
                     .withName(CONSTRUCTOR_NAME)
                     .withDescriptor(Type.getConstructorDescriptor(constructor))
@@ -123,7 +123,7 @@ public class ImportTestUtils {
 
     private static JavaClass javaClassFor(Class<?> owner) {
         return new DomainBuilders.JavaClassBuilder()
-                .withType(JavaType.From.name(owner.getName()))
+                .withDescriptor(JavaClassDescriptor.From.name(owner.getName()))
                 .withInterface(owner.isInterface())
                 .withModifiers(JavaModifier.getModifiersForClass(owner.getModifiers()))
                 .build();
@@ -215,10 +215,10 @@ public class ImportTestUtils {
                 .build();
     }
 
-    private static List<JavaType> typesFrom(Class<?>[] classes) {
-        List<JavaType> result = new ArrayList<>();
+    private static List<JavaClassDescriptor> typesFrom(Class<?>[] classes) {
+        List<JavaClassDescriptor> result = new ArrayList<>();
         for (Class<?> clazz : classes) {
-            result.add(JavaType.From.name(clazz.getName()));
+            result.add(JavaClassDescriptor.From.name(clazz.getName()));
         }
         return result;
     }
@@ -269,7 +269,7 @@ public class ImportTestUtils {
     private static DomainBuilders.JavaAnnotationBuilder javaAnnotationBuilderFrom(Annotation annotation, Class<?> annotatedClass,
             ClassesByTypeName importedClasses) {
         DomainBuilders.JavaAnnotationBuilder builder = new DomainBuilders.JavaAnnotationBuilder()
-                .withType(JavaType.From.name(annotation.annotationType().getName()));
+                .withType(JavaClassDescriptor.From.name(annotation.annotationType().getName()));
         for (Map.Entry<String, Object> entry : mapOf(annotation, annotatedClass, importedClasses).entrySet()) {
             builder.addProperty(entry.getKey(), DomainBuilders.JavaAnnotationBuilder.ValueBuilder.ofFinished(entry.getValue()));
         }
@@ -333,7 +333,7 @@ public class ImportTestUtils {
         public JavaClass get(String typeName) {
             return imported.containsKey(typeName) ?
                     imported.get(typeName) :
-                    importNew(JavaType.From.name(typeName).resolveClass());
+                    importNew(JavaClassDescriptor.From.name(typeName).resolveClass());
         }
 
         private JavaClass importNew(Class<?> owner) {
