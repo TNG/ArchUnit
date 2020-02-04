@@ -1,5 +1,8 @@
 ext.moduleName = 'com.tngtech.archunit.junit5'
 
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
 dependencies {
 	compile(project(":archunit-junit5-api"))
 	runtime(project(":archunit-junit5-engine"))
