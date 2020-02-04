@@ -21,8 +21,6 @@ import java.lang.module.ModuleFinder;
 import java.lang.module.ModuleReader;
 import java.lang.module.ModuleReference;
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
@@ -63,9 +61,8 @@ class ModuleLocationFactory implements Location.Factory {
         ModuleLocation(NormalizedUri uri) {
             super(uri);
             checkScheme(SCHEME, uri);
-            Path uriPath = Paths.get(uri.toURI());
-            this.moduleReference = parseModuleName(uriPath, uri);
-            this.resourceName = parseResourceName(uriPath);
+            this.moduleReference = findModuleReference(uri);
+            this.resourceName = parseResourceName(uri);
         }
 
         ModuleLocation(ModuleReference moduleReference, NormalizedResourceName resourceName) {
@@ -81,15 +78,15 @@ class ModuleLocationFactory implements Location.Factory {
             return NormalizedUri.from(moduleReference.location().get() + resourceName.toAbsolutePath());
         }
 
-        private ModuleReference parseModuleName(Path uriPath, NormalizedUri uri) {
-            String moduleName = uriPath.getName(0).toString();
+        private ModuleReference findModuleReference(NormalizedUri uri) {
+            String moduleName = uri.getFirstSegment();
             Optional<ModuleReference> moduleReference = ModuleFinder.ofSystem().find(moduleName);
             checkState(moduleReference.isPresent(), "Couldn't find module %s of URI %s", moduleName, uri);
             return moduleReference.get();
         }
 
-        private NormalizedResourceName parseResourceName(Path uriPath) {
-            return NormalizedResourceName.from(uriPath.getName(0).toAbsolutePath().relativize(uriPath).toString());
+        private NormalizedResourceName parseResourceName(NormalizedUri uri) {
+            return NormalizedResourceName.from(uri.getTailSegments());
         }
 
         @Override
@@ -165,7 +162,9 @@ class ModuleLocationFactory implements Location.Factory {
 
         @Override
         public InputStream openStream() {
-            return doWithModuleReader(moduleReference, moduleReader -> moduleReader.open(entry.toString()).get());
+            return doWithModuleReader(moduleReference, moduleReader ->
+                    moduleReader.open(entry.toString()).orElseThrow(() -> new IllegalStateException(
+                            String.format("Entry %s parsed from JRT location %s could not be opened. This is most likely a bug.", entry, location))));
         }
 
         @Override
