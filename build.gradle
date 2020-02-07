@@ -109,7 +109,7 @@ ext {
 }
 
 wrapper {
-    gradleVersion = '4.7'
+    gradleVersion = '5.6.4'
 }
 
 allprojects {
