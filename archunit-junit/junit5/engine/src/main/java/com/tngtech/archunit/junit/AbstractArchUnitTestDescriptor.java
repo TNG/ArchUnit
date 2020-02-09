@@ -19,8 +19,10 @@ import java.lang.reflect.AnnotatedElement;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
+import org.junit.platform.commons.support.AnnotationSupport;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.TestTag;
@@ -39,15 +41,17 @@ abstract class AbstractArchUnitTestDescriptor extends AbstractTestDescriptor imp
         super(uniqueId, displayName, source);
         tags = Arrays.stream(elements).map(this::findTagsOn).flatMap(Collection::stream).collect(toSet());
         skipResult = Arrays.stream(elements)
-                .filter(e -> e.isAnnotationPresent(ArchIgnore.class))
-                .map(e -> e.getAnnotation(ArchIgnore.class))
+                .map(e -> AnnotationSupport.findAnnotation(e, ArchIgnore.class))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .findFirst()
                 .map(ignore -> SkipResult.skip(ignore.reason()))
                 .orElse(SkipResult.doNotSkip());
     }
 
     private Set<TestTag> findTagsOn(AnnotatedElement annotatedElement) {
-        return Arrays.stream(annotatedElement.getAnnotationsByType(ArchTag.class))
+        return AnnotationSupport.findRepeatableAnnotations(annotatedElement, ArchTag.class)
+                .stream()
                 .map(annotation -> TestTag.create(annotation.value()))
                 .collect(toSet());
     }
