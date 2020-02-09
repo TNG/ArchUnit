@@ -5,8 +5,6 @@ buildscript {
 }
 
 subprojects {
-    ext.repackagesAsm = false
-
     afterEvaluate {
         tasks.withType(Jar) {
             manifest {
