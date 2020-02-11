@@ -34,7 +34,10 @@ import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predica
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullName;
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameContaining;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameEndingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameStartingWith;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 
@@ -91,6 +94,21 @@ class MembersThatInternal<
     @Override
     public CONJUNCTION haveFullNameNotMatching(String regex) {
         return givenWith(have(not(fullNameMatching(regex)).as("full name not matching '%s'", regex)));
+    }
+
+    @Override
+    public CONJUNCTION haveNameStartingWith(String prefix) {
+        return givenWith(have(nameStartingWith(prefix)));
+    }
+
+    @Override
+    public CONJUNCTION haveNameContaining(String infix) {
+        return givenWith(have(nameContaining(infix)));
+    }
+
+    @Override
+    public CONJUNCTION haveNameEndingWith(String suffix) {
+        return givenWith(have(nameEndingWith(suffix)));
     }
 
     @Override

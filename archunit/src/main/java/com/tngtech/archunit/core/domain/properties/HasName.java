@@ -111,6 +111,21 @@ public interface HasName {
             return new NameMatchingPredicate(regex);
         }
 
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasName> nameStartingWith(final String prefix) {
+            return new NameStartingWithPredicate(prefix);
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasName> nameContaining(final String infix) {
+            return new NameContainingPredicate(infix);
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<HasName> nameEndingWith(final String postfix) {
+            return new NameEndingWithPredicate(postfix);
+        }
+
         private static class NameEqualsPredicate extends DescribedPredicate<HasName> {
             private final String name;
 
@@ -136,6 +151,49 @@ public interface HasName {
             @Override
             public boolean apply(HasName input) {
                 return pattern.matcher(input.getName()).matches();
+            }
+        }
+
+        private static class NameStartingWithPredicate extends DescribedPredicate<HasName> {
+            private final String prefix;
+
+            NameStartingWithPredicate(String prefix) {
+                super(String.format("name starting with '%s'", prefix));
+                this.prefix = prefix;
+            }
+
+            @Override
+            public boolean apply(HasName input) {
+                return input.getName().startsWith(prefix);
+            }
+
+        }
+
+        private static class NameContainingPredicate extends DescribedPredicate<HasName> {
+            private final String infix;
+
+            NameContainingPredicate(String infix) {
+                super(String.format("name containing '%s'", infix));
+                this.infix = infix;
+            }
+
+            @Override
+            public boolean apply(HasName input) {
+                return input.getName().contains(infix);
+            }
+        }
+
+        private static class NameEndingWithPredicate extends DescribedPredicate<HasName> {
+            private final String suffix;
+
+            NameEndingWithPredicate(String suffix) {
+                super(String.format("name ending with '%s'", suffix));
+                this.suffix = suffix;
+            }
+
+            @Override
+            public boolean apply(HasName input) {
+                return input.getName().endsWith(suffix);
             }
         }
     }

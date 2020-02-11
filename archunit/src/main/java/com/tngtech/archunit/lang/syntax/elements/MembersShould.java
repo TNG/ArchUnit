@@ -108,6 +108,33 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
     CONJUNCTION haveFullNameNotMatching(String regex);
 
     /**
+     * Asserts that members have a name starting with the specified prefix.
+     *
+     * @param prefix A prefix the member name should start with
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveNameStartingWith(String prefix);
+
+    /**
+     * Asserts that members have a name containing the specified infix.
+     *
+     * @param infix An infix the member name should contain
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveNameContaining(String infix);
+
+    /**
+     * Asserts that members have a name ending with the specified suffix.
+     *
+     * @param suffix A suffix the member name should end with
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveNameEndingWith(String suffix);
+
+    /**
      * Asserts that members are public.
      *
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
