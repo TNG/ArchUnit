@@ -53,6 +53,7 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.CONSTRU
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.CONSTRUCTOR_PUBLIC;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.FIELD_A;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.FIELD_ANNOTATED_WITH_A;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.FIELD_B;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.FIELD_C;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.FIELD_D;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.FIELD_PACKAGE_PRIVATE;
@@ -61,6 +62,9 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.FIELD_P
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.FIELD_PUBLIC;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.METHOD_A;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.METHOD_ANNOTATED_WITH_A;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.METHOD_B;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.METHOD_C;
+import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.METHOD_D;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.METHOD_PACKAGE_PRIVATE;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.METHOD_PRIVATE;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.METHOD_PROTECTED;
@@ -159,6 +163,22 @@ public class MembersShouldTest {
                 $(methods().should().haveFullNameNotMatching(quote(classNameDot) + ".*A" + quote("()")), ImmutableSet.of(METHOD_A)),
                 $(codeUnits().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*"), ALL_CONSTRUCTOR_DESCRIPTIONS),
                 $(constructors().should().haveFullNameNotMatching(quote(classNameDot) + ".*init.*String\\)"), ImmutableSet.of(CONSTRUCTOR_ONE_ARG)),
+
+                $(members().should().haveNameStartingWith("fi"), ALL_CODE_UNIT_DESCRIPTIONS),
+                $(fields().should().haveNameStartingWith("m"), ALL_FIELD_DESCRIPTIONS),
+                $(codeUnits().should().haveNameStartingWith("<in"), ALL_METHOD_DESCRIPTIONS),
+                $(methods().should().haveNameStartingWith("met"), emptySet()),
+                $(constructors().should().haveNameStartingWith("c"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(members().should().haveNameContaining("B"), allMembersExcept(FIELD_B, METHOD_B)),
+                $(fields().should().haveNameContaining("A"), allFieldsExcept(FIELD_A)),
+                $(codeUnits().should().haveNameContaining("dB"), allCodeUnitsExcept(METHOD_B)),
+                $(methods().should().haveNameContaining("D"), allMethodsExcept(METHOD_D)),
+                $(constructors().should().haveNameContaining("ni"), emptySet()),
+                $(members().should().haveNameEndingWith("C"), allMembersExcept(FIELD_C, METHOD_C)),
+                $(fields().should().haveNameEndingWith("dA"), allFieldsExcept(FIELD_A)),
+                $(codeUnits().should().haveNameEndingWith("it>"), ALL_METHOD_DESCRIPTIONS),
+                $(methods().should().haveNameEndingWith("dC"), allMethodsExcept(METHOD_C)),
+                $(constructors().should().haveNameEndingWith("<in"), ALL_CONSTRUCTOR_DESCRIPTIONS),
 
                 $(members().should().bePublic(), allMembersExcept(
                         FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),

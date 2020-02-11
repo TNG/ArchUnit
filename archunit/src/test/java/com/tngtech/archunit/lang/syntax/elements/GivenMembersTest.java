@@ -214,6 +214,22 @@ public class GivenMembersTest {
                         allConstructorsExcept(CONSTRUCTOR_ONE_ARG)),
                 $(described(fields().that().haveFullNameNotMatching(quote(classNameDot) + ".*A.*")), allFieldsExcept(FIELD_A)),
 
+                $(described(members().that().haveNameStartingWith("fie")), ALL_FIELD_DESCRIPTIONS),
+                $(described(codeUnits().that().haveNameStartingWith("me")), ALL_METHOD_DESCRIPTIONS),
+                $(described(methods().that().haveNameStartingWith("m")), ALL_METHOD_DESCRIPTIONS),
+                $(described(constructors().that().haveNameStartingWith("<")), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(described(fields().that().haveNameStartingWith("f")), ALL_FIELD_DESCRIPTIONS),
+                $(described(members().that().haveNameContaining("et")), ALL_METHOD_DESCRIPTIONS),
+                $(described(codeUnits().that().haveNameContaining("et")), ALL_METHOD_DESCRIPTIONS),
+                $(described(methods().that().haveNameContaining("dA")), ImmutableSet.of(METHOD_A)),
+                $(described(constructors().that().haveNameContaining("init")), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(described(fields().that().haveNameContaining("dA")), ImmutableSet.of(FIELD_A)),
+                $(described(members().that().haveNameEndingWith("D")), ImmutableSet.of(FIELD_D, METHOD_D)),
+                $(described(codeUnits().that().haveNameEndingWith("A")), ImmutableSet.of(METHOD_A)),
+                $(described(methods().that().haveNameEndingWith("C")), ImmutableSet.of(METHOD_C)),
+                $(described(constructors().that().haveNameEndingWith("it>")), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(described(fields().that().haveNameEndingWith("B")), ImmutableSet.of(FIELD_B)),
+
                 $(described(members().that().arePublic()), ImmutableSet.of(
                         FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
                 $(described(fields().that().arePublic()), ImmutableSet.of(FIELD_C)),
