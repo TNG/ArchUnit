@@ -51,6 +51,7 @@ import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -332,6 +333,19 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
             accessHandler.handleMethodInstruction(owner, name, desc);
+        }
+
+        @Override
+        public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle,
+                                           Object... bootstrapMethodArguments) {
+            for (Object o : bootstrapMethodArguments) {
+                if (o instanceof Handle) {
+                    Handle currentHandle = (Handle) o;
+                    accessHandler.handleMethodInstruction(currentHandle.getOwner(), currentHandle.getName(),
+                            currentHandle.getDesc());
+                    break;
+                }
+            }
         }
 
         @Override
