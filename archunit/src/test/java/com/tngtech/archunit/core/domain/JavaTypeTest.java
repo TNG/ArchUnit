@@ -54,13 +54,6 @@ public class JavaTypeTest {
     }
 
     @Test
-    public void object_descriptor() {
-        JavaType arrayType = JavaType.From.name(Type.getType(Object.class).getDescriptor());
-
-        assertThat(arrayType).isEquivalentTo(Object.class);
-    }
-
-    @Test
     @UseDataProvider(value = "primitives")
     public void resolves_primitive_type_names(String name, Class<?> expected) {
         assertThat(JavaType.From.name(name).resolveClass()).isEqualTo(expected);

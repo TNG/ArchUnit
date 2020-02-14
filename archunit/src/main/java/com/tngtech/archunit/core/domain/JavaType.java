@@ -74,9 +74,6 @@ public interface JavaType {
                     //       i.e. [Ljava.lang.Object;
                     return new ArrayType(ensureCorrectArrayTypeName(typeName));
                 }
-                if (typeName.contains("/")) {
-                    return new ObjectType(Type.getType(typeName).getClassName());
-                }
                 return new ObjectType(typeName);
             }
         });
