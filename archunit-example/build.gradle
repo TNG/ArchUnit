@@ -11,8 +11,6 @@ ext.moduleName = 'com.tngtech.archunit.example'
         addTestJarTo proj
 
         proj.with {
-            apply plugin: "java-library"
-
             dependencies {
                 api dependency.jodaTime
                 api dependency.javaxAnnotationApi

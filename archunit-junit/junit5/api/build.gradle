@@ -1,5 +1,3 @@
-apply plugin: 'java-library'
-
 ext.moduleName = 'com.tngtech.archunit.junit5.api'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
