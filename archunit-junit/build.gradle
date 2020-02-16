@@ -17,7 +17,7 @@ sourceSets {
 
 dependencies {
     compileOnly sourceSets.api.output
-    testCompile sourceSets.api.output
+    testImplementation sourceSets.api.output
 }
 
 task apiJar(type: Jar) {
@@ -32,20 +32,20 @@ artifacts {
 
 dependencies {
     api project(path: ':archunit', configuration: 'shadow')
-    compile project(path: ':archunit', configuration: 'shadow')
-    compile dependency.guava
-    compile dependency.slf4j
+    implementation project(path: ':archunit', configuration: 'shadow')
+    implementation dependency.guava
+    implementation dependency.slf4j
 
-    testCompile dependency.log4j_api
-    testCompile dependency.log4j_core
-    testCompile dependency.log4j_slf4j
-    testCompile dependency.mockito
-    testCompile dependency.assertj
-    testCompile(dependency.assertj_guava) {
+    testImplementation dependency.log4j_api
+    testImplementation dependency.log4j_core
+    testImplementation dependency.log4j_slf4j
+    testImplementation dependency.mockito
+    testImplementation dependency.assertj
+    testImplementation(dependency.assertj_guava) {
         exclude module: 'assertj-core'
         exclude module: 'guava'
     }
-    testCompile project(path: ':archunit', configuration: 'tests')
+    testImplementation project(path: ':archunit', configuration: 'tests')
 }
 
 addTestJarTo this
