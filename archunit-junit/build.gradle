@@ -64,13 +64,14 @@ def addCleanThirdPartyTask = {
     tasks.create(name: 'removeDuplicateThirdParty', type: Jar, dependsOn: shadowJar) {
         exclude "${thirdPartyRelocationPackage.replace('.', '/')}/**"
 
-        File tempPath = tempJar(jar.archivePath)
-        from zipTree(shadowJar.archivePath)
+        File tempPath = tempJar(jar.archiveFile.get().getAsFile())
+        File jarPath = shadowJar.archiveFile.get().getAsFile()
+        from zipTree(jarPath)
         archiveFileName = tempPath.name
 
         doLast {
-            assert shadowJar.archivePath.delete()
-            assert tempPath.renameTo(shadowJar.archivePath)
+            assert jarPath.delete()
+            assert tempPath.renameTo(jarPath)
         }
     }
     finishArchive.dependsOn removeDuplicateThirdParty
