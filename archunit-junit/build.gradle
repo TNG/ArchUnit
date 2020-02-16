@@ -21,7 +21,7 @@ dependencies {
 }
 
 task apiJar(type: Jar) {
-    archiveName = jar.archiveName.replace(project.name, "${project.name}-api")
+    archiveFileName = jar.archiveFileName.get().replace(project.name, "${project.name}-api")
     from sourceSets.api.output
 }
 build.dependsOn apiJar
@@ -66,7 +66,7 @@ def addCleanThirdPartyTask = {
 
         File tempPath = tempJar(jar.archivePath)
         from zipTree(shadowJar.archivePath)
-        archiveName tempPath.name
+        archiveFileName = tempPath.name
 
         doLast {
             assert shadowJar.archivePath.delete()
