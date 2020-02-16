@@ -32,7 +32,7 @@ productionProjects*.with {
     apply plugin: 'com.github.johnrengelman.shadow'
 
     shadowJar {
-        classifier = ''
+        archiveClassifier = ''
 
         exclude 'org/apache/**'
         exclude 'Log4j*'
