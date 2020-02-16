@@ -26,7 +26,7 @@ Maven Central:
 .build.gradle
 ----
 dependencies {
-    testCompile 'com.tngtech.archunit:archunit-junit4:0.13.1'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:0.13.1'
 }
 ----
 
@@ -54,7 +54,7 @@ from Maven Central:
 .build.gradle
 ----
 dependencies {
-    testCompile 'com.tngtech.archunit:archunit-junit5:0.13.1'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:0.13.1'
 }
 ----
 
@@ -78,7 +78,7 @@ context, include the core ArchUnit dependency from Maven Central:
 .build.gradle
 ----
 dependencies {
-   testCompile 'com.tngtech.archunit:archunit:0.13.1'
+   testImplementation 'com.tngtech.archunit:archunit:0.13.1'
 }
 ----
 
