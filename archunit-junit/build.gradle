@@ -1,3 +1,5 @@
+apply plugin: 'java-library'
+
 ext.moduleName = 'com.tngtech.archunit.junit'
 
 configurations {
