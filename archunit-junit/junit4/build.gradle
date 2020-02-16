@@ -4,7 +4,7 @@ ext.moduleName = 'com.tngtech.archunit.junit4'
 
 dependencies {
     api project(path: ':archunit', configuration: 'shadow')
-    api project(path: ':archunit-junit', configuration: 'api')
+    api project(path: ':archunit-junit', configuration: 'archJunitApi')
     api dependency.junit4
     implementation project(path: ':archunit-junit', configuration: 'shadow')
     implementation dependency.guava
@@ -26,10 +26,10 @@ dependencies {
 }
 
 javadoc {
-    source(['api', 'main'].collect { project(':archunit-junit').sourceSets[it].allJava })
+    source(['archJunitApi', 'main'].collect { project(':archunit-junit').sourceSets[it].allJava })
 }
 sourcesJar {
-    ['api', 'main'].each {
+    ['archJunitApi', 'main'].each {
         from project(':archunit-junit').sourceSets[it].allSource
     }
 }

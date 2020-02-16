@@ -1,37 +1,36 @@
 ext.moduleName = 'com.tngtech.archunit.junit'
 
 configurations {
-    api
-    compile.extendsFrom api
-    testCompile.extendsFrom api
+    archJunitApi
+    api.extendsFrom archJunitApi
 }
 
 sourceSets {
-    api {
+    archJunitApi {
         java {
             srcDirs = ['src/api/java']
         }
-        compileClasspath = configurations.api
+        compileClasspath = configurations.archJunitApi
     }
 }
 
 dependencies {
-    compileOnly sourceSets.api.output
-    testImplementation sourceSets.api.output
+    compileOnly sourceSets.archJunitApi.output
+    testImplementation sourceSets.archJunitApi.output
 }
 
 task apiJar(type: Jar) {
     archiveFileName = jar.archiveFileName.get().replace(project.name, "${project.name}-api")
-    from sourceSets.api.output
+    from sourceSets.archJunitApi.output
 }
 build.dependsOn apiJar
 
 artifacts {
-    api apiJar
+    archJunitApi apiJar
 }
 
 dependencies {
-    api project(path: ':archunit', configuration: 'shadow')
+    archJunitApi project(path: ':archunit', configuration: 'shadow')
     implementation project(path: ':archunit', configuration: 'shadow')
     implementation dependency.guava
     implementation dependency.slf4j
