@@ -4,23 +4,23 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    testCompile dependency.junit5JupiterEngine
-    testCompile dependency.junitPlatform
-    testCompile dependency.assertj
-    testCompile dependency.mockito
-    testCompile dependency.guava
-    testCompile dependency.log4j_api
-    testCompile dependency.log4j_core
-    testCompile dependency.log4j_slf4j
-    testCompile project(path: ':archunit', configuration: 'tests')
-    testCompile project(path: ':archunit-junit4')
-    testCompile project(path: ':archunit-junit5-api')
-    testCompile project(path: ':archunit-example:example-plain')
-    testCompile project(path: ':archunit-example:example-plain', configuration: 'tests')
-    testCompile project(path: ':archunit-example:example-junit4', configuration: 'tests')
-    testCompile project(path: ':archunit-example:example-junit5', configuration: 'tests')
+    testImplementation dependency.junit5JupiterEngine
+    testImplementation dependency.junitPlatform
+    testImplementation dependency.assertj
+    testImplementation dependency.mockito
+    testImplementation dependency.guava
+    testImplementation dependency.log4j_api
+    testImplementation dependency.log4j_core
+    testImplementation dependency.log4j_slf4j
+    testImplementation project(path: ':archunit', configuration: 'tests')
+    testImplementation project(path: ':archunit-junit4')
+    testImplementation project(path: ':archunit-junit5-api')
+    testImplementation project(path: ':archunit-example:example-plain')
+    testImplementation project(path: ':archunit-example:example-plain', configuration: 'tests')
+    testImplementation project(path: ':archunit-example:example-junit4', configuration: 'tests')
+    testImplementation project(path: ':archunit-example:example-junit5', configuration: 'tests')
 
-    testRuntime project(path: ':archunit-junit5-engine')
+    testRuntimeOnly project(path: ':archunit-junit5-engine')
 }
 
 test {
