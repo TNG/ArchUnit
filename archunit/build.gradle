@@ -1,4 +1,3 @@
-apply plugin: 'java-library'
 apply plugin: 'idea'
 
 ext.moduleName = 'com.tngtech.archunit'
