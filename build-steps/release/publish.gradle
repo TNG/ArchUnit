@@ -15,14 +15,9 @@ releaseProjects*.with {
         enabled = isReleaseVersion // signing of these artifacts causes failure for snapshot versions
     }
 
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        archiveClassifier = 'sources'
-        from sourceSets.main.allSource
-    }
-
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        archiveClassifier = 'javadoc'
-        from javadoc.destinationDir
+    java {
+        withJavadocJar()
+        withSourcesJar()
     }
 
     // If I write @see ..., I don't want to fail my build because of a missing @param :-(
@@ -45,8 +40,6 @@ releaseProjects*.with {
             mavenJava(MavenPublication) {
                 artifactId = project.archivesBaseName
                 from components.java
-                artifact tasks.sourcesJar
-                artifact tasks.javadocJar
                 pom {
                     name = app.name
                     packaging = "jar"
