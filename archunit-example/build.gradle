@@ -11,15 +11,17 @@ ext.moduleName = 'com.tngtech.archunit.example'
         addTestJarTo proj
 
         proj.with {
-            dependencies {
-                compile dependency.jodaTime
-                compile dependency.javaxAnnotationApi
-                compile dependency.springBeans
-                compile dependency.guice
-                compile dependency.geronimoEjb
-                compile dependency.geronimoJpa
+            apply plugin: "java-library"
 
-                testCompile project(path: ':archunit')
+            dependencies {
+                api dependency.jodaTime
+                api dependency.javaxAnnotationApi
+                api dependency.springBeans
+                api dependency.guice
+                api dependency.geronimoEjb
+                api dependency.geronimoJpa
+
+                testImplementation project(path: ':archunit')
             }
         }
 }
