@@ -25,6 +25,11 @@
       <name>Peter Gafert</name>
       <email>peter.gafert@tngtech.com</email>
     </developer>
+    <developer>
+      <id>rweisleder</id>
+      <name>Roland Weisleder</name>
+      <email>roland.weisleder@googlemail.com</email>
+    </developer>
   </developers>
   <scm>
     <connection>scm:git@github.com:TNG/ArchUnit.git</connection>
