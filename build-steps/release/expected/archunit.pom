@@ -35,6 +35,11 @@
             <name>Roland Weisleder</name>
             <email>roland.weisleder@googlemail.com</email>
         </developer>
+        <developer>
+            <id>hankem</id>
+            <name>Manfred Hanke</name>
+            <email>manfred.hanke@tngtech.com</email>
+        </developer>
     </developers>
     <scm>
         <connection>scm:git@github.com:TNG/ArchUnit.git</connection>
