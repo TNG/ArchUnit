@@ -36,6 +36,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.library.Architectures.onionArchitecture;
@@ -319,29 +321,53 @@ public class ArchitecturesTest {
 
     @Test
     public void onion_architecture_gathers_all_violations() {
-        OnionArchitecture architecture = onionArchitecture()
+        OnionArchitecture architecture = getTestOnionArchitecture();
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
+
+        EvaluationResult result = architecture.evaluate(classes);
+
+        ExpectedOnionViolations expectedViolations = getExpectedOnionViolationsIncludingThoseFromApplicationLayerClass(true);
+        assertPatternMatches(result.getFailureReport().getDetails(), expectedViolations.toPatterns());
+    }
+
+    private OnionArchitecture getTestOnionArchitecture() {
+        return onionArchitecture()
                 .domainModels(absolute("onionarchitecture.domain.model"))
                 .domainServices(absolute("onionarchitecture.domain.service"))
                 .applicationServices(absolute("onionarchitecture.application"))
                 .adapter("cli", absolute("onionarchitecture.adapter.cli"))
                 .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
                 .adapter("rest", absolute("onionarchitecture.adapter.rest"));
-        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
+    }
 
-        EvaluationResult result = architecture.evaluate(classes);
-
+    private ExpectedOnionViolations getExpectedOnionViolationsIncludingThoseFromApplicationLayerClass(boolean includeViolationsFromApplicationLayerClass) {
         ExpectedOnionViolations expectedViolations = new ExpectedOnionViolations();
         expectedViolations.from(DomainModelLayerClass.class)
                 .to(DomainServiceLayerClass.class, ApplicationLayerClass.class, CliAdapterLayerClass.class,
                         PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
         expectedViolations.from(DomainServiceLayerClass.class)
                 .to(ApplicationLayerClass.class, CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectedViolations.from(ApplicationLayerClass.class)
-                .to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        if (includeViolationsFromApplicationLayerClass) {
+            expectedViolations.from(ApplicationLayerClass.class)
+                    .to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        }
         expectedViolations.from(CliAdapterLayerClass.class).to(PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
         expectedViolations.from(PersistenceAdapterLayerClass.class).to(CliAdapterLayerClass.class, RestAdapterLayerClass.class);
         expectedViolations.from(RestAdapterLayerClass.class).to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class);
+        return expectedViolations;
+    }
 
+    @Test
+    public void onion_architecture_is_not_violated_by_ignored_dependencies() {
+        OnionArchitecture architecture = getTestOnionArchitecture()
+                .ignoreDependency(ApplicationLayerClass.class, CliAdapterLayerClass.class)
+                .ignoreDependency(ApplicationLayerClass.class.getName(), PersistenceAdapterLayerClass.class.getName())
+                .ignoreDependency(simpleNameStartingWith("ApplicationLayerCl"), simpleNameContaining("estAdapterLayerCl"));
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
+
+        EvaluationResult result = architecture.evaluate(classes);
+
+        ExpectedOnionViolations expectedViolations = getExpectedOnionViolationsIncludingThoseFromApplicationLayerClass(false);
         assertPatternMatches(result.getFailureReport().getDetails(), expectedViolations.toPatterns());
     }
 

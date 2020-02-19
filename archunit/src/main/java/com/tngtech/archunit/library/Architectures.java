@@ -434,6 +434,7 @@ public final class Architectures {
         private String[] applicationPackageIdentifiers = new String[0];
         private Map<String, String[]> adapterPackageIdentifiers = new LinkedHashMap<>();
         private boolean optionalLayers = false;
+        private List<IgnoredDependency> ignoredDependencies = new ArrayList<>();
 
         private OnionArchitecture() {
             overriddenDescription = Optional.absent();
@@ -481,6 +482,22 @@ public final class Architectures {
             return this;
         }
 
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture ignoreDependency(Class<?> origin, Class<?> target) {
+            return ignoreDependency(equivalentTo(origin), equivalentTo(target));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture ignoreDependency(String origin, String target) {
+            return ignoreDependency(name(origin), name(target));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture ignoreDependency(DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
+            this.ignoredDependencies.add(new IgnoredDependency(origin, target));
+            return this;
+        }
+
         private LayeredArchitecture layeredArchitectureDelegate() {
             LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture()
                     .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPackageIdentifiers)
@@ -497,6 +514,9 @@ public final class Architectures {
                 layeredArchitectureDelegate = layeredArchitectureDelegate
                         .layer(adapterLayer).definedBy(adapter.getValue())
                         .whereLayer(adapterLayer).mayNotBeAccessedByAnyLayer();
+            }
+            for (IgnoredDependency ignoredDependency : this.ignoredDependencies) {
+                layeredArchitectureDelegate = ignoredDependency.ignoreFor(layeredArchitectureDelegate);
             }
             return layeredArchitectureDelegate.as(getDescription());
         }
@@ -554,6 +574,20 @@ public final class Architectures {
                 lines.add(String.format("adapter '%s' ('%s')", adapter.getKey(), Joiner.on("', '").join(adapter.getValue())));
             }
             return Joiner.on(lineSeparator()).join(lines);
+        }
+
+        private static class IgnoredDependency {
+            private final DescribedPredicate<? super JavaClass> origin;
+            private final DescribedPredicate<? super JavaClass> target;
+
+            IgnoredDependency(DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
+                this.origin = origin;
+                this.target = target;
+            }
+
+            LayeredArchitecture ignoreFor(LayeredArchitecture layeredArchitecture) {
+                return layeredArchitecture.ignoreDependency(origin, target);
+            }
         }
     }
 }
