@@ -18,6 +18,7 @@ package com.tngtech.archunit.library.dependencies;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
@@ -51,6 +52,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
     private final List<String> matchingGroups;
     private final Description description;
     private final Set<JavaClass> classes;
+    private final int hashCode;
 
     private Slice(SliceAssignment sliceAssignment, List<String> matchingGroups, Set<JavaClass> classes) {
         this(sliceAssignment,
@@ -65,6 +67,7 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
         this.matchingGroups = checkNotNull(matchingGroups);
         this.description = checkNotNull(description);
         this.classes = ImmutableSet.copyOf(classes);
+        this.hashCode = matchingGroups.hashCode();
     }
 
     private static List<String> ascendingCaptures(List<String> matchingGroups) {
@@ -148,11 +151,6 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
         return !dependencyIdentifier.equals(matchingGroups);
     }
 
-    @Override
-    public String toString() {
-        return getDescription();
-    }
-
     /**
      * Returns a matching part of this slice. E.g. if the slice was created by matching '..(*).controller.(*)..',
      * against 'some.other.controller.here.more', then name part '1' would be 'other' and name part '2' would
@@ -165,6 +163,28 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
     public String getNamePart(int index) {
         checkArgument(index > 0 && index <= matchingGroups.size(), "Found no name part with index %d", index);
         return matchingGroups.get(index - 1);
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final Slice other = (Slice) obj;
+        return Objects.equals(this.matchingGroups, other.matchingGroups);
+    }
+
+    @Override
+    public String toString() {
+        return getDescription();
     }
 
     private static class Description {
