@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ForwardingCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
@@ -48,14 +49,15 @@ class Graph<T, ATTACHMENT> {
         }
     }
 
-    Collection<Cycle<T, ATTACHMENT>> findCycles() {
+    Cycles<T, ATTACHMENT> findCycles() {
         Map<Integer, Map<Integer, Edge<T, ATTACHMENT>>> edgesByTargetIndexByOriginIndex = indexEdgesByTargetIndexByOriginIndex(nodes, outgoingEdges);
         JohnsonCycleFinder johnsonCycleFinder = new JohnsonCycleFinder(createPrimitiveGraph());
         ImmutableList.Builder<Cycle<T, ATTACHMENT>> result = ImmutableList.builder();
-        for (int[] rawCycle : johnsonCycleFinder.findCycles()) {
+        JohnsonCycleFinder.Result cycles = johnsonCycleFinder.findCycles();
+        for (int[] rawCycle : cycles) {
             result.add(mapToCycle(edgesByTargetIndexByOriginIndex, rawCycle));
         }
-        return result.build();
+        return new Cycles<>(result.build(), cycles.maxNumberOfCyclesReached());
     }
 
     private PrimitiveGraph createPrimitiveGraph() {
@@ -104,5 +106,24 @@ class Graph<T, ATTACHMENT> {
                 "nodes=" + nodes +
                 ", edges=" + outgoingEdges +
                 '}';
+    }
+
+    static class Cycles<T, ATTACHMENT> extends ForwardingCollection<Cycle<T, ATTACHMENT>> {
+        private final Collection<Cycle<T, ATTACHMENT>> cycles;
+        private final boolean maxNumberOfCyclesReached;
+
+        private Cycles(Collection<Cycle<T, ATTACHMENT>> cycles, boolean maxNumberOfCyclesReached) {
+            this.cycles = cycles;
+            this.maxNumberOfCyclesReached = maxNumberOfCyclesReached;
+        }
+
+        boolean maxNumberOfCyclesReached() {
+            return maxNumberOfCyclesReached;
+        }
+
+        @Override
+        protected Collection<Cycle<T, ATTACHMENT>> delegate() {
+            return cycles;
+        }
     }
 }
