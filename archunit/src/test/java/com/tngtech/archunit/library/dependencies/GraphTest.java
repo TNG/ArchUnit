@@ -12,12 +12,15 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
+import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.library.dependencies.Graph.Cycles;
 import org.junit.Test;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.DiscreteDomain.integers;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.cartesianProduct;
+import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -54,7 +57,7 @@ public class GraphTest {
     }
 
     @Test
-    public void sub_cycle_of_three_node_cycle_is_detected() {
+    public void sub_cycle_of_three_node_graph_is_detected() {
         Graph<String, String> graph = new Graph<>();
 
         String nodeA = "Node-A";
@@ -144,6 +147,19 @@ public class GraphTest {
         ));
 
         assertThat(graph.findCycles()).isNotEmpty();
+    }
+
+    // This test covers some edge cases, e.g. if too many nodes stay blocked
+    @Test
+    public void finds_cycles_in_real_life_graph() {
+        Graph<Integer, Object> graph = RealLifeGraph.get();
+        int expectedNumberOfCycles = 10000;
+        ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME, String.valueOf(expectedNumberOfCycles));
+
+        Cycles<Integer, Object> cycles = graph.findCycles();
+
+        assertThat(cycles).hasSize(expectedNumberOfCycles);
+        assertThat(cycles.maxNumberOfCyclesReached()).as("maximum number of cycles reached").isTrue();
     }
 
     @SuppressWarnings("unchecked")

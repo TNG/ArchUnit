@@ -16,8 +16,13 @@
 package com.tngtech.archunit.library.dependencies;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static com.tngtech.archunit.library.dependencies.TarjanComponentFinder.NO_COMPONENT_FOUND;
 
 /**
@@ -51,6 +56,8 @@ import static com.tngtech.archunit.library.dependencies.TarjanComponentFinder.NO
  * </ul>
  */
 class JohnsonCycleFinder {
+    private static final Logger log = LoggerFactory.getLogger(JohnsonCycleFinder.class);
+
     private int nodeToProcess = 0;
     private final PrimitiveGraph primitiveGraph;
 
@@ -58,8 +65,8 @@ class JohnsonCycleFinder {
         this.primitiveGraph = primitiveGraph;
     }
 
-    List<int[]> findCycles() {
-        List<int[]> result = new ArrayList<>();
+    Result findCycles() {
+        Result result = new Result();
         TarjanComponentFinder componentFinder = new TarjanComponentFinder(primitiveGraph);
         JohnsonComponent johnsonComponent = JohnsonComponent.within(primitiveGraph);
         while (nodeToProcess < primitiveGraph.getSize()) {
@@ -69,14 +76,18 @@ class JohnsonCycleFinder {
             }
 
             johnsonComponent.init(nextStronglyConnectedComponent);
-            result.addAll(findCycles(johnsonComponent.getStartNodeIndex(), johnsonComponent));
+            findCycles(result, johnsonComponent.getStartNodeIndex(), johnsonComponent);
             nodeToProcess = johnsonComponent.getStartNodeIndex() + 1;
         }
         return result;
     }
 
-    private List<int[]> findCycles(int originNodeIndex, JohnsonComponent johnsonComponent) {
-        List<int[]> result = new ArrayList<>();
+    private boolean findCycles(Result result, int originNodeIndex, JohnsonComponent johnsonComponent) {
+        if (!result.canAcceptMoreCycles()) {
+            return false;
+        }
+
+        boolean foundCycle = false;
         johnsonComponent.pushOnStack(originNodeIndex);
         johnsonComponent.block(originNodeIndex);
 
@@ -84,12 +95,13 @@ class JohnsonCycleFinder {
         for (int targetNodeIndex : targetNodeIndexes) {
             if (johnsonComponent.isStartNodeIndex(targetNodeIndex)) {
                 result.add(johnsonComponent.getStack());
+                foundCycle = true;
             } else if (johnsonComponent.isNotBlocked(targetNodeIndex)) {
-                result.addAll(findCycles(targetNodeIndex, johnsonComponent));
+                foundCycle = foundCycle | findCycles(result, targetNodeIndex, johnsonComponent);
             }
         }
 
-        if (!result.isEmpty()) {
+        if (foundCycle) {
             johnsonComponent.unblock(originNodeIndex);
         } else {
             for (int targetNodeIndex : targetNodeIndexes) {
@@ -98,6 +110,44 @@ class JohnsonCycleFinder {
         }
 
         johnsonComponent.popFromStack();
-        return result;
+        return foundCycle;
+    }
+
+    static class Result implements Iterable<int[]> {
+        private final CycleConfiguration configuration = new CycleConfiguration();
+        private List<int[]> cycles = new ArrayList<>();
+        private boolean maxNumberOfCyclesReached = false;
+
+        private Result() {
+            log.debug("Maximum number of cycles to detect is set to {}; "
+                            + "this limit can be adapted using the `archunit.properties` value `{}=xxx`",
+                    configuration.getMaxNumberOfCyclesToDetect(), MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME);
+        }
+
+        private boolean canAcceptMoreCycles() {
+            return !maxNumberOfCyclesReached;
+        }
+
+        boolean maxNumberOfCyclesReached() {
+            return maxNumberOfCyclesReached;
+        }
+
+        void add(int[] cycle) {
+            if (maxNumberOfCyclesReached) {
+                return;
+            }
+
+            if (this.cycles.size() >= configuration.getMaxNumberOfCyclesToDetect()) {
+                maxNumberOfCyclesReached = true;
+                return;
+            }
+
+            this.cycles.add(cycle);
+        }
+
+        @Override
+        public Iterator<int[]> iterator() {
+            return cycles.iterator();
+        }
     }
 }

@@ -41,10 +41,12 @@ import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
+import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
+
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private final DescribedPredicate<Dependency> predicate;
     private ClassesToSlicesMapping classesToSlicesMapping;
-    private DependencyGraph graph;
+    private Graph<Slice, Dependency> graph;
     private EventRecorder eventRecorder;
 
     SliceCycleArchCondition(DescribedPredicate<Dependency> predicate) {
@@ -60,7 +62,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
     private void initializeResources(Iterable<Slice> allSlices) {
         classesToSlicesMapping = new ClassesToSlicesMapping(allSlices);
-        graph = new DependencyGraph();
+        graph = new Graph<>();
         eventRecorder = new EventRecorder();
     }
 
@@ -71,7 +73,14 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
     @Override
     public void finish(ConditionEvents events) {
-        for (Cycle<Slice, Dependency> cycle : graph.findCycles()) {
+        Graph.Cycles<Slice, Dependency> cycles = graph.findCycles();
+        if (cycles.maxNumberOfCyclesReached()) {
+            events.setInformationAboutNumberOfViolations(String.format(
+                    " >= %d times - the maximum number of cycles to detect has been reached; "
+                            + "this limit can be adapted using the `archunit.properties` value `%s=xxx`",
+                    cycles.size(), MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME));
+        }
+        for (Cycle<Slice, Dependency> cycle : cycles) {
             eventRecorder.record(cycle, events);
         }
         releaseResources();
@@ -111,10 +120,6 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         public boolean containsKey(JavaClass javaClass) {
             return mapping().containsKey(javaClass);
         }
-    }
-
-    private static class DependencyGraph extends Graph<Slice, Dependency> {
-
     }
 
     private static class SliceDependencies extends ForwardingSet<Edge<Slice, Dependency>> {
