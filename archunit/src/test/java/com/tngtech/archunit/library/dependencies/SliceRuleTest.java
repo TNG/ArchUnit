@@ -1,36 +1,39 @@
 package com.tngtech.archunit.library.dependencies;
 
+import java.util.Arrays;
+import java.util.List;
+
+import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.library.dependencies.testexamples.completedependencygraph.sevennodes.CompleteSevenNodesGraphRoot;
+import com.tngtech.archunit.library.dependencies.testexamples.cyclewithunbalanceddependencies.CycleWithUnbalancedDependenciesRoot;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.Condition;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.math.IntMath.factorial;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
+import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static java.lang.System.lineSeparator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class SliceRuleTest {
-    private static final String completeGraphPackageRoot = CompleteSevenNodesGraphRoot.class.getPackage().getName();
-    private static final JavaClasses classesFormingCompleteDependencyGraph = new ClassFileImporter().importPackages(completeGraphPackageRoot);
 
     @Rule
     public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
-
-    private final SliceRule slicesShouldBeFreeOfCycles = slices()
-            .matching(completeGraphPackageRoot + ".(*)")
-            .should().beFreeOfCycles();
 
     @DataProvider
     public static Object[][] cycle_limits() {
@@ -90,9 +93,8 @@ public class SliceRuleTest {
     @Test
     @UseDataProvider("cycle_limits")
     public void limits_number_of_cycles_to_configured_limit(Runnable configureLimit, int expectedNumberOfReportedCycles) {
-
         configureLimit.run();
-        String violations = slicesShouldBeFreeOfCycles.evaluate(classesFormingCompleteDependencyGraph).getFailureReport().toString();
+        String violations = getFailureReportForCyclesInRootPackageOf(CompleteSevenNodesGraphRoot.class);
 
         int numberOfDetectedCycles = countCyclesInMessage(violations);
         assertThat(numberOfDetectedCycles).as("number of cycles detected").isEqualTo(expectedNumberOfReportedCycles);
@@ -119,10 +121,75 @@ public class SliceRuleTest {
                 + "this limit can be adapted using the `archunit.properties` value `cycles.maxNumberToDetect=xxx`)");
     }
 
+    @Test
+    public void limits_number_of_reported_dependencies_per_edge_to_configured_limit() {
+        ArchConfiguration.get().setProperty(MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME, "3");
+
+        String failureReport = getFailureReportForCyclesInRootPackageOf(CycleWithUnbalancedDependenciesRoot.class);
+        List<String> lines = filterLinesMatching(failureReport, "Dependencies of Slice|further dependencies have been omitted");
+
+        assertThat(lines).has(subStringsPerLine(
+                "Dependencies of Slice onedependency",
+                "Dependencies of Slice thirtydependencies",
+                "(27 further dependencies have been omitted...)",
+                "Dependencies of Slice threedependencies"));
+    }
+
+    @Test
+    public void limits_number_of_reported_dependencies_per_edge_by_default_to_20() {
+        String failureReport = getFailureReportForCyclesInRootPackageOf(CycleWithUnbalancedDependenciesRoot.class);
+        List<String> lines = filterLinesMatching(failureReport, "Dependencies of Slice|further dependencies have been omitted");
+
+        assertThat(lines).has(subStringsPerLine(
+                "Dependencies of Slice onedependency",
+                "Dependencies of Slice thirtydependencies",
+                "(10 further dependencies have been omitted...)",
+                "Dependencies of Slice threedependencies"));
+    }
+
+    private List<String> filterLinesMatching(String text, final String regex) {
+        return FluentIterable.from(Splitter.on(lineSeparator()).split(text))
+                .filter(new Predicate<String>() {
+                    @Override
+                    public boolean apply(String input) {
+                        return input.matches(".*(" + regex + ").*");
+                    }
+                }).toList();
+    }
+
+    private Condition<List<? extends String>> subStringsPerLine(final String... substrings) {
+        return new Condition<List<? extends String>>("substrings per line " + Arrays.asList(substrings)) {
+            @Override
+            public boolean matches(List<? extends String> lines) {
+                if (lines.size() != substrings.length) {
+                    as(description() + ", but number of lines %d does not match number of substrings %d",
+                            lines.size(), substrings.length);
+                    return false;
+                }
+                for (int i = 0; i < lines.size(); i++) {
+                    if (!lines.get(i).contains(substrings[i])) {
+                        as(description() + ", but line %d \"%s\" does not contain substring \"%s\"",
+                                i, lines.get(i), substrings[i]);
+                        return false;
+                    }
+                }
+                return true;
+            }
+        };
+    }
+
     private String evaluateCompleteGraphCycleFreeWithCycleLimit(int expectedNumberOfCycles) {
         ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME, String.valueOf(expectedNumberOfCycles));
 
-        return slicesShouldBeFreeOfCycles.evaluate(classesFormingCompleteDependencyGraph).getFailureReport().toString();
+        return getFailureReportForCyclesInRootPackageOf(CompleteSevenNodesGraphRoot.class);
+    }
+
+    private String getFailureReportForCyclesInRootPackageOf(Class<?> packageRoot) {
+        JavaClasses classes = new ClassFileImporter().importPackagesOf(packageRoot);
+        return slices()
+                .matching(packageRoot.getPackage().getName() + ".(*)")
+                .should().beFreeOfCycles().evaluate(classes)
+                .getFailureReport().toString();
     }
 
     static int countCyclesInMessage(String text) {
