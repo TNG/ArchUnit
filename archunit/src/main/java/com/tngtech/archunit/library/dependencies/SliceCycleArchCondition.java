@@ -39,11 +39,16 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.collect.MultimapBuilder.hashKeys;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
+import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
+    private static final Logger log = LoggerFactory.getLogger(SliceCycleArchCondition.class);
+
     private final DescribedPredicate<Dependency> predicate;
     private ClassesToSlicesMapping classesToSlicesMapping;
     private Graph<Slice, Dependency> graph;
@@ -170,6 +175,14 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             }
         };
 
+        private final CycleConfiguration cycleConfiguration = new CycleConfiguration();
+
+        private EventRecorder() {
+            log.debug("Maximum number of dependencies to report per edge is set to {}; "
+                            + "this limit can be adapted using the `archunit.properties` value `{}=xxx`",
+                    cycleConfiguration.getMaxNumberOfDependenciesToShowPerEdge(), MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME);
+        }
+
         void record(Cycle<Slice, Dependency> cycle, ConditionEvents events) {
             events.add(newEvent(cycle));
         }
@@ -211,10 +224,18 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             return Joiner.on(System.lineSeparator()).join(details);
         }
 
-        private List<String> dependenciesDescription(Edge<Slice, Dependency> edges) {
+        private List<String> dependenciesDescription(Edge<Slice, Dependency> edge) {
             List<String> result = new ArrayList<>();
-            for (Dependency dependency : edges.getAttachments()) {
+            int maxDependencies = cycleConfiguration.getMaxNumberOfDependenciesToShowPerEdge();
+            List<Dependency> allDependencies = edge.getAttachments();
+            boolean tooManyDependenciesToDisplay = allDependencies.size() > maxDependencies;
+            List<Dependency> dependenciesToDisplay = tooManyDependenciesToDisplay ? allDependencies.subList(0, maxDependencies) : allDependencies;
+            for (Dependency dependency : dependenciesToDisplay) {
                 result.add(dependency.getDescription());
+            }
+            if (tooManyDependenciesToDisplay) {
+                result.add(String.format("(%d further dependencies have been omitted...)",
+                        allDependencies.size() - dependenciesToDisplay.size()));
             }
             return result;
         }

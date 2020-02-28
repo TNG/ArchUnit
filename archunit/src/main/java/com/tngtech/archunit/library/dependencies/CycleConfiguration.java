@@ -20,16 +20,28 @@ import com.tngtech.archunit.ArchConfiguration;
 final class CycleConfiguration {
     static final String MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME = "cycles.maxNumberToDetect";
     private static final String MAX_NUMBER_OF_CYCLES_TO_DETECT_DEFAULT_VALUE = "100";
+    static final String MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME = "cycles.maxNumberOfDependenciesPerEdge";
+    private static final String MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_DEFAULT_VALUE = "20";
 
     private final int maxCyclesToDetect;
+    private final int maxDependenciesPerEdge;
 
     CycleConfiguration() {
         String configuredMaxCyclesToDetect = ArchConfiguration.get()
                 .getPropertyOrDefault(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME, MAX_NUMBER_OF_CYCLES_TO_DETECT_DEFAULT_VALUE);
         maxCyclesToDetect = Integer.parseInt(configuredMaxCyclesToDetect);
+
+        String configuredMaxDependenciesPerEdge = ArchConfiguration.get()
+                .getPropertyOrDefault(MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME,
+                        MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_DEFAULT_VALUE);
+        maxDependenciesPerEdge = Integer.parseInt(configuredMaxDependenciesPerEdge);
     }
 
     int getMaxNumberOfCyclesToDetect() {
         return maxCyclesToDetect;
+    }
+
+    int getMaxNumberOfDependenciesToShowPerEdge() {
+        return maxDependenciesPerEdge;
     }
 }
