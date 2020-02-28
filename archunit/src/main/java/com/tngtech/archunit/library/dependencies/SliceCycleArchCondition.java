@@ -22,16 +22,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.SortedSet;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ForwardingSet;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.SortedSetMultimap;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.core.domain.Dependency;
@@ -41,6 +40,7 @@ import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 
+import static com.google.common.collect.MultimapBuilder.hashKeys;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
@@ -126,23 +126,29 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         private final Set<Edge<Slice, Dependency>> edges;
 
         private SliceDependencies(Slice slice, ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
-            Multimap<Slice, Dependency> targetSlicesWithDependencies = targetsOf(slice, classesToSlicesMapping, predicate);
+            SortedSetMultimap<Slice, Dependency> targetSlicesWithDependencies = targetsOf(slice, classesToSlicesMapping, predicate);
             ImmutableSet.Builder<Edge<Slice, Dependency>> edgeBuilder = ImmutableSet.builder();
-            for (Map.Entry<Slice, Collection<Dependency>> entry : targetSlicesWithDependencies.asMap().entrySet()) {
+            for (Map.Entry<Slice, SortedSet<Dependency>> entry : sortedEntries(targetSlicesWithDependencies)) {
                 edgeBuilder.add(new Edge<>(slice, entry.getKey(), entry.getValue()));
             }
             this.edges = edgeBuilder.build();
         }
 
-        private Multimap<Slice, Dependency> targetsOf(Slice slice,
+        private SortedSetMultimap<Slice, Dependency> targetsOf(Slice slice,
                 ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
-            Multimap<Slice, Dependency> result = HashMultimap.create();
+            SortedSetMultimap<Slice, Dependency> result = hashKeys().treeSetValues().build();
             for (Dependency dependency : Guava.Iterables.filter(slice.getDependenciesFromSelf(), predicate)) {
                 if (classesToSlicesMapping.containsKey(dependency.getTargetClass())) {
                     result.put(classesToSlicesMapping.get(dependency.getTargetClass()), dependency);
                 }
             }
             return result;
+        }
+
+        // unfortunately SortedSetMultimap has no good API to iterate over all SortedSet values :-(
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private Set<Map.Entry<Slice, SortedSet<Dependency>>> sortedEntries(SortedSetMultimap<Slice, Dependency> multimap) {
+            return (Set) multimap.asMap().entrySet();
         }
 
         @Override
@@ -170,7 +176,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
         private ConditionEvent newEvent(Cycle<Slice, Dependency> cycle) {
             Map<String, Edge<Slice, Dependency>> descriptionsToEdges = sortEdgesByDescription(cycle);
-            String description = createDescription(descriptionsToEdges);
+            String description = createDescription(descriptionsToEdges.keySet());
             String details = createDetails(descriptionsToEdges);
             return new SimpleConditionEvent(cycle,
                     false,
@@ -190,8 +196,8 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             return descriptionToEdge;
         }
 
-        private String createDescription(Map<String, Edge<Slice, Dependency>> descriptionsToEdges) {
-            List<String> descriptions = new ArrayList<>(descriptionsToEdges.keySet());
+        private String createDescription(Collection<String> edgeDescriptions) {
+            List<String> descriptions = new ArrayList<>(edgeDescriptions);
             descriptions.add(descriptions.get(0));
             return Joiner.on(" -> ").join(descriptions);
         }
@@ -200,14 +206,14 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             List<String> details = new ArrayList<>();
             for (Map.Entry<String, Edge<Slice, Dependency>> edgeWithDescription : descriptionsToEdges.entrySet()) {
                 details.add(String.format("Dependencies of %s", edgeWithDescription.getKey()));
-                details.addAll(dependenciesDescription(edgeWithDescription));
+                details.addAll(dependenciesDescription(edgeWithDescription.getValue()));
             }
             return Joiner.on(System.lineSeparator()).join(details);
         }
 
-        private List<String> dependenciesDescription(Map.Entry<String, Edge<Slice, Dependency>> edgeWithDescription) {
+        private List<String> dependenciesDescription(Edge<Slice, Dependency> edges) {
             List<String> result = new ArrayList<>();
-            for (Dependency dependency : new TreeSet<>(edgeWithDescription.getValue().getAttachments())) {
+            for (Dependency dependency : edges.getAttachments()) {
                 result.add(dependency.getDescription());
             }
             return result;

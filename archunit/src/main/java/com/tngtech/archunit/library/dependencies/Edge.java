@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -25,18 +24,14 @@ import com.google.common.collect.ImmutableList;
 final class Edge<T, ATTACHMENT> {
     private final T from;
     private final T to;
-    private final List<ATTACHMENT> attachments = new ArrayList<>();
+    private final List<ATTACHMENT> attachments;
     private final int hashCode;
 
-    Edge(T from, T to) {
+    Edge(T from, T to, Collection<ATTACHMENT> attachments) {
         this.from = from;
         this.to = to;
         hashCode = Objects.hash(from, to);
-    }
-
-    Edge(T from, T to, Collection<ATTACHMENT> attachments) {
-        this(from, to);
-        this.attachments.addAll(attachments);
+        this.attachments = ImmutableList.copyOf(attachments);
     }
 
     T getFrom() {
@@ -48,11 +43,7 @@ final class Edge<T, ATTACHMENT> {
     }
 
     List<ATTACHMENT> getAttachments() {
-        return ImmutableList.copyOf(attachments);
-    }
-
-    void addAttachment(ATTACHMENT attachment) {
-        attachments.add(attachment);
+        return attachments;
     }
 
     @Override

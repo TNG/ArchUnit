@@ -11,6 +11,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
+import static com.tngtech.archunit.library.dependencies.GraphTest.newEdge;
+
 public class RealLifeGraph {
     // This graph has originally been taken from the toplevel packages of org.hibernate
     private static final Multimap<Integer, Integer> edgeTargetsByOrigin = createEdges();
@@ -85,7 +87,7 @@ public class RealLifeGraph {
         List<Edge<Integer, Object>> edges = new ArrayList<>();
         for (Map.Entry<Integer, Collection<Integer>> targetNodesByOrigin : targetNodesByOriginNodes.asMap().entrySet()) {
             for (Integer target : targetNodesByOrigin.getValue()) {
-                edges.add(new Edge<>(targetNodesByOrigin.getKey(), target));
+                edges.add(newEdge(targetNodesByOrigin.getKey(), target));
             }
         }
         result.addEdges(edges);
