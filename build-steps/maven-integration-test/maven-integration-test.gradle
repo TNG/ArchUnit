@@ -175,7 +175,7 @@ def addMavenTest = { config ->
 
         def executeRulesTask = tasks[executeRules]
         releaseProjects*.with {
-            [install, uploadArchives].each { executeRulesTask.mustRunAfter it }
+            [publish, publishToMavenLocal].each { executeRulesTask.mustRunAfter it }
         }
     }
 }

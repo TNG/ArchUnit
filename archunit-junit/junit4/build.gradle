@@ -43,10 +43,9 @@ shadowJar {
     }
 }
 
-def configureDependencies = { pom ->
-    pom.dependencies.removeAll {
-        it.scope != 'compile' || !(it.artifactId in ['archunit', 'archunit-junit5-api', 'archunit-junit5-engine-api', 'junit'])
+def configureDependencies = { deps ->
+    deps.children().removeIf { dep ->
+        dep.scope.text() != 'compile' || !(dep.artifactId.text() in ['archunit', 'archunit-junit5-api', 'archunit-junit5-engine-api', 'junit'])
     }
-    pom.dependencies.find { it.artifactId == 'archunit' }.classifier = null
 }
 this.with project(':archunit-junit').configureJUnitArchive(configureDependencies)
