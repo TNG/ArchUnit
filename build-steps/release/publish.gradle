@@ -78,6 +78,11 @@ releaseProjects*.with {
                     name 'Roland Weisleder'
                     email 'roland.weisleder@googlemail.com'
                 }
+                developer {
+                    id 'hankem'
+                    name 'Manfred Hanke'
+                    email 'manfred.hanke@tngtech.com'
+                }
             }
         }
     }

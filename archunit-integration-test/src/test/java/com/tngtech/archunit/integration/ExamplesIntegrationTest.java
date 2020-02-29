@@ -823,54 +823,62 @@ class ExamplesIntegrationTest {
 
     @TestFactory
     Stream<DynamicTest> OnionArchitectureTest() {
+        BiConsumer<String, ExpectedTestFailures> addExpectedCommonFailure =
+                (memberName, expectedTestFailures) ->
+                        expectedTestFailures
+                                .ofRule(memberName, "Onion architecture consisting of" + lineSeparator() +
+                                        "domain models ('..domain.model..')" + lineSeparator() +
+                                        "domain services ('..domain.service..')" + lineSeparator() +
+                                        "application services ('..application..')" + lineSeparator() +
+                                        "adapter 'cli' ('..adapter.cli..')" + lineSeparator() +
+                                        "adapter 'persistence' ('..adapter.persistence..')" + lineSeparator() +
+                                        "adapter 'rest' ('..adapter.rest..')")
+
+                                .by(constructor(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class).withParameter(ProductId.class))
+                                .by(constructor(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class).withParameter(ProductName.class))
+                                .by(constructor(ShoppingCart.class).withParameter(ShoppingCartId.class))
+                                .by(constructor(ShoppingService.class).withParameter(ProductRepository.class))
+                                .by(constructor(ShoppingService.class).withParameter(ShoppingCartRepository.class))
+
+                                .by(field(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class, "id").ofType(ProductId.class))
+                                .by(field(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class, "name").ofType(ProductName.class))
+                                .by(field(ShoppingCart.class, "id").ofType(ShoppingCartId.class))
+                                .by(field(ShoppingService.class, "productRepository").ofType(ProductRepository.class))
+                                .by(field(ShoppingService.class, "shoppingCartRepository").ofType(ShoppingCartRepository.class))
+
+                                .by(callFromMethod(AdministrationCLI.class, "handle", String[].class, AdministrationPort.class)
+                                        .toMethod(ProductRepository.class, "getTotalCount")
+                                        .inLine(17).asDependency())
+                                .by(callFromMethod(ShoppingController.class, "addToShoppingCart", UUID.class, UUID.class, int.class)
+                                        .toConstructor(ProductId.class, UUID.class)
+                                        .inLine(20).asDependency())
+                                .by(callFromMethod(ShoppingController.class, "addToShoppingCart", UUID.class, UUID.class, int.class)
+                                        .toConstructor(ShoppingCartId.class, UUID.class)
+                                        .inLine(20).asDependency())
+                                .by(method(ShoppingService.class, "addToShoppingCart").withParameter(ProductId.class))
+                                .by(method(ShoppingService.class, "addToShoppingCart").withParameter(ShoppingCartId.class))
+                                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
+                                        .toMethod(ShoppingCartRepository.class, "read", ShoppingCartId.class)
+                                        .inLine(21).asDependency())
+                                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
+                                        .toMethod(ProductRepository.class, "read", ProductId.class)
+                                        .inLine(22).asDependency())
+                                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
+                                        .toMethod(ShoppingCartRepository.class, "save", ShoppingCart.class)
+                                        .inLine(25).asDependency());
+
         ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
                 .forTests(
                         com.tngtech.archunit.exampletest.OnionArchitectureTest.class,
                         com.tngtech.archunit.exampletest.junit4.OnionArchitectureTest.class,
-                        com.tngtech.archunit.exampletest.junit5.OnionArchitectureTest.class)
+                        com.tngtech.archunit.exampletest.junit5.OnionArchitectureTest.class);
 
-                .ofRule("Onion architecture consisting of" + lineSeparator() +
-                        "domain models ('..domain.model..')" + lineSeparator() +
-                        "domain services ('..domain.service..')" + lineSeparator() +
-                        "application services ('..application..')" + lineSeparator() +
-                        "adapter 'cli' ('..adapter.cli..')" + lineSeparator() +
-                        "adapter 'persistence' ('..adapter.persistence..')" + lineSeparator() +
-                        "adapter 'rest' ('..adapter.rest..')")
-
+        addExpectedCommonFailure.accept("onion_architecture_is_respected", expectedTestFailures);
+        expectedTestFailures = expectedTestFailures
                 .by(constructor(OrderItem.class).withParameter(OrderQuantity.class))
-                .by(constructor(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class).withParameter(ProductId.class))
-                .by(constructor(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class).withParameter(ProductName.class))
-                .by(constructor(ShoppingCart.class).withParameter(ShoppingCartId.class))
-                .by(constructor(ShoppingService.class).withParameter(ProductRepository.class))
-                .by(constructor(ShoppingService.class).withParameter(ShoppingCartRepository.class))
+                .by(field(OrderItem.class, "quantity").ofType(OrderQuantity.class));
 
-                .by(field(OrderItem.class, "quantity").ofType(OrderQuantity.class))
-                .by(field(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class, "id").ofType(ProductId.class))
-                .by(field(com.tngtech.archunit.example.onionarchitecture.domain.model.Product.class, "name").ofType(ProductName.class))
-                .by(field(ShoppingCart.class, "id").ofType(ShoppingCartId.class))
-                .by(field(ShoppingService.class, "productRepository").ofType(ProductRepository.class))
-                .by(field(ShoppingService.class, "shoppingCartRepository").ofType(ShoppingCartRepository.class))
-
-                .by(callFromMethod(AdministrationCLI.class, "handle", String[].class, AdministrationPort.class)
-                        .toMethod(ProductRepository.class, "getTotalCount")
-                        .inLine(17).asDependency())
-                .by(callFromMethod(ShoppingController.class, "addToShoppingCart", UUID.class, UUID.class, int.class)
-                        .toConstructor(ProductId.class, UUID.class)
-                        .inLine(20).asDependency())
-                .by(callFromMethod(ShoppingController.class, "addToShoppingCart", UUID.class, UUID.class, int.class)
-                        .toConstructor(ShoppingCartId.class, UUID.class)
-                        .inLine(20).asDependency())
-                .by(method(ShoppingService.class, "addToShoppingCart").withParameter(ProductId.class))
-                .by(method(ShoppingService.class, "addToShoppingCart").withParameter(ShoppingCartId.class))
-                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
-                        .toMethod(ShoppingCartRepository.class, "read", ShoppingCartId.class)
-                        .inLine(21).asDependency())
-                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
-                        .toMethod(ProductRepository.class, "read", ProductId.class)
-                        .inLine(22).asDependency())
-                .by(callFromMethod(ShoppingService.class, "addToShoppingCart", ShoppingCartId.class, ProductId.class, OrderQuantity.class)
-                        .toMethod(ShoppingCartRepository.class, "save", ShoppingCart.class)
-                        .inLine(25).asDependency());
+        addExpectedCommonFailure.accept("onion_architecture_is_respected_with_exception", expectedTestFailures);
 
         return expectedTestFailures.toDynamicTests();
     }
