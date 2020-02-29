@@ -326,48 +326,20 @@ public class ArchitecturesTest {
 
         EvaluationResult result = architecture.evaluate(classes);
 
-        ExpectedOnionViolations expectedViolations = getExpectedOnionViolationsIncludingThoseFromApplicationLayerClass(true);
-        assertPatternMatches(result.getFailureReport().getDetails(), expectedViolations.toPatterns());
-    }
-
-    private OnionArchitecture getTestOnionArchitecture() {
-        return onionArchitecture()
-                .domainModels(absolute("onionarchitecture.domain.model"))
-                .domainServices(absolute("onionarchitecture.domain.service"))
-                .applicationServices(absolute("onionarchitecture.application"))
-                .adapter("cli", absolute("onionarchitecture.adapter.cli"))
-                .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
-                .adapter("rest", absolute("onionarchitecture.adapter.rest"));
-    }
-
-    private ExpectedOnionViolations getExpectedOnionViolationsIncludingThoseFromApplicationLayerClass(boolean includeViolationsFromApplicationLayerClass) {
-        ExpectedOnionViolations expectedViolations = new ExpectedOnionViolations();
-        expectedViolations.from(DomainModelLayerClass.class)
-                .to(DomainServiceLayerClass.class, ApplicationLayerClass.class, CliAdapterLayerClass.class,
-                        PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectedViolations.from(DomainServiceLayerClass.class)
-                .to(ApplicationLayerClass.class, CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        if (includeViolationsFromApplicationLayerClass) {
-            expectedViolations.from(ApplicationLayerClass.class)
-                    .to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        }
-        expectedViolations.from(CliAdapterLayerClass.class).to(PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectedViolations.from(PersistenceAdapterLayerClass.class).to(CliAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectedViolations.from(RestAdapterLayerClass.class).to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class);
-        return expectedViolations;
+        assertPatternMatches(result.getFailureReport().getDetails(), getExpectedOnionViolations().toPatterns());
     }
 
     @Test
     public void onion_architecture_is_not_violated_by_ignored_dependencies() {
-        OnionArchitecture architecture = getTestOnionArchitecture()
+        OnionArchitecture onionIgnoringOriginApplicationLayerClass = getTestOnionArchitecture()
                 .ignoreDependency(ApplicationLayerClass.class, CliAdapterLayerClass.class)
                 .ignoreDependency(ApplicationLayerClass.class.getName(), PersistenceAdapterLayerClass.class.getName())
                 .ignoreDependency(simpleNameStartingWith("ApplicationLayerCl"), simpleNameContaining("estAdapterLayerCl"));
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
 
-        EvaluationResult result = architecture.evaluate(classes);
+        EvaluationResult result = onionIgnoringOriginApplicationLayerClass.evaluate(classes);
 
-        ExpectedOnionViolations expectedViolations = getExpectedOnionViolationsIncludingThoseFromApplicationLayerClass(false);
+        ExpectedOnionViolations expectedViolations = getExpectedOnionViolations().withoutViolationsWithOrigin(ApplicationLayerClass.class);
         assertPatternMatches(result.getFailureReport().getDetails(), expectedViolations.toPatterns());
     }
 
@@ -403,11 +375,36 @@ public class ArchitecturesTest {
         assertFailureOnionArchitectureWithEmptyLayers(result);
     }
 
+    private OnionArchitecture getTestOnionArchitecture() {
+        return onionArchitecture()
+                .domainModels(absolute("onionarchitecture.domain.model"))
+                .domainServices(absolute("onionarchitecture.domain.service"))
+                .applicationServices(absolute("onionarchitecture.application"))
+                .adapter("cli", absolute("onionarchitecture.adapter.cli"))
+                .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
+                .adapter("rest", absolute("onionarchitecture.adapter.rest"));
+    }
+
+    private ExpectedOnionViolations getExpectedOnionViolations() {
+        ExpectedOnionViolations expectedViolations = new ExpectedOnionViolations();
+        expectedViolations.from(DomainModelLayerClass.class)
+                .to(DomainServiceLayerClass.class, ApplicationLayerClass.class, CliAdapterLayerClass.class,
+                        PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(DomainServiceLayerClass.class)
+                .to(ApplicationLayerClass.class, CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(ApplicationLayerClass.class)
+                .to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(CliAdapterLayerClass.class).to(PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(PersistenceAdapterLayerClass.class).to(CliAdapterLayerClass.class, RestAdapterLayerClass.class);
+        expectedViolations.from(RestAdapterLayerClass.class).to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class);
+        return expectedViolations;
+    }
+
     private OnionArchitecture anOnionArchitectureWithEmptyLayers() {
         return onionArchitecture()
-                    .domainModels(absolute("onionarchitecture.domain.model.does.not.exist"))
-                    .domainServices(absolute("onionarchitecture.domain.service.not.there"))
-                    .applicationServices(absolute("onionarchitecture.application.http410"));
+                .domainModels(absolute("onionarchitecture.domain.model.does.not.exist"))
+                .domainServices(absolute("onionarchitecture.domain.service.not.there"))
+                .applicationServices(absolute("onionarchitecture.application.http410"));
     }
 
     private void assertFailureOnionArchitectureWithEmptyLayers(EvaluationResult result) {
@@ -479,7 +476,15 @@ public class ArchitecturesTest {
     }
 
     private static class ExpectedOnionViolations {
-        private final Set<ExpectedOnionViolation> expected = new HashSet<>();
+        private final Set<ExpectedOnionViolation> expected;
+
+        private ExpectedOnionViolations() {
+            this(new HashSet<ExpectedOnionViolation>());
+        }
+
+        private ExpectedOnionViolations(Set<ExpectedOnionViolation> expected) {
+            this.expected = expected;
+        }
 
         From from(Class<?> from) {
             return new From(from);
@@ -488,6 +493,16 @@ public class ArchitecturesTest {
         private ExpectedOnionViolations add(ExpectedOnionViolation expectedOnionViolation) {
             expected.add(expectedOnionViolation);
             return this;
+        }
+
+        public ExpectedOnionViolations withoutViolationsWithOrigin(Class<?> clazz) {
+            Set<ExpectedOnionViolation> filtered = new HashSet<>();
+            for (ExpectedOnionViolation expectedViolation : expected) {
+                if (!expectedViolation.from.equals(clazz)) {
+                    filtered.add(expectedViolation);
+                }
+            }
+            return new ExpectedOnionViolations(filtered);
         }
 
         Set<String> toPatterns() {
