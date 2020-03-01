@@ -61,7 +61,7 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 
-public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
+public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
     private final Optional<Source> source;
     private final SourceCodeLocation sourceCodeLocation;
     private final JavaClassDescriptor descriptor;
