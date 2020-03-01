@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -52,6 +53,8 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
+import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
@@ -60,6 +63,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTypeVariable;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 @Internal
@@ -499,6 +503,38 @@ public final class DomainBuilders {
         @Override
         JavaStaticInitializer construct(JavaStaticInitializerBuilder builder, ClassesByTypeName importedClasses) {
             return DomainObjectCreationContext.createJavaStaticInitializer(builder);
+        }
+    }
+
+    @Internal
+    public static final class JavaTypeVariableBuilder {
+        private final String name;
+        private final List<String> boundNames = new ArrayList<>();
+        private ClassesByTypeName importedClasses;
+
+        JavaTypeVariableBuilder(String name) {
+            this.name = checkNotNull(name);
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        void addBound(String name) {
+            boundNames.add(name);
+        }
+
+        public List<JavaType> getBounds() {
+            ImmutableList.Builder<JavaType> result = ImmutableList.builder();
+            for (String boundName : boundNames) {
+                result.add(importedClasses.get(boundName));
+            }
+            return result.build();
+        }
+
+        public JavaTypeVariable build(ClassesByTypeName importedClasses) {
+            this.importedClasses = importedClasses;
+            return createTypeVariable(this);
         }
     }
 

@@ -58,6 +58,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 
@@ -71,6 +72,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private final boolean isAnonymousClass;
     private final boolean isMemberClass;
     private final Set<JavaModifier> modifiers;
+    private List<JavaTypeVariable> typeParameters = emptyList();
     private final Supplier<Class<?>> reflectSupplier;
     private Set<JavaField> fields = emptySet();
     private Set<JavaCodeUnit> codeUnits = emptySet();
@@ -564,6 +566,11 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation<JavaClass>> tryGetAnnotationOfType(String typeName) {
         return Optional.fromNullable(annotations.get(typeName));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public List<JavaTypeVariable> getTypeParameters() {
+        return typeParameters;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1177,6 +1184,10 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         for (JavaClass i : interfaces) {
             i.subClasses.add(this);
         }
+    }
+
+    void completeTypeParametersFrom(ImportContext context) {
+        typeParameters = context.createTypeParameters(this);
     }
 
     void completeMembers(final ImportContext context) {

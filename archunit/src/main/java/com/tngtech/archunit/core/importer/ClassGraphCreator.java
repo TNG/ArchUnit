@@ -16,10 +16,12 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
@@ -44,6 +46,7 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
@@ -97,7 +100,7 @@ class ClassGraphCreator implements ImportContext {
     JavaClasses complete() {
         ensureCallTargetsArePresent();
         ensureClassHierarchies();
-        completeMembers();
+        completeTypeParametersAndMembers();
         completeAnnotations();
         for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
             tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
@@ -140,8 +143,9 @@ class ClassGraphCreator implements ImportContext {
         }
     }
 
-    private void completeMembers() {
+    private void completeTypeParametersAndMembers() {
         for (JavaClass javaClass : classes.getAll().values()) {
+            DomainObjectCreationContext.completeTypeParameters(javaClass, this);
             DomainObjectCreationContext.completeMembers(javaClass, this);
         }
     }
@@ -259,6 +263,15 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
+    public List<JavaTypeVariable> createTypeParameters(JavaClass owner) {
+        ImmutableList.Builder<JavaTypeVariable> result = ImmutableList.builder();
+        for (DomainBuilders.JavaTypeVariableBuilder builder : importRecord.getTypeParameterBuildersFor(owner.getName())) {
+            result.add(builder.build(classes.byTypeName()));
+        }
+        return result.build();
+    }
+
+    @Override
     public Set<JavaField> createFields(JavaClass owner) {
         Set<JavaField> fields = build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
         memberDependenciesByTarget.registerFields(fields);
@@ -289,7 +302,8 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
-        Map<String, JavaAnnotation<JavaClass>> annotations = buildAnnotations(owner, importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
+        Map<String, JavaAnnotation<JavaClass>> annotations =
+                buildAnnotations(owner, importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
         memberDependenciesByTarget.registerAnnotations(annotations.values());
         return annotations;
     }

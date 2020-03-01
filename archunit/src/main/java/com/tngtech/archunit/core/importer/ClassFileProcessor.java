@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 import com.tngtech.archunit.ArchConfiguration;
@@ -87,28 +88,33 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void onDeclaredTypeParameters(List<DomainBuilders.JavaTypeVariableBuilder> typeVariableBuilders) {
+            importRecord.addTypeParameters(ownerName, typeVariableBuilders);
+        }
+
+        @Override
         public void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder) {
             importRecord.addField(ownerName, fieldBuilder);
         }
 
         @Override
-        public void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder builder) {
-            importRecord.addConstructor(ownerName, builder);
+        public void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder) {
+            importRecord.addConstructor(ownerName, constructorBuilder);
         }
 
         @Override
-        public void onDeclaredMethod(DomainBuilders.JavaMethodBuilder builder) {
-            importRecord.addMethod(ownerName, builder);
+        public void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder) {
+            importRecord.addMethod(ownerName, methodBuilder);
         }
 
         @Override
-        public void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder builder) {
-            importRecord.setStaticInitializer(ownerName, builder);
+        public void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
+            importRecord.setStaticInitializer(ownerName, staticInitializerBuilder);
         }
 
         @Override
-        public void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotations) {
-            importRecord.addAnnotations(ownerName, annotations);
+        public void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
+            importRecord.addAnnotations(ownerName, annotationBuilders);
         }
 
         @Override

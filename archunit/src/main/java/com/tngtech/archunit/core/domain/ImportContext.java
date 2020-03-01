@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,6 +27,8 @@ public interface ImportContext {
     Optional<JavaClass> createSuperClass(JavaClass owner);
 
     Set<JavaClass> createInterfaces(JavaClass owner);
+
+    List<JavaTypeVariable> createTypeParameters(JavaClass owner);
 
     Set<JavaField> createFields(JavaClass owner);
 

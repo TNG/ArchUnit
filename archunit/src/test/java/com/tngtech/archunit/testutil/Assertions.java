@@ -29,6 +29,7 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -51,6 +52,7 @@ import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypeAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypesAssertion;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
@@ -88,6 +90,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaTypeAssertion assertThatType(JavaType javaType) {
         return new JavaTypeAssertion(javaType);
+    }
+
+    public static JavaTypeVariableAssertion assertThatTypeVariable(JavaTypeVariable typeVariable) {
+        return new JavaTypeVariableAssertion(typeVariable);
     }
 
     public static JavaTypesAssertion assertThatTypes(Iterable<? extends JavaType> javaTypes) {

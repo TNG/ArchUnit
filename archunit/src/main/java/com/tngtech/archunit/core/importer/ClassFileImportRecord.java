@@ -18,11 +18,14 @@ package com.tngtech.archunit.core.importer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -38,6 +41,7 @@ class ClassFileImportRecord {
 
     private final Map<String, String> superClassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
+    private final ListMultimap<String, DomainBuilders.JavaTypeVariableBuilder> typeParameterBuildersByOwner = ArrayListMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaMethodBuilder> methodBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
@@ -58,6 +62,10 @@ class ClassFileImportRecord {
 
     void addInterfaces(String ownerName, Set<String> interfaceNames) {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
+    }
+
+    public void addTypeParameters(String ownerName, List<DomainBuilders.JavaTypeVariableBuilder> builders) {
+        typeParameterBuildersByOwner.putAll(ownerName, builders);
     }
 
     void addField(String ownerName, DomainBuilders.JavaFieldBuilder fieldBuilder) {
@@ -93,6 +101,10 @@ class ClassFileImportRecord {
 
     Set<String> getInterfaceNamesFor(String ownerName) {
         return interfaceNamesByOwner.get(ownerName);
+    }
+
+    List<DomainBuilders.JavaTypeVariableBuilder> getTypeParameterBuildersFor(String ownerName) {
+        return typeParameterBuildersByOwner.get(ownerName);
     }
 
     Set<DomainBuilders.JavaFieldBuilder> getFieldBuildersFor(String ownerName) {
