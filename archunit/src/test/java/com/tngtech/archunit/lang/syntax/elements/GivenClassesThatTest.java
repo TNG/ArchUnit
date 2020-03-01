@@ -43,7 +43,8 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 
 public class GivenClassesThatTest {
     @Rule
@@ -54,7 +55,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveFullyQualifiedName(List.class.getName()))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(List.class);
+        assertThatType(getOnlyElement(classes)).matches(List.class);
     }
 
     @Test
@@ -62,7 +63,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().doNotHaveFullyQualifiedName(List.class.getName()))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, Iterable.class);
     }
 
     @Test
@@ -70,7 +71,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleName(List.class.getSimpleName()))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(List.class);
+        assertThatType(getOnlyElement(classes)).matches(List.class);
     }
 
     @Test
@@ -78,7 +79,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().doNotHaveSimpleName(List.class.getSimpleName()))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, Iterable.class);
     }
 
     @Test
@@ -86,7 +87,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveNameMatching(".*List"))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(List.class);
+        assertThatType(getOnlyElement(classes)).matches(List.class);
     }
 
     @Test
@@ -94,7 +95,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveNameNotMatching(".*List"))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, Iterable.class);
     }
 
     @Test
@@ -102,7 +103,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameStartingWith("String"))
                 .on(AttributedString.class, String.class, StringBuilder.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, StringBuilder.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, StringBuilder.class);
     }
 
     @Test
@@ -110,7 +111,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotStartingWith("String"))
                 .on(AttributedString.class, String.class, StringBuilder.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(AttributedString.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(AttributedString.class, Iterable.class);
     }
 
     @Test
@@ -118,7 +119,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameContaining("rin"))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class);
     }
 
     @Test
@@ -126,7 +127,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotContaining("rin"))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, Iterable.class);
     }
 
     @Test
@@ -134,7 +135,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameEndingWith("String"))
                 .on(String.class, AttributedString.class, StringBuilder.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, AttributedString.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, AttributedString.class);
     }
 
     @Test
@@ -142,7 +143,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveSimpleNameNotEndingWith("String"))
                 .on(String.class, AttributedString.class, StringBuilder.class);
 
-        assertThatClasses(classes).matchInAnyOrder(StringBuilder.class);
+        assertThatTypes(classes).matchInAnyOrder(StringBuilder.class);
     }
 
     @Test
@@ -150,7 +151,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().resideInAPackage("..tngtech.."))
                 .on(getClass(), String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(getClass());
+        assertThatTypes(classes).matchInAnyOrder(getClass());
     }
 
     @Test
@@ -158,7 +159,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().resideOutsideOfPackage("..tngtech.."))
                 .on(getClass(), String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, Iterable.class);
     }
 
     @Test
@@ -166,7 +167,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().resideInAnyPackage("..tngtech..", "java.lang.reflect"))
                 .on(getClass(), String.class, Constructor.class);
 
-        assertThatClasses(classes).matchInAnyOrder(getClass(), Constructor.class);
+        assertThatTypes(classes).matchInAnyOrder(getClass(), Constructor.class);
     }
 
     @Test
@@ -175,7 +176,7 @@ public class GivenClassesThatTest {
                 .resideOutsideOfPackages("..tngtech..", "java.lang.reflect")
         ).on(getClass(), String.class, Constructor.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class);
     }
 
     @Test
@@ -183,7 +184,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().arePublic())
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(getClass());
+        assertThatTypes(classes).matchInAnyOrder(getClass());
     }
 
     @Test
@@ -191,7 +192,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotPublic())
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
     }
 
     @Test
@@ -199,7 +200,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areProtected())
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ProtectedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ProtectedClass.class);
     }
 
     @Test
@@ -207,7 +208,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotProtected())
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(getClass(), PrivateClass.class, PackagePrivateClass.class);
+        assertThatTypes(classes).matchInAnyOrder(getClass(), PrivateClass.class, PackagePrivateClass.class);
     }
 
     @Test
@@ -215,7 +216,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().arePackagePrivate())
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(PackagePrivateClass.class);
+        assertThatTypes(classes).matchInAnyOrder(PackagePrivateClass.class);
     }
 
     @Test
@@ -223,7 +224,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotPackagePrivate())
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(getClass(), PrivateClass.class, ProtectedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(getClass(), PrivateClass.class, ProtectedClass.class);
     }
 
     @Test
@@ -231,7 +232,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().arePrivate())
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(PrivateClass.class);
+        assertThatTypes(classes).matchInAnyOrder(PrivateClass.class);
     }
 
     @Test
@@ -239,7 +240,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotPrivate())
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(getClass(), PackagePrivateClass.class, ProtectedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(getClass(), PackagePrivateClass.class, ProtectedClass.class);
     }
 
     @Test
@@ -247,7 +248,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().haveModifier(PRIVATE))
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(PrivateClass.class);
+        assertThatTypes(classes).matchInAnyOrder(PrivateClass.class);
     }
 
     @Test
@@ -255,7 +256,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().doNotHaveModifier(PRIVATE))
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(getClass(), PackagePrivateClass.class, ProtectedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(getClass(), PackagePrivateClass.class, ProtectedClass.class);
     }
 
     @Test
@@ -263,7 +264,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAnnotatedWith(SomeAnnotation.class))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
-        assertThat(getOnlyElement(classes)).matches(AnnotatedClass.class);
+        assertThatType(getOnlyElement(classes)).matches(AnnotatedClass.class);
     }
 
     /**
@@ -284,7 +285,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAnnotatedWith(SomeAnnotation.class))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
-        assertThat(getOnlyElement(classes)).matches(SimpleClass.class);
+        assertThatType(getOnlyElement(classes)).matches(SimpleClass.class);
     }
 
     /**
@@ -305,7 +306,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
-        assertThat(getOnlyElement(classes)).matches(AnnotatedClass.class);
+        assertThatType(getOnlyElement(classes)).matches(AnnotatedClass.class);
     }
 
     @Test
@@ -313,7 +314,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
-        assertThat(getOnlyElement(classes)).matches(SimpleClass.class);
+        assertThatType(getOnlyElement(classes)).matches(SimpleClass.class);
     }
 
     @Test
@@ -322,7 +323,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAnnotatedWith(hasNamePredicate))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
-        assertThat(getOnlyElement(classes)).matches(AnnotatedClass.class);
+        assertThatType(getOnlyElement(classes)).matches(AnnotatedClass.class);
     }
 
     @Test
@@ -331,7 +332,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAnnotatedWith(hasNamePredicate))
                 .on(AnnotatedClass.class, SimpleClass.class);
 
-        assertThat(getOnlyElement(classes)).matches(SimpleClass.class);
+        assertThatType(getOnlyElement(classes)).matches(SimpleClass.class);
     }
 
     @Test
@@ -339,7 +340,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(SomeAnnotation.class))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThat(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
+        assertThatType(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
     }
 
     @Test
@@ -347,7 +348,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(SomeAnnotation.class))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -355,7 +356,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThat(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
+        assertThatType(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
     }
 
     @Test
@@ -363,7 +364,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -372,7 +373,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(hasNamePredicate))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThat(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
+        assertThatType(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
     }
 
     @Test
@@ -381,7 +382,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -389,7 +390,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().implement(Collection.class))
                 .on(ArrayList.class, List.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+        assertThatType(getOnlyElement(classes)).matches(ArrayList.class);
 
         classes = filterResultOf(classes().that().implement(Set.class))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -410,7 +411,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().doNotImplement(Collection.class))
                 .on(ArrayList.class, List.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, Iterable.class);
     }
 
     @Test
@@ -426,7 +427,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().implement(Collection.class.getName()))
                 .on(ArrayList.class, List.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+        assertThatType(getOnlyElement(classes)).matches(ArrayList.class);
 
         classes = filterResultOf(classes().that().implement(AbstractList.class.getName()))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -439,7 +440,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().doNotImplement(Collection.class.getName()))
                 .on(ArrayList.class, List.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, Iterable.class);
     }
 
     @Test
@@ -447,7 +448,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().implement(classWithNameOf(Collection.class)))
                 .on(ArrayList.class, List.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+        assertThatType(getOnlyElement(classes)).matches(ArrayList.class);
 
         classes = filterResultOf(classes().that().implement(classWithNameOf(AbstractList.class)))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -460,7 +461,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().doNotImplement(classWithNameOf(Collection.class)))
                 .on(ArrayList.class, List.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, Iterable.class);
     }
 
     @Test
@@ -468,12 +469,12 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAssignableTo(Collection.class))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(List.class);
+        assertThatType(getOnlyElement(classes)).matches(List.class);
 
         classes = filterResultOf(classes().that().areAssignableTo(AbstractList.class))
                 .on(ArrayList.class, List.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+        assertThatType(getOnlyElement(classes)).matches(ArrayList.class);
     }
 
     @Test
@@ -481,7 +482,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableTo(Collection.class))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, Iterable.class);
     }
 
     @Test
@@ -489,12 +490,12 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAssignableTo(Collection.class.getName()))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(List.class);
+        assertThatType(getOnlyElement(classes)).matches(List.class);
 
         classes = filterResultOf(classes().that().areAssignableTo(AbstractList.class.getName()))
                 .on(ArrayList.class, List.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+        assertThatType(getOnlyElement(classes)).matches(ArrayList.class);
     }
 
     @Test
@@ -502,7 +503,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableTo(Collection.class.getName()))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, Iterable.class);
     }
 
     @Test
@@ -510,12 +511,12 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAssignableTo(classWithNameOf(Collection.class)))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(List.class);
+        assertThatType(getOnlyElement(classes)).matches(List.class);
 
         classes = filterResultOf(classes().that().areAssignableTo(classWithNameOf(AbstractList.class)))
                 .on(ArrayList.class, List.class, Iterable.class);
 
-        assertThat(getOnlyElement(classes)).matches(ArrayList.class);
+        assertThatType(getOnlyElement(classes)).matches(ArrayList.class);
     }
 
     @Test
@@ -523,7 +524,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableTo(classWithNameOf(Collection.class)))
                 .on(List.class, String.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, Iterable.class);
     }
 
     @Test
@@ -531,7 +532,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAssignableFrom(Collection.class))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(Collection.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(Collection.class, Iterable.class);
     }
 
     @Test
@@ -539,7 +540,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableFrom(Collection.class))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, String.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, String.class);
     }
 
     @Test
@@ -547,7 +548,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAssignableFrom(Collection.class.getName()))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(Collection.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(Collection.class, Iterable.class);
     }
 
     @Test
@@ -555,7 +556,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableFrom(Collection.class.getName()))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, String.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, String.class);
     }
 
     @Test
@@ -563,7 +564,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAssignableFrom(classWithNameOf(Collection.class)))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(Collection.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(Collection.class, Iterable.class);
     }
 
     @Test
@@ -571,7 +572,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAssignableFrom(classWithNameOf(Collection.class)))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, String.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, String.class);
     }
 
     @Test
@@ -579,7 +580,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areInterfaces())
                 .on(List.class, String.class, Collection.class, Integer.class);
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, Collection.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, Collection.class);
     }
 
     @Test
@@ -587,7 +588,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotInterfaces())
                 .on(List.class, String.class, Collection.class, Integer.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class, Integer.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class, Integer.class);
     }
 
     @Test
@@ -595,7 +596,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areEnums())
                 .on(StandardCopyOption.class, StandardOpenOption.class, Collection.class, Integer.class);
 
-        assertThatClasses(classes).matchInAnyOrder(StandardCopyOption.class, StandardOpenOption.class);
+        assertThatTypes(classes).matchInAnyOrder(StandardCopyOption.class, StandardOpenOption.class);
     }
 
     @Test
@@ -603,7 +604,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotEnums())
                 .on(StandardCopyOption.class, StandardOpenOption.class, Collection.class, Integer.class);
 
-        assertThatClasses(classes).matchInAnyOrder(Collection.class, Integer.class);
+        assertThatTypes(classes).matchInAnyOrder(Collection.class, Integer.class);
     }
 
     @Test
@@ -613,7 +614,7 @@ public class GivenClassesThatTest {
                         NestedClassWithSomeMoreClasses.StaticNestedClass.class, NestedClassWithSomeMoreClasses.InnerMemberClass.class,
                         NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, Map.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, Map.class);
     }
 
     @Test
@@ -623,7 +624,7 @@ public class GivenClassesThatTest {
                         NestedClassWithSomeMoreClasses.StaticNestedClass.class, NestedClassWithSomeMoreClasses.InnerMemberClass.class,
                         NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes)
+        assertThatTypes(classes)
                 .matchInAnyOrder(Map.Entry.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
                         NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
@@ -636,7 +637,7 @@ public class GivenClassesThatTest {
                         NestedClassWithSomeMoreClasses.StaticNestedClass.class, NestedClassWithSomeMoreClasses.InnerMemberClass.class,
                         NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes)
+        assertThatTypes(classes)
                 .matchInAnyOrder(Map.Entry.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
                         NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
@@ -649,7 +650,7 @@ public class GivenClassesThatTest {
                         NestedClassWithSomeMoreClasses.StaticNestedClass.class, NestedClassWithSomeMoreClasses.InnerMemberClass.class,
                         NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, Map.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, Map.class);
     }
 
     @Test
@@ -659,7 +660,7 @@ public class GivenClassesThatTest {
                         NestedClassWithSomeMoreClasses.StaticNestedClass.class, NestedClassWithSomeMoreClasses.InnerMemberClass.class,
                         NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes)
+        assertThatTypes(classes)
                 .matchInAnyOrder(Map.Entry.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
                         NestedClassWithSomeMoreClasses.InnerMemberClass.class);
     }
@@ -671,7 +672,7 @@ public class GivenClassesThatTest {
                         NestedClassWithSomeMoreClasses.StaticNestedClass.class, NestedClassWithSomeMoreClasses.InnerMemberClass.class,
                         NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, Map.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
+        assertThatTypes(classes).matchInAnyOrder(List.class, Map.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                 NestedClassWithSomeMoreClasses.getLocalClass());
     }
 
@@ -682,7 +683,7 @@ public class GivenClassesThatTest {
                         NestedClassWithSomeMoreClasses.StaticNestedClass.class, NestedClassWithSomeMoreClasses.InnerMemberClass.class,
                         NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes)
+        assertThatTypes(classes)
                 .matchInAnyOrder(NestedClassWithSomeMoreClasses.InnerMemberClass.class, NestedClassWithSomeMoreClasses.getAnonymousClass(),
                         NestedClassWithSomeMoreClasses.getLocalClass());
     }
@@ -694,7 +695,7 @@ public class GivenClassesThatTest {
                         NestedClassWithSomeMoreClasses.StaticNestedClass.class, NestedClassWithSomeMoreClasses.InnerMemberClass.class,
                         NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.class,
+        assertThatTypes(classes).matchInAnyOrder(List.class, Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.class,
                 NestedClassWithSomeMoreClasses.StaticNestedClass.class);
     }
 
@@ -703,7 +704,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areAnonymousClasses())
                 .on(Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes).matchInAnyOrder(NestedClassWithSomeMoreClasses.getAnonymousClass());
+        assertThatTypes(classes).matchInAnyOrder(NestedClassWithSomeMoreClasses.getAnonymousClass());
     }
 
     @Test
@@ -711,7 +712,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotAnonymousClasses())
                 .on(Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes).matchInAnyOrder(Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.getLocalClass());
+        assertThatTypes(classes).matchInAnyOrder(Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.getLocalClass());
     }
 
     @Test
@@ -719,7 +720,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areLocalClasses())
                 .on(Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes).matchInAnyOrder(NestedClassWithSomeMoreClasses.getLocalClass());
+        assertThatTypes(classes).matchInAnyOrder(NestedClassWithSomeMoreClasses.getLocalClass());
     }
 
     @Test
@@ -727,7 +728,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotLocalClasses())
                 .on(Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.getAnonymousClass(), NestedClassWithSomeMoreClasses.getLocalClass());
 
-        assertThatClasses(classes).matchInAnyOrder(Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.getAnonymousClass());
+        assertThatTypes(classes).matchInAnyOrder(Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.getAnonymousClass());
     }
 
     @Test
@@ -736,7 +737,7 @@ public class GivenClassesThatTest {
                 .on(ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class, ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
                         List.class, String.class, Iterable.class, StringBuilder.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class, ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
                 String.class);
     }
@@ -749,7 +750,7 @@ public class GivenClassesThatTest {
                         .and().haveNameMatching(".*\\..*n.*"))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(String.class);
+        assertThatTypes(classes).matchInAnyOrder(String.class);
     }
 
     @Test
@@ -760,7 +761,7 @@ public class GivenClassesThatTest {
                         .or().haveSimpleName(Collection.class.getSimpleName()))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(List.class, String.class, Collection.class);
+        assertThatTypes(classes).matchInAnyOrder(List.class, String.class, Collection.class);
     }
 
     /**
@@ -786,7 +787,7 @@ public class GivenClassesThatTest {
                         .or().haveSimpleName(Iterable.class.getSimpleName()))
                 .on(List.class, String.class, Collection.class, Iterable.class);
 
-        assertThatClasses(classes).matchInAnyOrder(Collection.class, Iterable.class);
+        assertThatTypes(classes).matchInAnyOrder(Collection.class, Iterable.class);
     }
 
     private DescribedPredicate<HasName> classWithNameOf(Class<?> type) {

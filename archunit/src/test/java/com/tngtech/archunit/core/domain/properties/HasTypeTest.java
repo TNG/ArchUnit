@@ -10,7 +10,9 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
@@ -44,7 +46,7 @@ public class HasTypeTest {
 
     @Test
     public void function_getType() {
-        assertThat(HasType.Functions.GET_RAW_TYPE.apply(newHasType(String.class))).matches(String.class);
+        assertThatType(GET_RAW_TYPE.apply(newHasType(String.class))).matches(String.class);
     }
 
     private HasType newHasType(final Class<?> owner) {

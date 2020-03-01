@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.TestUtils.importMethod;
-import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThrowsClauseTest {
@@ -32,7 +32,7 @@ public class ThrowsClauseTest {
     public void getTypes() {
         JavaMethod method = importMethod(SomeClass.class, "method");
 
-        assertThatClasses(method.getThrowsClause().getTypes()).matchInAnyOrder(IOException.class, SQLDataException.class);
+        assertThatTypes(method.getThrowsClause().getTypes()).matchInAnyOrder(IOException.class, SQLDataException.class);
     }
 
     private void assertAllTrue(Iterable<? extends AbstractBooleanAssert<?>> asserts) {

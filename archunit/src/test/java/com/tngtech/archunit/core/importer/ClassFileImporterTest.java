@@ -223,7 +223,8 @@ import static com.tngtech.archunit.core.importer.testexamples.annotationmethodim
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
-import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
@@ -252,7 +253,7 @@ public class ClassFileImporterTest {
 
         Iterable<JavaClass> classes = classesIn("testexamples/simpleimport");
 
-        assertThat(namesOf(classes)).isEqualTo(expectedClassNames);
+        assertThat(namesOf(classes)).containsOnlyElementsOf(expectedClassNames);
     }
 
     @Test
@@ -264,7 +265,7 @@ public class ClassFileImporterTest {
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(ClassToImportOne.class.getSimpleName());
         assertThat(javaClass.getPackageName()).as("package name").isEqualTo(ClassToImportOne.class.getPackage().getName());
         assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC);
-        assertThat(javaClass.getSuperClass().get()).as("super class").matches(Object.class);
+        assertThatType(javaClass.getSuperClass().get()).as("super class").matches(Object.class);
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isFalse();
@@ -287,14 +288,14 @@ public class ClassFileImporterTest {
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(EnumToImport.class.getSimpleName());
         assertThat(javaClass.getPackageName()).as("package name").isEqualTo(EnumToImport.class.getPackage().getName());
         assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
-        assertThat(javaClass.getSuperClass().get()).as("super class").matches(Enum.class);
+        assertThatType(javaClass.getSuperClass().get()).as("super class").matches(Enum.class);
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
-        assertThatClasses(javaClass.getAllInterfaces()).matchInAnyOrder(Enum.class.getInterfaces());
+        assertThatTypes(javaClass.getAllInterfaces()).matchInAnyOrder(Enum.class.getInterfaces());
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isTrue();
 
         JavaEnumConstant constant = javaClass.getEnumConstant(EnumToImport.FIRST.name());
-        assertThat(constant.getDeclaringClass()).as("declaring class").isEqualTo(javaClass);
+        assertThatType(constant.getDeclaringClass()).as("declaring class").isEqualTo(javaClass);
         assertThat(constant.name()).isEqualTo(EnumToImport.FIRST.name());
         assertThat(javaClass.getEnumConstants()).extractingResultOf("name").as("enum constant names")
                 .containsOnly(EnumToImport.FIRST.name(), EnumToImport.SECOND.name());
@@ -311,7 +312,7 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/innerclassimport");
         JavaClass staticNestedClass = classes.get(nestedStaticClass);
 
-        assertThat(staticNestedClass).matches(nestedStaticClass);
+        assertThatType(staticNestedClass).matches(nestedStaticClass);
         assertThat(staticNestedClass.isTopLevelClass()).as("is top level class").isFalse();
         assertThat(staticNestedClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(staticNestedClass.isMemberClass()).as("is member class").isTrue();
@@ -325,7 +326,7 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/innerclassimport");
         JavaClass innerClass = classes.get(ClassWithInnerClass.Inner.class);
 
-        assertThat(innerClass).matches(ClassWithInnerClass.Inner.class);
+        assertThatType(innerClass).matches(ClassWithInnerClass.Inner.class);
         assertThat(innerClass.isTopLevelClass()).as("is top level class").isFalse();
         assertThat(innerClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(innerClass.isMemberClass()).as("is member class").isTrue();
@@ -339,7 +340,7 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/innerclassimport");
         JavaClass anonymousClass = classes.get(ClassWithInnerClass.class.getName() + "$1");
 
-        assertThat(anonymousClass).matches(Class.forName(anonymousClass.getName()));
+        assertThatType(anonymousClass).matches(Class.forName(anonymousClass.getName()));
         assertThat(anonymousClass.isTopLevelClass()).as("is top level class").isFalse();
         assertThat(anonymousClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(anonymousClass.isMemberClass()).as("is member class").isFalse();
@@ -353,7 +354,7 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/innerclassimport");
         JavaClass localClass = classes.get(ClassWithInnerClass.class.getName() + "$1LocalCaller");
 
-        assertThat(localClass).matches(Class.forName(localClass.getName()));
+        assertThatType(localClass).matches(Class.forName(localClass.getName()));
         assertThat(localClass.isTopLevelClass()).as("is top level class").isFalse();
         assertThat(localClass.isNestedClass()).as("is nested class").isTrue();
         assertThat(localClass.isMemberClass()).as("is member class").isFalse();
@@ -395,7 +396,7 @@ public class ClassFileImporterTest {
     public void imports_nested_classes() throws Exception {
         JavaClasses classes = classesIn("testexamples/nestedimport").classes;
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassWithNestedClass.class,
                 ClassWithNestedClass.NestedClass.class,
                 ClassWithNestedClass.StaticNestedClass.class,
@@ -433,14 +434,14 @@ public class ClassFileImporterTest {
     public void imports_jdk_classes() {
         JavaClasses classes = new ClassFileImporter().importClasses(File.class);
 
-        assertThatClasses(classes).matchExactly(File.class);
+        assertThatTypes(classes).matchExactly(File.class);
     }
 
     @Test
     public void imports_jdk_packages() {
         JavaClasses classes = new ClassFileImporter().importPackagesOf(File.class);
 
-        assertThatClasses(classes).contain(File.class);
+        assertThatTypes(classes).contain(File.class);
     }
 
     @Test
@@ -450,7 +451,7 @@ public class ClassFileImporterTest {
         JavaPackage javaPackage = classes.get(SomeClass.class).getPackage();
 
         assertThat(javaPackage.containsClass(SomeEnum.class)).as("Package contains " + SomeEnum.class).isTrue();
-        assertThatClasses(javaPackage.getParent().get().getClasses()).contain(getClass());
+        assertThatTypes(javaPackage.getParent().get().getClasses()).contain(getClass());
     }
 
     @DataProvider
@@ -489,14 +490,14 @@ public class ClassFileImporterTest {
     public void imports_primitive_fields() throws Exception {
         Set<JavaField> fields = classesIn("testexamples/primitivefieldimport").getFields();
 
-        assertThat(findAnyByName(fields, "aBoolean").getRawType()).matches(boolean.class);
-        assertThat(findAnyByName(fields, "anInt").getRawType()).matches(int.class);
-        assertThat(findAnyByName(fields, "aByte").getRawType()).matches(byte.class);
-        assertThat(findAnyByName(fields, "aChar").getRawType()).matches(char.class);
-        assertThat(findAnyByName(fields, "aShort").getRawType()).matches(short.class);
-        assertThat(findAnyByName(fields, "aLong").getRawType()).matches(long.class);
-        assertThat(findAnyByName(fields, "aFloat").getRawType()).matches(float.class);
-        assertThat(findAnyByName(fields, "aDouble").getRawType()).matches(double.class);
+        assertThatType(findAnyByName(fields, "aBoolean").getRawType()).matches(boolean.class);
+        assertThatType(findAnyByName(fields, "anInt").getRawType()).matches(int.class);
+        assertThatType(findAnyByName(fields, "aByte").getRawType()).matches(byte.class);
+        assertThatType(findAnyByName(fields, "aChar").getRawType()).matches(char.class);
+        assertThatType(findAnyByName(fields, "aShort").getRawType()).matches(short.class);
+        assertThatType(findAnyByName(fields, "aLong").getRawType()).matches(long.class);
+        assertThatType(findAnyByName(fields, "aFloat").getRawType()).matches(float.class);
+        assertThatType(findAnyByName(fields, "aDouble").getRawType()).matches(double.class);
     }
 
     // NOTE: This provokes the scenario where the target type can't be determined uniquely due to a diamond
@@ -508,13 +509,13 @@ public class ClassFileImporterTest {
         Set<JavaMethodCall> calls = classes.get(ClassCallingSpecialTarget.class).getMethodCallsFromSelf();
 
         assertThat(targetParametersOf(calls, "primitiveArgs")).matches(byte.class, long.class);
-        assertThat(returnTypeOf(calls, "primitiveReturnType")).matches(byte.class);
+        assertThatType(returnTypeOf(calls, "primitiveReturnType")).matches(byte.class);
         assertThat(targetParametersOf(calls, "arrayArgs")).matches(byte[].class, Object[].class);
-        assertThat(returnTypeOf(calls, "primitiveArrayReturnType")).matches(short[].class);
-        assertThat(returnTypeOf(calls, "objectArrayReturnType")).matches(String[].class);
+        assertThatType(returnTypeOf(calls, "primitiveArrayReturnType")).matches(short[].class);
+        assertThatType(returnTypeOf(calls, "objectArrayReturnType")).matches(String[].class);
         assertThat(targetParametersOf(calls, "twoDimArrayArgs")).matches(float[][].class, Object[][].class);
-        assertThat(returnTypeOf(calls, "primitiveTwoDimArrayReturnType")).matches(double[][].class);
-        assertThat(returnTypeOf(calls, "objectTwoDimArrayReturnType")).matches(String[][].class);
+        assertThatType(returnTypeOf(calls, "primitiveTwoDimArrayReturnType")).matches(double[][].class);
+        assertThatType(returnTypeOf(calls, "objectTwoDimArrayReturnType")).matches(String[][].class);
     }
 
     @Test
@@ -523,7 +524,7 @@ public class ClassFileImporterTest {
 
         for (JavaClass clazz : classes) {
             for (JavaField field : clazz.getFields()) {
-                assertThat(field.getOwner()).isSameAs(clazz);
+                assertThatType(field.getOwner()).isSameAs(clazz);
             }
         }
     }
@@ -563,7 +564,7 @@ public class ClassFileImporterTest {
         assertThat(((JavaAnnotation<?>[]) annotationType.getMethod("subAnnotationArrayWithDefault")
                 .getDefaultValue().get())[0].get("value").get())
                 .as("default of subAnnotationArrayWithDefault()").isEqualTo("first");
-        assertThat((JavaClass) annotationType.getMethod("clazzWithDefault")
+        assertThatType((JavaClass) annotationType.getMethod("clazzWithDefault")
                 .getDefaultValue().get())
                 .as("default of clazzWithDefault()").matches(String.class);
         assertThat((JavaClass[]) annotationType.getMethod("classesWithDefault")
@@ -577,7 +578,7 @@ public class ClassFileImporterTest {
 
         JavaField field = findAnyByName(classes.getFields(), "stringAnnotatedField");
         JavaAnnotation<JavaField> annotation = field.getAnnotationOfType(FieldAnnotationWithStringValue.class.getName());
-        assertThat(annotation.getRawType()).isEqualTo(classes.get(FieldAnnotationWithStringValue.class));
+        assertThatType(annotation.getRawType()).isEqualTo(classes.get(FieldAnnotationWithStringValue.class));
         assertThat(annotation.get("value").get()).isEqualTo("something");
         assertThat(annotation.getOwner()).as("owning field").isEqualTo(field);
 
@@ -641,8 +642,8 @@ public class ClassFileImporterTest {
         assertThat(subAnnotation.getAnnotatedElement()).isEqualTo(field);
         assertThat(((JavaAnnotation<?>[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
                 .isEqualTo("first");
-        assertThat((JavaClass) annotation.get("clazz").get()).matches(Map.class);
-        assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
+        assertThatType((JavaClass) annotation.get("clazz").get()).matches(Map.class);
+        assertThatType((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
         assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Object.class, Serializable.class);
         assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
 
@@ -719,11 +720,11 @@ public class ClassFileImporterTest {
     public void imports_methods_with_correct_return_types() throws Exception {
         Set<JavaCodeUnit> methods = classesIn("testexamples/methodimport").getCodeUnits();
 
-        assertThat(findAnyByName(methods, "createString").getRawReturnType())
+        assertThatType(findAnyByName(methods, "createString").getRawReturnType())
                 .as("Return type of method 'createString'").matches(String.class);
-        assertThat(findAnyByName(methods, "consume").getRawReturnType())
+        assertThatType(findAnyByName(methods, "consume").getRawReturnType())
                 .as("Return type of method 'consume'").matches(void.class);
-        assertThat(findAnyByName(methods, "createSerializable").getRawReturnType())
+        assertThatType(findAnyByName(methods, "createSerializable").getRawReturnType())
                 .as("Return type of method 'createSerializable'").matches(Serializable.class);
     }
 
@@ -773,7 +774,7 @@ public class ClassFileImporterTest {
 
         JavaMethod method = findAnyByName(clazz.getMethods(), stringAnnotatedMethod);
         JavaAnnotation<JavaMethod> annotation = method.getAnnotationOfType(MethodAnnotationWithStringValue.class.getName());
-        assertThat(annotation.getRawType()).matches(MethodAnnotationWithStringValue.class);
+        assertThatType(annotation.getRawType()).matches(MethodAnnotationWithStringValue.class);
         assertThat(annotation.getOwner()).isEqualTo(method);
         assertThat(annotation.get("value").get()).isEqualTo("something");
 
@@ -835,8 +836,8 @@ public class ClassFileImporterTest {
         assertThat(subAnnotationArray[0].getAnnotatedElement()).isEqualTo(method);
         assertThat(((JavaAnnotation<?>[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
                 .isEqualTo("first");
-        assertThat((JavaClass) annotation.get("clazz").get()).matches(Map.class);
-        assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
+        assertThatType((JavaClass) annotation.get("clazz").get()).matches(Map.class);
+        assertThatType((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
         assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Object.class, Serializable.class);
         assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
 
@@ -885,15 +886,15 @@ public class ClassFileImporterTest {
         JavaClass clazz = classesIn("testexamples/annotatedclassimport").get(ClassWithOneAnnotation.class);
 
         JavaAnnotation<JavaClass> annotation = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
-        assertThat(annotation.getRawType()).matches(SimpleAnnotation.class);
-        assertThat(annotation.getOwner()).isEqualTo(clazz);
+        assertThatType(annotation.getRawType()).matches(SimpleAnnotation.class);
+        assertThatType(annotation.getOwner()).isEqualTo(clazz);
 
         JavaAnnotation<?> annotationByName = clazz.getAnnotationOfType(SimpleAnnotation.class.getName());
         assertThat(annotationByName).isEqualTo(annotation);
 
         assertThat(annotation.get("value").get()).isEqualTo("test");
 
-        assertThat(clazz).matches(ClassWithOneAnnotation.class);
+        assertThatType(clazz).matches(ClassWithOneAnnotation.class);
     }
 
     @Test
@@ -927,12 +928,12 @@ public class ClassFileImporterTest {
         assertThat(subAnnotationArray[0].getAnnotatedElement()).isEqualTo(clazz);
         assertThat(((JavaAnnotation<?>[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
                 .isEqualTo("first");
-        assertThat((JavaClass) annotation.get("clazz").get()).matches(Serializable.class);
-        assertThat((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
+        assertThatType((JavaClass) annotation.get("clazz").get()).matches(Serializable.class);
+        assertThatType((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
         assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Serializable.class, String.class);
         assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
 
-        assertThat(clazz).matches(ClassWithComplexAnnotations.class);
+        assertThatType(clazz).matches(ClassWithComplexAnnotations.class);
     }
 
     @Test
@@ -1674,7 +1675,7 @@ public class ClassFileImporterTest {
                 .inLineNumber(ClassCallingDiamond.callInterfaceLineNumber);
         // NOTE: There is no java.lang.reflect.Method InterfaceD.implementMe(), because the method is inherited
         assertThat(callToInterface.getTarget().getName()).isEqualTo(InterfaceD.implementMe);
-        assertThat(callToInterface.getTarget().getOwner()).isEqualTo(diamondPeakInterface);
+        assertThatType(callToInterface.getTarget().getOwner()).isEqualTo(diamondPeakInterface);
         assertThat(callToInterface.getTarget().getRawParameterTypes()).isEmpty();
         assertThat(callToInterface.getTarget().resolve()).extracting("fullName")
                 .containsOnly(
@@ -1694,8 +1695,8 @@ public class ClassFileImporterTest {
         JavaClass classThatCallsMethodReturningArray = classesIn("testexamples/callimport").get(CallsMethodReturningArray.class);
 
         MethodCallTarget target = getOnlyElement(classThatCallsMethodReturningArray.getMethodCallsFromSelf()).getTarget();
-        assertThat(target.getOwner()).matches(CallsMethodReturningArray.SomeEnum.class);
-        assertThat(target.getRawReturnType()).matches(CallsMethodReturningArray.SomeEnum[].class);
+        assertThatType(target.getOwner()).matches(CallsMethodReturningArray.SomeEnum.class);
+        assertThatType(target.getRawReturnType()).matches(CallsMethodReturningArray.SomeEnum[].class);
     }
 
     @Test
@@ -1907,7 +1908,7 @@ public class ClassFileImporterTest {
         JavaClasses classes = new ClassFileImporter().importClasses(ClassWithThrowingMethod.class, FirstCheckedException.class);
 
         Set<ThrowsDeclaration<JavaMethod>> throwsDeclarations = classes.get(FirstCheckedException.class).getMethodThrowsDeclarationsWithTypeOfSelf();
-        assertThat(getOnlyElement(throwsDeclarations).getDeclaringClass()).matches(ClassWithThrowingMethod.class);
+        assertThatType(getOnlyElement(throwsDeclarations).getDeclaringClass()).matches(ClassWithThrowingMethod.class);
         assertThat(classes.get(FirstCheckedException.class).getConstructorsWithParameterTypeOfSelf()).isEmpty();
     }
 
@@ -1926,7 +1927,7 @@ public class ClassFileImporterTest {
 
         Set<ThrowsDeclaration<JavaConstructor>> throwsDeclarations =
                 classes.get(FirstCheckedException.class).getConstructorsWithThrowsDeclarationTypeOfSelf();
-        assertThat(getOnlyElement(throwsDeclarations).getDeclaringClass()).matches(ClassWithThrowingConstructor.class);
+        assertThatType(getOnlyElement(throwsDeclarations).getDeclaringClass()).matches(ClassWithThrowingConstructor.class);
         assertThat(classes.get(FirstCheckedException.class).getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
     }
 
@@ -1976,7 +1977,7 @@ public class ClassFileImporterTest {
 
         JavaClasses javaClasses = new ClassFileImporter().importUrl(testexamplesFolder.toURI().toURL());
 
-        assertThatClasses(javaClasses).contain(SomeClass.class, OtherClass.class);
+        assertThatTypes(javaClasses).contain(SomeClass.class, OtherClass.class);
     }
 
     @Test
@@ -2054,7 +2055,7 @@ public class ClassFileImporterTest {
 
         JavaClasses classes = new ClassFileImporter().importPath(folder.toPath());
 
-        assertThatClasses(classes).matchExactly(expectedClass);
+        assertThatTypes(classes).matchExactly(expectedClass);
         logTest.assertLogMessage(Level.WARN, "Evil.class");
     }
 
@@ -2089,7 +2090,7 @@ public class ClassFileImporterTest {
     public void imports_class_objects() {
         JavaClasses classes = new ClassFileImporter().importClasses(ClassToImportOne.class, ClassToImportTwo.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassToImportOne.class, ClassToImportTwo.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassToImportOne.class, ClassToImportTwo.class);
     }
 
     /**
@@ -2124,28 +2125,28 @@ public class ClassFileImporterTest {
 
         JavaClasses classes = new ClassFileImporter()
                 .importPaths(ImmutableList.of(folderOne.toPath(), folderTwo.toPath()));
-        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class, Class21.class, Class22.class);
+        assertThatTypes(classes).matchInAnyOrder(Class11.class, Class12.class, Class21.class, Class22.class);
 
         classes = new ClassFileImporter().importPaths(folderOne.toPath(), folderTwo.toPath());
-        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class, Class21.class, Class22.class);
+        assertThatTypes(classes).matchInAnyOrder(Class11.class, Class12.class, Class21.class, Class22.class);
 
         classes = new ClassFileImporter().importPaths(folderOne.getAbsolutePath(), folderTwo.getAbsolutePath());
-        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class, Class21.class, Class22.class);
+        assertThatTypes(classes).matchInAnyOrder(Class11.class, Class12.class, Class21.class, Class22.class);
 
         classes = new ClassFileImporter().importPath(folderOne.toPath());
-        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class);
+        assertThatTypes(classes).matchInAnyOrder(Class11.class, Class12.class);
 
         classes = new ClassFileImporter().importPath(folderOne.getAbsolutePath());
-        assertThatClasses(classes).matchInAnyOrder(Class11.class, Class12.class);
+        assertThatTypes(classes).matchInAnyOrder(Class11.class, Class12.class);
     }
 
     @Test
     public void ImportOptions_are_respected() throws Exception {
         ClassFileImporter importer = new ClassFileImporter().withImportOption(importOnly(getClass(), Rule.class));
 
-        assertThatClasses(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).matchExactly(getClass());
-        assertThatClasses(importer.importUrl(urlOf(getClass()))).matchExactly(getClass());
-        assertThatClasses(importer.importJar(jarFileOf(Rule.class))).matchExactly(Rule.class);
+        assertThatTypes(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).matchExactly(getClass());
+        assertThatTypes(importer.importUrl(urlOf(getClass()))).matchExactly(getClass());
+        assertThatTypes(importer.importJar(jarFileOf(Rule.class))).matchExactly(Rule.class);
     }
 
     @Test

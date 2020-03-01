@@ -1225,7 +1225,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     @PublicAPI(usage = ACCESS)
-    public static List<String> namesOf(List<Class<?>> paramTypes) {
+    public static List<String> namesOf(Iterable<Class<?>> paramTypes) {
         ArrayList<String> result = new ArrayList<>();
         for (Class<?> paramType : paramTypes) {
             result.add(paramType.getName());
