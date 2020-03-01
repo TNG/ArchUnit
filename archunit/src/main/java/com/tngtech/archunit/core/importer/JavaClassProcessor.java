@@ -89,13 +89,6 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     @Override
-    public void visitSource(String source, String debug) {
-        if (!importAborted() && source != null) {
-            javaClassBuilder.withSourceFileName(source);
-        }
-    }
-
-    @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         LOG.debug("Analyzing class '{}'", name);
         JavaClassDescriptor descriptor = JavaClassDescriptorImporter.createFromAsmObjectTypeName(name);
@@ -119,6 +112,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         className = descriptor.getFullyQualifiedClassName();
         declarationHandler.onNewClass(className, superClassName, interfaceNames);
+        JavaGenericTypeImporter.parseAsmTypeSignature(signature, declarationHandler);
     }
 
     private boolean alreadyImported(JavaClassDescriptor descriptor) {
@@ -135,6 +129,13 @@ class JavaClassProcessor extends ClassVisitor {
 
     private boolean importAborted() {
         return javaClassBuilder == null;
+    }
+
+    @Override
+    public void visitSource(String source, String debug) {
+        if (!importAborted() && source != null) {
+            javaClassBuilder.withSourceFileName(source);
+        }
     }
 
     @Override
@@ -411,15 +412,17 @@ class JavaClassProcessor extends ClassVisitor {
 
         void onNewClass(String className, Optional<String> superClassName, Set<String> interfaceNames);
 
+        void onDeclaredTypeParameters(List<DomainBuilders.JavaTypeVariableBuilder> typeVariableBuilders);
+
         void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder);
 
-        void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder builder);
+        void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder);
 
-        void onDeclaredMethod(DomainBuilders.JavaMethodBuilder builder);
+        void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder);
 
-        void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder builder);
+        void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder);
 
-        void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotations);
+        void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders);
 
         void registerEnclosingClass(String ownerName, String enclosingClassName);
     }

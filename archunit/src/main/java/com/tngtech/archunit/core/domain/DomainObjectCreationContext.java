@@ -45,6 +45,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeVariableBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 
 /**
@@ -73,6 +74,10 @@ public class DomainObjectCreationContext {
 
     public static void completeClassHierarchy(JavaClass javaClass, ImportContext importContext) {
         javaClass.completeClassHierarchyFrom(importContext);
+    }
+
+    public static void completeTypeParameters(JavaClass javaClass, ImportContext importContext) {
+        javaClass.completeTypeParametersFrom(importContext);
     }
 
     public static void completeMembers(JavaClass javaClass, ImportContext importContext) {
@@ -141,6 +146,10 @@ public class DomainObjectCreationContext {
 
     public static <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> createThrowsClause(CODE_UNIT codeUnit, List<JavaClass> types) {
         return ThrowsClause.from(codeUnit, types);
+    }
+
+    public static JavaTypeVariable createTypeVariable(JavaTypeVariableBuilder builder) {
+        return new JavaTypeVariable(builder);
     }
 
     static class AccessContext {
