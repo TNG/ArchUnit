@@ -1,7 +1,5 @@
 package com.tngtech.archunit.testutil.assertion;
 
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,7 +7,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.core.domain.JavaPackage;
-import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.testutil.TestUtils;
 import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.tngtech.archunit.base.Guava.toGuava;
@@ -24,7 +22,7 @@ public class JavaPackagesAssertion extends AbstractObjectAssert<JavaPackagesAsse
 
     private static JavaPackage[] sort(Iterable<JavaPackage> actual) {
         JavaPackage[] result = Iterables.toArray(actual, JavaPackage.class);
-        sortByName(result);
+        TestUtils.sortByName(result);
         return result;
     }
 
@@ -59,14 +57,5 @@ public class JavaPackagesAssertion extends AbstractObjectAssert<JavaPackagesAsse
 
     private ImmutableSet<String> getActualRelativeNames() {
         return FluentIterable.from(actual).transform(toGuava(GET_RELATIVE_NAME)).toSet();
-    }
-
-    public static <T extends HasName> void sortByName(T[] result) {
-        Arrays.sort(result, new Comparator<HasName>() {
-            @Override
-            public int compare(HasName o1, HasName o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
     }
 }

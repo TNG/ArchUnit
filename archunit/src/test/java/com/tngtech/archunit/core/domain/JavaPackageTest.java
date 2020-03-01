@@ -35,9 +35,10 @@ import static com.tngtech.archunit.core.domain.JavaPackage.Functions.GET_CLASSES
 import static com.tngtech.archunit.core.domain.JavaPackage.Functions.GET_RELATIVE_NAME;
 import static com.tngtech.archunit.core.domain.JavaPackage.Functions.GET_SUB_PACKAGES;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatPackages;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -105,7 +106,7 @@ public class JavaPackageTest {
         assertThat(javaPackage.getName()).isEqualTo("java.lang");
         assertThat(javaPackage.getDescription()).isEqualTo("Package <java.lang>");
         assertThat(javaPackage.getRelativeName()).isEqualTo("lang");
-        assertThatClasses(javaPackage.getClasses()).contain(Object.class, String.class);
+        assertThatTypes(javaPackage.getClasses()).contain(Object.class, String.class);
     }
 
     @Test
@@ -200,7 +201,7 @@ public class JavaPackageTest {
 
         JavaPackage javaLang = defaultPackage.getPackage("java.lang");
 
-        assertThatClasses(javaLang.getAllClasses()).contain(Object.class, String.class, Annotation.class, Field.class);
+        assertThatTypes(javaLang.getAllClasses()).contain(Object.class, String.class, Annotation.class, Field.class);
     }
 
     @Test
@@ -226,7 +227,7 @@ public class JavaPackageTest {
             }
         });
 
-        assertThatClasses(visitedClasses).contain(String.class, Serializable.class, Security.class);
+        assertThatTypes(visitedClasses).contain(String.class, Serializable.class, Security.class);
         for (JavaClass visitedClass : visitedClasses) {
             assertThat(visitedClass.getSimpleName()).startsWith("S");
         }
@@ -357,7 +358,7 @@ public class JavaPackageTest {
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         JavaAnnotation<JavaPackage> annotation = getOnlyElement(annotatedPackage.getAnnotations());
-        assertThat(annotation.getRawType()).matches(PackageLevelAnnotation.class);
+        assertThatType(annotation.getRawType()).matches(PackageLevelAnnotation.class);
         assertThat(annotation.getOwner()).isEqualTo(annotatedPackage);
 
         assertThat(nonAnnotatedPackage.getAnnotations()).isEmpty();
@@ -392,7 +393,7 @@ public class JavaPackageTest {
         final JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
         final JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
-        assertThat(annotatedPackage.getAnnotationOfType(PackageLevelAnnotation.class.getName())
+        assertThatType(annotatedPackage.getAnnotationOfType(PackageLevelAnnotation.class.getName())
                 .getRawType()).matches(PackageLevelAnnotation.class);
 
         assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
@@ -481,7 +482,7 @@ public class JavaPackageTest {
 
         Iterable<JavaClass> classes = GET_CLASSES.apply(defaultPackage.getPackage("java.lang"));
 
-        assertThatClasses(classes).contain(Object.class, String.class);
+        assertThatTypes(classes).contain(Object.class, String.class);
         for (JavaClass javaClass : classes) {
             assertThat(javaClass.getPackageName()).startsWith("java.lang");
         }

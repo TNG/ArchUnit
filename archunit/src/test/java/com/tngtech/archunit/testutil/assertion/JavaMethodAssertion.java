@@ -6,8 +6,9 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.assertion.JavaMembersAssertion.assertEquivalent;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.JavaMemberAssertion.getExpectedNameOf;
+import static com.tngtech.archunit.testutil.assertion.JavaMembersAssertion.assertEquivalent;
 
 public class JavaMethodAssertion extends AbstractObjectAssert<JavaMethodAssertion, JavaMethod> {
     public JavaMethodAssertion(JavaMethod javaMethod) {
@@ -19,12 +20,12 @@ public class JavaMethodAssertion extends AbstractObjectAssert<JavaMethodAssertio
         assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(method, method.getName()));
         assertThat(actual.getName()).isEqualTo(method.getName());
         assertThat(actual.getRawParameterTypes()).matches(method.getParameterTypes());
-        assertThat(actual.getRawReturnType()).matches(method.getReturnType());
+        assertThatType(actual.getRawReturnType()).matches(method.getReturnType());
         return this;
     }
 
     public JavaMethodAssertion isEquivalentTo(Class<?> owner, String methodName, Class<?>... parameterTypes) {
-        assertThat(actual.getOwner()).matches(owner);
+        assertThatType(actual.getOwner()).matches(owner);
         assertThat(actual.getName()).isEqualTo(methodName);
         assertThat(actual.getRawParameterTypes()).matches(parameterTypes);
         return this;

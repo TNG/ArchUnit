@@ -35,7 +35,7 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldEvaluator.filterClassesAppearingInFailureReport;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldEvaluator.filterViolationCausesInFailureReport;
-import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,7 +62,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByBar.class, Bar.class,
                 ClassAccessedByBaz.class, Baz.class);
     }
@@ -76,7 +76,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByBar.class, Bar.class,
                 ClassAccessedByBaz.class, Baz.class);
     }
@@ -102,7 +102,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
     }
 
     @Test
@@ -114,7 +114,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByBar.class, Bar.class,
                 ClassAccessedByBaz.class, Baz.class);
     }
@@ -128,7 +128,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessedByFoo.class, Foo.class);
     }
 
     @Test
@@ -140,7 +140,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByBar.class, Bar.class,
                 ClassAccessedByBaz.class, Baz.class);
     }
@@ -154,7 +154,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByFoo.class, Foo.class);
     }
 
@@ -167,7 +167,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByBar.class, Bar.class,
                 ClassAccessedByBaz.class, Baz.class);
     }
@@ -181,7 +181,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByFoo.class, Foo.class);
     }
 
@@ -194,7 +194,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByBar.class, Bar.class,
                 ClassAccessedByBaz.class, Baz.class);
     }
@@ -208,7 +208,7 @@ public class ShouldOnlyByClassesThatTest {
                         ClassAccessedByBar.class, Bar.class,
                         ClassAccessedByBaz.class, Baz.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByFoo.class, Foo.class);
     }
 
@@ -219,7 +219,7 @@ public class ShouldOnlyByClassesThatTest {
                 classesShouldOnlyBeBy.resideInAPackage("..access.."))
                 .on(ClassAccessingOtherClass.class, ClassAlsoAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAlsoAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAlsoAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
     @Test
@@ -229,7 +229,7 @@ public class ShouldOnlyByClassesThatTest {
                 classesShouldOnlyBeBy.resideOutsideOfPackage("..access.."))
                 .on(ClassAccessingOtherClass.class, ClassAlsoAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
     @Test
@@ -240,7 +240,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingOtherClass.class, ClassAlsoAccessingOtherClass.class,
                         YetAnotherClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(YetAnotherClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+        assertThatTypes(classes).matchInAnyOrder(YetAnotherClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
     @Test
@@ -251,7 +251,7 @@ public class ShouldOnlyByClassesThatTest {
         ).on(ClassAccessingOtherClass.class, ClassAlsoAccessingOtherClass.class,
                 YetAnotherClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessingOtherClass.class, ClassAlsoAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
@@ -264,7 +264,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByPrivateClass.class, ClassAccessedByPackagePrivateClass.class,
                 ClassAccessedByProtectedClass.class, PrivateClass.class,
                 PackagePrivateClass.class, ProtectedClass.class);
@@ -279,7 +279,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByPublicClass.class, PublicClass.class);
     }
 
@@ -292,7 +292,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                 ClassAccessedByPackagePrivateClass.class, PublicClass.class,
                 PrivateClass.class, PackagePrivateClass.class);
@@ -307,7 +307,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByProtectedClass.class, ProtectedClass.class);
     }
 
@@ -320,7 +320,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByPublicClass.class, ClassAccessedByPrivateClass.class,
                 ClassAccessedByProtectedClass.class, PublicClass.class,
                 PrivateClass.class, ProtectedClass.class);
@@ -335,7 +335,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByPackagePrivateClass.class, PackagePrivateClass.class);
     }
 
@@ -348,7 +348,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByPublicClass.class, ClassAccessedByPackagePrivateClass.class,
                 ClassAccessedByProtectedClass.class, PublicClass.class,
                 PackagePrivateClass.class, ProtectedClass.class);
@@ -363,7 +363,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByPrivateClass.class, PrivateClass.class);
     }
 
@@ -376,7 +376,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByPublicClass.class, ClassAccessedByPackagePrivateClass.class,
                 ClassAccessedByProtectedClass.class, PublicClass.class,
                 PackagePrivateClass.class, ProtectedClass.class);
@@ -391,7 +391,7 @@ public class ShouldOnlyByClassesThatTest {
                         PublicClass.class, PrivateClass.class,
                         PackagePrivateClass.class, ProtectedClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(
+        assertThatTypes(classes).matchInAnyOrder(
                 ClassAccessedByPrivateClass.class, PrivateClass.class);
     }
 
@@ -403,7 +403,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -414,7 +414,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -425,7 +425,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -436,7 +436,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -448,7 +448,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -460,7 +460,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -473,7 +473,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                 SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
@@ -486,7 +486,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
     }
 
     @Test
@@ -498,7 +498,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -511,7 +511,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                 SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
@@ -524,7 +524,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
     }
 
     @Test
@@ -536,7 +536,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -550,7 +550,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
                 SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
@@ -564,7 +564,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
     }
 
     @Test
@@ -577,7 +577,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -588,7 +588,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -599,7 +599,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
     @Test
@@ -610,7 +610,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -621,7 +621,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
     @Test
@@ -632,7 +632,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -643,7 +643,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
     @Test
@@ -654,7 +654,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -665,7 +665,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
     @Test
@@ -676,7 +676,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -687,7 +687,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
     @Test
@@ -698,7 +698,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -709,7 +709,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class,
                         SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
     @Test
@@ -720,7 +720,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
                         ClassBeingAccessedByClassImplementingSomeInterface.class, SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -731,7 +731,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
                         ClassBeingAccessedByClassImplementingSomeInterface.class, SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassExtendingClass.class,
+        assertThatTypes(classes).matchInAnyOrder(ClassExtendingClass.class,
                 ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
@@ -743,7 +743,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
                         ClassBeingAccessedByClassImplementingSomeInterface.class, SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -754,7 +754,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
                         ClassBeingAccessedByClassImplementingSomeInterface.class, SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassExtendingClass.class,
+        assertThatTypes(classes).matchInAnyOrder(ClassExtendingClass.class,
                 ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
@@ -766,7 +766,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
                         ClassBeingAccessedByClassImplementingSomeInterface.class, SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -777,7 +777,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
                         ClassBeingAccessedByClassImplementingSomeInterface.class, SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassExtendingClass.class,
+        assertThatTypes(classes).matchInAnyOrder(ClassExtendingClass.class,
                 ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
@@ -788,7 +788,7 @@ public class ShouldOnlyByClassesThatTest {
                 classesShouldOnlyBeBy.areInterfaces())
                 .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, SimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, SimpleClass.class);
     }
 
     @Test
@@ -798,7 +798,7 @@ public class ShouldOnlyByClassesThatTest {
                 classesShouldOnlyBeBy.areNotInterfaces())
                 .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByInterface.class, InterfaceAccessingAClass.class);
     }
 
     @Test
@@ -808,7 +808,7 @@ public class ShouldOnlyByClassesThatTest {
                 classesShouldOnlyBeBy.areEnums())
                 .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByEnum.class, EnumAccessingAClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, SimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, SimpleClass.class);
     }
 
     @Test
@@ -818,7 +818,7 @@ public class ShouldOnlyByClassesThatTest {
                 classesShouldOnlyBeBy.areNotEnums())
                 .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByEnum.class, EnumAccessingAClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByEnum.class, EnumAccessingAClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByEnum.class, EnumAccessingAClass.class);
     }
 
     @Test
@@ -829,7 +829,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class,
                         ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
     }
 
     @Test
@@ -840,7 +840,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class,
                         ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
     @Test
@@ -851,7 +851,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class,
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
     @Test
@@ -862,7 +862,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class,
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
     }
 
     @Test
@@ -873,7 +873,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class,
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
     @Test
@@ -884,7 +884,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class,
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingStaticNestedClass.class, StaticNestedClassBeingAccessed.class);
     }
 
     @Test
@@ -895,7 +895,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class,
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
     @Test
@@ -906,7 +906,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class,
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class);
     }
 
     @Test
@@ -917,7 +917,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
     @Test
@@ -928,7 +928,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass());
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass());
     }
 
     @Test
@@ -939,7 +939,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
     }
 
     @Test
@@ -950,7 +950,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass());
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass());
     }
 
     @Test
@@ -964,7 +964,7 @@ public class ShouldOnlyByClassesThatTest {
                         AnotherClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
                         ClassBeingAccessedByInnerClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(AnotherClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class);
+        assertThatTypes(classes).matchInAnyOrder(AnotherClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class);
     }
 
     @DataProvider
@@ -981,7 +981,7 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassExtendingClass.class, ClassImplementingSomeInterface.class,
                         ClassBeingAccessedByClassImplementingSomeInterface.class, SimpleClass.class, ClassAccessingSimpleClass.class);
 
-        assertThatClasses(classes).matchInAnyOrder(ClassExtendingClass.class,
+        assertThatTypes(classes).matchInAnyOrder(ClassExtendingClass.class,
                 ClassImplementingSomeInterface.class, ClassBeingAccessedByClassImplementingSomeInterface.class);
     }
 
@@ -1003,7 +1003,7 @@ public class ShouldOnlyByClassesThatTest {
         Set<JavaClass> classes = filterViolationOriginsInFailureReport.apply(
                 classes().should().onlyHaveDependentClassesThat(have(not(nameMatching(".*DependingVia.*")))));
 
-        assertThatClasses(classes).matchInAnyOrder(ClassDependingViaFieldType.class,
+        assertThatTypes(classes).matchInAnyOrder(ClassDependingViaFieldType.class,
                 ClassDependingViaMethodParameter.class, ClassDependingViaImplementing.class);
 
         classes = filterViolationOriginsInFailureReport.apply(

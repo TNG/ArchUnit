@@ -7,6 +7,7 @@ import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.JavaMemberAssertion.getExpectedNameOf;
 
 public class JavaConstructorAssertion extends AbstractObjectAssert<JavaConstructorAssertion, JavaConstructor> {
@@ -19,6 +20,6 @@ public class JavaConstructorAssertion extends AbstractObjectAssert<JavaConstruct
         assertThat(actual.getName()).isEqualTo(CONSTRUCTOR_NAME);
         assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(constructor, CONSTRUCTOR_NAME));
         assertThat(actual.getRawParameterTypes()).matches(constructor.getParameterTypes());
-        assertThat(actual.getRawReturnType()).matches(void.class);
+        assertThatType(actual.getRawReturnType()).matches(void.class);
     }
 }
