@@ -15,23 +15,24 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.List;
+
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * A {@link JavaParameterizedType} represents a concrete parameterization of a generic type.
+ * Consider the generic type {@code List<T>}, then {@code List<String>} would be a parameterized type
+ * where the concrete type {@code java.lang.String} has been assigned to the type variable {@code T}.
+ * The concrete type {@code java.lang.String} is then an "actual type argument" of this {@link JavaParameterizedType}
+ * (see {@link JavaParameterizedType#getActualTypeArguments()}).
+ */
 @PublicAPI(usage = ACCESS)
-public interface JavaType extends HasName {
+public interface JavaParameterizedType extends JavaType {
     /**
-     * Converts this {@link JavaType} into the erased type
-     * (compare the <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-4.html#jls-4.6"> Java Language Specification</a>).
-     * In particular this will result in
-     * <ul>
-     *     <li>the class itself, if this type is a {@link JavaClass}</li>
-     *     <li>the {@link JavaClass} equivalent to {@link Object}, if this type is an unbound {@link JavaTypeVariable}</li>
-     *     <li>the {@link JavaClass} equivalent to the erasure of the left most bound, if this type is a bound {@link JavaTypeVariable}</li>
-     * </ul>
+     * @return The actual type arguments of this parameterized type (compare {@link JavaParameterizedType}).
      */
     @PublicAPI(usage = ACCESS)
-    JavaClass toErasure();
+    List<JavaType> getActualTypeArguments();
 }

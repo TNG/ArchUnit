@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.domain.properties;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -51,6 +52,11 @@ public class HasTypeTest {
 
     private HasType newHasType(final Class<?> owner) {
         return new HasType() {
+
+            @Override
+            public JavaType getType() {
+                return getRawType();
+            }
 
             @Override
             public JavaClass getRawType() {

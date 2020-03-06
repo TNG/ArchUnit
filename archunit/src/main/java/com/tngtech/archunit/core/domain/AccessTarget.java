@@ -253,6 +253,12 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
         @Override
         @PublicAPI(usage = ACCESS)
+        public JavaType getType() {
+            return type;
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
         public JavaClass getRawType() {
             return type;
         }

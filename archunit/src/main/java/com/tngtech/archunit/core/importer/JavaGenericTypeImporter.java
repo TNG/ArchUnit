@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeVariableBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeVariableBuilder.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
@@ -53,20 +54,32 @@ class JavaGenericTypeImporter {
 
         @Override
         public SignatureVisitor visitClassBound() {
-            return new SignatureVisitor(ASM_API_VERSION) {
-                @Override
-                public void visitClassType(String internalObjectName) {
-                    currentlyVisiting.addBound(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName).getFullyQualifiedClassName());
-                }
-            };
+            return visitBound();
         }
 
         @Override
         public SignatureVisitor visitInterfaceBound() {
+            return visitBound();
+        }
+
+        private SignatureVisitor visitBound() {
             return new SignatureVisitor(ASM_API_VERSION) {
+                private JavaParameterizedTypeBuilder bound;
+
                 @Override
                 public void visitClassType(String internalObjectName) {
-                    currentlyVisiting.addBound(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName).getFullyQualifiedClassName());
+                    bound = new JavaParameterizedTypeBuilder(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
+                    currentlyVisiting.addBound(bound);
+                }
+
+                @Override
+                public SignatureVisitor visitTypeArgument(char wildcard) {
+                    return new SignatureVisitor(ASM_API_VERSION) {
+                        @Override
+                        public void visitClassType(String internalObjectName) {
+                            bound.addTypeArgument(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
+                        }
+                    };
                 }
             };
         }

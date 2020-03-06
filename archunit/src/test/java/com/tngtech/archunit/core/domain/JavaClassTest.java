@@ -116,6 +116,16 @@ public class JavaClassTest {
     }
 
     @Test
+    public void erased_type_of_class_is_the_class_itself() {
+        class SimpleClass {
+        }
+
+        JavaType type = new ClassFileImporter().importClass(SimpleClass.class);
+
+        assertThat(type.toErasure()).isEqualTo(type);
+    }
+
+    @Test
     public void finds_component_type_chain_of_otherwise_unreferenced_component_type() {
         class OnlyReferencingMultiDimArray {
             OnlyReferencingMultiDimArray[][][] field;

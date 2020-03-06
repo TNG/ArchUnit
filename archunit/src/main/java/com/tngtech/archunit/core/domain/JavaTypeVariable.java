@@ -43,10 +43,12 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 public final class JavaTypeVariable implements JavaType {
     private final String name;
     private final List<JavaType> bounds;
+    private final JavaClass erasure;
 
     JavaTypeVariable(JavaTypeVariableBuilder builder) {
         name = builder.getName();
         bounds = builder.getBounds();
+        erasure = bounds.size() > 0 ? bounds.get(0).toErasure() : builder.getUnboundErasureType();
     }
 
     /**
@@ -68,6 +70,12 @@ public final class JavaTypeVariable implements JavaType {
     @PublicAPI(usage = ACCESS)
     public List<JavaType> getBounds() {
         return bounds;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public JavaClass toErasure() {
+        return erasure;
     }
 
     @Override
