@@ -3,18 +3,18 @@ package com.tngtech.archunit.core.importer;
 import java.io.Closeable;
 import java.io.File;
 import java.io.Serializable;
+import java.util.Map;
 
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
-import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.typeVariable;
 
 public class ClassFileImporterGenericClassesTest {
 
@@ -34,13 +34,11 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterWithoutBound<T> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClasses(ClassWithSingleTypeParameterWithoutBound.class, Object.class)
-                .get(ClassWithSingleTypeParameterWithoutBound.class);
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithSingleTypeParameterWithoutBound.class, Object.class);
 
-        JavaTypeVariable typeVariable = getOnlyElement(javaClass.getTypeParameters());
+        JavaClass javaClass = classes.get(ClassWithSingleTypeParameterWithoutBound.class);
 
-        assertThat(typeVariable.getName()).as("type variable name").isEqualTo("T");
-        assertThatTypes(typeVariable.getBounds()).as("type variable bounds").matchExactly(Object.class);
+        assertThatType(javaClass).hasOnlyTypeParameter("T").withBoundsMatching(Object.class);
     }
 
     @Test
@@ -129,5 +127,74 @@ public class ClassFileImporterGenericClassesTest {
                 .hasTypeParameter("A").withBoundsMatching(String.class, Serializable.class)
                 .hasTypeParameter("B").withBoundsMatching(System.class, Runnable.class)
                 .hasTypeParameter("C").withBoundsMatching(File.class, Serializable.class, Closeable.class);
+    }
+
+    @Test
+    public void imports_single_class_bound_with_single_type_parameter_assigned_to_concrete_class() {
+        @SuppressWarnings("unused")
+        class ClassWithSingleTypeParameterWithGenericClassBoundAssignedToConcreteClass<T extends ClassParameterWithSingleTypeParameter<String>> {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToConcreteClass.class,
+                ClassParameterWithSingleTypeParameter.class, String.class);
+
+        JavaClass javaClass = classes.get(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToConcreteClass.class);
+
+        assertThatType(javaClass).hasOnlyTypeParameter("T")
+                .withBoundsMatching(typeVariable(ClassParameterWithSingleTypeParameter.class).withTypeArguments(String.class));
+    }
+
+    @Test
+    public void imports_multiple_class_bounds_with_single_type_parameters_assigned_to_concrete_types() {
+        @SuppressWarnings("unused")
+        class ClassWithMultipleTypeParametersWithGenericClassOrInterfaceBoundsAssignedToConcreteTypes<
+                A extends ClassParameterWithSingleTypeParameter<File>,
+                B extends InterfaceParameterWithSingleTypeParameter<Serializable>,
+                C extends InterfaceParameterWithSingleTypeParameter<String>> {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithMultipleTypeParametersWithGenericClassOrInterfaceBoundsAssignedToConcreteTypes.class,
+                ClassParameterWithSingleTypeParameter.class, File.class, InterfaceParameterWithSingleTypeParameter.class, Serializable.class, String.class);
+
+        JavaClass javaClass = classes.get(ClassWithMultipleTypeParametersWithGenericClassOrInterfaceBoundsAssignedToConcreteTypes.class);
+
+        assertThatType(javaClass).hasTypeParameters("A", "B", "C")
+                .hasTypeParameter("A").withBoundsMatching(typeVariable(ClassParameterWithSingleTypeParameter.class).withTypeArguments(File.class))
+                .hasTypeParameter("B").withBoundsMatching(typeVariable(InterfaceParameterWithSingleTypeParameter.class).withTypeArguments(Serializable.class))
+                .hasTypeParameter("C").withBoundsMatching(typeVariable(InterfaceParameterWithSingleTypeParameter.class).withTypeArguments(String.class));
+    }
+
+    @Test
+    public void imports_multiple_class_bounds_with_multiple_type_parameters_assigned_to_concrete_types() {
+        @SuppressWarnings("unused")
+        class ClassWithTwoTypeParametersWithMultipleGenericClassAndInterfaceBoundsAssignedToConcreteTypes<
+                A extends ClassParameterWithSingleTypeParameter<String> & InterfaceParameterWithSingleTypeParameter<Serializable>,
+                B extends Map<String, Serializable> & Iterable<File> & Function<Integer, Long>> {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithTwoTypeParametersWithMultipleGenericClassAndInterfaceBoundsAssignedToConcreteTypes.class,
+                ClassParameterWithSingleTypeParameter.class, InterfaceParameterWithSingleTypeParameter.class,
+                Map.class, Iterable.class, Function.class, String.class, Serializable.class, File.class, Integer.class, Long.class);
+
+        JavaClass javaClass = classes.get(ClassWithTwoTypeParametersWithMultipleGenericClassAndInterfaceBoundsAssignedToConcreteTypes.class);
+
+        assertThatType(javaClass).hasTypeParameters("A", "B")
+                .hasTypeParameter("A")
+                .withBoundsMatching(
+                        typeVariable(ClassParameterWithSingleTypeParameter.class).withTypeArguments(String.class),
+                        typeVariable(InterfaceParameterWithSingleTypeParameter.class).withTypeArguments(Serializable.class))
+                .hasTypeParameter("B")
+                .withBoundsMatching(
+                        typeVariable(Map.class).withTypeArguments(String.class, Serializable.class),
+                        typeVariable(Iterable.class).withTypeArguments(File.class),
+                        typeVariable(Function.class).withTypeArguments(Integer.class, Long.class));
+    }
+
+    @SuppressWarnings("unused")
+    public static class ClassParameterWithSingleTypeParameter<T> {
+    }
+
+    @SuppressWarnings("unused")
+    public interface InterfaceParameterWithSingleTypeParameter<T> {
     }
 }

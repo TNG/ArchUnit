@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
@@ -52,6 +53,7 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -509,7 +511,7 @@ public final class DomainBuilders {
     @Internal
     public static final class JavaTypeVariableBuilder {
         private final String name;
-        private final List<String> boundNames = new ArrayList<>();
+        private final List<JavaParameterizedTypeBuilder> bounds = new ArrayList<>();
         private ClassesByTypeName importedClasses;
 
         JavaTypeVariableBuilder(String name) {
@@ -520,21 +522,46 @@ public final class DomainBuilders {
             return name;
         }
 
-        void addBound(String name) {
-            boundNames.add(name);
+        void addBound(JavaParameterizedTypeBuilder builder) {
+            bounds.add(builder);
         }
 
         public List<JavaType> getBounds() {
             ImmutableList.Builder<JavaType> result = ImmutableList.builder();
-            for (String boundName : boundNames) {
-                result.add(importedClasses.get(boundName));
+            for (JavaParameterizedTypeBuilder bound : bounds) {
+                result.add(bound.build(importedClasses));
             }
             return result.build();
+        }
+
+        public JavaClass getUnboundErasureType() {
+            return importedClasses.get(Object.class.getName());
         }
 
         public JavaTypeVariable build(ClassesByTypeName importedClasses) {
             this.importedClasses = importedClasses;
             return createTypeVariable(this);
+        }
+
+        static class JavaParameterizedTypeBuilder {
+            private final JavaClassDescriptor type;
+            private final List<JavaParameterizedTypeBuilder> typeArgumentBuilders = new ArrayList<>();
+
+            JavaParameterizedTypeBuilder(JavaClassDescriptor type) {
+                this.type = type;
+            }
+
+            void addTypeArgument(JavaClassDescriptor type) {
+                typeArgumentBuilders.add(new JavaParameterizedTypeBuilder(type));
+            }
+
+            public JavaParameterizedType build(ClassesByTypeName classes) {
+                ImmutableList.Builder<JavaType> typeArguments = ImmutableList.builder();
+                for (JavaParameterizedTypeBuilder typeArgumentBuilder : typeArgumentBuilders) {
+                    typeArguments.add(typeArgumentBuilder.build(classes));
+                }
+                return new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments.build());
+            }
         }
     }
 
@@ -781,6 +808,40 @@ public final class DomainBuilders {
 
         MethodCallTarget build() {
             return DomainObjectCreationContext.createMethodCallTarget(this);
+        }
+    }
+
+    private static class ImportedParameterizedType implements JavaParameterizedType {
+        private final JavaType type;
+        private final List<JavaType> typeArguments;
+
+        ImportedParameterizedType(JavaType type, List<JavaType> typeArguments) {
+            this.type = type;
+            this.typeArguments = typeArguments;
+        }
+
+        @Override
+        public String getName() {
+            return type.getName();
+        }
+
+        @Override
+        public JavaClass toErasure() {
+            return type.toErasure();
+        }
+
+        @Override
+        public List<JavaType> getActualTypeArguments() {
+            return typeArguments;
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "{" + type.getName() + formatTypeArguments() + '}';
+        }
+
+        private String formatTypeArguments() {
+            return typeArguments.isEmpty() ? "" : "<" + Joiner.on(", ").join(typeArguments) + ">";
         }
     }
 }

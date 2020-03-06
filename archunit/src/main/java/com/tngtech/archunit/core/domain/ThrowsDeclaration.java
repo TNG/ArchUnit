@@ -93,6 +93,12 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
         return getLocation().getOwner();
     }
 
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public JavaType getType() {
+        return type;
+    }
+
     /**
      * @return The type of this {@link ThrowsDeclaration}, e.g. for a method
      * <pre><code>void method() throws SomeException {...}</code></pre>

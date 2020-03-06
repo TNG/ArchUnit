@@ -573,6 +573,12 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         return typeParameters;
     }
 
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public JavaClass toErasure() {
+        return this;
+    }
+
     @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getSuperClass() {
         return superClass;

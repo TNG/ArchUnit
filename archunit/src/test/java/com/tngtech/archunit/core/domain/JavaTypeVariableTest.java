@@ -33,7 +33,6 @@ public class JavaTypeVariableTest {
         JavaTypeVariable type = new ClassFileImporter().importClass(ClassWithUnboundTypeParameter.class).getTypeParameters().get(0);
 
         assertThatTypes(type.getBounds()).matchExactly(HashMap.class, Serializable.class);
-        assertThatTypes(type.getUpperBounds()).matchExactly(HashMap.class, Serializable.class);
     }
 
     @Test
