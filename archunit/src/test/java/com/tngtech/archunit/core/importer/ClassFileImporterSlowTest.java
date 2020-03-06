@@ -34,9 +34,10 @@ public class ClassFileImporterSlowTest {
         assertThatClasses(classes).contain(ClassFileImporter.class, getClass());
         assertThatClasses(classes).doNotContain(Rule.class); // Default does not import jars
 
-        classes = importJavaBase();
+        JavaClasses javaBaseClasses = importJavaBase();
 
-        assertThatClasses(classes).contain(ClassFileImporter.class, getClass(), Rule.class);
+        assertThatClasses(javaBaseClasses).contain(String.class, Annotation.class);
+        assertThatClasses(javaBaseClasses).doNotContain(ClassFileImporter.class, getClass(), Rule.class);
     }
 
     @Test
@@ -109,7 +110,7 @@ public class ClassFileImporterSlowTest {
         return new ClassFileImporter().importClasspath(new ImportOptions().with(new ImportOption() {
             @Override
             public boolean includes(Location location) {
-                return !location.asURI().getScheme().equals("jrt") ||
+                return location.asURI().getScheme().equals("jrt") &&
                         location.contains("java.base"); // Only import the base jdk classes
             }
         }));
