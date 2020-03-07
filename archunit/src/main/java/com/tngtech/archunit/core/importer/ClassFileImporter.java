@@ -248,7 +248,7 @@ public final class ClassFileImporter {
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importClasspath() {
-        return importClasspath(new ImportOptions().with(ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES));
+        return importClasspath(importOptions.with(ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES));
     }
 
     /**
