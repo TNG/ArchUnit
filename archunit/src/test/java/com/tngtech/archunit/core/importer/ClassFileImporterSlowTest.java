@@ -19,6 +19,7 @@ import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTest.jarFileOf;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 
@@ -38,6 +39,14 @@ public class ClassFileImporterSlowTest {
 
         assertThatClasses(javaBaseClasses).contain(String.class, Annotation.class);
         assertThatClasses(javaBaseClasses).doNotContain(ClassFileImporter.class, getClass(), Rule.class);
+    }
+
+    @Test
+    public void respects_ImportOptions_when_using_the_default_importClasspath_method() {
+        JavaClasses classes = new ClassFileImporter().withImportOption(DO_NOT_INCLUDE_TESTS).importClasspath();
+
+        assertThatClasses(classes).contain(ClassFileImporter.class);
+        assertThatClasses(classes).doNotContain(getClass(), Rule.class, String.class);
     }
 
     @Test
