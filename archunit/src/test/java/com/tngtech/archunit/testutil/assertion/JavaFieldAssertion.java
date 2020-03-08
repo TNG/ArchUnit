@@ -14,6 +14,5 @@ public class JavaFieldAssertion extends JavaMemberAssertion<JavaField, JavaField
     public void isEquivalentTo(Field field) {
         super.isEquivalentTo(field);
         assertThat(actual.getRawType()).matches(field.getType());
-        assertThat(actual.getType()).matches(field.getType());
     }
 }

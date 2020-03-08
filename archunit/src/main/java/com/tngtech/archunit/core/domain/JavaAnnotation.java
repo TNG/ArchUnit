@@ -119,16 +119,6 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
         return annotatedElement.getDescription().substring(0, 1).toLowerCase() + annotatedElement.getDescription().substring(1);
     }
 
-    /**
-     * @deprecated Use {@link #getRawType()} instead
-     */
-    @Override
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public JavaClass getType() {
-        return getRawType();
-    }
-
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass getRawType() {

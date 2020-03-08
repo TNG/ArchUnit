@@ -44,17 +44,6 @@ public interface ConditionEvent {
     void addInvertedTo(ConditionEvents events);
 
     /**
-     * Adds a textual description of this event to the supplied {@link CollectsLines}.
-     *
-     * @deprecated This method will be removed in the future in favor of the simpler {@link #getDescriptionLines()}.<br>
-     * {@link #describeTo(CollectsLines) describeTo(lineCollector)} has the same behavior as simply
-     * adding all {@link #getDescriptionLines()} to the {@code lineCollector}.
-     * @param messages The message lines to append the description to.
-     */
-    @Deprecated
-    void describeTo(CollectsLines messages);
-
-    /**
      * @return A textual description of this event as a list of lines
      */
     List<String> getDescriptionLines();

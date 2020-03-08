@@ -20,11 +20,7 @@ public class HasTypeTest {
         return testForEach(
                 HasType.Predicates.rawType(String.class),
                 HasType.Predicates.rawType(String.class.getName()),
-                HasType.Predicates.rawType(equivalentTo(String.class)),
-
-                HasType.Predicates.type(String.class),
-                HasType.Predicates.type(String.class.getName()),
-                HasType.Predicates.type(equivalentTo(String.class)));
+                HasType.Predicates.rawType(equivalentTo(String.class)));
     }
 
     @Test
@@ -44,24 +40,15 @@ public class HasTypeTest {
         assertThat(HasType.Predicates.rawType(String.class.getName())).hasDescription("raw type " + String.class.getName());
         assertThat(HasType.Predicates.rawType(equivalentTo(String.class)))
                 .hasDescription("raw type equivalent to " + String.class.getName());
-
-        assertThat(HasType.Predicates.type(String.class)).hasDescription("type " + String.class.getName());
-        assertThat(HasType.Predicates.type(String.class.getName())).hasDescription("type " + String.class.getName());
-        assertThat(HasType.Predicates.type(equivalentTo(String.class))).hasDescription("type equivalent to " + String.class.getName());
     }
 
     @Test
     public void function_getType() {
         assertThat(HasType.Functions.GET_RAW_TYPE.apply(newHasType(String.class))).matches(String.class);
-        assertThat(HasType.Functions.GET_TYPE.apply(newHasType(String.class))).matches(String.class);
     }
 
     private HasType newHasType(final Class<?> owner) {
         return new HasType() {
-            @Override
-            public JavaClass getType() {
-                return getRawType();
-            }
 
             @Override
             public JavaClass getRawType() {

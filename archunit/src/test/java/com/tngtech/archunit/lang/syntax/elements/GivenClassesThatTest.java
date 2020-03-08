@@ -58,14 +58,6 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void dontHaveFullyQualifiedName() {
-        List<JavaClass> classes = filterResultOf(classes().that().dontHaveFullyQualifiedName(List.class.getName()))
-                .on(List.class, String.class, Iterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
-    }
-
-    @Test
     public void doNotHaveFullyQualifiedName() {
         List<JavaClass> classes = filterResultOf(classes().that().doNotHaveFullyQualifiedName(List.class.getName()))
                 .on(List.class, String.class, Iterable.class);
@@ -79,14 +71,6 @@ public class GivenClassesThatTest {
                 .on(List.class, String.class, Iterable.class);
 
         assertThat(getOnlyElement(classes)).matches(List.class);
-    }
-
-    @Test
-    public void dontHaveSimpleName() {
-        List<JavaClass> classes = filterResultOf(classes().that().dontHaveSimpleName(List.class.getSimpleName()))
-                .on(List.class, String.class, Iterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(String.class, Iterable.class);
     }
 
     @Test
@@ -267,14 +251,6 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void dontHaveModifiers() {
-        List<JavaClass> classes = filterResultOf(classes().that().dontHaveModifier(PRIVATE))
-                .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
-
-        assertThatClasses(classes).matchInAnyOrder(getClass(), PackagePrivateClass.class, ProtectedClass.class);
-    }
-
-    @Test
     public void doNotHaveModifiers() {
         List<JavaClass> classes = filterResultOf(classes().that().doNotHaveModifier(PRIVATE))
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
@@ -430,14 +406,6 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void dontImplement_type() {
-        List<JavaClass> classes = filterResultOf(classes().that().dontImplement(Collection.class))
-                .on(ArrayList.class, List.class, Iterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
-    }
-
-    @Test
     public void doNotImplement_type() {
         List<JavaClass> classes = filterResultOf(classes().that().doNotImplement(Collection.class))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -467,14 +435,6 @@ public class GivenClassesThatTest {
     }
 
     @Test
-    public void dontImplement_typeName() {
-        List<JavaClass> classes = filterResultOf(classes().that().dontImplement(Collection.class.getName()))
-                .on(ArrayList.class, List.class, Iterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
-    }
-
-    @Test
     public void doNotImplement_typeName() {
         List<JavaClass> classes = filterResultOf(classes().that().doNotImplement(Collection.class.getName()))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -493,14 +453,6 @@ public class GivenClassesThatTest {
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThat(classes).isEmpty();
-    }
-
-    @Test
-    public void dontImplement_predicate() {
-        List<JavaClass> classes = filterResultOf(classes().that().dontImplement(classWithNameOf(Collection.class)))
-                .on(ArrayList.class, List.class, Iterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(List.class, Iterable.class);
     }
 
     @Test

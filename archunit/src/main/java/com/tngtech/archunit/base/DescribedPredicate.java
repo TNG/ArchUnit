@@ -116,22 +116,6 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return new DescribePredicate<>(description, predicate).forSubType();
     }
 
-    /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doesNot(DescribedPredicate)}
-     */
-    @Deprecated
-    public static <T> DescribedPredicate<T> doesnt(final DescribedPredicate<? super T> predicate) {
-        return not(predicate).as("doesn't %s", predicate.getDescription()).forSubType();
-    }
-
-    /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNot(DescribedPredicate)}
-     */
-    @Deprecated
-    public static <T> DescribedPredicate<T> dont(final DescribedPredicate<? super T> predicate) {
-        return not(predicate).as("don't %s", predicate.getDescription()).forSubType();
-    }
-
     public static <T> DescribedPredicate<T> doesNot(final DescribedPredicate<? super T> predicate) {
         return not(predicate).as("does not %s", predicate.getDescription()).forSubType();
     }
