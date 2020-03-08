@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.conditions.ContainAnyCondition.AnyConditionEvent;
@@ -74,17 +73,6 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
         @Override
         public void addInvertedTo(ConditionEvents events) {
             events.add(new AnyConditionEvent(correspondingObjects, violating, allowed));
-        }
-
-        /**
-         * @deprecated See {@link ConditionEvent#describeTo(CollectsLines)}
-         */
-        @Deprecated
-        @Override
-        public void describeTo(CollectsLines messages) {
-            for (String line : getDescriptionLines()) {
-                messages.add(line);
-            }
         }
 
         @Override

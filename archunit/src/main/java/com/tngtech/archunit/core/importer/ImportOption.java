@@ -39,42 +39,6 @@ public interface ImportOption {
     boolean includes(Location location);
 
     enum Predefined implements ImportOption {
-        /**
-         * @deprecated Decided to consistently never use contractions -&gt; use {@link #DO_NOT_INCLUDE_TESTS}
-         */
-        @Deprecated
-        DONT_INCLUDE_TESTS {
-            private final DoNotIncludeTests doNotIncludeTests = new DoNotIncludeTests();
-
-            @Override
-            public boolean includes(Location location) {
-                return doNotIncludeTests.includes(location);
-            }
-        },
-        /**
-         * @deprecated Decided to consistently never use contractions -&gt; use {@link #DO_NOT_INCLUDE_JARS}
-         */
-        @Deprecated
-        DONT_INCLUDE_JARS {
-            private final DoNotIncludeJars doNotIncludeJars = new DoNotIncludeJars();
-
-            @Override
-            public boolean includes(Location location) {
-                return doNotIncludeJars.includes(location);
-            }
-        },
-        /**
-         * @deprecated Decided to consistently never use contractions -&gt; use {@link #DO_NOT_INCLUDE_ARCHIVES}
-         */
-        @Deprecated
-        DONT_INCLUDE_ARCHIVES {
-            private final DoNotIncludeArchives doNotIncludeArchives = new DoNotIncludeArchives();
-
-            @Override
-            public boolean includes(Location location) {
-                return doNotIncludeArchives.includes(location);
-            }
-        },
         DO_NOT_INCLUDE_TESTS {
             private final DoNotIncludeTests doNotIncludeTests = new DoNotIncludeTests();
 
@@ -105,19 +69,6 @@ public interface ImportOption {
     }
 
     /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link DoNotIncludeTests}
-     */
-    @Deprecated
-    final class DontIncludeTests implements ImportOption {
-        private final DoNotIncludeTests doNotIncludeTests = new DoNotIncludeTests();
-
-        @Override
-        public boolean includes(Location location) {
-            return doNotIncludeTests.includes(location);
-        }
-    }
-
-    /**
      * NOTE: This excludes all class files residing in some directory
      * ../target/test-classes/.., ../build/classes/test/.. or ../build/classes/someLang/test/.. (Maven/Gradle standard).
      * Thus it is just a best guess, how tests can be identified,
@@ -141,36 +92,10 @@ public interface ImportOption {
         }
     }
 
-    /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link DoNotIncludeJars}
-     */
-    @Deprecated
-    final class DontIncludeJars implements ImportOption {
-        private final DoNotIncludeJars doNotIncludeJars = new DoNotIncludeJars();
-
-        @Override
-        public boolean includes(Location location) {
-            return doNotIncludeJars.includes(location);
-        }
-    }
-
     final class DoNotIncludeJars implements ImportOption {
         @Override
         public boolean includes(Location location) {
             return !location.isJar();
-        }
-    }
-
-    /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link DoNotIncludeArchives}
-     */
-    @Deprecated
-    final class DontIncludeArchives implements ImportOption {
-        private final DoNotIncludeArchives doNotIncludeArchives = new DoNotIncludeArchives();
-
-        @Override
-        public boolean includes(Location location) {
-            return doNotIncludeArchives.includes(location);
         }
     }
 

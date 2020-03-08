@@ -7,9 +7,6 @@ import java.nio.file.Files;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeArchives;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
-import com.tngtech.archunit.core.importer.ImportOption.DontIncludeArchives;
-import com.tngtech.archunit.core.importer.ImportOption.DontIncludeJars;
-import com.tngtech.archunit.core.importer.ImportOption.DontIncludeTests;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -19,9 +16,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DONT_INCLUDE_ARCHIVES;
-import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DONT_INCLUDE_JARS;
-import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DONT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_JARS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
@@ -38,7 +32,7 @@ public class ImportOptionsTest {
 
     @DataProvider
     public static Object[][] do_not_include_tests() {
-        return testForEach(new DoNotIncludeTests(), DO_NOT_INCLUDE_TESTS, new DontIncludeTests(), DONT_INCLUDE_TESTS);
+        return testForEach(new DoNotIncludeTests(), DO_NOT_INCLUDE_TESTS);
     }
 
     @Test
@@ -91,7 +85,7 @@ public class ImportOptionsTest {
 
     @DataProvider
     public static Object[][] do_not_include_jars() {
-        return testForEach(new DoNotIncludeJars(), DO_NOT_INCLUDE_JARS, new DontIncludeJars(), DONT_INCLUDE_JARS);
+        return testForEach(new DoNotIncludeJars(), DO_NOT_INCLUDE_JARS);
     }
 
     @Test
@@ -110,7 +104,7 @@ public class ImportOptionsTest {
 
     @DataProvider
     public static Object[][] do_not_include_archives() {
-        return testForEach(new DoNotIncludeArchives(), DO_NOT_INCLUDE_ARCHIVES, new DontIncludeArchives(), DONT_INCLUDE_ARCHIVES);
+        return testForEach(new DoNotIncludeArchives(), DO_NOT_INCLUDE_ARCHIVES);
     }
 
     @Test

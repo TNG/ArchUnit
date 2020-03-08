@@ -117,11 +117,6 @@ public class EvaluationResultTest {
         }
 
         @Override
-        public void describeTo(CollectsLines messages) {
-            throw new UnsupportedOperationException("Obsolete");
-        }
-
-        @Override
         public List<String> getDescriptionLines() {
             return descriptionLines;
         }

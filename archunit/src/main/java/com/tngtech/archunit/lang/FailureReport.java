@@ -24,7 +24,7 @@ import com.tngtech.archunit.base.HasDescription;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public final class FailureReport implements CollectsLines {
+public final class FailureReport {
     private final FailureMessages failureMessages;
     private final HasDescription rule;
     private final Priority priority;
@@ -43,15 +43,6 @@ public final class FailureReport implements CollectsLines {
     @PublicAPI(usage = ACCESS)
     public List<String> getDetails() {
         return ImmutableList.copyOf(failureMessages);
-    }
-
-    /**
-     * @deprecated See {@link CollectsLines#add(String)}
-     */
-    @Deprecated
-    @Override
-    public void add(String message) {
-        failureMessages.add(message);
     }
 
     @Override

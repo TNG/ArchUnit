@@ -5,7 +5,7 @@ import org.assertj.core.api.AbstractIterableAssert;
 
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
-import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.parameterTypes;
+import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 
 public class JavaMethodsAssertion
         extends AbstractIterableAssert<JavaMethodsAssertion, Iterable<? extends JavaMethod>, JavaMethod, JavaMethodAssertion> {
@@ -29,7 +29,7 @@ public class JavaMethodsAssertion
 
     private boolean contains(Class<?> owner, String name, Class<?>[] parameterTypes) {
         for (JavaMethod method : actual) {
-            if (method.getOwner().isEquivalentTo(owner) && method.getName().equals(name) && parameterTypes(parameterTypes).apply(method)) {
+            if (method.getOwner().isEquivalentTo(owner) && method.getName().equals(name) && rawParameterTypes(parameterTypes).apply(method)) {
                 return true;
             }
         }

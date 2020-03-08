@@ -38,13 +38,6 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION haveFullyQualifiedName(String name);
 
     /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotHaveFullyQualifiedName(String)}
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontHaveFullyQualifiedName(String name);
-
-    /**
      * Matches classes that do not have a certain fully qualified class name.
      *
      * @param name The fully qualified class name
@@ -61,13 +54,6 @@ public interface ClassesThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveSimpleName(String name);
-
-    /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotHaveSimpleName(String)}
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontHaveSimpleName(String name);
 
     /**
      * Matches classes that do not have a certain simple class name.
@@ -259,13 +245,6 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION haveModifier(JavaModifier modifier);
 
     /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotHaveModifier(JavaModifier)}
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontHaveModifier(JavaModifier modifier);
-
-    /**
      * Matches classes not having a certain {@link JavaModifier} (e.g. {@link JavaModifier#ABSTRACT}).
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -401,13 +380,6 @@ public interface ClassesThat<CONJUNCTION> {
     CONJUNCTION implement(Class<?> type);
 
     /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotImplement(Class)}
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontImplement(Class<?> type);
-
-    /**
      * Matches classes that do not implement a certain interface. This is the negation of {@link #implement(Class)}.
      *
      * @param type An interface type matching classes must not implement
@@ -425,13 +397,6 @@ public interface ClassesThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION implement(String typeName);
-
-    /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotImplement(String)}
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontImplement(String typeName);
 
     /**
      * Matches classes that do not implement a certain interface with the given type name.
@@ -454,13 +419,6 @@ public interface ClassesThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION implement(DescribedPredicate<? super JavaClass> predicate);
-
-    /**
-     * @deprecated Decided to consistently never use contractions -&gt; use {@link #doNotImplement(DescribedPredicate)}
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    CONJUNCTION dontImplement(DescribedPredicate<? super JavaClass> predicate);
 
     /**
      * Matches classes that do not implement a certain interface matching the given predicate.

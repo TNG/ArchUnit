@@ -79,19 +79,6 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     }
 
     /**
-     * @deprecated Use the result of {@link #getFailureMessages()} instead.
-     * {@link #describeFailuresTo(CollectsLines) describeFailuresTo(lineCollector)} has the same behavior as simply
-     * adding all {@link #getFailureMessages()} to the {@code lineCollector}.
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public void describeFailuresTo(CollectsLines messages) {
-        for (String line : getFailureMessages()) {
-            messages.add(line);
-        }
-    }
-
-    /**
      * @deprecated Use {@link #getFailureMessages()} instead
      * @return List of text lines describing the contained failures of these events.
      */
