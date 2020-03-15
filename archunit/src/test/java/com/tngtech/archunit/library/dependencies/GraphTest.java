@@ -1,6 +1,7 @@
 package com.tngtech.archunit.library.dependencies;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -12,12 +13,15 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
+import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.library.dependencies.Graph.Cycles;
 import org.junit.Test;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.DiscreteDomain.integers;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.cartesianProduct;
+import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -54,7 +58,7 @@ public class GraphTest {
     }
 
     @Test
-    public void sub_cycle_of_three_node_cycle_is_detected() {
+    public void sub_cycle_of_three_node_graph_is_detected() {
         Graph<String, String> graph = new Graph<>();
 
         String nodeA = "Node-A";
@@ -128,22 +132,35 @@ public class GraphTest {
     @Test
     public void graph_which_causes_error_when_dependently_blocked_nodes_are_not_cleared_after_unblocking() {
         ImmutableSet<Integer> nodes = ImmutableSet.of(0, 1, 2, 3, 4, 5);
-        Graph<Integer, Integer> graph = new Graph<>();
+        Graph<Integer, Object> graph = new Graph<>();
         graph.addNodes(nodes);
 
         graph.addEdges(ImmutableSet.of(
-                new Edge<Integer, Integer>(0, 4),
-                new Edge<Integer, Integer>(1, 0),
-                new Edge<Integer, Integer>(1, 5),
-                new Edge<Integer, Integer>(2, 1),
-                new Edge<Integer, Integer>(3, 1),
-                new Edge<Integer, Integer>(3, 5),
-                new Edge<Integer, Integer>(4, 3),
-                new Edge<Integer, Integer>(5, 1),
-                new Edge<Integer, Integer>(5, 2)
+                newEdge(0, 4),
+                newEdge(1, 0),
+                newEdge(1, 5),
+                newEdge(2, 1),
+                newEdge(3, 1),
+                newEdge(3, 5),
+                newEdge(4, 3),
+                newEdge(5, 1),
+                newEdge(5, 2)
         ));
 
         assertThat(graph.findCycles()).isNotEmpty();
+    }
+
+    // This test covers some edge cases, e.g. if too many nodes stay blocked
+    @Test
+    public void finds_cycles_in_real_life_graph() {
+        Graph<Integer, Object> graph = RealLifeGraph.get();
+        int expectedNumberOfCycles = 10000;
+        ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME, String.valueOf(expectedNumberOfCycles));
+
+        Cycles<Integer, Object> cycles = graph.findCycles();
+
+        assertThat(cycles).hasSize(expectedNumberOfCycles);
+        assertThat(cycles.maxNumberOfCyclesReached()).as("maximum number of cycles reached").isTrue();
     }
 
     @SuppressWarnings("unchecked")
@@ -215,11 +232,11 @@ public class GraphTest {
     }
 
     static Edge<String, String> stringEdge(String nodeA, String nodeB) {
-        return new Edge<>(nodeA, nodeB);
+        return newEdge(nodeA, nodeB);
     }
 
     private Edge<Integer, Integer> integerEdge(Integer origin, Integer target) {
-        return new Edge<>(origin, target);
+        return newEdge(origin, target);
     }
 
     static List<Edge<String, String>> singleEdgeList(String from, String to) {
@@ -228,5 +245,9 @@ public class GraphTest {
 
     static Set<Edge<String, String>> singleEdge(String from, String to) {
         return singleton(stringEdge(from, to));
+    }
+
+    static <NODE, ATTACHMENT> Edge<NODE, ATTACHMENT> newEdge(NODE from, NODE to) {
+        return new Edge<>(from, to, Collections.<ATTACHMENT>emptySet());
     }
 }

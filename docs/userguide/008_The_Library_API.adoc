@@ -176,6 +176,26 @@ SliceAssignment legacyPackageStructure = new SliceAssignment() {
 SlicesRuleDefinition.slices().assignedFrom(legacyPackageStructure).should().beFreeOfCycles()
 ----
 
+==== Configurations
+
+There are two configuration parameters to adjust the behavior of the cycle detection.
+They can be configured via `archunit.properties` (compare <<Advanced Configuration>>).
+
+[source,options="nowrap"]
+.archunit.properties
+----
+# This will limit the maximum number of cycles to detect and thus required CPU and heap.
+# default is 100
+cycles.maxNumberToDetect=50
+
+# This will limit the maximum number of dependencies to report per cycle edge.
+# Note that ArchUnit will regardless always analyze all dependencies to detect cycles,
+# so this purely affects how many dependencies will be printed in the report.
+# Also note that this number will quickly affect the required heap since it scales with number.
+# of edges and number of cycles
+# default is 20
+cycles.maxNumberOfDependenciesPerEdge=5
+----
 
 === General Coding Rules
 

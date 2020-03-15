@@ -18,13 +18,15 @@ package com.tngtech.archunit.lang;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.Optional;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -36,10 +38,24 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     }
 
     private final Multimap<Type, ConditionEvent> eventsByViolation = ArrayListMultimap.create();
+    private Optional<String> informationAboutNumberOfViolations = Optional.absent();
 
     @PublicAPI(usage = ACCESS)
     public void add(ConditionEvent event) {
         eventsByViolation.get(Type.from(event.isViolation())).add(event);
+    }
+
+    /**
+     * Can be used to override the information about the number of violations. If absent the violated rule
+     * will simply report the number of violation lines as the number of violations (which is typically
+     * correct, since ArchUnit usually reports one violation per line). However in cases where
+     * violations are omitted (e.g. because a limit of reported violations is configured), this information
+     * can be supplied here to inform users there there actually were more violations than reported.
+     * @param informationAboutNumberOfViolations The text to be shown for the number of times a rule has been violated
+     */
+    @PublicAPI(usage = ACCESS)
+    public void setInformationAboutNumberOfViolations(String informationAboutNumberOfViolations) {
+        this.informationAboutNumberOfViolations = Optional.of(informationAboutNumberOfViolations);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -63,28 +79,39 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     }
 
     /**
-     * @deprecated Use the result of {@link #getFailureDescriptionLines()} instead.
+     * @deprecated Use the result of {@link #getFailureMessages()} instead.
      * {@link #describeFailuresTo(CollectsLines) describeFailuresTo(lineCollector)} has the same behavior as simply
-     * adding all {@link #getFailureDescriptionLines()} to the {@code lineCollector}.
+     * adding all {@link #getFailureMessages()} to the {@code lineCollector}.
      */
     @Deprecated
     @PublicAPI(usage = ACCESS)
     public void describeFailuresTo(CollectsLines messages) {
-        for (String line : getFailureDescriptionLines()) {
+        for (String line : getFailureMessages()) {
             messages.add(line);
         }
     }
 
     /**
+     * @deprecated Use {@link #getFailureMessages()} instead
      * @return List of text lines describing the contained failures of these events.
      */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public List<String> getFailureDescriptionLines() {
-        ImmutableList.Builder<String> result = ImmutableList.builder();
+        return getFailureMessages();
+    }
+
+    /**
+     * @return Sorted failure messages describing the contained failures of these events.
+     *         Also offers information about the number of violations contained in these events.
+     */
+    @PublicAPI(usage = ACCESS)
+    public FailureMessages getFailureMessages() {
+        SortedSet<String> result = new TreeSet<>();
         for (ConditionEvent event : getViolating()) {
             result.addAll(event.getDescriptionLines());
         }
-        return result.build();
+        return new FailureMessages(result, informationAboutNumberOfViolations);
     }
 
     /**

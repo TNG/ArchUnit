@@ -59,7 +59,7 @@ public final class EvaluationResult {
 
     @PublicAPI(usage = ACCESS)
     public FailureReport getFailureReport() {
-        return new FailureReport(rule, priority, events.getFailureDescriptionLines());
+        return new FailureReport(rule, priority, events.getFailureMessages());
     }
 
     @PublicAPI(usage = ACCESS)

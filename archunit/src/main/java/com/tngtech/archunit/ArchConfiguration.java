@@ -256,6 +256,17 @@ public final class ArchConfiguration {
         properties.setProperty(propertyName, value);
     }
 
+    /**
+     * @param propertyName Full name of a property
+     * @param defaultValue A value to return if property is not configured
+     * @return The property of the global ArchUnit configuration with the supplied name
+     *         or {@code defaultValue} if this property is not configured.
+     */
+    @PublicAPI(usage = ACCESS)
+    public String getPropertyOrDefault(String propertyName, String defaultValue) {
+        return properties.getProperty(propertyName, defaultValue);
+    }
+
     private static class PropertiesOverwritableBySystemProperties {
         private static final Properties PROPERTY_DEFAULTS = createProperties(ImmutableMap.of(
                 RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, Boolean.TRUE.toString(),

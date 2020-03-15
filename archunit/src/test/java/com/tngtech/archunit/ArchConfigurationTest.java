@@ -236,6 +236,24 @@ public class ArchConfigurationTest {
                 entry(subPropertyNameOf(otherPropertyName), "other"));
     }
 
+    @Test
+    public void returns_property_if_property_is_set() {
+        writeProperties("configured.property", "explicitlySet");
+
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
+
+        assertThat(configuration.getPropertyOrDefault("configured.property", "default")).isEqualTo("explicitlySet");
+    }
+
+    @Test
+    public void returns_default_if_property_is_unset() {
+        writeProperties();
+
+        ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
+
+        assertThat(configuration.getPropertyOrDefault("unconfigured.property", "default")).isEqualTo("default");
+    }
+
     private String subPropertyKeyOf(String customPropertyName) {
         return customPropertyName.split("\\.")[0];
     }
