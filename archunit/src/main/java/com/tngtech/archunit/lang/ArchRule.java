@@ -87,7 +87,9 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             FailureReport report = result.getFailureReport();
 
             Set<Pattern> patterns = readPatternsFrom(ARCHUNIT_IGNORE_PATTERNS_FILE_NAME);
-            report = report.filter(notMatchedByAny(patterns));
+            if (!patterns.isEmpty()) {
+                report = report.filter(notMatchedByAny(patterns));
+            }
             if (!report.isEmpty()) {
                 throw new AssertionError(report.toString());
             }

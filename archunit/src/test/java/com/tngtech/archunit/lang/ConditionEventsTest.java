@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -107,6 +108,17 @@ public class ConditionEventsTest {
         events.handleViolations(handler);
 
         assertThat(handler.getRecorded()).containsOnly("correct");
+    }
+
+    @Test
+    public void reports_description_lines_of_events() {
+        List<String> expectedDescriptionLines = ImmutableList.of("another event message", "some event message");
+        ConditionEvents events = events(
+                SimpleConditionEvent.violated(new Object(), expectedDescriptionLines.get(1)),
+                SimpleConditionEvent.violated(new Object(), expectedDescriptionLines.get(0)));
+
+        assertThat(events.getFailureMessages()).containsExactlyElementsOf(expectedDescriptionLines);
+        assertThat(events.getFailureDescriptionLines()).containsExactlyElementsOf(expectedDescriptionLines);
     }
 
     private static class BaseHandler<T> implements ViolationHandler<T> {

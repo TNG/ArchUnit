@@ -15,10 +15,10 @@
  */
 package com.tngtech.archunit.lang;
 
-import java.util.Collection;
-
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.HasDescription;
+
+import static java.lang.System.lineSeparator;
 
 class ConfiguredMessageFormat {
     private static final ConfiguredMessageFormat instance = new ConfiguredMessageFormat();
@@ -27,10 +27,10 @@ class ConfiguredMessageFormat {
         return instance;
     }
 
-    String formatFailure(HasDescription rule, Collection<String> failureMessages, Priority priority) {
-        String violationTexts = Joiner.on(System.lineSeparator()).join(failureMessages);
-        return String.format("Architecture Violation [Priority: %s] - Rule '%s' was violated (%d times):%n%s",
-                priority.asString(), rule.getDescription(), failureMessages.size(), violationTexts);
+    String formatFailure(HasDescription rule, FailureMessages failureMessages, Priority priority) {
+        String violationTexts = Joiner.on(lineSeparator()).join(failureMessages);
+        return String.format("Architecture Violation [Priority: %s] - Rule '%s' was violated (%s):%n%s",
+                priority.asString(), rule.getDescription(), failureMessages.getInformationAboutNumberOfViolations(), violationTexts);
     }
 
     <T> String formatRuleText(HasDescription itemsUnderTest, ArchCondition<T> condition) {

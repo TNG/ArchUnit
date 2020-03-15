@@ -1,7 +1,7 @@
 language: java
 
 script:
-- ./gradlew --no-daemon -PallTests -PscanBuild clean build publishToMavenLocal runMavenTest
+- ./gradlew --no-daemon --info -PallTests -PscanBuild clean build publishToMavenLocal runMavenTest
 
 jdk:
   - openjdk11
