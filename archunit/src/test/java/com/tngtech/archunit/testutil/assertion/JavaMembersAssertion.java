@@ -30,6 +30,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.domain.JavaModifier.VOLATILE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
+import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.runtimePropertiesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaMemberAssertion.getExpectedFullNameOf;
 
 public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssertion, List<JavaMember>> {
@@ -89,7 +90,7 @@ public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssert
     static <T extends Member & AnnotatedElement> void assertEquivalent(JavaMember javaMember, T member) {
         assertThat(javaMember.getOwner().reflect()).isEqualTo(member.getDeclaringClass());
         assertModifiersMatch(javaMember, member);
-        assertThat(propertiesOf(javaMember.getAnnotations()))
+        assertThat(runtimePropertiesOf(javaMember.getAnnotations()))
                 .isEqualTo(propertiesOf(member.getAnnotations()));
     }
 

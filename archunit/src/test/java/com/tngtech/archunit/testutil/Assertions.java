@@ -70,6 +70,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
+import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.runtimePropertiesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion.sortByName;
 
 public class Assertions extends org.assertj.core.api.Assertions {
@@ -327,7 +328,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             assertThat(actual.getModifiers()).as("Modifiers of " + actual)
                     .isEqualTo(JavaModifier.getModifiersForClass(clazz.getModifiers()));
             assertThat(actual.isArray()).as(actual + " is array").isEqualTo(clazz.isArray());
-            assertThat(propertiesOf(actual.getAnnotations())).as("Annotations of " + actual)
+            assertThat(runtimePropertiesOf(actual.getAnnotations())).as("Annotations of " + actual)
                     .isEqualTo(propertiesOf(clazz.getAnnotations()));
 
             if (clazz.isArray()) {
