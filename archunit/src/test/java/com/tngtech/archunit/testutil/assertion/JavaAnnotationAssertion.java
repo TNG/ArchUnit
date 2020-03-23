@@ -1,6 +1,7 @@
 package com.tngtech.archunit.testutil.assertion;
 
 import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,15 +16,24 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 public class JavaAnnotationAssertion {
     @SuppressWarnings("rawtypes")
-    public static Set<Map<String, Object>> propertiesOf(Set<? extends JavaAnnotation<?>> annotations) {
+    public static Set<Map<String, Object>> runtimePropertiesOf(Set<? extends JavaAnnotation<?>> annotations) {
         List<Annotation> converted = new ArrayList<>();
         for (JavaAnnotation<?> annotation : annotations) {
-            converted.add(annotation.as((Class) annotation.getRawType().reflect()));
+            Annotation reflectionAnnotation = annotation.as((Class) annotation.getRawType().reflect());
+            if (isRetentionRuntime(reflectionAnnotation)) {
+                converted.add(reflectionAnnotation);
+            }
         }
         return propertiesOf(converted.toArray(new Annotation[0]));
+    }
+
+    private static boolean isRetentionRuntime(Annotation annotation) {
+        return annotation.annotationType().isAnnotationPresent(Retention.class)
+                && annotation.annotationType().getAnnotation(Retention.class).value() == RUNTIME;
     }
 
     public static Set<Map<String, Object>> propertiesOf(Annotation[] annotations) {
