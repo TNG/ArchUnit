@@ -1,5 +1,5 @@
 plugins {
-    id "com.moowork.node" version "1.2.0"
+    id "com.moowork.node" version "1.3.1"
 }
 
 ext.moduleName = 'com.tngtech.archunit.htmlvisualization'
@@ -34,7 +34,7 @@ configurations {
     runtime.exclude module: ':archunit'
 }
 
-def nodeVersion = '10.14.2'
+def nodeVersion = '12.16.1'
 def nodeDir = file("${project.projectDir}/nodejs")
 
 node {
