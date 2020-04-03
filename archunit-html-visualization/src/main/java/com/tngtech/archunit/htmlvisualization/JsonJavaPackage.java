@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TNG Technology Consulting GmbH
+ * Copyright 2014-2020 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.tngtech.archunit.htmlvisualization;
 
-import com.google.gson.annotations.Expose;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import com.google.gson.annotations.Expose;
 
 class JsonJavaPackage extends JsonElement {
     static final String PACKAGE_SEPARATOR = ".";
@@ -51,13 +51,18 @@ class JsonJavaPackage extends JsonElement {
     }
 
     @Override
+    protected String parseFullName(String fullName) {
+        return fullName;
+    }
+
+    @Override
     Set<? extends JsonElement> getChildren() {
         return children;
     }
 
     void insertPackage(String pkg) {
-        if (!fullName.equals(pkg) && !tryToInsertToExistingPackage(pkg)) {
-            JsonJavaPackage newPkg = createPackage(pkg, fullName, isDefault);
+        if (!getFullName().equals(pkg) && !tryToInsertToExistingPackage(pkg)) {
+            JsonJavaPackage newPkg = createPackage(pkg, getFullName(), isDefault);
             subPackages.add(newPkg);
             children.add(newPkg);
             newPkg.insertPackage(pkg);
@@ -66,7 +71,7 @@ class JsonJavaPackage extends JsonElement {
 
     private boolean tryToInsertToExistingPackage(String pkg) {
         for (JsonJavaPackage c : subPackages) {
-            if (pkg.startsWith(c.fullName) && pkg.substring(c.fullName.length())
+            if (pkg.startsWith(c.getFullName()) && pkg.substring(c.getFullName().length())
                     .matches("(\\" + PACKAGE_SEPARATOR + "|^$).*")) {
                 c.insertPackage(pkg);
                 return true;
@@ -110,7 +115,7 @@ class JsonJavaPackage extends JsonElement {
         if (isDefault) {
             throw new RuntimeException("The default root cannot be merged with the sub package");
         } else {
-            fullName = newRoot.fullName;
+            fullName = newRoot.getFullName();
             name += PACKAGE_SEPARATOR + newRoot.name;
         }
         subPackages = newRoot.subPackages;

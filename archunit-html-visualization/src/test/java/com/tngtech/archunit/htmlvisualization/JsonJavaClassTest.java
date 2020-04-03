@@ -32,7 +32,7 @@ public class JsonJavaClassTest {
         JsonJavaClass jsonJavaClass = new JsonJavaClass(classes.get(SomeClass.InnerClass.class));
         JsonJavaClass enclosingClass = JsonJavaClass.createEnclosingClassOf(jsonJavaClass, "com.tngtech.archunit.htmlvisualization.testclasses");
 
-        assertThat(enclosingClass.fullName).isEqualTo("com.tngtech.archunit.htmlvisualization.testclasses.SomeClass");
+        assertThat(enclosingClass.getFullName()).isEqualTo("com.tngtech.archunit.htmlvisualization.testclasses.SomeClass");
         assertThat(enclosingClass.name).isEqualTo("SomeClass");
         assertThat(enclosingClass.children.contains(jsonJavaClass)).isTrue();
     }
@@ -44,11 +44,11 @@ public class JsonJavaClassTest {
         JsonJavaClass enclosingClass =
                 JsonJavaClass.createEnclosingClassOf(jsonJavaClass, "com.tngtech.archunit.htmlvisualization.testclasses.subpkg");
 
-        assertThat(enclosingClass.fullName).isEqualTo("com.tngtech.archunit.htmlvisualization.testclasses.subpkg.ThirdSubPkgClass");
+        assertThat(enclosingClass.getFullName()).isEqualTo("com.tngtech.archunit.htmlvisualization.testclasses.subpkg.ThirdSubPkgClass");
         assertThat(enclosingClass.name).isEqualTo("ThirdSubPkgClass");
 
         JsonJavaElement secondEnclosingClass = enclosingClass.children.iterator().next();
-        assertThat(secondEnclosingClass.fullName)
+        assertThat(secondEnclosingClass.getFullName())
                 .isEqualTo("com.tngtech.archunit.htmlvisualization.testclasses.subpkg.ThirdSubPkgClass$InnerClass1");
         assertThat(secondEnclosingClass.name).isEqualTo("InnerClass1");
 

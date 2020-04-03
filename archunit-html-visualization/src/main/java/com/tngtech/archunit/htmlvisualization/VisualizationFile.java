@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TNG Technology Consulting GmbH
+ * Copyright 2014-2020 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package com.tngtech.archunit.htmlvisualization;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,6 +23,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.util.regex.Matcher;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

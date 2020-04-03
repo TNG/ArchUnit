@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TNG Technology Consulting GmbH
+ * Copyright 2014-2020 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,5 +36,18 @@ abstract class JsonJavaElement extends JsonElement {
     @Override
     Set<? extends JsonElement> getChildren() {
         return children;
+    }
+
+    @Override
+    protected String parseFullName(String fullName) {
+        try {
+            Class<?> type = Class.forName(fullName);
+            if (type.isArray()) {
+                return type.getCanonicalName();
+            }
+        } catch (ClassNotFoundException e) {
+            // just ignore, this is just a temporary hack
+        }
+        return fullName;
     }
 }

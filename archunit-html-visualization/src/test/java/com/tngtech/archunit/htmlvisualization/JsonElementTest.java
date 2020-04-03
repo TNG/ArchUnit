@@ -38,6 +38,6 @@ public class JsonElementTest {
     }
 
     private static boolean hasFullName(Optional<? extends JsonElement> act, String expectedFullName) {
-        return act.isPresent() && act.get().fullName.equals(expectedFullName);
+        return act.isPresent() && act.get().getFullName().equals(expectedFullName);
     }
 }

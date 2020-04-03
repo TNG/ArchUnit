@@ -30,6 +30,7 @@ public class ClassesToVisualizeTest {
     private static final Class<?> SUB_PKG_CLASS_DEPENDENCY = File.class;
     private static final Set<Class<?>> EXTRA_DEPENDENCIES_OF_TEST_CLASSES = ImmutableSet.of(
             Object.class, String.class, SUB_PKG_CLASS_DEPENDENCY, TestDependencyClass.class,
+            TestDependencyClassWithInnerClass.class,
             TestDependencyClassWithInnerClass.TestDependencyInnerClass.class);
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TNG Technology Consulting GmbH
+ * Copyright 2014-2020 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ class JsonJavaClass extends JsonJavaElement {
         String innerClassPath = innerClass.getPath();
         int beginIndex = existingPath.length();
         if (innerClassPath.indexOf(JsonJavaPackage.PACKAGE_SEPARATOR, beginIndex + 1) != -1) {
-            throw new RuntimeException("the package of a class was not added to the package-structure ---" + innerClass.fullName);
+            throw new RuntimeException("the package of a class was not added to the package-structure ---" + innerClass.getFullName());
         }
         int endIndex = innerClassPath.indexOf(CLASS_SEPARATOR, beginIndex + 1);
         if (endIndex == -1) {

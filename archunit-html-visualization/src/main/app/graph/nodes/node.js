@@ -658,7 +658,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       } else {
         throw new Error('the node must be one the predecessor in the current node of one of the end nodes of the dependency');
       }
-    };
+    }
 
     _getDependentNodesOfNodeFrom(dependenciesWithinParent) {
       const dependenciesFromNode = dependenciesWithinParent.filter(d => d.siblingContainingOrigin === this);
@@ -672,7 +672,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       dependenciesFromNode.forEach(d => nodesWithDependencies.get(d.siblingContainingTarget).push(d));
       dependenciesToNode.forEach(d => nodesWithDependencies.get(d.siblingContainingOrigin).push(d));
       return nodesWithDependencies;
-    };
+    }
 
     _hide() {
       this._view.hide();

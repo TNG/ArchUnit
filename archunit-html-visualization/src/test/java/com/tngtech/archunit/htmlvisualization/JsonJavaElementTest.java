@@ -45,7 +45,7 @@ public class JsonJavaElementTest {
         jsonElement.insert(isolatedInnerJsonJavaClass);
 
         JsonElement generatedJsonElement = jsonElement.getChildren().iterator().next();
-        assertThat(generatedJsonElement.fullName)
+        assertThat(generatedJsonElement.getFullName())
                 .isEqualTo("com.tngtech.archunit.htmlvisualization.testclasses.subpkg.ThirdSubPkgClass$InnerClass1");
         assertThat(generatedJsonElement.name).isEqualTo("InnerClass1");
         assertThat(generatedJsonElement.getChildren().contains(isolatedInnerJsonJavaClass)).isTrue();

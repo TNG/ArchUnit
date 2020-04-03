@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 TNG Technology Consulting GmbH
+ * Copyright 2014-2020 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
  */
 package com.tngtech.archunit.htmlvisualization;
 
-import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.lang.EvaluationResult;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
+
+import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.lang.EvaluationResult;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

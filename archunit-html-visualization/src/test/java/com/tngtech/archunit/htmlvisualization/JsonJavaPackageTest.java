@@ -101,7 +101,7 @@ public class JsonJavaPackageTest {
         javaPackage.insert(jsonSomeClass);
 
         assertThat(javaPackage.getChild("com")).contains(javaPackage);
-        assertThat(javaPackage.getChild(aPackage).get().fullName).isEqualTo(aPackage);
+        assertThat(javaPackage.getChild(aPackage).get().getFullName()).isEqualTo(aPackage);
         assertThat(javaPackage.getChild(someClass.getName())).contains(jsonSomeClass);
 
         assertThat(javaPackage.getChild("com.tngtech.pkg.NotExisting")).isAbsent();

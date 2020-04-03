@@ -44,22 +44,21 @@
     }
   },
   "devDependencies": {
-    "chai": "^4.2.0",
+    "chai": "4.2.0",
     "css-loader": "3.2.0",
     "eslint": "6.3.0",
-    "eslint-plugin-html": "^6.0.0",
-    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-html": "6.0.0",
+    "eslint-plugin-promise": "4.2.1",
     "mocha": "6.2.0",
     "nodemon": "1.19.2",
     "polymer-bundler": "4.0.10",
     "union-value": "2.0.1",
-    "style-loader": "^0.23.1",
-    "web-webpack-plugin": "4.6.7",
+    "style-loader": "0.23.1",
     "webpack": "4.42.1",
     "webpack-cli": "3.3.11"
   },
   "dependencies": {
-    "@webcomponents/webcomponentsjs": "2.2.10",
-    "d3": "5.11.0"
+    "@webcomponents/webcomponentsjs": "2.4.3",
+    "d3": "5.15.1"
   }
 }
