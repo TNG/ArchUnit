@@ -14,7 +14,7 @@ describe('Leaves', () => {
     const nodeListenerMock = createListenerMock('onFoldFinished', 'onFold');
     root.addListener(nodeListenerMock.listener);
 
-    await RootUi.of(root).nodeByFullName('my.company.SomeClass').clickAndAwait();
+    await RootUi.of(root).getNodeWithFullName('my.company.SomeClass').clickAndAwait();
     nodeListenerMock.test.that.listenerFunction('onFoldFinished').was.not.called();
     nodeListenerMock.test.that.listenerFunction('onFold').was.not.called();
   });
@@ -24,7 +24,7 @@ describe('Leaves', () => {
     const nodeListenerMock = createListenerMock('onLayoutChanged');
     root.addListener(nodeListenerMock.listener);
 
-    await RootUi.of(root).nodeByFullName('my.company.SomeClass').clickAndAwait();
+    await RootUi.of(root).getNodeWithFullName('my.company.SomeClass').clickAndAwait();
     nodeListenerMock.test.that.listenerFunction('onLayoutChanged').was.not.called();
   });
 
@@ -33,7 +33,7 @@ describe('Leaves', () => {
       it('returns false after clicking on a leaf', async () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
 
-        await RootUi.of(root).nodeByFullName('my.company.SomeClass').clickAndAwait();
+        await RootUi.of(root).getNodeWithFullName('my.company.SomeClass').clickAndAwait();
         expect(root.getByName('my.company.SomeClass').isFolded()).to.be.false;
       });
     });
@@ -42,7 +42,7 @@ describe('Leaves', () => {
       it('returns true after clicking on a leaf', async () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
 
-        await RootUi.of(root).nodeByFullName('my.company.SomeClass').clickAndAwait();
+        await RootUi.of(root).getNodeWithFullName('my.company.SomeClass').clickAndAwait();
         expect(root.getByName('my.company.SomeClass').isCurrentlyLeaf()).to.be.true;
       });
     });
@@ -76,10 +76,10 @@ describe('Inner nodes', () => {
 
     const rootUi = RootUi.of(root);
 
-    await rootUi.nodeByFullName('my.company.SomeClass').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company.SomeClass').clickAndAwait();
     rootUi.expectToHaveLeafFullNames('my.company.SomeClass');
 
-    await rootUi.nodeByFullName('my.company').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company').clickAndAwait();
     rootUi.expectToHaveLeafFullNames('my.company');
   });
 
@@ -88,13 +88,13 @@ describe('Inner nodes', () => {
 
     const rootUi = RootUi.of(root);
 
-    await rootUi.nodeByFullName('my.company.SomeClass').clickAndAwait();
-    await rootUi.nodeByFullName('my.company').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company.SomeClass').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company').clickAndAwait();
 
-    await rootUi.nodeByFullName('my.company').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company').clickAndAwait();
     rootUi.expectToHaveLeafFullNames('my.company.SomeClass');
 
-    await rootUi.nodeByFullName('my.company.SomeClass').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company.SomeClass').clickAndAwait();
     rootUi.expectToHaveLeafFullNames('my.company.SomeClass$SomeInnerClass');
   });
 
@@ -105,12 +105,12 @@ describe('Inner nodes', () => {
 
     const rootUi = RootUi.of(root);
 
-    await rootUi.nodeByFullName('my.company').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company').clickAndAwait();
     nodeListenerMock.test.that.listenerFunction('onFoldFinished').was.called.once();
     nodeListenerMock.test.that.listenerFunction('onFold').was.not.called();
 
     nodeListenerMock.reset();
-    await rootUi.nodeByFullName('my.company').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company').clickAndAwait();
     nodeListenerMock.test.that.listenerFunction('onFoldFinished').was.called.once();
     nodeListenerMock.test.that.listenerFunction('onFold').was.not.called();
   });
@@ -122,11 +122,11 @@ describe('Inner nodes', () => {
 
     const rootUi = RootUi.of(root);
 
-    await rootUi.nodeByFullName('my.company').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company').clickAndAwait();
     nodeListenerMock.test.that.listenerFunction('onLayoutChanged').was.called.once();
 
     nodeListenerMock.reset();
-    await rootUi.nodeByFullName('my.company').clickAndAwait();
+    await rootUi.getNodeWithFullName('my.company').clickAndAwait();
     nodeListenerMock.test.that.listenerFunction('onLayoutChanged').was.called.once();
   });
 
@@ -136,11 +136,11 @@ describe('Inner nodes', () => {
 
     const rootUi = RootUi.of(root);
 
-    await rootUi.nodeByFullName('my.company.first').clickAndAwait();
-    rootUi.checkWholeLayout();
+    await rootUi.getNodeWithFullName('my.company.first').clickAndAwait();
+    rootUi.expectLayoutInvariantsToBeSatisfied();
 
-    await rootUi.nodeByFullName('my.company.first').clickAndAwait();
-    rootUi.checkWholeLayout();
+    await rootUi.getNodeWithFullName('my.company.first').clickAndAwait();
+    rootUi.expectLayoutInvariantsToBeSatisfied();
   });
 
   describe("public methods", () => {
@@ -150,10 +150,10 @@ describe('Inner nodes', () => {
 
         const rootUi = RootUi.of(root);
 
-        await rootUi.nodeByFullName('my.company').clickAndAwait();
+        await rootUi.getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').isFolded()).to.be.true;
 
-        await rootUi.nodeByFullName('my.company').clickAndAwait();
+        await rootUi.getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').isFolded()).to.be.false;
       });
 
@@ -162,7 +162,7 @@ describe('Inner nodes', () => {
 
         const rootUi = RootUi.of(root);
 
-        await rootUi.nodeByFullName('my.company').clickAndAwait();
+        await rootUi.getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').isFolded()).to.be.true;
 
         root.getByName('my.company').unfold();
@@ -176,17 +176,17 @@ describe('Inner nodes', () => {
 
         const rootUi = RootUi.of(root);
 
-        await rootUi.nodeByFullName('my.company').clickAndAwait();
+        await rootUi.getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').isCurrentlyLeaf()).to.be.true;
 
-        await rootUi.nodeByFullName('my.company').clickAndAwait();
+        await rootUi.getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').isCurrentlyLeaf()).to.be.false;
       });
 
       it('returns false after unfolding a node via #unfold()', async () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
 
-        await RootUi.of(root).nodeByFullName('my.company').clickAndAwait();
+        await RootUi.of(root).getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').isCurrentlyLeaf()).to.be.true;
 
         root.getByName('my.company').unfold();
@@ -218,7 +218,7 @@ describe('Inner nodes', () => {
 
         const rootUi = RootUi.of(root);
 
-        await rootUi.nodeByFullName('my.company').clickAndAwait();
+        await rootUi.getNodeWithFullName('my.company').clickAndAwait();
 
         root.getByName('my.company').unfold();
         root.relayoutCompletely();
@@ -230,7 +230,7 @@ describe('Inner nodes', () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
         const nodeListenerMock = createListenerMock('onFoldFinished', 'onFold', 'onLayoutChanged');
         root.addListener(nodeListenerMock.listener);
-        await RootUi.of(root).nodeByFullName('my.company').clickAndAwait();
+        await RootUi.of(root).getNodeWithFullName('my.company').clickAndAwait();
         nodeListenerMock.reset();
 
         root.getByName('my.company').unfold();
@@ -245,17 +245,17 @@ describe('Inner nodes', () => {
 
         const rootUi = RootUi.of(root);
 
-        await rootUi.nodeByFullName('my.company').clickAndAwait();
+        await rootUi.getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').getCurrentChildren()).to.be.empty;
 
-        await rootUi.nodeByFullName('my.company').clickAndAwait();
+        await rootUi.getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').getCurrentChildren()).to.onlyContainNodes('my.company.SomeClass');
       });
 
       it('returns the children after unfolding a node via #unfold()', async () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
 
-        await RootUi.of(root).nodeByFullName('my.company').clickAndAwait();
+        await RootUi.of(root).getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').getCurrentChildren()).to.be.empty;
 
         root.getByName('my.company').unfold();
@@ -267,7 +267,7 @@ describe('Inner nodes', () => {
       it('returns still all children of a node after folding it', async () => {
         const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass');
 
-        await RootUi.of(root).nodeByFullName('my.company').clickAndAwait();
+        await RootUi.of(root).getNodeWithFullName('my.company').clickAndAwait();
         expect(root.getByName('my.company').getOriginalChildren()).to.onlyContainNodes('my.company.SomeClass');
       });
     });
@@ -282,32 +282,32 @@ describe('Inner nodes', () => {
 
       const rootUi = RootUi.of(root);
 
-      await rootUi.nodeByFullName('my.company.first.FirstClass').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first.FirstClass').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.FirstClass', 'my.company.first.SecondClass', 'my.company.first.ThirdClass',
         'my.company.second.SomeClass', 'my.otherCompany.SomeClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
 
-      await rootUi.nodeByFullName('my.company.first').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first', 'my.company.second.SomeClass', 'my.otherCompany.SomeClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
 
-      await rootUi.nodeByFullName('my.company').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company', 'my.otherCompany.SomeClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
 
-      await rootUi.nodeByFullName('my.company').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first', 'my.company.second.SomeClass', 'my.otherCompany.SomeClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
 
-      await rootUi.nodeByFullName('my.company.first').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.FirstClass', 'my.company.first.SecondClass', 'my.company.first.ThirdClass',
         'my.company.second.SomeClass', 'my.otherCompany.SomeClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
 
-      await rootUi.nodeByFullName('my.company.first.FirstClass').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first.FirstClass').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.FirstClass$SomeInnerClass', 'my.company.first.FirstClass$OtherInnerClass',
         'my.company.first.SecondClass', 'my.company.first.ThirdClass', 'my.company.second.SomeClass', 'my.otherCompany.SomeClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
     });
 
     it('fold nodes with an unfolded non-leaf child-node and unfold them again', async () => {
@@ -316,22 +316,22 @@ describe('Inner nodes', () => {
 
       const rootUi = RootUi.of(root);
 
-      await rootUi.nodeByFullName('my.company.first.somePkg.SomeClass').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first.somePkg.SomeClass').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass', 'my.company.first.otherPkg.OtherClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
 
-      await rootUi.nodeByFullName('my.company.first').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
 
-      await rootUi.nodeByFullName('my.company.first').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass', 'my.company.first.otherPkg.OtherClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
 
-      await rootUi.nodeByFullName('my.company.first.somePkg.SomeClass').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first.somePkg.SomeClass').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass$FirstInnerClass$SecondInnerClass',
         'my.company.first.otherPkg.OtherClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
     });
 
     it('fold nodes directly successively, so that the relayout of the folding before is not finished yet', async () => {
@@ -342,13 +342,13 @@ describe('Inner nodes', () => {
 
       const rootUi = RootUi.of(root);
 
-      rootUi.nodeByFullName('my.company.first.somePkg.FirstClass').click();
-      rootUi.nodeByFullName('my.company.first.somePkg').click();
-      rootUi.nodeByFullName('my.company.second').click();
-      rootUi.nodeByFullName('my.company.first').click();
-      await rootUi.nodeByFullName('my.company').clickAndAwait();
+      rootUi.getNodeWithFullName('my.company.first.somePkg.FirstClass').click();
+      rootUi.getNodeWithFullName('my.company.first.somePkg').click();
+      rootUi.getNodeWithFullName('my.company.second').click();
+      rootUi.getNodeWithFullName('my.company.first').click();
+      await rootUi.getNodeWithFullName('my.company').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company', 'my.otherCompany.SomeClass');
-      rootUi.checkWholeLayout();
+      rootUi.expectLayoutInvariantsToBeSatisfied();
     });
   });
 });
@@ -374,36 +374,36 @@ describe('Root', () => {
 
       const rootUi = RootUi.of(root);
 
-      await rootUi.nodeByFullName('my').clickAndAwait();
+      await rootUi.getNodeWithFullName('my').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company', 'my.otherCompany', 'your.company');
 
-      await rootUi.nodeByFullName('my.company').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first', 'my.company.second', 'my.otherCompany', 'your.company');
 
-      await rootUi.nodeByFullName('my.otherCompany').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.otherCompany').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first', 'my.company.second', 'my.otherCompany.SomeClass', 'your.company');
 
-      await rootUi.nodeByFullName('your.company').clickAndAwait();
+      await rootUi.getNodeWithFullName('your.company').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first', 'my.company.second', 'my.otherCompany.SomeClass',
         'your.company.SomeClass');
 
-      await rootUi.nodeByFullName('my.company.first').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.somePkg', 'my.company.first.otherPkg',
         'my.company.second', 'my.otherCompany.SomeClass', 'your.company.SomeClass');
 
-      await rootUi.nodeByFullName('my.company.first.somePkg').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first.somePkg').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass', 'my.company.first.somePkg.OtherClass',
         'my.company.first.otherPkg', 'my.company.second', 'my.otherCompany.SomeClass', 'your.company.SomeClass');
 
-      await rootUi.nodeByFullName('my.company.first.somePkg.SomeClass').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first.somePkg.SomeClass').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass$SomeInnerClass', 'my.company.first.somePkg.OtherClass',
         'my.company.first.otherPkg', 'my.company.second', 'my.otherCompany.SomeClass', 'your.company.SomeClass');
 
-      await rootUi.nodeByFullName('my.company.first.otherPkg').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.first.otherPkg').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass$SomeInnerClass', 'my.company.first.somePkg.OtherClass',
         'my.company.first.otherPkg.SomeClass', 'my.company.second', 'my.otherCompany.SomeClass', 'your.company.SomeClass');
 
-      await rootUi.nodeByFullName('my.company.second').clickAndAwait();
+      await rootUi.getNodeWithFullName('my.company.second').clickAndAwait();
       rootUi.expectToHaveLeafFullNames('my.company.first.somePkg.SomeClass$SomeInnerClass', 'my.company.first.somePkg.OtherClass',
         'my.company.first.otherPkg.SomeClass', 'my.company.second.SomeClass', 'my.otherCompany.SomeClass', 'your.company.SomeClass');
     });
@@ -416,7 +416,7 @@ describe('Root', () => {
       root.relayoutCompletely();
       await root._updatePromise;
 
-      RootUi.of(root).checkWholeLayout();
+      RootUi.of(root).expectLayoutInvariantsToBeSatisfied();
     });
 
     it('notifies only the fold-listener for every folded node', () => {
@@ -511,7 +511,7 @@ describe('Root', () => {
 
           const rootUi = RootUi.of(root);
 
-          await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+          await rootUi.getNodeWithFullName('my.company.somePkg').clickAndAwait();
 
           foldNodesWithMinimumDepthThatHaveNotDescendantFullNames(root, ['my.company.otherPkg.SomeClass']);
           rootUi.expectToHaveLeafFullNames('my.company.somePkg', 'my.company.otherPkg.SomeClass',
@@ -524,10 +524,10 @@ describe('Root', () => {
 
           const rootUi = RootUi.of(root);
 
-          await rootUi.nodeByFullName('my.company.somePkg.otherPkg').clickAndAwait();
+          await rootUi.getNodeWithFullName('my.company.somePkg.otherPkg').clickAndAwait();
 
           foldNodesWithMinimumDepthThatHaveNotDescendantFullNames(root, ['my.company.otherPkg.OtherClass']);
-          await rootUi.nodeByFullName('my.company.somePkg').clickAndAwait();
+          await rootUi.getNodeWithFullName('my.company.somePkg').clickAndAwait();
           rootUi.expectToHaveLeafFullNames('my.company.somePkg.SomeClass', 'my.company.somePkg.otherPkg',
             'my.company.otherPkg.OtherClass');
         });
@@ -553,11 +553,11 @@ describe('Root', () => {
 
           const rootUi = RootUi.of(root);
 
-          await rootUi.nodeByFullName('first.company').clickAndAwait();
+          await rootUi.getNodeWithFullName('first.company').clickAndAwait();
           rootUi.expectToHaveLeafFullNames('first.company.first.SomeClass', 'first.company.second.SomeClass', 'second.company',
             'third.company.first.SomeClass', 'third.company.second.OtherClass');
 
-          await rootUi.nodeByFullName('second.company').clickAndAwait();
+          await rootUi.getNodeWithFullName('second.company').clickAndAwait();
           rootUi.expectToHaveLeafFullNames('first.company.first.SomeClass', 'first.company.second.SomeClass',
             'second.company.SomeClass', 'third.company.first.SomeClass', 'third.company.second.OtherClass');
         });
@@ -589,13 +589,13 @@ describe('Root', () => {
 
           const rootUi = RootUi.of(root);
 
-          await rootUi.nodeByFullName('your.company.first.somePkg.OtherClass').clickAndAwait();
+          await rootUi.getNodeWithFullName('your.company.first.somePkg.OtherClass').clickAndAwait();
           rootUi.expectToHaveLeafFullNames('your.company.first.somePkg.SomeClass', 'your.company.first.otherPkg.SomeClass',
             'your.company.first.otherPkg.OtherClass',
             'your.company.first.somePkg.OtherClass$SomeInnerClass$SomeMoreInnerClass', 'your.company.first.thirdPkg',
             'your.company.second', 'your.otherCompany');
 
-          await rootUi.nodeByFullName('your.company.first.thirdPkg').clickAndAwait();
+          await rootUi.getNodeWithFullName('your.company.first.thirdPkg').clickAndAwait();
           rootUi.expectToHaveLeafFullNames('your.company.first.somePkg.SomeClass', 'your.company.first.otherPkg.SomeClass',
             'your.company.first.otherPkg.OtherClass',
             'your.company.first.somePkg.OtherClass$SomeInnerClass$SomeMoreInnerClass', 'your.company.first.thirdPkg.somePkg.SomeClass',
@@ -622,7 +622,7 @@ describe('Root', () => {
 
           const rootUi = RootUi.of(root);
 
-          await rootUi.nodeByFullName('first.company.SomeClass').clickAndAwait();
+          await rootUi.getNodeWithFullName('first.company.SomeClass').clickAndAwait();
           rootUi.expectToHaveLeafFullNames('first.company.SomeClass$SomeInnerClass$AnotherInnerClass',
             'first.company.OtherClass$SomeInnerClass');
         });

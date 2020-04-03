@@ -29,23 +29,27 @@ class RootUi {
     this._childUis = root.getOriginalChildren().map(child => createNodeUi(child, this, this));
   }
 
-  allNodes() {
+  get childUis() {
+    return this._childUis.filter(nodeUi => nodeUi._svg.isVisible);
+  }
+
+  get allNodes() {
     return [...this._nodeUIs.values()].filter(nodeUi => nodeUi._svg.isVisible);
   }
 
-  nodesWithSingleChild() {
-    return this.allNodes().filter(nodeUi => nodeUi.childUis.length === 1);
+  get nodesWithSingleChild() {
+    return this.allNodes.filter(nodeUi => nodeUi.childUis.length === 1);
   }
 
-  leafNodes() {
-    return this.allNodes().filter(nodeUi => nodeUi.childUis.length === 0);
+  get leafNodes() {
+    return this.allNodes.filter(nodeUi => nodeUi.childUis.length === 0);
   }
 
-  nonLeafNodes() {
-    return this.allNodes().filter(nodeUi => nodeUi.childUis.length > 0);
+  get nonLeafNodes() {
+    return this.allNodes.filter(nodeUi => nodeUi.childUis.length > 0);
   }
 
-  nodeByFullName(nodeFullName) {
+  getNodeWithFullName(nodeFullName) {
     const result = this._nodeUIs.get(nodeFullName);
     if (!result._svg.isVisible) {
       throw new Error('the required node exists but is not visible');
@@ -61,30 +65,26 @@ class RootUi {
     return true;
   }
 
-  get childUis() {
-    return this._childUis.filter(nodeUi => nodeUi._svg.isVisible);
-  }
-
   isInForeground() {
     return true;
   }
 
   expectToHaveLeafFullNames(...leafFullNames) {
-    expect(this.leafNodes().map(nodeUi => nodeUi._node.getFullName())).to.have.members(leafFullNames);
+    expect(this.leafNodes.map(nodeUi => nodeUi._node.getFullName())).to.have.members(leafFullNames);
   }
 
-  checkWholeLayout() {
-    this.allNodes().forEach(nodeUi => {
+  expectLayoutInvariantsToBeSatisfied() {
+    this.allNodes.forEach(nodeUi => {
       nodeUi.expectToBeWithin(nodeUi.parent);
       nodeUi.expectNotToOverlapWith(nodeUi.siblings);
       nodeUi.expectToHaveLabelWithinCircle();
     });
 
-    this.nonLeafNodes().forEach(nodeUi => nodeUi.expectToHaveLabelAtTheTop());
+    this.nonLeafNodes.forEach(nodeUi => nodeUi.expectToHaveLabelAtTheTop());
 
-    this.leafNodes().forEach(nodeUi => nodeUi.expectToHaveLabelInTheMiddleOfCircle());
+    this.leafNodes.forEach(nodeUi => nodeUi.expectToHaveLabelInTheMiddleOfCircle());
 
-    this.nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childUis[0]));
+    this.nodesWithSingleChild.forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childUis[0]));
   }
 }
 
@@ -98,12 +98,20 @@ class NodeUi {
     this._labelSvg = this._svg.getVisibleSubElementOfType('text');
   }
 
-  get absolutePosition() {
-    return Vector.from(this._circleSvg.absolutePosition);
-  }
-
   get parent() {
     return this._parentUi;
+  }
+
+  get childUis() {
+    return this._childUis.filter(nodeUi => nodeUi._svg.isVisible);
+  }
+
+  get siblings() {
+    return this._parentUi.childUis.filter(nodeUi => nodeUi !== this);
+  }
+
+  get absolutePosition() {
+    return Vector.from(this._circleSvg.absolutePosition);
   }
 
   get radius() {
@@ -126,18 +134,6 @@ class NodeUi {
     const centerDistance = Vector.between(this.absolutePosition, otherNodeUi.absolutePosition).length();
     const maxDistance = centerDistance + otherNodeUi.radius;
     return maxDistance <= this.radius;
-  }
-
-  expectToBeWithin(otherNodeUi) {
-    expect(otherNodeUi.contains(this)).to.be.true;
-  }
-
-  get childUis() {
-    return this._childUis.filter(nodeUi => nodeUi._svg.isVisible);
-  }
-
-  get siblings() {
-    return this._parentUi.childUis.filter(nodeUi => nodeUi !== this);
   }
 
   overlapsWith(otherNodeUi) {
@@ -171,7 +167,14 @@ class NodeUi {
     const position = this.absolutePosition;
     const padding = visualizationStyles.getCirclePadding();
     return position.x + this.radius + padding <= width && position.y + this.radius + padding <= height;
+  }
 
+  isInForeground() {
+    return this._svg.isInForegroundWithinParent() && this._parentUi.isInForeground();
+  }
+
+  liesInFrontOf(otherNodeFullName) {
+    return this._svg.isInFrontOf(this._rootUi._nodeUIs.get(otherNodeFullName)._svg);
   }
 
   async drag({dx, dy}) {
@@ -186,15 +189,6 @@ class NodeUi {
     await this.drag({dx: dragVector.x, dy: dragVector.y});
   }
 
-  ctrlClick() {
-    this._circleSvg.click({ctrlKey: true});
-  }
-
-  async ctrlClickAndAwait() {
-    this.ctrlClick();
-    await this._rootUi._root._updatePromise;
-  }
-
   click() {
     this._circleSvg.click({ctrlKey: false});
   }
@@ -204,8 +198,17 @@ class NodeUi {
     await this._rootUi._root._updatePromise;
   }
 
-  isInForeground() {
-    return this._svg.isInForegroundWithinParent() && this._parentUi.isInForeground();
+  ctrlClick() {
+    this._circleSvg.click({ctrlKey: true});
+  }
+
+  async ctrlClickAndAwait() {
+    this.ctrlClick();
+    await this._rootUi._root._updatePromise;
+  }
+
+  expectToBeWithin(otherNodeUi) {
+    expect(otherNodeUi.contains(this)).to.be.true;
   }
 
   expectToHaveLabelAbove(otherNodeUi) {
@@ -248,10 +251,6 @@ class NodeUi {
   expectToBeUnfoldable() {
     expect([...this._svg.cssClasses]).to.include('unfoldable');
     expect([...this._svg.cssClasses]).not.to.include('foldable');
-  }
-
-  liesInFrontOf(otherNodeFullName) {
-    return this._svg.isInFrontOf(this._rootUi._nodeUIs.get(otherNodeFullName)._svg);
   }
 }
 
