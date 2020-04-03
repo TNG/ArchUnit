@@ -163,7 +163,7 @@ describe('Dragging a node', () => {
       nodeUi.expectToHaveLabelWithinCircle();
     });
     rootUi.nonLeafNodes().forEach(nodeUi => nodeUi.expectToHaveLabelAtTheTop());
-    rootUi.nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis[0]));
+    rootUi.nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childUis[0]));
     rootUi.leafNodes().forEach(nodeUi => nodeUi.expectToHaveLabelInTheMiddleOfCircle());
   });
 

@@ -22,11 +22,11 @@ class RootUi {
     this._nodeUIs = new Map();
     const createNodeUi = (node, parentUi, rootUi) => {
       const nodeUi = new NodeUi(node, parentUi, rootUi);
-      nodeUi._childrenUis = node.getOriginalChildren().map(child => createNodeUi(child, nodeUi, rootUi));
+      nodeUi._childUis = node.getOriginalChildren().map(child => createNodeUi(child, nodeUi, rootUi));
       this._nodeUIs.set(nodeUi._node.getFullName(), nodeUi);
       return nodeUi;
     };
-    this._childrenUis = root.getOriginalChildren().map(child => createNodeUi(child, this, this));
+    this._childUis = root.getOriginalChildren().map(child => createNodeUi(child, this, this));
   }
 
   allNodes() {
@@ -34,15 +34,15 @@ class RootUi {
   }
 
   nodesWithSingleChild() {
-    return this.allNodes().filter(nodeUi => nodeUi.childrenUis.length === 1);
+    return this.allNodes().filter(nodeUi => nodeUi.childUis.length === 1);
   }
 
   leafNodes() {
-    return this.allNodes().filter(nodeUi => nodeUi.childrenUis.length === 0);
+    return this.allNodes().filter(nodeUi => nodeUi.childUis.length === 0);
   }
 
   nonLeafNodes() {
-    return this.allNodes().filter(nodeUi => nodeUi.childrenUis.length > 0);
+    return this.allNodes().filter(nodeUi => nodeUi.childUis.length > 0);
   }
 
   nodeByFullName(nodeFullName) {
@@ -61,8 +61,8 @@ class RootUi {
     return true;
   }
 
-  get childrenUis() {
-    return this._childrenUis.filter(nodeUi => nodeUi._svg.isVisible);
+  get childUis() {
+    return this._childUis.filter(nodeUi => nodeUi._svg.isVisible);
   }
 
   isInForeground() {
@@ -84,7 +84,7 @@ class RootUi {
 
     this.leafNodes().forEach(nodeUi => nodeUi.expectToHaveLabelInTheMiddleOfCircle());
 
-    this.nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis[0]));
+    this.nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childUis[0]));
   }
 }
 
@@ -132,12 +132,12 @@ class NodeUi {
     expect(otherNodeUi.contains(this)).to.be.true;
   }
 
-  get childrenUis() {
-    return this._childrenUis.filter(nodeUi => nodeUi._svg.isVisible);
+  get childUis() {
+    return this._childUis.filter(nodeUi => nodeUi._svg.isVisible);
   }
 
   get siblings() {
-    return this._parentUi.childrenUis.filter(nodeUi => nodeUi !== this);
+    return this._parentUi.childUis.filter(nodeUi => nodeUi !== this);
   }
 
   overlapsWith(otherNodeUi) {

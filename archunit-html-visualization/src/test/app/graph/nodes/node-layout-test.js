@@ -60,7 +60,7 @@ describe('Node layout', () => {
       root.relayoutCompletely();
       await root._updatePromise;
 
-      RootUi.of(root).nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis[0]));
+      RootUi.of(root).nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childUis[0]));
     });
 
     it('considers a new circle padding, if it is changed during a relayout', async () => {
@@ -91,7 +91,7 @@ describe('Node layout', () => {
       root.relayoutCompletely();
       await root._updatePromise;
 
-      RootUi.of(root).nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis[0]));
+      RootUi.of(root).nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childUis[0]));
     });
   });
 
@@ -114,7 +114,7 @@ describe('Node layout', () => {
 
     it('the labels of the inner nodes with only one child are above the child circle', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('somePkgWithVeryLongName.Class');
-      RootUi.of(root).nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childrenUis[0]));
+      RootUi.of(root).nodesWithSingleChild().forEach(nodeUi => nodeUi.expectToHaveLabelAbove(nodeUi.childUis[0]));
     });
   });
 
