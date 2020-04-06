@@ -117,6 +117,16 @@ def addMavenTest = { config ->
                                         .replace('#{javaVersion}', "${config.javaVersion}")
                                         .replace('#{additionalDependencies}', config.additionalDependencies ?: '')
                                         .replace('#{surefireExampleConfiguration}', config.surefireExampleConfiguration)
+                                        .replaceAll(/#\{dependency.([^}:]+):?([^}]*)}/) { all, dependencyReference, scope ->
+                                                def targetDependency = dependency[dependencyReference]
+                                                def scopePart = scope ? "\n            <scope>${scope}</scope>" : ''
+                                                """
+                                                |        <dependency>
+                                                |            <groupId>${targetDependency.group}</groupId>
+                                                |            <artifactId>${targetDependency.name}</artifactId>
+                                                |            <version>${targetDependency.version}</version>${scopePart}
+                                                |        </dependency>""".stripMargin().trim()
+                                        }
 
                 copy {
                     from new File(new File(project(':archunit-example:example-plain').projectDir, 'src'), 'main')
