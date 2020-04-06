@@ -18,9 +18,6 @@ dependencies {
         exclude module: 'assertj-core'
         exclude module: 'guava'
     }
-    testCompile dependency.springBeans
-    testCompile dependency.jakartaInject
-    testCompile dependency.jakartaAnnotations
 }
 
 shadowJar {

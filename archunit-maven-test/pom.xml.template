@@ -53,6 +53,10 @@
         #{dependency.geronimoEjb}
         #{dependency.geronimoJpa}
         #{dependency.jodaTime}
+        #{dependency.springBeans}
+        #{dependency.jakartaInject}
+        #{dependency.jakartaAnnotations}
+        #{dependency.guice}
         #{dependency.junit4:test}
         #{dependency.junit_dataprovider:test}
         #{dependency.assertj:test}

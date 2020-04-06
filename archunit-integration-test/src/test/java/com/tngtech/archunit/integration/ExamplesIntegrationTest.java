@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 
 import com.google.common.base.Joiner;
@@ -55,6 +56,7 @@ import com.tngtech.archunit.example.cycles.simplescenario.report.Report;
 import com.tngtech.archunit.example.cycles.simplescenario.report.ReportService;
 import com.tngtech.archunit.example.layers.AbstractController;
 import com.tngtech.archunit.example.layers.ClassViolatingCodingRules;
+import com.tngtech.archunit.example.layers.ClassViolatingInjectionRules;
 import com.tngtech.archunit.example.layers.ClassViolatingSessionBeanRules;
 import com.tngtech.archunit.example.layers.ClassViolatingThirdPartyRules;
 import com.tngtech.archunit.example.layers.EvilCoreAccessor;
@@ -136,6 +138,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.collect.Collections2.filter;
@@ -211,6 +215,14 @@ class ExamplesIntegrationTest {
                         .asDependency())
                 .by(method(ClassViolatingCodingRules.class, "jodaTimeIsBad")
                         .withReturnType(org.joda.time.DateTime.class));
+
+        expectFailures.ofRule("no classes should use field injection, because field injection is considered harmful; "
+                + "use constructor injection or setter injection instead; see https://stackoverflow.com/q/39890849 for detailed explanations")
+                .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseAutowiredField").beingAnnotatedWith(Autowired.class))
+                .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseValueField").beingAnnotatedWith(Value.class))
+                .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseJavaxInjectField").beingAnnotatedWith(javax.inject.Inject.class))
+                .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseComGoogleInjectField").beingAnnotatedWith(com.google.inject.Inject.class))
+                .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseResourceField").beingAnnotatedWith(Resource.class));
 
         expectFailures.ofRule("no classes should access standard streams and no classes should throw generic exceptions");
         expectAccessToStandardStreams(expectFailures);
