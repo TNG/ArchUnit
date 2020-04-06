@@ -29,7 +29,7 @@ ext {
 
     thirdPartyRelocationPackage = 'com.tngtech.archunit.thirdparty'
     asmRelocationPackage = "${thirdPartyRelocationPackage}.org.objectweb.asm"
-    guavaRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
+    googleRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
 
     dependency = [
             asm                 : [group: 'org.ow2.asm', name: 'asm', version: '7.2'],

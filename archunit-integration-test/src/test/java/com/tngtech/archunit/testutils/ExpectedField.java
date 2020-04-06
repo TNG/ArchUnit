@@ -1,5 +1,7 @@
 package com.tngtech.archunit.testutils;
 
+import java.lang.annotation.Annotation;
+
 import com.tngtech.archunit.core.domain.JavaModifier;
 
 import static java.lang.String.format;
@@ -21,6 +23,10 @@ public class ExpectedField {
 
         public ExpectedMessage doesNotHaveModifier(JavaModifier modifier) {
             return field("does not have modifier " + modifier);
+        }
+
+        public ExpectedMessage beingAnnotatedWith(Class<? extends Annotation> annotationType) {
+            return field("is annotated with @" + annotationType.getSimpleName());
         }
 
         private ExpectedMessage field(String message) {

@@ -12,10 +12,12 @@ ext.moduleName = 'com.tngtech.archunit.example'
 
         proj.with {
             dependencies {
+                compile dependency.jodaTime
                 compile dependency.javaxAnnotationApi
+                compile dependency.springBeans
+                compile dependency.guice
                 compile dependency.geronimoEjb
                 compile dependency.geronimoJpa
-                compile dependency.jodaTime
 
                 testCompile project(path: ':archunit')
             }
