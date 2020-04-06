@@ -39,7 +39,8 @@ productionProjects*.with {
         exclude 'module-info.class'
 
         relocate 'org.objectweb.asm', asmRelocationPackage
-        relocate 'com.google', guavaRelocationPackage
+        relocate 'com.google.common', "${googleRelocationPackage}.common"
+        relocate 'com.google.thirdparty', "${googleRelocationPackage}.thirdparty"
     }
     jar.enabled = false
 
