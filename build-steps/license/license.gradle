@@ -8,12 +8,12 @@ def fillTemplateFile = {
             replace('${owner}', "${company.name}")
 }
 
-def pomOf = { String dep ->
-    "${dep}@pom"
+def pomOf = { Map<String, String> dep ->
+    "${dep.group}:${dep.name}:${dep.version}@pom"
 }
 
-def parentPomOf = { String dep ->
-    pomOf(dep.replaceAll(/(.*:)(.*)(:.*)/, /$1$2-parent$3/))
+def parentPomOf = { Map<String, String> dep ->
+    pomOf(dep + [name: "${dep.name}-parent"])
 }
 
 configurations {

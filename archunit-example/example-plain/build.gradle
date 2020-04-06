@@ -1,7 +1,6 @@
 ext.moduleName = 'com.tngtech.archunit.example.plain'
 
 dependencies {
-    compile 'javax.annotation:javax.annotation-api:1.3.2'
     testCompile project(path: ':archunit')
 
     // we still use JUnit 4 as the test runner, but we don't use JUnit 4 support within this project
