@@ -20,6 +20,7 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.core.domain.properties.HasUpperBounds;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeVariableBuilder;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -40,15 +41,15 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
  * {@code SomeInterfaceOne} and {@code SomeInterfaceTwo}.
  */
 @PublicAPI(usage = ACCESS)
-public final class JavaTypeVariable implements JavaType {
+public final class JavaTypeVariable implements JavaType, HasUpperBounds {
     private final String name;
-    private final List<JavaType> bounds;
+    private final List<JavaType> upperBounds;
     private final JavaClass erasure;
 
     JavaTypeVariable(JavaTypeVariableBuilder builder) {
         name = builder.getName();
-        bounds = builder.getBounds();
-        erasure = bounds.size() > 0 ? bounds.get(0).toErasure() : builder.getUnboundErasureType();
+        upperBounds = builder.getUpperBounds();
+        erasure = builder.getUnboundErasureType(upperBounds);
     }
 
     /**
@@ -62,14 +63,23 @@ public final class JavaTypeVariable implements JavaType {
     }
 
     /**
-     * @return All bounds of this {@link JavaTypeVariable}, i.e. super types any substitution
-     *         of this variable must extend. E.g. for
-     *         {@code class MyClass<T extends SomeClass & SomeInterface>} the bounds would be
-     *         {@code SomeClass} and {@code SomeInterface}
+     * @see #getUpperBounds()
      */
     @PublicAPI(usage = ACCESS)
     public List<JavaType> getBounds() {
-        return bounds;
+        return getUpperBounds();
+    }
+
+    /**
+     * @return All upper bounds of this {@link JavaTypeVariable}, i.e. super types any substitution
+     *         of this variable must extend. E.g. for
+     *         {@code class MyClass<T extends SomeClass & SomeInterface>} the upper bounds would be
+     *         {@code SomeClass} and {@code SomeInterface}
+     */
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public List<JavaType> getUpperBounds() {
+        return upperBounds;
     }
 
     @Override
@@ -80,18 +90,18 @@ public final class JavaTypeVariable implements JavaType {
 
     @Override
     public String toString() {
-        String bounds = printExtendsClause() ? " extends " + joinTypeNames(this.bounds) : "";
+        String bounds = printExtendsClause() ? " extends " + joinTypeNames(upperBounds) : "";
         return getClass().getSimpleName() + '{' + getName() + bounds + '}';
     }
 
     private boolean printExtendsClause() {
-        if (bounds.isEmpty()) {
+        if (upperBounds.isEmpty()) {
             return false;
         }
-        if (bounds.size() > 1) {
+        if (upperBounds.size() > 1) {
             return true;
         }
-        return !getOnlyElement(bounds).getName().equals(Object.class.getName());
+        return !getOnlyElement(upperBounds).getName().equals(Object.class.getName());
     }
 
     private String joinTypeNames(List<JavaType> types) {

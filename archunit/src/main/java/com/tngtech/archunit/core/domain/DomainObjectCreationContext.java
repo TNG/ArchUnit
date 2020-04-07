@@ -152,6 +152,10 @@ public class DomainObjectCreationContext {
         return new JavaTypeVariable(builder);
     }
 
+    public static JavaWildcardType createWildcardType(DomainBuilders.JavaWildcardTypeBuilder builder) {
+        return new JavaWildcardType(builder);
+    }
+
     static class AccessContext {
         final SetMultimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget = HashMultimap.create();
         final SetMultimap<JavaClass, JavaMethodCall> methodCallsByTarget = HashMultimap.create();
