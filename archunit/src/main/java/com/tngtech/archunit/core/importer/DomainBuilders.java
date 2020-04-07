@@ -57,6 +57,7 @@ import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
@@ -66,6 +67,7 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.creat
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTypeVariable;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createWildcardType;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 @Internal
@@ -508,61 +510,119 @@ public final class DomainBuilders {
         }
     }
 
+    private interface JavaTypeBuilder {
+        JavaType build(ClassesByTypeName classes);
+    }
+
     @Internal
-    public static final class JavaTypeVariableBuilder {
+    public static final class JavaTypeVariableBuilder implements JavaTypeBuilder {
         private final String name;
-        private final List<JavaParameterizedTypeBuilder> bounds = new ArrayList<>();
+        private final List<JavaTypeBuilder> upperBounds = new ArrayList<>();
         private ClassesByTypeName importedClasses;
 
         JavaTypeVariableBuilder(String name) {
             this.name = checkNotNull(name);
         }
 
-        public String getName() {
-            return name;
-        }
-
         void addBound(JavaParameterizedTypeBuilder builder) {
-            bounds.add(builder);
+            upperBounds.add(builder);
         }
 
-        public List<JavaType> getBounds() {
-            ImmutableList.Builder<JavaType> result = ImmutableList.builder();
-            for (JavaParameterizedTypeBuilder bound : bounds) {
-                result.add(bound.build(importedClasses));
-            }
-            return result.build();
-        }
-
-        public JavaClass getUnboundErasureType() {
-            return importedClasses.get(Object.class.getName());
-        }
-
+        @Override
         public JavaTypeVariable build(ClassesByTypeName importedClasses) {
             this.importedClasses = importedClasses;
             return createTypeVariable(this);
         }
 
-        static class JavaParameterizedTypeBuilder {
-            private final JavaClassDescriptor type;
-            private final List<JavaParameterizedTypeBuilder> typeArgumentBuilders = new ArrayList<>();
-
-            JavaParameterizedTypeBuilder(JavaClassDescriptor type) {
-                this.type = type;
-            }
-
-            void addTypeArgument(JavaClassDescriptor type) {
-                typeArgumentBuilders.add(new JavaParameterizedTypeBuilder(type));
-            }
-
-            public JavaParameterizedType build(ClassesByTypeName classes) {
-                ImmutableList.Builder<JavaType> typeArguments = ImmutableList.builder();
-                for (JavaParameterizedTypeBuilder typeArgumentBuilder : typeArgumentBuilders) {
-                    typeArguments.add(typeArgumentBuilder.build(classes));
-                }
-                return new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments.build());
-            }
+        public String getName() {
+            return name;
         }
+
+        public List<JavaType> getUpperBounds() {
+            return buildJavaTypes(upperBounds, importedClasses);
+        }
+
+        public JavaClass getUnboundErasureType(List<JavaType> upperBounds) {
+            return DomainBuilders.getUnboundErasureType(upperBounds, importedClasses);
+        }
+    }
+
+    @Internal
+    public static final class JavaWildcardTypeBuilder implements JavaTypeBuilder {
+        private final List<JavaTypeBuilder> lowerBounds = new ArrayList<>();
+        private final List<JavaTypeBuilder> upperBounds = new ArrayList<>();
+        private ClassesByTypeName importedClasses;
+
+        JavaWildcardTypeBuilder() {
+        }
+
+        public void addLowerBound(JavaTypeBuilder boundBuilder) {
+            lowerBounds.add(boundBuilder);
+        }
+
+        public void addUpperBound(JavaTypeBuilder boundBuilder) {
+            upperBounds.add(boundBuilder);
+        }
+
+        @Override
+        public JavaWildcardType build(ClassesByTypeName importedClasses) {
+            this.importedClasses = importedClasses;
+            return createWildcardType(this);
+        }
+
+        public List<JavaType> getUpperBounds() {
+            return buildJavaTypes(upperBounds, importedClasses);
+        }
+
+        public List<JavaType> getLowerBounds() {
+            return buildJavaTypes(lowerBounds, importedClasses);
+        }
+
+        public JavaClass getUnboundErasureType(List<JavaType> upperBounds) {
+            return DomainBuilders.getUnboundErasureType(upperBounds, importedClasses);
+        }
+    }
+
+    static class JavaParameterizedTypeBuilder implements JavaTypeBuilder {
+        private final JavaClassDescriptor type;
+        private final List<JavaTypeBuilder> typeArgumentBuilders = new ArrayList<>();
+
+        JavaParameterizedTypeBuilder(JavaClassDescriptor type) {
+            this.type = type;
+        }
+
+        void addTypeArgument(JavaClassDescriptor type) {
+            typeArgumentBuilders.add(new JavaParameterizedTypeBuilder(type));
+        }
+
+        public JavaWildcardTypeBuilder addWildcardTypeParameter() {
+            JavaWildcardTypeBuilder wildcardTypeBuilder = new JavaWildcardTypeBuilder();
+            typeArgumentBuilders.add(wildcardTypeBuilder);
+            return wildcardTypeBuilder;
+        }
+
+        @Override
+        public JavaParameterizedType build(ClassesByTypeName classes) {
+            ImmutableList.Builder<JavaType> typeArguments = ImmutableList.builder();
+            for (JavaTypeBuilder typeArgumentBuilder : typeArgumentBuilders) {
+                typeArguments.add(typeArgumentBuilder.build(classes));
+            }
+            return new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments.build());
+        }
+    }
+
+    private static List<JavaType> buildJavaTypes(List<? extends JavaTypeBuilder> javaTypeBuilders, ClassesByTypeName importedClasses) {
+        ImmutableList.Builder<JavaType> result = ImmutableList.builder();
+        for (JavaTypeBuilder builder : javaTypeBuilders) {
+            result.add(builder.build(importedClasses));
+        }
+        return result.build();
+    }
+
+    private static JavaClass getUnboundErasureType(List<JavaType> upperBounds, ClassesByTypeName importedClasses) {
+        return upperBounds.size() > 0
+                ? upperBounds.get(0).toErasure()
+                : importedClasses.get(Object.class.getName());
     }
 
     @Internal

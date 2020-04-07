@@ -18,8 +18,9 @@ package com.tngtech.archunit.core.importer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeVariableBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeVariableBuilder.JavaParameterizedTypeBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
@@ -73,7 +74,30 @@ class JavaGenericTypeImporter {
                 }
 
                 @Override
+                public void visitTypeArgument() {
+                    bound.addWildcardTypeParameter();
+                }
+
+                @Override
                 public SignatureVisitor visitTypeArgument(char wildcard) {
+                    if (wildcard == '+') {
+                        final JavaWildcardTypeBuilder javaWildcardTypeBuilder = bound.addWildcardTypeParameter();
+                        return new SignatureVisitor(ASM_API_VERSION) {
+                            @Override
+                            public void visitClassType(String internalObjectName) {
+                                javaWildcardTypeBuilder.addUpperBound(new JavaParameterizedTypeBuilder(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName)));
+                            }
+                        };
+                    }
+                    if (wildcard == '-') {
+                        final JavaWildcardTypeBuilder javaWildcardTypeBuilder = bound.addWildcardTypeParameter();
+                        return new SignatureVisitor(ASM_API_VERSION) {
+                            @Override
+                            public void visitClassType(String internalObjectName) {
+                                javaWildcardTypeBuilder.addLowerBound(new JavaParameterizedTypeBuilder(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName)));
+                            }
+                        };
+                    }
                     return new SignatureVisitor(ASM_API_VERSION) {
                         @Override
                         public void visitClassType(String internalObjectName) {
