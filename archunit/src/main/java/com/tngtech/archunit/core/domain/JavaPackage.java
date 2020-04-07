@@ -87,7 +87,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @PublicAPI(usage = ACCESS)
     public HasAnnotations<?> getPackageInfo() {
         return tryGetPackageInfo().getOrThrow(
-                new IllegalArgumentException(String.format("Package %s does not contain a package-info.java", getName())));
+                new IllegalArgumentException(String.format("%s does not contain a package-info.java", getDescription())));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -114,7 +114,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @PublicAPI(usage = ACCESS)
     public JavaAnnotation<JavaPackage> getAnnotationOfType(String typeName) {
         return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(
-                String.format("Package %s is not annotated with @%s", getName(), typeName)));
+                String.format("%s is not annotated with @%s", getDescription(), typeName)));
     }
 
     @Override
