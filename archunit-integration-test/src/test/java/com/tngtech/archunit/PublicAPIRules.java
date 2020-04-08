@@ -22,7 +22,6 @@ import com.tngtech.archunit.lang.CompositeArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
-import com.tngtech.archunit.lang.syntax.ClassesIdentityTransformer;
 
 import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
@@ -95,8 +94,6 @@ public class PublicAPIRules {
             classes()
                     .that().resideInAPackage("..syntax..")
                     .and().haveNameNotMatching(".*" + ArchRuleDefinition.class.getSimpleName() + ".*")
-                    // FIXME: Remove this line once we throw the deprecated class out of the public API
-                    .and().doNotHaveFullyQualifiedName(ClassesIdentityTransformer.class.getName())
                     .and().areNotInterfaces()
                     .and().areNotAnnotatedWith(Internal.class)
                     .should().notBePublic()

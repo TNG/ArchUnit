@@ -17,7 +17,6 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.CollectsLines;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
@@ -532,11 +531,6 @@ public class FreezingArchRuleTest {
         @Override
         public void addInvertedTo(ConditionEvents events) {
             throw new UnsupportedOperationException("Implement me");
-        }
-
-        @Override
-        public void describeTo(CollectsLines messages) {
-            throw new UnsupportedOperationException("Obsolete");
         }
 
         @Override

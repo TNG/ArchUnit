@@ -94,16 +94,6 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
     }
 
     /**
-     * @deprecated Use {@link #getRawType()} instead
-     */
-    @Override
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public JavaClass getType() {
-        return getRawType();
-    }
-
-    /**
      * @return The type of this {@link ThrowsDeclaration}, e.g. for a method
      * <pre><code>void method() throws SomeException {...}</code></pre>
      * the {@link JavaClass} representing <code>SomeException</code> will be returned

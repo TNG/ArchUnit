@@ -27,13 +27,6 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 
 public interface HasType {
 
-    /**
-     * @deprecated Use {@link #getRawType()} instead
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    JavaClass getType();
-
     @PublicAPI(usage = ACCESS)
     JavaClass getRawType();
 
@@ -41,27 +34,9 @@ public interface HasType {
         private Predicates() {
         }
 
-        /**
-         * @deprecated Use {@link #rawType(Class)} instead
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasType> type(Class<?> type) {
-            return adjustDeprecatedDescription(rawType(type));
-        }
-
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasType> rawType(Class<?> type) {
             return rawType(type.getName());
-        }
-
-        /**
-         * @deprecated Use {@link #rawType(String)} instead
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasType> type(String typeName) {
-            return adjustDeprecatedDescription(rawType(typeName));
         }
 
         @PublicAPI(usage = ACCESS)
@@ -69,23 +44,11 @@ public interface HasType {
             return rawType(GET_NAME.is(equalTo(typeName))).as("raw type " + typeName);
         }
 
-        /**
-         * @deprecated Use {@link #rawType(DescribedPredicate)} instead
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasType> type(DescribedPredicate<? super JavaClass> predicate) {
-            return adjustDeprecatedDescription(rawType(predicate));
-        }
-
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasType> rawType(DescribedPredicate<? super JavaClass> predicate) {
             return GET_RAW_TYPE.is(predicate).as("raw type " + predicate.getDescription());
         }
 
-        private static DescribedPredicate<HasType> adjustDeprecatedDescription(DescribedPredicate<HasType> predicate) {
-            return predicate.as(predicate.getDescription().replace("raw type", "type"));
-        }
     }
 
     final class Functions {
@@ -100,11 +63,5 @@ public interface HasType {
             }
         };
 
-        /**
-         * @deprecated Use {@link HasType.Functions#GET_RAW_TYPE} instead
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<HasType, JavaClass> GET_TYPE = GET_RAW_TYPE;
     }
 }

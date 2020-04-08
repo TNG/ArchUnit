@@ -105,15 +105,6 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
     }
 
     /**
-     * @deprecated Use {@link #getDependenciesFromSelf()}
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public Set<Dependency> getDependencies() {
-        return getDependenciesFromSelf();
-    }
-
-    /**
      * @return All dependencies that originate from a class within this {@link Slice} and target a class outside of this {@link Slice}
      */
     @PublicAPI(usage = ACCESS)

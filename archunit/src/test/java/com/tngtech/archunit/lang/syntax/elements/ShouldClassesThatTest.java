@@ -72,16 +72,6 @@ public class ShouldClassesThatTest {
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
-    public void dontHaveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.dontHaveFullyQualifiedName(List.class.getName()))
-                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
-    }
-
-    @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
     public void doNotHaveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.doNotHaveFullyQualifiedName(List.class.getName()))
@@ -98,16 +88,6 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingList.class);
-    }
-
-    @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
-    public void dontHaveSimpleName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.dontHaveSimpleName(List.class.getSimpleName()))
-                .on(ClassAccessingList.class, ClassAccessingString.class, ClassAccessingIterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingString.class, ClassAccessingIterable.class);
     }
 
     @Test
@@ -336,17 +316,6 @@ public class ShouldClassesThatTest {
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
-    public void dontHaveModifier(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.dontHaveModifier(PRIVATE))
-                .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
-                        ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
-
-        assertThatClasses(classes).matchInAnyOrder(
-                ClassAccessingPublicClass.class, ClassAccessingPackagePrivateClass.class, ClassAccessingProtectedClass.class);
-    }
-
-    @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
     public void doNotHaveModifier(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.doNotHaveModifier(PRIVATE))
                 .on(ClassAccessingPublicClass.class, ClassAccessingPrivateClass.class,
@@ -526,16 +495,6 @@ public class ShouldClassesThatTest {
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
-    public void dontImplement_type(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.dontImplement(Collection.class))
-                .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingIterable.class);
-    }
-
-    @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
     public void doNotImplement_type(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.doNotImplement(Collection.class))
@@ -556,16 +515,6 @@ public class ShouldClassesThatTest {
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
-    public void dontImplement_typeName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.dontImplement(Collection.class.getName()))
-                .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingIterable.class);
-    }
-
-    @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
     public void doNotImplement_typeName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.doNotImplement(Collection.class.getName()))
@@ -582,16 +531,6 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
 
         assertThat(getOnlyElement(classes)).matches(ClassAccessingArrayList.class);
-    }
-
-    @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
-    public void dontImplement_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.dontImplement(classWithNameOf(Collection.class)))
-                .on(ClassAccessingArrayList.class, ClassAccessingList.class, ClassAccessingIterable.class);
-
-        assertThatClasses(classes).matchInAnyOrder(ClassAccessingList.class, ClassAccessingIterable.class);
     }
 
     @Test

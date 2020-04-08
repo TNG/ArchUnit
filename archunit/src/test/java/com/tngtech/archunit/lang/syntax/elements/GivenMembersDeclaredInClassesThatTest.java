@@ -54,14 +54,6 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
-    public void dontHaveFullyQualifiedName() {
-        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().dontHaveFullyQualifiedName(List.class.getName()))
-                .on(List.class, String.class, Iterable.class);
-
-        assertThatMembers(members).matchInAnyOrderMembersOf(String.class, Iterable.class);
-    }
-
-    @Test
     public void doNotHaveFullyQualifiedName() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotHaveFullyQualifiedName(List.class.getName()))
                 .on(List.class, String.class, Iterable.class);
@@ -75,14 +67,6 @@ public class GivenMembersDeclaredInClassesThatTest {
                 .on(List.class, String.class, Iterable.class);
 
         assertThatMembers(members).matchInAnyOrderMembersOf(List.class);
-    }
-
-    @Test
-    public void dontHaveSimpleName() {
-        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().dontHaveSimpleName(List.class.getSimpleName()))
-                .on(List.class, String.class, Iterable.class);
-
-        assertThatMembers(members).matchInAnyOrderMembersOf(String.class, Iterable.class);
     }
 
     @Test
@@ -264,14 +248,6 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
-    public void dontHaveModifiers() {
-        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().dontHaveModifier(PRIVATE))
-                .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
-
-        assertThatMembers(members).matchInAnyOrderMembersOf(getClass(), PackagePrivateClass.class, ProtectedClass.class);
-    }
-
-    @Test
     public void doNotHaveModifiers() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotHaveModifier(PRIVATE))
                 .on(getClass(), PrivateClass.class, PackagePrivateClass.class, ProtectedClass.class);
@@ -427,14 +403,6 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
-    public void dontImplement_type() {
-        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().dontImplement(Collection.class))
-                .on(ArrayList.class, List.class, Iterable.class);
-
-        assertThatMembers(members).matchInAnyOrderMembersOf(List.class, Iterable.class);
-    }
-
-    @Test
     public void doNotImplement_type() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotImplement(Collection.class))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -464,14 +432,6 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
-    public void dontImplement_typeName() {
-        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().dontImplement(Collection.class.getName()))
-                .on(ArrayList.class, List.class, Iterable.class);
-
-        assertThatMembers(members).matchInAnyOrderMembersOf(List.class, Iterable.class);
-    }
-
-    @Test
     public void doNotImplement_typeName() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().doNotImplement(Collection.class.getName()))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -490,14 +450,6 @@ public class GivenMembersDeclaredInClassesThatTest {
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThat(members).isEmpty();
-    }
-
-    @Test
-    public void dontImplement_predicate() {
-        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().dontImplement(classWithNameOf(Collection.class)))
-                .on(ArrayList.class, List.class, Iterable.class);
-
-        assertThatMembers(members).matchInAnyOrderMembersOf(List.class, Iterable.class);
     }
 
     @Test

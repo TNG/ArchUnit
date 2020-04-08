@@ -123,11 +123,6 @@ public final class EvaluationResult {
         }
 
         @Override
-        public void describeTo(CollectsLines messages) {
-            throw new UnsupportedOperationException("Method should already be obsolete");
-        }
-
-        @Override
         public List<String> getDescriptionLines() {
             List<String> result = new ArrayList<>();
             for (String line : delegate.getDescriptionLines()) {

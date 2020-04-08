@@ -48,17 +48,6 @@ public final class SimpleConditionEvent implements ConditionEvent {
         events.add(new SimpleConditionEvent(correspondingObject, !conditionSatisfied, message));
     }
 
-    /**
-     * @deprecated See {@link ConditionEvent#describeTo(CollectsLines)}
-     */
-    @Deprecated
-    @Override
-    public void describeTo(CollectsLines messages) {
-        for (String line : getDescriptionLines()) {
-            messages.add(line);
-        }
-    }
-
     @Override
     public List<String> getDescriptionLines() {
         return singletonList(message);
