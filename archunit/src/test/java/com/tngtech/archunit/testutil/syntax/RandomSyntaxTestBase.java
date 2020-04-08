@@ -152,11 +152,9 @@ public abstract class RandomSyntaxTestBase {
             return this;
         }
 
-        // FIXME: Once we remove the deprecated dont-methods, we can remove this special treatment
         @Override
         public String toString() {
-            return Joiner.on(" ").join(description)
-                    .replace("dont", "don't");
+            return Joiner.on(" ").join(description);
         }
     }
 
