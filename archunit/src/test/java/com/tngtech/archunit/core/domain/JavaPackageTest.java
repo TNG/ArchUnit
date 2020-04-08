@@ -14,6 +14,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaPackage.ClassVisitor;
 import com.tngtech.archunit.core.domain.JavaPackage.PackageVisitor;
+import com.tngtech.archunit.core.domain.packageexamples.annotated.PackageLevelAnnotation;
 import com.tngtech.archunit.core.domain.packageexamples.first.First1;
 import com.tngtech.archunit.core.domain.packageexamples.first.First2;
 import com.tngtech.archunit.core.domain.packageexamples.second.ClassDependingOnOtherSecondClass;
@@ -23,10 +24,12 @@ import com.tngtech.archunit.core.domain.packageexamples.third.sub.ThirdSub1;
 import com.tngtech.archunit.core.domain.packageexamples.unrelated.AnyClass;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.JavaPackage.Functions.GET_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaPackage.Functions.GET_RELATIVE_NAME;
@@ -36,6 +39,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatPackages;
 import static java.util.regex.Pattern.quote;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JavaPackageTest {
     @Rule
@@ -99,6 +103,7 @@ public class JavaPackageTest {
         JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
 
         assertThat(javaPackage.getName()).isEqualTo("java.lang");
+        assertThat(javaPackage.getDescription()).isEqualTo("Package <java.lang>");
         assertThat(javaPackage.getRelativeName()).isEqualTo("lang");
         assertThatClasses(javaPackage.getClasses()).contain(Object.class, String.class);
     }
@@ -318,6 +323,147 @@ public class JavaPackageTest {
 
         assertThat(examplePackage.getPackage("unrelated").getPackageDependenciesToSelf())
                 .isEmpty();
+    }
+
+    @Test
+    public void test_getPackageInfo() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        final JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.getPackageInfo()).isNotNull();
+
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() {
+                nonAnnotatedPackage.getPackageInfo();
+            }
+        })
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(nonAnnotatedPackage.getDescription() + " does not contain a package-info.java");
+    }
+
+    @Test
+    public void test_tryGetPackageInfo() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.tryGetPackageInfo()).isPresent();
+        assertThat(nonAnnotatedPackage.tryGetPackageInfo()).isAbsent();
+    }
+
+    @Test
+    public void test_getAnnotations() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        JavaAnnotation<JavaPackage> annotation = getOnlyElement(annotatedPackage.getAnnotations());
+        assertThat(annotation.getRawType()).matches(PackageLevelAnnotation.class);
+        assertThat(annotation.getOwner()).isEqualTo(annotatedPackage);
+
+        assertThat(nonAnnotatedPackage.getAnnotations()).isEmpty();
+    }
+
+    @Test
+    public void test_getAnnotationOfType_type() {
+        final JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        final JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.getAnnotationOfType(PackageLevelAnnotation.class)).isInstanceOf(PackageLevelAnnotation.class);
+
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() {
+                annotatedPackage.getAnnotationOfType(Deprecated.class);
+            }
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(annotatedPackage.getDescription() + " is not annotated with @" + Deprecated.class.getName());
+
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() {
+                nonAnnotatedPackage.getAnnotationOfType(Deprecated.class);
+            }
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(nonAnnotatedPackage.getDescription() + " is not annotated with @" + Deprecated.class.getName());
+    }
+
+    @Test
+    public void test_getAnnotationOfType_typeName() {
+        final JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        final JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.getAnnotationOfType(PackageLevelAnnotation.class.getName())
+                .getRawType()).matches(PackageLevelAnnotation.class);
+
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() {
+                annotatedPackage.getAnnotationOfType("not.There");
+            }
+        }).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(annotatedPackage.getDescription() + " is not annotated with @not.There");
+
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() {
+                nonAnnotatedPackage.getAnnotationOfType("not.There");
+            }
+        }).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(nonAnnotatedPackage.getDescription() + " is not annotated with @not.There");
+    }
+
+    @Test
+    public void test_tryGetAnnotationOfType_type() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.tryGetAnnotationOfType(PackageLevelAnnotation.class)).isPresent();
+        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+
+        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+    }
+
+    @Test
+    public void test_tryGetAnnotationOfType_typeName() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.tryGetAnnotationOfType(PackageLevelAnnotation.class.getName())).isPresent();
+        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isAbsent();
+
+        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isAbsent();
+    }
+
+    @Test
+    public void test_isAnnotatedWith_type() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.isAnnotatedWith(PackageLevelAnnotation.class)).isTrue();
+        assertThat(annotatedPackage.isAnnotatedWith(Deprecated.class)).isFalse();
+
+        assertThat(nonAnnotatedPackage.isAnnotatedWith(Deprecated.class)).isFalse();
+    }
+
+    @Test
+    public void test_isAnnotatedWith_typeName() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.isAnnotatedWith(PackageLevelAnnotation.class.getName())).isTrue();
+        assertThat(annotatedPackage.isAnnotatedWith(Deprecated.class.getName())).isFalse();
+
+        assertThat(nonAnnotatedPackage.isAnnotatedWith(Deprecated.class.getName())).isFalse();
+    }
+
+    @Test
+    public void test_isAnnotatedWith_predicate() {
+        JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
+        JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
+
+        assertThat(annotatedPackage.isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue())).isTrue();
+        assertThat(annotatedPackage.isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse())).isFalse();
+
+        assertThat(nonAnnotatedPackage.isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue())).isFalse();
+        assertThat(nonAnnotatedPackage.isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse())).isFalse();
     }
 
     @Test

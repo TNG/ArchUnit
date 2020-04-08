@@ -80,6 +80,14 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
     private final String description;
     private final Map<String, Object> values;
 
+    private JavaAnnotation(JavaClass type, OWNER owner, CanBeAnnotated annotatedElement, String description, Map<String, Object> values) {
+        this.type = checkNotNull(type);
+        this.owner = checkNotNull(owner);
+        this.annotatedElement = checkNotNull(annotatedElement);
+        this.description = checkNotNull(description);
+        this.values = checkNotNull(values);
+    }
+
     JavaAnnotation(OWNER owner, JavaAnnotationBuilder builder) {
         this.type = checkNotNull(builder.getType());
         this.owner = checkNotNull(owner);
@@ -88,7 +96,7 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
         this.values = checkNotNull(builder.getValues(this));
     }
 
-    private CanBeAnnotated getAnnotatedElement(Object owner) {
+    private static CanBeAnnotated getAnnotatedElement(Object owner) {
         Object candiate = owner;
         while (!(candiate instanceof JavaClass) && !(candiate instanceof JavaMember) && (candiate instanceof HasOwner<?>)) {
             candiate = ((HasOwner<?>) candiate).getOwner();
@@ -133,6 +141,10 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
     @Override
     public OWNER getOwner() {
         return owner;
+    }
+
+    <NEW_OWNER extends HasDescription> JavaAnnotation<NEW_OWNER> withOwner(NEW_OWNER newOwner) {
+        return new JavaAnnotation<>(type, newOwner, annotatedElement, description, values);
     }
 
     /**
