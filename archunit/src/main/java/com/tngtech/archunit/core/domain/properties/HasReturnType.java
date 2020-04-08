@@ -25,12 +25,6 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 
 public interface HasReturnType {
-    /**
-     * @deprecated Use {@link #getRawReturnType()} instead.
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    JavaClass getReturnType();
 
     @PublicAPI(usage = ACCESS)
     JavaClass getRawReturnType();
@@ -39,27 +33,9 @@ public interface HasReturnType {
         private Predicates() {
         }
 
-        /**
-         * @deprecated Use {@link #rawReturnType(Class)} instead.
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasReturnType> returnType(Class<?> returnType) {
-            return adjustDeprecatedDescription(rawReturnType(returnType));
-        }
-
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasReturnType> rawReturnType(Class<?> returnType) {
             return rawReturnType(returnType.getName());
-        }
-
-        /**
-         * @deprecated Use {@link #rawReturnType(String)} instead.
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasReturnType> returnType(String returnTypeName) {
-            return adjustDeprecatedDescription(rawReturnType(returnTypeName));
         }
 
         @PublicAPI(usage = ACCESS)
@@ -67,23 +43,11 @@ public interface HasReturnType {
             return rawReturnType(name(returnTypeName).as(returnTypeName));
         }
 
-        /**
-         * @deprecated Use {@link #rawReturnType(DescribedPredicate)} instead.
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<HasReturnType> returnType(DescribedPredicate<? super JavaClass> predicate) {
-            return adjustDeprecatedDescription(rawReturnType(predicate));
-        }
-
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasReturnType> rawReturnType(DescribedPredicate<? super JavaClass> predicate) {
             return predicate.onResultOf(GET_RAW_RETURN_TYPE).as("raw return type %s", predicate.getDescription());
         }
 
-        private static DescribedPredicate<HasReturnType> adjustDeprecatedDescription(DescribedPredicate<HasReturnType> predicate) {
-            return predicate.as(predicate.getDescription().replace("raw return type", "return type"));
-        }
     }
 
     final class Functions {
@@ -98,11 +62,5 @@ public interface HasReturnType {
             }
         };
 
-        /**
-         * @deprecated Use {@link #GET_RAW_RETURN_TYPE} instead.
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<HasReturnType, JavaClass> GET_RETURN_TYPE = GET_RAW_RETURN_TYPE;
     }
 }

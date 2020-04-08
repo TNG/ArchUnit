@@ -18,7 +18,7 @@ public class JavaConstructorAssertion extends AbstractObjectAssert<JavaConstruct
         JavaMembersAssertion.assertEquivalent(actual, constructor);
         assertThat(actual.getName()).isEqualTo(CONSTRUCTOR_NAME);
         assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(constructor, CONSTRUCTOR_NAME));
-        assertThat(actual.getParameters()).matches(constructor.getParameterTypes());
-        assertThat(actual.getReturnType()).matches(void.class);
+        assertThat(actual.getRawParameterTypes()).matches(constructor.getParameterTypes());
+        assertThat(actual.getRawReturnType()).matches(void.class);
     }
 }

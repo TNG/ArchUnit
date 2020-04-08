@@ -28,7 +28,12 @@ import com.tngtech.archunit.lang.ClassesTransformer;
 
 class Transformers {
     static ClassesTransformer<JavaClass> classes() {
-        return new ClassesIdentityTransformer();
+        return new AbstractClassesTransformer<JavaClass>("classes") {
+            @Override
+            public Iterable<JavaClass> doTransform(JavaClasses collection) {
+                return collection;
+            }
+        };
     }
 
     static ClassesTransformer<JavaMember> members() {

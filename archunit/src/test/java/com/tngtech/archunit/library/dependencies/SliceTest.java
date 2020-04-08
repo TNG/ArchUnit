@@ -30,22 +30,6 @@ public class SliceTest {
     }
 
     @Test
-    @Deprecated
-    // FIXME: Remove this once the deprecation is thrown out
-    public void dependencies() {
-        Slice slice = getSlice(slicesOfTestClasses(), "first");
-
-        assertThatDependencies(slice.getDependencies()).containOnly(
-                from(FirstAnyPkgClass.class).to(Object.class)
-                        .from(FirstAnyPkgClass.class).to(SomePkgSubClass.class)
-                        .from(FirstAnyPkgClass.class).to(SecondThreeAnyClass.class)
-                        .from(ClassOnlyDependentOnOwnPackageAndObject.class).to(Object.class)
-                        .from(FirstThreeAnyClass.class).to(Object.class)
-                        .from(FirstThreeAnyClass.class).to(SecondThreeAnyClass.class)
-        );
-    }
-
-    @Test
     public void dependencies_to_self() {
         Slice slice = getSlice(slicesOfTestClasses(), "first");
 

@@ -18,15 +18,15 @@ public class JavaMethodAssertion extends AbstractObjectAssert<JavaMethodAssertio
         assertEquivalent(actual, method);
         assertThat(actual.getFullName()).isEqualTo(getExpectedNameOf(method, method.getName()));
         assertThat(actual.getName()).isEqualTo(method.getName());
-        assertThat(actual.getParameters()).matches(method.getParameterTypes());
-        assertThat(actual.getReturnType()).matches(method.getReturnType());
+        assertThat(actual.getRawParameterTypes()).matches(method.getParameterTypes());
+        assertThat(actual.getRawReturnType()).matches(method.getReturnType());
         return this;
     }
 
     public JavaMethodAssertion isEquivalentTo(Class<?> owner, String methodName, Class<?>... parameterTypes) {
         assertThat(actual.getOwner()).matches(owner);
         assertThat(actual.getName()).isEqualTo(methodName);
-        assertThat(actual.getParameters()).matches(parameterTypes);
+        assertThat(actual.getRawParameterTypes()).matches(parameterTypes);
         return this;
     }
 }

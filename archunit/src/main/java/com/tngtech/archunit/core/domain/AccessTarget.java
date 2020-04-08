@@ -251,16 +251,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             this.field = Suppliers.memoize(builder.getField());
         }
 
-        /**
-         * @deprecated Use {@link #getRawType()} instead
-         */
-        @Override
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public JavaClass getType() {
-            return getRawType();
-        }
-
         @Override
         @PublicAPI(usage = ACCESS)
         public JavaClass getRawType() {
@@ -322,30 +312,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             this.returnType = builder.getReturnType();
         }
 
-        /**
-         * @deprecated Use {@link #getRawParameterTypes()} instead
-         */
-        @Override
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public JavaClassList getParameters() {
-            return getRawParameterTypes();
-        }
-
         @Override
         @PublicAPI(usage = ACCESS)
         public JavaClassList getRawParameterTypes() {
             return DomainObjectCreationContext.createJavaClassList(parameters);
-        }
-
-        /**
-         * @deprecated Use {@link #getRawReturnType()} instead.
-         */
-        @Override
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public JavaClass getReturnType() {
-            return getRawReturnType();
         }
 
         @Override

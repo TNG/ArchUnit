@@ -26,7 +26,6 @@ import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
-import static com.tngtech.archunit.base.DescribedPredicate.dont;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ANONYMOUS_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ENUMS;
@@ -139,11 +138,6 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     }
 
     @Override
-    public CONJUNCTION dontImplement(Class<?> type) {
-        return givenWith(dont(JavaClass.Predicates.implement(type)));
-    }
-
-    @Override
     public CONJUNCTION doNotImplement(Class<?> type) {
         return givenWith(doNot(JavaClass.Predicates.implement(type)));
     }
@@ -154,11 +148,6 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     }
 
     @Override
-    public CONJUNCTION dontImplement(String typeName) {
-        return givenWith(dont(JavaClass.Predicates.implement(typeName)));
-    }
-
-    @Override
     public CONJUNCTION doNotImplement(String typeName) {
         return givenWith(doNot(JavaClass.Predicates.implement(typeName)));
     }
@@ -166,11 +155,6 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     @Override
     public CONJUNCTION implement(DescribedPredicate<? super JavaClass> predicate) {
         return givenWith(JavaClass.Predicates.implement(predicate));
-    }
-
-    @Override
-    public CONJUNCTION dontImplement(DescribedPredicate<? super JavaClass> predicate) {
-        return givenWith(dont(JavaClass.Predicates.implement(predicate)));
     }
 
     @Override
@@ -409,11 +393,6 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     }
 
     @Override
-    public CONJUNCTION dontHaveFullyQualifiedName(String name) {
-        return givenWith(SyntaxPredicates.dontHaveFullyQualifiedName(name));
-    }
-
-    @Override
     public CONJUNCTION doNotHaveFullyQualifiedName(String name) {
         return givenWith(SyntaxPredicates.doNotHaveFullyQualifiedName(name));
     }
@@ -424,11 +403,6 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     }
 
     @Override
-    public CONJUNCTION dontHaveSimpleName(String name) {
-        return givenWith(SyntaxPredicates.dontHaveSimpleName(name));
-    }
-
-    @Override
     public CONJUNCTION doNotHaveSimpleName(String name) {
         return givenWith(SyntaxPredicates.doNotHaveSimpleName(name));
     }
@@ -436,11 +410,6 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     @Override
     public CONJUNCTION haveModifier(JavaModifier modifier) {
         return givenWith(SyntaxPredicates.haveModifier(modifier));
-    }
-
-    @Override
-    public CONJUNCTION dontHaveModifier(JavaModifier modifier) {
-        return givenWith(SyntaxPredicates.dontHaveModifier(modifier));
     }
 
     @Override

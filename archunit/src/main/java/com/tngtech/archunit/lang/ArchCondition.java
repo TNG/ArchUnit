@@ -192,17 +192,6 @@ public abstract class ArchCondition<T> {
             return ImmutableList.copyOf(result);
         }
 
-        /**
-         * @deprecated See {@link ConditionEvent#describeTo(CollectsLines)}
-         */
-        @Deprecated
-        @Override
-        public void describeTo(CollectsLines messages) {
-            for (String line : getDescriptionLines()) {
-                messages.add(line);
-            }
-        }
-
         @Override
         public String toString() {
             return MoreObjects.toStringHelper(this)
