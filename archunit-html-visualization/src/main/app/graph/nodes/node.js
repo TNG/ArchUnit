@@ -620,7 +620,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
         this.parent._view.addChildView(node._view);
       });
 
-      dependenciesWithinParent.forEach(this._setDependencyInForegroundOrBackground);
+      dependenciesWithinParent.forEach(this._setDependencyInForegroundOrBackground.bind(this));
 
       this._parent._focus(this);
     }
