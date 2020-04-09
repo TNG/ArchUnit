@@ -114,6 +114,10 @@ class NodeUi {
     return Vector.from(this._circleSvg.absolutePosition);
   }
 
+  get circle() {
+    return this._circleSvg;
+  }
+
   get radius() {
     const radius = this._circleSvg.getAttribute('r');
     if (radius === undefined) {
@@ -209,6 +213,10 @@ class NodeUi {
 
   expectToBeWithin(otherNodeUi) {
     expect(otherNodeUi.contains(this)).to.be.true;
+  }
+
+  expectToHaveClasses(cssClasses) {
+    cssClasses.forEach(cssClass => expect(this._svg.cssClasses).to.include(cssClass));
   }
 
   expectToHaveLabelAbove(otherNodeUi) {

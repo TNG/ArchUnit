@@ -41,6 +41,14 @@ class DependencyUi {
     return this._dependency.targetNode._view._svgElement;
   }
 
+  get name() {
+    return `${this._dependency.from}-${this._dependency.to}`;
+  }
+
+  get start() {
+    return {startPoint: this._dependency.startPoint, endPoint: this._dependency.endPoint};
+  }
+
   equals(otherDependencyUi) {
     return this._svg === otherDependencyUi._svg;
   }
@@ -105,6 +113,10 @@ class DependenciesUi {
 
   get visibleDependencyUis() {
     return this._dependencies._getVisibleDependencies().map(dependency => new DependencyUi(dependency));
+  }
+
+  getVisibleDependency(dependencyName) {
+    return this.visibleDependencyUis.filter(visibleDependencyUi => visibleDependencyUi.name === dependencyName)[0];
   }
 
   expectToShowDependencies(...dependencyStrings) {

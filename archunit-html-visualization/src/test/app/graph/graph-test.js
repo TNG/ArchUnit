@@ -7,22 +7,25 @@ require('./testinfrastructure/graph-chai-extensions');
 const createJsonFromClassNames = require('./testinfrastructure/class-names-to-json-transformer').createJsonFromClassNames;
 
 const guiElementsMock = require('./testinfrastructure/gui-elements-mock');
-const {createDependencies, createGraph, nodeCreator} = require('./testinfrastructure/test-json-creator');
+const {createDependencies, createGraph} = require('./testinfrastructure/test-json-creator');
 const AppContext = require('../../../main/app/graph/app-context');
 
+const RootUi = require('./nodes/testinfrastructure/root-ui');
+const GraphUi = require('./testinfrastructure/graph-ui');
+const rootCreator = require('./testinfrastructure/root-creator');
+const svgMock = require('./testinfrastructure/svg-mock');
+
 const realInitGraph = require('../../../main/app/graph/graph').init;
-// FIXME: Workaround -> removing foldAllNodes (which was ALWAYS true in production) broke half the tests. Obviously they should test real public API and not some cases that can never happen in production
-const initGraph = function () {
-  const initGraphArgs = arguments;
-  return {
-    create: (createGraphArgs) => {
-      const graph = realInitGraph.apply(null, initGraphArgs).create(createGraphArgs);
-      // FIXME: What is the public API we want to test? Tests were not realistic, since removing foldAllNodes broke 50% of all tests and restoring the behavior demands some weird touches to interna
-      graph.root._callOnSelfThenEveryDescendant(node => node.unfold());
-      graph.dependencies.recreateVisible();
-      return graph;
-    }
-  }
+// eigentlicher Zustand: alles ist zusammengefaltet, aber Tests nehmen an, dass alles aufgefaltet ist
+// spicken in node-drag-test --> rootUi ===~ PageObject , auch wichtig rootCreator für das erzeugen mit default classes
+const getGraphUi = async (jsonRoot, jsonDependencies = [], violations = []) => {
+  const appContext = appContextWith(createGraph(jsonRoot, jsonDependencies), violations);
+  const graph = realInitGraph(appContext).create(svgMock.createSvgRoot(), svgMock.createEmptyElement());
+  const graphUi = GraphUi.of(graph);
+
+  await graphUi.waitForUpdateFinished();
+
+  return graphUi;
 };
 
 const circlePadding = 10;
@@ -35,70 +38,60 @@ const appContextWith = (graph, violations) => AppContext.newInstance({
   }
 });
 
-describe.skip('Graph', () => {
+//TODO: alle möglichen Interaktionen des Users mit der GUI testen
+// Graph-Test als Smoke-Test auch mit Filter-Menü und anderen Seitenmenü
+// Graph mit sinnvoller Anzahl Nodes
+// - Wurzelnode auffalten mit 2 Kindnodes mit  Dependency ==> dann existiert ein "Pfeil" bzw. Dependency von Node A auf B
+//   verifyDependency(nodeA, nodeB)
+// - filter ==> nach Einsetzen von Filtern immer weniger Nodes im Graph
+// - wenn Violations vorhanden und im Menü angeglickt, dann sehe ich nur die Node dazu
+// - Ctrl-Klick filtert die Nodes weg
+// - Zoom-Regler prüfen
+// - Button für nur beteiligte Violations testen
+// - auffalten bis Violations angezeigt werden
+// -
 
-  describe('creates a layout, so that', () => {
-    //FIXME: this is not layout...layout is only positioning of the elements and so...better put it to smth like 'initialization of the nodes", "sets the css classes"
-    //css classes like foldable must be checked in the fold tet methods then
-    it('packages have a css-class "package", classes a css-class "class", interfaces a css-class "interface"', async () => {
-      const jsonRoot = createJsonFromClassNames('pkg1.SomeClass', 'pkg1.SomeInterface');
-      const jsonDependencies = createMethodCallDependencies(jsonRoot);
+//TODO: Jeder mögliche Filter-Usecase eher in Node
+//TODO: extra Layout-Test, siehe dazu auch TODOs in graph-chai-extensions
 
-      const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
-      graphGui.clickNode('pkg1');
-      await graphGui.isReady();
+describe('Graph', () => {
+  const expectSiblingNodesToHaveAtLeastPadding = (rootUi, padding, ...nodeFullNames) => expect(rootUi).to.haveSiblingNodesWithPaddingAtLeast(padding, nodeFullNames);
+  const expectNodesToHaveAtLeastPaddingFromParent = (rootUi, padding, parentFullName, ...nodeFullNames) => expect(rootUi).to.haveNodesWithPaddingToParentAtLeast(padding, parentFullName, nodeFullNames);
 
-      graphGui.test.expectNodeToHaveCssClass('pkg1', 'package');
-      graphGui.test.expectNodeToHaveCssClass('pkg1.SomeClass', 'class');
-      graphGui.test.expectNodeToHaveCssClass('pkg1.SomeInterface', 'interface');
+  // TODO think of moving into "node-test", only if node does not force the setting of css classes
+  describe('initialization of the nodes', () => {
+    it('sets the css classes so packages have a css-class "package", classes a css-class "class", interfaces a css-class "interface"', async()=> {
+      const root = await rootCreator.createRootFromClassNames('pkg1.SomeClass', 'pkg1.SomeInterface');
+      const rootUi = RootUi.of(root);
+
+      rootUi.getNodeWithFullName('pkg1').expectToHaveClasses(['package']);
+      rootUi.getNodeWithFullName('pkg1.SomeClass').expectToHaveClasses(['class']);
+      rootUi.getNodeWithFullName('pkg1.SomeInterface').expectToHaveClasses(['interface']);
     });
 
-    it('nodes have a padding to their parent nodes', async () => {
-      const jsonRoot = createJsonFromClassNames('pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3', 'pkg2.SomeClass');
-      const jsonDependencies = createMethodCallDependencies(jsonRoot,
-        {from: 'pkg1.SomeClass1', to: 'pkg2.SomeClass'}, {from: 'pkg1.SomeClass1', to: 'pkg1.SomeClass2'});
+    it('nodes lie in front of their parent nodes', async() => {
+      const root = await rootCreator.createRootFromClassNamesAndLayout('pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3', 'pkg2.SomeClass');
+      const rootUi = RootUi.of(root);
 
-      const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
-      graphGui.clickNode('pkg1');
-      await graphGui.isReady();
+      expect(rootUi.getNodeWithFullName('pkg1.SomeClass1').isInForeground()).to.equal(false);
+      rootUi.getNodeWithFullName('pkg1').click();
 
-      graphGui.test.expectNodesToHaveAtLeastPaddingFromParent(circlePadding, 'pkg1', 'pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3');
+      expect(rootUi.getNodeWithFullName('pkg1.SomeClass1').liesInFrontOf('pkg1')).to.equal(true);
+      expect(rootUi.getNodeWithFullName('pkg1.SomeClass2').liesInFrontOf('pkg1')).to.equal(true);
+      expect(rootUi.getNodeWithFullName('pkg1.SomeClass3').liesInFrontOf('pkg1')).to.equal(true);
+      expectNodesToHaveAtLeastPaddingFromParent(rootUi, circlePadding, 'pkg1', 'pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3');
     });
 
     it('sibling nodes have a minimum padding between each other', async () => {
-      const jsonRoot = createJsonFromClassNames('pkg1.SomeClass1', 'pkg1.SomeClass2',
-        'pkg2.SomeClass', 'pkg3.SomeClass', 'pkg4.SomeClass');
-      const jsonDependencies = createMethodCallDependencies(jsonRoot,
-        {from: 'pkg1.SomeClass1', to: 'pkg2.SomeClass'}, {from: 'pkg1.SomeClass2', to: 'pkg1.SomeClass2'},
-        {from: 'pkg1.SomeClass2', to: 'pkg1.SomeClass2'});
+      const root = await rootCreator.createRootFromClassNamesAndLayout('pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg2.SomeClass', 'pkg3.SomeClass', 'pkg4.SomeClass');
+      const rootUi = RootUi.of(root);
 
-      const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
-      await graphGui.isReady();
+      // click is not really needed but adds some maths to the test
+      rootUi.getNodeWithFullName('pkg1').click();
 
-      graphGui.test.expectSiblingNodesToHaveAtLeastPadding(circlePadding, 'pkg1', 'pkg2', 'pkg3', 'pkg4');
-    });
-
-    it('', async () => {
-
+      expectSiblingNodesToHaveAtLeastPadding(rootUi, circlePadding, 'pkg1', 'pkg2', 'pkg3', 'pkg4');
     });
   });
-
-  //TODO: alle möglichen Interaktionen des Users mit der GUI testen
-
-  const jsonRootWithTwoClasses = nodeCreator.package('com.tngtech.archunit')
-    .add(nodeCreator.package('pkg1')
-      .add(nodeCreator.clazz('SomeClass', 'class').build())
-      .build())
-    .add(nodeCreator.package('pkg2')
-      .add(nodeCreator.clazz('SomeClass', 'class').build())
-      .build())
-    .build();
-  const jsonDependenciesOfTwoClass = createDependencies()
-    .addMethodCall().from('com.tngtech.archunit.pkg1.SomeClass', 'startMethod()')
-    .to('com.tngtech.archunit.pkg2.SomeClass', 'targetMethod()')
-    .build();
-  const jsonGraphWithTwoClasses = createGraph(jsonRootWithTwoClasses, jsonDependenciesOfTwoClass);
-
 
   // FIXME -> Test infrastructure
 
@@ -138,331 +131,166 @@ describe.skip('Graph', () => {
     return creator.build();
   };
 
-  //TODO: maybe do not create map from visual nesting, but from svg ids and check visual nesting in layout function...ask Peter what is better
-  /*const createMapWithNodeFullNamesToSvgGroup = svgElement => {
-    const svgGroupsWithAVisibleCircle = svgElement.getAllGroupsContainingAVisibleElementOfType('circle');
-    svgGroupsWithAVisibleCircle.sort((g1, g2) => g2.getVisibleCircleRadius() - g1.getVisibleCircleRadius());
-    const map = new Map();
-
-    const splitByCircleLiesWithinNext = (svgGroupsToSplit, nextSvgGroup) => {
-      const svgGroupsWithin = [];
-      const svgGroupsNotWithin = [];
-      const positionOfNext = nextSvgGroup.getVisibleSubElementOfType('circle').absolutePosition;
-      const radiusOfNext = nextSvgGroup.getVisibleCircleRadius();
-
-      const circleIsWithinNextCircle = (position, radius) => {
-        const positionDiff = {
-          x: position.x - positionOfNext.x,
-          y: position.y - positionOfNext.y
-        };
-        const middlePointDistance = Math.sqrt(positionDiff.x * positionDiff.x + positionDiff.y * positionDiff.y);
-        return middlePointDistance + radius <= radiusOfNext;
-      };
-
-      svgGroupsToSplit.forEach(svgGroup => {
-        const radius = svgGroup.getVisibleCircleRadius();
-        const position = svgGroup.getVisibleSubElementOfType('circle').absolutePosition;
-        if (circleIsWithinNextCircle(position, radius)) {
-          svgGroupsWithin.push(svgGroup);
-        } else {
-          svgGroupsNotWithin.push(svgGroup);
-        }
-      });
-
-      return {svgGroupsWithin, svgGroupsNotWithin};
-    };
-
-    const addNextSvgElementToMap = (fullNameSoFar, svgGroupsSortedByCircleRadius) => {
-      if (svgGroupsSortedByCircleRadius.length === 0) {
-        return;
-      }
-      const next = svgGroupsSortedByCircleRadius.shift();
-      const split = splitByCircleLiesWithinNext(svgGroupsSortedByCircleRadius, next);
-
-      const fullNameOfNext = fullNameSoFar + next.getVisibleText();
-      map.set(fullNameOfNext, next);
-      addNextSvgElementToMap(fullNameOfNext + (next._cssClasses.has('package') ? '.' : '$'), split.svgGroupsWithin);
-      addNextSvgElementToMap(fullNameSoFar, split.svgGroupsNotWithin);
-    };
-
-    addNextSvgElementToMap('', svgGroupsWithAVisibleCircle);
-
-    return map;
-  };*/
-
-  const createMapWithNodeFullNamesToSvgGroup = svgElement => {
-    const svgGroupsWithAVisibleCircle = svgElement.getAllGroupsContainingAVisibleElementOfType('circle');
-    return new Map(svgGroupsWithAVisibleCircle.map(svgGroup => [svgGroup.getAttribute('id'), svgGroup]));
-  };
-
-  const createTestGui = graph => {
-    const testGui = {
-      clickNode: fullNodeName => {
-        testGui.inspect.getMapWithNodeFullNamesToSvgGroup().get(fullNodeName).getVisibleSubElementOfType('circle').click({
-          ctrlKey: false,
-          altKey: false
-        })
-      },
-      test: {
-        expectOnlyVisibleNodes: (...nodeFullNames) => expect(graph).to.haveOnlyVisibleNodes(nodeFullNames),
-        expectOnlyVisibleDependencies: (...dependencyIds) => expect(graph).to.haveOnlyVisibleDependencies(dependencyIds),
-        expectSiblingNodesToHaveAtLeastPadding: (padding, ...nodeFullNames) => expect(testGui.inspect.getMapWithNodeFullNamesToSvgGroup())
-          .to.haveSiblingNodesWithPaddingAtLeast(padding, nodeFullNames),
-        expectNodesToHaveAtLeastPaddingFromParent: (padding, parentFullName, ...nodeFullNames) => expect(testGui.inspect.getMapWithNodeFullNamesToSvgGroup())
-          .to.haveNodesWithPaddingToParentAtLeast(padding, parentFullName, nodeFullNames),
-        expectNodeToHaveCssClass: (nodeFullName, cssClass) => expect(testGui.inspect.getMapWithNodeFullNamesToSvgGroup().get(nodeFullName)).to.haveCssClass(cssClass)
-      },
-      inspect: {
-        getMapWithNodeFullNamesToSvgGroup: () => createMapWithNodeFullNamesToSvgGroup(graph._view.svgElement),
-
-      },
-      isReady: () => graph._root._updatePromise
-    };
-    return testGui;
-  };
-
-  const createTestGraphGui = (jsonRoot, jsonDependencies) => createTestGui(realInitGraph(appContextWith(createGraph(jsonRoot, jsonDependencies))).create());
-
-
   it('shows only the top level packages right after creation', async () => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass$TmpInner$TmpInner2', 'some.package.SomeClass');
-    const jsonDependencies = createMethodCallDependencies(jsonRoot, {from: 'archunit.SomeClass', to: 'package.SomeClass'});
+    const jsonDependencies = createMethodCallDependencies(jsonRoot, {from: node => node.fullName === 'com.tngtech.archunit.SomeClass', to: 'package.SomeClass'});
 
-    const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
-    await graphGui.isReady();
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
 
-    graphGui.test.expectOnlyVisibleNodes('com.tngtech.archunit', 'some.package');
-    graphGui.test.expectOnlyVisibleDependencies('com.tngtech.archunit-some.package');
+    graphUi.expectOnlyVisibleNodes('com.tngtech.archunit', 'some.package');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit-some.package');
   });
 
-  it('shows children if I click on a node', () => {
+  it('shows children if I click on a node', async() => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2.SomeClass');
-    const jsonDependencies = createMethodCallDependencies(jsonRoot, 'pkg1.SomeClass', 'pkg2.SomeClass');
+    const jsonDependencies = createMethodCallDependencies(jsonRoot, {from: 'pkg1.SomeClass', to: 'pkg2.SomeClass'});
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
 
-    const graphGui = createTestGraphGui(jsonRoot, jsonDependencies);
+    await graphUi.clickNode('com.tngtech.archunit');
 
-    graphGui.clickNode('com.tngtech.archunit');
-
-    graphGui.expectOnlyVisibleNodes('com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2');
-    graphGui.expectOnlyVisibleDependencies({from: 'pkg1.SomeClass', to: 'pkg2.SomeClass'});
+    graphUi.expectOnlyVisibleNodes('pkg1', 'pkg2', 'com.tngtech.archunit'); // TODO check com.tngtech.archunit
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.pkg1-com.tngtech.archunit.pkg2');
   });
 
-  //TODO: Mock für Filter Menü
-  //TODO: Jeder mögliche Filter-Usecase eher in Node
-  //TODO: extra Layout-Test, siehe dazu auch TODOs in graph-chai-extensions
-
-  it('initially folds all nodes', () => {
-    const graph = realInitGraph(appContextWith(jsonGraphWithTwoClasses)).create(null);
-    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.pkg1', 'com.tngtech.archunit.pkg2'];
-    const expDeps = ['com.tngtech.archunit.pkg1-com.tngtech.archunit.pkg2'];
-
-    expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-    expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
-    return graph.root._updatePromise;
-  });
-
-  it('can filter node by name containing', () => {
-    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
-      .add(nodeCreator.clazz('SomeClass1', 'class').build())
-      .add(nodeCreator.clazz('SomeClass2', 'class').build())
-      .add(nodeCreator.clazz('NotMatchingClass', 'class')
-        .build())
-      .build();
+  it('can filter node by name containing', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2', 'com.tngtech.archunit.NotMatchingClass');
     const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .addMethodCall().from('com.tngtech.archunit.SomeClass2', 'startMethod()')
       .to('com.tngtech.archunit.NotMatchingClass', 'targetMethod()')
       .build();
-    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+    await graphUi.clickNode('com.tngtech.archunit');
 
-    const graph = initGraph(appContextWith(jsonGraph)).create();
-    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
-    const expDeps = ['com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2'];
+    await graphUi.changeNodeFilter('*Some*');
 
-    graph.filterNodesByName('*Some*');
-
-    return graph.root._updatePromise.then(() => {
-      expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-      expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
-    });
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'com.tngtech.archunit');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
   });
 
-  it('can filter node by name not containing', () => {
-    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
-      .add(nodeCreator.clazz('SomeClass1', 'class').build())
-      .add(nodeCreator.clazz('SomeClass2', 'class').build())
-      .add(nodeCreator.clazz('MatchingClass', 'class').build())
-      .build();
+  it('can filter node by name not containing', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2', 'com.tngtech.archunit.MatchingClass');
     const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .addMethodCall().from('com.tngtech.archunit.SomeClass2', 'startMethod()')
       .to('com.tngtech.archunit.MatchingClass', 'targetMethod()')
       .build();
-    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+    await graphUi.clickNode('com.tngtech.archunit');
 
-    const graph = initGraph(appContextWith(jsonGraph)).create();
-    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
-    const expDeps = ['com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2'];
+    await graphUi.changeNodeFilter('~*Matching*');
 
-    graph.filterNodesByName('~*Matching*');
-
-    return graph.root._updatePromise.then(() => {
-      expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-      expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
-    });
+    graphUi.expectOnlyVisibleNodes('com.tngtech.archunit', 'SomeClass1', 'SomeClass2');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
   });
 
-  it('can filter nodes by type', () => {
-    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
-      .add(nodeCreator.clazz('SomeClass1', 'class').build())
-      .add(nodeCreator.clazz('SomeClass2', 'class').build())
-      .add(nodeCreator.clazz('SomeInterface', 'interface').build())
-      .build();
+  it('can filter nodes by type', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2', 'com.tngtech.archunit.SomeInterface');
     const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .addMethodCall().from('com.tngtech.archunit.SomeClass2', 'startMethod()')
       .to('com.tngtech.archunit.SomeInterface', 'targetMethod()')
       .build();
-    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+    await graphUi.clickNode('com.tngtech.archunit');
 
-    const graph = initGraph(appContextWith(jsonGraph)).create();
-    const expNodes = ['com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2'];
-    const expDeps = ['com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2'];
+    await graphUi.filterNodesByType({showInterfaces: false, showClasses: true});
 
-    graph.filterNodesByType({showInterfaces: false, showClasses: true});
-
-    return graph.root._updatePromise.then(() => {
-      expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-      expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
-    });
+    graphUi.expectOnlyVisibleNodes('com.tngtech.archunit', 'SomeClass1', 'SomeClass2');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
   });
 
-  it('can filter dependencies by type', () => {
-    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
-      .add(nodeCreator.clazz('SomeClass1', 'class').build())
-      .add(nodeCreator.clazz('SomeClass2', 'class').build())
-      .build();
+  it('can filter dependencies by type', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
     const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .addInheritance().from('com.tngtech.archunit.SomeClass2')
       .to('com.tngtech.archunit.SomeClass1')
       .build();
-    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+    await graphUi.clickNode('com.tngtech.archunit');
 
-    const graph = initGraph(appContextWith(jsonGraph)).create();
-    const expDeps = ['com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2'];
-
-    graph.filterDependenciesByType({
+    await graphUi.filterDependenciesByType({
       INHERITANCE: false,
       CONSTRUCTOR_CALL: false,
       METHOD_CALL: true,
       FIELD_ACCESS: false
     });
 
-    return graph.root._updatePromise.then(() => expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps));
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
   });
 
-  it('transforms the dependencies if a node is folded', () => {
-    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
-      .add(nodeCreator.package('pkgToFold')
-        .add(nodeCreator.clazz('SomeClass1', 'class').build())
-        .build())
-      .add(nodeCreator.clazz('SomeClass2', 'class').build())
-      .build();
+  it('transforms the dependencies if a node is unfolded', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.pkgToUnfold.SomeClass1', 'com.tngtech.archunit.SomeClass2');
     const jsonDependencies = createDependencies()
-      .addMethodCall().from('com.tngtech.archunit.pkgToFold.SomeClass1', 'startMethod()')
+      .addMethodCall().from('com.tngtech.archunit.pkgToUnfold.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .build();
-    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+    await graphUi.clickNode('com.tngtech.archunit');
 
-    const graph = initGraph(appContextWith(jsonGraph)).create();
-    const exp = ['com.tngtech.archunit.pkgToFold-com.tngtech.archunit.SomeClass2'];
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.pkgToUnfold-com.tngtech.archunit.SomeClass2');
 
-    graph.root.getByName('com.tngtech.archunit.pkgToFold')._changeFoldIfInnerNodeAndRelayout();
+    await graphUi.clickNode('com.tngtech.archunit.pkgToUnfold');
 
-    expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(exp);
-
-    return graph.root._updatePromise;
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.pkgToUnfold.SomeClass1-com.tngtech.archunit.SomeClass2');
   });
 
-  it('updates the positions of the dependencies if a node is dragged', () => {
-    const jsonRoot = nodeCreator.package('com.tngtech.archunit')
-      .add(nodeCreator.clazz('SomeClass1', 'class').build())
-      .add(nodeCreator.clazz('SomeClass2', 'class').build())
-      .build();
+  it('updates the positions of the dependencies if a node is dragged', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
     const jsonDependencies = createDependencies()
       .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
       .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
       .build();
-    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+    await graphUi.clickNode('com.tngtech.archunit');
 
-    const graph = initGraph(appContextWith(jsonGraph)).create();
-    graph.root.getByName('com.tngtech.archunit.SomeClass1')._drag(10, 10);
-    return graph.root._updatePromise.then(() => expect(graph.dependencies._getVisibleDependencies()[0]._view.hasJumpedToPosition).to.equal(true));
+    const startGeometry = graphUi.getVisibleDependencyWithName('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2').start;
+
+    await graphUi.dragNode('com.tngtech.archunit.SomeClass1', 10, 10);
+
+    const endGeometry = graphUi.getVisibleDependencyWithName('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2').start;
+
+    expect(startGeometry.startPoint.x).to.not.be.closeTo(endGeometry.startPoint.x, 0.1);
+    expect(startGeometry.startPoint.y).to.not.be.closeTo(endGeometry.startPoint.y, 0.1);
+    expect(startGeometry.endPoint.x).to.not.be.closeTo(endGeometry.endPoint.x, 0.1);
+    expect(startGeometry.endPoint.y).to.not.be.closeTo(endGeometry.endPoint.y, 0.1);
   });
 
-  it('can change the fold-states of the nodes to show all violations', () => {
-    const jsonRoot =
-      nodeCreator.package('com.tngtech')
-        .add(nodeCreator.package('pkg1')
-          .add(nodeCreator.package('pkg2')
-            .add(nodeCreator.clazz('SomeClass2', 'class').build())
-            .build())
-          .add(nodeCreator.clazz('SomeClass1', 'class').build())
-          .build())
-        .build();
+  it('can change the fold-states of the nodes to show all violations', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.pkg1.pkg2.SomeClass2', 'com.tngtech.pkg1.SomeClass1', 'org.somepackage.NotShownClass');
     const jsonDependencies = createDependencies()
       .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass2')
       .to('com.tngtech.pkg1.SomeClass1')
       .addFieldAccess().from('com.tngtech.pkg1.SomeClass1', 'startMethod()')
       .to('com.tngtech.pkg1.pkg2.SomeClass2', 'targetField')
       .build();
-    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
-
     const violations = [{
       rule: 'rule1',
       violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
     }];
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
+    await graphUi.selectViolation(violations[0]);
 
-    const graph = realInitGraph(appContextWith(jsonGraph, violations)).create(null);
+    graphUi.expectOnlyVisibleNodes('com.tngtech.pkg1');
 
-    return graph.root._updatePromise.then(() => {
-      graph.dependencies.showViolations(violations[0]);
-      graph.unfoldNodesToShowAllViolations();
+    await graphUi.showAllViolations();
 
-      return graph.root._updatePromise.then(() => {
-        const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.SomeClass1'];
-        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-        return graph.root._updatePromise;
-      });
-    });
+    graphUi.expectOnlyVisibleNodes('pkg2', 'SomeClass1', 'com.tngtech.pkg1');
   });
 
-  it('can fold nodes with minimum depth that have no violations', () => {
-    const jsonRoot =
-      nodeCreator.package('com.tngtech')
-        .add(nodeCreator.package('pkg1')
-          .add(nodeCreator.package('pkg2')
-            .add(nodeCreator.clazz('SomeClass2', 'class').build())
-            .build())
-          .add(nodeCreator.clazz('SomeClass1', 'class').build())
-          .build())
-        .add(nodeCreator.package('pkg3')
-          .add(nodeCreator.clazz('SomeOtherClass', 'class').build())
-          .build())
-        .build();
+  it.skip('can fold nodes with minimum depth that have no violations', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.pkg1.pkg2.SomeClass2', 'com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg3.SomeOtherClass');
     const jsonDependencies = createDependencies()
       .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass2')
       .to('com.tngtech.pkg1.SomeClass1')
       .addFieldAccess().from('com.tngtech.pkg3.SomeOtherClass', 'startMethod()')
       .to('com.tngtech.pkg1.pkg2.SomeClass2', 'targetField')
       .build();
-    const jsonGraph = createGraph(jsonRoot, jsonDependencies);
-
     const violations = [{
       rule: 'rule1',
       violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
@@ -471,129 +299,89 @@ describe.skip('Graph', () => {
         rule: 'rule2',
         violations: ['<com.tngtech.pkg3.SomeOtherClass.startMethod()> FIELD_ACCESS to <com.tngtech.pkg1.pkg2.SomeClass2.targetField>']
       }];
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
+    // TODO add correct interaction and assertion here
+    await graphUi.selectViolation(violations[0]);
 
-    const graph = initGraph(appContextWith(jsonGraph, violations)).create(null, false);
-
-    return graph.root._updatePromise.then(() => {
-      graph.dependencies.showViolations(violations[0]);
-      graph.foldNodesWithMinimumDepthWithoutViolations();
-
-      return graph.root._updatePromise.then(() => {
-        const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2',
-          'com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass2',
-          'com.tngtech.pkg3'];
-        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-        return graph.root._updatePromise;
-      });
-    });
+    // TODO remove old test style
+    // return graph.root._updatePromise.then(() => {
+    //   graph.dependencies.showViolations(violations[0]);
+    //   graph.foldNodesWithMinimumDepthWithoutViolations();
+    //
+    //   return graph.root._updatePromise.then(() => {
+    //     const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2',
+    //       'com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass2',
+    //       'com.tngtech.pkg3'];
+    //     expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
+    //     return graph.root._updatePromise;
+    //   });
+    // });
   });
 
-  const jsonRootWithThreeClasses =
-    nodeCreator.package('com.tngtech')
-      .add(nodeCreator.package('pkg1')
-        .add(nodeCreator.package('pkg2')
-          .add(nodeCreator.clazz('SomeClass2', 'class').build())
-          .add(nodeCreator.clazz('SomeClass3', 'class').build())
-          .build())
-        .add(nodeCreator.clazz('SomeClass1', 'class').build())
-        .build())
+  const getJsonRootDependenciesAndViolationsForThreeClasses = () => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass2', 'com.tngtech.pkg1.pkg2.SomeClass3');
+    const jsonDependencies = createDependencies()
+      .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass2')
+      .to('com.tngtech.pkg1.SomeClass1')
+      .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass3')
+      .to('com.tngtech.pkg1.SomeClass1')
       .build();
-  const jsonDependenciesForThreeClasses = createDependencies()
-    .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass2')
-    .to('com.tngtech.pkg1.SomeClass1')
-    .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass3')
-    .to('com.tngtech.pkg1.SomeClass1')
-    .build();
-  const jsonGraphWithThreeClasses = createGraph(jsonRootWithThreeClasses, jsonDependenciesForThreeClasses);
-  const violationsForThreeClasses = [{
-    rule: 'rule1',
-    violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
-  },
-    {
+    const violations = [{
+      rule: 'rule1',
+      violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
+    }, {
       rule: 'rule2',
       violations: ['<com.tngtech.pkg1.pkg2.SomeClass3> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
     }];
 
-  it('can hide nodes that are not involved in violations and show them again', () => {
+    return {jsonRoot, jsonDependencies, violations};
+  };
 
-    const graph = initGraph(appContextWith(jsonGraphWithThreeClasses, violationsForThreeClasses)).create(null, false);
+  it('can hide nodes that are not involved in violations and show them again', async() => {
+    const {jsonRoot, jsonDependencies, violations} = getJsonRootDependenciesAndViolationsForThreeClasses();
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
+    await graphUi.selectViolation(violations[0]);
+    await graphUi.showAllViolations();
+    await graphUi.hideNodesWithoutViolationsChanged(true);
+    await graphUi.clickNode('com.tngtech.pkg1.pkg2');
 
-    return graph.root._updatePromise.then(() => {
-      graph.dependencies.showViolations(violationsForThreeClasses[0]);
-      graph.onHideNodesWithoutViolationsChanged(true);
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'pkg2', 'com.tngtech.pkg1');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1');
 
-      return graph.root._updatePromise.then(() => {
-        const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',
-          'com.tngtech.pkg1.SomeClass1'];
-        const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1'];
-        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-        expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
+    await graphUi.deselectViolation(violations[0]);
+    await graphUi.hideNodesWithoutViolationsChanged(false);
 
-        graph.onHideNodesWithoutViolationsChanged(false);
-
-        return graph.root._updatePromise.then(() => {
-          const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',
-            'com.tngtech.pkg1.pkg2.SomeClass3', 'com.tngtech.pkg1.SomeClass1'];
-          const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1',
-            'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1'];
-          expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-          expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
-
-          return graph.root._updatePromise;
-        });
-      });
-    });
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'SomeClass3', 'pkg2', 'com.tngtech.pkg1');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1');
   });
 
-  it('updates the nodes and dependencies, when the shown violation groups change and the option for hiding all ' +
-    'nodes that are not involved in violations is enabled', () => {
-    const graph = initGraph(appContextWith(jsonGraphWithThreeClasses, violationsForThreeClasses)).create(null, false);
+  it('updates the nodes and dependencies, when the shown violation groups change and the option for hiding all nodes that are not involved in violations is enabled', async() => {
+    const {jsonRoot, jsonDependencies, violations} = getJsonRootDependenciesAndViolationsForThreeClasses();
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
+    await graphUi.hideNodesWithoutViolationsChanged(true);
+    await graphUi.selectViolation(violations[0]);
+    await graphUi.showAllViolations();
+    await graphUi.clickNode('com.tngtech.pkg1.pkg2');
 
-    return graph.root._updatePromise.then(() => {
-      graph.onHideNodesWithoutViolationsChanged(true);
-      graph.showViolations(violationsForThreeClasses[0]);
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'pkg2', 'com.tngtech.pkg1');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1');
 
-      return graph.root._updatePromise.then(() => {
-        const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',
-          'com.tngtech.pkg1.SomeClass1'];
-        const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1'];
-        expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-        expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
+    await graphUi.selectViolation(violations[1]);
+    await graphUi.showAllViolations();
 
-        graph.showViolations(violationsForThreeClasses[1]);
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'SomeClass3', 'pkg2', 'com.tngtech.pkg1');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1');
 
-        return graph.root._updatePromise.then(() => {
-          const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',
-            'com.tngtech.pkg1.pkg2.SomeClass3', 'com.tngtech.pkg1.SomeClass1'];
-          const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1',
-            'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1'];
-          expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-          expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
+    await graphUi.deselectViolation(violations[0]);
+    await graphUi.showAllViolations();
 
-          graph.hideViolations(violationsForThreeClasses[0]);
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass3', 'pkg2', 'com.tngtech.pkg1');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1');
 
-          return graph.root._updatePromise.then(() => {
-            const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2',
-              'com.tngtech.pkg1.pkg2.SomeClass3', 'com.tngtech.pkg1.SomeClass1'];
-            const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1'];
-            expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-            expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
+    await graphUi.deselectViolation(violations[1]);
+    await graphUi.showAllViolations();
 
-            graph.hideViolations(violationsForThreeClasses[1]);
-
-            return graph.root._updatePromise.then(() => {
-              const expNodes = ['com.tngtech', 'com.tngtech.pkg1', 'com.tngtech.pkg1.pkg2', 'com.tngtech.pkg1.pkg2.SomeClass2',
-                'com.tngtech.pkg1.pkg2.SomeClass3', 'com.tngtech.pkg1.SomeClass1'];
-              const expDeps = ['com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1',
-                'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1'];
-              expect(graph.root.getSelfAndDescendants()).to.containExactlyNodes(expNodes);
-              expect(graph.dependencies._getVisibleDependencies()).to.haveDependencies(expDeps);
-
-              return graph.root._updatePromise;
-            });
-          });
-        });
-      });
-    });
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'SomeClass3', 'pkg2', 'com.tngtech.pkg1');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1');
   });
 });

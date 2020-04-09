@@ -279,7 +279,10 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   get isVisible() {
-    return this._isVisible && this._parent && this._parent.isVisible;
+    if (!this._parent) {
+      return this._isVisible;
+    }
+    return this._isVisible && this._parent.isVisible;
   }
 
   getAllSubSvgElementsWithId(id) {
@@ -365,13 +368,13 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   getAllVisibleSubElementsOfType(svgType) {
-    return this._subElements.filter(element => element.svgType === svgType && element._isVisible);
+    return this._subElements.filter(element => element.svgType === svgType && element.isVisible);
   }
 
   getVisibleSubElementOfType(svgType) {
-    const result = this.getAllVisibleSubElementsOfType(svgType);
+    const result = this._subElements.filter(element => element.svgType === svgType);
     if (result.length !== 1) {
-      throw new Error('the svg element must have exactly one sub element of that type')
+      throw new Error(`The svg element ${this} must have exactly one sub element of that type ${svgType}, but found ${result}`)
     }
     return result[0];
   }
