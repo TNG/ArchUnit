@@ -15,17 +15,23 @@ public class ExpectedConstructor {
     public static class Creator {
         private final Class<?> clazz;
         private final Class<?>[] params;
+        private int lineNumber;
 
         private Creator(Class<?> clazz, Class<?>[] params) {
             this.clazz = clazz;
             this.params = params;
         }
 
+        public  Creator inLine(int lineNumber) {
+            this.lineNumber = lineNumber;
+            return this;
+        }
+
         public ExpectedMessage beingAnnotatedWith(Class<? extends Annotation> annotationType) {
-            return new ExpectedMessage(String.format("Constructor <%s> is annotated with @%s in (%s.java:0)",
+            return new ExpectedMessage(String.format("Constructor <%s> is annotated with @%s in (%s.java:%d)",
                     formatMethod(clazz.getName(), JavaConstructor.CONSTRUCTOR_NAME, JavaClass.namesOf(params)),
                     annotationType.getSimpleName(),
-                    clazz.getSimpleName()));
+                    clazz.getSimpleName(), lineNumber));
         }
     }
 }

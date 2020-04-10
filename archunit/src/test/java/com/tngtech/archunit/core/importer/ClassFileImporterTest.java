@@ -156,6 +156,7 @@ import com.tngtech.archunit.core.importer.testexamples.integration.ClassCDependi
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassD;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassXDependingOnClassesABCD;
 import com.tngtech.archunit.core.importer.testexamples.integration.InterfaceOfClassX;
+import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithMultipleMethods;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithObjectVoidAndIntIntSerializableMethod;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithStringStringMethod;
 import com.tngtech.archunit.core.importer.testexamples.methodimport.ClassWithThrowingMethod;
@@ -737,6 +738,36 @@ public class ClassFileImporterTest {
                 .as("Throws types of method 'throwsExceptions'")
                 .matches(FirstCheckedException.class, SecondCheckedException.class);
         assertThat(method.getExceptionTypes()).matches(FirstCheckedException.class, SecondCheckedException.class);
+    }
+
+    @Test
+    public void imports_members_with_sourceCodeLocation() throws Exception {
+        ImportedClasses importedClasses = classesIn("testexamples/methodimport");
+        String sourceFileName = "ClassWithMultipleMethods.java";
+
+        JavaClass javaClass = importedClasses.get(ClassWithMultipleMethods.class);
+        assertThat(javaClass.getField("usage").getSourceCodeLocation())
+                .hasToString("(" + sourceFileName + ":0)");  // the byte code has no line number associated with a field
+        assertThat(javaClass.getConstructor().getSourceCodeLocation())
+                .hasToString("(" + sourceFileName + ":3)");  // auto-generated constructor seems to get line of class definition
+        assertThat(javaClass.getStaticInitializer().get().getSourceCodeLocation())
+                .hasToString("(" + sourceFileName + ":5)");  // auto-generated static initializer seems to get line of first static variable definition
+        assertThat(javaClass.getMethod("methodDefinedInLine7").getSourceCodeLocation())
+                .hasToString("(" + sourceFileName + ":7)");
+        assertThat(javaClass.getMethod("methodWithBodyStartingInLine10").getSourceCodeLocation())
+                .hasToString("(" + sourceFileName + ":10)");
+        assertThat(javaClass.getMethod("emptyMethodDefinedInLine15").getSourceCodeLocation())
+                .hasToString("(" + sourceFileName + ":15)");
+        assertThat(javaClass.getMethod("emptyMethodEndingInLine19").getSourceCodeLocation())
+                .hasToString("(" + sourceFileName + ":19)");
+
+        javaClass = importedClasses.get(ClassWithMultipleMethods.InnerClass.class);
+        assertThat(javaClass.getMethod("methodWithBodyStartingInLine24").getSourceCodeLocation())
+                .hasToString("(" + sourceFileName + ":24)");
+
+        javaClass = importedClasses.get(ClassWithMultipleMethods.InnerClass.class.getName() + "$1");
+        assertThat(javaClass.getMethod("run").getSourceCodeLocation())
+                .hasToString("(" + sourceFileName + ":27)");
     }
 
     @Test
