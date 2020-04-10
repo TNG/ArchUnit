@@ -285,7 +285,6 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   get isVisible() {
-    // return this._isVisible && this._parent && this._parent.isVisible;
     if (!this._parent) {
       return this._isVisible;
     }
