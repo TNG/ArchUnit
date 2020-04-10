@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
@@ -59,7 +58,7 @@ public abstract class JavaMember implements
         this.descriptor = checkNotNull(builder.getDescriptor());
         this.annotations = builder.getAnnotations(this);
         this.owner = checkNotNull(builder.getOwner());
-        this.sourceCodeLocation = SourceCodeLocation.of(owner);
+        this.sourceCodeLocation = SourceCodeLocation.of(owner, builder.getFirstLineNumber());
         this.modifiers = checkNotNull(builder.getModifiers());
     }
 

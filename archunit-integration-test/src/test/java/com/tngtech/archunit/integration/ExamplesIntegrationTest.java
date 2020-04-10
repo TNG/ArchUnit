@@ -911,8 +911,8 @@ class ExamplesIntegrationTest {
 
                 .ofRule("no code units that are declared in classes that reside in a package '..persistence..' "
                         + "should be annotated with @" + Secured.class.getSimpleName())
-                .by(ExpectedConstructor.of(SomeJpa.class).beingAnnotatedWith(Secured.class))
-                .by(ExpectedMethod.of(OtherJpa.class, "getEntityManager").beingAnnotatedWith(Secured.class))
+                .by(ExpectedConstructor.of(SomeJpa.class).inLine(15).beingAnnotatedWith(Secured.class))
+                .by(ExpectedMethod.of(OtherJpa.class, "getEntityManager").inLine(31).beingAnnotatedWith(Secured.class))
 
                 .toDynamicTests();
     }

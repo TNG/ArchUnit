@@ -758,8 +758,8 @@ public class GivenClassShouldTest {
         assertThat(rule).checking(importClasses(ClassWithPrivateConstructors.class))
                 .hasNoViolation();
         assertThat(rule).checking(importClasses(ClassWithPublicAndPrivateConstructor.class))
-                .hasOnlyViolations(String.format("Constructor <%s.<init>(%s)> is not private in (%s.java:0)",
-                        ClassWithPublicAndPrivateConstructor.class.getName(), String.class.getName(), getClass().getSimpleName()));
+                .hasOnlyViolations(String.format("Constructor <%s.<init>(%s)> is not private in (%s.java:%d)",
+                        ClassWithPublicAndPrivateConstructor.class.getName(), String.class.getName(), getClass().getSimpleName(), 1538));
     }
 
     @DataProvider

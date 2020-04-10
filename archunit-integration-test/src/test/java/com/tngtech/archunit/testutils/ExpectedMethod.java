@@ -16,11 +16,17 @@ public class ExpectedMethod {
         private final Class<?> clazz;
         private final String methodName;
         private final Class<?>[] params;
+        private int lineNumber;
 
         private Creator(Class<?> clazz, String methodName, Class<?>[] params) {
             this.clazz = clazz;
             this.methodName = methodName;
             this.params = params;
+        }
+
+        public Creator inLine(int lineNumber) {
+            this.lineNumber = lineNumber;
+            return this;
         }
 
         public ExpectedMessage toNotHaveRawReturnType(Class<?> type) {
@@ -37,7 +43,7 @@ public class ExpectedMethod {
 
         private ExpectedMessage method(String message) {
             String methodDescription = format("Method <%s>", formatMethod(clazz.getName(), methodName, JavaClass.namesOf(params)));
-            String sourceCodeLocation = format("(%s.java:0)", clazz.getSimpleName());
+            String sourceCodeLocation = format("(%s.java:%d)", clazz.getSimpleName(), lineNumber);
             return new ExpectedMessage(format("%s %s in %s", methodDescription, message, sourceCodeLocation));
         }
     }
