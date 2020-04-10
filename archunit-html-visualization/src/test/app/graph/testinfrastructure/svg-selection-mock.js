@@ -158,11 +158,17 @@ const SvgSelectionMock = class extends D3ElementMock {
   addChild(svgSelection) {
     this._subElements.push(svgSelection);
     svgSelection._parent = this;
+    // complementary operation to detachFromParent() some lines below
+    // (seems to be a result of implementation in _focus method in node.js)
+    // currently, it is a necessary evil to revert the _isVisible flag
+    svgSelection._isVisible = true;
   }
 
   detachFromParent() {
     this._parent._subElements.splice(this._parent._subElements.indexOf(this), 1);
     this._parent = null;
+    // on detachFromParent() a node is removed from graph, thus no longer visible
+    this._isVisible = false;
   }
 
   createTransitionWithDuration() {
@@ -279,6 +285,7 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   get isVisible() {
+    // return this._isVisible && this._parent && this._parent.isVisible;
     if (!this._parent) {
       return this._isVisible;
     }
