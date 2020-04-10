@@ -93,47 +93,12 @@ describe('Graph', () => {
     });
   });
 
-  // FIXME -> Test infrastructure
-
-  const createMethodCallDependencies = (jsonRoot, ...predicatesOrPartialNames) => {
-    const createNodePredicate = predicateOrPartialName => typeof predicateOrPartialName === 'string'
-      ? node => node.fullName.includes(predicateOrPartialName)
-      : predicateOrPartialName;
-
-    const predicates = predicatesOrPartialNames.map(({from, to}) => ({
-      fromPredicate: createNodePredicate(from),
-      toPredicate: createNodePredicate(to)
-    }));
-
-    const findMatchingEnds = (node, {fromPredicate, toPredicate}) => {
-      const matchingFrom = [];
-      const matchingTo = [];
-      const findAllMatchingEnds = node => {
-        if (fromPredicate(node)) {
-          matchingFrom.push(node);
-        }
-        if (toPredicate(node)) {
-          matchingTo.push(node)
-        }
-        node.children.forEach(findAllMatchingEnds)
-      };
-      findAllMatchingEnds(node);
-      if (matchingFrom.length !== 1 || matchingTo.length !== 1) {
-        throw new Error("from- and toPredicate must match exactly one node each")
-      }
-      return {matchingFrom: matchingFrom[0], matchingTo: matchingTo[0]};
-    };
-    const matchingEnds = predicates.map(fromAndToPredicates => findMatchingEnds(jsonRoot, fromAndToPredicates));
-
-    const creator = createDependencies();
-    matchingEnds.forEach(({matchingFrom, matchingTo}) => creator.addMethodCall().from(matchingFrom.fullName, 'startMethod()')
-      .to(matchingTo.fullName, 'targetMethod()'));
-    return creator.build();
-  };
-
   it('shows only the top level packages right after creation', async () => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass$TmpInner$TmpInner2', 'some.package.SomeClass');
-    const jsonDependencies = createMethodCallDependencies(jsonRoot, {from: node => node.fullName === 'com.tngtech.archunit.SomeClass', to: 'package.SomeClass'});
+    const jsonDependencies = createDependencies()
+      .addMethodCall().from('com.tngtech.archunit.SomeClass')
+      .to('some.package.SomeClass', 'targetMethod()')
+      .build();
 
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
 
@@ -143,12 +108,15 @@ describe('Graph', () => {
 
   it('shows children if I click on a node', async() => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2.SomeClass');
-    const jsonDependencies = createMethodCallDependencies(jsonRoot, {from: 'pkg1.SomeClass', to: 'pkg2.SomeClass'});
+    const jsonDependencies = createDependencies()
+    .addMethodCall().from('com.tngtech.archunit.pkg1.SomeClass')
+    .to('com.tngtech.archunit.pkg2.SomeClass', 'targetMethod()')
+    .build();
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
 
     await graphUi.clickNode('com.tngtech.archunit');
 
-    graphUi.expectOnlyVisibleNodes('pkg1', 'pkg2', 'com.tngtech.archunit'); // TODO check com.tngtech.archunit
+    graphUi.expectOnlyVisibleNodes('pkg1', 'pkg2', 'com.tngtech.archunit');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.pkg1-com.tngtech.archunit.pkg2');
   });
 
