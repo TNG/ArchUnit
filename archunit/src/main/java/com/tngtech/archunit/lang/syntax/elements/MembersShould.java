@@ -117,6 +117,15 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
     CONJUNCTION haveNameStartingWith(String prefix);
 
     /**
+     * Asserts that members have a name not starting with the specified prefix.
+     *
+     * @param prefix A prefix the member name should not start with
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveNameNotStartingWith(String prefix);
+
+    /**
      * Asserts that members have a name containing the specified infix.
      *
      * @param infix An infix the member name should contain
@@ -126,6 +135,15 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
     CONJUNCTION haveNameContaining(String infix);
 
     /**
+     * Asserts that members have a name not containing the specified infix.
+     *
+     * @param infix An infix the member name should not contain
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveNameNotContaining(String infix);
+
+    /**
      * Asserts that members have a name ending with the specified suffix.
      *
      * @param suffix A suffix the member name should end with
@@ -133,6 +151,15 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveNameEndingWith(String suffix);
+
+    /**
+     * Asserts that members have a name not ending with the specified suffix.
+     *
+     * @param suffix A suffix the member name should not end with
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveNameNotEndingWith(String suffix);
 
     /**
      * Asserts that members are public.

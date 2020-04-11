@@ -9,13 +9,16 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.A;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.B;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.C;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ClassWithVariousMembers;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.MetaAnnotation;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.OtherClassWithMembers;
+import com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -35,6 +38,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locationPattern;
+import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.singleLineFailureReportOf;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ALL_CODE_UNIT_DESCRIPTIONS;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ALL_CONSTRUCTOR_DESCRIPTIONS;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ALL_FIELD_DESCRIPTIONS;
@@ -169,16 +174,33 @@ public class MembersShouldTest {
                 $(codeUnits().should().haveNameStartingWith("<in"), ALL_METHOD_DESCRIPTIONS),
                 $(methods().should().haveNameStartingWith("met"), emptySet()),
                 $(constructors().should().haveNameStartingWith("c"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(members().should().haveNameNotStartingWith("fi"), ALL_FIELD_DESCRIPTIONS),
+                $(fields().should().haveNameNotStartingWith("m"), emptySet()),
+                $(codeUnits().should().haveNameNotStartingWith("<in"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(methods().should().haveNameNotStartingWith("met"), ALL_METHOD_DESCRIPTIONS),
+                $(constructors().should().haveNameNotStartingWith("c"), emptySet()),
+
                 $(members().should().haveNameContaining("B"), allMembersExcept(FIELD_B, METHOD_B)),
                 $(fields().should().haveNameContaining("A"), allFieldsExcept(FIELD_A)),
                 $(codeUnits().should().haveNameContaining("dB"), allCodeUnitsExcept(METHOD_B)),
                 $(methods().should().haveNameContaining("D"), allMethodsExcept(METHOD_D)),
                 $(constructors().should().haveNameContaining("ni"), emptySet()),
+                $(members().should().haveNameNotContaining("B"), ImmutableSet.of(FIELD_B, METHOD_B)),
+                $(fields().should().haveNameNotContaining("A"), ImmutableSet.of(FIELD_A)),
+                $(codeUnits().should().haveNameNotContaining("dB"), ImmutableSet.of(METHOD_B)),
+                $(methods().should().haveNameNotContaining("D"), ImmutableSet.of(METHOD_D)),
+                $(constructors().should().haveNameNotContaining("ni"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+
                 $(members().should().haveNameEndingWith("C"), allMembersExcept(FIELD_C, METHOD_C)),
                 $(fields().should().haveNameEndingWith("dA"), allFieldsExcept(FIELD_A)),
                 $(codeUnits().should().haveNameEndingWith("it>"), ALL_METHOD_DESCRIPTIONS),
                 $(methods().should().haveNameEndingWith("dC"), allMethodsExcept(METHOD_C)),
                 $(constructors().should().haveNameEndingWith("<in"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(members().should().haveNameNotEndingWith("C"), ImmutableSet.of(FIELD_C, METHOD_C)),
+                $(fields().should().haveNameNotEndingWith("dA"), ImmutableSet.of(FIELD_A)),
+                $(codeUnits().should().haveNameNotEndingWith("it>"), ALL_CONSTRUCTOR_DESCRIPTIONS),
+                $(methods().should().haveNameNotEndingWith("dC"), ImmutableSet.of(METHOD_C)),
+                $(constructors().should().haveNameNotEndingWith("<in"), emptySet()),
 
                 $(members().should().bePublic(), allMembersExcept(
                         FIELD_PUBLIC, METHOD_PUBLIC, CONSTRUCTOR_PUBLIC)),
@@ -461,6 +483,174 @@ public class MembersShouldTest {
 
         Set<String> actualMembers = parseMembers(result.getFailureReport().getDetails());
         assertThat(actualMembers).containsOnlyElementsOf(expectedMessages);
+    }
+
+    @DataProvider
+    public static Object[][] haveNameStartingWith_rules() {
+        return $$(
+                $(members().should().haveNameStartingWith("field"), "field", "violated"),
+                $(members().should(ArchConditions.haveNameStartingWith("field")), "field", "violated"),
+                $(fields().should().haveNameStartingWith("field"), "field", "violated"),
+                $(fields().should(ArchConditions.haveNameStartingWith("field")), "field", "violated"),
+                $(codeUnits().should().haveNameStartingWith("method"), "method", "violated"),
+                $(codeUnits().should(ArchConditions.haveNameStartingWith("method")), "method", "violated"),
+                $(methods().should().haveNameStartingWith("method"), "method", "violated"),
+                $(methods().should(ArchConditions.haveNameStartingWith("method")), "method", "violated"),
+                $(constructors().should().haveNameStartingWith("constructor"), "constructor", "<init>"),
+                $(constructors().should(ArchConditions.haveNameStartingWith("constructor")), "constructor", "<init>")
+        );
+    }
+
+    @Test
+    @UseDataProvider("haveNameStartingWith_rules")
+    public void haveNameStartingWith(ArchRule rule, String prefix, String violatingMember) {
+        EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .containsPattern(String.format(".*%s.* name does not start with '%s' in %s",
+                        quote(violatingMember),
+                        quote(prefix),
+                        locationPattern(SimpleFieldAndMethod.class)));
+    }
+
+    @DataProvider
+    public static Object[][] haveNameNotStartingWith_rules() {
+        return $$(
+                $(members().should().haveNameNotStartingWith("violated"), "violated"),
+                $(members().should(ArchConditions.haveNameNotStartingWith("violated")), "violated"),
+                $(fields().should().haveNameNotStartingWith("violated"), "violated"),
+                $(fields().should(ArchConditions.haveNameNotStartingWith("violated")), "violated"),
+                $(codeUnits().should().haveNameNotStartingWith("violated"), "violated"),
+                $(codeUnits().should(ArchConditions.haveNameNotStartingWith("violated")), "violated"),
+                $(methods().should().haveNameNotStartingWith("violated"), "violated"),
+                $(methods().should(ArchConditions.haveNameNotStartingWith("violated")), "violated"),
+                $(constructors().should().haveNameNotStartingWith("<init>"), "<init>"),
+                $(constructors().should(ArchConditions.haveNameNotStartingWith("<init>")), "<init>")
+        );
+    }
+
+    @Test
+    @UseDataProvider("haveNameNotStartingWith_rules")
+    public void haveNameNotStartingWith(ArchRule rule, String prefix) {
+        EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .containsPattern(String.format(".*%s.* name starts with '%s' in %s",
+                        quote(prefix),
+                        quote(prefix),
+                        locationPattern(SimpleFieldAndMethod.class)));
+    }
+
+    @DataProvider
+    public static Object[][] haveNameContaining_rules() {
+        return $$(
+                $(members().should().haveNameContaining("field"), "field", "violated"),
+                $(members().should(ArchConditions.haveNameContaining("field")), "field", "violated"),
+                $(fields().should().haveNameContaining("field"), "field", "violated"),
+                $(fields().should(ArchConditions.haveNameContaining("field")), "field", "violated"),
+                $(codeUnits().should().haveNameContaining("method"), "method", "violated"),
+                $(codeUnits().should(ArchConditions.haveNameContaining("method")), "method", "violated"),
+                $(methods().should().haveNameContaining("method"), "method", "violated"),
+                $(methods().should(ArchConditions.haveNameContaining("method")), "method", "violated"),
+                $(constructors().should().haveNameContaining("constructor"), "constructor", "<init>"),
+                $(constructors().should(ArchConditions.haveNameContaining("constructor")), "constructor", "<init>")
+        );
+    }
+
+    @Test
+    @UseDataProvider("haveNameContaining_rules")
+    public void haveNameContaining(ArchRule rule, String infix, String violatingMember) {
+        EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .containsPattern(String.format(".*%s.* name does not contain '%s' in %s",
+                        quote(violatingMember),
+                        quote(infix),
+                        locationPattern(SimpleFieldAndMethod.class)));
+    }
+
+    @DataProvider
+    public static Object[][] haveNameNotContaining_rules() {
+        return $$(
+                $(members().should().haveNameNotContaining("violated"), "violated"),
+                $(members().should(ArchConditions.haveNameNotContaining("violated")), "violated"),
+                $(fields().should().haveNameNotContaining("violated"), "violated"),
+                $(fields().should(ArchConditions.haveNameNotContaining("violated")), "violated"),
+                $(codeUnits().should().haveNameNotContaining("violated"), "violated"),
+                $(codeUnits().should(ArchConditions.haveNameNotContaining("violated")), "violated"),
+                $(methods().should().haveNameNotContaining("violated"), "violated"),
+                $(methods().should(ArchConditions.haveNameNotContaining("violated")), "violated"),
+                $(constructors().should().haveNameNotContaining("<init>"), "<init>"),
+                $(constructors().should(ArchConditions.haveNameNotContaining("<init>")), "<init>")
+        );
+    }
+
+    @Test
+    @UseDataProvider("haveNameNotContaining_rules")
+    public void haveNameNotContaining(ArchRule rule, String infix) {
+        EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .containsPattern(String.format(".*%s.* name contains '%s' in %s",
+                        quote(infix),
+                        quote(infix),
+                        locationPattern(SimpleFieldAndMethod.class)));
+    }
+
+    @DataProvider
+    public static Object[][] haveNameEndingWith_rules() {
+        return $$(
+                $(members().should().haveNameEndingWith("field"), "field", "violated"),
+                $(members().should(ArchConditions.haveNameEndingWith("field")), "field", "violated"),
+                $(fields().should().haveNameEndingWith("field"), "field", "violated"),
+                $(fields().should(ArchConditions.haveNameEndingWith("field")), "field", "violated"),
+                $(codeUnits().should().haveNameEndingWith("method"), "method", "violated"),
+                $(codeUnits().should(ArchConditions.haveNameEndingWith("method")), "method", "violated"),
+                $(methods().should().haveNameEndingWith("method"), "method", "violated"),
+                $(methods().should(ArchConditions.haveNameEndingWith("method")), "method", "violated"),
+                $(constructors().should().haveNameEndingWith("constructor"), "constructor", "<init>"),
+                $(constructors().should(ArchConditions.haveNameEndingWith("constructor")), "constructor", "<init>")
+        );
+    }
+
+    @Test
+    @UseDataProvider("haveNameEndingWith_rules")
+    public void haveNameEndingWith(ArchRule rule, String suffix, String violatingMember) {
+        EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .containsPattern(String.format(".*%s.* name does not end with '%s' in %s",
+                        quote(violatingMember),
+                        quote(suffix),
+                        locationPattern(SimpleFieldAndMethod.class)));
+    }
+
+    @DataProvider
+    public static Object[][] haveNameNotEndingWith_rules() {
+        return $$(
+                $(members().should().haveNameNotEndingWith("violated"), "violated"),
+                $(members().should(ArchConditions.haveNameNotEndingWith("violated")), "violated"),
+                $(fields().should().haveNameNotEndingWith("violated"), "violated"),
+                $(fields().should(ArchConditions.haveNameNotEndingWith("violated")), "violated"),
+                $(codeUnits().should().haveNameNotEndingWith("violated"), "violated"),
+                $(codeUnits().should(ArchConditions.haveNameNotEndingWith("violated")), "violated"),
+                $(methods().should().haveNameNotEndingWith("violated"), "violated"),
+                $(methods().should(ArchConditions.haveNameNotEndingWith("violated")), "violated"),
+                $(constructors().should().haveNameNotEndingWith("<init>"), "<init>"),
+                $(constructors().should(ArchConditions.haveNameNotEndingWith("<init>")), "<init>")
+        );
+    }
+
+    @Test
+    @UseDataProvider("haveNameNotEndingWith_rules")
+    public void haveNameNotEndingWith(ArchRule rule, String suffix) {
+        EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .containsPattern(String.format(".*%s.* name ends with '%s' in %s",
+                        quote(suffix),
+                        quote(suffix),
+                        locationPattern(SimpleFieldAndMethod.class)));
     }
 
     private Set<String> parseMembers(List<String> details) {
