@@ -565,6 +565,13 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
+    haveNameNotStartingWith(String prefix) {
+        final DescribedPredicate<HAS_NAME> haveNameStartingWith = have(nameStartingWith(prefix)).forSubType();
+        return not(new StartingCondition<>(haveNameStartingWith, prefix)).as("have name not starting with '%s'", prefix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameContaining(String infix) {
         final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubType();
         return new ContainingCondition<>(haveNameContaining, infix);
@@ -572,9 +579,23 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
+    haveNameNotContaining(String infix) {
+        final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubType();
+        return not(new ContainingCondition<>(haveNameContaining, infix)).as("have name not containing '%s'", infix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameEndingWith(String suffix) {
         final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubType();
         return new EndingCondition<>(haveNameEndingWith, suffix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
+    haveNameNotEndingWith(String suffix) {
+        final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubType();
+        return not(new EndingCondition<>(haveNameEndingWith, suffix)).as("have name not ending with '%s'", suffix);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1281,7 +1302,7 @@ public final class ArchConditions {
         public void check(T item, ConditionEvents events) {
             boolean satisfied = startingWith.apply(item);
             String message = createMessage(item,
-                                           String.format("%s '%s'", satisfied ? "starts with" : "does not start with", prefix));
+                    String.format("name %s '%s'", satisfied ? "starts with" : "does not start with", prefix));
             events.add(new SimpleConditionEvent(item, satisfied, message));
         }
     }
@@ -1300,7 +1321,7 @@ public final class ArchConditions {
         public void check(T item, ConditionEvents events) {
             boolean satisfied = containing.apply(item);
             String message = createMessage(item,
-                                           String.format("%s '%s'", satisfied ? "contains" : "does not contain", infix));
+                    String.format("name %s '%s'", satisfied ? "contains" : "does not contain", infix));
             events.add(new SimpleConditionEvent(item, satisfied, message));
         }
     }
@@ -1319,7 +1340,7 @@ public final class ArchConditions {
         public void check(T item, ConditionEvents events) {
             boolean satisfied = endingWith.apply(item);
             String message = createMessage(item,
-                                           String.format("%s '%s'", satisfied ? "ends with" : "does not end with", suffix));
+                    String.format("name %s '%s'", satisfied ? "ends with" : "does not end with", suffix));
             events.add(new SimpleConditionEvent(item, satisfied, message));
         }
     }

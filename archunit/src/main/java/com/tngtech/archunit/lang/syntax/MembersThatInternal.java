@@ -102,13 +102,28 @@ class MembersThatInternal<
     }
 
     @Override
+    public CONJUNCTION haveNameNotStartingWith(String prefix) {
+        return givenWith(have(not(nameStartingWith(prefix)).as("name not starting with '%s'", prefix)));
+    }
+
+    @Override
     public CONJUNCTION haveNameContaining(String infix) {
         return givenWith(have(nameContaining(infix)));
     }
 
     @Override
+    public CONJUNCTION haveNameNotContaining(String infix) {
+        return givenWith(have(not(nameContaining(infix)).as("name not containing '%s'", infix)));
+    }
+
+    @Override
     public CONJUNCTION haveNameEndingWith(String suffix) {
         return givenWith(have(nameEndingWith(suffix)));
+    }
+
+    @Override
+    public CONJUNCTION haveNameNotEndingWith(String suffix) {
+        return givenWith(have(not(nameEndingWith(suffix)).as("name not ending with '%s'", suffix)));
     }
 
     @Override

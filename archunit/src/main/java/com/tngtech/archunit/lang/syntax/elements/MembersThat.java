@@ -113,6 +113,15 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
     CONJUNCTION haveNameStartingWith(String prefix);
 
     /**
+     * Matches members with a name not starting with the specified prefix.
+     *
+     * @param prefix A prefix the member name should not start with
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveNameNotStartingWith(String prefix);
+
+    /**
      * Matches members with a name containing the specified infix.
      *
      * @param infix An infix the member name should contain
@@ -122,6 +131,15 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
     CONJUNCTION haveNameContaining(String infix);
 
     /**
+     * Matches members with a name not containing the specified infix.
+     *
+     * @param infix An infix the member name should not contain
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveNameNotContaining(String infix);
+
+    /**
      * Matches members with a name ending with the specified suffix.
      *
      * @param suffix A suffix the member name should end with
@@ -129,6 +147,15 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION haveNameEndingWith(String suffix);
+
+    /**
+     * Matches members with a name not ending with the specified suffix.
+     *
+     * @param suffix A suffix the member name should not end with
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION haveNameNotEndingWith(String suffix);
 
     /**
      * Matches public members.
