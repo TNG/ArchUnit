@@ -12,6 +12,7 @@ ext.moduleName = 'com.tngtech.archunit.example'
 
         proj.with {
             dependencies {
+                // `api` dependencies so we can access them within `archunit-integration-test`
                 api dependency.jodaTime
                 api dependency.javaxAnnotationApi
                 api dependency.springBeans
