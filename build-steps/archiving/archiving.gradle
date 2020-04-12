@@ -43,6 +43,13 @@ productionProjects*.with {
         relocate 'com.google.thirdparty', "${googleRelocationPackage}.thirdparty"
     }
     jar.enabled = false
+    // we need this, since we want to publish the shadow JAR, not the original JAR -> https://docs.gradle.org/current/userguide/upgrading_version_6.html
+    configurations {
+        [apiElements, runtimeElements].each {
+            it.outgoing.artifacts.removeIf { it.buildDependencies.getDependencies(null).contains(jar) }
+            it.outgoing.artifact(shadowJar)
+        }
+    }
 
     task finishArchive(dependsOn: shadowJar) {}
     build.dependsOn(finishArchive)
