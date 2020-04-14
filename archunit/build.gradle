@@ -89,6 +89,8 @@ task jdk9Test(type: Test) {
 
 [jar, test]*.dependsOn compileJdk9mainJava
 
+spotbugsJdk9test.enabled = false
+
 idea {
     module {
         sourceDirs += jdk9MainDirs.collect { file(it) }
