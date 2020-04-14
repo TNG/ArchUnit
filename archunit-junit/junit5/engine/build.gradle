@@ -4,19 +4,19 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    compile project(path: ':archunit')
-    compile project(path: ':archunit-junit')
-    compile project(path: ':archunit-junit5-api')
-    compile project(path: ':archunit-junit5-engine-api')
-    compile dependency.guava
-    compile dependency.slf4j
+    api project(path: ':archunit')
+    api project(path: ':archunit-junit5-api')
+    api project(path: ':archunit-junit5-engine-api')
+    implementation project(path: ':archunit-junit')
+    implementation dependency.guava
+    implementation dependency.slf4j
 
-    testCompile project(path: ':archunit', configuration: 'tests')
-    testCompile dependency.assertj
-    testCompile dependency.mockito
-    testCompile dependency.junit5JupiterApi
+    testImplementation project(path: ':archunit', configuration: 'tests')
+    testImplementation dependency.assertj
+    testImplementation dependency.mockito
+    testImplementation dependency.junit5JupiterApi
 
-    testRuntime dependency.junit5JupiterEngine
+    testRuntimeOnly dependency.junit5JupiterEngine
 }
 
 compileJava.dependsOn project(':archunit-junit5-api').finishArchive
@@ -42,7 +42,7 @@ shadowJar {
 
     dependencies {
         exclude(dependency {
-            def isApi = it.configuration == 'api'
+            def isApi = it.configuration == 'archJunitApi'
             def isUnwantedDependency = it.name != dependency.guava && it.moduleName != 'archunit-junit'
             isUnwantedDependency || isApi
         })

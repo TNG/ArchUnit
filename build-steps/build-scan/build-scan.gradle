@@ -1,5 +1,0 @@
-buildScan {
-    publishAlwaysIf(project.hasProperty('scanBuild'))
-    termsOfServiceUrl = "https://gradle.com/terms-of-service"
-    termsOfServiceAgree = "yes"
-}

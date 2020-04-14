@@ -15,14 +15,9 @@ releaseProjects*.with {
         enabled = isReleaseVersion // signing of these artifacts causes failure for snapshot versions
     }
 
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
-
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
+    java {
+        withJavadocJar()
+        withSourcesJar()
     }
 
     // If I write @see ..., I don't want to fail my build because of a missing @param :-(
@@ -34,10 +29,14 @@ releaseProjects*.with {
         }
     }
 
-    publish.dependsOn(build)
-    publish.doFirst {
-        assert !gradle.startParameter.isParallelProjectExecutionEnabled():
-                'uploading archives with parallel execution seems to lead to broken uploads in Sonatype Nexus'
+    tasks.withType(AbstractPublishToMaven) {
+        it.dependsOn(build)
+    }
+    tasks.withType(PublishToMavenRepository) {
+        it.doFirst {
+            assert !gradle.startParameter.isParallelProjectExecutionEnabled():
+                    'uploading archives with parallel execution seems to lead to broken uploads in Sonatype Nexus'
+        }
     }
 
     publishing {
@@ -45,8 +44,6 @@ releaseProjects*.with {
             mavenJava(MavenPublication) {
                 artifactId = project.archivesBaseName
                 from components.java
-                artifact tasks.sourcesJar
-                artifact tasks.javadocJar
                 pom {
                     name = app.name
                     packaging = "jar"

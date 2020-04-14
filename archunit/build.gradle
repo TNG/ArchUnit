@@ -3,18 +3,18 @@ apply plugin: 'idea'
 ext.moduleName = 'com.tngtech.archunit'
 
 dependencies {
-    compile dependency.asm
-    compile dependency.guava
-    compile dependency.slf4j
+    api dependency.slf4j
+    implementation dependency.asm
+    implementation dependency.guava
 
-    testCompile dependency.log4j_api
-    testCompile dependency.log4j_core
-    testCompile dependency.log4j_slf4j
-    testCompile dependency.junit4
-    testCompile dependency.junit_dataprovider
-    testCompile dependency.mockito
-    testCompile dependency.assertj
-    testCompile(dependency.assertj_guava) {
+    testImplementation dependency.log4j_api
+    testImplementation dependency.log4j_core
+    testImplementation dependency.log4j_slf4j
+    testImplementation dependency.junit4
+    testImplementation dependency.junit_dataprovider
+    testImplementation dependency.mockito
+    testImplementation dependency.assertj
+    testImplementation(dependency.assertj_guava) {
         exclude module: 'assertj-core'
         exclude module: 'guava'
     }
@@ -63,11 +63,11 @@ sourceSets {
 }
 
 dependencies {
-    jdk9mainCompile sourceSets.main.output
-    jdk9testCompile sourceSets.test.output
-    jdk9testCompile sourceSets.jdk9main.output
+    jdk9mainImplementation sourceSets.main.output
+    jdk9testImplementation sourceSets.test.output
+    jdk9testImplementation sourceSets.jdk9main.output
 
-    runtime sourceSets.jdk9main.output
+    runtimeOnly sourceSets.jdk9main.output
 }
 
 compileJdk9mainJava.with {

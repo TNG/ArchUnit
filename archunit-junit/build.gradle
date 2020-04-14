@@ -1,51 +1,51 @@
 ext.moduleName = 'com.tngtech.archunit.junit'
 
 configurations {
-    api
-    compile.extendsFrom api
-    testCompile.extendsFrom api
+    archJunitApi
+    api.extendsFrom archJunitApi
 }
 
 sourceSets {
-    api {
+    archJunitApi {
         java {
             srcDirs = ['src/api/java']
         }
-        compileClasspath = configurations.api
+        compileClasspath = configurations.archJunitApi
     }
 }
 
 dependencies {
-    compileOnly sourceSets.api.output
-    testCompile sourceSets.api.output
+    compileOnly sourceSets.archJunitApi.output
+    testImplementation sourceSets.archJunitApi.output
 }
 
 task apiJar(type: Jar) {
-    archiveName = jar.archiveName.replace(project.name, "${project.name}-api")
-    from sourceSets.api.output
+    archiveFileName = jar.archiveFileName.get().replace(project.name, "${project.name}-api")
+    from sourceSets.archJunitApi.output
 }
 build.dependsOn apiJar
 
 artifacts {
-    api apiJar
+    archJunitApi apiJar
 }
 
 dependencies {
-    api project(path: ':archunit', configuration: 'shadow')
-    compile project(path: ':archunit', configuration: 'shadow')
-    compile dependency.guava
-    compile dependency.slf4j
+    archJunitApi project(path: ':archunit', configuration: 'shadow')
+    implementation dependency.guava
+    implementation dependency.slf4j
 
-    testCompile dependency.log4j_api
-    testCompile dependency.log4j_core
-    testCompile dependency.log4j_slf4j
-    testCompile dependency.mockito
-    testCompile dependency.assertj
-    testCompile(dependency.assertj_guava) {
+    testImplementation dependency.log4j_api
+    testImplementation dependency.log4j_core
+    testImplementation dependency.log4j_slf4j
+    testImplementation dependency.junit4
+    testImplementation dependency.junit_dataprovider
+    testImplementation dependency.mockito
+    testImplementation dependency.assertj
+    testImplementation(dependency.assertj_guava) {
         exclude module: 'assertj-core'
         exclude module: 'guava'
     }
-    testCompile project(path: ':archunit', configuration: 'tests')
+    testImplementation project(path: ':archunit', configuration: 'tests')
 }
 
 addTestJarTo this
@@ -64,13 +64,14 @@ def addCleanThirdPartyTask = {
     tasks.create(name: 'removeDuplicateThirdParty', type: Jar, dependsOn: shadowJar) {
         exclude "${thirdPartyRelocationPackage.replace('.', '/')}/**"
 
-        File tempPath = tempJar(jar.archivePath)
-        from zipTree(shadowJar.archivePath)
-        archiveName tempPath.name
+        File tempPath = tempJar(jar.archiveFile.get().getAsFile())
+        File jarPath = shadowJar.archiveFile.get().getAsFile()
+        from zipTree(jarPath)
+        archiveFileName = tempPath.name
 
         doLast {
-            assert shadowJar.archivePath.delete()
-            assert tempPath.renameTo(shadowJar.archivePath)
+            assert jarPath.delete()
+            assert tempPath.renameTo(jarPath)
         }
     }
     finishArchive.dependsOn removeDuplicateThirdParty

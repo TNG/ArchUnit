@@ -23,7 +23,7 @@ ArchUnit can be obtained from Maven Central.
 #### Gradle
 ```groovy
 dependencies {
-    testCompile 'com.tngtech.archunit:archunit:0.13.1'
+    testImplementation 'com.tngtech.archunit:archunit:0.13.1'
 }
 ```
 

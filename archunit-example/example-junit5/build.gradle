@@ -4,12 +4,12 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    testCompile project(path: ':archunit-junit5')
-    testCompile project(path: ':archunit-example:example-plain')
+    testImplementation project(path: ':archunit-junit5')
+    testImplementation project(path: ':archunit-example:example-plain')
 
-    testRuntime dependency.log4j_api
-    testRuntime dependency.log4j_core
-    testRuntime dependency.log4j_slf4j
+    testRuntimeOnly dependency.log4j_api
+    testRuntimeOnly dependency.log4j_core
+    testRuntimeOnly dependency.log4j_slf4j
 }
 
 test {

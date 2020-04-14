@@ -4,18 +4,18 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    compile project(path: ':archunit')
-    compile dependency.guava
-    compile dependency.slf4j
-    compile dependency.junitPlatformEngine
+    api dependency.junitPlatformEngine
+    implementation project(path: ':archunit')
+    implementation dependency.guava
+    implementation dependency.slf4j
 
-    testCompile project(path: ':archunit-junit5-api')
-    testCompile project(path: ':archunit', configuration: 'tests')
-    testCompile dependency.assertj
-    testCompile dependency.mockito
-    testCompile dependency.junit5JupiterApi
+    testImplementation project(path: ':archunit-junit5-api')
+    testImplementation project(path: ':archunit', configuration: 'tests')
+    testImplementation dependency.assertj
+    testImplementation dependency.mockito
+    testImplementation dependency.junit5JupiterApi
 
-    testRuntime dependency.junit5JupiterEngine
+    testRuntimeOnly dependency.junit5JupiterEngine
 }
 
 compileJava.dependsOn project(':archunit-junit5-api').finishArchive
