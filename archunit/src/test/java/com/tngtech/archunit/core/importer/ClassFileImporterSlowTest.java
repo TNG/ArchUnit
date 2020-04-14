@@ -19,6 +19,7 @@ import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTest.jarFileOf;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
 
@@ -33,10 +34,24 @@ public class ClassFileImporterSlowTest {
 
         assertThatClasses(classes).contain(ClassFileImporter.class, getClass());
         assertThatClasses(classes).doNotContain(Rule.class); // Default does not import jars
+        assertThatClasses(classes).doNotContain(File.class); // Default does not import JDK classes
 
-        classes = importJavaBase();
+        classes = new ClassFileImporter().importClasspath(new ImportOptions().with(new ImportOption() {
+            @Override
+            public boolean includes(Location location) {
+                return !location.asURI().getScheme().equals("jrt") || location.contains("java.base");
+            }
+        }));
 
-        assertThatClasses(classes).contain(ClassFileImporter.class, getClass(), Rule.class);
+        assertThatClasses(classes).contain(ClassFileImporter.class, getClass(), Rule.class, File.class);
+    }
+
+    @Test
+    public void respects_ImportOptions_when_using_the_default_importClasspath_method() {
+        JavaClasses classes = new ClassFileImporter().withImportOption(DO_NOT_INCLUDE_TESTS).importClasspath();
+
+        assertThatClasses(classes).contain(ClassFileImporter.class);
+        assertThatClasses(classes).doNotContain(getClass(), Rule.class, String.class);
     }
 
     @Test
@@ -109,8 +124,7 @@ public class ClassFileImporterSlowTest {
         return new ClassFileImporter().importClasspath(new ImportOptions().with(new ImportOption() {
             @Override
             public boolean includes(Location location) {
-                return !location.asURI().getScheme().equals("jrt") ||
-                        location.contains("java.base"); // Only import the base jdk classes
+                return location.asURI().getScheme().equals("jrt") && location.contains("java.base");
             }
         }));
     }

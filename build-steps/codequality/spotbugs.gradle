@@ -4,9 +4,8 @@ productionProjects*.with {
     apply plugin: 'com.github.spotbugs'
 
     spotbugs {
-        toolVersion = '3.1.8'
+        toolVersion = '4.0.1'
 
-        sourceSets = [sourceSets.main]
         excludeFilter = new File(scriptRoot, 'spotbugs-excludes.xml')
     }
 
@@ -16,4 +15,6 @@ productionProjects*.with {
             html.enabled true
         }
     }
+
+    spotbugsTest.enabled = false
 }
