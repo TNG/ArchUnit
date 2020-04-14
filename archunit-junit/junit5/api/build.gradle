@@ -4,16 +4,16 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    compile project(path: ':archunit')
-    compile project(path: ':archunit-junit', configuration: 'api')
-    compile dependency.junitPlatformCommons
+    api project(path: ':archunit')
+    api project(path: ':archunit-junit', configuration: 'archJunitApi')
+    api dependency.junitPlatformCommons
 }
 
 javadoc {
-    source(project(':archunit-junit').sourceSets.api.allJava)
+    source(project(':archunit-junit').sourceSets.archJunitApi.allJava)
 }
 sourcesJar {
-    from project(':archunit-junit').sourceSets.api.allSource
+    from project(':archunit-junit').sourceSets.archJunitApi.allSource
 }
 
 shadowJar {

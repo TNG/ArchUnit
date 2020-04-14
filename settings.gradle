@@ -1,3 +1,7 @@
+plugins {
+    id "com.gradle.enterprise" version "3.1.1"
+}
+
 include 'archunit', 'archunit-example', 'archunit-integration-test',
         'archunit-junit', 'archunit-junit4', 'archunit-junit5-api','archunit-junit5-engine-api','archunit-junit5-engine', 'archunit-junit5',
         'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5'
@@ -7,3 +11,10 @@ project(':archunit-junit5-api').projectDir = file('archunit-junit/junit5/api')
 project(':archunit-junit5-engine-api').projectDir = file('archunit-junit/junit5/engine-api')
 project(':archunit-junit5-engine').projectDir = file('archunit-junit/junit5/engine')
 project(':archunit-junit5').projectDir = file('archunit-junit/junit5/aggregator')
+
+gradleEnterprise {
+    buildScan {
+        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+        termsOfServiceAgree = "yes"
+    }
+}

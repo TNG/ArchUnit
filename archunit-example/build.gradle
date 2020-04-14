@@ -12,14 +12,15 @@ ext.moduleName = 'com.tngtech.archunit.example'
 
         proj.with {
             dependencies {
-                compile dependency.jodaTime
-                compile dependency.javaxAnnotationApi
-                compile dependency.springBeans
-                compile dependency.guice
-                compile dependency.geronimoEjb
-                compile dependency.geronimoJpa
+                // `api` dependencies so we can access them within `archunit-integration-test`
+                api dependency.jodaTime
+                api dependency.javaxAnnotationApi
+                api dependency.springBeans
+                api dependency.guice
+                api dependency.geronimoEjb
+                api dependency.geronimoJpa
 
-                testCompile project(path: ':archunit')
+                testImplementation project(path: ':archunit')
             }
         }
 }

@@ -1,11 +1,11 @@
 ext.moduleName = 'com.tngtech.archunit.example.plain'
 
 dependencies {
-    testCompile project(path: ':archunit')
+    testImplementation project(path: ':archunit')
 
     // we still use JUnit 4 as the test runner, but we don't use JUnit 4 support within this project
     // so tests could well be run using TestNG, etc.
-    testCompile dependency.junit4
+    testImplementation dependency.junit4
 }
 
 test {

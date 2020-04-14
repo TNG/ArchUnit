@@ -1,7 +1,6 @@
 plugins {
-    id 'com.gradle.build-scan' version '3.1.1'
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
-    id 'com.github.spotbugs' version '4.0.5'
+    id 'com.github.johnrengelman.shadow' version '5.2.0' apply false
+    id 'com.github.spotbugs' version '4.0.5' apply false
 }
 
 def appAndSourceUrl = 'https://github.com/TNG/ArchUnit'
@@ -96,7 +95,7 @@ ext {
             }
 
             task testJar(type: Jar) {
-                classifier = 'tests'
+                archiveClassifier = 'tests'
                 from sourceSets.test.output
             }
 
@@ -143,7 +142,7 @@ task clean {
 }
 
 subprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     description createModuleDescription(rootProject.description, project)
 
