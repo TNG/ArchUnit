@@ -320,6 +320,7 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitLineNumber(int line, Label start) {
             LOG.trace("Examining line number {}", line);
+            codeUnitBuilder.recordLineNumber(line);
             actualLineNumber = line;
             accessHandler.setLineNumber(actualLineNumber);
         }
