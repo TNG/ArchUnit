@@ -118,6 +118,7 @@ public final class DomainBuilders {
         private Set<JavaModifier> modifiers;
         private JavaClass owner;
         private ClassesByTypeName importedClasses;
+        private int firstLineNumber;
 
         private JavaMemberBuilder() {
         }
@@ -140,6 +141,10 @@ public final class DomainBuilders {
         SELF withModifiers(Set<JavaModifier> modifiers) {
             this.modifiers = modifiers;
             return self();
+        }
+
+        void recordLineNumber(int lineNumber) {
+            this.firstLineNumber = this.firstLineNumber == 0 ? lineNumber : Math.min(this.firstLineNumber, lineNumber);
         }
 
         @SuppressWarnings("unchecked")
@@ -176,6 +181,10 @@ public final class DomainBuilders {
 
         public JavaClass getOwner() {
             return owner;
+        }
+
+        public int getFirstLineNumber() {
+            return firstLineNumber;
         }
 
         @Override

@@ -44,11 +44,11 @@ public class MembersShouldConjunctionTest {
                         RightOne.class.getName(), RightTwo.class.getName()));
         assertThat(report.getDetails()).containsOnly(
                 String.format("%s and %s",
-                        isNotDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, RightOne.class),
-                        isNotDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, RightTwo.class)),
+                        isNotDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, RightOne.class, 111),
+                        isNotDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, RightTwo.class, 111)),
                 String.format("%s and %s",
-                        isNotDeclaredInMessage(WrongOne.class, "wrongMethod1", RightOne.class),
-                        isNotDeclaredInMessage(WrongOne.class, "wrongMethod1", RightTwo.class)));
+                        isNotDeclaredInMessage(WrongOne.class, "wrongMethod1", RightOne.class, 113),
+                        isNotDeclaredInMessage(WrongOne.class, "wrongMethod1", RightTwo.class, 113)));
     }
 
     @DataProvider
@@ -75,24 +75,24 @@ public class MembersShouldConjunctionTest {
                         "members should not be declared in %s and should not be declared in %s",
                         WrongOne.class.getName(), WrongTwo.class.getName()));
         assertThat(report.getDetails()).containsOnly(
-                isDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME),
-                isDeclaredInMessage(WrongOne.class, "wrongMethod1"),
-                isDeclaredInMessage(WrongTwo.class, CONSTRUCTOR_NAME),
-                isDeclaredInMessage(WrongTwo.class, "wrongMethod2"));
+                isDeclaredInMessage(WrongOne.class, CONSTRUCTOR_NAME, 111),
+                isDeclaredInMessage(WrongOne.class, "wrongMethod1", 113),
+                isDeclaredInMessage(WrongTwo.class, CONSTRUCTOR_NAME, 117),
+                isDeclaredInMessage(WrongTwo.class, "wrongMethod2", 119));
     }
 
-    private String isDeclaredInMessage(Class<?> clazz, String methodName) {
-        return message(clazz, methodName, "", clazz);
+    private String isDeclaredInMessage(Class<?> clazz, String methodName, int lineNumber) {
+        return message(clazz, methodName, "", clazz, lineNumber);
     }
 
-    private String isNotDeclaredInMessage(Class<?> clazz, String methodName, Class<?> expectedTarget) {
-        return message(clazz, methodName, "not ", expectedTarget);
+    private String isNotDeclaredInMessage(Class<?> clazz, String methodName, Class<?> expectedTarget, int lineNumber) {
+        return message(clazz, methodName, "not ", expectedTarget, lineNumber);
     }
 
-    private String message(Class<?> clazz, String methodName, String optionalNot, Class<?> expectedTarget) {
-        return String.format("%s <%s.%s()> is %sdeclared in %s in (%s.java:0)",
+    private String message(Class<?> clazz, String methodName, String optionalNot, Class<?> expectedTarget, int lineNumber) {
+        return String.format("%s <%s.%s()> is %sdeclared in %s in (%s.java:%d)",
                 CONSTRUCTOR_NAME.equals(methodName) ? "Constructor" : "Method",
-                clazz.getName(), methodName, optionalNot, expectedTarget.getName(), getClass().getSimpleName());
+                clazz.getName(), methodName, optionalNot, expectedTarget.getName(), getClass().getSimpleName(), lineNumber);
     }
 
     @SuppressWarnings("unused")
