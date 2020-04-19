@@ -1,5 +1,7 @@
 package com.tngtech.archunit.base;
 
+import java.util.Collections;
+
 import com.google.common.collect.ImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -14,6 +16,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.doesNot;
+import static com.tngtech.archunit.base.DescribedPredicate.empty;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.greaterThan;
 import static com.tngtech.archunit.base.DescribedPredicate.greaterThanOrEqualTo;
@@ -179,6 +182,16 @@ public class DescribedPredicateTest {
         assertThat(equalTo(5).onResultOf(constant(4))).rejects(new Object());
         assertThat(equalTo(5).onResultOf(constant(5))).accepts(new Object());
         assertThat(equalTo(5).onResultOf(constant(6))).rejects(new Object());
+    }
+
+    @Test
+    public void empty_works() {
+        assertThat(empty())
+                .hasDescription("empty")
+                .accepts(Collections.emptyList())
+                .accepts(Collections.emptySet())
+                .rejects(ImmutableList.of(1))
+                .rejects(Collections.singleton(""));
     }
 
     @Test
