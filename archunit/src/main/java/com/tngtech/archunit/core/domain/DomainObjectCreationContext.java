@@ -45,7 +45,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeVariableBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 
 /**
@@ -148,11 +148,15 @@ public class DomainObjectCreationContext {
         return ThrowsClause.from(codeUnit, types);
     }
 
-    public static JavaTypeVariable createTypeVariable(JavaTypeVariableBuilder builder) {
-        return new JavaTypeVariable(builder);
+    public static JavaTypeVariable createTypeVariable(String name, JavaClass erasure) {
+        return new JavaTypeVariable(name, erasure);
     }
 
-    public static JavaWildcardType createWildcardType(DomainBuilders.JavaWildcardTypeBuilder builder) {
+    public static void completeTypeVariable(JavaTypeVariable variable, List<JavaType> upperBounds) {
+        variable.setUpperBounds(upperBounds);
+    }
+
+    public static JavaWildcardType createWildcardType(JavaWildcardTypeBuilder builder) {
         return new JavaWildcardType(builder);
     }
 

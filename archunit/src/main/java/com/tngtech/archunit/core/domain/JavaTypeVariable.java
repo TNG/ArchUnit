@@ -21,12 +21,12 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasUpperBounds;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeVariableBuilder;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static java.util.Collections.emptyList;
 
 /**
  * Represents a type variable used by generic types and members.<br>
@@ -43,13 +43,17 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 @PublicAPI(usage = ACCESS)
 public final class JavaTypeVariable implements JavaType, HasUpperBounds {
     private final String name;
-    private final List<JavaType> upperBounds;
-    private final JavaClass erasure;
+    private List<JavaType> upperBounds = emptyList();
+    private JavaClass erasure;
 
-    JavaTypeVariable(JavaTypeVariableBuilder builder) {
-        name = builder.getName();
-        upperBounds = builder.getUpperBounds();
-        erasure = builder.getUnboundErasureType(upperBounds);
+    JavaTypeVariable(String name, JavaClass erasure) {
+        this.name = name;
+        this.erasure = erasure;
+    }
+
+    void setUpperBounds(List<JavaType> upperBounds) {
+        this.upperBounds = upperBounds;
+        erasure = upperBounds.isEmpty() ? erasure : upperBounds.get(0).toErasure();
     }
 
     /**

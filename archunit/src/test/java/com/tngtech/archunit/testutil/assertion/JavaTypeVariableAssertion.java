@@ -188,6 +188,36 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         }
     }
 
+    public static class ExpectedConcreteTypeVariable implements ExpectedConcreteType {
+        private final String name;
+        private List<ExpectedConcreteType> upperBounds;
+
+        private ExpectedConcreteTypeVariable(String name) {
+            this.name = name;
+        }
+
+        public ExpectedConcreteTypeVariable withUpperBounds(Class<?>... bounds) {
+            upperBounds = ImmutableList.copyOf(ExpectedConcreteParameterizedType.wrap(bounds));
+            return this;
+        }
+
+        @Override
+        public void assertMatchWith(JavaType actual, DescriptionContext context) {
+            assertThat(actual).as(context.step("JavaType").toString()).isInstanceOf(JavaTypeVariable.class);
+            JavaTypeVariable actualTypeVariable = (JavaTypeVariable) actual;
+            assertThat(actualTypeVariable.getName()).as(context.step("type variable name").toString()).isEqualTo(name);
+
+            if (upperBounds != null) {
+                DescriptionContext newContext = context.describe(actual.getName()).step("bounds").metaInfo().describeUpperBounds();
+                assertConcreteTypesMatch(newContext, actualTypeVariable.getUpperBounds(), upperBounds);
+            }
+        }
+
+        public static ExpectedConcreteTypeVariable typeVariable(String name) {
+            return new ExpectedConcreteTypeVariable(name);
+        }
+    }
+
     private static class DescriptionContext {
         private static final String MARKER = "##MARKER##";
         private static final String PLACEHOLDER = "_";
@@ -198,7 +228,7 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         private final String joinString;
 
         DescriptionContext(String context) {
-            this(context + MARKER, "assertion", "object", ", ");
+            this(context + MARKER, "assertion", "", ", ");
         }
 
         private DescriptionContext(String context, String description, String currentElement, String joinString) {
@@ -223,7 +253,8 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         }
 
         public DescriptionContext describeElements(int number) {
-            return new DescriptionContext(context.replace(MARKER, joinedPlaceHolders(number)), description, currentElement, joinString);
+            String elementsPlaceHolder = number > 0 ? joinedPlaceHolders(number) : "[]";
+            return new DescriptionContext(context.replace(MARKER, elementsPlaceHolder), description, currentElement, joinString);
         }
 
         public DescriptionContext describeElement(int index, int totalSize) {
@@ -243,6 +274,11 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
             return new DescriptionContext(context, description, currentElement, joinString);
         }
 
+        public DescriptionContext metaInfo() {
+            String newContext = context.replace(MARKER, "{" + MARKER + "}");
+            return new DescriptionContext(newContext, description, currentElement, joinString);
+        }
+
         public DescriptionContext describeTypeParameters() {
             String newContext = context.replace(MARKER, "<" + MARKER + ">");
             String newJoinString = ", ";
@@ -251,7 +287,8 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
 
         @Override
         public String toString() {
-            return "\"" + description + "\"[" + currentElement + "] -> " + context.replace(MARKER, "");
+            String currentElementInfix = currentElement.isEmpty() ? "" : "[" + currentElement + "]";
+            return "\"" + description + "\"" + currentElementInfix + " -> " + context.replace(MARKER, "");
         }
     }
 }
