@@ -35,7 +35,7 @@ const init = (transitionDuration, svg, document, window) => {
     }
 
     render(halfWidth, halfHeight) {
-      this.renderSizeIfNecessary(halfWidth, halfHeight);
+      this._renderSizeIfNecessary(halfWidth, halfHeight);
       this._translater.translate(this._toAbsoluteCoordinates({
         relativeX: halfWidth,
         relativeY: halfHeight
@@ -43,7 +43,7 @@ const init = (transitionDuration, svg, document, window) => {
     }
 
     renderWithTransition(halfWidth, halfHeight) {
-      this.renderSizeIfNecessary(halfWidth, halfHeight);
+      this._renderSizeIfNecessary(halfWidth, halfHeight);
       return this._translater.createTransitionWithDuration(transitionDuration)
         .step(element => element.translate(this._toAbsoluteCoordinates(
           {
@@ -53,8 +53,7 @@ const init = (transitionDuration, svg, document, window) => {
         .finish();
     }
 
-    //TODO: test this
-    renderSizeIfNecessary(halfWidth, halfHeight) {
+    _renderSizeIfNecessary(halfWidth, halfHeight) {
       const calcRequiredSize = halfSize => parseInt(2 * halfSize + 4);
       const calcExpandedSize = halfSize => parseInt(2 * halfSize + 4);
       const getNewSize = (windowSize, requiredSize, maxSize) => requiredSize < windowSize ? windowSize : maxSize;

@@ -125,10 +125,21 @@ describe('Graph', () => {
     const jsonDependencies = [];
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
 
-    await graphUi.dragNode('org', 1000, 200);
+    await graphUi.dragNode('org', 1000, 1000);
 
     expect(graphUi._graph._view._svgContainerDivSelection.scrollLeft).to.be.above(909.9);
-    expect(graphUi._graph._view._svgContainerDivSelection.scrollTop).to.be.above(109.9);
+    expect(graphUi._graph._view._svgContainerDivSelection.scrollTop).to.be.above(909.9);
+  });
+
+  it('resizes the graph if a node is dragged out of window size', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass', 'org.SomeClass');
+    const jsonDependencies = [];
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+
+    await graphUi.dragNode('org', 1000, 1000);
+
+    expect(graphUi._graph._view.svgElement.width).to.be.above(700);
+    expect(graphUi._graph._view.svgElement.height).to.be.above(700);
   });
 
   it('can filter node by name containing', async() => {
