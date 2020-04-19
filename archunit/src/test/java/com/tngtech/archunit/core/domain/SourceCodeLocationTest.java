@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -13,14 +12,9 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 public class SourceCodeLocationTest {
 
+    // We need this to create a JavaClass without source, i.e. a stub because the class is missing and cannot be resolved
     @Rule
-    public final ArchConfigurationRule configuration = new ArchConfigurationRule();
-
-    @Before
-    public void setUp() {
-        // We need this to create a JavaClass without source, i.e. a stub because the class is missing and cannot be resolved
-        configuration.resolveAdditionalDependenciesFromClassPath(false);
-    }
+    public final ArchConfigurationRule configuration = new ArchConfigurationRule().resolveAdditionalDependenciesFromClassPath(false);
 
     @Test
     public void format_location() {

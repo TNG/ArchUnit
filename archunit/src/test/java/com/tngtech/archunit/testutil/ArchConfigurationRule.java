@@ -4,7 +4,7 @@ import com.tngtech.archunit.ArchConfiguration;
 import org.junit.rules.ExternalResource;
 
 public class ArchConfigurationRule extends ExternalResource {
-    private boolean resolveMissingDependenciesFromClassPath;
+    private boolean resolveMissingDependenciesFromClassPath = ArchConfiguration.get().resolveMissingDependenciesFromClassPath();
 
     public ArchConfigurationRule resolveAdditionalDependenciesFromClassPath(boolean enabled) {
         resolveMissingDependenciesFromClassPath = enabled;
