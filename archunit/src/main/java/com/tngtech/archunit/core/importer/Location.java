@@ -31,10 +31,14 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
@@ -62,6 +66,14 @@ public abstract class Location {
     static {
         ImportPlugin.Loader.loadForCurrentPlatform().plugInLocationFactories(factories);
     }
+
+    private static final Cache<NormalizedUri, Iterable<NormalizedResourceName>> ENTRY_CACHE = CacheBuilder.newBuilder().build();
+    private final Callable<Iterable<NormalizedResourceName>> readResourceEntries = new Callable<Iterable<NormalizedResourceName>>() {
+        @Override
+        public Iterable<NormalizedResourceName> call() {
+            return iterateEntriesInternal();
+        }
+    };
 
     final NormalizedUri uri;
 
@@ -133,6 +145,19 @@ public abstract class Location {
                 uri, getClass().getSimpleName(), scheme, uri.getScheme());
     }
 
+    /**
+     * @return An iterable containing all class file names under this location, e.g. relative file names, Jar entry names, ...
+     */
+    final Iterable<NormalizedResourceName> iterateEntries() {
+        try {
+            return ENTRY_CACHE.get(uri, readResourceEntries);
+        } catch (ExecutionException e) {
+            throw new LocationException(e);
+        }
+    }
+
+    abstract Iterable<NormalizedResourceName> iterateEntriesInternal();
+
     @Override
     public int hashCode() {
         return Objects.hash(uri);
@@ -188,11 +213,6 @@ public abstract class Location {
             throw new LocationException(e);
         }
     }
-
-    /**
-     * @return An iterable containing all class file names under this location, e.g. relative file names, Jar entry names, ...
-     */
-    abstract Iterable<NormalizedResourceName> iterateEntries();
 
     interface Factory {
         boolean supports(String scheme);
@@ -270,7 +290,7 @@ public abstract class Location {
         }
 
         @Override
-        Iterable<NormalizedResourceName> iterateEntries() {
+        Iterable<NormalizedResourceName> iterateEntriesInternal() {
             File file = getFileOfJar();
             if (!file.exists()) {
                 return emptySet();
@@ -341,7 +361,7 @@ public abstract class Location {
         }
 
         @Override
-        Iterable<NormalizedResourceName> iterateEntries() {
+        Iterable<NormalizedResourceName> iterateEntriesInternal() {
             try {
                 return getAllFilesBeneath(uri);
             } catch (IOException e) {
