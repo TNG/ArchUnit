@@ -412,7 +412,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         void onNewClass(String className, Optional<String> superClassName, Set<String> interfaceNames);
 
-        void onDeclaredTypeParameters(List<DomainBuilders.JavaTypeVariableBuilder> typeVariableBuilders);
+        void onDeclaredTypeParameters(DomainBuilders.TypeParametersBuilder typeParametersBuilder);
 
         void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder);
 

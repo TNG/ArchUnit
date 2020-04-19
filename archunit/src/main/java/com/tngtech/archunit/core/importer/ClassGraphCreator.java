@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
@@ -52,6 +51,7 @@ import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.google.common.collect.Iterables.concat;
@@ -264,11 +264,8 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public List<JavaTypeVariable> createTypeParameters(JavaClass owner) {
-        ImmutableList.Builder<JavaTypeVariable> result = ImmutableList.builder();
-        for (DomainBuilders.JavaTypeVariableBuilder builder : importRecord.getTypeParameterBuildersFor(owner.getName())) {
-            result.add(builder.build(classes.byTypeName()));
-        }
-        return result.build();
+        TypeParametersBuilder typeParametersBuilder = importRecord.getTypeParameterBuildersFor(owner.getName());
+        return typeParametersBuilder.build(classes.byTypeName());
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.ExpectedConcreteTypeVariable.typeVariable;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.ExpectedConcreteWildcardType.wildcardType;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.parameterizedType;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -296,6 +297,35 @@ public class ClassFileImporterGenericClassesTest {
                                         wildcardType(),
                                         wildcardType()
                                 ));
+    }
+
+    @Test
+    public void imports_type_variable_bound_by_other_type_variable() {
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameterWithTypeVariableBound<U extends T, T extends String, V extends T> {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithTypeParameterWithTypeVariableBound.class);
+
+        JavaClass javaClass = classes.get(ClassWithTypeParameterWithTypeVariableBound.class);
+
+        assertThatType(javaClass)
+                .hasTypeParameter("U").withBoundsMatching(typeVariable("T"));
+    }
+
+    @Test
+    public void references_type_variable_bound() {
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameterWithTypeVariableBound<U extends T, T extends String, V extends T> {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithTypeParameterWithTypeVariableBound.class, String.class);
+
+        JavaClass javaClass = classes.get(ClassWithTypeParameterWithTypeVariableBound.class);
+
+        assertThatType(javaClass)
+                .hasTypeParameter("U").withBoundsMatching(typeVariable("T").withUpperBounds(String.class))
+                .hasTypeParameter("V").withBoundsMatching(typeVariable("T").withUpperBounds(String.class));
     }
 
     @SuppressWarnings("unused")
