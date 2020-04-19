@@ -97,6 +97,11 @@ class JavaGenericTypeImporter {
                             public void visitClassType(String internalObjectName) {
                                 javaWildcardTypeBuilder.addUpperBound(newParameterizedTypeCreationProcess(internalObjectName));
                             }
+
+                            @Override
+                            public void visitTypeVariable(String name) {
+                                javaWildcardTypeBuilder.addUpperBound(new ReferenceCreationProcess(name));
+                            }
                         };
                     }
                     if (wildcard == '-') {
@@ -105,6 +110,11 @@ class JavaGenericTypeImporter {
                             @Override
                             public void visitClassType(String internalObjectName) {
                                 javaWildcardTypeBuilder.addLowerBound(newParameterizedTypeCreationProcess(internalObjectName));
+                            }
+
+                            @Override
+                            public void visitTypeVariable(String name) {
+                                javaWildcardTypeBuilder.addLowerBound(new ReferenceCreationProcess(name));
                             }
                         };
                     }
