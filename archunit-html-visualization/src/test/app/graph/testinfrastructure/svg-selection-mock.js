@@ -508,11 +508,11 @@ const RootSvgMock = class extends SvgSelectionMock {
 const DivSelectionMock = class extends D3ElementMock {
 
   get scrollLeft() {
-    return this._attributes.get('scrollLeft');
+    return this._attributes.get('scrollLeft') || 0;
   }
 
   get scrollTop() {
-    return this._attributes.get('scrollTop');
+    return this._attributes.get('scrollTop') || 0;
   }
 
   set scrollLeft(value) {

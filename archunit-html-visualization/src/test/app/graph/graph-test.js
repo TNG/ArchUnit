@@ -120,6 +120,17 @@ describe('Graph', () => {
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.pkg1-com.tngtech.archunit.pkg2');
   });
 
+  it('scrolls the graph to center if a node is dragged out of viewport', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass', 'org.SomeClass');
+    const jsonDependencies = [];
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+
+    await graphUi.dragNode('org', 1000, 200);
+
+    expect(graphUi._graph._view._svgContainerDivSelection.scrollLeft).to.be.above(909.9);
+    expect(graphUi._graph._view._svgContainerDivSelection.scrollTop).to.be.above(109.9);
+  });
+
   it('can filter node by name containing', async() => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2', 'com.tngtech.archunit.NotMatchingClass');
     const jsonDependencies = createDependencies()

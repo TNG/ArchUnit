@@ -29,7 +29,6 @@ const init = (transitionDuration, svg, document, window) => {
       this._svgElementForNodes.addChild(rootView.svgElement);
     }
 
-    //TODO: test this in graph-test
     changeScrollPosition(offsetPosition) {
       this._svgContainerDivSelection.scrollLeft += offsetPosition.x;
       this._svgContainerDivSelection.scrollTop += offsetPosition.y;
