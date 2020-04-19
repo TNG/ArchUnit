@@ -65,6 +65,7 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSet
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
+import static com.tngtech.archunit.base.DescribedPredicate.empty;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
@@ -169,7 +170,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyAccessFieldsThat(final DescribedPredicate<? super JavaField> predicate) {
         ChainableFunction<JavaFieldAccess, FieldAccessTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaFieldAccess> accessPredicate = getTarget.then(FieldAccessTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaField>forSubType()));
+                .is(anyElementThat(predicate.<JavaField>forSubType()).or(empty()));
         return new ClassOnlyAccessesCondition<>(accessPredicate, GET_FIELD_ACCESSES_FROM_SELF)
                 .as("only access fields that " + predicate.getDescription());
     }
@@ -202,7 +203,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallMethodsThat(final DescribedPredicate<? super JavaMethod> predicate) {
         ChainableFunction<JavaMethodCall, MethodCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaMethodCall> callPredicate = getTarget.then(MethodCallTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaMethod>forSubType()));
+                .is(anyElementThat(predicate.<JavaMethod>forSubType()).or(empty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_METHOD_CALLS_FROM_SELF)
                 .as("only call methods that " + predicate.getDescription());
     }
@@ -235,7 +236,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallConstructorsThat(final DescribedPredicate<? super JavaConstructor> predicate) {
         ChainableFunction<JavaConstructorCall, ConstructorCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaConstructorCall> callPredicate = getTarget.then(ConstructorCallTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaConstructor>forSubType()));
+                .is(anyElementThat(predicate.<JavaConstructor>forSubType()).or(empty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CONSTRUCTOR_CALLS_FROM_SELF)
                 .as("only call constructors that " + predicate.getDescription());
     }
@@ -250,7 +251,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallCodeUnitsThat(final DescribedPredicate<? super JavaCodeUnit> predicate) {
         ChainableFunction<JavaCall<?>, CodeUnitCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaCall<?>> callPredicate = getTarget.then(CodeUnitCallTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaCodeUnit>forSubType()));
+                .is(anyElementThat(predicate.<JavaCodeUnit>forSubType()).or(empty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CALLS_FROM_SELF)
                 .as("only call code units that " + predicate.getDescription());
     }
@@ -259,7 +260,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyAccessMembersThat(final DescribedPredicate<? super JavaMember> predicate) {
         ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(AccessTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaMember>forSubType()));
+                .is(anyElementThat(predicate.<JavaMember>forSubType()).or(empty()));
         return new ClassOnlyAccessesCondition<>(accessPredicate, GET_ACCESSES_FROM_SELF)
                 .as("only access members that " + predicate.getDescription());
     }
