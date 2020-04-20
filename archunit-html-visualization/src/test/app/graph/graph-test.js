@@ -159,6 +159,23 @@ describe('Graph', () => {
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
   });
 
+  it('can filter node by control click', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.CtrlClickClass', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+    const jsonDependencies = createDependencies()
+      .addMethodCall().from('com.tngtech.archunit.CtrlClickClass', 'startMethod()')
+      .to('com.tngtech.archunit.SomeClass1', 'targetMethod()')
+      .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
+      .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
+      .build();
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+    await graphUi.clickNode('com.tngtech.archunit');
+
+    await graphUi.ctrlClickNode('com.tngtech.archunit.CtrlClickClass');
+
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'com.tngtech.archunit');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
+  });
+
   it('can filter node by name not containing', async() => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2', 'com.tngtech.archunit.MatchingClass');
     const jsonDependencies = createDependencies()

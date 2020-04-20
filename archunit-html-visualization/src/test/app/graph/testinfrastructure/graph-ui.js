@@ -30,6 +30,12 @@ class GraphUi {
     return this.waitForUpdateFinished();
   }
 
+  async ctrlClickNode(nodeName) {
+    const node = this._rootUi.getNodeWithFullName(nodeName);
+    node.ctrlClick();
+    return this.waitForUpdateFinished();
+  }
+
   async dragNode(nodeName, dx, dy) {
     const node = this._rootUi.getNodeWithFullName(nodeName);
     node.drag({dx, dy});

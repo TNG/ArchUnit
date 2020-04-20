@@ -26,6 +26,12 @@ const MenuMock = class MenuMock {
     return this;
   }
 
+  // this a mock for the public API of the menu
+  changeNodeNameFilter(filterString) {
+    this._nodeNameFilter(filterString);
+  }
+
+  // this is helper function to programmatically change the node filter
   changeNodeFilter(filterString) {
     this._nodeNameFilter(filterString);
   }
