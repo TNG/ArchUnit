@@ -1,6 +1,7 @@
 'use strict';
 
 //TODO: maybe own directory in infrastructure for mocks
+const createVisualizationStylesMock = require('./visualization-styles-mock').createVisualizationStylesMock();
 
 const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
 
@@ -176,7 +177,9 @@ const SvgSelectionMock = class extends D3ElementMock {
   }
 
   get textWidth() {
-    return this._attributes.get('text').length * 3;
+    // extra scaling which is done per CSS-styling in production
+    const scaleFactor = createVisualizationStylesMock.getNodeFontSize() / createVisualizationStylesMock.getDefaultFontSize();
+    return this._attributes.get('text').length * 3 * scaleFactor;
   }
 
   set cssClasses(cssClasses) {

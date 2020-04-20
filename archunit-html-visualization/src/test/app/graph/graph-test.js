@@ -93,6 +93,41 @@ describe('Graph', () => {
     });
   });
 
+  describe('layout nodes after setting changes', () => {
+    it('increases and decreases the circle padding after change of padding settings', async () => {
+      const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+      const graphUi = await getGraphUi(jsonRoot, []);
+      await graphUi.clickNode('com.tngtech.archunit');
+
+      await graphUi.changeMenuSettings(10, 10 * circlePadding);
+
+      expectSiblingNodesToHaveAtLeastPadding(graphUi.rootUi, 10 * circlePadding, 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+      expectNodesToHaveAtLeastPaddingFromParent(graphUi.rootUi, 10 * circlePadding, 'com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+
+      await graphUi.changeMenuSettings(10, circlePadding);
+
+      expectSiblingNodesToHaveAtLeastPadding(graphUi.rootUi, circlePadding, 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+      expectNodesToHaveAtLeastPaddingFromParent(graphUi.rootUi, circlePadding, 'com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+    });
+
+    it('increases and decreases the circle size if the font size is changed', async () => {
+      const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+      const graphUi = await getGraphUi(jsonRoot, []);
+      await graphUi.clickNode('com.tngtech.archunit');
+
+      graphUi.expectNodeSizeCloseTo(10 + circlePadding, 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+
+      await graphUi.changeMenuSettings(100, circlePadding);
+
+      // re-implement "production" logic (part of mocking also taken into account), to show how values are computed
+      const lengthOfClassName = 'SomeClassN'.length;
+      const circleTextPadding = 5;
+      const scale = 10; // from mocking
+      const expectedNodeSize = lengthOfClassName * 3 * scale / 2 + circleTextPadding;
+      graphUi.expectNodeSizeCloseTo(expectedNodeSize, 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+    });
+  });
+
   it('shows only the top level packages right after creation', async () => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass$TmpInner$TmpInner2', 'some.package.SomeClass');
     const jsonDependencies = createDependencies()
@@ -109,9 +144,9 @@ describe('Graph', () => {
   it('shows children if I click on a node', async() => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.pkg1.SomeClass', 'com.tngtech.archunit.pkg2.SomeClass');
     const jsonDependencies = createDependencies()
-    .addMethodCall().from('com.tngtech.archunit.pkg1.SomeClass')
-    .to('com.tngtech.archunit.pkg2.SomeClass', 'targetMethod()')
-    .build();
+      .addMethodCall().from('com.tngtech.archunit.pkg1.SomeClass')
+      .to('com.tngtech.archunit.pkg2.SomeClass', 'targetMethod()')
+      .build();
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
 
     await graphUi.clickNode('com.tngtech.archunit');

@@ -20,6 +20,10 @@ class GraphUi {
     this._graph.attachToViolationMenu(this._violationMenu);
   }
 
+  get rootUi() {
+    return this._rootUi;
+  }
+
   async waitForUpdateFinished() {
     await this._graph._root._updatePromise;
   }
@@ -81,6 +85,11 @@ class GraphUi {
     await this.waitForUpdateFinished();
   }
 
+  async changeMenuSettings(circleFontSize, circlePadding) {
+    this._menu.changeMenuSettings(circleFontSize, circlePadding);
+    await this.waitForUpdateFinished();
+  }
+
   expectOnlyVisibleNodes(...nodes) {
     const allGroupsWithAVisibleCircle = svgGroupsContainingAVisibleCircle(this._graph);
     const expectedNodeNames = Array.isArray(nodes[0]) ? nodes[0] : Array.from(nodes);
@@ -95,6 +104,13 @@ class GraphUi {
     const allGroupsWithAVisibleLine = svgGroupsContainingAVisibleLine(this._graph);
 
     new Assertion(allGroupsWithAVisibleLine.map(g => g.getAttribute('id'))).to.have.members(expectedVisibleDependencies);
+  }
+
+  expectNodeSizeCloseTo(expectedNodeSize, ...nodes) {
+    const expectedNodeNames = Array.isArray(nodes[0]) ? nodes[0] : Array.from(nodes);
+    const expectedNodes = expectedNodeNames.map(nodeName => this._rootUi.getNodeWithFullName(nodeName));
+
+    expectedNodes.forEach(node => new Assertion(node.radius).to.be.closeTo(expectedNodeSize, 5));
   }
 }
 

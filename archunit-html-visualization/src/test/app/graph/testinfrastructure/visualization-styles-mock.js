@@ -14,6 +14,7 @@ const createVisualizationStylesMock = () => {
     getNodeFontSize: () => _nodeFontSize,
     setNodeFontSize: fontSize => _nodeFontSize = fontSize,
     resetNodeFontSize: () => _nodeFontSize = defaultNodeFontSize,
+    getDefaultFontSize: () => defaultNodeFontSize,
     getDependencyTitleFontSize: () => 10
   }
 };

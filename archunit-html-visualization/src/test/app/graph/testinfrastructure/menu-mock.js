@@ -4,7 +4,8 @@ const MenuMock = class MenuMock {
     return this;
   }
 
-  onSettingsChanged() {
+  onSettingsChanged(onSettingsChanged) {
+    this._onSettingsChanged = onSettingsChanged;
     return this;
   }
 
@@ -38,6 +39,10 @@ const MenuMock = class MenuMock {
 
   filterNodesByType({showInterfaces, showClasses}) {
     this._nodeTypeFilterCallback({showInterfaces, showClasses});
+  }
+
+  changeMenuSettings(circleFontSize, circlePadding) {
+    this._onSettingsChanged(circleFontSize, circlePadding);
   }
 };
 
