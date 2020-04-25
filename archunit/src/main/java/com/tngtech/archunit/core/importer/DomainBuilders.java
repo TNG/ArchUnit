@@ -536,6 +536,10 @@ public final class DomainBuilders {
             return createTypeVariable(name, this.importedClasses.get(Object.class.getName()));
         }
 
+        String getName() {
+            return name;
+        }
+
         public List<JavaType> getUpperBounds(Iterable<JavaTypeVariable> allGenericParametersInContext) {
             return buildJavaTypes(upperBounds, allGenericParametersInContext, importedClasses);
         }
@@ -589,12 +593,14 @@ public final class DomainBuilders {
         JavaWildcardTypeBuilder() {
         }
 
-        public void addLowerBound(JavaTypeCreationProcess boundCreationProcess) {
+        public JavaWildcardTypeBuilder addLowerBound(JavaTypeCreationProcess boundCreationProcess) {
             lowerBoundCreationProcesses.add(boundCreationProcess);
+            return this;
         }
 
-        public void addUpperBound(JavaTypeCreationProcess boundCreationProcess) {
+        public JavaWildcardTypeBuilder addUpperBound(JavaTypeCreationProcess boundCreationProcess) {
             upperBoundCreationProcesses.add(boundCreationProcess);
+            return this;
         }
 
         @Override
@@ -633,6 +639,10 @@ public final class DomainBuilders {
         public JavaParameterizedType build(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes) {
             List<JavaType> typeArguments = buildJavaTypes(typeArgumentCreationProcesses, allTypeParametersInContext, classes);
             return new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments);
+        }
+
+        String getTypeName() {
+            return type.getFullyQualifiedClassName();
         }
     }
 
