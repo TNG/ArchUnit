@@ -18,25 +18,32 @@ package com.tngtech.archunit.core.importer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
 
 class JavaGenericTypeImporter {
+    private static final Logger log = LoggerFactory.getLogger(JavaGenericTypeImporter.class);
 
     static void parseAsmTypeSignature(String signature, DeclarationHandler declarationHandler) {
         if (signature == null) {
             return;
         }
+
+        log.trace("Analyzing signature: {}", signature);
 
         JavaTypeVariableProcessor typeVariableProcessor = new JavaTypeVariableProcessor();
         new SignatureReader(signature).accept(typeVariableProcessor);
@@ -44,8 +51,9 @@ class JavaGenericTypeImporter {
     }
 
     private static class JavaTypeVariableProcessor extends SignatureVisitor {
+        private static final BoundProcessor boundProcessor = new BoundProcessor();
+
         private final List<JavaTypeParameterBuilder> typeParameterBuilders = new ArrayList<>();
-        private JavaTypeParameterBuilder currentlyVisiting;
 
         JavaTypeVariableProcessor() {
             super(ASM_API_VERSION);
@@ -53,93 +61,62 @@ class JavaGenericTypeImporter {
 
         @Override
         public void visitFormalTypeParameter(String name) {
-            currentlyVisiting = new JavaTypeParameterBuilder(name);
-            typeParameterBuilders.add(currentlyVisiting);
+            log.trace("Encountered type parameter {}", name);
+            JavaTypeParameterBuilder type = new JavaTypeParameterBuilder(name);
+            boundProcessor.setCurrentType(type);
+            typeParameterBuilders.add(type);
         }
 
         @Override
         public SignatureVisitor visitClassBound() {
-            return visitBound();
+            return boundProcessor;
         }
 
         @Override
         public SignatureVisitor visitInterfaceBound() {
-            return visitBound();
+            return boundProcessor;
         }
 
-        private SignatureVisitor visitBound() {
-            return new SignatureVisitor(ASM_API_VERSION) {
-                private JavaParameterizedTypeBuilder bound;
+        private static class BoundProcessor extends SignatureVisitor {
+            private JavaTypeParameterBuilder currentType;
+            private JavaParameterizedTypeBuilder currentBound;
 
-                @Override
-                public void visitClassType(String internalObjectName) {
-                    JavaParameterizedTypeBuilder builder = new JavaParameterizedTypeBuilder(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
-                    this.bound = builder;
-                    currentlyVisiting.addBound(new NewJavaTypeCreationProcess(builder));
-                }
+            BoundProcessor() {
+                super(ASM_API_VERSION);
+            }
 
-                @Override
-                public void visitTypeArgument() {
-                    addWildcardTypeArgument();
-                }
+            void setCurrentType(JavaTypeParameterBuilder type) {
+                this.currentType = type;
+            }
 
-                @Override
-                public void visitTypeVariable(String name) {
-                    currentlyVisiting.addBound(new ReferenceCreationProcess(name));
-                }
+            @Override
+            public void visitClassType(String internalObjectName) {
+                JavaClassDescriptor type = JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName);
+                log.trace("Encountered upper bound for {}: Class type {}", currentType.getName(), type.getFullyQualifiedClassName());
+                this.currentBound = new JavaParameterizedTypeBuilder(type);
+                currentType.addBound(new NewJavaTypeCreationProcess(this.currentBound));
+            }
 
-                @Override
-                public SignatureVisitor visitTypeArgument(char wildcard) {
-                    if (wildcard == '+') {
-                        final JavaWildcardTypeBuilder javaWildcardTypeBuilder = addWildcardTypeArgument();
-                        return new SignatureVisitor(ASM_API_VERSION) {
-                            @Override
-                            public void visitClassType(String internalObjectName) {
-                                javaWildcardTypeBuilder.addUpperBound(newParameterizedTypeCreationProcess(internalObjectName));
-                            }
+            @Override
+            public void visitTypeArgument() {
+                log.trace("Encountered wildcard for {}", currentBound.getTypeName());
+                currentBound.addTypeArgument(new NewJavaTypeCreationProcess(new JavaWildcardTypeBuilder()));
+            }
 
-                            @Override
-                            public void visitTypeVariable(String name) {
-                                javaWildcardTypeBuilder.addUpperBound(new ReferenceCreationProcess(name));
-                            }
-                        };
-                    }
-                    if (wildcard == '-') {
-                        final JavaWildcardTypeBuilder javaWildcardTypeBuilder = addWildcardTypeArgument();
-                        return new SignatureVisitor(ASM_API_VERSION) {
-                            @Override
-                            public void visitClassType(String internalObjectName) {
-                                javaWildcardTypeBuilder.addLowerBound(newParameterizedTypeCreationProcess(internalObjectName));
-                            }
+            @Override
+            public void visitTypeVariable(String name) {
+                log.trace("Encountered upper bound for {}: Type variable {}", currentType.getName(), name);
+                currentType.addBound(new ReferenceCreationProcess(name));
+            }
 
-                            @Override
-                            public void visitTypeVariable(String name) {
-                                javaWildcardTypeBuilder.addLowerBound(new ReferenceCreationProcess(name));
-                            }
-                        };
-                    }
-                    return new SignatureVisitor(ASM_API_VERSION) {
-                        @Override
-                        public void visitClassType(String internalObjectName) {
-                            bound.addTypeArgument(newParameterizedTypeCreationProcess(internalObjectName));
-                        }
-                    };
-                }
-
-                private NewJavaTypeCreationProcess newParameterizedTypeCreationProcess(String internalObjectName) {
-                    return new NewJavaTypeCreationProcess(new JavaParameterizedTypeBuilder(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName)));
-                }
-
-                private JavaWildcardTypeBuilder addWildcardTypeArgument() {
-                    JavaWildcardTypeBuilder wildcardTypeBuilder = new JavaWildcardTypeBuilder();
-                    bound.addTypeArgument(new NewJavaTypeCreationProcess(wildcardTypeBuilder));
-                    return wildcardTypeBuilder;
-                }
-            };
+            @Override
+            public SignatureVisitor visitTypeArgument(char wildcard) {
+                return TypeArgumentProcessor.create(wildcard, currentBound);
+            }
         }
     }
 
-    private static class NewJavaTypeCreationProcess implements DomainBuilders.JavaTypeCreationProcess {
+    private static class NewJavaTypeCreationProcess implements JavaTypeCreationProcess {
         private final JavaTypeBuilder builder;
 
         NewJavaTypeCreationProcess(JavaTypeBuilder builder) {
@@ -152,7 +129,7 @@ class JavaGenericTypeImporter {
         }
     }
 
-    private static class ReferenceCreationProcess implements DomainBuilders.JavaTypeCreationProcess {
+    private static class ReferenceCreationProcess implements JavaTypeCreationProcess {
         private final String typeVariableName;
 
         ReferenceCreationProcess(String typeVariableName) {
@@ -170,4 +147,72 @@ class JavaGenericTypeImporter {
             return new JavaTypeParameterBuilder(typeVariableName).build(classes);
         }
     }
+
+    private static class TypeArgumentProcessor extends SignatureVisitor {
+        private final TypeArgumentType typeArgumentType;
+        private final JavaParameterizedTypeBuilder parameterizedType;
+
+        TypeArgumentProcessor(TypeArgumentType typeArgumentType, JavaParameterizedTypeBuilder parameterizedType) {
+            super(ASM_API_VERSION);
+            this.typeArgumentType = typeArgumentType;
+            this.parameterizedType = parameterizedType;
+        }
+
+        @Override
+        public void visitClassType(String internalObjectName) {
+            JavaClassDescriptor type = JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName);
+            log.trace("Encountered {} for {}: Class type {}", typeArgumentType.description, parameterizedType.getTypeName(), type.getFullyQualifiedClassName());
+            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new NewJavaTypeCreationProcess(new JavaParameterizedTypeBuilder(type)));
+        }
+
+        @Override
+        public void visitTypeVariable(String name) {
+            log.trace("Encountered {} for {}: Type variable {}", typeArgumentType.description, parameterizedType.getTypeName(), name);
+            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess(name));
+        }
+
+        static TypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder parameterizedType) {
+            switch (identifier) {
+                case '=':
+                    return new TypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType);
+                case '+':
+                    return new TypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType);
+                case '-':
+                    return new TypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType);
+                default:
+                    throw new IllegalStateException(String.format("Cannot handle asm type argument identifier '%s'", identifier));
+            }
+        }
+    }
+
+    private abstract static class TypeArgumentType {
+        private final String description;
+
+        TypeArgumentType(String description) {
+            this.description = description;
+        }
+
+        abstract void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder parameterizedType, JavaTypeCreationProcess creationProcess);
+    }
+
+    private static final TypeArgumentType PARAMETERIZED_TYPE = new TypeArgumentType("type argument") {
+        @Override
+        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder parameterizedType, JavaTypeCreationProcess typeCreationProcess) {
+            parameterizedType.addTypeArgument(typeCreationProcess);
+        }
+    };
+
+    private static final TypeArgumentType WILDCARD_WITH_UPPER_BOUND = new TypeArgumentType("wildcard with upper bound") {
+        @Override
+        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder parameterizedType, JavaTypeCreationProcess typeCreationProcess) {
+            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess(new JavaWildcardTypeBuilder().addUpperBound(typeCreationProcess)));
+        }
+    };
+
+    private static final TypeArgumentType WILDCARD_WITH_LOWER_BOUND = new TypeArgumentType("wildcard with lower bound") {
+        @Override
+        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder parameterizedType, JavaTypeCreationProcess typeCreationProcess) {
+            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess(new JavaWildcardTypeBuilder().addLowerBound(typeCreationProcess)));
+        }
+    };
 }
