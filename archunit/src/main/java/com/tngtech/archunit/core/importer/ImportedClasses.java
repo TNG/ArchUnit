@@ -48,10 +48,6 @@ class ImportedClasses {
         return directlyImported;
     }
 
-    void add(JavaClass clazz) {
-        additionalClasses.put(clazz.getName(), clazz);
-    }
-
     JavaClass getOrResolve(String typeName) {
         ensurePresent(typeName);
         return directlyImported.containsKey(typeName) ?
