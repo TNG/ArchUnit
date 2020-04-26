@@ -61,35 +61,36 @@ describe('Graph', () => {
   // TODO think of moving into "node-test", only if node does not force the setting of css classes
   describe('initialization of the nodes', () => {
     it('sets the css classes so packages have a css-class "package", classes a css-class "class", interfaces a css-class "interface"', async()=> {
-      const root = await rootCreator.createRootFromClassNames('pkg1.SomeClass', 'pkg1.SomeInterface');
-      const rootUi = RootUi.of(root);
+      const jsonRoot = createJsonFromClassNames('pkg1.SomeClass', 'pkg1.SomeInterface');
+      const graphUi = await getGraphUi(jsonRoot, []);
+      await graphUi.clickNode('pkg1');
 
-      rootUi.getNodeWithFullName('pkg1').expectToHaveClasses(['package']);
-      rootUi.getNodeWithFullName('pkg1.SomeClass').expectToHaveClasses(['class']);
-      rootUi.getNodeWithFullName('pkg1.SomeInterface').expectToHaveClasses(['interface']);
+      graphUi.rootUi.getNodeWithFullName('pkg1').expectToHaveClasses(['package']);
+      graphUi.rootUi.getNodeWithFullName('pkg1.SomeClass').expectToHaveClasses(['class']);
+      graphUi.rootUi.getNodeWithFullName('pkg1.SomeInterface').expectToHaveClasses(['interface']);
     });
 
-    it('nodes lie in front of their parent nodes', async() => {
-      const root = await rootCreator.createRootFromClassNamesAndLayout('pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3', 'pkg2.SomeClass');
-      const rootUi = RootUi.of(root);
+    it('nodes lie in front of their parent nodes', async () => {
+      const jsonRoot = createJsonFromClassNames('pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3', 'pkg2.SomeClass');
+      const graphUi = await getGraphUi(jsonRoot, []);
+      await graphUi.clickNode('pkg1');
 
-      expect(rootUi.getNodeWithFullName('pkg1.SomeClass1').isInForeground()).to.equal(false);
-      rootUi.getNodeWithFullName('pkg1').click();
+      expect(graphUi.rootUi.getNodeWithFullName('pkg1.SomeClass1').isInForeground()).to.equal(false);
 
-      expect(rootUi.getNodeWithFullName('pkg1.SomeClass1').liesInFrontOf('pkg1')).to.equal(true);
-      expect(rootUi.getNodeWithFullName('pkg1.SomeClass2').liesInFrontOf('pkg1')).to.equal(true);
-      expect(rootUi.getNodeWithFullName('pkg1.SomeClass3').liesInFrontOf('pkg1')).to.equal(true);
-      expectNodesToHaveAtLeastPaddingFromParent(rootUi, circlePadding, 'pkg1', 'pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3');
+      expect(graphUi.rootUi.getNodeWithFullName('pkg1.SomeClass1').liesInFrontOf('pkg1')).to.equal(true);
+      expect(graphUi.rootUi.getNodeWithFullName('pkg1.SomeClass2').liesInFrontOf('pkg1')).to.equal(true);
+      expect(graphUi.rootUi.getNodeWithFullName('pkg1.SomeClass3').liesInFrontOf('pkg1')).to.equal(true);
+      expectNodesToHaveAtLeastPaddingFromParent(graphUi.rootUi, circlePadding, 'pkg1', 'pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg1.SomeClass3');
     });
 
     it('sibling nodes have a minimum padding between each other', async () => {
-      const root = await rootCreator.createRootFromClassNamesAndLayout('pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg2.SomeClass', 'pkg3.SomeClass', 'pkg4.SomeClass');
-      const rootUi = RootUi.of(root);
+      const jsonRoot = createJsonFromClassNames('pkg1.SomeClass1', 'pkg1.SomeClass2', 'pkg2.SomeClass', 'pkg3.SomeClass', 'pkg4.SomeClass');
+      const graphUi = await getGraphUi(jsonRoot, []);
 
       // click is not really needed but adds some maths to the test
-      rootUi.getNodeWithFullName('pkg1').click();
+      await graphUi.clickNode('pkg1');
 
-      expectSiblingNodesToHaveAtLeastPadding(rootUi, circlePadding, 'pkg1', 'pkg2', 'pkg3', 'pkg4');
+      expectSiblingNodesToHaveAtLeastPadding(graphUi.rootUi, circlePadding, 'pkg1', 'pkg2', 'pkg3', 'pkg4');
     });
   });
 
