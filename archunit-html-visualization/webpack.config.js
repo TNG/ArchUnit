@@ -56,5 +56,3 @@ module.exports = env => {
     }
   }
 };
-
-//TODO: change watch-js package.json
