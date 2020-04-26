@@ -152,6 +152,8 @@ class JavaGenericTypeImporter {
         private final TypeArgumentType typeArgumentType;
         private final JavaParameterizedTypeBuilder parameterizedType;
 
+        private JavaParameterizedTypeBuilder currentTypeArgument;
+
         TypeArgumentProcessor(TypeArgumentType typeArgumentType, JavaParameterizedTypeBuilder parameterizedType) {
             super(ASM_API_VERSION);
             this.typeArgumentType = typeArgumentType;
@@ -162,13 +164,25 @@ class JavaGenericTypeImporter {
         public void visitClassType(String internalObjectName) {
             JavaClassDescriptor type = JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName);
             log.trace("Encountered {} for {}: Class type {}", typeArgumentType.description, parameterizedType.getTypeName(), type.getFullyQualifiedClassName());
-            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new NewJavaTypeCreationProcess(new JavaParameterizedTypeBuilder(type)));
+            currentTypeArgument = new JavaParameterizedTypeBuilder(type);
+            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new NewJavaTypeCreationProcess(this.currentTypeArgument));
+        }
+
+        @Override
+        public void visitTypeArgument() {
+            log.trace("Encountered wildcard for {}", currentTypeArgument.getTypeName());
+            currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess(new JavaWildcardTypeBuilder()));
         }
 
         @Override
         public void visitTypeVariable(String name) {
             log.trace("Encountered {} for {}: Type variable {}", typeArgumentType.description, parameterizedType.getTypeName(), name);
             typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess(name));
+        }
+
+        @Override
+        public SignatureVisitor visitTypeArgument(char wildcard) {
+            return TypeArgumentProcessor.create(wildcard, currentTypeArgument);
         }
 
         static TypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder parameterizedType) {
