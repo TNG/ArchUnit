@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -465,6 +466,65 @@ public class ClassFileImporterGenericClassesTest {
                 .withBoundsMatching(
                         parameterizedType(List.class).withWildcardTypeParameterWithLowerBound(
                                 typeVariable("V").withoutUpperBounds()));
+    }
+
+    @Test
+    public void imports_complex_type_with_multiple_nested_parameters_with_various_bounds_and_recursive_type_definitions() {
+        @SuppressWarnings("unused")
+        class ClassWithComplexTypeParameters<
+                A extends List<?> & Serializable & Comparable<A>,
+                B extends A,
+                C extends Map<
+                        Map.Entry<A, Map.Entry<String, B>>,
+                        Map<? extends String,
+                                Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<B, ?>>>>>>>>,
+                SELF extends ClassWithComplexTypeParameters<A, B, C, SELF, D>,
+                D> {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithComplexTypeParameters.class,
+                List.class, Serializable.class, Comparable.class, Map.class, Map.Entry.class, String.class, Set.class, Iterable.class, Object.class);
+
+        JavaClass javaClass = classes.get(ClassWithComplexTypeParameters.class);
+
+        assertThatType(javaClass)
+                .hasTypeParameter("A")
+                .withBoundsMatching(
+                        parameterizedType(List.class).withWildcardTypeParameter(),
+                        parameterizedType(Serializable.class),
+                        parameterizedType(Comparable.class).withTypeArguments(typeVariable("A")))
+                .hasTypeParameter("B")
+                .withBoundsMatching(typeVariable("A"))
+                .hasTypeParameter("C")
+                .withBoundsMatching(
+                        parameterizedType(Map.class).withTypeArguments(
+                                parameterizedType(Map.Entry.class).withTypeArguments(
+                                        typeVariable("A"),
+                                        parameterizedType(Map.Entry.class).withTypeArguments(
+                                                parameterizedType(String.class), typeVariable("B"))),
+                                parameterizedType(Map.class).withTypeArguments(
+                                        wildcardType().withUpperBound(String.class),
+                                        parameterizedType(Map.class).withTypeArguments(
+                                                wildcardType().withUpperBound(Serializable.class),
+                                                parameterizedType(List.class).withTypeArguments(
+                                                        parameterizedType(List.class).withWildcardTypeParameterWithUpperBound(
+                                                                parameterizedType(Set.class).withWildcardTypeParameterWithLowerBound(
+                                                                        parameterizedType(Iterable.class).withWildcardTypeParameterWithLowerBound(
+                                                                                parameterizedType(Map.class).withTypeArguments(
+                                                                                        typeVariable("B"), wildcardType())))))
+                                        )
+                                )
+                        ))
+                .hasTypeParameter("SELF")
+                .withBoundsMatching(
+                        parameterizedType(ClassWithComplexTypeParameters.class).withTypeArguments(
+                                typeVariable("A"),
+                                typeVariable("B"),
+                                typeVariable("C"),
+                                typeVariable("SELF"),
+                                typeVariable("D")
+                        ))
+                .hasTypeParameter("D").withBoundsMatching(Object.class);
     }
 
     @SuppressWarnings("unused")
