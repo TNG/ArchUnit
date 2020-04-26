@@ -179,7 +179,6 @@ const FilterCollection = class {
       this._getFilterGroup(filter.filterGroupKey).runFilter(filter.key);
     });
 
-    //TODO: maybe apply only changed and maybe store topological order
     [...this._filterGroups.values()].forEach(v => v.applyFilters());
   }
 };

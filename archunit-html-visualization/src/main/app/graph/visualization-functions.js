@@ -24,7 +24,6 @@ const newInstance = () => {
     const halfTextWidth = node.getNameWidth() / 2 + CIRCLE_TEXT_PADDING;
     childRadius = childRadius + nodeFontSize;
     const radius = Math.sqrt(halfTextWidth * halfTextWidth + childRadius * childRadius);
-    //TODO: maybe add (childRadius + padding) to max-function, to also consider the padding for nodes with only one child
     return Math.max(radius, MIN_NODE_RADIUS);
   };
 

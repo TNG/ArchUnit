@@ -1,6 +1,5 @@
 'use strict';
 
-//TODO: maybe own directory in infrastructure for mocks
 const createVisualizationStylesMock = require('./visualization-styles-mock').createVisualizationStylesMock();
 
 const Vector = require('../../../../main/app/graph/infrastructure/vectors').Vector;
@@ -240,11 +239,6 @@ const SvgSelectionMock = class extends D3ElementMock {
   static fromDom(svgType, attributes = {}) {
     return new SvgSelectionMock(svgType, attributes);
   }
-
-  /**
-   * additional methods for testing
-   * TODO: maybe move them to own file...ask Peter
-   */
 
   get pointerEventsEnabled() {
     return this._pointerEventsEnabled;
