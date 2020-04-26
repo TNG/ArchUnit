@@ -10,14 +10,10 @@ const guiElementsMock = require('./testinfrastructure/gui-elements-mock');
 const {createDependencies, createGraph} = require('./testinfrastructure/test-json-creator');
 const AppContext = require('../../../main/app/graph/app-context');
 
-const RootUi = require('./nodes/testinfrastructure/root-ui');
 const GraphUi = require('./testinfrastructure/graph-ui');
-const rootCreator = require('./testinfrastructure/root-creator');
 const svgMock = require('./testinfrastructure/svg-mock');
-
 const realInitGraph = require('../../../main/app/graph/graph').init;
-// eigentlicher Zustand: alles ist zusammengefaltet, aber Tests nehmen an, dass alles aufgefaltet ist
-// spicken in node-drag-test --> rootUi ===~ PageObject , auch wichtig rootCreator für das erzeugen mit default classes
+
 const getGraphUi = async (jsonRoot, jsonDependencies = [], violations = []) => {
   const appContext = appContextWith(createGraph(jsonRoot, jsonDependencies), violations);
   const graph = realInitGraph(appContext).create(svgMock.createSvgRoot(), svgMock.createEmptyElement());
@@ -38,27 +34,10 @@ const appContextWith = (graph, violations) => AppContext.newInstance({
   }
 });
 
-//TODO: alle möglichen Interaktionen des Users mit der GUI testen
-// Graph-Test als Smoke-Test auch mit Filter-Menü und anderen Seitenmenü
-// Graph mit sinnvoller Anzahl Nodes
-// - Wurzelnode auffalten mit 2 Kindnodes mit  Dependency ==> dann existiert ein "Pfeil" bzw. Dependency von Node A auf B
-//   verifyDependency(nodeA, nodeB)
-// - filter ==> nach Einsetzen von Filtern immer weniger Nodes im Graph
-// - wenn Violations vorhanden und im Menü angeglickt, dann sehe ich nur die Node dazu
-// - Ctrl-Klick filtert die Nodes weg
-// - Zoom-Regler prüfen
-// - Button für nur beteiligte Violations testen
-// - auffalten bis Violations angezeigt werden
-// -
-
-//TODO: Jeder mögliche Filter-Usecase eher in Node
-//TODO: extra Layout-Test, siehe dazu auch TODOs in graph-chai-extensions
-
 describe('Graph', () => {
   const expectSiblingNodesToHaveAtLeastPadding = (rootUi, padding, ...nodeFullNames) => expect(rootUi).to.haveSiblingNodesWithPaddingAtLeast(padding, nodeFullNames);
   const expectNodesToHaveAtLeastPaddingFromParent = (rootUi, padding, parentFullName, ...nodeFullNames) => expect(rootUi).to.haveNodesWithPaddingToParentAtLeast(padding, parentFullName, nodeFullNames);
 
-  // TODO think of moving into "node-test", only if node does not force the setting of css classes
   describe('initialization of the nodes', () => {
     it('sets the css classes so packages have a css-class "package", classes a css-class "class", interfaces a css-class "interface"', async()=> {
       const jsonRoot = createJsonFromClassNames('pkg1.SomeClass', 'pkg1.SomeInterface');
