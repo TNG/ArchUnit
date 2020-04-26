@@ -210,6 +210,7 @@ describe('Graph', () => {
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'com.tngtech.archunit');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
+    graphUi.expectNodeFilter('~com.tngtech.archunit.CtrlClickClass');
   });
 
   it('can filter node by name not containing', async() => {

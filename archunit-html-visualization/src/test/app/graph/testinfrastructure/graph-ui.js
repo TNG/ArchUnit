@@ -112,6 +112,10 @@ class GraphUi {
 
     expectedNodes.forEach(node => new Assertion(node.radius).to.be.closeTo(expectedNodeSize, 5));
   }
+
+  expectNodeFilter(expectedFilterString) {
+    new Assertion(this._menu.getCurrentFilterString()).to.equal(expectedFilterString);
+  }
 }
 
 module.exports = {of: graph => new GraphUi(graph)};

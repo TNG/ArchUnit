@@ -29,6 +29,7 @@ const MenuMock = class MenuMock {
 
   // this a mock for the public API of the menu
   changeNodeNameFilter(filterString) {
+    this._currentFilterString = filterString;
     this._nodeNameFilter(filterString);
   }
 
@@ -43,6 +44,10 @@ const MenuMock = class MenuMock {
 
   changeMenuSettings(circleFontSize, circlePadding) {
     this._onSettingsChanged(circleFontSize, circlePadding);
+  }
+
+  getCurrentFilterString() {
+    return this._currentFilterString;
   }
 };
 

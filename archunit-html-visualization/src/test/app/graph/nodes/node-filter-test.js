@@ -406,7 +406,6 @@ describe('Filters', () => {
     });
 
     describe('provides a ctrl-click filter,', () => {
-      //TODO: test on graph if the fullname is added to the filter bar
 
       describe('which extends the name filter by the fullnames of the clicked nodes', () => {
         it('when the name filter is empty at the beginning', async () => {
