@@ -183,7 +183,7 @@ public interface ClassResolver {
             }
         }
 
-        private abstract class ClassResolverProvider {
+        private abstract static class ClassResolverProvider {
             private final Function<Exception, ClassResolverConfigurationException> onFailure;
 
             ClassResolverProvider(Function<Exception, ClassResolverConfigurationException> onFailure) {

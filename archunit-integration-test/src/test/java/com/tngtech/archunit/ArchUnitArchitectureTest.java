@@ -13,8 +13,6 @@ import com.tngtech.archunit.core.domain.JavaCall;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.core.importer.DomainBuilders;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -59,9 +57,7 @@ public class ArchUnitArchitectureTest {
             .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit");
 
     @ArchTest
-    public static final ArchRule domain_does_not_access_importer =
-            noClasses().that().resideInAPackage("..core.domain..")
-                    .should().accessClassesThat(belong_to_the_import_context());
+    public static final ArchRules importer_rules = ArchRules.in(ImporterRules.class);
 
     @ArchTest
     public static final ArchRule types_are_only_resolved_via_reflection_in_allowed_places =
@@ -70,18 +66,7 @@ public class ArchUnitArchitectureTest {
                     .as("no classes should illegally resolve classes via reflection");
 
     @ArchTest
-    public static final ArchRules public_API_rules =
-            ArchRules.in(PublicAPIRules.class);
-
-    private static DescribedPredicate<JavaClass> belong_to_the_import_context() {
-        return new DescribedPredicate<JavaClass>("belong to the import context") {
-            @Override
-            public boolean apply(JavaClass input) {
-                return input.getPackageName().startsWith(ClassFileImporter.class.getPackage().getName())
-                        && !input.getName().contains(DomainBuilders.class.getSimpleName());
-            }
-        };
-    }
+    public static final ArchRules public_API_rules = ArchRules.in(PublicAPIRules.class);
 
     private static DescribedPredicate<JavaCall<?>> typeIsIllegallyResolvedViaReflection() {
         DescribedPredicate<JavaCall<?>> explicitlyAllowedUsage =
