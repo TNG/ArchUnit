@@ -326,8 +326,13 @@ public class Assertions extends org.assertj.core.api.Assertions {
                     .isEqualTo(getExpectedPackageName(clazz));
             assertThat(actual.getModifiers()).as("Modifiers of " + actual)
                     .isEqualTo(JavaModifier.getModifiersForClass(clazz.getModifiers()));
+            assertThat(actual.isArray()).as(actual + " is array").isEqualTo(clazz.isArray());
             assertThat(propertiesOf(actual.getAnnotations())).as("Annotations of " + actual)
                     .isEqualTo(propertiesOf(clazz.getAnnotations()));
+
+            if (clazz.isArray()) {
+                new JavaClassAssertion(actual.getComponentType()).matches(clazz.getComponentType());
+            }
         }
 
         private String ensureArrayName(String name) {

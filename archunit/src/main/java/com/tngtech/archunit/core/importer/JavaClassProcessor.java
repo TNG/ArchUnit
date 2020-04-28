@@ -21,11 +21,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Bytes;
@@ -36,7 +34,6 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 import com.tngtech.archunit.Internal;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -207,7 +204,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         DomainBuilders.JavaFieldBuilder fieldBuilder = new DomainBuilders.JavaFieldBuilder()
                 .withName(name)
-                .withType(JavaTypeImporter.importAsmType(Type.getType(desc)))
+                .withType(JavaTypeImporter.importAsmType(desc))
                 .withModifiers(JavaModifier.getModifiersForField(access))
                 .withDescriptor(desc);
         declarationHandler.onDeclaredField(fieldBuilder);
@@ -221,27 +218,19 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         LOG.trace("Analyzing method {}.{}:{}", className, name, desc);
-        accessHandler.setContext(new CodeUnit(name, namesOf(Type.getArgumentTypes(desc)), className));
+        List<JavaType> parameters = JavaTypeImporter.importAsmMethodArgumentTypes(desc);
+        accessHandler.setContext(new CodeUnit(name, namesOf(parameters), className));
 
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
-        Type methodType = Type.getMethodType(desc);
         codeUnitBuilder
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
-                .withParameters(typesFrom(methodType.getArgumentTypes()))
-                .withReturnType(JavaTypeImporter.importAsmType(methodType.getReturnType()))
+                .withParameters(parameters)
+                .withReturnType(JavaTypeImporter.importAsmMethodReturnType(desc))
                 .withDescriptor(desc)
                 .withThrowsClause(typesFrom(exceptions));
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder);
-    }
-
-    private List<JavaType> typesFrom(Type[] asmTypes) {
-        List<JavaType> result = new ArrayList<>();
-        for (Type asmType : asmTypes) {
-            result.add(JavaTypeImporter.importAsmType(asmType));
-        }
-        return result;
     }
 
     private List<JavaType> typesFrom(String[] throwsDeclarations) {
@@ -289,10 +278,10 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.trace("Done analyzing {}", className);
     }
 
-    private static List<String> namesOf(Type[] types) {
+    private static List<String> namesOf(Iterable<JavaType> types) {
         ImmutableList.Builder<String> result = ImmutableList.builder();
-        for (Type type : types) {
-            result.add(JavaTypeImporter.importAsmType(type).getName());
+        for (JavaType type : types) {
+            result.add(type.getName());
         }
         return result.build();
     }
@@ -487,7 +476,7 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static DomainBuilders.JavaAnnotationBuilder annotationBuilderFor(String desc) {
-        return new DomainBuilders.JavaAnnotationBuilder().withType(JavaTypeImporter.importAsmType(Type.getType(desc)));
+        return new DomainBuilders.JavaAnnotationBuilder().withType(JavaTypeImporter.importAsmType(desc));
     }
 
     private static class AnnotationProcessor extends AnnotationVisitor {
@@ -575,7 +564,11 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visit(String name, Object value) {
-            setDerivedComponentType(value);
+            if (value instanceof Type) {
+                setDerivedComponentType(JavaClass.class);
+            } else {
+                setDerivedComponentType(value.getClass());
+            }
             values.add(AnnotationTypeConversion.convert(value));
         }
 
@@ -596,16 +589,11 @@ class JavaClassProcessor extends ClassVisitor {
             values.add(javaEnumBuilder(desc, value));
         }
 
-        private void setDerivedComponentType(Object value) {
-            setDerivedComponentType(value.getClass());
-        }
-
         // NOTE: If the declared annotation is not imported itself, we can still use this heuristic,
         //       to determine additional information about the respective array.
         //       (It the annotation is imported itself, we could easily determine this from the respective
         //       JavaClass methods)
         private void setDerivedComponentType(Class<?> type) {
-            type = AnnotationTypeConversion.convert(type);
             checkState(derivedComponentType == null || derivedComponentType.equals(type),
                     "Found mixed component types while importing array, this is most likely a bug");
 
@@ -668,22 +656,21 @@ class JavaClassProcessor extends ClassVisitor {
                         .tryGetMethod(annotationArrayContext.getDeclaringAnnotationMemberName());
 
                 return method.isPresent() ?
-                        determineComponentTypeFromReturnValue(method) :
+                        determineComponentTypeFromReturnValue(method.get()) :
                         Optional.<Class<?>>absent();
             }
 
-            private Optional<Class<?>> determineComponentTypeFromReturnValue(Optional<JavaMethod> method) {
-                String name = method.get().getRawReturnType().getName();
-                Optional<Class<?>> result = AnnotationTypeConversion.tryConvert(name);
-                if (result.isPresent()) {
-                    return Optional.<Class<?>>of(result.get().getComponentType());
+            private Optional<Class<?>> determineComponentTypeFromReturnValue(JavaMethod method) {
+                if (method.getRawReturnType().isEquivalentTo(Class[].class)) {
+                    return Optional.<Class<?>>of(JavaClass.class);
                 }
-                return resolveComponentTypeFrom(name);
+
+                return resolveComponentTypeFrom(method.getRawReturnType().getName());
             }
 
             @MayResolveTypesViaReflection(reason = "Resolving primitives does not really use reflection")
-            private Optional<Class<?>> resolveComponentTypeFrom(String name) {
-                JavaType type = JavaType.From.name(name);
+            private Optional<Class<?>> resolveComponentTypeFrom(String arrayTypeName) {
+                JavaType type = JavaType.From.name(arrayTypeName);
                 JavaType componentType = getComponentType(type);
 
                 if (componentType.isPrimitive()) {
@@ -725,7 +712,7 @@ class JavaClassProcessor extends ClassVisitor {
             public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
                 return Optional.<Object>of(
                         new DomainBuilders.JavaEnumConstantBuilder()
-                                .withDeclaringClass(importedClasses.get(Type.getType(desc).getClassName()))
+                                .withDeclaringClass(importedClasses.get(JavaTypeImporter.importAsmType(desc).getName()))
                                 .withName(value)
                                 .build());
             }
@@ -733,42 +720,17 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static class AnnotationTypeConversion {
-        private static final Map<String, Class<?>> externalTypeToInternalType = ImmutableMap.of(
-                Type.class.getName(), JavaClass.class,
-                Class.class.getName(), JavaClass.class,
-                Class[].class.getName(), JavaClass[].class
-        );
-        private static final Map<Class<?>, Function<Object, ValueBuilder>> importedValueToInternalValue =
-                ImmutableMap.<Class<?>, Function<Object, ValueBuilder>>of(
-                        Type.class, new Function<Object, ValueBuilder>() {
-                            @Override
-                            public ValueBuilder apply(final Object input) {
-                                return new ValueBuilder() {
-                                    @Override
-                                    public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
-                                        return Optional.<Object>of(importedClasses.get(((Type) input).getClassName()));
-                                    }
-                                };
-                            }
-                        }
-                );
-
-        static Class<?> convert(Class<?> type) {
-            return externalTypeToInternalType.containsKey(type.getName()) ?
-                    externalTypeToInternalType.get(type.getName()) :
-                    type;
-        }
-
-        static Optional<Class<?>> tryConvert(String typeName) {
-            return externalTypeToInternalType.containsKey(typeName) ?
-                    Optional.<Class<?>>of(externalTypeToInternalType.get(typeName)) :
-                    Optional.<Class<?>>absent();
-        }
-
-        static ValueBuilder convert(Object value) {
-            return importedValueToInternalValue.containsKey(value.getClass()) ?
-                    importedValueToInternalValue.get(value.getClass()).apply(value) :
-                    ValueBuilder.ofFinished(value);
+        static ValueBuilder convert(Object input) {
+            final Object value = JavaTypeImporter.importAsmTypeIfPossible(input);
+            if (value instanceof JavaType) {
+                return new ValueBuilder() {
+                    @Override
+                    public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
+                        return Optional.<Object>of(importedClasses.get(((JavaType) value).getName()));
+                    }
+                };
+            }
+            return ValueBuilder.ofFinished(value);
         }
     }
 }
