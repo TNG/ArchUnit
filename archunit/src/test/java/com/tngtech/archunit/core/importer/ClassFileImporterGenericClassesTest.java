@@ -323,9 +323,66 @@ public class ClassFileImporterGenericClassesTest {
 
         JavaClass javaClass = classes.get(ClassWithTypeParameterWithTypeVariableBound.class);
 
-        assertThatType(javaClass)
+        assertThatType(javaClass).hasTypeParameters("U", "T", "V")
                 .hasTypeParameter("U").withBoundsMatching(typeVariable("T").withUpperBounds(String.class))
                 .hasTypeParameter("V").withBoundsMatching(typeVariable("T").withUpperBounds(String.class));
+    }
+
+    @Test
+    public void references_type_variable_bound_for_inner_classes() {
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameterWithInnerClassesWithTypeVariableBound<U extends T, T extends String> {
+            @SuppressWarnings("InnerClassMayBeStatic")
+            class SomeInner {
+                class EvenMoreInnerDeclaringOwn<V extends U, MORE_INNER1, MORE_INNER2 extends U> {
+                    class AndEvenMoreInner<MOST_INNER1 extends T, MOST_INNER2 extends MORE_INNER2> {
+                    }
+                }
+            }
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.class,
+                ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.class,
+                ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.class,
+                ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class,
+                String.class);
+
+        JavaClass javaClass = classes.get(ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class);
+
+        assertThatType(javaClass).hasTypeParameters("MOST_INNER1", "MOST_INNER2")
+                .hasTypeParameter("MOST_INNER1")
+                .withBoundsMatching(
+                        typeVariable("T").withUpperBounds(String.class))
+                .hasTypeParameter("MOST_INNER2")
+                .withBoundsMatching(
+                        typeVariable("MORE_INNER2").withUpperBounds(
+                                typeVariable("U").withUpperBounds(
+                                        typeVariable("T").withUpperBounds(String.class))));
+    }
+
+    @Test
+    public void creates_new_stub_type_variables_for_type_variables_of_enclosing_classes_that_are_out_of_context() {
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameterWithInnerClassesWithTypeVariableBound<U extends T, T extends String> {
+            @SuppressWarnings("InnerClassMayBeStatic")
+            class SomeInner {
+                class EvenMoreInnerDeclaringOwn<V extends U, MORE_INNER1, MORE_INNER2 extends U> {
+                    class AndEvenMoreInner<MOST_INNER1 extends T, MOST_INNER2 extends MORE_INNER2> {
+                    }
+                }
+            }
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class);
+
+        JavaClass javaClass = classes.get(ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class);
+
+        assertThatType(javaClass).hasTypeParameters("MOST_INNER1", "MOST_INNER2")
+                .hasTypeParameter("MOST_INNER1")
+                .withBoundsMatching(typeVariable("T").withoutUpperBounds())
+                .hasTypeParameter("MOST_INNER2")
+                .withBoundsMatching(typeVariable("MORE_INNER2").withoutUpperBounds());
     }
 
     @SuppressWarnings("unused")

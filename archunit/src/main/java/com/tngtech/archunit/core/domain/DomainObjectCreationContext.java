@@ -63,7 +63,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder
 @Internal
 public class DomainObjectCreationContext {
     public static JavaClasses createJavaClasses(
-            Map<String, JavaClass> selectedClasses, Map<String, JavaClass> allClasses, ImportContext importContext) {
+            Map<String, JavaClass> selectedClasses, Collection<JavaClass> allClasses, ImportContext importContext) {
 
         return JavaClasses.of(selectedClasses, allClasses, importContext);
     }
@@ -74,6 +74,10 @@ public class DomainObjectCreationContext {
 
     public static void completeClassHierarchy(JavaClass javaClass, ImportContext importContext) {
         javaClass.completeClassHierarchyFrom(importContext);
+    }
+
+    public static void completeEnclosingClass(JavaClass javaClass, ImportContext importContext) {
+        javaClass.completeEnclosingClassFrom(importContext);
     }
 
     public static void completeTypeParameters(JavaClass javaClass, ImportContext importContext) {
