@@ -20,6 +20,7 @@ import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.ExpectedConcreteWildcardType.wildcardType;
+import static java.util.Collections.emptyList;
 
 public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVariableAssertion, JavaTypeVariable> {
     public JavaTypeVariableAssertion(JavaTypeVariable actual) {
@@ -197,7 +198,16 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         }
 
         public ExpectedConcreteTypeVariable withUpperBounds(Class<?>... bounds) {
-            upperBounds = ImmutableList.copyOf(ExpectedConcreteParameterizedType.wrap(bounds));
+            return withUpperBounds(ExpectedConcreteParameterizedType.wrap(bounds));
+        }
+
+        public ExpectedConcreteTypeVariable withUpperBounds(ExpectedConcreteType... bounds) {
+            upperBounds = ImmutableList.copyOf(bounds);
+            return this;
+        }
+
+        public ExpectedConcreteTypeVariable withoutUpperBounds() {
+            upperBounds = emptyList();
             return this;
         }
 

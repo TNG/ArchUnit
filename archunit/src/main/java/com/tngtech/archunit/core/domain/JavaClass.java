@@ -1192,6 +1192,10 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         }
     }
 
+    void completeEnclosingClassFrom(ImportContext context) {
+        enclosingClass = context.createEnclosingClass(this);
+    }
+
     void completeTypeParametersFrom(ImportContext context) {
         typeParameters = context.createTypeParameters(this);
     }
@@ -1217,7 +1221,6 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     CompletionProcess completeFrom(ImportContext context) {
         completeComponentType(context);
-        enclosingClass = context.createEnclosingClass(this);
         javaClassDependencies = new JavaClassDependencies(this, context);
         return new CompletionProcess();
     }

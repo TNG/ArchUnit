@@ -179,12 +179,12 @@ class ClassFileImportRecord {
                 .build();
     }
 
-    Map<String, String> getSuperClassNamesBySubClass() {
-        return superClassNamesByOwner;
+    Set<String> getAllSuperClassNames() {
+        return ImmutableSet.copyOf(superClassNamesByOwner.values());
     }
 
-    SetMultimap<String, String> getInterfaceNamesBySubInterface() {
-        return interfaceNamesByOwner;
+    Set<String> getAllSuperInterfaceNames() {
+        return ImmutableSet.copyOf(interfaceNamesByOwner.values());
     }
 
     // NOTE: ASM calls visitInnerClass and visitOuterClass several times, sometimes when the outer class is imported

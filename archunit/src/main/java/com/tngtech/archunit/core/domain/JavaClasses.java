@@ -194,11 +194,11 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
     }
 
     static JavaClasses of(
-            Map<String, JavaClass> selectedClasses, Map<String, JavaClass> allClasses, ImportContext importContext) {
+            Map<String, JavaClass> selectedClasses, Collection<JavaClass> allClasses, ImportContext importContext) {
 
-        CompletionProcess completionProcess = new CompletionProcess(allClasses.values(), importContext);
-        JavaPackage defaultPackage = JavaPackage.from(allClasses.values());
-        for (JavaClass clazz : allClasses.values()) {
+        CompletionProcess completionProcess = new CompletionProcess(allClasses, importContext);
+        JavaPackage defaultPackage = JavaPackage.from(allClasses);
+        for (JavaClass clazz : allClasses) {
             setPackage(clazz, defaultPackage);
             completionProcess.completeClass(clazz);
         }

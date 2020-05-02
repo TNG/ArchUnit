@@ -64,6 +64,7 @@ import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
@@ -535,8 +536,8 @@ public final class DomainBuilders {
             return createTypeVariable(name, this.importedClasses.get(Object.class.getName()));
         }
 
-        public List<JavaType> getUpperBounds(Iterable<JavaTypeVariable> allGenericParametersOfClass) {
-            return buildJavaTypes(upperBounds, allGenericParametersOfClass, importedClasses);
+        public List<JavaType> getUpperBounds(Iterable<JavaTypeVariable> allGenericParametersInContext) {
+            return buildJavaTypes(upperBounds, allGenericParametersInContext, importedClasses);
         }
     }
 
@@ -547,7 +548,7 @@ public final class DomainBuilders {
             this.typeParameterBuilders = typeParameterBuilders;
         }
 
-        public List<JavaTypeVariable> build(ClassesByTypeName classesByTypeName) {
+        public List<JavaTypeVariable> build(JavaClass owner, ClassesByTypeName classesByTypeName) {
             if (typeParameterBuilders.isEmpty()) {
                 return Collections.emptyList();
             }
@@ -556,11 +557,21 @@ public final class DomainBuilders {
             for (JavaTypeParameterBuilder builder : typeParameterBuilders) {
                 typeArgumentsToBuilders.put(builder.build(classesByTypeName), builder);
             }
+            Set<JavaTypeVariable> allGenericParametersInContext = union(allTypeParametersInEnclosingClassesOf(owner), typeArgumentsToBuilders.keySet());
             for (Map.Entry<JavaTypeVariable, JavaTypeParameterBuilder> typeParameterToBuilder : typeArgumentsToBuilders.entrySet()) {
-                List<JavaType> upperBounds = typeParameterToBuilder.getValue().getUpperBounds(typeArgumentsToBuilders.keySet());
+                List<JavaType> upperBounds = typeParameterToBuilder.getValue().getUpperBounds(allGenericParametersInContext);
                 completeTypeVariable(typeParameterToBuilder.getKey(), upperBounds);
             }
             return ImmutableList.copyOf(typeArgumentsToBuilders.keySet());
+        }
+
+        private Set<JavaTypeVariable> allTypeParametersInEnclosingClassesOf(JavaClass javaClass) {
+            Set<JavaTypeVariable> result = new HashSet<>();
+            while (javaClass.getEnclosingClass().isPresent()) {
+                result.addAll(javaClass.getEnclosingClass().get().getTypeParameters());
+                javaClass = javaClass.getEnclosingClass().get();
+            }
+            return result;
         }
     }
 
