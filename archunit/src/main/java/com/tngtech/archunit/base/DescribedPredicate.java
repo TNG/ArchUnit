@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.base;
 
+import com.google.common.collect.Iterables;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -126,6 +127,10 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
     public static <T> DescribedPredicate<T> not(final DescribedPredicate<? super T> predicate) {
         return new NotPredicate<>(predicate);
+    }
+
+    public static DescribedPredicate<Iterable<?>> empty() {
+        return new EmptyPredicate();
     }
 
     public static <T> DescribedPredicate<Iterable<T>> anyElementThat(final DescribedPredicate<? super T> predicate) {
@@ -293,6 +298,17 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         @Override
         public boolean apply(T input) {
             return delegate.apply(input);
+        }
+    }
+
+    private static class EmptyPredicate extends DescribedPredicate<Iterable<?>> {
+        EmptyPredicate() {
+            super("empty");
+        }
+
+        @Override
+        public boolean apply(Iterable<?> input) {
+            return Iterables.isEmpty(input);
         }
     }
 
