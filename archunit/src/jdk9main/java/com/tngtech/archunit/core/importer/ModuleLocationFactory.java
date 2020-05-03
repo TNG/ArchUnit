@@ -100,7 +100,7 @@ class ModuleLocationFactory implements Location.Factory {
         }
 
         @Override
-        Iterable<NormalizedResourceName> iterateEntries() {
+        Iterable<NormalizedResourceName> iterateEntriesInternal() {
             return doWithModuleReader(moduleReference, moduleReader -> moduleReader.list()
                     .filter(resourceName::isStartOf)
                     .map(NormalizedResourceName::from)
