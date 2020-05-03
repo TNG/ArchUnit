@@ -282,9 +282,6 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SomeController.class, "doSthController")
                         .toMethod(ServiceViolatingDaoRules.class, "doSthService")
                         .inLine(11))
-                .by(callFromMethod(SomeEnum.class, "values")
-                        .toMethod(SomeEnum[].class, "clone")
-                        .inLine(3))
 
                 .ofRule(String.format("classes that reside in a package '..controller..' should "
                                 + "only call constructors that are declared in a package '..controller..' or are annotated with @%s",
@@ -308,9 +305,6 @@ class ExamplesIntegrationTest {
                 .by(callFromConstructor(UseCaseTwoController.class)
                         .toConstructor(AbstractController.class)
                         .inLine(6))
-                .by(callFromMethod(SomeEnum.class, "values")
-                        .toMethod(SomeEnum[].class, "clone")
-                        .inLine(3))
 
                 .ofRule(String.format("classes that reside in a package '..controller..' should "
                                 + "only access fields that are declared in a package '..controller..' or are annotated with @%s",
@@ -334,9 +328,6 @@ class ExamplesIntegrationTest {
                 .by(callFromConstructor(UseCaseTwoController.class)
                         .toConstructor(AbstractController.class)
                         .inLine(6))
-                .by(callFromMethod(SomeEnum.class, "values")
-                        .toMethod(SomeEnum[].class, "clone")
-                        .inLine(3))
 
                 .toDynamicTests();
     }

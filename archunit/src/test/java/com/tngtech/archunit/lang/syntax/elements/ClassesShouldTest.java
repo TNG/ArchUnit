@@ -32,6 +32,7 @@ import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.SomeClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.WrongNamedClass;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -45,6 +46,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.greaterThan;
 import static com.tngtech.archunit.base.DescribedPredicate.greaterThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.lessThan;
 import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -69,11 +71,11 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.notBePublic;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.notHaveModifier;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class ClassesShouldTest {
@@ -81,6 +83,9 @@ public class ClassesShouldTest {
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
 
     @DataProvider
     public static Object[][] haveFullyQualifiedName_rules() {
@@ -1691,6 +1696,29 @@ public class ClassesShouldTest {
                         quote(violated.getName()),
                         locationPattern(violated)))
                 .doesNotMatch(String.format(".*%s.* is .*", quote(satisfied.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] onlyAccessRules_rules() {
+        return $$(
+                $(classes().should().onlyCallMethodsThat(are(not(declaredIn(ClassWithMethod.class)))), ClassCallingMethod.class),
+                $(classes().should(ArchConditions.onlyCallMethodsThat(are(not(declaredIn(ClassWithMethod.class))))), ClassCallingMethod.class),
+                $(classes().should().onlyCallConstructorsThat(are(not(declaredIn(ClassWithConstructor.class)))), ClassCallingConstructor.class),
+                $(classes().should(ArchConditions.onlyCallConstructorsThat(are(not(declaredIn(ClassWithConstructor.class))))), ClassCallingConstructor.class),
+                $(classes().should().onlyCallCodeUnitsThat(are(not(declaredIn(ClassWithMethod.class)))), ClassCallingMethod.class),
+                $(classes().should(ArchConditions.onlyCallCodeUnitsThat(are(not(declaredIn(ClassWithMethod.class))))), ClassCallingMethod.class),
+                $(classes().should().onlyAccessFieldsThat(are(not(declaredIn(ClassWithField.class)))), ClassAccessingField.class),
+                $(classes().should(ArchConditions.onlyAccessFieldsThat(are(not(declaredIn(ClassWithField.class))))), ClassAccessingField.class),
+                $(classes().should().onlyAccessMembersThat(are(not(declaredIn(ClassWithField.class)))), ClassAccessingField.class),
+                $(classes().should(ArchConditions.onlyAccessMembersThat(are(not(declaredIn(ClassWithField.class))))), ClassAccessingField.class));
+    }
+
+    @Test
+    @UseDataProvider("onlyAccessRules_rules")
+    public void onlyCall_should_report_success_if_targets_are_non_resolvable(ArchRule rule, Class<?> classCallingUnresolvableTarget) {
+        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+
+        assertThat(rule).checking(importClasses(classCallingUnresolvableTarget)).hasNoViolation();
     }
 
     static String locationPattern(Class<?> clazz) {
