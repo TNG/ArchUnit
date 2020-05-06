@@ -21,8 +21,13 @@ class NormalizedResourceName {
     private final String resourceName;
 
     private NormalizedResourceName(String resourceName) {
-        resourceName = resourceName.replaceAll("^/*", "").replaceAll("/*$", "");
-        this.resourceName = resourceName;
+        this.resourceName = resourceName
+                // normalize Windows backslashes
+                .replace('\\', '/')
+                // remove leading slashes
+                .replaceAll("^/*", "")
+                // remove trailing slashes
+                .replaceAll("/*$", "");
     }
 
     static NormalizedResourceName from(String resourceName) {
