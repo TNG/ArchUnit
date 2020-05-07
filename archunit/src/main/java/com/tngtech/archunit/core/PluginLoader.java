@@ -133,29 +133,44 @@ public class PluginLoader<T> {
 
     @Internal
     public enum JavaVersion {
-        JAVA_9 {
-            @Override
-            public boolean isLessOrEqualThan(String version) {
-                // The new versioning scheme starting with JDK 9 is 9.x, before it was sth. like 1.8.0_122
-                return parseFirstGroupOfJavaVersion(version) >= 9;
-            }
 
-            private int parseFirstGroupOfJavaVersion(String javaVersion) {
-                Matcher matcher = VERSION_PATTERN.matcher(javaVersion);
-                if (!matcher.matches()) {
-                    throw new IllegalArgumentException("Can't parse Java version " + javaVersion);
-                }
-                return Integer.parseInt(matcher.group(1));
-            }
-        };
+        JAVA_9(9);
 
-        private static final Ordering<JavaVersion> FROM_NEWEST_TO_OLDEST_ORDERING = Ordering.explicit(JAVA_9);
+        private final int releaseVersion;
+
+        JavaVersion(int releaseVersion) {
+            this.releaseVersion = releaseVersion;
+        }
+
+        private static final Ordering<JavaVersion> FROM_NEWEST_TO_OLDEST_ORDERING = Ordering.natural().reverse();
         private static final Pattern VERSION_PATTERN = Pattern.compile("^(\\d+).*");
 
-        public abstract boolean isLessOrEqualThan(String version);
+        public boolean isLessOrEqualThan(String version) {
+            return this.releaseVersion <= parseJavaReleaseVersion(version);
+        }
 
         static List<JavaVersion> sortFromNewestToOldest(Set<JavaVersion> javaVersions) {
             return FROM_NEWEST_TO_OLDEST_ORDERING.sortedCopy(javaVersions);
+        }
+
+        private static int parseJavaReleaseVersion(String version) {
+            String versionToParse;
+            if (version.startsWith("1.")) {
+                // Up to JDK 8 the versioning scheme was sth. like 1.8.0_122
+                versionToParse = version.substring(2);
+            } else {
+                // The new versioning scheme starting with JDK 9 is
+                // - for major releases: 9
+                // - for patches: 9.x
+                // - for early access builds: 9-ea
+                versionToParse = version;
+            }
+
+            Matcher matcher = VERSION_PATTERN.matcher(versionToParse);
+            if (!matcher.matches()) {
+                throw new IllegalArgumentException("Can't parse Java version " + version);
+            }
+            return Integer.parseInt(matcher.group(1));
         }
     }
 
