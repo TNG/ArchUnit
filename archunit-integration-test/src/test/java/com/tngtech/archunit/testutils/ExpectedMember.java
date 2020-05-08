@@ -32,10 +32,6 @@ abstract class ExpectedMember {
         }
     }
 
-    String lineMessage(int number) {
-        return String.format("(%s.java:%d)", clazz.getSimpleName(), number);
-    }
-
     List<String> getParams() {
         return params;
     }
@@ -46,6 +42,14 @@ abstract class ExpectedMember {
 
     Class<?> getDeclaringClass() {
         return clazz;
+    }
+
+    Class<?> getLocationClass() {
+        Class<?> result = clazz;
+        while (result.getEnclosingClass() != null) {
+            result = result.getEnclosingClass();
+        }
+        return result;
     }
 
     abstract String getExpectedDescription();

@@ -31,7 +31,7 @@ public abstract class ExpectedAccess implements ExpectedRelation {
 
     private String getExpectedMessage() {
         String expectedDescription = origin.getExpectedDescription() + " " + target.getExpectedDescription();
-        String expectedLocation = String.format("(%s.java:%d)", origin.getDeclaringClass().getSimpleName(), lineNumber);
+        String expectedLocation = String.format("(%s.java:%d)", origin.getLocationClass().getSimpleName(), lineNumber);
         return expectedDescription + " in " + expectedLocation;
     }
 
