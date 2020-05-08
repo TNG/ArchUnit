@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 1.5.8">
+<meta name="generator" content="Asciidoctor 2.0.10">
 <meta name="description" content="index page of ArchUnit's documentation">
 <meta name="keywords" content="ArchUnit, Java, architecture, test, analysis">
 <title>ArchUnit User Guide</title>
@@ -448,6 +448,9 @@ h4 {
 <body class="article toc2 toc-left">
 <div id="header">
 <h1>ArchUnit User Guide</h1>
+<div class="details">
+<span id="revnumber">version 0.14.0</span>
+</div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
@@ -608,10 +611,10 @@ Maven Central:</p>
 <div class="listingblock">
 <div class="title">pom.xml</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+<pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;0.13.1&lt;/version&gt;
+    &lt;version&gt;0.14.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -619,8 +622,8 @@ Maven Central:</p>
 <div class="listingblock">
 <div class="title">build.gradle</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:0.13.1'
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
+    testImplementation 'com.tngtech.archunit:archunit-junit4:0.14.0'
 }</code></pre>
 </div>
 </div>
@@ -638,10 +641,10 @@ from Maven Central:</p>
 <div class="listingblock">
 <div class="title">pom.xml</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+<pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;0.13.1&lt;/version&gt;
+    &lt;version&gt;0.14.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -649,8 +652,8 @@ from Maven Central:</p>
 <div class="listingblock">
 <div class="title">build.gradle</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:0.13.1'
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
+    testImplementation 'com.tngtech.archunit:archunit-junit5:0.14.0'
 }</code></pre>
 </div>
 </div>
@@ -664,10 +667,10 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="listingblock">
 <div class="title">pom.xml</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+<pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.13.1&lt;/version&gt;
+    &lt;version&gt;0.14.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -675,8 +678,8 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="listingblock">
 <div class="title">build.gradle</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:0.13.1'
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
+   testImplementation 'com.tngtech.archunit:archunit:0.14.0'
 }</code></pre>
 </div>
 </div>
@@ -706,7 +709,7 @@ This can be done using the <code>ClassFileImporter</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -716,7 +719,7 @@ that do not, for example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPath("/some/path");</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClasses classes = new ClassFileImporter().importPath("/some/path");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -726,7 +729,7 @@ in fact access most properties of the imported class via the public API:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClass clazz = classes.get(Object.class);
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClass clazz = classes.get(Object.class);
 System.out.print(clazz.getSimpleName()); // returns 'Object'</code></pre>
 </div>
 </div>
@@ -740,7 +743,7 @@ imported classes. To specify a rule, use the class <code>ArchRuleDefinition</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 // ...
 
@@ -755,7 +758,7 @@ object of type <code>ArchRule</code> can now be evaluated against a set of impor
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">myRule.check(importedClasses);</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">myRule.check(importedClasses);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -763,7 +766,7 @@ object of type <code>ArchRule</code> can now be evaluated against a set of impor
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@Test
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@Test
 public void Services_should_only_be_accessed_by_Controllers() {
     JavaClasses importedClasses = new ClassFileImporter().importPackages("com.mycompany.myapp");
 
@@ -789,7 +792,7 @@ to import via <code>@AnalyzeClasses</code> and add the respective rules as field
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
 @AnalyzeClasses(packages = "com.mycompany.myapp")
 public class MyArchitectureTest {
 
@@ -816,7 +819,7 @@ evaluate any rule annotated with <code>@ArchTest</code> against those classes.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-kotlin hljs" data-lang="kotlin">@RunWith(ArchUnitRunner::class) // Remove this line for JUnit 5!!
+<pre class="highlightjs highlight nowrap"><code data-lang="kotlin" class="language-kotlin hljs">@RunWith(ArchUnitRunner::class) // Remove this line for JUnit 5!!
 @AnalyzeClasses(packagesOf = [MyArchitectureTest::class])
 class MyArchitectureTest {
     @ArchTest
@@ -848,7 +851,7 @@ class MyArchitectureTest {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">noClasses().that().resideInAPackage("..source..")
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">noClasses().that().resideInAPackage("..source..")
     .should().dependOnClassesThat().resideInAPackage("..foo..")</code></pre>
 </div>
 </div>
@@ -859,7 +862,7 @@ class MyArchitectureTest {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().resideInAPackage("..foo..")
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().resideInAPackage("..foo..")
     .should().onlyHaveDependentClassesThat().resideInAnyPackage("..source.one..", "..foo..")</code></pre>
 </div>
 </div>
@@ -873,7 +876,7 @@ class MyArchitectureTest {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().haveNameMatching(".*Bar")
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().haveNameMatching(".*Bar")
     .should().onlyBeAccessed().byClassesThat().haveSimpleName("Bar")</code></pre>
 </div>
 </div>
@@ -887,7 +890,7 @@ class MyArchitectureTest {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().haveSimpleNameStartingWith("Foo")
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().haveSimpleNameStartingWith("Foo")
     .should().resideInAPackage("com.foo")</code></pre>
 </div>
 </div>
@@ -901,7 +904,7 @@ class MyArchitectureTest {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().implement(Connection.class)
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().implement(Connection.class)
     .should().haveSimpleNameEndingWith("Connection")</code></pre>
 </div>
 </div>
@@ -912,7 +915,7 @@ class MyArchitectureTest {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().areAssignableTo(EntityManager.class)
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().areAssignableTo(EntityManager.class)
     .should().onlyBeAccessed().byAnyPackage("..persistence..")</code></pre>
 </div>
 </div>
@@ -926,7 +929,7 @@ class MyArchitectureTest {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that().areAssignableTo(EntityManager.class)
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().areAssignableTo(EntityManager.class)
     .should().onlyBeAccessed().byClassesThat().areAnnotatedWith(Transactional.class)</code></pre>
 </div>
 </div>
@@ -940,7 +943,7 @@ class MyArchitectureTest {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">layeredArchitecture()
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">layeredArchitecture()
     .layer("Controller").definedBy("..controller..")
     .layer("Service").definedBy("..service..")
     .layer("Persistence").definedBy("..persistence..")
@@ -960,7 +963,7 @@ class MyArchitectureTest {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">slices().matching("com.myapp.(*)..").should().beFreeOfCycles()</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">slices().matching("com.myapp.(*)..").should().beFreeOfCycles()</code></pre>
 </div>
 </div>
 </div>
@@ -995,7 +998,7 @@ for example be used to import packages from the classpath:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClasses classes = new ClassFileImporter().importPackages("com.mycompany.myapp");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1019,7 +1022,7 @@ provide valuable suggestions on the possibilities the syntax offers.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchRule rule =
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">ArchRule rule =
     classes().that().resideInAPackage("..service..")
         .should().onlyBeAccessed().byAnyPackage("..controller..", "..service..");</code></pre>
 </div>
@@ -1029,7 +1032,7 @@ provide valuable suggestions on the possibilities the syntax offers.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses importedClasses = new ClassFileImporter().importPackage("com.myapp");
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClasses importedClasses = new ClassFileImporter().importPackage("com.myapp");
 ArchRule rule = // define the rule
 rule.check(importedClasses);</code></pre>
 </div>
@@ -1066,7 +1069,7 @@ the classpath, or the complete classpath via</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importClasspath();</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClasses classes = new ClassFileImporter().importClasspath();</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1075,7 +1078,7 @@ to import any path from the file system:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importPath("/some/path/to/classes");</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClasses classes = new ClassFileImporter().importPath("/some/path/to/classes");</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1089,7 +1092,7 @@ is imported. This can be achieved by specifying <code>ImportOptions</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ImportOption ignoreTests = new ImportOption() {
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">ImportOption ignoreTests = new ImportOption() {
     @Override
     public boolean includes(Location location) {
         return !location.contains("/test/"); // ignore any URI to sources that contains '/test/'
@@ -1119,7 +1122,7 @@ there already exist predefined <code>ImportOptions</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">new ClassFileImporter()
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">new ClassFileImporter()
     .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
     .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
     .importClasspath();</code></pre>
@@ -1251,7 +1254,7 @@ object from the Reflection API. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClasses classes = new ClassFileImporter().importClasspath(new ImportOptions());
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClasses classes = new ClassFileImporter().importClasspath(new ImportOptions());
 
 // ArchUnit's java.lang.String
 JavaClass javaClass = classes.get(String.class);
@@ -1274,7 +1277,7 @@ Consider the following annotation:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@interface CustomAnnotation {
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@interface CustomAnnotation {
     String value();
 }</code></pre>
 </div>
@@ -1284,7 +1287,7 @@ Consider the following annotation:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaAnnotation&lt;?&gt; annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnotation");
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaAnnotation&lt;?&gt; annotation = javaClass.getAnnotationOfType("some.pkg.CustomAnnotation");
 // result is untyped, since it might not be on the classpath (e.g. enums)
 Object value = annotation.get("value");</code></pre>
 </div>
@@ -1295,7 +1298,7 @@ this can be written way more naturally:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">CustomAnnotation annotation = javaClass.getAnnotationOfType(CustomAnnotation.class);
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">CustomAnnotation annotation = javaClass.getAnnotationOfType(CustomAnnotation.class);
 String value = annotation.value();</code></pre>
 </div>
 </div>
@@ -1321,7 +1324,7 @@ architectural concept that they should assert. Consider:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">Set&lt;JavaClass&gt; services = new HashSet&lt;&gt;();
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">Set&lt;JavaClass&gt; services = new HashSet&lt;&gt;();
 for (JavaClass clazz : classes) {
     // choose those classes with FQN with infix '.service.'
     if (clazz.getName().contains(".service.")) {
@@ -1357,7 +1360,7 @@ mentioned before:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchRule rule = ArchRuleDefinition.noClasses()
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">ArchRule rule = ArchRuleDefinition.noClasses()
     .that().resideInAPackage("..service..")
     .should().accessClassesThat().resideInAPackage("..controller..");
 
@@ -1372,7 +1375,7 @@ If this test fails, it will report an <code>AssertionError</code> with the follo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-bash hljs" data-lang="bash">java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] -
+<pre class="highlightjs highlight nowrap"><code data-lang="bash" class="language-bash hljs">java.lang.AssertionError: Architecture Violation [Priority: MEDIUM] -
 Rule 'no classes that reside in a package '..service..'
 should access classes that reside in a package '..controller..'' was violated (1 times):
 Method &lt;some.pkg.service.SomeService.callController()&gt;
@@ -1387,7 +1390,7 @@ predicates and conditions:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">noClasses()
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">noClasses()
     .that().resideInAPackage("..service..")
     .or().resideInAPackage("..persistence..")
     .should().accessClassesThat().resideInAPackage("..controller..")
@@ -1407,7 +1410,7 @@ types implementing a certain interface. The entry point is again <code>ArchRuleD
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchRule rule = ArchRuleDefinition.methods()
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">ArchRule rule = ArchRuleDefinition.methods()
     .that().arePublic()
     .and().areDeclaredInClassesThat().resideInAPackage("..controller..")
     .should().beAnnotatedWith(Secured.class);
@@ -1427,7 +1430,7 @@ rule.check(importedClasses);</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>classes that ${PREDICATE} should ${CONDITION}</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">classes that ${PREDICATE} should ${CONDITION}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1438,7 +1441,7 @@ So the rule above is just an application of this generic API:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">DescribedPredicate&lt;JavaClass&gt; resideInAPackageService = // define the predicate
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">DescribedPredicate&lt;JavaClass&gt; resideInAPackageService = // define the predicate
 ArchCondition&lt;JavaClass&gt; accessClassesThatResideInAPackageController = // define the condition
 
 noClasses().that(resideInAPackageService)
@@ -1452,7 +1455,7 @@ For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">DescribedPredicate&lt;JavaClass&gt; haveAFieldAnnotatedWithPayload =
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">DescribedPredicate&lt;JavaClass&gt; haveAFieldAnnotatedWithPayload =
     new DescribedPredicate&lt;JavaClass&gt;("have a field annotated with @Payload"){
         @Override
         public boolean apply(JavaClass input) {
@@ -1484,7 +1487,7 @@ example above, it would be</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>classes that have a field annotated with @Payload should only be accessed by @Secured methods</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">classes that have a field annotated with @Payload should only be accessed by @Secured methods</code></pre>
 </div>
 </div>
 </div>
@@ -1497,7 +1500,7 @@ For example, one can find the predicate to check for the simple name of a <code>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">JavaClass.Predicates.simpleName(String)</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClass.Predicates.simpleName(String)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1507,7 +1510,7 @@ could be created the following way:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 
 DescribedPredicate&lt;JavaClass&gt; serializableNamedFoo =
@@ -1523,7 +1526,7 @@ and resides within</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">HasName.Predicates.name(String)</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">HasName.Predicates.name(String)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1533,7 +1536,7 @@ where <code>T</code> is the type of the first predicate. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// Does not compile, because type(..) targets a subtype of HasName
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">// Does not compile, because type(..) targets a subtype of HasName
 HasName.Predicates.name("").and(JavaClass.Predicates.type(Serializable.class))
 
 // Does compile, because name(..) targets a supertype of JavaClass
@@ -1555,7 +1558,7 @@ Examples:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchCondition&lt;JavaClass&gt; callEquals =
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">ArchCondition&lt;JavaClass&gt; callEquals =
     ArchConditions.callMethod(Object.class, "equals", Object.class);
 ArchCondition&lt;JavaClass&gt; callHashCode =
     ArchConditions.callMethod(Object.class, "hashCode");
@@ -1571,7 +1574,7 @@ ArchCondition&lt;JavaClass&gt; callEqualsOrHashCode = callEquals.or(callHashCode
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>classes that ${PREDICATE} should ${CONDITION}</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">classes that ${PREDICATE} should ${CONDITION}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1595,7 +1598,7 @@ different type of input object. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ClassesTransformer&lt;JavaPackage&gt; packages = new AbstractClassesTransformer&lt;JavaPackage&gt;("packages") {
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">ClassesTransformer&lt;JavaPackage&gt; packages = new AbstractClassesTransformer&lt;JavaPackage&gt;("packages") {
     @Override
     public Iterable&lt;JavaPackage&gt; doTransform(JavaClasses classes) {
         Set&lt;JavaPackage&gt; result = new HashSet&lt;&gt;();
@@ -1617,7 +1620,7 @@ all(packages).that(containACoreClass()).should(...);</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// how we map classes to business modules
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">// how we map classes to business modules
 ClassesTransformer&lt;BusinessModule&gt; businessModules = ...
 
 // filter business module dealing with orders
@@ -1639,7 +1642,7 @@ to document the reason for this rule. This can be done in the following way:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
     .because("@Secured methods will be intercepted, checking for increased privileges " +
         "and obfuscating sensitive auditing information");</code></pre>
 </div>
@@ -1651,7 +1654,7 @@ It is possible to completely overwrite the rule description in those cases:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that(haveAFieldAnnotatedWithPayload).should(onlyBeAccessedBySecuredMethods)
     .as("Payload may only be accessed in a secure way");</code></pre>
 </div>
 </div>
@@ -1676,7 +1679,7 @@ It is possible to add</p>
 <div class="listingblock">
 <div class="title">archunit_ignore_patterns.txt</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-bash hljs" data-lang="bash">.*some\.pkg\.LegacyService.*</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="bash" class="language-bash hljs">.*some\.pkg\.LegacyService.*</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1689,7 +1692,7 @@ are only violated by such violations will report success instead of failure.</p>
 <div class="listingblock">
 <div class="title">archunit_ignore_patterns.txt</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-bash hljs" data-lang="bash"># There are many known violations where LegacyService is involved; we'll ignore them all
+<pre class="highlightjs highlight nowrap"><code data-lang="bash" class="language-bash hljs"># There are many known violations where LegacyService is involved; we'll ignore them all
 .*some\.pkg\.LegacyService.*</code></pre>
 </div>
 </div>
@@ -1711,7 +1714,7 @@ slices (compare <a href="#_what_to_check">What to Check</a>).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.library.Architectures</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">com.tngtech.archunit.library.Architectures</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1734,7 +1737,7 @@ we can define domain packages and adapter packages as follows.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">onionArchitecture()
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">onionArchitecture()
         .domainModels("com.myapp.domain.model..")
         .domainServices("com.myapp.domain.service..")
         .applicationServices("com.myapp.application..")
@@ -1790,7 +1793,7 @@ that slice the code by packages, and contain assertions on those slices. The ent
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.library.dependencies.SlicesRuleDefinition</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">com.tngtech.archunit.library.dependencies.SlicesRuleDefinition</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1799,7 +1802,7 @@ infixes, and then write assertions against those slices. At the moment this is f
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// sort classes by the first package after 'myapp'
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">// sort classes by the first package after 'myapp'
 // then check those slices for cyclic dependencies
 SlicesRuleDefinition.slices().matching("..myapp.(*)..").should().beFreeOfCycles()
 
@@ -1819,7 +1822,7 @@ be sorted into the same slice. Consider this example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">SliceAssignment legacyPackageStructure = new SliceAssignment() {
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">SliceAssignment legacyPackageStructure = new SliceAssignment() {
     // this will specify which classes belong together in the same slice
     @Override
     public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
@@ -1854,7 +1857,7 @@ They can be configured via <code>archunit.properties</code> (compare <a href="#_
 <div class="listingblock">
 <div class="title">archunit.properties</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code># This will limit the maximum number of cycles to detect and thus required CPU and heap.
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs"># This will limit the maximum number of cycles to detect and thus required CPU and heap.
 # default is 100
 cycles.maxNumberToDetect=50
 
@@ -1877,7 +1880,7 @@ Those can be found within</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.library.GeneralCodingRules</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">com.tngtech.archunit.library.GeneralCodingRules</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1893,7 +1896,7 @@ This feature is located in</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.library.plantuml</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">com.tngtech.archunit.library.plantuml</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1902,7 +1905,7 @@ This feature is located in</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">URL myDiagram = getClass().getResource("my-diagram.puml");
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">URL myDiagram = getClass().getResource("my-diagram.puml");
 
 classes().should(adhereToPlantUmlDiagram(myDiagram, consideringAllDependencies()));</code></pre>
 </div>
@@ -1919,7 +1922,7 @@ The way this works is to use the respective package identifiers (compare
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>@startuml
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">@startuml
 [Some Source] &lt;&lt;..some.source..&gt;&gt;
 [Some Target] &lt;&lt;..some.target..&gt;&gt; as target
 
@@ -1940,7 +1943,7 @@ diagram at all. The behavior of the PlantUML API can be configured by supplying 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// considers all dependencies possible (including java.lang, java.util, ...)
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">// considers all dependencies possible (including java.lang, java.util, ...)
 classes().should(adhereToPlantUmlDiagram(
         mydiagram, consideringAllDependencies())
 
@@ -1960,7 +1963,7 @@ classes().should(adhereToPlantUmlDiagram(
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">// there are further ignore flavors available
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">// there are further ignore flavors available
 classes().should(adhereToPlantUmlDiagram(mydiagram).ignoreDependencies(predicate))</code></pre>
 </div>
 </div>
@@ -2019,7 +2022,7 @@ If violations are fixed, <code>FreezingArchRule</code> will automatically reduce
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">ArchRule rule = FreezingArchRule.freeze(classes().should()./*complete ArchRule*/);</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">ArchRule rule = FreezingArchRule.freeze(classes().should()./*complete ArchRule*/);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2039,7 +2042,7 @@ You can configure the location of the violation store within <code>archunit.prop
 <div class="listingblock">
 <div class="title">archunit.properties</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>freeze.store.default.path=/some/path/in/a/vcs/repo</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">freeze.store.default.path=/some/path/in/a/vcs/repo</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2048,7 +2051,7 @@ You can configure the location of the violation store within <code>archunit.prop
 <div class="listingblock">
 <div class="title">archunit.properties</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code># must be set to true to allow the creation of a new violation store
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs"># must be set to true to allow the creation of a new violation store
 # default is false
 freeze.store.default.allowStoreCreation=true
 
@@ -2068,7 +2071,7 @@ For example to allow the creation of the violation store in a specific environme
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>-Darchunit.freeze.store.default.allowStoreCreation=true</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">-Darchunit.freeze.store.default.allowStoreCreation=true</code></pre>
 </div>
 </div>
 </div>
@@ -2091,7 +2094,7 @@ configure <code>FreezingArchRule</code> to use it. This can either be done progr
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">FreezingArchRule.freeze(rule).persistIn(customViolationStore);</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">FreezingArchRule.freeze(rule).persistIn(customViolationStore);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2099,7 +2102,7 @@ configure <code>FreezingArchRule</code> to use it. This can either be done progr
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>freeze.store=fully.qualified.name.of.MyCustomViolationStore</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">freeze.store=fully.qualified.name.of.MyCustomViolationStore</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2108,7 +2111,7 @@ For properties</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>freeze.store.propOne=valueOne
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">freeze.store.propOne=valueOne
 freeze.store.propTwo=valueTwo</code></pre>
 </div>
 </div>
@@ -2117,7 +2120,7 @@ freeze.store.propTwo=valueTwo</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>propOne=valueOne
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">propOne=valueOne
 propTwo=valueTwo</code></pre>
 </div>
 </div>
@@ -2132,7 +2135,7 @@ A custom <code>ViolationLineMatcher</code> can again either be defined programma
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">FreezingArchRule.freeze(rule).associateViolationLinesVia(customLineMatcher);</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">FreezingArchRule.freeze(rule).associateViolationLinesVia(customLineMatcher);</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2140,7 +2143,7 @@ A custom <code>ViolationLineMatcher</code> can again either be defined programma
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>freeze.lineMatcher=fully.qualified.name.of.MyCustomLineMatcher</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">freeze.lineMatcher=fully.qualified.name.of.MyCustomLineMatcher</code></pre>
 </div>
 </div>
 </div>
@@ -2160,7 +2163,7 @@ This mainly tackles the problem of caching classes between test runs and to remo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@Test
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@Test
 public void rule1() {
     JavaClasses importedClasses = new ClassFileImporter().importClasspath();
 
@@ -2199,7 +2202,7 @@ picks up the respective <code>TestEngine</code> transparently. A test typically 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@RunWith(ArchUnitRunner.class) // Remove this line for JUnit 5!!
 @AnalyzeClasses(packages = "com.myapp")
 public class ArchitectureTest {
 
@@ -2237,7 +2240,7 @@ You can specify packages to import as strings:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(packages = {"com.myapp.subone", "com.myapp.subone"})</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@AnalyzeClasses(packages = {"com.myapp.subone", "com.myapp.subone"})</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2246,7 +2249,7 @@ packages these classes reside in will be imported:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(packagesOf = {SubOneConfiguration.class, SubTwoConfiguration.class})</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@AnalyzeClasses(packagesOf = {SubOneConfiguration.class, SubTwoConfiguration.class})</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2254,7 +2257,7 @@ packages these classes reside in will be imported:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">public class MyLocationProvider implements LocationProvider {
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">public class MyLocationProvider implements LocationProvider {
     @Override
     public Set&lt;Location&gt; get(Class&lt;?&gt; testClass) {
         // Determine Locations (= URLs) to import
@@ -2272,7 +2275,7 @@ production code, and only consider code that is directly supplied and does not c
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(importOptions = {DoNotIncludeTests.class, DoNotIncludeJars.class})</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@AnalyzeClasses(importOptions = {DoNotIncludeTests.class, DoNotIncludeJars.class})</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2297,7 +2300,7 @@ reuse the imported Java classes, it would make sense to deactivate this cache.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">@AnalyzeClasses(packages = "com.myapp.special", cacheMode = CacheMode.PER_CLASS)</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@AnalyzeClasses(packages = "com.myapp.special", cacheMode = CacheMode.PER_CLASS)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2313,7 +2316,7 @@ the imported Java classes will simply be dropped.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">public class ArchitectureTest {
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">public class ArchitectureTest {
 
     // will run
     @ArchTest
@@ -2336,7 +2339,7 @@ refer to those sets from another test:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">public class ServiceRules {
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">public class ServiceRules {
     @ArchTest
     public static final ArchRule ruleOne = ...
 
@@ -2392,7 +2395,7 @@ to the respective JVM process executing ArchUnit:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>-Darchunit.propertyName=propertyValue</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">-Darchunit.propertyName=propertyValue</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2400,7 +2403,7 @@ to the respective JVM process executing ArchUnit:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>-Darchunit.resolveMissingDependenciesFromClassPath=false</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">-Darchunit.resolveMissingDependenciesFromClassPath=false</code></pre>
 </div>
 </div>
 </div>
@@ -2414,7 +2417,7 @@ One way that can be chosen out of the box is to never resolve any missing class 
 <div class="listingblock">
 <div class="title">archunit.properties</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>resolveMissingDependenciesFromClassPath=false</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">resolveMissingDependenciesFromClassPath=false</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2425,7 +2428,7 @@ it is possible to configure only specific packages to be resolved from the class
 <div class="listingblock">
 <div class="title">archunit.properties</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>classResolver=com.tngtech.archunit.core.importer.resolvers.SelectedClassResolverFromClasspath
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">classResolver=com.tngtech.archunit.core.importer.resolvers.SelectedClassResolverFromClasspath
 classResolver.args=some.pkg.one,some.pkg.two</code></pre>
 </div>
 </div>
@@ -2442,7 +2445,7 @@ if classes are imported from a different source and are not on the classpath:</p
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">com.tngtech.archunit.core.importer.resolvers.ClassResolver</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">com.tngtech.archunit.core.importer.resolvers.ClassResolver</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2451,7 +2454,7 @@ if classes are imported from a different source and are not on the classpath:</p
 <div class="listingblock">
 <div class="title">archunit.properties</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>classResolver=some.pkg.MyCustomClassResolver</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">classResolver=some.pkg.MyCustomClassResolver</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2461,7 +2464,7 @@ argument, and supply the concrete arguments as</p>
 <div class="listingblock">
 <div class="title">archunit.properties</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>classResolver.args=myArgOne,myArgTwo</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">classResolver.args=myArgOne,myArgTwo</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2478,7 +2481,7 @@ but it can be activated the following way:</p>
 <div class="listingblock">
 <div class="title">archunit.properties</div>
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code>enableMd5InClassSources=true</code></pre>
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">enableMd5InClassSources=true</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2486,15 +2489,15 @@ but it can be activated the following way:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code class="language-java hljs" data-lang="java">javaClass.getSource().get().getMd5sum()</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">javaClass.getSource().get().getMd5sum()</code></pre>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/mono-blue.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/mono-blue.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
 <script>hljs.initHighlighting()</script>
 </body>
 </html>
