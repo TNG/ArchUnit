@@ -18,6 +18,7 @@ public class NormalizedResourceNameTest {
                 $("com", "com", true),
                 $("com/foo", "com", true),
                 $("/com/", "/com", true),
+                $("\\com\\foo", "/com/foo", true),
                 $("com", "bar", false),
                 $("com", "co", false),
                 $("co/m", "co", true),
