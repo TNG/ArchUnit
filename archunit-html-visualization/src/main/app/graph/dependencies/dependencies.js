@@ -73,7 +73,6 @@ const init = (getDependencyCreator) => {
   const applyTransformersOnDependencies = (transformers, dependencies) => Array.from(transformers)
     .reduce((mappedDependencies, transformer) => transformer(mappedDependencies), dependencies);
 
-  //TODO: maybe extract to own file and create tests??
   const Violations = class {
     constructor() {
       this._violationGroups = new Map();
@@ -195,7 +194,6 @@ const init = (getDependencyCreator) => {
       this._filterGroup.getFilter('type').filter = this._getTypeFilter(typeFilterConfig);
     }
 
-    //TODO: maybe keep only one dependency of possible mutual dependencies
     getAllDependencies() {
       const createSimpleDependency = (from, to) => ({source: from, target: to});
       const simpleDependencies = this._getVisibleDependencies().map(dependency => createSimpleDependency(dependency.from, dependency.to));
