@@ -17,7 +17,10 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.Function;
@@ -25,19 +28,26 @@ import com.tngtech.archunit.base.Function;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.base.Function.Functions.identity;
 
-class AnnotationValueFormatter implements Function<Object, String> {
+class AnnotationPropertiesFormatter {
     private final Function<List<String>, String> arrayFormatter;
     private final Function<Class<?>, String> typeFormatter;
     private final Function<String, String> stringFormatter;
 
-    private AnnotationValueFormatter(Builder builder) {
+    private AnnotationPropertiesFormatter(Builder builder) {
         this.arrayFormatter = checkNotNull(builder.arrayFormatter);
         this.typeFormatter = checkNotNull(builder.typeFormatter);
         this.stringFormatter = checkNotNull(builder.stringFormatter);
     }
 
-    @Override
-    public String apply(Object input) {
+    String formatProperties(Map<String, Object> properties) {
+        Set<String> formattedProperties = new HashSet<>();
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            formattedProperties.add(entry.getKey() + "=" + formatValue(entry.getValue()));
+        }
+        return Joiner.on(", ").join(formattedProperties);
+    }
+
+    String formatValue(Object input) {
         if (input instanceof Class<?>) {
             return typeFormatter.apply((Class<?>) input);
         }
@@ -50,7 +60,7 @@ class AnnotationValueFormatter implements Function<Object, String> {
 
         List<String> elemToString = new ArrayList<>();
         for (int i = 0; i < Array.getLength(input); i++) {
-            elemToString.add("" + apply(Array.get(input, i)));
+            elemToString.add(formatValue(Array.get(input, i)));
         }
         return arrayFormatter.apply(elemToString);
     }
@@ -114,8 +124,8 @@ class AnnotationValueFormatter implements Function<Object, String> {
             return this;
         }
 
-        AnnotationValueFormatter build() {
-            return new AnnotationValueFormatter(this);
+        AnnotationPropertiesFormatter build() {
+            return new AnnotationPropertiesFormatter(this);
         }
     }
 }
