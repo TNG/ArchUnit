@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.domain;
 
 import com.tngtech.archunit.Internal;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.PluginLoader;
 
@@ -27,8 +26,8 @@ import com.tngtech.archunit.core.PluginLoader;
 @Internal
 public class Java9DomainPlugin implements DomainPlugin {
     @Override
-    public void plugInAnnotationValueFormatter(InitialConfiguration<Function<Object, String>> valueFormatter) {
-        valueFormatter.set(AnnotationValueFormatter.configure()
+    public void plugInAnnotationPropertiesFormatter(InitialConfiguration<AnnotationPropertiesFormatter> propertiesFormatter) {
+        propertiesFormatter.set(AnnotationPropertiesFormatter.configure()
                 .formattingArraysWithCurlyBrackets()
                 .formattingTypesAsClassNames()
                 .quotingStrings()
