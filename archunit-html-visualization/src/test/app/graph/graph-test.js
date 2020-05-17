@@ -339,6 +339,7 @@ describe('Graph', () => {
     //     return graph.root._updatePromise;
     //   });
     // });
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'pkg3');
   });
 
   const getJsonRootDependenciesAndViolationsForThreeClasses = () => {
