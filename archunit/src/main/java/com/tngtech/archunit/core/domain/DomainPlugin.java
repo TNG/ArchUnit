@@ -19,6 +19,7 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.PluginLoader;
 
+import static com.tngtech.archunit.core.PluginLoader.JavaVersion.JAVA_14;
 import static com.tngtech.archunit.core.PluginLoader.JavaVersion.JAVA_9;
 
 interface DomainPlugin {
@@ -29,6 +30,7 @@ interface DomainPlugin {
         private static final PluginLoader<DomainPlugin> pluginLoader = PluginLoader
                 .forType(DomainPlugin.class)
                 .ifVersionGreaterOrEqualTo(JAVA_9).load("com.tngtech.archunit.core.domain.Java9DomainPlugin")
+                .ifVersionGreaterOrEqualTo(JAVA_14).load("com.tngtech.archunit.core.domain.Java14DomainPlugin")
                 .fallback(new LegacyDomainPlugin());
 
         static DomainPlugin loadForCurrentPlatform() {

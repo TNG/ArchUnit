@@ -32,14 +32,21 @@ class AnnotationPropertiesFormatter {
     private final Function<List<String>, String> arrayFormatter;
     private final Function<Class<?>, String> typeFormatter;
     private final Function<String, String> stringFormatter;
+    private final boolean omitOptionalIdentifierForSingleElementAnnotations;
 
     private AnnotationPropertiesFormatter(Builder builder) {
         this.arrayFormatter = checkNotNull(builder.arrayFormatter);
         this.typeFormatter = checkNotNull(builder.typeFormatter);
         this.stringFormatter = checkNotNull(builder.stringFormatter);
+        this.omitOptionalIdentifierForSingleElementAnnotations = builder.omitOptionalIdentifierForSingleElementAnnotations;
     }
 
     String formatProperties(Map<String, Object> properties) {
+        // see Builder#omitOptionalIdentifierForSingleElementAnnotations() for documentation
+        if (properties.size() == 1 && properties.containsKey("value") && omitOptionalIdentifierForSingleElementAnnotations) {
+            return formatValue(properties.get("value"));
+        }
+
         Set<String> formattedProperties = new HashSet<>();
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
             formattedProperties.add(entry.getKey() + "=" + formatValue(entry.getValue()));
@@ -73,6 +80,7 @@ class AnnotationPropertiesFormatter {
         private Function<List<String>, String> arrayFormatter;
         private Function<Class<?>, String> typeFormatter;
         private Function<String, String> stringFormatter = identity();
+        private boolean omitOptionalIdentifierForSingleElementAnnotations = false;
 
         Builder formattingArraysWithSquareBrackets() {
             arrayFormatter = new Function<List<String>, String>() {
@@ -121,6 +129,19 @@ class AnnotationPropertiesFormatter {
                     return "\"" + input + "\"";
                 }
             };
+            return this;
+        }
+
+        /**
+         * Configures that the identifier is omitted if the annotation is a
+         * <a href="https://docs.oracle.com/javase/specs/jls/se14/html/jls-9.html#jls-9.7.3">single-element annotation</a>
+         * and the identifier of the only element is "value".
+         *
+         * <ul><li>Example with this configuration: {@code @Copyright("2020 Acme Corporation")}</li>
+         * <li>Example without this configuration: {@code @Copyright(value="2020 Acme Corporation")}</li></ul>
+         */
+        Builder omitOptionalIdentifierForSingleElementAnnotations() {
+            omitOptionalIdentifierForSingleElementAnnotations = true;
             return this;
         }
 
