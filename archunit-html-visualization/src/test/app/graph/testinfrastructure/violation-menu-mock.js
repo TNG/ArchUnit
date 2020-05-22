@@ -19,7 +19,7 @@ const ViolationMenuMock = class ViolationMenuMock {
   }
 
   onClickFoldNodesToHideNodesWithoutViolations(callback) {
-    this._clickFoldNodesToHideNodesWithoutViolationsCallback= callback;
+    this._clickFoldNodesToHideNodesWithoutViolationsCallback = callback;
   }
 
   selectViolationGroup(violationGroup) {
@@ -36,6 +36,10 @@ const ViolationMenuMock = class ViolationMenuMock {
 
   unfoldNodesToShowViolations() {
     this._clickUnfoldNodesToShowAllViolationsCallback();
+  }
+
+  clickFoldNodesToHideNodesWithoutViolations() {
+    this._clickFoldNodesToHideNodesWithoutViolationsCallback();
   }
 };
 

@@ -70,13 +70,18 @@ class GraphUi {
     return this.waitForUpdateFinished();
   }
 
-  async showAllViolations() {
+  async clickUnfoldNodesToShowAllViolations() {
     this._violationMenu.unfoldNodesToShowViolations();
     return this.waitForUpdateFinished();
   }
 
   async hideNodesWithoutViolationsChanged(hide) {
     this._violationMenu.hideNodesWithoutViolationsChanged(hide);
+    return this.waitForUpdateFinished();
+  }
+
+  async clickFoldNodesToHideNodesWithoutViolations() {
+    this._violationMenu.clickFoldNodesToHideNodesWithoutViolations();
     return this.waitForUpdateFinished();
   }
 
