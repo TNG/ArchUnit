@@ -15,16 +15,21 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.core.InitialConfiguration;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
+import static java.util.Collections.list;
 
 /**
  * Represents a set of {@link Location locations} of Java class files. Also offers methods to derive concrete locations (i.e. URIs) from
@@ -106,7 +111,7 @@ public final class Locations {
     private static Set<Location> getLocationsOf(String resourceName) {
         UrlSource classpath = locationResolver.get().resolveClassPath();
         NormalizedResourceName normalizedResourceName = NormalizedResourceName.from(resourceName);
-        return ImmutableSet.copyOf(getResourceLocations(normalizedResourceName, classpath));
+        return ImmutableSet.copyOf(getResourceLocations(getCurrentClassLoader(Locations.class), normalizedResourceName, classpath));
     }
 
     /**
@@ -117,14 +122,22 @@ public final class Locations {
      * does not behave correctly for older Java versions,
      * because the folder entry {@code /java/io} is missing from {@code rt.jar}.
      */
-    private static Collection<Location> getResourceLocations(NormalizedResourceName resourceName, Iterable<URL> classpath) {
-        Set<Location> result = new HashSet<>();
+    private static Collection<Location> getResourceLocations(ClassLoader loader, NormalizedResourceName resourceName, Iterable<URL> classpath) {
+        Set<Location> result = newHashSet(Locations.of(getResources(loader, resourceName)));
         for (Location location : Locations.of(classpath)) {
             if (containsEntryWithPrefix(location, resourceName)) {
                 result.add(location.append(resourceName.toString()));
             }
         }
         return result;
+    }
+
+    private static List<URL> getResources(ClassLoader loader, NormalizedResourceName resourceName) {
+        try {
+            return list(loader.getResources(resourceName.toString()));
+        } catch (IOException e) {
+            throw new LocationException(e);
+        }
     }
 
     private static boolean containsEntryWithPrefix(Location location, NormalizedResourceName searchedJarEntryPrefix) {
