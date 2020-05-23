@@ -1,9 +1,9 @@
 plugins {
-  id "org.asciidoctor.convert" version "1.5.3"
+  id "org.asciidoctor.convert" version "2.4.0"
 }
 
 dependencies {
-    asciidoctor 'org.asciidoctor:asciidoctorj-diagram:1.5.11'
+    asciidoctor 'org.asciidoctor:asciidoctorj-diagram:2.0.2'
 }
 
 task cleanUserGuide(type: Delete) {
@@ -12,7 +12,8 @@ task cleanUserGuide(type: Delete) {
 
 asciidoctor {
     backends 'html'
-    attributes 'source-highlighter': 'highlightjs',
+    attributes 'revnumber': project.version,
+            'source-highlighter': 'highlightjs',
             'highlightjs-theme': 'mono-blue',
             'stylesheet': 'archunit.css'
     sourceDir file('userguide')
@@ -25,9 +26,8 @@ asciidoctor {
 }
 
 asciidoctorj {
-    version = '1.5.8.1'
+    version = '2.3.0'
 }
 
 asciidoctor.dependsOn cleanUserGuide
-
-defaultTasks 'asciidoctor'
+task renderUserGuide(dependsOn: asciidoctor)
