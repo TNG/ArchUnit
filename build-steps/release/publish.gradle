@@ -12,7 +12,7 @@ releaseProjects*.with {
     apply plugin: "signing"
 
     tasks.withType(GenerateModuleMetadata) {
-        enabled = isReleaseVersion // signing of these artifacts causes failure for snapshot versions
+        enabled = false // the meta-data does not match the way the Maven artifacts are composed and thus is broken
     }
 
     java {
