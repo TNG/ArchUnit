@@ -7,4 +7,5 @@ WORKDIR /srv/jekyll
 COPY Gemfile .
 COPY Gemfile.lock .
 
-RUN bundle install
+RUN gem install bundler:1.17.3
+RUN bundle install || true
