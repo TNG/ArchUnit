@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 
 import com.google.common.base.Joiner;
@@ -14,6 +16,7 @@ import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaPackage;
+import com.tngtech.archunit.testutil.ContextClassLoaderRule;
 import com.tngtech.archunit.testutil.SystemPropertiesRule;
 import com.tngtech.archunit.testutil.TransientCopyRule;
 import org.junit.Assert;
@@ -38,6 +41,8 @@ public class ClassFileImporterSlowTest {
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
     @Rule
     public final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
+    @Rule
+    public final ContextClassLoaderRule contextClassLoaderRule = new ContextClassLoaderRule();
 
     @Test
     public void imports_the_classpath() {
@@ -115,13 +120,16 @@ public class ClassFileImporterSlowTest {
 
     @Test
     public void imports_classes_from_classpath_specified_in_manifest_file() {
-        String manifestClasspath = Joiner.on(" ").join(Splitter.on(File.pathSeparator).omitEmptyStrings().split(System.getProperty(JAVA_CLASS_PATH_PROP)));
+        String manifestClasspath =
+                Joiner.on(" ").join(Splitter.on(File.pathSeparator).omitEmptyStrings().split(System.getProperty(JAVA_CLASS_PATH_PROP)));
         String jarPath = new TestJarFile()
                 .withManifestAttribute(CLASS_PATH, manifestClasspath)
                 .create()
                 .getName();
 
         System.clearProperty(JAVA_CLASS_PATH_PROP);
+        // Ensure we cannot load the class through the fallback via the Classloader
+        Thread.currentThread().setContextClassLoader(new URLClassLoader(new URL[0], null));
         verifyCantLoadWithCurrentClasspath(getClass());
         System.setProperty(JAVA_CLASS_PATH_PROP, jarPath);
 
