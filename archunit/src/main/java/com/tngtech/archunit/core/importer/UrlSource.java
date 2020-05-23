@@ -16,13 +16,17 @@
 package com.tngtech.archunit.core.importer;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -31,13 +35,19 @@ import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import com.tngtech.archunit.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.importer.Location.toURI;
+import static java.util.Collections.emptySet;
+import static java.util.jar.Attributes.Name.CLASS_PATH;
 
 interface UrlSource extends Iterable<URL> {
     @Internal
@@ -68,10 +78,106 @@ interface UrlSource extends Iterable<URL> {
         }
 
         static UrlSource classPathSystemProperties() {
-            return iterable(ImmutableList.<URL>builder()
+            List<URL> directlySpecifiedAsProperties = ImmutableList.<URL>builder()
                     .addAll(findUrlsForClassPathProperty(BOOT_CLASS_PATH_PROPERTY_NAME))
                     .addAll(findUrlsForClassPathProperty(CLASS_PATH_PROPERTY_NAME))
-                    .build());
+                    .build();
+            Iterable<URL> transitivelySpecifiedThroughManifest = readClasspathEntriesFromManifests(directlySpecifiedAsProperties);
+            return iterable(concat(directlySpecifiedAsProperties, transitivelySpecifiedThroughManifest));
+        }
+
+        private static Iterable<URL> readClasspathEntriesFromManifests(List<URL> urls) {
+            Set<URI> result = new HashSet<>();
+            readClasspathUriEntriesFromManifests(result, FluentIterable.from(urls).transform(URL_TO_URI));
+            return FluentIterable.from(result).transform(URI_TO_URL);
+        }
+
+        // Use URI because of better equals / hashcode
+        private static void readClasspathUriEntriesFromManifests(Set<URI> result, Iterable<URI> urls) {
+            for (URI url : urls) {
+                if (url.getScheme().equals("jar")) {
+                    Set<URI> manifestUris = readClasspathEntriesFromManifest(url);
+                    Set<URI> unknownSoFar = ImmutableSet.copyOf(Sets.difference(manifestUris, result));
+                    result.addAll(unknownSoFar);
+                    readClasspathUriEntriesFromManifests(result, unknownSoFar);
+                }
+            }
+        }
+
+        private static Set<URI> readClasspathEntriesFromManifest(URI url) {
+            Optional<Path> jarPath = findParentPathOf(url);
+            if (!jarPath.isPresent()) {
+                return emptySet();
+            }
+
+            Set<URI> result = new HashSet<>();
+            for (String classpathEntry : Splitter.on(" ").omitEmptyStrings().split(readManifestClasspath(url))) {
+                result.addAll(parseManifestClasspathEntry(jarPath.get(), classpathEntry).asSet());
+            }
+            return result;
+        }
+
+        private static Optional<Path> findParentPathOf(URI uri) {
+            try {
+                return Optional.fromNullable(Paths.get(ensureFileUrl(uri).toURI()).getParent());
+            } catch (Exception e) {
+                LOG.warn("Could not find parent folder for " + uri, e);
+                return Optional.absent();
+            }
+        }
+
+        private static URL ensureFileUrl(URI url) throws IOException {
+            return ((JarURLConnection) url.toURL().openConnection()).getJarFileURL();
+        }
+
+        private static String readManifestClasspath(URI uri) {
+            try {
+                String result = (String) ((JarURLConnection) uri.toURL().openConnection()).getMainAttributes().get(CLASS_PATH);
+                return nullToEmpty(result);
+            } catch (Exception e) {
+                return "";
+            }
+        }
+
+        private static Optional<URI> parseManifestClasspathEntry(Path parent, String classpathEntry) {
+            if (isUrl(classpathEntry)) {
+                return parseUrl(parent, classpathEntry);
+            } else {
+                return parsePath(parent, classpathEntry);
+            }
+        }
+
+        private static boolean isUrl(String classpathEntry) {
+            return classpathEntry.startsWith("file:") || classpathEntry.startsWith("jar:");
+        }
+
+        private static Optional<URI> parseUrl(Path parent, String classpathUrlEntry) {
+            try {
+                return Optional.of(convertToJarUrlIfNecessary(parent.toUri().resolve(URI.create(classpathUrlEntry).getSchemeSpecificPart())));
+            } catch (Exception e) {
+                LOG.warn("Cannot parse URL classpath entry " + classpathUrlEntry, e);
+                return Optional.absent();
+            }
+        }
+
+        private static Optional<URI> parsePath(Path parent, String classpathFilePathEntry) {
+            try {
+                Path path = Paths.get(classpathFilePathEntry);
+                if (!path.isAbsolute()) {
+                    path = parent.resolve(path);
+                }
+                return Optional.of(convertToJarUrlIfNecessary(path.toUri()));
+            } catch (Exception e) {
+                LOG.warn("Cannot parse file path classpath entry " + classpathFilePathEntry, e);
+                return Optional.absent();
+            }
+        }
+
+        private static URI convertToJarUrlIfNecessary(URI uri) {
+            if (uri.toString().endsWith(".jar")) {
+                return URI.create("jar:" + uri + "!/");
+            }
+            return uri;
         }
 
         private static List<URL> findUrlsForClassPathProperty(String propertyName) {
@@ -85,7 +191,7 @@ interface UrlSource extends Iterable<URL> {
         }
 
         private static Optional<URL> parseClassPathEntry(String path) {
-            return path.endsWith(".jar") ? newJarUri(path) : newFileUri(path);
+            return path.endsWith(".jar") ? newJarUrl(path) : newFileUri(path);
         }
 
         private static Optional<URL> newFileUri(String path) {
@@ -118,7 +224,7 @@ interface UrlSource extends Iterable<URL> {
             }
         }
 
-        private static Optional<URL> newJarUri(String path) {
+        private static Optional<URL> newJarUrl(String path) {
             Optional<URL> fileUri = newFileUri(path);
 
             try {
