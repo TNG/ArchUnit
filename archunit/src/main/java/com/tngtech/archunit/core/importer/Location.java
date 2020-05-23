@@ -140,9 +140,9 @@ public abstract class Location {
     }
 
     void checkScheme(String scheme, NormalizedUri uri) {
-        checkArgument(scheme.equals(uri.getScheme()),
-                "URI %s of %s must have scheme %s, but has %s",
-                uri, getClass().getSimpleName(), scheme, uri.getScheme());
+        String actualScheme = uri.getScheme();
+        checkArgument(scheme.equals(actualScheme),
+                "URI %s of Location must have scheme %s, but has %s", uri, scheme, actualScheme);
     }
 
     /**

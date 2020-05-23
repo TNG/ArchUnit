@@ -4,29 +4,45 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaPackage;
+import com.tngtech.archunit.testutil.ContextClassLoaderRule;
+import com.tngtech.archunit.testutil.SystemPropertiesRule;
 import com.tngtech.archunit.testutil.TransientCopyRule;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.TemporaryFolder;
 
 import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTest.jarFileOf;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
+import static com.tngtech.archunit.core.importer.UrlSourceTest.JAVA_CLASS_PATH_PROP;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static java.util.jar.Attributes.Name.CLASS_PATH;
 
 @Category(Slow.class)
 public class ClassFileImporterSlowTest {
     @Rule
     public final TransientCopyRule copyRule = new TransientCopyRule();
+    @Rule
+    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule
+    public final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
+    @Rule
+    public final ContextClassLoaderRule contextClassLoaderRule = new ContextClassLoaderRule();
 
     @Test
     public void imports_the_classpath() {
@@ -100,6 +116,34 @@ public class ClassFileImporterSlowTest {
         JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName());
 
         assertThat(classes.get(JavaClass.class)).isNotNull();
+    }
+
+    @Test
+    public void imports_classes_from_classpath_specified_in_manifest_file() {
+        String manifestClasspath =
+                Joiner.on(" ").join(Splitter.on(File.pathSeparator).omitEmptyStrings().split(System.getProperty(JAVA_CLASS_PATH_PROP)));
+        String jarPath = new TestJarFile()
+                .withManifestAttribute(CLASS_PATH, manifestClasspath)
+                .create()
+                .getName();
+
+        System.clearProperty(JAVA_CLASS_PATH_PROP);
+        // Ensure we cannot load the class through the fallback via the Classloader
+        Thread.currentThread().setContextClassLoader(new URLClassLoader(new URL[0], null));
+        verifyCantLoadWithCurrentClasspath(getClass());
+        System.setProperty(JAVA_CLASS_PATH_PROP, jarPath);
+
+        JavaClasses javaClasses = new ClassFileImporter().importPackages(getClass().getPackage().getName());
+
+        assertThatClasses(javaClasses).contain(getClass());
+    }
+
+    private void verifyCantLoadWithCurrentClasspath(Class<?> clazz) {
+        try {
+            new ClassFileImporter().importClass(clazz);
+            Assert.fail(String.format("Should not have been able to load class %s with the current classpath", clazz.getName()));
+        } catch (RuntimeException ignored) {
+        }
     }
 
     @Test
