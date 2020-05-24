@@ -249,6 +249,31 @@ public class ClassesShouldTest {
     }
 
     @DataProvider
+    public static Object[][] haveSimpleNameNotStartingWith_rules() {
+        String simpleName = WrongNamedClass.class.getSimpleName();
+        String prefix = simpleName.substring(0, simpleName.length() - 1);
+        return $$(
+                $(classes().should().haveSimpleNameNotStartingWith(prefix), prefix),
+                $(classes().should(ArchConditions.haveSimpleNameNotStartingWith(prefix)), prefix)
+        );
+    }
+
+    @Test
+    @UseDataProvider("haveSimpleNameNotStartingWith_rules")
+    public void haveSimpleNameNotStartingWith(ArchRule rule, String prefix) {
+        EvaluationResult result = rule.evaluate(importClasses(
+                SomeClass.class, WrongNamedClass.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should have simple name not starting with '%s'", prefix))
+                .containsPattern(String.format("simple name of %s starts with '%s' in %s",
+                        quote(WrongNamedClass.class.getName()),
+                        quote(prefix),
+                        locationPattern(WrongNamedClass.class)))
+                .doesNotContain(SomeClass.class.getName());
+    }
+
+    @DataProvider
     public static Object[][] haveSimpleNameContaining_rules() {
         String simpleName = SomeClass.class.getSimpleName();
         String infix = simpleName.substring(1, simpleName.length() - 1);
@@ -294,31 +319,6 @@ public class ClassesShouldTest {
                 .containsPattern(String.format("simple name of %s contains '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(infix),
-                        locationPattern(WrongNamedClass.class)))
-                .doesNotContain(SomeClass.class.getName());
-    }
-
-    @DataProvider
-    public static Object[][] haveSimpleNameNotStartingWith_rules() {
-        String simpleName = WrongNamedClass.class.getSimpleName();
-        String prefix = simpleName.substring(0, simpleName.length() - 1);
-        return $$(
-                $(classes().should().haveSimpleNameNotStartingWith(prefix), prefix),
-                $(classes().should(ArchConditions.haveSimpleNameNotStartingWith(prefix)), prefix)
-        );
-    }
-
-    @Test
-    @UseDataProvider("haveSimpleNameNotStartingWith_rules")
-    public void haveSimpleNameNotStartingWith(ArchRule rule, String prefix) {
-        EvaluationResult result = rule.evaluate(importClasses(
-                SomeClass.class, WrongNamedClass.class));
-
-        assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should have simple name not starting with '%s'", prefix))
-                .containsPattern(String.format("simple name of %s starts with '%s' in %s",
-                        quote(WrongNamedClass.class.getName()),
-                        quote(prefix),
                         locationPattern(WrongNamedClass.class)))
                 .doesNotContain(SomeClass.class.getName());
     }
@@ -1722,7 +1722,7 @@ public class ClassesShouldTest {
     }
 
     static String locationPattern(Class<?> clazz) {
-        return String.format("\\(%s.java:0\\)", quote(clazz.getSimpleName()));
+        return String.format("\\(%s.java:\\d+\\)", quote(clazz.getSimpleName()));
     }
 
     static String singleLineFailureReportOf(EvaluationResult result) {

@@ -102,7 +102,10 @@ import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicate
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullName;
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameContaining;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameEndingWith;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameStartingWith;
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
@@ -551,6 +554,48 @@ public final class ArchConditions {
     public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_FULL_NAME>
     haveFullNameNotMatching(String regex) {
         return not(ArchConditions.<HAS_FULL_NAME>haveFullNameMatching(regex)).as("have full name not matching '%s'", regex);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
+    haveNameStartingWith(String prefix) {
+        final DescribedPredicate<HAS_NAME> haveNameStartingWith = have(nameStartingWith(prefix)).forSubType();
+        return new StartingCondition<>(haveNameStartingWith, prefix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
+    haveNameNotStartingWith(String prefix) {
+        final DescribedPredicate<HAS_NAME> haveNameStartingWith = have(nameStartingWith(prefix)).forSubType();
+        return not(new StartingCondition<>(haveNameStartingWith, prefix)).as("have name not starting with '%s'", prefix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
+    haveNameContaining(String infix) {
+        final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubType();
+        return new ContainingCondition<>(haveNameContaining, infix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
+    haveNameNotContaining(String infix) {
+        final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubType();
+        return not(new ContainingCondition<>(haveNameContaining, infix)).as("have name not containing '%s'", infix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
+    haveNameEndingWith(String suffix) {
+        final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubType();
+        return new EndingCondition<>(haveNameEndingWith, suffix);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
+    haveNameNotEndingWith(String suffix) {
+        final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubType();
+        return not(new EndingCondition<>(haveNameEndingWith, suffix)).as("have name not ending with '%s'", suffix);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1239,6 +1284,63 @@ public final class ArchConditions {
             boolean satisfied = matcher.apply(item);
             String message = createMessage(item,
                     String.format("%s '%s'", satisfied ? "matches" : "does not match", regex));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class StartingCondition<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
+        private final DescribedPredicate<T> startingWith;
+        private final String prefix;
+
+        StartingCondition(DescribedPredicate<T> startingWith, String prefix) {
+            super(startingWith.getDescription());
+            this.startingWith = startingWith;
+            this.prefix = prefix;
+        }
+
+        @Override
+        public void check(T item, ConditionEvents events) {
+            boolean satisfied = startingWith.apply(item);
+            String message = createMessage(item,
+                    String.format("name %s '%s'", satisfied ? "starts with" : "does not start with", prefix));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class ContainingCondition<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
+        private final DescribedPredicate<T> containing;
+        private final String infix;
+
+        ContainingCondition(DescribedPredicate<T> containing, String infix) {
+            super(containing.getDescription());
+            this.containing = containing;
+            this.infix = infix;
+        }
+
+        @Override
+        public void check(T item, ConditionEvents events) {
+            boolean satisfied = containing.apply(item);
+            String message = createMessage(item,
+                    String.format("name %s '%s'", satisfied ? "contains" : "does not contain", infix));
+            events.add(new SimpleConditionEvent(item, satisfied, message));
+        }
+    }
+
+    private static class EndingCondition<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
+        private final DescribedPredicate<T> endingWith;
+        private final String suffix;
+
+        EndingCondition(DescribedPredicate<T> endingWith, String suffix) {
+            super(endingWith.getDescription());
+            this.endingWith = endingWith;
+            this.suffix = suffix;
+        }
+
+        @Override
+        public void check(T item, ConditionEvents events) {
+            boolean satisfied = endingWith.apply(item);
+            String message = createMessage(item,
+                    String.format("name %s '%s'", satisfied ? "ends with" : "does not end with", suffix));
             events.add(new SimpleConditionEvent(item, satisfied, message));
         }
     }
