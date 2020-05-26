@@ -89,6 +89,10 @@ task jdk9Test(type: Test) {
 
 [jar, test]*.dependsOn compileJdk9mainJava
 
+[test, jdk9Test].each { testTask ->
+    addMultiJdkTestsFor project, testTask
+}
+
 spotbugsJdk9test.enabled = false
 
 idea {
