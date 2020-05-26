@@ -10,5 +10,6 @@ out
 _site
 .sass-cache
 .jekyll-metadata
+.jekyll-cache
 .asciidoctor
 verification-results
