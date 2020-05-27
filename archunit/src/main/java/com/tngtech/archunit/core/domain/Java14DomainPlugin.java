@@ -24,13 +24,14 @@ import com.tngtech.archunit.core.PluginLoader;
  */
 @SuppressWarnings("unused")
 @Internal
-public class Java9DomainPlugin implements DomainPlugin {
+public class Java14DomainPlugin implements DomainPlugin {
     @Override
     public void plugInAnnotationPropertiesFormatter(InitialConfiguration<AnnotationPropertiesFormatter> propertiesFormatter) {
         propertiesFormatter.set(AnnotationPropertiesFormatter.configure()
                 .formattingArraysWithCurlyBrackets()
                 .formattingTypesAsClassNames()
                 .quotingStrings()
+                .omitOptionalIdentifierForSingleElementAnnotations()
                 .build());
     }
 }
