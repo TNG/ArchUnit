@@ -16,20 +16,21 @@
 package com.tngtech.archunit.core.domain;
 
 import com.tngtech.archunit.Internal;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.PluginLoader;
 
+import static com.tngtech.archunit.core.PluginLoader.JavaVersion.JAVA_14;
 import static com.tngtech.archunit.core.PluginLoader.JavaVersion.JAVA_9;
 
 interface DomainPlugin {
-    void plugInAnnotationValueFormatter(InitialConfiguration<Function<Object, String>> valueFormatter);
+    void plugInAnnotationPropertiesFormatter(InitialConfiguration<AnnotationPropertiesFormatter> valueFormatter);
 
     @Internal
     class Loader {
         private static final PluginLoader<DomainPlugin> pluginLoader = PluginLoader
                 .forType(DomainPlugin.class)
                 .ifVersionGreaterOrEqualTo(JAVA_9).load("com.tngtech.archunit.core.domain.Java9DomainPlugin")
+                .ifVersionGreaterOrEqualTo(JAVA_14).load("com.tngtech.archunit.core.domain.Java14DomainPlugin")
                 .fallback(new LegacyDomainPlugin());
 
         static DomainPlugin loadForCurrentPlatform() {
@@ -38,8 +39,8 @@ interface DomainPlugin {
 
         private static class LegacyDomainPlugin implements DomainPlugin {
             @Override
-            public void plugInAnnotationValueFormatter(InitialConfiguration<Function<Object, String>> valueFormatter) {
-                valueFormatter.set(AnnotationValueFormatter.configure()
+            public void plugInAnnotationPropertiesFormatter(InitialConfiguration<AnnotationPropertiesFormatter> valueFormatter) {
+                valueFormatter.set(AnnotationPropertiesFormatter.configure()
                         .formattingArraysWithSquareBrackets()
                         .formattingTypesToString()
                         .build());

@@ -7,78 +7,78 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AnnotationValueFormatterTest {
+public class AnnotationPropertiesFormatterTest {
     @Test
     public void formats_arrays_with_square_brackets() {
-        AnnotationValueFormatter formatter = AnnotationValueFormatter.configure()
+        AnnotationPropertiesFormatter formatter = AnnotationPropertiesFormatter.configure()
                 .formattingArraysWithSquareBrackets()
                 .formattingTypesAsClassNames()
                 .build();
 
-        assertThat(formatter.apply(new String[]{"one", "two"}))
+        assertThat(formatter.formatValue(new String[]{"one", "two"}))
                 .isEqualTo("[one, two]");
 
-        assertThat(formatter.apply(new int[]{5, 9}))
+        assertThat(formatter.formatValue(new int[]{5, 9}))
                 .isEqualTo("[5, 9]");
 
-        assertThat(formatter.apply(new List[]{ImmutableList.of(1, 2), ImmutableList.of(3, 4)}))
+        assertThat(formatter.formatValue(new List[]{ImmutableList.of(1, 2), ImmutableList.of(3, 4)}))
                 .isEqualTo("[[1, 2], [3, 4]]");
     }
 
     @Test
     public void formats_arrays_with_curly_brackets() {
-        AnnotationValueFormatter formatter = AnnotationValueFormatter.configure()
+        AnnotationPropertiesFormatter formatter = AnnotationPropertiesFormatter.configure()
                 .formattingArraysWithCurlyBrackets()
                 .formattingTypesAsClassNames()
                 .quotingStrings()
                 .build();
 
-        assertThat(formatter.apply(new String[]{"one", "two"}))
+        assertThat(formatter.formatValue(new String[]{"one", "two"}))
                 .isEqualTo("{\"one\", \"two\"}");
 
-        assertThat(formatter.apply(new int[]{5, 9}))
+        assertThat(formatter.formatValue(new int[]{5, 9}))
                 .isEqualTo("{5, 9}");
 
-        assertThat(formatter.apply(new List[]{ImmutableList.of(1, 2), ImmutableList.of(3, 4)}))
+        assertThat(formatter.formatValue(new List[]{ImmutableList.of(1, 2), ImmutableList.of(3, 4)}))
                 .isEqualTo("{[1, 2], [3, 4]}");
     }
 
     @Test
     public void formats_types_to_string() {
-        AnnotationValueFormatter formatter = AnnotationValueFormatter.configure()
+        AnnotationPropertiesFormatter formatter = AnnotationPropertiesFormatter.configure()
                 .formattingArraysWithCurlyBrackets()
                 .formattingTypesToString()
                 .quotingStrings()
                 .build();
 
-        assertThat(formatter.apply(Object.class))
+        assertThat(formatter.formatValue(Object.class))
                 .isEqualTo("class java.lang.Object");
     }
 
     @Test
     public void formats_types_as_classNames() {
-        AnnotationValueFormatter formatter = AnnotationValueFormatter.configure()
+        AnnotationPropertiesFormatter formatter = AnnotationPropertiesFormatter.configure()
                 .formattingArraysWithCurlyBrackets()
                 .formattingTypesAsClassNames()
                 .quotingStrings()
                 .build();
 
-        assertThat(formatter.apply(Object.class))
+        assertThat(formatter.formatValue(Object.class))
                 .isEqualTo("java.lang.Object.class");
     }
 
     @Test
     public void quotes_strings() {
-        AnnotationValueFormatter.Builder builder = AnnotationValueFormatter.configure()
+        AnnotationPropertiesFormatter.Builder builder = AnnotationPropertiesFormatter.configure()
                 .formattingArraysWithCurlyBrackets()
                 .formattingTypesAsClassNames();
 
-        AnnotationValueFormatter formatter = builder.build();
-        assertThat(formatter.apply("string"))
+        AnnotationPropertiesFormatter formatter = builder.build();
+        assertThat(formatter.formatValue("string"))
                 .isEqualTo("string");
 
         formatter = builder.quotingStrings().build();
-        assertThat(formatter.apply("string"))
+        assertThat(formatter.formatValue("string"))
                 .isEqualTo("\"string\"");
     }
 }

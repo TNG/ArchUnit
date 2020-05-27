@@ -20,17 +20,15 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Function;
+import com.google.common.collect.Maps;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -39,10 +37,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 @MayResolveTypesViaReflection(reason = "We depend on the classpath, if we proxy an annotation type")
 class AnnotationProxy {
-    private static final InitialConfiguration<Function<Object, String>> valueFormatter = new InitialConfiguration<>();
+    private static final InitialConfiguration<AnnotationPropertiesFormatter> propertiesFormatter = new InitialConfiguration<>();
 
     static {
-        DomainPlugin.Loader.loadForCurrentPlatform().plugInAnnotationValueFormatter(valueFormatter);
+        DomainPlugin.Loader.loadForCurrentPlatform().plugInAnnotationPropertiesFormatter(propertiesFormatter);
     }
 
     public static <A extends Annotation> A of(Class<A> annotationType, JavaAnnotation<?> toProxy) {
@@ -279,17 +277,22 @@ class AnnotationProxy {
 
         @Override
         public Object handle(Object proxy, Method method, Object[] args) {
-            return String.format("@%s(%s)", toProxy.getRawType().getName(), propertyStrings());
+            return String.format("@%s(%s)", toProxy.getRawType().getName(), propertiesString());
         }
 
-        private String propertyStrings() {
-            Set<String> properties = new HashSet<>();
-            for (Map.Entry<String, Object> entry : toProxy.getProperties().entrySet()) {
-                Class<?> returnType = getDeclaredMethod(entry.getKey()).getReturnType();
-                String value = valueFormatter.get().apply(conversions.convertIfNecessary(entry.getValue(), returnType));
-                properties.add(entry.getKey() + "=" + value);
-            }
-            return Joiner.on(", ").join(properties);
+        private String propertiesString() {
+            Map<String, Object> unwrappedProperties = unwrapProxiedProperties();
+            return propertiesFormatter.get().formatProperties(unwrappedProperties);
+        }
+
+        private Map<String, Object> unwrapProxiedProperties() {
+            return Maps.transformEntries(toProxy.getProperties(), new Maps.EntryTransformer<String, Object, Object>() {
+                @Override
+                public Object transformEntry(String key, Object value) {
+                    Class<?> returnType = getDeclaredMethod(key).getReturnType();
+                    return conversions.convertIfNecessary(value, returnType);
+                }
+            });
         }
 
         private Method getDeclaredMethod(String name) {

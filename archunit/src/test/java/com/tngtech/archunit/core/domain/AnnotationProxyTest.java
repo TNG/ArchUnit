@@ -6,13 +6,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.importer.ImportTestUtils;
 import com.tngtech.archunit.core.importer.JavaAnnotationTestBuilder;
@@ -254,34 +254,34 @@ public class AnnotationProxyTest {
     }
 
     private ImmutableMap<String, String> propertiesOf(Class<TestAnnotation> type) {
-        Function<Object, String> formatter = getAnnotationValueFormatterForCurrentPlatform();
+        AnnotationPropertiesFormatter formatter = getAnnotationPropertiesFormatterForCurrentPlatform();
         ImmutableMap<String, String> result = ImmutableMap.<String, String>builder()
                 .put("primitive", "77")
                 .put("primitiveWithDefault", "1")
-                .put("primitives", formatter.apply(new int[]{77, 88}))
-                .put("primitivesWithDefault", formatter.apply(new int[]{1, 2}))
-                .put("string", formatter.apply("foo"))
-                .put("stringWithDefault", formatter.apply("something"))
-                .put("strings", formatter.apply(new String[]{"one", "two"}))
-                .put("stringsWithDefault", formatter.apply(new String[]{"something", "more"}))
-                .put("type", formatter.apply(String.class))
-                .put("typeWithDefault", formatter.apply(Serializable.class))
-                .put("types", formatter.apply(new Class[]{Map.class, List.class}))
-                .put("typesWithDefault", formatter.apply(new Class[]{Serializable.class, String.class}))
+                .put("primitives", formatter.formatValue(new int[]{77, 88}))
+                .put("primitivesWithDefault", formatter.formatValue(new int[]{1, 2}))
+                .put("string", formatter.formatValue("foo"))
+                .put("stringWithDefault", formatter.formatValue("something"))
+                .put("strings", formatter.formatValue(new String[]{"one", "two"}))
+                .put("stringsWithDefault", formatter.formatValue(new String[]{"something", "more"}))
+                .put("type", formatter.formatValue(String.class))
+                .put("typeWithDefault", formatter.formatValue(Serializable.class))
+                .put("types", formatter.formatValue(new Class[]{Map.class, List.class}))
+                .put("typesWithDefault", formatter.formatValue(new Class[]{Serializable.class, String.class}))
                 .put("enumConstant", String.valueOf(TestEnum.SECOND))
                 .put("enumConstantWithDefault", String.valueOf(TestEnum.FIRST))
-                .put("enumConstants", formatter.apply(new TestEnum[]{TestEnum.SECOND, TestEnum.THIRD}))
-                .put("enumConstantsWithDefault", formatter.apply(new TestEnum[]{TestEnum.FIRST, TestEnum.SECOND}))
+                .put("enumConstants", formatter.formatValue(new TestEnum[]{TestEnum.SECOND, TestEnum.THIRD}))
+                .put("enumConstantsWithDefault", formatter.formatValue(new TestEnum[]{TestEnum.FIRST, TestEnum.SECOND}))
                 .put("subAnnotation",
                         formatSubAnnotation(formatter, "custom"))
                 .put("subAnnotationWithDefault",
                         formatSubAnnotation(formatter, "default"))
                 .put("subAnnotations",
-                        formatter.apply(new Object[]{
+                        formatter.formatValue(new Object[]{
                                 subAnnotationFormatter(formatter, "customOne"),
                                 subAnnotationFormatter(formatter, "customTwo")}))
                 .put("subAnnotationsWithDefault",
-                        formatter.apply(new Object[]{
+                        formatter.formatValue(new Object[]{
                                 subAnnotationFormatter(formatter, "defaultOne"),
                                 subAnnotationFormatter(formatter, "defaultTwo")}))
                 .build();
@@ -289,19 +289,20 @@ public class AnnotationProxyTest {
         return result;
     }
 
-    private Function<Object, String> getAnnotationValueFormatterForCurrentPlatform() {
+    private AnnotationPropertiesFormatter getAnnotationPropertiesFormatterForCurrentPlatform() {
         DomainPlugin domainPlugin = DomainPlugin.Loader.loadForCurrentPlatform();
-        InitialConfiguration<Function<Object, String>> valueFormatter = new InitialConfiguration<>();
-        domainPlugin.plugInAnnotationValueFormatter(valueFormatter);
-        return valueFormatter.get();
+        InitialConfiguration<AnnotationPropertiesFormatter> formatter = new InitialConfiguration<>();
+        domainPlugin.plugInAnnotationPropertiesFormatter(formatter);
+        return formatter.get();
     }
 
-    private String formatSubAnnotation(Function<Object, String> formatter, String value) {
-        return "@com.tngtech.archunit.core.domain.AnnotationProxyTest$SubAnnotation(value=" + formatter.apply(value) + ")";
+    private String formatSubAnnotation(AnnotationPropertiesFormatter formatter, String value) {
+        Map<String, Object> properties = Collections.singletonMap("value", (Object) value);
+        return "@com.tngtech.archunit.core.domain.AnnotationProxyTest$SubAnnotation(" + formatter.formatProperties(properties) + ")";
     }
 
     // NOTE: We do not want this value to be treated as a string by the formatter, and e.g. quoted -> Object
-    private Object subAnnotationFormatter(final Function<Object, String> formatter, final String value) {
+    private Object subAnnotationFormatter(final AnnotationPropertiesFormatter formatter, final String value) {
         return new Object() {
             @Override
             public String toString() {

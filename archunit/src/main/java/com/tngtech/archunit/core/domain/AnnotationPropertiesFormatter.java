@@ -17,7 +17,10 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.Function;
@@ -25,19 +28,33 @@ import com.tngtech.archunit.base.Function;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.base.Function.Functions.identity;
 
-class AnnotationValueFormatter implements Function<Object, String> {
+class AnnotationPropertiesFormatter {
     private final Function<List<String>, String> arrayFormatter;
     private final Function<Class<?>, String> typeFormatter;
     private final Function<String, String> stringFormatter;
+    private final boolean omitOptionalIdentifierForSingleElementAnnotations;
 
-    private AnnotationValueFormatter(Builder builder) {
+    private AnnotationPropertiesFormatter(Builder builder) {
         this.arrayFormatter = checkNotNull(builder.arrayFormatter);
         this.typeFormatter = checkNotNull(builder.typeFormatter);
         this.stringFormatter = checkNotNull(builder.stringFormatter);
+        this.omitOptionalIdentifierForSingleElementAnnotations = builder.omitOptionalIdentifierForSingleElementAnnotations;
     }
 
-    @Override
-    public String apply(Object input) {
+    String formatProperties(Map<String, Object> properties) {
+        // see Builder#omitOptionalIdentifierForSingleElementAnnotations() for documentation
+        if (properties.size() == 1 && properties.containsKey("value") && omitOptionalIdentifierForSingleElementAnnotations) {
+            return formatValue(properties.get("value"));
+        }
+
+        Set<String> formattedProperties = new HashSet<>();
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            formattedProperties.add(entry.getKey() + "=" + formatValue(entry.getValue()));
+        }
+        return Joiner.on(", ").join(formattedProperties);
+    }
+
+    String formatValue(Object input) {
         if (input instanceof Class<?>) {
             return typeFormatter.apply((Class<?>) input);
         }
@@ -50,7 +67,7 @@ class AnnotationValueFormatter implements Function<Object, String> {
 
         List<String> elemToString = new ArrayList<>();
         for (int i = 0; i < Array.getLength(input); i++) {
-            elemToString.add("" + apply(Array.get(input, i)));
+            elemToString.add(formatValue(Array.get(input, i)));
         }
         return arrayFormatter.apply(elemToString);
     }
@@ -63,6 +80,7 @@ class AnnotationValueFormatter implements Function<Object, String> {
         private Function<List<String>, String> arrayFormatter;
         private Function<Class<?>, String> typeFormatter;
         private Function<String, String> stringFormatter = identity();
+        private boolean omitOptionalIdentifierForSingleElementAnnotations = false;
 
         Builder formattingArraysWithSquareBrackets() {
             arrayFormatter = new Function<List<String>, String>() {
@@ -114,8 +132,21 @@ class AnnotationValueFormatter implements Function<Object, String> {
             return this;
         }
 
-        AnnotationValueFormatter build() {
-            return new AnnotationValueFormatter(this);
+        /**
+         * Configures that the identifier is omitted if the annotation is a
+         * <a href="https://docs.oracle.com/javase/specs/jls/se14/html/jls-9.html#jls-9.7.3">single-element annotation</a>
+         * and the identifier of the only element is "value".
+         *
+         * <ul><li>Example with this configuration: {@code @Copyright("2020 Acme Corporation")}</li>
+         * <li>Example without this configuration: {@code @Copyright(value="2020 Acme Corporation")}</li></ul>
+         */
+        Builder omitOptionalIdentifierForSingleElementAnnotations() {
+            omitOptionalIdentifierForSingleElementAnnotations = true;
+            return this;
+        }
+
+        AnnotationPropertiesFormatter build() {
+            return new AnnotationPropertiesFormatter(this);
         }
     }
 }
