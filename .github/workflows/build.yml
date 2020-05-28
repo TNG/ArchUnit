@@ -8,26 +8,84 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build-unix:
     strategy:
       matrix:
         os:
           - ubuntu-latest
           - macos-latest
-          - windows-latest
         java_version:
+          -  7
+          -  8
+          -  9
+          - 10
           - 11
-
+          - 12
+          - 13
+          - 14
     runs-on: ${{ matrix.os }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Set up Java
+      - name: Set up Java for build
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - name: Build
+        run: ./gradlew -PallTests build
+      - name: Prepare integration test
+        run: ./gradlew publishToMavenLocal
+      - name: Set up Java for integration test
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java_version }}
-      - name: Build
-        uses: eskatos/gradle-command-action@v1
+      - name: Integration test
+        env:
+          JAVA_VERSION: ${{ matrix.java_version }}
+        run: |
+          echo ${JAVA_VERSION}
+          JAVA_HOME_MAVEN=${JAVA_HOME}
+          echo ${JAVA_HOME_MAVEN}
+          JAVA_HOME=${JAVA_HOME_11_X64}
+          echo ${JAVA_HOME}
+          ./gradlew runMavenTest -Pjava${JAVA_VERSION}Home=${JAVA_HOME_MAVEN}
+  build-windows:
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+        java_version:
+          -  7
+          -  8
+          -  9
+          - 10
+          - 11
+          - 12
+          - 13
+          - 14
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Java for build
+        uses: actions/setup-java@v1
         with:
-          arguments: build -PallTests
+          java-version: 11
+      - name: Build
+        run: .\gradlew.bat -PallTests build
+      - name: Prepare integration test
+        run: .\gradlew.bat publishToMavenLocal
+      - name: Set up Java for integration test
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java_version }}
+      - name: Integration test
+        env:
+          JAVA_VERSION: ${{ matrix.java_version }}
+        run: |
+          $env:JAVA_VERSION
+          $env:JAVA_HOME_MAVEN = $env:JAVA_HOME
+          $env:JAVA_HOME_MAVEN
+          $env:JAVA_HOME = $env:JAVA_HOME_11_X64
+          $env:JAVA_HOME
+          .\gradlew.bat runMavenTest "-Pjava$($env:JAVA_VERSION)Home=$($env:JAVA_HOME_MAVEN)"
