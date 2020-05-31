@@ -80,6 +80,7 @@ public class UrlSourceTest {
         String classPath = createClassPathProperty(valid.toString(),
                 "/invalid/path/because/of/" + CHARACTER_THAT_IS_HOPEFULLY_ILLEGAL_ON_EVERY_PLATFORM + "/");
         System.setProperty(JAVA_CLASS_PATH_PROP, classPath);
+        System.clearProperty(JAVA_BOOT_PATH_PROP);
 
         assertThat(UrlSource.From.classPathSystemProperties()).containsOnly(toUrl(valid));
     }
@@ -142,6 +143,7 @@ public class UrlSourceTest {
                 .create(jarTwoPath);
 
         System.setProperty(JAVA_CLASS_PATH_PROP, jarOne.getName());
+        System.clearProperty(JAVA_BOOT_PATH_PROP);
         UrlSource urls = UrlSource.From.classPathSystemProperties();
 
         assertThat(urls).containsOnly(toUrl(Paths.get(jarOne.getName())), toUrl(Paths.get(jarTwo.getName())));

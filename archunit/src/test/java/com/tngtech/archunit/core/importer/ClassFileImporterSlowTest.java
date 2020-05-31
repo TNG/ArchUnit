@@ -4,12 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.List;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Slow;
@@ -52,12 +48,7 @@ public class ClassFileImporterSlowTest {
         assertThatClasses(classes).doNotContain(Rule.class); // Default does not import jars
         assertThatClasses(classes).doNotContain(File.class); // Default does not import JDK classes
 
-        classes = new ClassFileImporter().importClasspath(new ImportOptions().with(new ImportOption() {
-            @Override
-            public boolean includes(Location location) {
-                return !location.asURI().getScheme().equals("jrt") || location.contains("java.base");
-            }
-        }));
+        classes = new ClassFileImporter().importClasspath(new ImportOptions().with(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath()));
 
         assertThatClasses(classes).contain(ClassFileImporter.class, getClass(), Rule.class, File.class);
     }
@@ -120,28 +111,25 @@ public class ClassFileImporterSlowTest {
 
     @Test
     public void imports_classes_from_classpath_specified_in_manifest_file() {
-        String manifestClasspath =
-                Joiner.on(" ").join(Splitter.on(File.pathSeparator).omitEmptyStrings().split(System.getProperty(JAVA_CLASS_PATH_PROP)));
+        TestClassFile testClassFile = new TestClassFile().create();
+        String manifestClasspath = testClassFile.getClasspathRoot().getAbsolutePath();
         String jarPath = new TestJarFile()
                 .withManifestAttribute(CLASS_PATH, manifestClasspath)
                 .create()
                 .getName();
 
-        System.clearProperty(JAVA_CLASS_PATH_PROP);
-        // Ensure we cannot load the class through the fallback via the Classloader
-        Thread.currentThread().setContextClassLoader(new URLClassLoader(new URL[0], null));
-        verifyCantLoadWithCurrentClasspath(getClass());
+        verifyCantLoadWithCurrentClasspath(testClassFile);
         System.setProperty(JAVA_CLASS_PATH_PROP, jarPath);
 
-        JavaClasses javaClasses = new ClassFileImporter().importPackages(getClass().getPackage().getName());
+        JavaClasses javaClasses = new ClassFileImporter().importPackages(testClassFile.getPackageName());
 
-        assertThatClasses(javaClasses).contain(getClass());
+        assertThat(javaClasses).extracting("name").contains(testClassFile.getClassName());
     }
 
-    private void verifyCantLoadWithCurrentClasspath(Class<?> clazz) {
+    private void verifyCantLoadWithCurrentClasspath(TestClassFile testClassFile) {
         try {
-            new ClassFileImporter().importClass(clazz);
-            Assert.fail(String.format("Should not have been able to load class %s with the current classpath", clazz.getName()));
+            new ClassFileImporter().importPackages(testClassFile.getPackageName()).get(testClassFile.getClassName());
+            Assert.fail(String.format("Should not have been able to load class %s with the current classpath", testClassFile.getClassName()));
         } catch (RuntimeException ignored) {
         }
     }
@@ -168,8 +156,27 @@ public class ClassFileImporterSlowTest {
         return new ClassFileImporter().importClasspath(new ImportOptions().with(new ImportOption() {
             @Override
             public boolean includes(Location location) {
-                return location.asURI().getScheme().equals("jrt") && location.contains("java.base");
+                return
+                        // before Java 9 package like java.lang were in rt.jar
+                        location.contains("rt.jar") ||
+                                // from Java 9 on those packages were in a JRT with name 'java.base'
+                                (location.asURI().getScheme().equals("jrt") && location.contains("java.base"));
             }
         }));
+    }
+
+    private ImportOption importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath() {
+        return new ImportOption() {
+            @Override
+            public boolean includes(Location location) {
+                if (!location.isArchive()) {
+                    return true;
+                }
+                if (location.isJar() && (location.contains("junit") || location.contains("/rt.jar"))) {
+                    return true;
+                }
+                return location.asURI().getScheme().equals("jrt") && location.contains("java.base");
+            }
+        };
     }
 }

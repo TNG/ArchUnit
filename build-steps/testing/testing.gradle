@@ -54,7 +54,7 @@ ext {
         assert testTask.name == 'test' || testTask.name ==~ /jdk\d+Test/: "Task must either be named 'test' or match 'jdk{x}Test'"
         testTask.enabled = false
 
-        def taskMinimumJdkVersion = testTask.name.replaceAll(/jdk(\d+)Test/, '$1').with { it ==~ /\d+/ ? JavaVersion.toVersion(it) : JavaVersion.VERSION_1_7 }
+        def taskMinimumJdkVersion = testTask.name.replaceAll(/jdk(\d+)Test/, '$1').with { it ==~ /\d+/ ? JavaVersion.toVersion(it) : proj.targetCompatibility }
         def additionalJdksToTest = testJdks().findAll { it.javaVersion >= taskMinimumJdkVersion }
 
         def findJavaExecutable = { jdkPath ->

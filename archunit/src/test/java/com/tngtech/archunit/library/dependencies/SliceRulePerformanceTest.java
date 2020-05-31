@@ -1,9 +1,12 @@
 package com.tngtech.archunit.library.dependencies;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.lang.FailureReport;
 import com.tngtech.archunit.library.dependencies.testexamples.completedependencygraph.ninenodes.CompleteNineNodesGraphRoot;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
@@ -11,7 +14,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
-import static com.tngtech.archunit.library.dependencies.SliceRuleTest.countCyclesInMessage;
 import static com.tngtech.archunit.library.dependencies.SliceRuleTest.getNumberOfCyclesInCompleteGraph;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,9 +39,14 @@ public class SliceRulePerformanceTest {
         int expectedNumberOfCycles = getNumberOfCyclesInCompleteGraph(numberOfClassesFormingCompleteGraph);
         ArchConfiguration.get().setProperty(MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME, String.valueOf(2 * expectedNumberOfCycles));
 
-        String violations = cycleFree.evaluate(classesFormingCompleteDependencyGraph).getFailureReport().toString();
+        FailureReport failureReport = cycleFree.evaluate(classesFormingCompleteDependencyGraph).getFailureReport();
 
-        int numberOfDetectedCycles = countCyclesInMessage(violations);
+        int numberOfDetectedCycles = FluentIterable.from(failureReport.getDetails()).filter(new Predicate<String>() {
+            @Override
+            public boolean apply(String input) {
+                return input.contains("Cycle detected: ");
+            }
+        }).size();
         assertThat(numberOfDetectedCycles).as("number of cycles detected").isEqualTo(expectedNumberOfCycles);
     }
 }

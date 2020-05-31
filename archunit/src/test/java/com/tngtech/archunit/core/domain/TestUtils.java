@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -43,7 +42,11 @@ public class TestUtils {
 
     @SafeVarargs
     public static ThrowsClause<?> throwsClause(Class<? extends Throwable>... types) {
-        List<JavaClass> importedTypes = ImmutableList.copyOf(importClassesWithContext(types));
+        JavaClasses classes = importClassesWithContext(types);
+        List<JavaClass> importedTypes = new ArrayList<>();
+        for (Class<? extends Throwable> type : types) {
+            importedTypes.add(classes.get(type));
+        }
         JavaMethod irrelevantOwner = importClassWithContext(Object.class).getMethod("toString");
         return ThrowsClause.from(irrelevantOwner, importedTypes);
     }
