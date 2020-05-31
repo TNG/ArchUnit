@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.lang;
 
-import java.util.Collection;
 import java.util.List;
 
 import com.google.common.base.Predicate;
@@ -31,8 +30,8 @@ public class FailureMessages extends ForwardingList<String> {
     private final List<String> failures;
     private final Optional<String> informationAboutNumberOfViolations;
 
-    FailureMessages(Collection<String> failures, Optional<String> informationAboutNumberOfViolations) {
-        this.failures = ImmutableList.copyOf(failures);
+    FailureMessages(ImmutableList<String> failures, Optional<String> informationAboutNumberOfViolations) {
+        this.failures = failures;
         this.informationAboutNumberOfViolations = informationAboutNumberOfViolations;
     }
 

@@ -218,7 +218,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         private String createDetails(Map<String, Edge<Slice, Dependency>> descriptionsToEdges) {
             List<String> details = new ArrayList<>();
             for (Map.Entry<String, Edge<Slice, Dependency>> edgeWithDescription : descriptionsToEdges.entrySet()) {
-                details.add(String.format("Dependencies of %s", edgeWithDescription.getKey()));
+                details.add("Dependencies of " + edgeWithDescription.getKey());
                 details.addAll(dependenciesDescription(edgeWithDescription.getValue()));
             }
             return Joiner.on(System.lineSeparator()).join(details);
