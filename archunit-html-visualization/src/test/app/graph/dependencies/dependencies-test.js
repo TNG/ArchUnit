@@ -138,7 +138,7 @@ describe('Dependencies', () => {
 
   describe('Filter', () => {
     describe('by type', () => {
-      //TODO: die Infrastruktur muss irgendwie auch verschiedene Typen erlauben...das dann hier testen
+      // TODO getestet im Graph-Test
     });
 
     describe('by violations', () => {

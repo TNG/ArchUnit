@@ -226,26 +226,63 @@ describe('Graph', () => {
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
   });
 
-  it('can filter dependencies by type', async() => {
-    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+  const dataProvider = [{
+    message: 'can filter dependencies by type (no dependency types)',
+    filteredDependencies: {INHERITANCE: false, CONSTRUCTOR_CALL: false, METHOD_CALL: false, FIELD_ACCESS: false},
+    expectedDependencies: [],
+  }, {
+    message: 'can filter dependencies by type (inheritance)',
+    filteredDependencies: {INHERITANCE: true, CONSTRUCTOR_CALL: false, METHOD_CALL: false, FIELD_ACCESS: false},
+    expectedDependencies: ['com.tngtech.archunit.InheritanceClass-com.tngtech.archunit.TargetClass'],
+  }, {
+    message: 'can filter dependencies by type (constructor call)',
+    filteredDependencies: {INHERITANCE: false, CONSTRUCTOR_CALL: true, METHOD_CALL: false, FIELD_ACCESS: false},
+    expectedDependencies: ['com.tngtech.archunit.ConstructorClass-com.tngtech.archunit.TargetClass'],
+  }, {
+    message: 'can filter dependencies by type (method call)',
+    filteredDependencies: {INHERITANCE: false, CONSTRUCTOR_CALL: false, METHOD_CALL: true, FIELD_ACCESS: false},
+    expectedDependencies: ['com.tngtech.archunit.MethodClass-com.tngtech.archunit.TargetClass'],
+  }, {
+    message: 'can filter dependencies by type (field access)',
+    filteredDependencies: {INHERITANCE: false, CONSTRUCTOR_CALL: false, METHOD_CALL: false, FIELD_ACCESS: true},
+    expectedDependencies: ['com.tngtech.archunit.FieldAccessClass-com.tngtech.archunit.TargetClass'],
+  }, {
+    message: 'can filter dependencies by type (all dependency types)',
+    filteredDependencies: {INHERITANCE: true, CONSTRUCTOR_CALL: true, METHOD_CALL: true, FIELD_ACCESS: true},
+    expectedDependencies: [
+      'com.tngtech.archunit.InheritanceClass-com.tngtech.archunit.TargetClass',
+      'com.tngtech.archunit.ConstructorClass-com.tngtech.archunit.TargetClass',
+      'com.tngtech.archunit.MethodClass-com.tngtech.archunit.TargetClass',
+      'com.tngtech.archunit.FieldAccessClass-com.tngtech.archunit.TargetClass'
+    ],
+  }];
+
+  dataProvider.forEach(({message, filteredDependencies, expectedDependencies}) => it(message, async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.MethodClass', 'com.tngtech.archunit.InheritanceClass', 'com.tngtech.archunit.ConstructorClass', 'com.tngtech.archunit.FieldAccessClass', 'com.tngtech.archunit.TargetClass');
     const jsonDependencies = createDependencies()
-      .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
-      .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
-      .addInheritance().from('com.tngtech.archunit.SomeClass2')
-      .to('com.tngtech.archunit.SomeClass1')
+      .addMethodCall().from('com.tngtech.archunit.MethodClass', 'startMethod()')
+      .to('com.tngtech.archunit.TargetClass', 'targetMethod()')
+      .addConstructorCall().from('com.tngtech.archunit.ConstructorClass', 'startMethod()')
+      .to('com.tngtech.archunit.TargetClass', 'init()')
+      .addFieldAccess().from('com.tngtech.archunit.FieldAccessClass', 'startMethod()')
+      .to('com.tngtech.archunit.TargetClass', 'targetMethod()')
+      .addInheritance().from('com.tngtech.archunit.InheritanceClass')
+      .to('com.tngtech.archunit.TargetClass')
       .build();
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
     await graphUi.clickNode('com.tngtech.archunit');
 
-    await graphUi.filterDependenciesByType({
-      INHERITANCE: false,
-      CONSTRUCTOR_CALL: false,
-      METHOD_CALL: true,
-      FIELD_ACCESS: false
-    });
+    graphUi.expectOnlyVisibleDependencies(
+      'com.tngtech.archunit.MethodClass-com.tngtech.archunit.TargetClass',
+      'com.tngtech.archunit.ConstructorClass-com.tngtech.archunit.TargetClass',
+      'com.tngtech.archunit.FieldAccessClass-com.tngtech.archunit.TargetClass',
+      'com.tngtech.archunit.InheritanceClass-com.tngtech.archunit.TargetClass'
+    );
 
-    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
-  });
+    await graphUi.filterDependenciesByType(filteredDependencies);
+
+    graphUi.expectOnlyVisibleDependencies(expectedDependencies);
+  }));
 
   it('transforms the dependencies if a node is unfolded', async() => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.pkgToUnfold.SomeClass1', 'com.tngtech.archunit.SomeClass2');
