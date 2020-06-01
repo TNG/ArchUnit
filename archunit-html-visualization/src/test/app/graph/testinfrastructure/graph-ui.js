@@ -86,7 +86,7 @@ class GraphUi {
   }
 
   async filterDependenciesByType(typeFilterConfig) {
-    this._graph._filterDependenciesByType(typeFilterConfig);
+    this._menu.changeDependencyFilter(typeFilterConfig);
     await this.waitForUpdateFinished();
   }
 

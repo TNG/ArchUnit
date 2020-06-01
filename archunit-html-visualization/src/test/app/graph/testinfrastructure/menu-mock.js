@@ -18,7 +18,8 @@ const MenuMock = class MenuMock {
     return this;
   }
 
-  onDependencyFilterChanged() {
+  onDependencyFilterChanged(onChanged) {
+    this._dependencyFilter = onChanged;
     return this;
   }
 
@@ -36,6 +37,10 @@ const MenuMock = class MenuMock {
   // this is helper function to programmatically change the node filter
   changeNodeFilter(filterString) {
     this._nodeNameFilter(filterString);
+  }
+
+  changeDependencyFilter(typeFilterConfig) {
+    this._dependencyFilter(typeFilterConfig);
   }
 
   filterNodesByType({showInterfaces, showClasses}) {
