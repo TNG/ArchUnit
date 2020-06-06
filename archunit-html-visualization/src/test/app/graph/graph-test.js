@@ -4,32 +4,10 @@ const {expect} = require('chai');
 require('./testinfrastructure/graph-chai-extensions');
 const createJsonFromClassNames = require('./testinfrastructure/class-names-to-json-transformer').createJsonFromClassNames;
 
-const {createDependencies, createGraph} = require('./testinfrastructure/test-json-creator');
-const AppContext = require('../../../main/app/graph/app-context');
-const GraphUi = require('./testinfrastructure/graph-ui');
-const guiElementsMock = require('./testinfrastructure/gui-elements-mock');
-const svgMock = require('./testinfrastructure/svg-mock');
-const realInitGraph = require('../../../main/app/graph/graph').init;
-
-const getGraphUi = async (jsonRoot, jsonDependencies = [], violations = []) => {
-  const appContext = appContextWith(createGraph(jsonRoot, jsonDependencies), violations);
-  const graph = realInitGraph(appContext).create(svgMock.createSvgRoot(), svgMock.createEmptyElement());
-  const graphUi = GraphUi.of(graph);
-
-  await graphUi.waitForUpdateFinished();
-
-  return graphUi;
-};
+const {createDependencies} = require('./testinfrastructure/test-json-creator');
+const getGraphUi = require('./testinfrastructure/graph-creator').getGraphUi;
 
 const circlePadding = 10;
-
-const appContextWith = (graph, violations) => AppContext.newInstance({
-  guiElements: guiElementsMock,
-  visualizationData: {
-    jsonGraph: graph,
-    jsonViolations: violations
-  }
-});
 
 describe('Graph', () => {
   const expectSiblingNodesToHaveAtLeastPadding = (rootUi, padding, ...nodeFullNames) => expect(rootUi).to.haveSiblingNodesWithPaddingAtLeast(padding, nodeFullNames);

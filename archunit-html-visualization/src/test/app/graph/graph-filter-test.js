@@ -1,28 +1,6 @@
 const createJsonFromClassNames = require('./testinfrastructure/class-names-to-json-transformer').createJsonFromClassNames;
-const {createDependencies, createGraph} = require('./testinfrastructure/test-json-creator');
-const AppContext = require('../../../main/app/graph/app-context');
-const GraphUi = require('./testinfrastructure/graph-ui');
-const guiElementsMock = require('./testinfrastructure/gui-elements-mock');
-const svgMock = require('./testinfrastructure/svg-mock');
-const realInitGraph = require('../../../main/app/graph/graph').init;
-
-const getGraphUi = async (jsonRoot, jsonDependencies = [], violations = []) => {
-  const appContext = appContextWith(createGraph(jsonRoot, jsonDependencies), violations);
-  const graph = realInitGraph(appContext).create(svgMock.createSvgRoot(), svgMock.createEmptyElement());
-  const graphUi = GraphUi.of(graph);
-
-  await graphUi.waitForUpdateFinished();
-
-  return graphUi;
-};
-
-const appContextWith = (graph, violations) => AppContext.newInstance({
-  guiElements: guiElementsMock,
-  visualizationData: {
-    jsonGraph: graph,
-    jsonViolations: violations
-  }
-});
+const {createDependencies} = require('./testinfrastructure/test-json-creator');
+const getGraphUi = require('./testinfrastructure/graph-creator').getGraphUi;
 
 describe('Filtering in Graph', () => {
   it('can filter node by name containing', async () => {
