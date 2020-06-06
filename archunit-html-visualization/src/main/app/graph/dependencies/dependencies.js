@@ -206,7 +206,6 @@ const init = (getDependencyCreator) => {
           return [dep];
         }
 
-        //TODO: this can be more efficient
         const firstCommonPredecessor = sourceNode.getSelfOrFirstPredecessorMatching(node => node.isPredecessorOf(targetNode));
         const sourcePredecessors = sourceNode.getSelfAndPredecessorsUntilExclusively(firstCommonPredecessor);
         const targetPredecessors = targetNode.getSelfAndPredecessorsUntilExclusively(firstCommonPredecessor);
@@ -284,7 +283,6 @@ const init = (getDependencyCreator) => {
         (from, to) => this._getDetailedDependenciesOf(from, to), this._svgElementForDetailedDependencies,
         () => this._getContainerWidth());
 
-      //TODO: test this in dependencies-test (testing directly the dep-position)
       this._setMustShareNodes();
       this._visibleDependencies.forEach(d => d._isVisible = true);
       this._updateViewsOnVisibleDependenciesChanged(visibleDependenciesBefore);
@@ -339,7 +337,6 @@ const init = (getDependencyCreator) => {
       return this._visibleDependencies;
     }
 
-    //TODO: test in dependencies-test...not directly this method but the shown detailed deps
     _getDetailedDependenciesOf(from, to) {
       const getDependenciesMatching = (dependencies, propertyFunc, depEnd) => {
         const matchingDependencies = filter(dependencies).by(propertyFunc);

@@ -136,36 +136,7 @@ describe('Dependencies', () => {
     });
   });
 
-  describe('Filter', () => {
-    describe('by type', () => {
-      // TODO getestet im Graph-Test
-    });
-
-    describe('by violations', () => {
-      //TODO
-    });
-
-    describe('of the nodes', () => {
-      it('is also applied to the dependencies', () => {
-        //TODO
-      });
-    });
-
-    describe('by several filters', () => {
-      //TODO: combine the filters above
-    })
-  });
-
-  describe('listens correctly to the nodes', () => {
-    //TODO: check listener
-  });
-
-  describe('public API-methods', () => {
-
-    describe('#getAllDependencies', () => {
-      //TODO:
-    });
-
-    //TODO ...und übrige public-API Methoden, die nicht zu den Kategorien oben gehören
-  });
+  // filtering by type tested in graph-test
+  // filtering by violations tested in graph-test
+  // filtering of the nodes which also applies to the dependencies tested in graph-test
 });

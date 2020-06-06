@@ -192,6 +192,32 @@ describe('Graph', () => {
     graphUi.expectNodeFilter('~com.tngtech.archunit.CtrlClickClass');
   });
 
+  it('can filter multiple nodes by control click', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.CtrlClickClass', 'com.tngtech.archunit.SecondCtrlClickClass', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+    const jsonDependencies = createDependencies()
+      .addMethodCall().from('com.tngtech.archunit.CtrlClickClass', 'startMethod()')
+      .to('com.tngtech.archunit.SomeClass1', 'targetMethod()')
+      .addMethodCall().from('com.tngtech.archunit.SecondCtrlClickClass', 'startMethod()')
+      .to('com.tngtech.archunit.SomeClass1', 'targetMethod()')
+      .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
+      .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
+      .build();
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+    await graphUi.clickNode('com.tngtech.archunit');
+
+    await graphUi.ctrlClickNode('com.tngtech.archunit.CtrlClickClass');
+
+    graphUi.expectOnlyVisibleNodes('SecondCtrlClickClass', 'SomeClass1', 'SomeClass2', 'com.tngtech.archunit');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SecondCtrlClickClass-com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
+    graphUi.expectNodeFilter('~com.tngtech.archunit.CtrlClickClass');
+
+    await graphUi.ctrlClickNode('com.tngtech.archunit.SecondCtrlClickClass');
+
+    graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'com.tngtech.archunit');
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
+    graphUi.expectNodeFilter('~com.tngtech.archunit.CtrlClickClass|~com.tngtech.archunit.SecondCtrlClickClass');
+  });
+
   it('can filter node by name not containing', async() => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2', 'com.tngtech.archunit.MatchingClass');
     const jsonDependencies = createDependencies()
@@ -283,6 +309,42 @@ describe('Graph', () => {
 
     graphUi.expectOnlyVisibleDependencies(expectedDependencies);
   }));
+
+  it('can filter nodes and dependencies by type and violation and node name', async() => {
+    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.MethodClass', 'com.tngtech.archunit.InheritanceClass', 'com.tngtech.archunit.SomeInterface', 'com.tngtech.archunit.SomeClass', 'com.tngtech.archunit.TargetClass');
+    const jsonDependencies = createDependencies()
+    .addMethodCall().from('com.tngtech.archunit.MethodClass', 'startMethod()')
+    .to('com.tngtech.archunit.TargetClass', 'targetMethod()')
+    .addInheritance().from('com.tngtech.archunit.SomeInterface', 'startMethod()')
+    .to('com.tngtech.archunit.InheritanceClass')
+    .addInheritance().from('com.tngtech.archunit.InheritanceClass')
+    .to('com.tngtech.archunit.TargetClass')
+    .build();
+    const violations = [{
+      rule: 'rule1',
+      violations: ['<com.tngtech.archunit.SomeClass> INHERITANCE to <com.tngtech.archunit.TargetClass>']
+    }];
+    const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
+    await graphUi.clickNode('com.tngtech.archunit');
+
+    graphUi.expectOnlyVisibleNodes('MethodClass', 'InheritanceClass', 'SomeInterface', 'SomeClass', 'TargetClass', 'com.tngtech.archunit')
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeInterface-com.tngtech.archunit.InheritanceClass',  'com.tngtech.archunit.MethodClass-com.tngtech.archunit.TargetClass',  'com.tngtech.archunit.InheritanceClass-com.tngtech.archunit.TargetClass');
+
+    await graphUi.filterNodesByType({showInterfaces: false, showClasses: true});
+
+    graphUi.expectOnlyVisibleNodes('MethodClass', 'InheritanceClass', 'SomeClass', 'TargetClass', 'com.tngtech.archunit')
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.MethodClass-com.tngtech.archunit.TargetClass', 'com.tngtech.archunit.InheritanceClass-com.tngtech.archunit.TargetClass');
+
+    await graphUi.filterDependenciesByType({INHERITANCE: true, CONSTRUCTOR_CALL: false, METHOD_CALL: false, FIELD_ACCESS: false});
+
+    graphUi.expectOnlyVisibleNodes('MethodClass', 'InheritanceClass', 'SomeClass', 'TargetClass', 'com.tngtech.archunit')
+    graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.InheritanceClass-com.tngtech.archunit.TargetClass');
+
+    await graphUi.ctrlClickNode('com.tngtech.archunit.TargetClass');
+
+    graphUi.expectOnlyVisibleNodes('MethodClass', 'InheritanceClass', 'SomeClass', 'com.tngtech.archunit')
+    graphUi.expectOnlyVisibleDependencies([]);
+  });
 
   it('transforms the dependencies if a node is unfolded', async() => {
     const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.pkgToUnfold.SomeClass1', 'com.tngtech.archunit.SomeClass2');
