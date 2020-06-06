@@ -724,7 +724,6 @@ describe('Filters', () => {
       rootUi.getNodeWithFullName('my.company.OtherClass').expectToBeFoldable();
     });
 
-    //TODO: test this also for nodes that become unfoldable only because of the violations-filter (somewhere in graph-tests)
     it('only because of the type- and the name-filter', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.SomeClass$SomeInnerClass',
         'my.company.SomeClass$InnerInterface', 'my.company.OtherClass$OtherInnerClass');

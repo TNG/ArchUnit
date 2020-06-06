@@ -138,7 +138,6 @@ describe('Dragging a node', () => {
     rootUi.allNodes.forEach(nodeUi => nodeUi.expectToBeWithinRectangle(width, height));
   });
 
-  //TODO: is calling the listener for the dragged node really necessary??
   it('calls the onNodeRimChanged-listener for the dragged node and the top most expanded nodes', async () => {
     const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.somePkg.someSubPkg.SomeClass$SomeInnerClass',
       'my.company.somePkg.otherSubPkg.OtherClass', 'my.company.otherPkg.SomeClass');
@@ -223,7 +222,6 @@ describe('Dragging a node', () => {
     });
   });
 
-  //TODO: more test cases in graph-test
   describe('focuses the dragged node', () => {
     it('so that the dragged node is in foreground', async () => {
       const root = await rootCreator.createRootFromClassNamesAndLayout('my.company.firstPkg.FirstClass$SomeInnerClass',
