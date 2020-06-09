@@ -273,15 +273,16 @@ public final class ArchConfiguration {
                 ENABLE_MD5_IN_CLASS_SOURCES, Boolean.FALSE.toString()
         ));
 
-        private final Properties properties = createProperties(PROPERTY_DEFAULTS);
+        private final Properties baseProperties = createProperties(PROPERTY_DEFAULTS);
+        private final Properties overwrittenProperties = new Properties();
 
         void clear() {
-            properties.clear();
-            properties.putAll(PROPERTY_DEFAULTS);
+            replaceProperties(baseProperties, PROPERTY_DEFAULTS);
+            overwrittenProperties.clear();
         }
 
         void load(InputStream inputStream) throws IOException {
-            properties.load(inputStream);
+            baseProperties.load(inputStream);
         }
 
         Set<String> stringPropertyNames() {
@@ -301,21 +302,31 @@ public final class ArchConfiguration {
         }
 
         void setProperty(String propertyName, String value) {
-            properties.setProperty(propertyName, value);
+            baseProperties.setProperty(propertyName, value);
         }
 
         void remove(String propertyName) {
-            properties.remove(propertyName);
+            baseProperties.remove(propertyName);
         }
 
         Properties getMergedProperties() {
-            Properties result = createProperties(this.properties);
-            Properties overwritten = getSubProperties("archunit", System.getProperties());
-            if (!overwritten.isEmpty()) {
-                LOG.info("Merging properties: The following properties have been overwritten by system properties: {}", overwritten);
+            Properties result = createProperties(baseProperties);
+            Properties currentlyOverwritten = getSubProperties("archunit", System.getProperties());
+            result.putAll(currentlyOverwritten);
+
+            if (!overwrittenProperties.equals(currentlyOverwritten)) {
+                replaceProperties(overwrittenProperties, currentlyOverwritten);
+                if (!currentlyOverwritten.isEmpty()) {
+                    LOG.info("Merging properties: The following properties have been overwritten by system properties: {}", currentlyOverwritten);
+                }
             }
-            result.putAll(overwritten);
+
             return result;
+        }
+
+        private static void replaceProperties(Properties properties, Properties newProperties) {
+            properties.clear();
+            properties.putAll(newProperties);
         }
 
         private static Properties createProperties(Map<?, ?> entries) {
