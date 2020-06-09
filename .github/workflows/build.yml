@@ -7,8 +7,11 @@ on:
       - release-*
   pull_request:
 
+env:
+  build_java_version: 11
+
 jobs:
-  build:
+  integration-test:
     strategy:
       matrix:
         os:
@@ -16,18 +19,44 @@ jobs:
           - macos-latest
           - windows-latest
         java_version:
+          - 7
+          - 8
+          - 9
+          - 10
           - 11
-
+          - 12
+          - 13
+          - 14
     runs-on: ${{ matrix.os }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Set up Java
+      - name: Set up Build JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ env.build_java_version }}
+      - name: Set up Test JDK
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java_version }}
-      - name: Build
-        uses: eskatos/gradle-command-action@v1
+      - name: Provide installed JDKs
+        uses: actions/github-script@v1
+        id: provideJdkPaths
         with:
-          arguments: build -PallTests
+          script: |
+            for ( let envVarName in process.env ) {
+              if (/JAVA_HOME_\d.*64/.test(envVarName)) {
+                const version = envVarName.match(/JAVA_HOME_(\d+).*64/)[1];
+                if (version === "${{ matrix.test_java_version }}") {
+                  core.exportVariable('test_jdk_path', process.env[envVarName]);
+                } else if (version === "${{ env.build_java_version }}") {
+                  core.exportVariable('build_jdk_path', process.env[envVarName]);
+                }
+              }
+            }
+      - name: Integration test
+        uses: eskatos/gradle-command-action@v1
+        env:
+          JAVA_HOME: ${{ env.build_jdk_path }}
+        with:
+          arguments: build -xtest -xspotbugsMain -xjavadoc publishToMavenLocal runMavenTest -Pjava${{ matrix.test_java_version }}Home="${{ env.test_jdk_path }}"

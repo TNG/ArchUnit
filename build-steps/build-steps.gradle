@@ -1,5 +1,6 @@
 def utilsPath = { "build-steps/${it}" }
 
+apply from: utilsPath('testing/testing.gradle')
 apply from: utilsPath('archiving/archiving.gradle')
 apply from: utilsPath('codequality/spotbugs.gradle')
 apply from: utilsPath('release/publish.gradle')
