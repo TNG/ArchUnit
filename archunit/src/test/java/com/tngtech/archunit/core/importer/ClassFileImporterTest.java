@@ -172,6 +172,7 @@ import com.tngtech.archunit.core.importer.testexamples.simpleimport.InterfaceToI
 import com.tngtech.archunit.core.importer.testexamples.simplenames.SimpleNameExamples;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
 import com.tngtech.archunit.core.importer.testexamples.syntheticimport.ClassWithSynthetics;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.archunit.testutil.LogTestRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -180,7 +181,6 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Condition;
 import org.assertj.core.util.Objects;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -242,11 +242,8 @@ public class ClassFileImporterTest {
     public final LogTestRule logTest = new LogTestRule();
     @Rule
     public final IndependentClasspathRule independentClasspathRule = new IndependentClasspathRule();
-
-    @After
-    public void tearDown() {
-        ArchConfiguration.get().reset();
-    }
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @Test
     public void imports_simple_package() throws Exception {
