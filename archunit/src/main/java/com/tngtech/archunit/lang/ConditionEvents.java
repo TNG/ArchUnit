@@ -18,12 +18,14 @@ package com.tngtech.archunit.lang;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Ordering;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
@@ -94,10 +96,9 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
      */
     @PublicAPI(usage = ACCESS)
     public FailureMessages getFailureMessages() {
-        SortedSet<String> result = new TreeSet<>();
-        for (ConditionEvent event : getViolating()) {
-            result.addAll(event.getDescriptionLines());
-        }
+        ImmutableList<String> result = FluentIterable.from(getViolating())
+                .transformAndConcat(TO_DESCRIPTION_LINES)
+                .toSortedList(Ordering.natural());
         return new FailureMessages(result, informationAboutNumberOfViolations);
     }
 
@@ -159,6 +160,13 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
                 "; Violating Events: " + getViolating() +
                 '}';
     }
+
+    private static final Function<ConditionEvent, Iterable<String>> TO_DESCRIPTION_LINES = new Function<ConditionEvent, Iterable<String>>() {
+        @Override
+        public Iterable<String> apply(ConditionEvent input) {
+            return input.getDescriptionLines();
+        }
+    };
 
     private enum Type {
         ALLOWED, VIOLATION;

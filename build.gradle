@@ -89,35 +89,6 @@ ext {
             project(':archunit-junit5')]
     createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
-    addTestJarTo = { proj ->
-        proj.with {
-            configurations {
-                tests.extendsFrom testRuntime
-            }
-
-            task testJar(type: Jar) {
-                archiveClassifier = 'tests'
-                from sourceSets.test.output
-            }
-
-            artifacts {
-                tests testJar
-            }
-        }
-    }
-
-    configureSlowTestsFor = { proj ->
-        proj.with {
-            test {
-                if (!project.hasProperty('allTests')) {
-                    useJUnit {
-                        excludeCategories 'com.tngtech.archunit.Slow'
-                    }
-                }
-            }
-        }
-    }
-
     currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
 }
 
@@ -142,7 +113,7 @@ task clean {
     }
 }
 
-configure(subprojects.findAll {it.name != 'docs'})  {
+configure(subprojects.findAll { it.name != 'docs' }) {
     apply plugin: 'java-library'
 
     description createModuleDescription(rootProject.description, project)
@@ -152,17 +123,6 @@ configure(subprojects.findAll {it.name != 'docs'})  {
 
     javadoc {
         options.addBooleanOption('html5', true)
-    }
-
-    test {
-        maxHeapSize = "2G"
-
-        testLogging {
-            events "failed"
-            exceptionFormat "full"
-        }
-
-        ignoreFailures = project.hasProperty('ignoreTestFailures')
     }
 }
 

@@ -231,7 +231,7 @@ public class ArchConfigurationTest {
 
         assertThat(configuration.md5InClassSourcesEnabled()).as("MD5 sum in class sources enabled").isTrue();
         assertThat(configuration.getProperty(customPropertyName)).as("custom property").isEqualTo("changed");
-        assertThat(configuration.getSubProperties(subPropertyKeyOf(customPropertyName))).containsExactly(
+        assertThat(configuration.getSubProperties(subPropertyKeyOf(customPropertyName))).containsOnly(
                 entry(subPropertyNameOf(customPropertyName), "changed"),
                 entry(subPropertyNameOf(otherPropertyName), "other"));
     }

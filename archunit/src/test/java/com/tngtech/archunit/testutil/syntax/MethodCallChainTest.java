@@ -115,7 +115,7 @@ public class MethodCallChainTest {
     }
 
     private void invokeNext(MethodCallChain callChain) {
-        callChain.invokeNextMethodCandidate(new Parameters(Collections.<Parameter>emptyList()));
+        callChain.invokeNextMethodCandidate(new Parameters(Collections.<Parameter>emptyList()), false);
     }
 
     private static class CallChainTestCase<T> {

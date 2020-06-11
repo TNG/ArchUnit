@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.Iterables.getLast;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_JARS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
@@ -99,7 +99,7 @@ public class ImportOptionsTest {
                 .isFalse();
         assertThat(doNotIncludeJars.includes(locationOf(Object.class)))
                 .as("includes Jrt location")
-                .isTrue();
+                .isEqualTo(!comesFromJarArchive(Object.class));
     }
 
     @DataProvider
@@ -122,6 +122,10 @@ public class ImportOptionsTest {
     }
 
     private static Location locationOf(Class<?> clazz) {
-        return getOnlyElement(Locations.ofClass(clazz));
+        return getLast(Locations.ofClass(clazz));
+    }
+
+    private static boolean comesFromJarArchive(Class<?> clazz) {
+        return LocationTest.urlOfClass(clazz).getProtocol().equals("jar");
     }
 }
