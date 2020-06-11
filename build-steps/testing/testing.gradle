@@ -16,4 +16,79 @@ ext {
     testJdks = {
         testJdksDefinition.collect { [:] + it }
     }
+
+    addTestJarTo = { proj ->
+        proj.with {
+            configurations {
+                tests.extendsFrom testRuntime
+            }
+
+            task testJar(type: Jar) {
+                archiveClassifier = 'tests'
+                from sourceSets.test.output
+            }
+
+            artifacts {
+                tests testJar
+            }
+        }
+    }
+
+    configureSlowTestsFor = { proj ->
+        proj.afterEvaluate { projAfterEvaluate ->
+            projAfterEvaluate.tasks.withType(Test) {
+                if (!project.hasProperty('allTests')) {
+                    useJUnit {
+                        excludeCategories 'com.tngtech.archunit.Slow'
+                    }
+                }
+            }
+        }
+    }
+
+    addMultiJdkTestsFor = { Project proj, Test testTask ->
+        if (!project.hasProperty('multiJdkTest')) {
+            return
+        }
+
+        assert testTask.name == 'test' || testTask.name ==~ /jdk\d+Test/: "Task must either be named 'test' or match 'jdk{x}Test'"
+        testTask.enabled = false
+
+        def taskMinimumJdkVersion = testTask.name.replaceAll(/jdk(\d+)Test/, '$1').with { it ==~ /\d+/ ? JavaVersion.toVersion(it) : proj.targetCompatibility }
+        def additionalJdksToTest = testJdks().findAll { it.javaVersion >= taskMinimumJdkVersion }
+
+        def findJavaExecutable = { jdkPath ->
+            def javaExecutableUnix = new File("${jdkPath}", 'bin/java')
+            def javaExecutableWindows = new File("${javaExecutableUnix.absolutePath}.exe")
+            def result = javaExecutableUnix.exists() ? javaExecutableUnix : javaExecutableWindows
+            assert result.exists(): "Could not find path of Java executable for JDK path ${jdkPath}. Tried ${javaExecutableUnix} and ${javaExecutableWindows}."
+            result
+        }
+
+        additionalJdksToTest.each { jdk ->
+            def additionalTestTask = proj.tasks.create(name: "${testTask.name}${jdk.suffix}", type: Test) {
+                executable = findJavaExecutable(jdk.jdkPath)
+
+                testClassesDirs = testTask.testClassesDirs
+                classpath = testTask.classpath
+            }
+
+            testTask.dependsOn(additionalTestTask)
+        }
+    }
+}
+
+configure(subprojects.findAll { it.name != 'docs' }) {
+    afterEvaluate { project ->
+        project.tasks.withType(Test) {
+            maxHeapSize = "2G"
+
+            testLogging {
+                events "failed"
+                exceptionFormat "full"
+            }
+
+            ignoreFailures = project.hasProperty('ignoreTestFailures')
+        }
+    }
 }
