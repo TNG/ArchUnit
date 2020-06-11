@@ -48,11 +48,24 @@ public class MethodChoiceStrategy {
         };
     }
 
-    Optional<Method> choose(PropagatedType type) {
+    Optional<Method> choose(PropagatedType type, boolean tryToTerminate) {
         List<Method> methods = getPossibleMethodCandidates(type.getRawType());
-        return !methods.isEmpty()
-                ? Optional.of(methods.get(random.nextInt(methods.size())))
-                : Optional.<Method>absent();
+        if (methods.isEmpty()) {
+            return Optional.absent();
+        }
+
+        return tryToTerminate
+                ? findMethodWithReturnType(methods, ArchRule.class).or(Optional.of(methods.iterator().next()))
+                : Optional.of(methods.get(random.nextInt(methods.size())));
+    }
+
+    private Optional<Method> findMethodWithReturnType(List<Method> methods, Class<ArchRule> returnType) {
+        for (Method method : methods) {
+            if (returnType.isAssignableFrom(method.getReturnType())) {
+                return Optional.of(method);
+            }
+        }
+        return Optional.absent();
     }
 
     private List<Method> getPossibleMethodCandidates(Class<?> clazz) {

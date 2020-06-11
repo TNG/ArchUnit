@@ -217,10 +217,12 @@ public abstract class RandomSyntaxTestBase {
                 throw new IllegalStateException("Creating rule was not finished within " + maxSteps + " steps");
             }
 
-            methodCallChain.invokeNextMethodCandidate(parameters);
+            int stepsLeft = maxSteps - currentStepCount;
+            boolean lowNumberOfStepsLeft = stepsLeft <= LOW_NUMBER_OF_LEFT_STEPS;
+            methodCallChain.invokeNextMethodCandidate(parameters, lowNumberOfStepsLeft);
 
             boolean shouldContinue = methodCallChain.hasAnotherMethodCandidate()
-                    && shouldContinue(methodCallChain.getCurrentValue(), maxSteps - currentStepCount);
+                    && shouldContinue(methodCallChain.getCurrentValue(), lowNumberOfStepsLeft);
             Step nextStep = shouldContinue
                     ? new PartialStep(expectedDescription, methodCallChain)
                     : new LastStep(expectedDescription, methodCallChain);
@@ -229,11 +231,11 @@ public abstract class RandomSyntaxTestBase {
             return nextStep.continueSteps(currentStepCount + 1, maxSteps);
         }
 
-        private boolean shouldContinue(TypedValue nextValue, int stepsLeft) {
+        private boolean shouldContinue(TypedValue nextValue, boolean lowNumberOfStepsLeft) {
             if (!ArchRule.class.isAssignableFrom(nextValue.getRawType())) {
                 return true;
             }
-            return random.nextBoolean() && stepsLeft > LOW_NUMBER_OF_LEFT_STEPS;
+            return random.nextBoolean() && !lowNumberOfStepsLeft;
         }
 
         public String getDescription() {
@@ -471,7 +473,7 @@ public abstract class RandomSyntaxTestBase {
             }
         }
 
-        private abstract class CallCodeUnitParametersProvider extends SpecificParametersProvider {
+        private abstract static class CallCodeUnitParametersProvider extends SpecificParametersProvider {
             private final CanHandlePredicate predicate;
 
             CallCodeUnitParametersProvider(CanHandlePredicate predicate) {
