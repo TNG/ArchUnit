@@ -18,7 +18,7 @@ class MethodCallChain {
     MethodCallChain(MethodChoiceStrategy methodChoiceStrategy, TypedValue typedValue) {
         this.methodChoiceStrategy = checkNotNull(methodChoiceStrategy);
         currentValue = checkNotNull(typedValue);
-        nextMethodCandidate = methodChoiceStrategy.choose(typedValue.getType());
+        nextMethodCandidate = methodChoiceStrategy.choose(typedValue.getType(), false);
     }
 
     TypedValue getCurrentValue() {
@@ -33,11 +33,11 @@ class MethodCallChain {
         return nextMethodCandidate.isPresent();
     }
 
-    void invokeNextMethodCandidate(Parameters parameters) {
+    void invokeNextMethodCandidate(Parameters parameters, boolean tryToTerminate) {
         PropagatedType nextType = currentValue.resolveType(nextMethodCandidate.get().getGenericReturnType());
         Object nextValue = invoke(nextMethodCandidate.get(), currentValue.getValue(), parameters.getValues());
         currentValue = validate(new TypedValue(nextType, nextValue));
-        nextMethodCandidate = methodChoiceStrategy.choose(currentValue.getType());
+        nextMethodCandidate = methodChoiceStrategy.choose(currentValue.getType(), tryToTerminate);
     }
 
     private TypedValue validate(TypedValue value) {
