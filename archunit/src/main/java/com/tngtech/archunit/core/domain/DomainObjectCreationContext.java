@@ -135,8 +135,8 @@ public class DomainObjectCreationContext {
         return new JavaEnumConstant(builder);
     }
 
-    public static Source createSource(URI uri, Optional<String> sourceFileName) {
-        return new Source(uri, sourceFileName);
+    public static Source createSource(URI uri, Optional<String> sourceFileName, boolean md5InClassSourcesEnabled) {
+        return new Source(uri, sourceFileName, md5InClassSourcesEnabled);
     }
 
     public static <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> createThrowsClause(CODE_UNIT codeUnit, List<JavaClass> types) {

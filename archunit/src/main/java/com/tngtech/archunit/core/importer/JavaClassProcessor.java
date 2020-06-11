@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.importer;
 
 import java.lang.reflect.Array;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -69,18 +68,18 @@ class JavaClassProcessor extends ClassVisitor {
 
     private DomainBuilders.JavaClassBuilder javaClassBuilder;
     private final Set<DomainBuilders.JavaAnnotationBuilder> annotations = new HashSet<>();
-    private final URI sourceURI;
+    private final SourceDescriptor sourceDescriptor;
     private final DeclarationHandler declarationHandler;
     private final AccessHandler accessHandler;
     private String className;
 
-    JavaClassProcessor(URI sourceURI, DeclarationHandler declarationHandler) {
-        this(sourceURI, declarationHandler, NO_OP);
+    JavaClassProcessor(SourceDescriptor sourceDescriptor, DeclarationHandler declarationHandler) {
+        this(sourceDescriptor, declarationHandler, NO_OP);
     }
 
-    JavaClassProcessor(URI sourceURI, DeclarationHandler declarationHandler, AccessHandler accessHandler) {
+    JavaClassProcessor(SourceDescriptor sourceDescriptor, DeclarationHandler declarationHandler, AccessHandler accessHandler) {
         super(ASM_API_VERSION);
-        this.sourceURI = sourceURI;
+        this.sourceDescriptor = sourceDescriptor;
         this.declarationHandler = declarationHandler;
         this.accessHandler = accessHandler;
     }
@@ -112,7 +111,7 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.trace("Found superclass {} on class '{}'", superClassName.orNull(), name);
 
         javaClassBuilder = new DomainBuilders.JavaClassBuilder()
-                .withSourceUri(sourceURI)
+                .withSourceDescriptor(sourceDescriptor)
                 .withType(javaType)
                 .withInterface(opCodeForInterfaceIsPresent)
                 .withEnum(opCodeForEnumIsPresent)
