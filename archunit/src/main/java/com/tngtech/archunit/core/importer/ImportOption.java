@@ -76,10 +76,11 @@ public interface ImportOption {
      */
     final class DoNotIncludeTests implements ImportOption {
         private static final Pattern MAVEN_PATTERN = Pattern.compile(".*/target/test-classes/.*");
-        private static final Pattern GRADLE_PATTERN = Pattern.compile(".*/build/classes/([^/]+/)?.*[tT]est/.*");
+        private static final Pattern GRADLE_PATTERN = Pattern.compile(".*/build/classes/([^/]+/)?test/.*");
+        private static final Pattern GRADLE_TESTSET_PATTERN = Pattern.compile( ".*/bin/([^/]+/)?test.*" );
         private static final Pattern INTELLIJ_PATTERN = Pattern.compile(".*/out/test/classes/.*");
 
-        private static final Set<Pattern> EXCLUDED_PATTERN = ImmutableSet.of(MAVEN_PATTERN, GRADLE_PATTERN, INTELLIJ_PATTERN);
+        private static final Set<Pattern> EXCLUDED_PATTERN = ImmutableSet.of(MAVEN_PATTERN, GRADLE_PATTERN, GRADLE_TESTSET_PATTERN, INTELLIJ_PATTERN);
 
         @Override
         public boolean includes(Location location) {
