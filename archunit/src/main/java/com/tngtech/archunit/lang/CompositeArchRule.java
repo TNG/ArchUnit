@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.lang;
 
+import java.util.Iterator;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
@@ -41,6 +42,20 @@ public final class CompositeArchRule implements ArchRule {
     @PublicAPI(usage = ACCESS)
     public static CompositeArchRule of(ArchRule rule) {
         return priority(MEDIUM).of(rule);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static CompositeArchRule of(Iterable<? extends ArchRule> rules) {
+        Iterator<? extends ArchRule> iterator = rules.iterator();
+        if (!iterator.hasNext()) {
+            throw new IllegalArgumentException("Iterable must be non-empty");
+        }
+
+        CompositeArchRule composite = of(iterator.next());
+        while (iterator.hasNext()) {
+            composite = composite.and(iterator.next());
+        }
+        return composite;
     }
 
     @PublicAPI(usage = ACCESS)
