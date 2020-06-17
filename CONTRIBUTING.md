@@ -11,7 +11,7 @@ Windows users should use `gradlew.bat` instead.
 ```
 $ cd /path/to/git/clone/of/ArchUnit
 $ ./gradlew showJdkVersion
-Configured JDK: 1.9
+Configured JDK: 14
 $ ./gradlew build
 ```
 
