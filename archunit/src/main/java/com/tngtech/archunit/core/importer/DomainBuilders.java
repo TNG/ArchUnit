@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -318,7 +317,7 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaClassBuilder {
-        private Optional<URI> sourceURI = Optional.absent();
+        private Optional<SourceDescriptor> sourceDescriptor = Optional.absent();
         private Optional<String> sourceFileName = Optional.absent();
         private JavaType javaType;
         private boolean isInterface;
@@ -330,8 +329,8 @@ public final class DomainBuilders {
         JavaClassBuilder() {
         }
 
-        JavaClassBuilder withSourceUri(URI sourceUri) {
-            this.sourceURI = Optional.of(sourceUri);
+        JavaClassBuilder withSourceDescriptor(SourceDescriptor sourceDescriptor) {
+            this.sourceDescriptor = Optional.of(sourceDescriptor);
             return this;
         }
 
@@ -380,7 +379,9 @@ public final class DomainBuilders {
         }
 
         public Optional<Source> getSource() {
-            return sourceURI.isPresent() ? Optional.of(createSource(sourceURI.get(), sourceFileName)) : Optional.<Source>absent();
+            return sourceDescriptor.isPresent()
+                    ? Optional.of(createSource(sourceDescriptor.get().getUri(), sourceFileName, sourceDescriptor.get().isMd5InClassSourcesEnabled()))
+                    : Optional.<Source>absent();
         }
 
         public JavaType getJavaType() {

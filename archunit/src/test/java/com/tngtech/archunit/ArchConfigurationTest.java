@@ -1,17 +1,17 @@
 package com.tngtech.archunit;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.Properties;
-
 import com.tngtech.archunit.testutil.SystemPropertiesRule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.Properties;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -234,6 +234,12 @@ public class ArchConfigurationTest {
         assertThat(configuration.getSubProperties(subPropertyKeyOf(customPropertyName))).containsOnly(
                 entry(subPropertyNameOf(customPropertyName), "changed"),
                 entry(subPropertyNameOf(otherPropertyName), "other"));
+
+        System.clearProperty("archunit." + ArchConfiguration.ENABLE_MD5_IN_CLASS_SOURCES);
+        System.clearProperty("archunit." + customPropertyName);
+
+        assertThat(configuration.md5InClassSourcesEnabled()).as("MD5 sum in class sources enabled").isFalse();
+        assertThat(configuration.getProperty(customPropertyName)).as("custom property").isEqualTo("original");
     }
 
     @Test
