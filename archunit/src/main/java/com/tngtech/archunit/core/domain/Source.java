@@ -48,10 +48,10 @@ public class Source {
     private final Optional<String> fileName;
     private final Md5sum md5sum;
 
-    Source(URI uri, Optional<String> fileName) {
+    Source(URI uri, Optional<String> fileName, boolean md5InClassSourcesEnabled) {
         this.uri = checkNotNull(uri);
         this.fileName = checkNotNull(fileName);
-        md5sum = Md5sum.of(uri);
+        md5sum = md5InClassSourcesEnabled ? Md5sum.of(uri) : Md5sum.DISABLED;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -167,21 +167,13 @@ public class Source {
             }
         }
 
-        static Md5sum of(byte[] input) {
+        private static Md5sum of(URI uri) {
             if (MD5_DIGEST == null) {
                 return NOT_SUPPORTED;
             }
 
-            return ArchConfiguration.get().md5InClassSourcesEnabled() ? new Md5sum(input, MD5_DIGEST) : DISABLED;
-        }
-
-        private static Md5sum of(URI uri) {
-            if (!ArchConfiguration.get().md5InClassSourcesEnabled()) {
-                return DISABLED;
-            }
-
             Optional<byte[]> bytesFromUri = read(uri);
-            return bytesFromUri.isPresent() ? Md5sum.of(bytesFromUri.get()) : UNDETERMINED;
+            return bytesFromUri.isPresent() ? new Md5sum(bytesFromUri.get(), MD5_DIGEST) : UNDETERMINED;
         }
 
         private static Optional<byte[]> read(URI uri) {

@@ -28,6 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @RunWith(DataProviderRunner.class)
 public class SourceTest {
@@ -38,10 +39,10 @@ public class SourceTest {
 
     @Test
     public void source_file_name() throws URISyntaxException {
-        Source source = new Source(urlOf(Object.class).toURI(), Optional.of("SomeClass.java"));
+        Source source = new Source(urlOf(Object.class).toURI(), Optional.of("SomeClass.java"), false);
         assertThat(source.getFileName()).as("source file name").contains("SomeClass.java");
 
-        source = new Source(urlOf(Object.class).toURI(), Optional.<String>absent());
+        source = new Source(urlOf(Object.class).toURI(), Optional.<String>absent(), false);
         assertThat(source.getFileName()).as("source file name").isAbsent();
     }
 
@@ -96,7 +97,7 @@ public class SourceTest {
         return $$(
                 $(Md5sum.UNDETERMINED, Md5sum.UNDETERMINED),
                 $(Md5sum.NOT_SUPPORTED, Md5sum.NOT_SUPPORTED),
-                $(Md5sum.of("anything".getBytes()), Md5sum.of("anything".getBytes())));
+                $(md5sumOf("anything"), md5sumOf("anything")));
     }
 
     @Test
@@ -111,8 +112,8 @@ public class SourceTest {
         return createUnequalTestCasesFor(
                 Md5sum.UNDETERMINED,
                 Md5sum.NOT_SUPPORTED,
-                Md5sum.of("anything".getBytes()),
-                Md5sum.of("totallyDifferent".getBytes()));
+                md5sumOf("anything"),
+                md5sumOf("totallyDifferent"));
     }
 
     private static List<List<?>> createUnequalTestCasesFor(Md5sum... md5sums) {
@@ -148,13 +149,12 @@ public class SourceTest {
     }
 
     @Test
-    public void disables_md5_calculation_via_config() throws Exception {
-        ArchConfiguration.get().setMd5InClassSourcesEnabled(false);
+    public void disables_md5_calculation_via_parameter() throws Exception {
+        Source source = new Source(urlOf(getClass()).toURI(), Optional.of("any.java"), false);
+        assertThat(source.getMd5sum()).isEqualTo(Md5sum.DISABLED);
 
-        assertThat(Md5sum.of("any".getBytes())).isEqualTo(Md5sum.DISABLED);
-
-        // NOTE: This tests that URIs are note resolved, which costs performance, if it would be resolved, we would get UNDETERMINED
-        assertThat(newSource(new URI("bummer")).getMd5sum()).isEqualTo(Md5sum.DISABLED);
+        source = new Source(urlOf(getClass()).toURI(), Optional.of("any.java"), true);
+        assertThat(source.getMd5sum().asBytes()).isEqualTo(expectedMd5BytesAt(source.getUri().toURL()));
     }
 
     private Source newSource(URL url) throws URISyntaxException {
@@ -162,7 +162,11 @@ public class SourceTest {
     }
 
     private Source newSource(URI uri) {
-        return new Source(uri, Optional.<String>absent());
+        return new Source(uri, Optional.<String>absent(), true);
+    }
+
+    private static Md5sum md5sumOf(String data) {
+        return TestUtils.md5sumOf(data.getBytes(UTF_8));
     }
 
     private static byte[] expectedMd5BytesAt(URL url) throws IOException, NoSuchAlgorithmException {

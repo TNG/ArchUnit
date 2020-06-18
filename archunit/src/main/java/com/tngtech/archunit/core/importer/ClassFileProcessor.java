@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Set;
 
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -43,6 +44,7 @@ class ClassFileProcessor {
 
     static final int ASM_API_VERSION = ASM7;
 
+    private final boolean md5InClassSourcesEnabled = ArchConfiguration.get().md5InClassSourcesEnabled();
     private final ClassResolver.Factory classResolverFactory = new ClassResolver.Factory();
 
     JavaClasses process(ClassFileSource source) {
@@ -52,7 +54,7 @@ class ClassFileProcessor {
         for (ClassFileLocation location : source) {
             try (InputStream s = location.openStream()) {
                 JavaClassProcessor javaClassProcessor =
-                        new JavaClassProcessor(location.getUri(), classDetailsRecorder, accessHandler);
+                        new JavaClassProcessor(new SourceDescriptor(location.getUri(), md5InClassSourcesEnabled), classDetailsRecorder, accessHandler);
                 new ClassReader(s).accept(javaClassProcessor, 0);
                 importRecord.addAll(javaClassProcessor.createJavaClass().asSet());
             } catch (Exception e) {
@@ -168,21 +170,23 @@ class ClassFileProcessor {
 
     private ClassResolver getClassResolver(ClassDetailsRecorder classDetailsRecorder) {
         ClassResolver classResolver = classResolverFactory.create();
-        classResolver.setClassUriImporter(new UriImporterOfProcessor(classDetailsRecorder));
+        classResolver.setClassUriImporter(new UriImporterOfProcessor(classDetailsRecorder, md5InClassSourcesEnabled));
         return classResolver;
     }
 
     private static class UriImporterOfProcessor implements ClassUriImporter {
         private final DeclarationHandler declarationHandler;
+        private final boolean md5InClassSourcesEnabled;
 
-        UriImporterOfProcessor(DeclarationHandler declarationHandler) {
+        UriImporterOfProcessor(DeclarationHandler declarationHandler, boolean md5InClassSourcesEnabled) {
             this.declarationHandler = declarationHandler;
+            this.md5InClassSourcesEnabled = md5InClassSourcesEnabled;
         }
 
         @Override
         public Optional<JavaClass> tryImport(URI uri) {
             try (InputStream inputStream = uri.toURL().openStream()) {
-                JavaClassProcessor classProcessor = new JavaClassProcessor(uri, declarationHandler);
+                JavaClassProcessor classProcessor = new JavaClassProcessor(new SourceDescriptor(uri, md5InClassSourcesEnabled), declarationHandler);
                 new ClassReader(inputStream).accept(classProcessor, 0);
                 return classProcessor.createJavaClass();
             } catch (Exception e) {

@@ -1,5 +1,7 @@
 package com.tngtech.archunit.core.domain;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,7 +11,9 @@ import java.util.Set;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Files;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
@@ -26,6 +30,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newFieldAccess;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newMethodCall;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
+import static org.assertj.core.util.Files.newTemporaryFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -76,7 +81,13 @@ public class TestUtils {
     }
 
     public static Md5sum md5sumOf(byte[] bytes) {
-        return Md5sum.of(bytes);
+        File file = newTemporaryFile();
+        try {
+            Files.write(bytes, file);
+            return new Source(file.toURI(), Optional.<String>absent(), true).getMd5sum();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static JavaClass importClassWithContext(Class<?> owner) {
