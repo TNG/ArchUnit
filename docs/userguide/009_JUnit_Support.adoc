@@ -156,6 +156,9 @@ public class ArchitectureTest {
 }
 ----
 
+Note for users of JUnit 5: the annotation `@Disabled` has no effect here.
+Instead, `@ArchIgnore` should be used.
+
 ==== Grouping Rules
 
 Often a project might end up with different categories of rules, for example "service rules"
