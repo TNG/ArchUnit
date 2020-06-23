@@ -513,11 +513,11 @@ const DivSelectionMock = class extends D3ElementMock {
   }
 
   set scrollLeft(value) {
-    return this._attributes.set('scrollLeft', value);
+    this._attributes.set('scrollLeft', value);
   }
 
   set scrollTop(value) {
-    return this._attributes.set('scrollTop', value);
+    this._attributes.set('scrollTop', value);
   }
 
   static fromDom(svgType, attributes = {}) {

@@ -47,7 +47,7 @@ module.exports = env => {
         {
           test: /\.css$/,
           use: [
-            {loader: 'style-loader', options: {attrs: {id: 'visualization-styles'}}},
+            {loader: 'style-loader', options: {attributes: {id: 'visualization-styles'}}},
             {loader: 'css-loader'}
           ],
           include: /visualization-styles.css/

@@ -45,20 +45,20 @@
   },
   "devDependencies": {
     "chai": "4.2.0",
-    "css-loader": "3.2.0",
-    "eslint": "6.3.0",
-    "eslint-plugin-html": "6.0.0",
+    "css-loader": "3.6.0",
+    "eslint": "7.3.1",
+    "eslint-plugin-html": "6.0.2",
     "eslint-plugin-promise": "4.2.1",
-    "mocha": "6.2.0",
-    "nodemon": "1.19.2",
+    "mocha": "8.0.1",
+    "nodemon": "2.0.4",
     "polymer-bundler": "4.0.10",
     "union-value": "2.0.1",
-    "style-loader": "0.23.1",
-    "webpack": "4.42.1",
-    "webpack-cli": "3.3.11"
+    "style-loader": "1.2.1",
+    "webpack": "4.43.0",
+    "webpack-cli": "3.3.12"
   },
   "dependencies": {
     "@webcomponents/webcomponentsjs": "2.4.3",
-    "d3": "5.15.1"
+    "d3": "5.16.0"
   }
 }
