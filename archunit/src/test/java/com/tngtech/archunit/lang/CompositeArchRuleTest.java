@@ -1,5 +1,7 @@
 package com.tngtech.archunit.lang;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -7,6 +9,9 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.Iterator;
+import java.util.List;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.Priority.HIGH;
@@ -35,6 +40,16 @@ public class CompositeArchRuleTest {
     @UseDataProvider("rules_to_AND")
     public void rules_are_ANDed(ArchRule first, ArchRule second, boolean expectedSatisfied) {
         EvaluationResult result = CompositeArchRule.of(first).and(second).evaluate(importClasses(getClass()));
+
+        assertThat(result.hasViolation()).as("result has violation").isEqualTo(!expectedSatisfied);
+        assertPriority(result.getFailureReport().toString(), MEDIUM);
+    }
+
+    @Test
+    @UseDataProvider("rules_to_AND")
+    public void archRuleCollection(ArchRule first, ArchRule second, boolean expectedSatisfied) {
+        List<ArchRule> ruleCollection = ImmutableList.of(first, second);
+        EvaluationResult result = CompositeArchRule.of(ruleCollection).evaluate(importClasses(getClass()));
 
         assertThat(result.hasViolation()).as("result has violation").isEqualTo(!expectedSatisfied);
         assertPriority(result.getFailureReport().toString(), MEDIUM);
