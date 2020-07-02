@@ -673,11 +673,18 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         return allFields.get();
     }
 
+    /**
+     * @return The field with the given name.
+     * @throws IllegalArgumentException If this class does not have such a field.
+     */
     @PublicAPI(usage = ACCESS)
     public JavaField getField(String name) {
         return tryGetField(name).getOrThrow(new IllegalArgumentException("No field with name '" + name + " in class " + getName()));
     }
 
+    /**
+     * @return The field with the given name, if this class has such a field, otherwise {@link Optional#absent()}.
+     */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaField> tryGetField(String name) {
         for (JavaField field : fields) {
@@ -748,31 +755,53 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         return Optional.absent();
     }
 
+    /**
+     * @return The method with the given name and with zero parameters.
+     * @throws IllegalArgumentException If this class does not have such a method.
+     */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name) {
         return findMatchingCodeUnit(methods, name, Collections.<String>emptyList());
     }
 
+    /**
+     * @return The method with the given name and the given parameter types.
+     * @throws IllegalArgumentException If this class does not have such a method.
+     */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name, Class<?>... parameters) {
         return findMatchingCodeUnit(methods, name, namesOf(parameters));
     }
 
+    /**
+     * Same as {@link #getMethod(String, Class[])}, but with parameter signature specified as fully qualified class names.
+     */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name, String... parameters) {
         return findMatchingCodeUnit(methods, name, ImmutableList.copyOf(parameters));
     }
 
+    /**
+     * @return The method with the given name and with zero parameters,
+     * if this class has such a method, otherwise {@link Optional#absent()}.
+     */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name) {
         return tryFindMatchingCodeUnit(methods, name, Collections.<String>emptyList());
     }
 
+    /**
+     * @return The method with the given name and the given parameter types,
+     * if this class has such a method, otherwise {@link Optional#absent()}.
+     */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name, Class<?>... parameters) {
         return tryFindMatchingCodeUnit(methods, name, namesOf(parameters));
     }
 
+    /**
+     * Same as {@link #tryGetMethod(String, Class[])}, but with parameter signature specified as fully qualified class names.
+     */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name, String... parameters) {
         return tryFindMatchingCodeUnit(methods, name, ImmutableList.copyOf(parameters));
@@ -789,19 +818,56 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         return allMethods.get();
     }
 
+    /**
+     * @return The constructor with zero parameters.
+     * @throws IllegalArgumentException If this class does not have such a constructor.
+     */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor() {
         return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, Collections.<String>emptyList());
     }
 
+    /**
+     * @return The constructor with the given parameter types.
+     * @throws IllegalArgumentException If this class does not have a constructor with the given parameter types.
+     */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor(Class<?>... parameters) {
         return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, namesOf(parameters));
     }
 
+    /**
+     * Same as {@link #getConstructor(Class[])}, but with parameter signature specified as full class names.
+     */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor(String... parameters) {
         return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, ImmutableList.copyOf(parameters));
+    }
+
+    /**
+     * @return The constructor with zero parameters,
+     * if this class has such a constructor, otherwise {@link Optional#absent()}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaConstructor> tryGetConstructor() {
+        return tryFindMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, Collections.<String>emptyList());
+    }
+
+    /**
+     * @return The constructor with the given parameter types,
+     * if this class has such a constructor, otherwise {@link Optional#absent()}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaConstructor> tryGetConstructor(Class<?>... parameters) {
+        return tryFindMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, namesOf(parameters));
+    }
+
+    /**
+     * Same as {@link #tryGetConstructor(Class[])}, but with parameter signature specified as fully qualified class names.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaConstructor> tryGetConstructor(String... parameters) {
+        return tryFindMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, ImmutableList.copyOf(parameters));
     }
 
     @PublicAPI(usage = ACCESS)

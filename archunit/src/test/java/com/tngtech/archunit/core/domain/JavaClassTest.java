@@ -161,6 +161,19 @@ public class JavaClassTest {
     }
 
     @Test
+    public void reports_non_existing_members_as_absent() {
+        JavaClass javaClass = importClassWithContext(ParentWithFieldAndMethod.class);
+
+        assertThat(javaClass.tryGetField("notthere")).isAbsent();
+        assertThat(javaClass.tryGetMethod("notthere")).isAbsent();
+        assertThat(javaClass.tryGetMethod("notthere", Object.class)).isAbsent();
+        assertThat(javaClass.tryGetMethod("notthere", Object.class.getName())).isAbsent();
+        assertThat(javaClass.tryGetConstructor()).isAbsent();
+        assertThat(javaClass.tryGetConstructor(String.class)).isAbsent();
+        assertThat(javaClass.tryGetConstructor(String.class.getName())).isAbsent();
+    }
+
+    @Test
     public void anonymous_class_has_package_of_declaring_class() {
         Serializable input = new Serializable() {
         };
