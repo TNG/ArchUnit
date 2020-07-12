@@ -70,17 +70,17 @@ class GraphUi {
     return this.waitForUpdateFinished();
   }
 
-  async clickUnfoldNodesToShowAllViolations() {
+  async clickOnOpenSelectedViolations() {
     this._violationMenu.unfoldNodesToShowViolations();
     return this.waitForUpdateFinished();
   }
 
-  async hideNodesWithoutViolationsChanged(hide) {
+  async setValueForCheckBoxHideNodesWithoutViolationWhenRuleSelected(hide) {
     this._violationMenu.hideNodesWithoutViolationsChanged(hide);
     return this.waitForUpdateFinished();
   }
 
-  async clickFoldNodesToHideNodesWithoutViolations() {
+  async clickOnFoldOtherNodes() {
     this._violationMenu.clickFoldNodesToHideNodesWithoutViolations();
     return this.waitForUpdateFinished();
   }

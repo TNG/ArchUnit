@@ -186,7 +186,7 @@ describe('Graph', () => {
 
     graphUi.expectOnlyVisibleNodes('com.tngtech.pkg1');
 
-    await graphUi.clickUnfoldNodesToShowAllViolations();
+    await graphUi.clickOnOpenSelectedViolations();
 
     graphUi.expectOnlyVisibleNodes('pkg2', 'SomeClass1', 'com.tngtech.pkg1');
   });
@@ -209,14 +209,14 @@ describe('Graph', () => {
       }];
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
     await graphUi.selectViolation(violations[0]);
-    await graphUi.hideNodesWithoutViolationsChanged(false);
-    await graphUi.clickUnfoldNodesToShowAllViolations();
+    await graphUi.setValueForCheckBoxHideNodesWithoutViolationWhenRuleSelected(false);
+    await graphUi.clickOnOpenSelectedViolations();
 
     await graphUi.clickNode('com.tngtech.pkg3');
 
     graphUi.expectOnlyVisibleNodes('pkg2', 'SomeClass1', 'pkg1', 'SomeOtherClass', 'pkg3', 'com.tngtech');
 
-    await graphUi.clickFoldNodesToHideNodesWithoutViolations();
+    await graphUi.clickOnFoldOtherNodes();
 
     graphUi.expectOnlyVisibleNodes('pkg2', 'SomeClass1', 'pkg1', 'pkg3', 'com.tngtech');
   });
@@ -244,15 +244,15 @@ describe('Graph', () => {
     const {jsonRoot, jsonDependencies, violations} = getJsonRootDependenciesAndViolationsForThreeClasses();
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
     await graphUi.selectViolation(violations[0]);
-    await graphUi.clickUnfoldNodesToShowAllViolations();
-    await graphUi.hideNodesWithoutViolationsChanged(true);
+    await graphUi.clickOnOpenSelectedViolations();
+    await graphUi.setValueForCheckBoxHideNodesWithoutViolationWhenRuleSelected(true);
     await graphUi.clickNode('com.tngtech.pkg1.pkg2');
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'pkg2', 'com.tngtech.pkg1');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1');
 
     await graphUi.deselectViolation(violations[0]);
-    await graphUi.hideNodesWithoutViolationsChanged(false);
+    await graphUi.setValueForCheckBoxHideNodesWithoutViolationWhenRuleSelected(false);
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'SomeClass3', 'pkg2', 'com.tngtech.pkg1');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1');
@@ -261,28 +261,28 @@ describe('Graph', () => {
   it('updates the nodes and dependencies, when the shown violation groups change and the option for hiding all nodes that are not involved in violations is enabled', async() => {
     const {jsonRoot, jsonDependencies, violations} = getJsonRootDependenciesAndViolationsForThreeClasses();
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
-    await graphUi.hideNodesWithoutViolationsChanged(true);
+    await graphUi.setValueForCheckBoxHideNodesWithoutViolationWhenRuleSelected(true);
     await graphUi.selectViolation(violations[0]);
-    await graphUi.clickUnfoldNodesToShowAllViolations();
+    await graphUi.clickOnOpenSelectedViolations();
     await graphUi.clickNode('com.tngtech.pkg1.pkg2');
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'pkg2', 'com.tngtech.pkg1');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1');
 
     await graphUi.selectViolation(violations[1]);
-    await graphUi.clickUnfoldNodesToShowAllViolations();
+    await graphUi.clickOnOpenSelectedViolations();
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'SomeClass3', 'pkg2', 'com.tngtech.pkg1');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1');
 
     await graphUi.deselectViolation(violations[0]);
-    await graphUi.clickUnfoldNodesToShowAllViolations();
+    await graphUi.clickOnOpenSelectedViolations();
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass3', 'pkg2', 'com.tngtech.pkg1');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1');
 
     await graphUi.deselectViolation(violations[1]);
-    await graphUi.clickUnfoldNodesToShowAllViolations();
+    await graphUi.clickOnOpenSelectedViolations();
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'SomeClass3', 'pkg2', 'com.tngtech.pkg1');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.pkg1.pkg2.SomeClass2-com.tngtech.pkg1.SomeClass1', 'com.tngtech.pkg1.pkg2.SomeClass3-com.tngtech.pkg1.SomeClass1');
