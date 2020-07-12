@@ -47,7 +47,7 @@ class GraphUi {
   }
 
   async changeFilterString(filterString) {
-    this._menu.changeNodeFilter(filterString);
+    this._menu.changeFilterString(filterString);
     return this.waitForUpdateFinished();
   }
 
@@ -71,17 +71,17 @@ class GraphUi {
   }
 
   async clickOnOpenSelectedViolations() {
-    this._violationMenu.unfoldNodesToShowViolations();
+    this._violationMenu.clickOnOpenSelectedViolations();
     return this.waitForUpdateFinished();
   }
 
   async setValueForCheckBoxHideNodesWithoutViolationWhenRuleSelected(hide) {
-    this._violationMenu.hideNodesWithoutViolationsChanged(hide);
+    this._violationMenu.setValueForCheckBoxHideNodesWithoutViolationWhenRuleSelected(hide);
     return this.waitForUpdateFinished();
   }
 
   async clickOnFoldOtherNodes() {
-    this._violationMenu.clickFoldNodesToHideNodesWithoutViolations();
+    this._violationMenu.clickOnFoldOtherNodes();
     return this.waitForUpdateFinished();
   }
 
@@ -91,7 +91,7 @@ class GraphUi {
   }
 
   async changeCircleGeometrySettings(circleFontSize, circlePadding) {
-    this._menu.changeMenuSettings(circleFontSize, circlePadding);
+    this._menu.changeCircleGeometrySettings(circleFontSize, circlePadding);
     await this.waitForUpdateFinished();
   }
 

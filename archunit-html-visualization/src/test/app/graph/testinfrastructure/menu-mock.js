@@ -35,7 +35,7 @@ const MenuMock = class MenuMock {
   }
 
   // this is helper function to programmatically change the node filter
-  changeNodeFilter(filterString) {
+  changeFilterString(filterString) {
     this._nodeNameFilter(filterString);
   }
 
@@ -47,7 +47,7 @@ const MenuMock = class MenuMock {
     this._nodeTypeFilterCallback({showInterfaces, showClasses});
   }
 
-  changeMenuSettings(circleFontSize, circlePadding) {
+  changeCircleGeometrySettings(circleFontSize, circlePadding) {
     this._onSettingsChanged(circleFontSize, circlePadding);
   }
 

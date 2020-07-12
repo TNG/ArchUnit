@@ -30,15 +30,15 @@ const ViolationMenuMock = class ViolationMenuMock {
     this._hideViolationsOfGroupCallback(violationGroup);
   }
 
-  hideNodesWithoutViolationsChanged(hide) {
+  setValueForCheckBoxHideNodesWithoutViolationWhenRuleSelected(hide) {
     this._hideNodesWithoutViolationsChangedCallback(hide);
   }
 
-  unfoldNodesToShowViolations() {
+  clickOnOpenSelectedViolations() {
     this._clickUnfoldNodesToShowAllViolationsCallback();
   }
 
-  clickFoldNodesToHideNodesWithoutViolations() {
+  clickOnFoldOtherNodes() {
     this._clickFoldNodesToHideNodesWithoutViolationsCallback();
   }
 };
