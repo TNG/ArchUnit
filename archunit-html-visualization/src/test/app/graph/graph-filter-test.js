@@ -16,7 +16,7 @@ describe('Filtering in Graph', () => {
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
     await graphUi.clickNode('com.tngtech.archunit');
 
-    await graphUi.changeNodeFilter('*Some*');
+    await graphUi.changeFilterString('*Some*');
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'com.tngtech.archunit');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
@@ -39,7 +39,7 @@ describe('Filtering in Graph', () => {
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'com.tngtech.archunit');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
-    graphUi.expectNodeFilter('~com.tngtech.archunit.CtrlClickClass');
+    graphUi.expectFilterString('~com.tngtech.archunit.CtrlClickClass');
   });
 
   it('can filter multiple nodes by control click', async () => {
@@ -63,13 +63,13 @@ describe('Filtering in Graph', () => {
     graphUi.expectOnlyVisibleNodes('SecondCtrlClickClass', 'SomeClass1', 'SomeClass2', 'com.tngtech.archunit');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SecondCtrlClickClass-com.tngtech.archunit.SomeClass1',
     'com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
-    graphUi.expectNodeFilter('~com.tngtech.archunit.CtrlClickClass');
+    graphUi.expectFilterString('~com.tngtech.archunit.CtrlClickClass');
 
     await graphUi.ctrlClickNode('com.tngtech.archunit.SecondCtrlClickClass');
 
     graphUi.expectOnlyVisibleNodes('SomeClass1', 'SomeClass2', 'com.tngtech.archunit');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');
-    graphUi.expectNodeFilter('~com.tngtech.archunit.CtrlClickClass|~com.tngtech.archunit.SecondCtrlClickClass');
+    graphUi.expectFilterString('~com.tngtech.archunit.CtrlClickClass|~com.tngtech.archunit.SecondCtrlClickClass');
   });
 
   it('can filter node by name not containing', async () => {
@@ -85,7 +85,7 @@ describe('Filtering in Graph', () => {
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
     await graphUi.clickNode('com.tngtech.archunit');
 
-    await graphUi.changeNodeFilter('~*Matching*');
+    await graphUi.changeFilterString('~*Matching*');
 
     graphUi.expectOnlyVisibleNodes('com.tngtech.archunit', 'SomeClass1', 'SomeClass2');
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2');

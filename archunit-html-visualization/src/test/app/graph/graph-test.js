@@ -54,12 +54,12 @@ describe('Graph', () => {
       const graphUi = await getGraphUi(jsonRoot, []);
       await graphUi.clickNode('com.tngtech.archunit');
 
-      await graphUi.changeMenuSettings(10, 10 * circlePadding);
+      await graphUi.changeCircleGeometrySettings(10, 10 * circlePadding);
 
       expectSiblingNodesToHaveAtLeastPadding(graphUi.rootUi, 10 * circlePadding, 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
       expectNodesToHaveAtLeastPaddingFromParent(graphUi.rootUi, 10 * circlePadding, 'com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
 
-      await graphUi.changeMenuSettings(10, circlePadding);
+      await graphUi.changeCircleGeometrySettings(10, circlePadding);
 
       expectSiblingNodesToHaveAtLeastPadding(graphUi.rootUi, circlePadding, 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
       expectNodesToHaveAtLeastPaddingFromParent(graphUi.rootUi, circlePadding, 'com.tngtech.archunit', 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
@@ -72,7 +72,7 @@ describe('Graph', () => {
 
       graphUi.expectNodeSizeCloseTo(10 + circlePadding, 'com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
 
-      await graphUi.changeMenuSettings(100, circlePadding);
+      await graphUi.changeCircleGeometrySettings(100, circlePadding);
 
       // re-implement "production" logic (part of mocking also taken into account), to show how values are computed
       const lengthOfClassName = 'SomeClassN'.length;

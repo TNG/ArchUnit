@@ -46,7 +46,7 @@ class GraphUi {
     return this.waitForUpdateFinished();
   }
 
-  async changeNodeFilter(filterString) {
+  async changeFilterString(filterString) {
     this._menu.changeNodeFilter(filterString);
     return this.waitForUpdateFinished();
   }
@@ -90,7 +90,7 @@ class GraphUi {
     await this.waitForUpdateFinished();
   }
 
-  async changeMenuSettings(circleFontSize, circlePadding) {
+  async changeCircleGeometrySettings(circleFontSize, circlePadding) {
     this._menu.changeMenuSettings(circleFontSize, circlePadding);
     await this.waitForUpdateFinished();
   }
@@ -118,7 +118,7 @@ class GraphUi {
     expectedNodes.forEach(node => new Assertion(node.radius).to.be.closeTo(expectedNodeSize, 5));
   }
 
-  expectNodeFilter(expectedFilterString) {
+  expectFilterString(expectedFilterString) {
     new Assertion(this._menu.getCurrentFilterString()).to.equal(expectedFilterString);
   }
 }
