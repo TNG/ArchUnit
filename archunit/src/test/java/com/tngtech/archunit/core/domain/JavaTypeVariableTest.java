@@ -81,6 +81,19 @@ public class JavaTypeVariableTest {
     }
 
     @Test
+    public void erased_type_variable_bound_by_concrete_array_type_is_array_type() {
+        @SuppressWarnings("unused")
+        class ClassWithBoundTypeParameterWithSingleGenericArrayBound<T extends List<Object[]>, U extends List<String[][]>, V extends List<List<?>[][][]>> {
+        }
+
+        List<JavaTypeVariable> typeParameters = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithSingleGenericArrayBound.class).getTypeParameters();
+
+        assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(0)).toErasure()).matches(Object[].class);
+        assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(1)).toErasure()).matches(String[][].class);
+        assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(2)).toErasure()).matches(List[][][].class);
+    }
+
+    @Test
     public void toString_unbounded() {
         @SuppressWarnings("unused")
         class Unbounded<NAME> {
@@ -118,5 +131,10 @@ public class JavaTypeVariableTest {
         assertThat(typeVariable.toString())
                 .contains(JavaTypeVariable.class.getSimpleName())
                 .contains("NAME extends java.lang.String & java.io.Serializable");
+    }
+
+    private static JavaType getTypeArgumentOfFirstBound(JavaTypeVariable typeParameter) {
+        JavaParameterizedType firstBound = (JavaParameterizedType) typeParameter.getBounds().get(0);
+        return firstBound.getActualTypeArguments().get(0);
     }
 }

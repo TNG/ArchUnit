@@ -79,6 +79,22 @@ public class JavaWildcardTypeTest {
     }
 
     @Test
+    public void erased_wildcard_bound_by_concrete_array_type_is_array_type() {
+        @SuppressWarnings("unused")
+        class ClassWithBoundTypeParameterWithSingleGenericArrayBound<T extends List<? extends Object[]>, U extends List<? extends String[][]>, V extends List<? extends List<?>[][][]>> {
+        }
+
+        JavaWildcardType wildcard = importWildcardTypeOf(ClassWithBoundTypeParameterWithSingleGenericArrayBound.class, 0);
+        assertThatType(wildcard.toErasure()).matches(Object[].class);
+
+        wildcard = importWildcardTypeOf(ClassWithBoundTypeParameterWithSingleGenericArrayBound.class, 1);
+        assertThatType(wildcard.toErasure()).matches(String[][].class);
+
+        wildcard = importWildcardTypeOf(ClassWithBoundTypeParameterWithSingleGenericArrayBound.class, 2);
+        assertThatType(wildcard.toErasure()).matches(List[][][].class);
+    }
+
+    @Test
     public void toString_unbounded() {
         @SuppressWarnings("unused")
         class Unbounded<T extends List<?>> {
@@ -122,7 +138,11 @@ public class JavaWildcardTypeTest {
     }
 
     private JavaWildcardType importWildcardTypeOf(Class<?> clazz) {
-        JavaType listType = new ClassFileImporter().importClass(clazz).getTypeParameters().get(0)
+        return importWildcardTypeOf(clazz, 0);
+    }
+
+    private JavaWildcardType importWildcardTypeOf(Class<?> clazz, int typeParameterIndex) {
+        JavaType listType = new ClassFileImporter().importClass(clazz).getTypeParameters().get(typeParameterIndex)
                 .getUpperBounds().get(0);
         JavaType wildcardType = ((JavaParameterizedType) listType).getActualTypeArguments().get(0);
         return (JavaWildcardType) wildcardType;

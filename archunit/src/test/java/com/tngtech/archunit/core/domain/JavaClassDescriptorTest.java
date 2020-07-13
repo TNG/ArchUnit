@@ -121,6 +121,43 @@ public class JavaClassDescriptorTest {
                 .build();
     }
 
+    @Test
+    public void convert_object_descriptor_to_array_descriptor() {
+        JavaClassDescriptor arrayDescriptor = JavaClassDescriptor.From.name(Object.class.getName()).toArrayDescriptor();
+
+        assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(Object[].class.getName());
+        assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(Object[].class.getSimpleName());
+        assertThat(arrayDescriptor.getPackageName()).isEqualTo(Object.class.getPackage().getName());
+    }
+
+    @Test
+    public void convert_primitive_descriptor_to_array_descriptor() {
+        JavaClassDescriptor arrayDescriptor = JavaClassDescriptor.From.name(int.class.getName()).toArrayDescriptor();
+
+        assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(int[].class.getName());
+        assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(int[].class.getSimpleName());
+        assertThat(arrayDescriptor.getPackageName()).isEmpty();
+    }
+
+    @Test
+    public void convert_array_descriptor_to_2_dim_array_descriptor() {
+        JavaClassDescriptor arrayDescriptor = JavaClassDescriptor.From.name(Object[].class.getName()).toArrayDescriptor();
+
+        assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(Object[][].class.getName());
+        assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(Object[][].class.getSimpleName());
+        assertThat(arrayDescriptor.getPackageName()).isEqualTo(Object.class.getPackage().getName());
+    }
+
+    @Test
+    public void converts_descriptor_repeatedly_multi_dim_array_descriptor() {
+        JavaClassDescriptor arrayDescriptor = JavaClassDescriptor.From.name(Object.class.getName())
+                .toArrayDescriptor().toArrayDescriptor().toArrayDescriptor();
+
+        assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(Object[][][].class.getName());
+        assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(Object[][][].class.getSimpleName());
+        assertThat(arrayDescriptor.getPackageName()).isEqualTo(Object.class.getPackage().getName());
+    }
+
     private static List<List<Object>> namesToPrimitive(Class<?> primitiveType) {
         return ImmutableList.<List<Object>>of(
                 ImmutableList.<Object>of(primitiveType.getName(), primitiveType),
