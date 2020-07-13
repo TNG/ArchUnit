@@ -527,6 +527,40 @@ public class ClassFileImporterGenericClassesTest {
                 .hasTypeParameter("D").withBoundsMatching(Object.class);
     }
 
+    @Test
+    public void imports_complex_type_with_multiple_nested_parameters_with_concrete_array_bounds() {
+        @SuppressWarnings("unused")
+        class ClassWithComplexTypeParametersWithConcreteArrayBounds<
+                A extends List<Serializable[]>,
+                B extends List<? extends Serializable[][]>,
+                C extends Map<? super String[], Map<Map<? super String[][][], ?>, Serializable[][]>>
+                > {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithComplexTypeParametersWithConcreteArrayBounds.class,
+                List.class, Serializable.class, Map.class, String.class);
+
+        JavaClass javaClass = classes.get(ClassWithComplexTypeParametersWithConcreteArrayBounds.class);
+
+        assertThatType(javaClass)
+                .hasTypeParameter("A")
+                .withBoundsMatching(
+                        parameterizedType(List.class).withTypeArguments(Serializable[].class))
+                .hasTypeParameter("B")
+                .withBoundsMatching(
+                        parameterizedType(List.class).withWildcardTypeParameterWithUpperBound(Serializable[][].class))
+                .hasTypeParameter("C")
+                .withBoundsMatching(
+                        parameterizedType(Map.class).withTypeArguments(
+                                wildcardType().withLowerBound(String[].class),
+                                parameterizedType(Map.class).withTypeArguments(
+                                        parameterizedType(Map.class).withTypeArguments(
+                                                wildcardType().withLowerBound(String[][][].class),
+                                                wildcardType()),
+                                        parameterizedType(Serializable[][].class)))
+                );
+    }
+
     @SuppressWarnings("unused")
     public static class ClassParameterWithSingleTypeParameter<T> {
     }

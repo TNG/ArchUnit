@@ -61,6 +61,8 @@ public interface JavaClassDescriptor {
 
     JavaClassDescriptor withSimpleClassName(String simpleName);
 
+    JavaClassDescriptor toArrayDescriptor();
+
     @Internal
     final class From {
         private static final LoadingCache<String, JavaClassDescriptor> descriptorCache =
@@ -232,11 +234,11 @@ public interface JavaClassDescriptor {
             public JavaClassDescriptor withSimpleClassName(String simpleName) {
                 return new ObjectClassDescriptor(getFullyQualifiedClassName(), simpleName, getPackageName());
             }
-        }
 
-        private static String createPackage(String fullName) {
-            int packageEnd = fullName.lastIndexOf('.');
-            return packageEnd >= 0 ? fullName.substring(0, packageEnd) : "";
+            @Override
+            public JavaClassDescriptor toArrayDescriptor() {
+                return From.name(getFullyQualifiedClassName() + "[]");
+            }
         }
 
         private static class PrimitiveClassDescriptor extends AbstractClassDescriptor {
@@ -258,6 +260,11 @@ public interface JavaClassDescriptor {
             @Override
             public JavaClassDescriptor withSimpleClassName(String simpleName) {
                 throw new UnsupportedOperationException("It should never make sense to override the simple type of a primitive");
+            }
+
+            @Override
+            public JavaClassDescriptor toArrayDescriptor() {
+                return From.name(getFullyQualifiedClassName() + "[]");
             }
         }
 
@@ -299,6 +306,16 @@ public interface JavaClassDescriptor {
                 String componentTypeName = canonicalName.substring(0, canonicalName.lastIndexOf("["));
                 return Optional.of(JavaClassDescriptor.From.name(componentTypeName));
             }
+
+            @Override
+            public JavaClassDescriptor toArrayDescriptor() {
+                return new ArrayClassDescriptor("[" + getFullyQualifiedClassName());
+            }
+        }
+
+        private static String createPackage(String fullName) {
+            int packageEnd = fullName.lastIndexOf('.');
+            return packageEnd >= 0 ? fullName.substring(0, packageEnd) : "";
         }
     }
 }

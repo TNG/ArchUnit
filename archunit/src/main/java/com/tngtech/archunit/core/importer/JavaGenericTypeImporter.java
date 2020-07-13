@@ -18,6 +18,8 @@ package com.tngtech.archunit.core.importer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -33,6 +35,7 @@ import org.objectweb.asm.signature.SignatureVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Functions.compose;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
 
 class JavaGenericTypeImporter {
@@ -111,7 +114,7 @@ class JavaGenericTypeImporter {
 
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
-                return TypeArgumentProcessor.create(wildcard, currentBound);
+                return TypeArgumentProcessor.create(wildcard, currentBound, Functions.<JavaClassDescriptor>identity());
             }
         }
     }
@@ -149,20 +152,29 @@ class JavaGenericTypeImporter {
     }
 
     private static class TypeArgumentProcessor extends SignatureVisitor {
+        private static final Function<JavaClassDescriptor, JavaClassDescriptor> TO_ARRAY_TYPE = new Function<JavaClassDescriptor, JavaClassDescriptor>() {
+            @Override
+            public JavaClassDescriptor apply(JavaClassDescriptor input) {
+                return input.toArrayDescriptor();
+            }
+        };
+
         private final TypeArgumentType typeArgumentType;
         private final JavaParameterizedTypeBuilder parameterizedType;
+        private final Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping;
 
         private JavaParameterizedTypeBuilder currentTypeArgument;
 
-        TypeArgumentProcessor(TypeArgumentType typeArgumentType, JavaParameterizedTypeBuilder parameterizedType) {
+        TypeArgumentProcessor(TypeArgumentType typeArgumentType, JavaParameterizedTypeBuilder parameterizedType, Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping) {
             super(ASM_API_VERSION);
             this.typeArgumentType = typeArgumentType;
             this.parameterizedType = parameterizedType;
+            this.typeMapping = typeMapping;
         }
 
         @Override
         public void visitClassType(String internalObjectName) {
-            JavaClassDescriptor type = JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName);
+            JavaClassDescriptor type = typeMapping.apply(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
             log.trace("Encountered {} for {}: Class type {}", typeArgumentType.description, parameterizedType.getTypeName(), type.getFullyQualifiedClassName());
             currentTypeArgument = new JavaParameterizedTypeBuilder(type);
             typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new NewJavaTypeCreationProcess(this.currentTypeArgument));
@@ -182,17 +194,22 @@ class JavaGenericTypeImporter {
 
         @Override
         public SignatureVisitor visitTypeArgument(char wildcard) {
-            return TypeArgumentProcessor.create(wildcard, currentTypeArgument);
+            return TypeArgumentProcessor.create(wildcard, currentTypeArgument, typeMapping);
         }
 
-        static TypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder parameterizedType) {
+        @Override
+        public SignatureVisitor visitArrayType() {
+            return new TypeArgumentProcessor(typeArgumentType, parameterizedType, compose(typeMapping, TO_ARRAY_TYPE));
+        }
+
+        static TypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder parameterizedType, Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping) {
             switch (identifier) {
                 case '=':
-                    return new TypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType);
+                    return new TypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType, typeMapping);
                 case '+':
-                    return new TypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType);
+                    return new TypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeMapping);
                 case '-':
-                    return new TypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType);
+                    return new TypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeMapping);
                 default:
                     throw new IllegalStateException(String.format("Cannot handle asm type argument identifier '%s'", identifier));
             }
