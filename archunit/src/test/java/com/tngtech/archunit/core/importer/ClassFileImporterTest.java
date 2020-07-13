@@ -979,17 +979,24 @@ public class ClassFileImporterTest {
         JavaClass clazz = classesIn("testexamples/constructorimport").get(ClassWithSimpleConstructors.class);
 
         assertThat(clazz.getConstructors()).as("Constructors").hasSize(3);
-        assertThat(clazz.getConstructor()).isEquivalentTo(ClassWithSimpleConstructors.class.getDeclaredConstructor());
+
+        Constructor<ClassWithSimpleConstructors> expectedConstructor = ClassWithSimpleConstructors.class.getDeclaredConstructor();
+        assertThat(clazz.getConstructor()).isEquivalentTo(expectedConstructor);
+        assertThat(clazz.tryGetConstructor().get()).isEquivalentTo(expectedConstructor);
 
         Class<?>[] parameterTypes = {Object.class};
-        Constructor<ClassWithSimpleConstructors> expectedConstructor = ClassWithSimpleConstructors.class.getDeclaredConstructor(parameterTypes);
+        expectedConstructor = ClassWithSimpleConstructors.class.getDeclaredConstructor(parameterTypes);
         assertThat(clazz.getConstructor(parameterTypes)).isEquivalentTo(expectedConstructor);
         assertThat(clazz.getConstructor(Objects.namesOf(parameterTypes))).isEquivalentTo(expectedConstructor);
+        assertThat(clazz.tryGetConstructor(parameterTypes).get()).isEquivalentTo(expectedConstructor);
+        assertThat(clazz.tryGetConstructor(Objects.namesOf(parameterTypes)).get()).isEquivalentTo(expectedConstructor);
 
         parameterTypes = new Class[]{int.class, int.class};
         expectedConstructor = ClassWithSimpleConstructors.class.getDeclaredConstructor(parameterTypes);
         assertThat(clazz.getConstructor(parameterTypes)).isEquivalentTo(expectedConstructor);
         assertThat(clazz.getConstructor(Objects.namesOf(parameterTypes))).isEquivalentTo(expectedConstructor);
+        assertThat(clazz.tryGetConstructor(parameterTypes).get()).isEquivalentTo(expectedConstructor);
+        assertThat(clazz.tryGetConstructor(Objects.namesOf(parameterTypes)).get()).isEquivalentTo(expectedConstructor);
     }
 
     @Test
