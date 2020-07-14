@@ -134,7 +134,7 @@ public interface JavaClassDescriptor {
             return "L" + componentTypeName + ";";
         }
 
-        static JavaClassDescriptor javaClass(JavaClass javaClass) {
+        public static JavaClassDescriptor javaClass(JavaClass javaClass) {
             return name(javaClass.getName());
         }
 

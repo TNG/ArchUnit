@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Functions.compose;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
 
 class JavaGenericTypeImporter {
@@ -109,12 +111,12 @@ class JavaGenericTypeImporter {
             @Override
             public void visitTypeVariable(String name) {
                 log.trace("Encountered upper bound for {}: Type variable {}", currentType.getName(), name);
-                currentType.addBound(new ReferenceCreationProcess(name));
+                currentType.addBound(new ReferenceCreationProcess(name, ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY));
             }
 
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
-                return TypeArgumentProcessor.create(wildcard, currentBound, Functions.<JavaClassDescriptor>identity());
+                return TypeArgumentProcessor.create(wildcard, currentBound, Functions.<JavaClassDescriptor>identity(), ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY);
             }
         }
     }
@@ -134,13 +136,19 @@ class JavaGenericTypeImporter {
 
     private static class ReferenceCreationProcess implements JavaTypeCreationProcess {
         private final String typeVariableName;
+        private final JavaTypeVariableFinisher finisher;
 
-        ReferenceCreationProcess(String typeVariableName) {
+        ReferenceCreationProcess(String typeVariableName, JavaTypeVariableFinisher finisher) {
             this.typeVariableName = typeVariableName;
+            this.finisher = finisher;
         }
 
         @Override
         public JavaType finish(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes) {
+            return finisher.finish(createTypeVariable(allTypeParametersInContext, classes), classes);
+        }
+
+        private JavaType createTypeVariable(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes) {
             for (JavaTypeVariable existingTypeVariable : allTypeParametersInContext) {
                 if (existingTypeVariable.getName().equals(typeVariableName)) {
                     return existingTypeVariable;
@@ -148,6 +156,38 @@ class JavaGenericTypeImporter {
             }
             // type variables can be missing from the import context -> create a simple unbound type variable since we have no more information
             return new JavaTypeParameterBuilder(typeVariableName).build(classes);
+        }
+
+        abstract static class JavaTypeVariableFinisher {
+            abstract JavaType finish(JavaType input, ClassesByTypeName classes);
+
+            abstract String getFinishedName(String name);
+
+            JavaTypeVariableFinisher after(final JavaTypeVariableFinisher other) {
+                return new JavaTypeVariableFinisher() {
+                    @Override
+                    JavaType finish(JavaType input, ClassesByTypeName classes) {
+                        return JavaTypeVariableFinisher.this.finish(other.finish(input, classes), classes);
+                    }
+
+                    @Override
+                    String getFinishedName(String name) {
+                        return JavaTypeVariableFinisher.this.getFinishedName(other.getFinishedName(name));
+                    }
+                };
+            }
+
+            static JavaTypeVariableFinisher IDENTITY = new JavaTypeVariableFinisher() {
+                @Override
+                JavaType finish(JavaType input, ClassesByTypeName classes) {
+                    return input;
+                }
+
+                @Override
+                String getFinishedName(String name) {
+                    return name;
+                }
+            };
         }
     }
 
@@ -158,18 +198,37 @@ class JavaGenericTypeImporter {
                 return input.toArrayDescriptor();
             }
         };
+        private static final ReferenceCreationProcess.JavaTypeVariableFinisher GENERIC_ARRAY_CREATOR = new ReferenceCreationProcess.JavaTypeVariableFinisher() {
+            @Override
+            public JavaType finish(JavaType componentType, ClassesByTypeName classes) {
+                JavaClassDescriptor erasureType = JavaClassDescriptor.From.javaClass(componentType.toErasure()).toArrayDescriptor();
+                JavaClass erasure = classes.get(erasureType.getFullyQualifiedClassName());
+                return createGenericArrayType(componentType, erasure);
+            }
+
+            @Override
+            String getFinishedName(String name) {
+                return name + "[]";
+            }
+        };
 
         private final TypeArgumentType typeArgumentType;
         private final JavaParameterizedTypeBuilder parameterizedType;
         private final Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping;
+        private final ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher;
 
         private JavaParameterizedTypeBuilder currentTypeArgument;
 
-        TypeArgumentProcessor(TypeArgumentType typeArgumentType, JavaParameterizedTypeBuilder parameterizedType, Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping) {
+        TypeArgumentProcessor(
+                TypeArgumentType typeArgumentType,
+                JavaParameterizedTypeBuilder parameterizedType,
+                Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping,
+                ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher) {
             super(ASM_API_VERSION);
             this.typeArgumentType = typeArgumentType;
             this.parameterizedType = parameterizedType;
             this.typeMapping = typeMapping;
+            this.typeVariableFinisher = typeVariableFinisher;
         }
 
         @Override
@@ -188,28 +247,35 @@ class JavaGenericTypeImporter {
 
         @Override
         public void visitTypeVariable(String name) {
-            log.trace("Encountered {} for {}: Type variable {}", typeArgumentType.description, parameterizedType.getTypeName(), name);
-            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess(name));
+            if (log.isTraceEnabled()) {
+                log.trace("Encountered {} for {}: Type variable {}", typeArgumentType.description, parameterizedType.getTypeName(), typeVariableFinisher.getFinishedName(name));
+            }
+            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess(name, typeVariableFinisher));
         }
 
         @Override
         public SignatureVisitor visitTypeArgument(char wildcard) {
-            return TypeArgumentProcessor.create(wildcard, currentTypeArgument, typeMapping);
+            return TypeArgumentProcessor.create(wildcard, currentTypeArgument, typeMapping, typeVariableFinisher);
         }
 
         @Override
         public SignatureVisitor visitArrayType() {
-            return new TypeArgumentProcessor(typeArgumentType, parameterizedType, compose(typeMapping, TO_ARRAY_TYPE));
+            return new TypeArgumentProcessor(typeArgumentType, parameterizedType, compose(typeMapping, TO_ARRAY_TYPE), typeVariableFinisher.after(GENERIC_ARRAY_CREATOR));
         }
 
-        static TypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder parameterizedType, Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping) {
+        static TypeArgumentProcessor create(
+                char identifier,
+                JavaParameterizedTypeBuilder parameterizedType,
+                Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping,
+                ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher) {
+
             switch (identifier) {
                 case '=':
-                    return new TypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType, typeMapping);
+                    return new TypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType, typeMapping, typeVariableFinisher);
                 case '+':
-                    return new TypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeMapping);
+                    return new TypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeMapping, typeVariableFinisher);
                 case '-':
-                    return new TypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeMapping);
+                    return new TypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeMapping, typeVariableFinisher);
                 default:
                     throw new IllegalStateException(String.format("Cannot handle asm type argument identifier '%s'", identifier));
             }

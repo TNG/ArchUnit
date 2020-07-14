@@ -94,6 +94,19 @@ public class JavaTypeVariableTest {
     }
 
     @Test
+    public void erased_type_variable_bound_by_generic_array_type_is_array_with_erasure_component_type() {
+        @SuppressWarnings("unused")
+        class ClassWithBoundTypeParameterWithGenericArrayBounds<A, B extends String, C extends List<?>, T extends List<A[]>, U extends List<B[][]>, V extends List<C[][][]>> {
+        }
+
+        List<JavaTypeVariable> typeParameters = new ClassFileImporter().importClass(ClassWithBoundTypeParameterWithGenericArrayBounds.class).getTypeParameters();
+
+        assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(3)).toErasure()).matches(Object[].class);
+        assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(4)).toErasure()).matches(String[][].class);
+        assertThatType(getTypeArgumentOfFirstBound(typeParameters.get(5)).toErasure()).matches(List[][][].class);
+    }
+
+    @Test
     public void toString_unbounded() {
         @SuppressWarnings("unused")
         class Unbounded<NAME> {
