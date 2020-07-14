@@ -48,6 +48,8 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBu
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Together with {@link DomainBuilders}, this class is the link to create domain objects from the import
  * context. To make the API clear, we try to keep only those methods public, which are really meant to be used.
@@ -158,6 +160,12 @@ public class DomainObjectCreationContext {
 
     public static void completeTypeVariable(JavaTypeVariable variable, List<JavaType> upperBounds) {
         variable.setUpperBounds(upperBounds);
+    }
+
+    public static JavaGenericArrayType createGenericArrayType(JavaType componentType, JavaClass erasure) {
+        checkArgument(componentType instanceof JavaTypeVariable || componentType instanceof JavaGenericArrayType,
+                "Component type of a generic array type can only be a type variable or a generic array type. This is most likely a bug.");
+        return new JavaGenericArrayType(componentType.getName() + "[]", componentType, erasure);
     }
 
     public static JavaWildcardType createWildcardType(JavaWildcardTypeBuilder builder) {

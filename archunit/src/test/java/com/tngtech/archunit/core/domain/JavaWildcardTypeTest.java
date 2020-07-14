@@ -95,6 +95,22 @@ public class JavaWildcardTypeTest {
     }
 
     @Test
+    public void erased_wildcard_bound_by_generic_array_type_is_array_with_erasure_component_type() {
+        @SuppressWarnings("unused")
+        class ClassWithBoundTypeParameterWithGenericArrayBounds<A, B extends String, C extends List<?>, T extends List<? extends A[]>, U extends List<? extends B[][]>, V extends List<? extends C[][][]>> {
+        }
+
+        JavaWildcardType wildcard = importWildcardTypeOf(ClassWithBoundTypeParameterWithGenericArrayBounds.class, 3);
+        assertThatType(wildcard.toErasure()).matches(Object[].class);
+
+        wildcard = importWildcardTypeOf(ClassWithBoundTypeParameterWithGenericArrayBounds.class, 4);
+        assertThatType(wildcard.toErasure()).matches(String[][].class);
+
+        wildcard = importWildcardTypeOf(ClassWithBoundTypeParameterWithGenericArrayBounds.class, 5);
+        assertThatType(wildcard.toErasure()).matches(List[][][].class);
+    }
+
+    @Test
     public void toString_unbounded() {
         @SuppressWarnings("unused")
         class Unbounded<T extends List<?>> {

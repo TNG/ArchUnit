@@ -7,6 +7,7 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -225,6 +226,36 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
 
         public static ExpectedConcreteTypeVariable typeVariable(String name) {
             return new ExpectedConcreteTypeVariable(name);
+        }
+    }
+
+    public static class ExpectedConcreteTypeVariableArray implements ExpectedConcreteType {
+        private final String name;
+        private ExpectedConcreteType componentType;
+
+        private ExpectedConcreteTypeVariableArray(String name) {
+            this.name = name;
+        }
+
+        public ExpectedConcreteTypeVariableArray withComponentType(ExpectedConcreteType componentType) {
+            this.componentType = componentType;
+            return this;
+        }
+
+        @Override
+        public void assertMatchWith(JavaType actual, DescriptionContext context) {
+            assertThat(actual).as(context.step("JavaType").toString()).isInstanceOf(JavaGenericArrayType.class);
+            JavaGenericArrayType actualArrayType = (JavaGenericArrayType) actual;
+            assertThat(actualArrayType.getName()).as(context.step("type variable name").toString()).isEqualTo(name);
+
+            if (componentType != null) {
+                DescriptionContext newContext = context.describe(actual.getName()).step("component type").metaInfo();
+                componentType.assertMatchWith(actualArrayType.getComponentType(), newContext);
+            }
+        }
+
+        public static ExpectedConcreteTypeVariableArray typeVariableArray(String typeVariableArrayString) {
+            return new ExpectedConcreteTypeVariableArray(typeVariableArrayString);
         }
     }
 

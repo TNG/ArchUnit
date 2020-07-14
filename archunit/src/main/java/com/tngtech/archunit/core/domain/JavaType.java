@@ -30,6 +30,9 @@ public interface JavaType extends HasName {
      *     <li>the class itself, if this type is a {@link JavaClass}</li>
      *     <li>the {@link JavaClass} equivalent to {@link Object}, if this type is an unbound {@link JavaTypeVariable}</li>
      *     <li>the {@link JavaClass} equivalent to the erasure of the left most bound, if this type is a bound {@link JavaTypeVariable}</li>
+     *     <li>if this type is a {@link JavaGenericArrayType}, the erasure will be the {@link JavaClass}
+     *     equivalent to the array type that has the erasure of the generic component type of this type as its component type;
+     *     e.g. take the generic array type {@code T[][]} where {@code T} is unbound, then the erasure will be the array type {@code Object[][]}</li>
      * </ul>
      */
     @PublicAPI(usage = ACCESS)
