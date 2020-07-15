@@ -1032,6 +1032,17 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     /**
+     * Returns the transitive closure of all dependencies originating from this class, i.e. its direct dependencies
+     * and the dependencies from all imported target classes.
+     * @return all transitive dependencies (including direct dependencies) from this class
+     * @see #getDirectDependenciesFromSelf()
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getTransitiveDependenciesFromSelf() {
+        return JavaClassTransitiveDependencies.findTransitiveDependenciesFrom(this);
+    }
+
+    /**
      * Like {@link #getDirectDependenciesFromSelf()}, but instead returns all dependencies where this class
      * is target.
      *
