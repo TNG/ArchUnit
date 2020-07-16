@@ -244,6 +244,7 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/simpleimport");
         JavaClass javaClass = classes.get(ClassToImportOne.class);
 
+        assertThat(javaClass.isFullyImported()).isTrue();
         assertThat(javaClass.getName()).as("full name").isEqualTo(ClassToImportOne.class.getName());
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(ClassToImportOne.class.getSimpleName());
         assertThat(javaClass.getPackageName()).as("package name").isEqualTo(ClassToImportOne.class.getPackage().getName());
@@ -1714,7 +1715,7 @@ public class ClassFileImporterTest {
     }
 
     @DataProvider
-    public static Object[][] classes_not_directly_imported() {
+    public static Object[][] classes_not_fully_imported() {
         class Element {
         }
         @SuppressWarnings("unused")
@@ -1736,23 +1737,24 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    @UseDataProvider("classes_not_directly_imported")
-    public void classes_not_directly_imported_have_empty_dependencies(@SuppressWarnings("unused") String description, JavaClass notDirectlyImported) {
-        assertThat(notDirectlyImported.getDirectDependenciesFromSelf()).isEmpty();
-        assertThat(notDirectlyImported.getDirectDependenciesToSelf()).isEmpty();
-        assertThat(notDirectlyImported.getFieldAccessesToSelf()).isEmpty();
-        assertThat(notDirectlyImported.getMethodCallsToSelf()).isEmpty();
-        assertThat(notDirectlyImported.getConstructorCallsToSelf()).isEmpty();
-        assertThat(notDirectlyImported.getAccessesToSelf()).isEmpty();
-        assertThat(notDirectlyImported.getFieldsWithTypeOfSelf()).isEmpty();
-        assertThat(notDirectlyImported.getMethodsWithParameterTypeOfSelf()).isEmpty();
-        assertThat(notDirectlyImported.getMethodsWithReturnTypeOfSelf()).isEmpty();
-        assertThat(notDirectlyImported.getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
-        assertThat(notDirectlyImported.getConstructorsWithParameterTypeOfSelf()).isEmpty();
-        assertThat(notDirectlyImported.getConstructorsWithThrowsDeclarationTypeOfSelf()).isEmpty();
-        assertThat(notDirectlyImported.getAnnotationsWithTypeOfSelf()).isEmpty();
-        assertThat(notDirectlyImported.getAnnotationsWithParameterTypeOfSelf()).isEmpty();
-        assertThat(notDirectlyImported.getInstanceofChecksWithTypeOfSelf()).isEmpty();
+    @UseDataProvider("classes_not_fully_imported")
+    public void classes_not_fully_imported_have_flag_fullyImported_false_and_empty_dependencies(@SuppressWarnings("unused") String description, JavaClass notFullyImported) {
+        assertThat(notFullyImported.isFullyImported()).isFalse();
+        assertThat(notFullyImported.getDirectDependenciesFromSelf()).isEmpty();
+        assertThat(notFullyImported.getDirectDependenciesToSelf()).isEmpty();
+        assertThat(notFullyImported.getFieldAccessesToSelf()).isEmpty();
+        assertThat(notFullyImported.getMethodCallsToSelf()).isEmpty();
+        assertThat(notFullyImported.getConstructorCallsToSelf()).isEmpty();
+        assertThat(notFullyImported.getAccessesToSelf()).isEmpty();
+        assertThat(notFullyImported.getFieldsWithTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getMethodsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getMethodsWithReturnTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getConstructorsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getConstructorsWithThrowsDeclarationTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getAnnotationsWithTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getAnnotationsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getInstanceofChecksWithTypeOfSelf()).isEmpty();
     }
 
     @Test

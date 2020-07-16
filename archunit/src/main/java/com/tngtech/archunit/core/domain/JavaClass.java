@@ -147,6 +147,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     });
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
+    private boolean fullyImported = false;
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
@@ -1150,6 +1151,17 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     /**
+     * @return Whether this class has been fully imported, including all dependencies.<br>
+     *         Classes that are only transitively imported are not necessarily fully imported.<br><br>
+     *         Suppose you only import a class {@code Foo} that calls a method of class {@code Bar}.
+     *         Then {@code Bar} is, as a dependency of the fully imported class {@code Foo}, only transitively imported.
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isFullyImported() {
+        return fullyImported;
+    }
+
+    /**
      * @param clazz An arbitrary type
      * @return true, if this {@link JavaClass} represents the same class as the supplied {@link Class}, otherwise false
      */
@@ -1301,6 +1313,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             codeUnit.completeFrom(context);
         }
         javaClassDependencies = new JavaClassDependencies(this);
+        fullyImported = true;
         return javaClassDependencies;
     }
 
