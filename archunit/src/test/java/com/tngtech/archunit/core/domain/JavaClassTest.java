@@ -244,23 +244,27 @@ public class JavaClassTest {
 
     @Test
     public void superclasses_are_found() {
-        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperclassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
 
-        assertThat(clazz.getAllSuperClasses()).extracting("name").containsExactly(
-                SuperClassWithFieldAndMethod.class.getName(),
+        assertThat(clazz.getAllRawSuperclasses()).extracting("name").containsExactly(
+                SuperclassWithFieldAndMethod.class.getName(),
+                Parent.class.getName(),
+                Object.class.getName());
+        assertThat(clazz.getAllRawSuperclasses()).extracting("name").containsExactly(
+                SuperclassWithFieldAndMethod.class.getName(),
                 Parent.class.getName(),
                 Object.class.getName());
     }
 
     @Test
     public void hierarchy_is_found() {
-        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperclassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(clazz.getClassHierarchy()).extracting("name").containsExactly(
                 clazz.getName(),
-                SuperClassWithFieldAndMethod.class.getName(),
+                SuperclassWithFieldAndMethod.class.getName(),
                 Parent.class.getName(),
                 Object.class.getName());
     }
@@ -350,15 +354,15 @@ public class JavaClassTest {
 
     @Test
     public void allAccesses_contains_accesses_from_superclass() {
-        JavaClass javaClass = importClasses(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+        JavaClass javaClass = importClasses(ClassWithTwoFieldsAndTwoMethods.class, SuperclassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
         JavaClass anotherClass = importClassWithContext(Object.class);
         simulateCall().from(javaClass.getMethod("stringMethod"), 8).to(anotherClass.getMethod("toString"));
-        simulateCall().from(javaClass.getSuperClass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
+        simulateCall().from(javaClass.getRawSuperclass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
 
         assertThat(javaClass.getAccessesFromSelf()).extractingResultOf("getOriginOwner").containsOnly(javaClass);
         assertThat(javaClass.getAllAccessesFromSelf()).extractingResultOf("getOriginOwner")
-                .contains(javaClass, javaClass.getSuperClass().get());
+                .contains(javaClass, javaClass.getRawSuperclass().get());
     }
 
     @Test
@@ -639,7 +643,7 @@ public class JavaClassTest {
 
         assertThatTypes(targets).matchInAnyOrder(
                 B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
-                List.class, Serializable.class, SomeSuperClass.class,
+                List.class, Serializable.class, SomeSuperclass.class,
                 WithType.class, WithNestedAnnotations.class, OnClass.class, OnMethod.class,
                 OnConstructor.class, OnField.class, MetaAnnotated.class, WithEnum.class, WithPrimitive.class,
                 WithOtherEnum.class, WithOtherType.class,
@@ -671,9 +675,9 @@ public class JavaClassTest {
 
     @Test
     public void direct_dependencies_to_self_by_inheritance() {
-        JavaClass superClass = importClassesWithContext(SuperA.class, AExtendingSuperAImplementingInterfaceForA.class).get(SuperA.class);
+        JavaClass superclass = importClassesWithContext(SuperA.class, AExtendingSuperAImplementingInterfaceForA.class).get(SuperA.class);
 
-        assertThat(superClass.getDirectDependenciesToSelf())
+        assertThat(superclass.getDirectDependenciesToSelf())
                 .areAtLeastOne(extendsDependency()
                         .from(AExtendingSuperAImplementingInterfaceForA.class)
                         .to(SuperA.class)
@@ -886,7 +890,7 @@ public class JavaClassTest {
     public void predicate_withType() {
         assertThat(type(Parent.class))
                 .accepts(importClassWithContext(Parent.class))
-                .rejects(importClassWithContext(SuperClassWithFieldAndMethod.class));
+                .rejects(importClassWithContext(SuperclassWithFieldAndMethod.class));
 
         assertThat(type(System.class)).hasDescription("type java.lang.System");
     }
@@ -895,7 +899,7 @@ public class JavaClassTest {
     public void predicate_simpleName() {
         assertThat(simpleName(Parent.class.getSimpleName()))
                 .accepts(importClassWithContext(Parent.class))
-                .rejects(importClassWithContext(SuperClassWithFieldAndMethod.class));
+                .rejects(importClassWithContext(SuperclassWithFieldAndMethod.class));
 
         assertThat(simpleName("Simple")).hasDescription("simple name 'Simple'");
     }
@@ -962,17 +966,17 @@ public class JavaClassTest {
 
     @Test
     public void predicate_assignableFrom() {
-        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
-                .to(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().from(SuperclassWithFieldAndMethod.class)
+                .to(SuperclassWithFieldAndMethod.class)
                 .isTrue();
         assertThatAssignable().from(ClassWithTwoFieldsAndTwoMethods.class)
-                .to(SuperClassWithFieldAndMethod.class)
+                .to(SuperclassWithFieldAndMethod.class)
                 .isTrue();
-        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().from(SuperclassWithFieldAndMethod.class)
                 .to(InterfaceWithMethod.class)
                 .isTrue();
         assertThatAssignable().from(ClassWithTwoFieldsAndTwoMethods.class)
-                .via(SuperClassWithFieldAndMethod.class)
+                .via(SuperclassWithFieldAndMethod.class)
                 .to(InterfaceWithMethod.class)
                 .isTrue();
         assertThatAssignable().from(InterfaceWithMethod.class)
@@ -981,14 +985,14 @@ public class JavaClassTest {
         assertThatAssignable().from(Parent.class)
                 .to(InterfaceWithMethod.class)
                 .isFalse();
-        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().from(SuperclassWithFieldAndMethod.class)
                 .to(Parent.class)
                 .isTrue();
-        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().from(SuperclassWithFieldAndMethod.class)
                 .to(ClassWithTwoFieldsAndTwoMethods.class)
                 .isFalse();
         assertThatAssignable().from(Parent.class)
-                .to(SuperClassWithFieldAndMethod.class)
+                .to(SuperclassWithFieldAndMethod.class)
                 .isFalse();
 
         assertThat(assignableFrom(System.class)).hasDescription("assignable from java.lang.System");
@@ -996,33 +1000,33 @@ public class JavaClassTest {
 
     @Test
     public void predicate_assignableTo() {
-        assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
-                .from(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().to(SuperclassWithFieldAndMethod.class)
+                .from(SuperclassWithFieldAndMethod.class)
                 .isTrue();
         assertThatAssignable().to(ClassWithTwoFieldsAndTwoMethods.class)
-                .from(SuperClassWithFieldAndMethod.class)
+                .from(SuperclassWithFieldAndMethod.class)
                 .isFalse();
         assertThatAssignable().to(InterfaceWithMethod.class)
                 .from(InterfaceWithMethod.class)
                 .isTrue();
         assertThatAssignable().to(InterfaceWithMethod.class)
-                .from(SuperClassWithFieldAndMethod.class)
+                .from(SuperclassWithFieldAndMethod.class)
                 .isTrue();
         assertThatAssignable().to(InterfaceWithMethod.class)
-                .via(SuperClassWithFieldAndMethod.class)
+                .via(SuperclassWithFieldAndMethod.class)
                 .from(ClassWithTwoFieldsAndTwoMethods.class)
                 .isTrue();
         assertThatAssignable().to(InterfaceWithMethod.class)
                 .from(Parent.class)
                 .isFalse();
-        assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().to(SuperclassWithFieldAndMethod.class)
                 .from(Parent.class)
                 .isFalse();
-        assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().to(SuperclassWithFieldAndMethod.class)
                 .from(ClassWithTwoFieldsAndTwoMethods.class)
                 .isTrue();
         assertThatAssignable().to(Parent.class)
-                .from(SuperClassWithFieldAndMethod.class)
+                .from(SuperclassWithFieldAndMethod.class)
                 .isTrue();
 
         assertThat(assignableTo(System.class)).hasDescription("assignable to java.lang.System");
@@ -1124,9 +1128,9 @@ public class JavaClassTest {
 
     @Test
     public void predicate_equivalentTo() {
-        JavaClass javaClass = importClasses(SuperClassWithFieldAndMethod.class, Parent.class).get(SuperClassWithFieldAndMethod.class);
+        JavaClass javaClass = importClasses(SuperclassWithFieldAndMethod.class, Parent.class).get(SuperclassWithFieldAndMethod.class);
 
-        assertThat(equivalentTo(SuperClassWithFieldAndMethod.class))
+        assertThat(equivalentTo(SuperclassWithFieldAndMethod.class))
                 .accepts(javaClass);
         assertThat(equivalentTo(Parent.class))
                 .rejects(javaClass)
@@ -1429,7 +1433,7 @@ public class JavaClassTest {
     }
 
     @SuppressWarnings("unused")
-    static class ClassWithTwoFieldsAndTwoMethods extends SuperClassWithFieldAndMethod {
+    static class ClassWithTwoFieldsAndTwoMethods extends SuperclassWithFieldAndMethod {
         String stringField;
         private int intField;
 
@@ -1442,7 +1446,7 @@ public class JavaClassTest {
     }
 
     @SuppressWarnings("unused")
-    abstract static class SuperClassWithFieldAndMethod extends Parent implements InterfaceWithMethod {
+    abstract static class SuperclassWithFieldAndMethod extends Parent implements InterfaceWithMethod {
         private Object objectField;
 
         @Override
@@ -1577,7 +1581,7 @@ public class JavaClassTest {
         }
     }
 
-    private static class SomeSuperClass {
+    private static class SomeSuperclass {
     }
 
     @OnClass
@@ -1595,7 +1599,7 @@ public class JavaClassTest {
     )
     @MetaAnnotated
     @SuppressWarnings("unused")
-    private static class ClassWithAnnotationDependencies extends SomeSuperClass {
+    private static class ClassWithAnnotationDependencies extends SomeSuperclass {
         @OnField(SomeEnumAsAnnotationParameter.ANNOTATION_PARAMETER)
         Object field;
 

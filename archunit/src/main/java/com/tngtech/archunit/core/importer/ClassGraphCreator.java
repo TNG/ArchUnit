@@ -68,21 +68,21 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
-    private final Function<JavaClass, Set<String>> superClassStrategy;
+    private final Function<JavaClass, Set<String>> superclassStrategy;
     private final Function<JavaClass, Set<String>> interfaceStrategy;
 
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
         classes = new ImportedClasses(importRecord.getClasses(), classResolver);
-        superClassStrategy = createSuperClassStrategy();
+        superclassStrategy = createSuperclassStrategy();
         interfaceStrategy = createInterfaceStrategy();
     }
 
-    private Function<JavaClass, Set<String>> createSuperClassStrategy() {
+    private Function<JavaClass, Set<String>> createSuperclassStrategy() {
         return new Function<JavaClass, Set<String>>() {
             @Override
             public Set<String> apply(JavaClass input) {
-                return importRecord.getSuperClassFor(input.getName()).asSet();
+                return importRecord.getSuperclassFor(input.getName()).asSet();
             }
         };
     }
@@ -112,12 +112,12 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void ensureClassesOfInheritanceHierarchiesArePresent() {
-        for (String superClassName : importRecord.getAllSuperClassNames()) {
-            resolveInheritance(superClassName, superClassStrategy);
+        for (String superclassName : importRecord.getAllSuperclassNames()) {
+            resolveInheritance(superclassName, superclassStrategy);
         }
 
-        for (String superInterfaceName : importRecord.getAllSuperInterfaceNames()) {
-            resolveInheritance(superInterfaceName, interfaceStrategy);
+        for (String superinterfaceName : importRecord.getAllSuperinterfaceNames()) {
+            resolveInheritance(superinterfaceName, interfaceStrategy);
         }
     }
 
@@ -220,10 +220,10 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Optional<JavaClass> createSuperClass(JavaClass owner) {
-        Optional<String> superClassName = importRecord.getSuperClassFor(owner.getName());
-        return superClassName.isPresent() ?
-                Optional.of(classes.getOrResolve(superClassName.get())) :
+    public Optional<JavaClass> createSuperclass(JavaClass owner) {
+        Optional<String> superclassName = importRecord.getSuperclassFor(owner.getName());
+        return superclassName.isPresent() ?
+                Optional.of(classes.getOrResolve(superclassName.get())) :
                 Optional.<JavaClass>absent();
     }
 

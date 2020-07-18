@@ -9,8 +9,8 @@ public class ThirdPartyClassWorkaroundFactory {
         return new ThirdPartyClassWithProblem();
     }
 
-    public ThirdPartySubClassWithProblem createSubClass() {
+    public ThirdPartySubclassWithProblem createSubclass() {
         // some workaround here
-        return new ThirdPartySubClassWithProblem();
+        return new ThirdPartySubclassWithProblem();
     }
 }

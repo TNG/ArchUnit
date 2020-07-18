@@ -78,23 +78,23 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return dependencies.build();
     }
 
-    static Dependency fromInheritance(JavaClass origin, JavaClass targetSuperType) {
+    static Dependency fromInheritance(JavaClass origin, JavaClass targetSupertype) {
         String originType = origin.isInterface() ? "Interface" : "Class";
         String originDescription = originType + " " + bracketFormat(origin.getName());
 
-        String dependencyType = !origin.isInterface() && targetSuperType.isInterface() ? "implements" : "extends";
+        String dependencyType = !origin.isInterface() && targetSupertype.isInterface() ? "implements" : "extends";
 
-        String targetType = targetSuperType.isInterface() ? "interface" : "class";
-        String targetDescription = bracketFormat(targetSuperType.getName());
+        String targetType = targetSupertype.isInterface() ? "interface" : "class";
+        String targetDescription = bracketFormat(targetSupertype.getName());
 
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetType + " " + targetDescription;
 
         String description = dependencyDescription + " in " + origin.getSourceCodeLocation();
-        Optional<Dependency> result = tryCreateDependency(origin, targetSuperType, description, 0);
+        Optional<Dependency> result = tryCreateDependency(origin, targetSupertype, description, 0);
 
         if (!result.isPresent()) {
             throw new IllegalStateException(String.format("Tried to create illegal inheritance dependency '%s' (%s -> %s), this is likely a bug!",
-                    description, origin.getSimpleName(), targetSuperType.getSimpleName()));
+                    description, origin.getSimpleName(), targetSupertype.getSimpleName()));
         }
         return result.get();
     }

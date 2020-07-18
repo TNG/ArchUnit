@@ -59,11 +59,11 @@ public abstract class ArchCondition<T> {
     }
 
     public ArchCondition<T> and(ArchCondition<? super T> condition) {
-        return new AndCondition<>(this, condition.<T>forSubType());
+        return new AndCondition<>(this, condition.<T>forSubtype());
     }
 
     public ArchCondition<T> or(ArchCondition<? super T> condition) {
-        return new OrCondition<>(this, condition.<T>forSubType());
+        return new OrCondition<>(this, condition.<T>forSubtype());
     }
 
     public String getDescription() {
@@ -95,8 +95,16 @@ public abstract class ArchCondition<T> {
     }
 
     @SuppressWarnings("unchecked") // Cast is safe since input parameter is contravariant
-    public <U extends T> ArchCondition<U> forSubType() {
+    public <U extends T> ArchCondition<U> forSubtype() {
         return (ArchCondition<U>) this;
+    }
+
+    /**
+     * @deprecated Use {@link #forSubtype()} instead.
+     */
+    @Deprecated
+    public <U extends T> ArchCondition<U> forSubType() {
+        return forSubtype();
     }
 
     private abstract static class JoinCondition<T> extends ArchCondition<T> {

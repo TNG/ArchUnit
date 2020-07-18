@@ -49,7 +49,7 @@ class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsIntern
 
     @Override
     public ArchRule should(ArchCondition<? super T> condition) {
-        return new ObjectsShouldInternal<>(finishedClassesTransformer(), priority, condition.<T>forSubType(), prepareCondition);
+        return new ObjectsShouldInternal<>(finishedClassesTransformer(), priority, condition.<T>forSubtype(), prepareCondition);
     }
 
     private static class GivenObjectsFactory<T> implements AbstractGivenObjects.Factory<T, GivenObjectsInternal<T>> {

@@ -41,13 +41,13 @@ class FieldAccessCondition extends ArchCondition<JavaFieldAccess> {
 
     static class FieldGetAccessCondition extends FieldAccessCondition {
         FieldGetAccessCondition(DescribedPredicate<? super JavaFieldAccess> predicate) {
-            super(predicate.<JavaFieldAccess>forSubType().and(accessType(GET)));
+            super(predicate.<JavaFieldAccess>forSubtype().and(accessType(GET)));
         }
     }
 
     static class FieldSetAccessCondition extends FieldAccessCondition {
         FieldSetAccessCondition(DescribedPredicate<? super JavaFieldAccess> predicate) {
-            super(predicate.<JavaFieldAccess>forSubType().and(accessType(SET)));
+            super(predicate.<JavaFieldAccess>forSubtype().and(accessType(SET)));
         }
     }
 }

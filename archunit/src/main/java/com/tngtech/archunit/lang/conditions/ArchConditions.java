@@ -173,7 +173,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyAccessFieldsThat(final DescribedPredicate<? super JavaField> predicate) {
         ChainableFunction<JavaFieldAccess, FieldAccessTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaFieldAccess> accessPredicate = getTarget.then(FieldAccessTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaField>forSubType()).or(empty()));
+                .is(anyElementThat(predicate.<JavaField>forSubtype()).or(empty()));
         return new ClassOnlyAccessesCondition<>(accessPredicate, GET_FIELD_ACCESSES_FROM_SELF)
                 .as("only access fields that " + predicate.getDescription());
     }
@@ -206,7 +206,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallMethodsThat(final DescribedPredicate<? super JavaMethod> predicate) {
         ChainableFunction<JavaMethodCall, MethodCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaMethodCall> callPredicate = getTarget.then(MethodCallTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaMethod>forSubType()).or(empty()));
+                .is(anyElementThat(predicate.<JavaMethod>forSubtype()).or(empty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_METHOD_CALLS_FROM_SELF)
                 .as("only call methods that " + predicate.getDescription());
     }
@@ -239,7 +239,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallConstructorsThat(final DescribedPredicate<? super JavaConstructor> predicate) {
         ChainableFunction<JavaConstructorCall, ConstructorCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaConstructorCall> callPredicate = getTarget.then(ConstructorCallTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaConstructor>forSubType()).or(empty()));
+                .is(anyElementThat(predicate.<JavaConstructor>forSubtype()).or(empty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CONSTRUCTOR_CALLS_FROM_SELF)
                 .as("only call constructors that " + predicate.getDescription());
     }
@@ -254,7 +254,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallCodeUnitsThat(final DescribedPredicate<? super JavaCodeUnit> predicate) {
         ChainableFunction<JavaCall<?>, CodeUnitCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaCall<?>> callPredicate = getTarget.then(CodeUnitCallTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaCodeUnit>forSubType()).or(empty()));
+                .is(anyElementThat(predicate.<JavaCodeUnit>forSubtype()).or(empty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CALLS_FROM_SELF)
                 .as("only call code units that " + predicate.getDescription());
     }
@@ -263,7 +263,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyAccessMembersThat(final DescribedPredicate<? super JavaMember> predicate) {
         ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(AccessTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaMember>forSubType()).or(empty()));
+                .is(anyElementThat(predicate.<JavaMember>forSubtype()).or(empty()));
         return new ClassOnlyAccessesCondition<>(accessPredicate, GET_ACCESSES_FROM_SELF)
                 .as("only access members that " + predicate.getDescription());
     }
@@ -534,7 +534,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> haveNameMatching(final String regex) {
-        final DescribedPredicate<HAS_NAME> haveNameMatching = have(nameMatching(regex)).forSubType();
+        final DescribedPredicate<HAS_NAME> haveNameMatching = have(nameMatching(regex)).forSubtype();
         return new MatchingCondition<>(haveNameMatching, regex);
     }
 
@@ -546,7 +546,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation>
     ArchCondition<HAS_FULL_NAME> haveFullNameMatching(String regex) {
-        final DescribedPredicate<HAS_FULL_NAME> haveFullNameMatching = have(fullNameMatching(regex)).forSubType();
+        final DescribedPredicate<HAS_FULL_NAME> haveFullNameMatching = have(fullNameMatching(regex)).forSubtype();
         return new MatchingCondition<>(haveFullNameMatching, regex);
     }
 
@@ -559,42 +559,42 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameStartingWith(String prefix) {
-        final DescribedPredicate<HAS_NAME> haveNameStartingWith = have(nameStartingWith(prefix)).forSubType();
+        final DescribedPredicate<HAS_NAME> haveNameStartingWith = have(nameStartingWith(prefix)).forSubtype();
         return new StartingCondition<>(haveNameStartingWith, prefix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameNotStartingWith(String prefix) {
-        final DescribedPredicate<HAS_NAME> haveNameStartingWith = have(nameStartingWith(prefix)).forSubType();
+        final DescribedPredicate<HAS_NAME> haveNameStartingWith = have(nameStartingWith(prefix)).forSubtype();
         return not(new StartingCondition<>(haveNameStartingWith, prefix)).as("have name not starting with '%s'", prefix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameContaining(String infix) {
-        final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubType();
+        final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubtype();
         return new ContainingCondition<>(haveNameContaining, infix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameNotContaining(String infix) {
-        final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubType();
+        final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubtype();
         return not(new ContainingCondition<>(haveNameContaining, infix)).as("have name not containing '%s'", infix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameEndingWith(String suffix) {
-        final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubType();
+        final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubtype();
         return new EndingCondition<>(haveNameEndingWith, suffix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameNotEndingWith(String suffix) {
-        final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubType();
+        final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubtype();
         return not(new EndingCondition<>(haveNameEndingWith, suffix)).as("have name not ending with '%s'", suffix);
     }
 
@@ -1145,7 +1145,7 @@ public final class ArchConditions {
 
         NumberOfElementsCondition(DescribedPredicate<? super Integer> predicate) {
             super("contain number of elements " + predicate.getDescription());
-            this.predicate = predicate.forSubType();
+            this.predicate = predicate.forSubtype();
             allClassNames = new TreeSet<>();
         }
 
@@ -1374,7 +1374,7 @@ public final class ArchConditions {
         IsConditionByPredicate(String eventDescription, DescribedPredicate<? super T> predicate) {
             super(ArchPredicates.be(predicate).getDescription());
             this.eventDescription = eventDescription;
-            this.predicate = predicate.forSubType();
+            this.predicate = predicate.forSubtype();
         }
 
         @Override
@@ -1391,7 +1391,7 @@ public final class ArchConditions {
 
         HaveConditionByPredicate(DescribedPredicate<? super T> rawType) {
             super(ArchPredicates.have(rawType).getDescription());
-            this.rawType = rawType.forSubType();
+            this.rawType = rawType.forSubtype();
         }
 
         @Override

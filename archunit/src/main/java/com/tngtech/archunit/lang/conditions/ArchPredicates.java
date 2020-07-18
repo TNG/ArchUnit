@@ -33,7 +33,7 @@ public class ArchPredicates {
      */
     @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> is(DescribedPredicate<? super T> predicate) {
-        return predicate.as("is " + predicate.getDescription()).forSubType();
+        return predicate.as("is " + predicate.getDescription()).forSubtype();
     }
 
     /**
@@ -45,7 +45,7 @@ public class ArchPredicates {
      */
     @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> are(DescribedPredicate<? super T> predicate) {
-        return predicate.as("are " + predicate.getDescription()).forSubType();
+        return predicate.as("are " + predicate.getDescription()).forSubtype();
     }
 
     /**
@@ -57,7 +57,7 @@ public class ArchPredicates {
      */
     @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> has(DescribedPredicate<? super T> predicate) {
-        return predicate.as("has " + predicate.getDescription()).forSubType();
+        return predicate.as("has " + predicate.getDescription()).forSubtype();
     }
 
     /**
@@ -69,7 +69,7 @@ public class ArchPredicates {
      */
     @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> have(DescribedPredicate<? super T> predicate) {
-        return predicate.as("have " + predicate.getDescription()).forSubType();
+        return predicate.as("have " + predicate.getDescription()).forSubtype();
     }
 
     /**
@@ -81,6 +81,6 @@ public class ArchPredicates {
      */
     @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> be(DescribedPredicate<? super T> predicate) {
-        return predicate.as("be " + predicate.getDescription()).forSubType();
+        return predicate.as("be " + predicate.getDescription()).forSubtype();
     }
 }

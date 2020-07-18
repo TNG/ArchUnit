@@ -440,7 +440,7 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
      * <br><br>
      * E.g.
      * <pre><code>
-     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#should() should()}.{@link MembersShould#beDeclaredInClassesThat(DescribedPredicate) beDeclaredInClassesThat(areSubTypeOf(Example.class))}
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#should() should()}.{@link MembersShould#beDeclaredInClassesThat(DescribedPredicate) beDeclaredInClassesThat(areSubtypeOf(Example.class))}
      * </code></pre>
      * would be violated by <code>someField</code> in
      *

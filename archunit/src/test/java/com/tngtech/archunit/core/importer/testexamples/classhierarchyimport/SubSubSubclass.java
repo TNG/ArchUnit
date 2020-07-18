@@ -1,4 +1,4 @@
 package com.tngtech.archunit.core.importer.testexamples.classhierarchyimport;
 
-public class SubSubSubClass extends SubSubClass {
+public class SubSubSubclass extends SubSubclass {
 }
