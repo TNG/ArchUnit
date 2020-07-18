@@ -332,7 +332,7 @@ public class ImportTestUtils {
     private static class ImportContextStub implements ImportContext {
 
         @Override
-        public Optional<JavaClass> createSuperClass(JavaClass owner) {
+        public Optional<JavaClass> createSuperclass(JavaClass owner) {
             return Optional.absent();
         }
 

@@ -132,7 +132,7 @@ public class DependencyTest {
         assertThat(dependency.getDescription()).as("description")
                 .contains("Class <" + origin.getName() + "> implements interface <" + target.getName() + ">");
 
-        origin = importClassWithContext(DependencySubInterface.class);
+        origin = importClassWithContext(DependencySubinterface.class);
         dependency = createDependency(origin, target);
         assertThat(dependency.getDescription()).as("description")
                 .contains("Interface <" + origin.getName() + "> extends interface <" + target.getName() + ">");
@@ -353,7 +353,7 @@ public class DependencyTest {
     private static class DependencyClass {
     }
 
-    private interface DependencySubInterface extends DependencyInterface {
+    private interface DependencySubinterface extends DependencyInterface {
     }
 
     private interface DependencyInterface {

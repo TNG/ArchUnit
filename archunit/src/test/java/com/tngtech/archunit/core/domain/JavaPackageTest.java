@@ -191,6 +191,9 @@ public class JavaPackageTest {
 
         JavaPackage java = defaultPackage.getPackage("java");
 
+        assertThatPackages(java.getSubpackages()).containRelativeNames("lang", "util", "io", "security");
+        assertThatPackages(java.getSubpackages()).containNames("java.lang", "java.util", "java.io", "java.security");
+
         assertThatPackages(java.getSubPackages()).containRelativeNames("lang", "util", "io", "security");
         assertThatPackages(java.getSubPackages()).containNames("java.lang", "java.util", "java.io", "java.security");
     }
@@ -210,6 +213,9 @@ public class JavaPackageTest {
                 Object.class, Annotation.class, Collection.class, BlockingQueue.class, Security.class, getClass());
 
         JavaPackage java = defaultPackage.getPackage("java");
+
+        assertThatPackages(java.getAllSubpackages()).containPackagesOf(
+                Object.class, Annotation.class, Collection.class, BlockingQueue.class, Security.class);
 
         assertThatPackages(java.getAllSubPackages()).containPackagesOf(
                 Object.class, Annotation.class, Collection.class, BlockingQueue.class, Security.class);
@@ -522,8 +528,8 @@ public class JavaPackageTest {
         return new ClassFileImporter().importClasses(classes).getDefaultPackage();
     }
 
-    private JavaPackage importPackage(String subPackageName) {
-        String packageName = getClass().getPackage().getName() + "." + subPackageName;
+    private JavaPackage importPackage(String subpackageName) {
+        String packageName = getClass().getPackage().getName() + "." + subpackageName;
         JavaClasses classes = new ClassFileImporter().importPackages(packageName);
         return classes.getPackage(packageName);
     }

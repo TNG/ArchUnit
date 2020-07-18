@@ -1,22 +1,22 @@
 package com.tngtech.archunit.core.importer.testexamples.classhierarchyimport;
 
-public class SubClass extends BaseClass implements SubInterface {
+public class Subclass extends BaseClass implements Subinterface {
     static {
-        System.out.println(SubClass.class.getSimpleName() + " initializing");
+        System.out.println(Subclass.class.getSimpleName() + " initializing");
     }
 
     private int intField;
 
-    public SubClass() {
+    public Subclass() {
         intField = 1;
     }
 
-    public SubClass(String someField) {
-        super(someField + "by" + SubClass.class.getSimpleName());
+    public Subclass(String someField) {
+        super(someField + "by" + Subclass.class.getSimpleName());
         intField = 1;
     }
 
-    public SubClass(String someField, int addition) {
+    public Subclass(String someField, int addition) {
         this(someField + addition);
         this.intField = addition;
     }
@@ -26,7 +26,7 @@ public class SubClass extends BaseClass implements SubInterface {
         return super.getSomeField();
     }
 
-    public void subClassSay() {
+    public void subclassSay() {
         System.out.println(getSomeField());
     }
 

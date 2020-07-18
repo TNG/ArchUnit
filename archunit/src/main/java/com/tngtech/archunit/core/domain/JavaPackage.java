@@ -56,15 +56,15 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     private final String relativeName;
     private final Set<JavaClass> classes;
     private final Optional<JavaClass> packageInfo;
-    private final Map<String, JavaPackage> subPackages;
+    private final Map<String, JavaPackage> subpackages;
     private Optional<JavaPackage> parent = Optional.absent();
 
-    private JavaPackage(String name, Set<JavaClass> classes, Map<String, JavaPackage> subPackages) {
+    private JavaPackage(String name, Set<JavaClass> classes, Map<String, JavaPackage> subpackages) {
         this.name = checkNotNull(name);
         relativeName = name.substring(name.lastIndexOf(".") + 1);
         this.classes = ImmutableSet.copyOf(classes);
         this.packageInfo = tryGetClassWithSimpleName("package-info");
-        this.subPackages = ImmutableMap.copyOf(subPackages);
+        this.subpackages = ImmutableMap.copyOf(subpackages);
     }
 
     /**
@@ -221,34 +221,50 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllClasses() {
         ImmutableSet.Builder<JavaClass> result = ImmutableSet.<JavaClass>builder().addAll(classes);
-        for (JavaPackage subPackage : getSubPackages()) {
-            result.addAll(subPackage.getAllClasses());
+        for (JavaPackage subpackage : getSubpackages()) {
+            result.addAll(subpackage.getAllClasses());
         }
         return result.build();
     }
 
     /**
      * @return all (direct) sub-packages contained in this package, e.g. {@code [java.lang, java.io, ...]} for package {@code java}
-     * (compare {@link #getAllSubPackages()})
+     * (compare {@link #getAllSubpackages()})
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaPackage> getSubpackages() {
+        return ImmutableSet.copyOf(subpackages.values());
+    }
+
+    /**
+     * @deprecated Use {@link #getSubpackages()} instead.
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaPackage> getSubPackages() {
-        return ImmutableSet.copyOf(subPackages.values());
+        return getSubpackages();
     }
 
     /**
      * @return all sub-packages including nested sub-packages contained in this package,
      * e.g. {@code [java.lang, java.lang.annotation, java.util, java.util.concurrent, ...]} for package {@code java}
-     * (compare {@link #getSubPackages()})
+     * (compare {@link #getSubpackages()})
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaPackage> getAllSubpackages() {
+        ImmutableSet.Builder<JavaPackage> result = ImmutableSet.builder();
+        for (JavaPackage subpackage : getSubpackages()) {
+            result.add(subpackage);
+            result.addAll(subpackage.getAllSubpackages());
+        }
+        return result.build();
+    }
+
+    /**
+     * @deprecated Use {@link #getAllSubpackages()} instead.
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaPackage> getAllSubPackages() {
-        ImmutableSet.Builder<JavaPackage> result = ImmutableSet.builder();
-        for (JavaPackage subPackage : getSubPackages()) {
-            result.add(subPackage);
-            result.addAll(subPackage.getAllSubPackages());
-        }
-        return result.build();
+        return getAllSubpackages();
     }
 
     /**
@@ -388,10 +404,10 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         }
 
         String next = packageParts.poll();
-        if (!subPackages.containsKey(next)) {
+        if (!subpackages.containsKey(next)) {
             return Optional.absent();
         }
-        JavaPackage child = subPackages.get(next);
+        JavaPackage child = subpackages.get(next);
         return child.tryGetPackage(child, packageParts);
     }
 
@@ -471,8 +487,8 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         for (JavaClass javaClass : getClassesWith(predicate)) {
             visitor.visit(javaClass);
         }
-        for (JavaPackage subPackage : getSubPackages()) {
-            subPackage.accept(predicate, visitor);
+        for (JavaPackage subpackage : getSubpackages()) {
+            subpackage.accept(predicate, visitor);
         }
     }
 
@@ -487,8 +503,8 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         if (predicate.apply(this)) {
             visitor.visit(this);
         }
-        for (JavaPackage subPackage : getSubPackages()) {
-            subPackage.accept(predicate, visitor);
+        for (JavaPackage subpackage : getSubpackages()) {
+            subpackage.accept(predicate, visitor);
         }
     }
 
@@ -522,7 +538,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     private static class Tree {
         private final String packageName;
-        private final Map<String, Tree> subPackageTrees;
+        private final Map<String, Tree> subpackageTrees;
         private final Set<JavaClass> classes = new HashSet<>();
 
         Tree(Iterable<JavaClass> classes) {
@@ -537,14 +553,14 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
                 if (clazz.getPackageName().equals(packageName)) {
                     this.classes.add(clazz);
                 } else {
-                    String subPackageName = findSubPackageName(packageName, clazz);
-                    childPackages.put(subPackageName, clazz);
+                    String subpackageName = findSubpackageName(packageName, clazz);
+                    childPackages.put(subpackageName, clazz);
                 }
             }
-            this.subPackageTrees = createSubTrees(packageName, childPackages);
+            this.subpackageTrees = createSubTrees(packageName, childPackages);
         }
 
-        private String findSubPackageName(String packageName, JavaClass clazz) {
+        private String findSubpackageName(String packageName, JavaClass clazz) {
             String packageRest = !packageName.isEmpty()
                     ? clazz.getPackageName().substring(packageName.length() + 1)
                     : clazz.getPackageName();
@@ -567,18 +583,18 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
         JavaPackage toJavaPackage() {
             JavaPackage result = createJavaPackage();
-            for (JavaPackage subPackage : result.getSubPackages()) {
-                subPackage.setParent(result);
+            for (JavaPackage subpackage : result.getSubpackages()) {
+                subpackage.setParent(result);
             }
             return result;
         }
 
         private JavaPackage createJavaPackage() {
-            ImmutableMap.Builder<String, JavaPackage> subPackages = ImmutableMap.builder();
-            for (Map.Entry<String, Tree> entry : subPackageTrees.entrySet()) {
-                subPackages.put(entry.getKey(), entry.getValue().toJavaPackage());
+            ImmutableMap.Builder<String, JavaPackage> subpackages = ImmutableMap.builder();
+            for (Map.Entry<String, Tree> entry : subpackageTrees.entrySet()) {
+                subpackages.put(entry.getKey(), entry.getValue().toJavaPackage());
             }
-            return new JavaPackage(packageName, classes, subPackages.build());
+            return new JavaPackage(packageName, classes, subpackages.build());
         }
     }
 
@@ -619,7 +635,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
                 new ChainableFunction<JavaPackage, Set<JavaPackage>>() {
                     @Override
                     public Set<JavaPackage> apply(JavaPackage javaPackage) {
-                        return javaPackage.getSubPackages();
+                        return javaPackage.getSubpackages();
                     }
                 };
     }

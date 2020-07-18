@@ -93,7 +93,7 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
 
         @Override
         public CodeUnitsShouldInternal should(ArchCondition<? super JavaCodeUnit> condition) {
-            return new CodeUnitsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaCodeUnit>forSubType(), prepareCondition);
+            return new CodeUnitsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaCodeUnit>forSubtype(), prepareCondition);
         }
 
         private static class GivenCodeUnitsFactory implements Factory<JavaCodeUnit, GivenCodeUnitsInternal> {

@@ -125,11 +125,11 @@ public class UrlSourceTest {
     @Test
     public void recursively_resolves_classpath_attributes_in_manifests() throws Exception {
         File folder = temporaryFolder.newFolder();
-        WrittenJarFile grandChildOne = writeJarWithManifestClasspathAttribute(folder, subPath("grandchild", "one"));
-        WrittenJarFile grandChildTwo = writeJarWithManifestClasspathAttribute(folder, subPath("grandchild", "two"));
-        WrittenJarFile grandChildThree = writeJarWithManifestClasspathAttribute(folder, subPath("grandchild", "three"));
-        WrittenJarFile childOne = writeJarWithManifestClasspathAttribute(folder, subPath("child", "one"), grandChildOne.getPathAsAbsoluteUrl(), ManifestClasspathEntry.relativeUrl(grandChildTwo.path));
-        WrittenJarFile childTwo = writeJarWithManifestClasspathAttribute(folder, subPath("child", "two"), ManifestClasspathEntry.absoluteUrl(grandChildThree.path));
+        WrittenJarFile grandChildOne = writeJarWithManifestClasspathAttribute(folder, subpath("grandchild", "one"));
+        WrittenJarFile grandChildTwo = writeJarWithManifestClasspathAttribute(folder, subpath("grandchild", "two"));
+        WrittenJarFile grandChildThree = writeJarWithManifestClasspathAttribute(folder, subpath("grandchild", "three"));
+        WrittenJarFile childOne = writeJarWithManifestClasspathAttribute(folder, subpath("child", "one"), grandChildOne.getPathAsAbsoluteUrl(), ManifestClasspathEntry.relativeUrl(grandChildTwo.path));
+        WrittenJarFile childTwo = writeJarWithManifestClasspathAttribute(folder, subpath("child", "two"), ManifestClasspathEntry.absoluteUrl(grandChildThree.path));
         WrittenJarFile parent = writeJarWithManifestClasspathAttribute(folder, "parent", ManifestClasspathEntry.relativePath(childOne.path), ManifestClasspathEntry.absoluteUrl(childTwo.path));
 
         System.setProperty(JAVA_CLASS_PATH_PROP, parent.path.toString());
@@ -163,7 +163,7 @@ public class UrlSourceTest {
         assertThat(urls).containsOnly(toUrl(Paths.get(jarOne.getName())), toUrl(Paths.get(jarTwo.getName())));
     }
 
-    private String subPath(String... parts) {
+    private String subpath(String... parts) {
         return Joiner.on(File.separator).join(parts);
     }
 
@@ -188,7 +188,7 @@ public class UrlSourceTest {
         Set<ManifestClasspathEntry> result = new HashSet<>();
         for (int i = 0; i < 10; i++) {
             result.add(ManifestClasspathEntry
-                    .absolutePath(Paths.get(File.separator + subPath("some", "path", "parent", infix + i, "")).toAbsolutePath()));
+                    .absolutePath(Paths.get(File.separator + subpath("some", "path", "parent", infix + i, "")).toAbsolutePath()));
         }
         return result;
     }

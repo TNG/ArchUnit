@@ -45,7 +45,7 @@ class ClassFileImportRecord {
 
     private final Map<String, JavaClass> classes = new HashMap<>();
 
-    private final Map<String, String> superClassNamesByOwner = new HashMap<>();
+    private final Map<String, String> superclassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
     private final Map<String, TypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
@@ -60,11 +60,11 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
 
-    void setSuperClass(String ownerName, String superClassName) {
-        checkState(!superClassNamesByOwner.containsKey(ownerName),
+    void setSuperclass(String ownerName, String superclassName) {
+        checkState(!superclassNamesByOwner.containsKey(ownerName),
                 "Attempted to add %s as a second superclass to %s, this is most likely a bug",
-                superClassName, ownerName);
-        superClassNamesByOwner.put(ownerName, superClassName);
+                superclassName, ownerName);
+        superclassNamesByOwner.put(ownerName, superclassName);
     }
 
     void addInterfaces(String ownerName, Set<String> interfaceNames) {
@@ -110,8 +110,8 @@ class ClassFileImportRecord {
         enclosingClassNamesByOwner.register(ownerName, enclosingClassName);
     }
 
-    Optional<String> getSuperClassFor(String name) {
-        return Optional.fromNullable(superClassNamesByOwner.get(name));
+    Optional<String> getSuperclassFor(String name) {
+        return Optional.fromNullable(superclassNamesByOwner.get(name));
     }
 
     Set<String> getInterfaceNamesFor(String ownerName) {
@@ -229,11 +229,11 @@ class ClassFileImportRecord {
                 .build();
     }
 
-    Set<String> getAllSuperClassNames() {
-        return ImmutableSet.copyOf(superClassNamesByOwner.values());
+    Set<String> getAllSuperclassNames() {
+        return ImmutableSet.copyOf(superclassNamesByOwner.values());
     }
 
-    Set<String> getAllSuperInterfaceNames() {
+    Set<String> getAllSuperinterfaceNames() {
         return ImmutableSet.copyOf(interfaceNamesByOwner.values());
     }
 

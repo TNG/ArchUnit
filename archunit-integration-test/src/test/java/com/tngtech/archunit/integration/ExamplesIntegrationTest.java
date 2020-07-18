@@ -108,7 +108,7 @@ import com.tngtech.archunit.example.layers.service.impl.SomeInterfacePlacedInThe
 import com.tngtech.archunit.example.layers.service.impl.WronglyNamedSvc;
 import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWorkaroundFactory;
-import com.tngtech.archunit.example.layers.thirdparty.ThirdPartySubClassWithProblem;
+import com.tngtech.archunit.example.layers.thirdparty.ThirdPartySubclassWithProblem;
 import com.tngtech.archunit.example.layers.web.AnnotatedController;
 import com.tngtech.archunit.example.layers.web.InheritedControllerImpl;
 import com.tngtech.archunit.example.onionarchitecture.adapter.cli.AdministrationCLI;
@@ -1370,8 +1370,8 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(ClassViolatingThirdPartyRules.class, "illegallyInstantiateThirdPartyClass")
                         .toConstructor(ThirdPartyClassWithProblem.class)
                         .inLine(9))
-                .by(callFromMethod(ClassViolatingThirdPartyRules.class, "illegallyInstantiateThirdPartySubClass")
-                        .toConstructor(ThirdPartySubClassWithProblem.class)
+                .by(callFromMethod(ClassViolatingThirdPartyRules.class, "illegallyInstantiateThirdPartySubclass")
+                        .toConstructor(ThirdPartySubclassWithProblem.class)
                         .inLine(17))
 
                 .toDynamicTests();

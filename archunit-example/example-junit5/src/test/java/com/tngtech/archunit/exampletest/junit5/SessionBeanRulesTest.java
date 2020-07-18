@@ -63,8 +63,8 @@ public class SessionBeanRulesTest {
         return new DescribedPredicate<JavaClass>("have subclass that is a local bean") {
             @Override
             public boolean apply(JavaClass input) {
-                for (JavaClass subClass : input.getAllSubClasses()) {
-                    if (isLocalBeanImplementation(subClass, input)) {
+                for (JavaClass subclass : input.getAllSubclasses()) {
+                    if (isLocalBeanImplementation(subclass, input)) {
                         return true;
                     }
                 }
@@ -90,13 +90,13 @@ public class SessionBeanRulesTest {
             @Override
             public void check(JavaClass businessInterface, ConditionEvents events) {
                 events.add(new SimpleConditionEvent(businessInterface,
-                        businessInterface.getAllSubClasses().size() <= 1,
+                        businessInterface.getAllSubclasses().size() <= 1,
                         describe(businessInterface)));
             }
 
             private String describe(JavaClass businessInterface) {
                 return String.format("%s is implemented by %s",
-                        businessInterface.getSimpleName(), joinNamesOf(businessInterface.getAllSubClasses()));
+                        businessInterface.getSimpleName(), joinNamesOf(businessInterface.getAllSubclasses()));
             }
 
             private String joinNamesOf(Set<JavaClass> implementations) {

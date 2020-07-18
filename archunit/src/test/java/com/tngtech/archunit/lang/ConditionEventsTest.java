@@ -39,9 +39,9 @@ public class ConditionEventsTest {
         ConditionEvents events = events(
                 SimpleConditionEvent.satisfied(new CorrectType("do not handle"), "I'm not violated"),
                 SimpleConditionEvent.violated(new WrongType(), "I'm violated, but wrong type"),
-                SimpleConditionEvent.violated(new WrongSuperType(), "I'm violated, but wrong type"),
+                SimpleConditionEvent.violated(new WrongSupertype(), "I'm violated, but wrong type"),
                 SimpleConditionEvent.violated(new CorrectType("handle type"), "I'm violated and correct type"),
-                SimpleConditionEvent.violated(new CorrectSubType("handle sub type"), "I'm violated and correct sub type"));
+                SimpleConditionEvent.violated(new CorrectSubtype("handle sub type"), "I'm violated and correct sub type"));
 
         final Set<String> handledFailures = new HashSet<>();
         events.handleViolations(new ObjectToStringAndMessageJoiningTestHandler(handledFailures));
@@ -145,13 +145,13 @@ public class ConditionEventsTest {
         return result;
     }
 
-    private static class CorrectSubType extends CorrectType {
-        CorrectSubType(String message) {
+    private static class CorrectSubtype extends CorrectType {
+        CorrectSubtype(String message) {
             super(message);
         }
     }
 
-    static class CorrectType extends WrongSuperType {
+    static class CorrectType extends WrongSupertype {
         String message;
 
         CorrectType(String message) {
@@ -167,7 +167,7 @@ public class ConditionEventsTest {
     private static class WrongType {
     }
 
-    private static class WrongSuperType {
+    private static class WrongSupertype {
     }
 
 }

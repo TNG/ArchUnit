@@ -210,7 +210,7 @@ HasName.Predicates.name("").and(JavaClass.Predicates.type(Serializable.class))
 JavaClass.Predicates.type(Serializable.class).and(HasName.Predicates.name(""))
 
 // Does compile, because the compiler now sees name(..) as a predicate for JavaClass
-DescribedPredicate<JavaClass> name = HasName.Predicates.name("").forSubType();
+DescribedPredicate<JavaClass> name = HasName.Predicates.name("").forSubtype();
 name.and(JavaClass.Predicates.type(Serializable.class));
 ----
 

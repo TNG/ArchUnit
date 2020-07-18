@@ -101,8 +101,8 @@ class JavaClassProcessor extends ClassVisitor {
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
         boolean opCodeForEnumIsPresent = (access & Opcodes.ACC_ENUM) != 0;
         boolean opCodeForAnnotationIsPresent = (access & Opcodes.ACC_ANNOTATION) != 0;
-        Optional<String> superClassName = getSuperClassName(superName, opCodeForInterfaceIsPresent);
-        LOG.trace("Found superclass {} on class '{}'", superClassName.orNull(), name);
+        Optional<String> superclassName = getSuperclassName(superName, opCodeForInterfaceIsPresent);
+        LOG.trace("Found superclass {} on class '{}'", superclassName.orNull(), name);
 
         javaClassBuilder = new DomainBuilders.JavaClassBuilder()
                 .withSourceDescriptor(sourceDescriptor)
@@ -113,7 +113,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withModifiers(JavaModifier.getModifiersForClass(access));
 
         className = descriptor.getFullyQualifiedClassName();
-        declarationHandler.onNewClass(className, superClassName, interfaceNames);
+        declarationHandler.onNewClass(className, superclassName, interfaceNames);
         JavaGenericTypeImporter.parseAsmTypeSignature(signature, declarationHandler);
     }
 
@@ -122,8 +122,8 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     // NOTE: For some reason ASM claims superName == java/lang/Object for Interfaces???
-    //       This is inconsistent with the behavior of Class.getSuperClass()
-    private Optional<String> getSuperClassName(String superName, boolean isInterface) {
+    //       This is inconsistent with the behavior of Class.getSuperclass()
+    private Optional<String> getSuperclassName(String superName, boolean isInterface) {
         return superName != null && !isInterface ?
                 Optional.of(createTypeName(superName)) :
                 Optional.<String>absent();
@@ -424,7 +424,7 @@ class JavaClassProcessor extends ClassVisitor {
     interface DeclarationHandler {
         boolean isNew(String className);
 
-        void onNewClass(String className, Optional<String> superClassName, Set<String> interfaceNames);
+        void onNewClass(String className, Optional<String> superclassName, Set<String> interfaceNames);
 
         void onDeclaredTypeParameters(DomainBuilders.TypeParametersBuilder typeParametersBuilder);
 

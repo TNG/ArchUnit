@@ -43,6 +43,6 @@ class GivenClassInternal implements GivenClass {
 
     @Override
     public ClassesShouldConjunction should(ArchCondition<? super JavaClass> condition) {
-        return new ClassesShouldInternal(classesTransformer, priority, condition.<JavaClass>forSubType(), prepareCondition);
+        return new ClassesShouldInternal(classesTransformer, priority, condition.<JavaClass>forSubtype(), prepareCondition);
     }
 }

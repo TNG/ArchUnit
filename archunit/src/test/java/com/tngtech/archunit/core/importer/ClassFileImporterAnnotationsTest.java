@@ -66,7 +66,7 @@ public class ClassFileImporterAnnotationsTest {
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(AnnotationToImport.class.getSimpleName());
         assertThat(javaClass.getPackageName()).as("package name").isEqualTo(AnnotationToImport.class.getPackage().getName());
         assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC, JavaModifier.ABSTRACT);
-        assertThat(javaClass.getSuperClass()).as("super class").isAbsent();
+        assertThat(javaClass.getRawSuperclass()).as("super class").isAbsent();
         assertThatTypes(javaClass.getInterfaces()).as("interfaces").matchInAnyOrder(Annotation.class);
         assertThat(javaClass.isInterface()).as("is interface").isTrue();
         assertThat(javaClass.isEnum()).as("is enum").isFalse();

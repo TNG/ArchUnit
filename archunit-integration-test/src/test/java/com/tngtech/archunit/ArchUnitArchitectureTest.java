@@ -71,7 +71,7 @@ public class ArchUnitArchitectureTest {
     private static DescribedPredicate<JavaCall<?>> typeIsIllegallyResolvedViaReflection() {
         DescribedPredicate<JavaCall<?>> explicitlyAllowedUsage =
                 origin(is(annotatedWith(MayResolveTypesViaReflection.class)))
-                        .or(contextIsAnnotatedWith(MayResolveTypesViaReflection.class)).forSubType();
+                        .or(contextIsAnnotatedWith(MayResolveTypesViaReflection.class)).forSubtype();
 
         return classIsResolvedViaReflection().and(not(explicitlyAllowedUsage));
     }
@@ -100,7 +100,7 @@ public class ArchUnitArchitectureTest {
                 target(HasOwner.Functions.Get.<JavaClass>owner()
                         .is(equivalentTo(Class.class)))
                         .and(target(has(name("forName"))))
-                        .forSubType();
+                        .forSubtype();
         DescribedPredicate<JavaCall<?>> targetIsMarked =
                 annotatedWith(ResolvesTypesViaReflection.class).onResultOf(Get.target());
 

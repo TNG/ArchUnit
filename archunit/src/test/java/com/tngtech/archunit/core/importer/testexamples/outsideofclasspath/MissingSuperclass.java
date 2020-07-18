@@ -1,9 +1,9 @@
 package com.tngtech.archunit.core.importer.testexamples.outsideofclasspath;
 
-public class MissingSuperClass {
+public class MissingSuperclass {
     public String parentField;
 
-    public MissingSuperClass() {
+    public MissingSuperclass() {
     }
 
     public void overrideMe() {

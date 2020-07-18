@@ -451,7 +451,7 @@ public interface MembersThat<CONJUNCTION extends GivenMembersConjunction<?>> {
      *
      * will be matched by
      * <pre><code>
-     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areDeclaredInClassesThat(DescribedPredicate) areDeclaredInClassesThat(areSubTypeOf(Object.class))}
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areDeclaredInClassesThat(DescribedPredicate) areDeclaredInClassesThat(areSubtypeOf(Object.class))}
      * </code></pre>
      *
      * @param predicate A predicate which matches classes where members have to be declared in

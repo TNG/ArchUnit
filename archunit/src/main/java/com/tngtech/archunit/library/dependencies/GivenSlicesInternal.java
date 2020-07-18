@@ -43,7 +43,7 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
 
     @Override
     public ArchRule should(ArchCondition<? super Slice> condition) {
-        return ArchRule.Factory.create(classesTransformer, condition.<Slice>forSubType(), priority);
+        return ArchRule.Factory.create(classesTransformer, condition.<Slice>forSubtype(), priority);
     }
 
     @Override

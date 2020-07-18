@@ -24,7 +24,7 @@ import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.model.D
 import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.service.DomainServiceLayerClass;
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
-import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubClass;
+import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.DataProviders;
@@ -201,10 +201,10 @@ public class ArchitecturesTest {
 
         assertPatternMatches(result.getFailureReport().getDetails(),
                 ImmutableSet.of(
-                        expectedAccessViolationPattern(FirstAnyPkgClass.class, "call", SomePkgSubClass.class, "callMe"),
+                        expectedAccessViolationPattern(FirstAnyPkgClass.class, "call", SomePkgSubclass.class, "callMe"),
                         expectedAccessViolationPattern(SecondThreeAnyClass.class, "call", SomePkgClass.class, "callMe"),
                         expectedAccessViolationPattern(FirstThreeAnyClass.class, "call", FirstAnyPkgClass.class, "callMe"),
-                        fieldTypePattern(FirstAnyPkgClass.class, "illegalTarget", SomePkgSubClass.class),
+                        fieldTypePattern(FirstAnyPkgClass.class, "illegalTarget", SomePkgSubclass.class),
                         fieldTypePattern(FirstThreeAnyClass.class, "illegalTarget", FirstAnyPkgClass.class),
                         fieldTypePattern(SecondThreeAnyClass.class, "illegalTarget", SomePkgClass.class)));
     }
@@ -217,13 +217,13 @@ public class ArchitecturesTest {
 
         return DataProviders.testForEach(
                 new RuleWithIgnore(
-                        layeredArchitecture.ignoreDependency(FirstAnyPkgClass.class, SomePkgSubClass.class),
+                        layeredArchitecture.ignoreDependency(FirstAnyPkgClass.class, SomePkgSubclass.class),
                         "rule with ignore specified as class objects"),
                 new RuleWithIgnore(
-                        layeredArchitecture.ignoreDependency(FirstAnyPkgClass.class.getName(), SomePkgSubClass.class.getName()),
+                        layeredArchitecture.ignoreDependency(FirstAnyPkgClass.class.getName(), SomePkgSubclass.class.getName()),
                         "rule with ignore specified as class names"),
                 new RuleWithIgnore(
-                        layeredArchitecture.ignoreDependency(name(FirstAnyPkgClass.class.getName()), name(SomePkgSubClass.class.getName())),
+                        layeredArchitecture.ignoreDependency(name(FirstAnyPkgClass.class.getName()), name(SomePkgSubclass.class.getName())),
                         "rule with ignore specified as predicates"));
     }
 
@@ -231,14 +231,14 @@ public class ArchitecturesTest {
     @UseDataProvider("toIgnore")
     public void layered_architecture_ignores_specified_violations(RuleWithIgnore layeredArchitectureWithIgnore) {
         JavaClasses classes = new ClassFileImporter().importClasses(
-                FirstAnyPkgClass.class, SomePkgSubClass.class,
+                FirstAnyPkgClass.class, SomePkgSubclass.class,
                 SecondThreeAnyClass.class, SomePkgClass.class);
 
         EvaluationResult result = layeredArchitectureWithIgnore.rule.evaluate(classes);
 
         assertThat(singleLine(result))
                 .doesNotMatch(String.format(".*%s[^%s]*%s.*",
-                        quote(FirstAnyPkgClass.class.getName()), NEW_LINE_REPLACE, quote(SomePkgSubClass.class.getName())))
+                        quote(FirstAnyPkgClass.class.getName()), NEW_LINE_REPLACE, quote(SomePkgSubclass.class.getName())))
                 .matches(String.format(".*%s[^%s]*%s.*",
                         quote(SecondThreeAnyClass.class.getName()), NEW_LINE_REPLACE, quote(SomePkgClass.class.getName())));
     }
@@ -246,13 +246,13 @@ public class ArchitecturesTest {
     @Test
     public void layered_architecture_combines_multiple_ignores() {
         JavaClasses classes = new ClassFileImporter().importClasses(
-                FirstAnyPkgClass.class, SomePkgSubClass.class,
+                FirstAnyPkgClass.class, SomePkgSubclass.class,
                 SecondThreeAnyClass.class, SomePkgClass.class);
 
         LayeredArchitecture layeredArchitecture = layeredArchitecture()
                 .layer("One").definedBy(absolute("some.pkg.."))
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
-                .ignoreDependency(FirstAnyPkgClass.class, SomePkgSubClass.class);
+                .ignoreDependency(FirstAnyPkgClass.class, SomePkgSubclass.class);
 
         assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isTrue();
 

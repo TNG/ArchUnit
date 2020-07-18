@@ -2,7 +2,7 @@ package com.tngtech.archunit.example.layers;
 
 import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWithProblem;
 import com.tngtech.archunit.example.layers.thirdparty.ThirdPartyClassWorkaroundFactory;
-import com.tngtech.archunit.example.layers.thirdparty.ThirdPartySubClassWithProblem;
+import com.tngtech.archunit.example.layers.thirdparty.ThirdPartySubclassWithProblem;
 
 public class ClassViolatingThirdPartyRules {
     ThirdPartyClassWithProblem illegallyInstantiateThirdPartyClass() {
@@ -13,11 +13,11 @@ public class ClassViolatingThirdPartyRules {
         return new ThirdPartyClassWorkaroundFactory().create();
     }
 
-    ThirdPartySubClassWithProblem illegallyInstantiateThirdPartySubClass() {
-        return new ThirdPartySubClassWithProblem();
+    ThirdPartySubclassWithProblem illegallyInstantiateThirdPartySubclass() {
+        return new ThirdPartySubclassWithProblem();
     }
 
-    ThirdPartySubClassWithProblem correctlyInstantiateThirdPartySubClass() {
-        return new ThirdPartyClassWorkaroundFactory().createSubClass();
+    ThirdPartySubclassWithProblem correctlyInstantiateThirdPartySubclass() {
+        return new ThirdPartyClassWorkaroundFactory().createSubclass();
     }
 }

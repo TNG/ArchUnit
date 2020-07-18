@@ -295,7 +295,7 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
     }
 
     private SELF copyWithNewCondition(ArchCondition<? super MEMBER> newCondition) {
-        return copyWithNewCondition(new ConditionAggregator<>(newCondition.<MEMBER>forSubType()));
+        return copyWithNewCondition(new ConditionAggregator<>(newCondition.<MEMBER>forSubtype()));
     }
 
     abstract SELF copyWithNewCondition(ConditionAggregator<MEMBER> newCondition);

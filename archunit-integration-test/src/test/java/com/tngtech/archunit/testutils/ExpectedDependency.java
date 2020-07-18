@@ -78,9 +78,9 @@ public class ExpectedDependency implements ExpectedRelation {
             this.clazz = clazz;
         }
 
-        public ExpectedDependency extending(Class<?> superClass) {
-            return new ExpectedDependency(clazz, superClass,
-                    getDependencyPattern(clazz.getName(), "extends", superClass.getName(), 0));
+        public ExpectedDependency extending(Class<?> superclass) {
+            return new ExpectedDependency(clazz, superclass,
+                    getDependencyPattern(clazz.getName(), "extends", superclass.getName(), 0));
         }
 
         public ExpectedDependency implementing(Class<?> anInterface) {

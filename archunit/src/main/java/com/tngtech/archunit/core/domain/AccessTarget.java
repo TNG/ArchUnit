@@ -522,7 +522,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         public static DescribedPredicate<AccessTarget> declaredIn(DescribedPredicate<? super JavaClass> predicate) {
             return Get.<JavaClass>owner().is(predicate)
                     .as("declared in %s", predicate.getDescription())
-                    .forSubType();
+                    .forSubtype();
         }
 
         @PublicAPI(usage = ACCESS)

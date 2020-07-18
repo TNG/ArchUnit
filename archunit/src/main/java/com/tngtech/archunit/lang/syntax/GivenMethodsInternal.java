@@ -79,7 +79,7 @@ class GivenMethodsInternal
 
     @Override
     public MethodsShouldInternal should(ArchCondition<? super JavaMethod> condition) {
-        return new MethodsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMethod>forSubType(), prepareCondition);
+        return new MethodsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMethod>forSubtype(), prepareCondition);
     }
 
     private static class GivenMethodsFactory implements Factory<JavaMethod, GivenMethodsInternal> {
