@@ -2,7 +2,6 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.lang.EvaluationResult;
-import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.*;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
