@@ -1,7 +1,5 @@
 package com.tngtech.archunit.library.dependencies;
 
-import java.util.Collections;
-
 import org.junit.Test;
 
 import static java.util.Collections.emptySet;
