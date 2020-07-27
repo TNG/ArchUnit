@@ -22,7 +22,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
-import static com.tngtech.archunit.core.importer.ClassFileImporterTest.jarFileOf;
+import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.jarFileOf;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.importer.UrlSourceTest.JAVA_CLASS_PATH_PROP;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
