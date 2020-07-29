@@ -566,7 +566,6 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     //FIXME: clean up
-    //FIXME: improve performance
     //FIXME: Bug: when the dragged node a has a dependency to a node b, which is on a deeper level than node a, and node b is overlapped by
     // a sibling node at the position where the dependency to a touches its rim, than node b is not set to the foreground relative to its overlapping
     // sibling --> solution: after writing tests for the whole dragging stuff:
