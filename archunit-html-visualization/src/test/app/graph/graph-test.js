@@ -4,7 +4,7 @@ const {expect} = require('chai');
 require('./testinfrastructure/graph-chai-extensions');
 const createJsonFromClassNames = require('./testinfrastructure/class-names-to-json-transformer').createJsonFromClassNames;
 
-const {createDependencies} = require('./testinfrastructure/test-json-creator');
+const {createDependencies, createViolationsFromDependencies} = require('./testinfrastructure/test-json-creator');
 const getGraphUi = require('./testinfrastructure/graph-creator').getGraphUi;
 
 const circlePadding = 10;
@@ -177,10 +177,9 @@ describe('Graph', () => {
       .addFieldAccess().from('com.tngtech.pkg1.SomeClass1', 'startMethod()')
       .to('com.tngtech.pkg1.pkg2.SomeClass2', 'targetField')
       .build();
-    const violations = [{
-      rule: 'rule1',
-      violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
-    }];
+    const violations = createViolationsFromDependencies(jsonDependencies)
+    .dependencyWithIndex(0).violatesRuleWithName('rule1')
+    .build();
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
     await graphUi.selectViolation(violations[0]);
 
@@ -199,14 +198,10 @@ describe('Graph', () => {
       .addFieldAccess().from('com.tngtech.pkg3.SomeOtherClass', 'startMethod()')
       .to('com.tngtech.pkg1.pkg2.SomeClass2', 'targetField')
       .build();
-    const violations = [{
-      rule: 'rule1',
-      violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
-    },
-      {
-        rule: 'rule2',
-        violations: ['<com.tngtech.pkg3.SomeOtherClass.startMethod()> FIELD_ACCESS to <com.tngtech.pkg1.pkg2.SomeClass2.targetField>']
-      }];
+    const violations = createViolationsFromDependencies(jsonDependencies)
+      .dependencyWithIndex(0).violatesRuleWithName('rule1')
+      .dependencyWithIndex(1).violatesRuleWithName('rule2')
+      .build();
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
     await graphUi.selectViolation(violations[0]);
     await graphUi.setValueForCheckBoxHideNodesWithoutViolationWhenRuleSelected(false);
@@ -229,13 +224,10 @@ describe('Graph', () => {
       .addInheritance().from('com.tngtech.pkg1.pkg2.SomeClass3')
       .to('com.tngtech.pkg1.SomeClass1')
       .build();
-    const violations = [{
-      rule: 'rule1',
-      violations: ['<com.tngtech.pkg1.pkg2.SomeClass2> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
-    }, {
-      rule: 'rule2',
-      violations: ['<com.tngtech.pkg1.pkg2.SomeClass3> INHERITANCE to <com.tngtech.pkg1.SomeClass1>']
-    }];
+    const violations = createViolationsFromDependencies(jsonDependencies)
+    .dependencyWithIndex(0).violatesRuleWithName('rule1')
+    .dependencyWithIndex(1).violatesRuleWithName('rule2')
+    .build();
 
     return {jsonRoot, jsonDependencies, violations};
   };

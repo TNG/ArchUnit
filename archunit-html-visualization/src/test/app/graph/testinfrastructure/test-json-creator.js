@@ -95,4 +95,26 @@ const createDependencies = () => {
   return builder;
 };
 
-module.exports = {nodeCreator, createDependencies, createGraph};
+const createViolationsFromDependencies = (jsonDependencies = []) => {
+  const res = {};
+  const betweenBuilder = index => ({
+    violatesRuleWithName: name => {
+      if (res[name] === undefined) {
+        res[name] = [];
+      }
+      res[name].push(jsonDependencies[index].description);
+      return builder;
+    }
+  });
+
+  const builder = {
+    dependencyWithIndex: index => betweenBuilder(index),
+    build: () => Object.keys(res).map(ruleName => ({
+      rule: ruleName,
+      violations: res[ruleName]
+    }))
+  }
+  return builder;
+}
+
+module.exports = {nodeCreator, createDependencies, createGraph, createViolationsFromDependencies};

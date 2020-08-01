@@ -1,5 +1,5 @@
 const createJsonFromClassNames = require('./testinfrastructure/class-names-to-json-transformer').createJsonFromClassNames;
-const {createDependencies} = require('./testinfrastructure/test-json-creator');
+const {createDependencies, createViolationsFromDependencies} = require('./testinfrastructure/test-json-creator');
 const getGraphUi = require('./testinfrastructure/graph-creator').getGraphUi;
 
 describe('Filtering in Graph', () => {
@@ -186,10 +186,9 @@ describe('Filtering in Graph', () => {
     .addInheritance().from('com.tngtech.archunit.InheritanceClass')
     .to('com.tngtech.archunit.TargetClass')
     .build();
-    const violations = [{
-      rule: 'rule1',
-      violations: ['<com.tngtech.archunit.SomeClass> INHERITANCE to <com.tngtech.archunit.TargetClass>']
-    }];
+    const violations = createViolationsFromDependencies(jsonDependencies)
+    .dependencyWithIndex(0).violatesRuleWithName('rule1')
+    .build();
     const graphUi = await getGraphUi(jsonRoot, jsonDependencies, violations);
     await graphUi.clickNode('com.tngtech.archunit');
 
