@@ -1,6 +1,6 @@
 'use strict';
 
-const sortTopological = require('./infrastructure/graph-algorithms').sortTopological;
+const sortInOrder = require('./infrastructure/graph-algorithms').sortInOrder;
 
 const matchAll = () => true;
 
@@ -173,7 +173,7 @@ const FilterCollection = class {
   }
 
   updateFilter(filterKey) {
-    const topologicalOrdered = sortTopological(this.getFilter(filterKey),
+    const topologicalOrdered = sortInOrder(this.getFilter(filterKey),
       filter => [...filter.dependentFilterKeys].map(dependentFilterKey => this.getFilter(dependentFilterKey)));
     topologicalOrdered.forEach(filter => {
       this._getFilterGroup(filter.filterGroupKey).runFilter(filter.key);

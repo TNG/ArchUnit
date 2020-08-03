@@ -4,7 +4,7 @@ const predicates = require('../infrastructure/predicates');
 const nodeText = require('./node-text');
 const {NodeCircle, RootRect} = require('./node-shapes');
 const {buildFilterGroup} = require('../filter');
-const sortTopological = require('../infrastructure/graph-algorithms').sortTopological;
+const sortInOrder = require('../infrastructure/graph-algorithms').sortInOrder;
 
 const nodeTypes = require('./node-types.json');
 
@@ -601,7 +601,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
           }
         }));
 
-      const nodesInDrawOrder = sortTopological(this, node => descendantsOfEachNode.get(node));
+      const nodesInDrawOrder = sortInOrder(this, node => descendantsOfEachNode.get(node));
       const nodesToFocusSet = new Set(nodesInDrawOrder);
 
       const otherChildren = this._parent._originalChildren.filter(c => !nodesToFocusSet.has(c));

@@ -2,11 +2,11 @@
 
 /**
  * calculates a topological order of the objects, that are implicit given through the descendants of the root-object
- * @param rootObject the first object of the graph, which is not a descendant of any other node
+ * @param rootObject the first object from which the descendants should be sorted in order
  * @param getDescendantsOfObject returns the descendant objects of a specific object
  * @return {Array} array with the objects, topological sorted
  */
-const sortTopological = (rootObject, getDescendantsOfObject) => {
+const sortInOrder = (rootObject, getDescendantsOfObject) => {
   const nodeMap = new Map();
 
   const Node = class {
@@ -47,4 +47,4 @@ const sortTopological = (rootObject, getDescendantsOfObject) => {
   return topo;
 };
 
-module.exports = {sortTopological};
+module.exports = {sortInOrder};
