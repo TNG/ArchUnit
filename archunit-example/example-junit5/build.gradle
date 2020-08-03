@@ -4,6 +4,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
+    testCompile project(path: ':archunit-html-visualization')
     testCompile project(path: ':archunit-junit5')
     testCompile project(path: ':archunit-example:example-plain')
 

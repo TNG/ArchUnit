@@ -15,20 +15,21 @@
  */
 package com.tngtech.archunit.junit;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.extension.ArchUnitExtensions;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Suppliers.memoize;
@@ -136,6 +137,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
     @Override
     public void after(ArchUnitEngineExecutionContext context) {
+        final JavaClasses classes = classCache.getClassesToAnalyzeFor(testClass, new JUnit5ClassAnalysisRequest(testClass));
+        new ArchUnitExtensions().finish(classes);
         classCache.clear(testClass);
     }
 
