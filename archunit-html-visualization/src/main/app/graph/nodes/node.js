@@ -578,12 +578,10 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
           siblingContainingOrigin: d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent),
           siblingContainingTarget: d.targetNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent)
         }));
-
-      const descendantsOfEachNode = new Map();
-
       const dependentNodesWithDependencies = this._getDependentNodesOfNodeFrom(dependenciesWithinParent);
       const dependentNodesOfThis = [...dependentNodesWithDependencies.keys()];
 
+      const descendantsOfEachNode = new Map();
       descendantsOfEachNode.set(this, dependentNodesOfThis);
       dependentNodesOfThis.forEach(node => descendantsOfEachNode.set(node, []));
 
