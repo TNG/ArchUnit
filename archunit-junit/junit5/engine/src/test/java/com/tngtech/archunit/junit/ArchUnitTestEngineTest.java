@@ -1,16 +1,5 @@
 package com.tngtech.archunit.junit;
 
-import java.net.URI;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitTestEngine.SharedCache;
@@ -62,6 +51,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import java.net.URI;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -878,7 +878,7 @@ class ArchUnitTestEngineTest {
         void passes_AnalyzeClasses_to_cache() {
             execute(createEngineId(), FullAnalyzeClassesSpec.class);
 
-            verify(classCache).getClassesToAnalyzeFor(eq(FullAnalyzeClassesSpec.class), classAnalysisRequestCaptor.capture());
+            verify(classCache, times(2)).getClassesToAnalyzeFor(eq(FullAnalyzeClassesSpec.class), classAnalysisRequestCaptor.capture());
             ClassAnalysisRequest request = classAnalysisRequestCaptor.getValue();
             AnalyzeClasses expected = FullAnalyzeClassesSpec.class.getAnnotation(AnalyzeClasses.class);
             assertThat(request.getPackageNames()).isEqualTo(expected.packages());
