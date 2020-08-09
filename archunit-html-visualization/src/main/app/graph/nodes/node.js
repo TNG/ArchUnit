@@ -581,25 +581,9 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       const dependentNodesWithDependencies = this._getDependentNodesOfNodeFrom(dependenciesWithinParent);
       const dependentNodesOfThis = [...dependentNodesWithDependencies.keys()];
 
-      const descendantsOfEachNode = new Map();
-      descendantsOfEachNode.set(this, dependentNodesOfThis);
-      dependentNodesOfThis.forEach(node => descendantsOfEachNode.set(node, []));
+      const descendantNodesOfThisWithDependencies = this._createMapOfDescendantNodesWithTheirDependencies(dependentNodesOfThis, dependentNodesWithDependencies);
 
-      dependentNodesOfThis.forEach((node1, i) =>
-        dependentNodesOfThis.slice(i + 1).forEach(node2 => {
-          if (node1._nodeShape.overlapsWith(node2._nodeShape)) {
-            const dependencies1 = dependentNodesWithDependencies.get(node1);
-            const dependencies2 = dependentNodesWithDependencies.get(node2);
-
-            if (dependencies1.some(d => node2._nodeShape.containsPoint(this._getEndPointOfDependencyBelongingToNode(d, node1)))) {
-              descendantsOfEachNode.get(node1).push(node2);
-            } else if (dependencies2.some(d => node1._nodeShape.containsPoint(this._getEndPointOfDependencyBelongingToNode(d, node2)))) {
-              descendantsOfEachNode.get(node2).push(node1);
-            }
-          }
-        }));
-
-      const nodesInDrawOrder = sortInOrder(this, node => descendantsOfEachNode.get(node));
+      const nodesInDrawOrder = sortInOrder(this, node => descendantNodesOfThisWithDependencies.get(node));
       const nodesToFocusSet = new Set(nodesInDrawOrder);
 
       const otherChildren = this._parent._originalChildren.filter(c => !nodesToFocusSet.has(c));
@@ -617,6 +601,27 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       dependenciesWithinParent.forEach(this._setDependencyInForegroundOrBackground.bind(this));
 
       this._parent._focus(this);
+    }
+
+    _createMapOfDescendantNodesWithTheirDependencies(dependentNodesOfThis, dependentNodesWithDependencies) {
+      const descendantsOfEachNode = new Map();
+      descendantsOfEachNode.set(this, dependentNodesOfThis);
+      dependentNodesOfThis.forEach(node => descendantsOfEachNode.set(node, []));
+
+      dependentNodesOfThis.forEach((node1, i) =>
+        dependentNodesOfThis.slice(i + 1).forEach(node2 => {
+          if (node1._nodeShape.overlapsWith(node2._nodeShape)) {
+            const dependencies1 = dependentNodesWithDependencies.get(node1);
+            const dependencies2 = dependentNodesWithDependencies.get(node2);
+
+            if (dependencies1.some(d => node2._nodeShape.containsPoint(this._getEndPointOfDependencyBelongingToNode(d, node1)))) {
+              descendantsOfEachNode.get(node1).push(node2);
+            } else if (dependencies2.some(d => node1._nodeShape.containsPoint(this._getEndPointOfDependencyBelongingToNode(d, node2)))) {
+              descendantsOfEachNode.get(node2).push(node1);
+            }
+          }
+        }));
+      return descendantsOfEachNode;
     }
 
     _setDependencyInForegroundOrBackground(dependency) {
