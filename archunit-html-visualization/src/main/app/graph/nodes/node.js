@@ -584,13 +584,8 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       const descendantNodesOfThisWithDependencies = this._createMapOfDescendantNodesWithTheirDependencies(dependentNodesOfThis, dependentNodesWithDependencies);
 
       const nodesInDrawOrder = sortInOrder(this, node => descendantNodesOfThisWithDependencies.get(node));
-      const nodesToFocus = new Set(nodesInDrawOrder);
 
-      const otherChildren = this._parent._originalChildren.filter(c => !nodesToFocus.has(c));
-      otherChildren.sort((c1, c2) => c1._layerWithinParentNode - c2._layerWithinParentNode);
-      otherChildren.forEach((c, i) => c._layerWithinParentNode = i);
-      const sum = this._parent._originalChildren.length;
-      nodesInDrawOrder.forEach((n, i) => n._layerWithinParentNode = sum - i - 1);
+      this.resetLayersWithinParent(nodesInDrawOrder);
 
       // FIXME: A node should only know itself and its children, not siblings --> so: let his method operate on the children of a node
       nodesInDrawOrder.reverse().forEach(node => {
@@ -601,6 +596,17 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       dependenciesWithinParent.forEach(this._setDependencyInForegroundOrBackground.bind(this));
 
       this._parent._focus(this);
+    }
+
+    resetLayersWithinParent(nodesInDrawOrder) {
+      const nodesToFocus = new Set(nodesInDrawOrder);
+
+      const otherChildren = this._parent._originalChildren.filter(c => !nodesToFocus.has(c));
+      otherChildren.sort((c1, c2) => c1._layerWithinParentNode - c2._layerWithinParentNode);
+      otherChildren.forEach((c, i) => c._layerWithinParentNode = i);
+
+      const sum = this._parent._originalChildren.length;
+      nodesInDrawOrder.forEach((n, i) => n._layerWithinParentNode = sum - i - 1);
     }
 
     _createMapOfDescendantNodesWithTheirDependencies(dependentNodesOfThis, dependentNodesWithDependencies) {
