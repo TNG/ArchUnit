@@ -572,20 +572,20 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     // wenn eine Node fokussiert wird, dann sollen also alle von ihr abhängigen Nodes innerhalb ihrer Parents und Vorgänger in den Vordergrund
     // gebracht werden...ist aber nicht so trivial...
     _focus() {
-      const dependenciesWithinParent = this._root.getDependenciesDirectlyWithinNode(this.parent)
+      const dependenciesToSiblingNodes = this._root.getDependenciesDirectlyWithinNode(this.parent)
         .map(d => ({
           dependency: d,
           siblingContainingOrigin: d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent),
           siblingContainingTarget: d.targetNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent)
         }));
-      const dependentNodesWithDependencies = this._getDependentNodesOfNodeFrom(dependenciesWithinParent);
+      const dependentNodesWithDependencies = this._getDependentNodesOfNodeFrom(dependenciesToSiblingNodes);
       const dependentNodesOfThis = [...dependentNodesWithDependencies.keys()];
 
       const descendantNodesOfThisWithDependencies = this._createMapOfDescendantNodesWithTheirDependencies(dependentNodesOfThis, dependentNodesWithDependencies);
 
       const nodesInDrawOrder = sortInOrder(this, node => descendantNodesOfThisWithDependencies.get(node));
 
-      this._resetLayersWithinParent(nodesInDrawOrder);
+      this._setNodesInForegroundOrBackground(nodesInDrawOrder);
 
       // FIXME: A node should only know itself and its children, not siblings --> so: let his method operate on the children of a node
       nodesInDrawOrder.reverse().forEach(node => {
@@ -593,12 +593,12 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
         this.parent._view.addChildView(node._view);
       });
 
-      dependenciesWithinParent.forEach(this._setDependencyInForegroundOrBackground.bind(this));
+      dependenciesToSiblingNodes.forEach(this._setDependencyInForegroundOrBackground.bind(this));
 
       this._parent._focus(this);
     }
 
-    _resetLayersWithinParent(nodesInDrawOrder) {
+    _setNodesInForegroundOrBackground(nodesInDrawOrder) {
       const nodesToFocus = new Set(nodesInDrawOrder);
 
       // shift children which are not focused to layers with lower value
