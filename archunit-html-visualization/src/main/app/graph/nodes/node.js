@@ -584,9 +584,9 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       const descendantNodesOfThisWithDependencies = this._createMapOfDescendantNodesWithTheirDependencies(dependentNodesOfThis, dependentNodesWithDependencies);
 
       const nodesInDrawOrder = sortInOrder(this, node => descendantNodesOfThisWithDependencies.get(node));
-      const nodesToFocusSet = new Set(nodesInDrawOrder);
+      const nodesToFocus = new Set(nodesInDrawOrder);
 
-      const otherChildren = this._parent._originalChildren.filter(c => !nodesToFocusSet.has(c));
+      const otherChildren = this._parent._originalChildren.filter(c => !nodesToFocus.has(c));
       otherChildren.sort((c1, c2) => c1._layerWithinParentNode - c2._layerWithinParentNode);
       otherChildren.forEach((c, i) => c._layerWithinParentNode = i);
       const sum = this._parent._originalChildren.length;
