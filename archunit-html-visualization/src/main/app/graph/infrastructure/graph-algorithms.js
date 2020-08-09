@@ -1,10 +1,10 @@
 'use strict';
 
 /**
- * calculates a topological order of the objects, that are implicit given through the descendants of the root-object
+ * calculates an order of the objects, that are implicit given through the descendants of the root-object
  * @param rootObject the first object from which the descendants should be sorted in order
  * @param getDescendantsOfObject returns the descendant objects of a specific object
- * @return {Array} array with the objects, topological sorted
+ * @return {Array} array with the objects, sorted in order
  */
 const sortInOrder = (rootObject, getDescendantsOfObject) => {
   const nodeMap = new Map();
