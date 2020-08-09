@@ -585,7 +585,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
       const nodesInDrawOrder = sortInOrder(this, node => descendantNodesOfThisWithDependencies.get(node));
 
-      this.resetLayersWithinParent(nodesInDrawOrder);
+      this._resetLayersWithinParent(nodesInDrawOrder);
 
       // FIXME: A node should only know itself and its children, not siblings --> so: let his method operate on the children of a node
       nodesInDrawOrder.reverse().forEach(node => {
@@ -598,7 +598,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       this._parent._focus(this);
     }
 
-    resetLayersWithinParent(nodesInDrawOrder) {
+    _resetLayersWithinParent(nodesInDrawOrder) {
       const nodesToFocus = new Set(nodesInDrawOrder);
 
       // shift children which are not focused to layers with lower value
