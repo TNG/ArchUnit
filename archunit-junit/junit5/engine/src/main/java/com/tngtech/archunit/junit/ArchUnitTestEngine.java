@@ -22,12 +22,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.ExecutionRequest;
@@ -143,15 +141,11 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
     }
 
     private Stream<JavaClass> getContainedClasses(String[] packages) {
-        return stream(new ClassFileImporter().importPackages(packages));
+        return new ClassFileImporter().importPackages(packages).stream();
     }
 
     private Stream<JavaClass> getContainedClasses(ClasspathRootSelector selector) {
-        return stream(new ClassFileImporter().importUrl(toUrl(selector.getClasspathRoot())));
-    }
-
-    private Stream<JavaClass> stream(JavaClasses classes) {
-        return StreamSupport.stream(classes.spliterator(), false);
+        return new ClassFileImporter().importUrl(toUrl(selector.getClasspathRoot())).stream();
     }
 
     private Predicate<JavaClass> isAllowedBy(EngineDiscoveryRequest discoveryRequest) {
