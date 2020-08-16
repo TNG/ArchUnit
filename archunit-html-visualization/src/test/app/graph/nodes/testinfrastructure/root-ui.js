@@ -189,7 +189,14 @@ class NodeUi {
   async dragOver(otherNodeFullName) {
     const otherNodeUi = this._rootUi._nodeUIs.get(otherNodeFullName);
     const diffVector = Vector.between(this.absolutePosition, otherNodeUi.absolutePosition);
-    const dragVector = diffVector.norm(diffVector.length() - this.radius - otherNodeUi.radius + 1);
+    const dragVector = diffVector.norm(diffVector.length() - this.radius - otherNodeUi.radius + 1); // TODO is this correct/intended
+    await this.drag({dx: dragVector.x, dy: dragVector.y});
+  }
+
+  async dragOverCompletely(otherNodeFullName) {
+    const otherNodeUi = this._rootUi._nodeUIs.get(otherNodeFullName);
+    const diffVector = Vector.between(this.absolutePosition, otherNodeUi.absolutePosition);
+    const dragVector = diffVector.norm(diffVector.length() - (this.radius - otherNodeUi.radius));
     await this.drag({dx: dragVector.x, dy: dragVector.y});
   }
 

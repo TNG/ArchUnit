@@ -561,23 +561,22 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       this._root.scheduleAction(() => {
         this._nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
         this._listeners.forEach(listener => listener.onNodeRimChanged(this)); //FIXME: does this really make sense??
-        this._focus();
+        this._focus(true);
       });
     }
 
     //FIXME: clean up
-    //FIXME: Bug: when the dragged node a has a dependency to a node b, which is on a deeper level than node a, and node b is overlapped by
-    // a sibling node at the position where the dependency to a touches its rim, than node b is not set to the foreground relative to its overlapping
-    // sibling --> solution: after writing tests for the whole dragging stuff:
-    // wenn eine Node fokussiert wird, dann sollen also alle von ihr abhängigen Nodes innerhalb ihrer Parents und Vorgänger in den Vordergrund
-    // gebracht werden...ist aber nicht so trivial...
-    _focus() {
+    //FIXME: Bug: transitive dependencies to dependent (all?) nodes are brought to foreground
+    _focus(doRecursiveFocus = false) {
       const dependenciesToSiblingNodes = this._root.getDependenciesDirectlyWithinNode(this.parent)
         .map(d => ({
           dependency: d,
           siblingContainingOrigin: d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent),
           siblingContainingTarget: d.targetNode.getSelfOrFirstPredecessorMatching(pred => pred.parent === this.parent)
         }));
+      if (doRecursiveFocus) {
+        this._focusDependentNodesOutsideParent(dependenciesToSiblingNodes);
+      }
       const dependentNodesWithDependencies = this._getDependentNodesOfNodeFrom(dependenciesToSiblingNodes);
       const dependentNodesOfThis = [...dependentNodesWithDependencies.keys()];
 
@@ -596,6 +595,15 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       dependenciesToSiblingNodes.forEach(this._setDependencyInForegroundOrBackground.bind(this));
 
       this._parent._focus(this);
+    }
+
+    _focusDependentNodesOutsideParent(dependenciesToSiblingNodes) {
+      const unmappedDependenciesToSiblingNodes = dependenciesToSiblingNodes.map(mappedDependency => mappedDependency.dependency);
+      const dependentNodesNotWithinParent = this._root.getDependenciesOfNode(this)
+      .filter(dependency => unmappedDependenciesToSiblingNodes.indexOf(dependency) < 0)
+      .map(dependency => dependency.originNode !== this ? dependency.originNode : dependency.targetNode)
+      .filter(node => node instanceof InnerNode);
+      dependentNodesNotWithinParent.forEach(node => node._focus());
     }
 
     _setNodesInForegroundOrBackground(nodesInDrawOrder) {

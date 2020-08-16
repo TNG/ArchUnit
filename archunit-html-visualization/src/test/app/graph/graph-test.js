@@ -148,25 +148,54 @@ describe('Graph', () => {
     graphUi.expectOnlyVisibleDependencies('com.tngtech.archunit.pkgToUnfold.SomeClass1-com.tngtech.archunit.SomeClass2');
   });
 
-  it('updates the positions of the dependencies if a node is dragged', async() => {
-    const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
-    const jsonDependencies = createDependencies()
-      .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
-      .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
-      .build();
-    const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
-    await graphUi.clickNode('com.tngtech.archunit');
+  describe('layout after node dragging', () => {
+    it('updates the positions of the dependencies if a node is dragged', async() => {
+      const jsonRoot = createJsonFromClassNames('com.tngtech.archunit.SomeClass1', 'com.tngtech.archunit.SomeClass2');
+      const jsonDependencies = createDependencies()
+        .addMethodCall().from('com.tngtech.archunit.SomeClass1', 'startMethod()')
+        .to('com.tngtech.archunit.SomeClass2', 'targetMethod()')
+        .build();
+      const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+      await graphUi.clickNode('com.tngtech.archunit');
 
-    const startGeometry = graphUi.getVisibleDependencyWithName('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2').start;
+      const startGeometry = graphUi.getVisibleDependencyWithName('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2').start;
 
-    await graphUi.dragNode('com.tngtech.archunit.SomeClass1', 10, 10);
+      await graphUi.dragNode('com.tngtech.archunit.SomeClass1', 10, 10);
 
-    const endGeometry = graphUi.getVisibleDependencyWithName('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2').start;
+      const endGeometry = graphUi.getVisibleDependencyWithName('com.tngtech.archunit.SomeClass1-com.tngtech.archunit.SomeClass2').start;
 
-    expect(startGeometry.startPoint.x).to.not.be.closeTo(endGeometry.startPoint.x, 0.1);
-    expect(startGeometry.startPoint.y).to.not.be.closeTo(endGeometry.startPoint.y, 0.1);
-    expect(startGeometry.endPoint.x).to.not.be.closeTo(endGeometry.endPoint.x, 0.1);
-    expect(startGeometry.endPoint.y).to.not.be.closeTo(endGeometry.endPoint.y, 0.1);
+      expect(startGeometry.startPoint.x).to.not.be.closeTo(endGeometry.startPoint.x, 0.1);
+      expect(startGeometry.startPoint.y).to.not.be.closeTo(endGeometry.startPoint.y, 0.1);
+      expect(startGeometry.endPoint.x).to.not.be.closeTo(endGeometry.endPoint.x, 0.1);
+      expect(startGeometry.endPoint.y).to.not.be.closeTo(endGeometry.endPoint.y, 0.1);
+    });
+
+    it('a node that is focused brings all of its dependent nodes into the foreground', async() => {
+      const jsonRoot = createJsonFromClassNames('com.tngtech.pkg1.FocusClass', 'com.tngtech.pkg1.DependentClass', 'com.tngtech.pkg1.OtherClass', 'com.tngtech.pkg2.DependentClass', 'com.tngtech.pkg2.OtherClass')
+      const jsonDependencies = createDependencies()
+        .addMethodCall().from('com.tngtech.pkg1.FocusClass', 'startMethod()')
+        .to('com.tngtech.pkg1.DependentClass', 'endMethod()')
+        .addMethodCall().from('com.tngtech.pkg1.FocusClass', 'startMethod()')
+        .to('com.tngtech.pkg2.DependentClass', 'endMethod()')
+        .build();
+      const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+      await graphUi.clickNode('com.tngtech');
+      await graphUi.clickNode('com.tngtech.pkg1');
+      await graphUi.clickNode('com.tngtech.pkg2');
+
+      const otherNodeInPkg1 = graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg1.OtherClass');
+      await otherNodeInPkg1.dragOverCompletely('com.tngtech.pkg1.DependentClass');
+      const otherNodeInPkg2 = graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.OtherClass');
+      await otherNodeInPkg2.dragOverCompletely('com.tngtech.pkg2.DependentClass');
+
+      expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg1.OtherClass').liesInFrontOf('com.tngtech.pkg1.DependentClass')).to.be.true;
+      expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.OtherClass').liesInFrontOf('com.tngtech.pkg2.DependentClass')).to.be.true;
+
+      await graphUi.dragNode('com.tngtech.pkg1.FocusClass', 1, 1);
+
+      expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg1.DependentClass').liesInFrontOf('com.tngtech.pkg1.OtherClass')).to.be.true;
+      expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.DependentClass').liesInFrontOf('com.tngtech.pkg2.OtherClass')).to.be.true;
+    })
   });
 
   it('can change the fold-states of the nodes to show all violations', async() => {

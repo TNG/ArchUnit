@@ -22,6 +22,7 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
       this._root.getLinks = () => this._dependencies.getAllDependencies();
       this._root.getVisibleViolationsFilter = () => this._dependencies.getVisibleViolationsNodeFilter();
       this._root.getDependenciesDirectlyWithinNode = node => this._dependencies.getDependenciesDirectlyWithinNode(node);
+      this._root.getDependenciesOfNode = node => this._dependencies.getDependenciesOfNode(node);
 
       this._createFilters();
 

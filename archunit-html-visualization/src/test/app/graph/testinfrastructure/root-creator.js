@@ -49,6 +49,7 @@ const createRootFromClassNames = (...args) => {
   svgMock.createSvgRoot().addChild(root.view.svgElement);
   root.getLinks = () => [];
   root.getDependenciesDirectlyWithinNode = () => [];
+  root.getDependenciesOfNode = () => [];
   return root;
 };
 
