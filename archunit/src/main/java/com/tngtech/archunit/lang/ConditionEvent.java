@@ -28,7 +28,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 @PublicAPI(usage = INHERITANCE)
 public interface ConditionEvent {
     /**
-     * @return true, IFF this event represents a violation of an evaluated rule.
+     * @return {@code true} if this event represents a violation of an evaluated rule, {@code false} otherwise
      */
     boolean isViolation();
 
