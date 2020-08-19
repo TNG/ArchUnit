@@ -1536,7 +1536,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
          * For further details see {@link PackageMatcher}.
          *
          * @param packageIdentifier A string representing the identifier to match packages against
-         * @return A {@link DescribedPredicate} returning true iff the package of the
+         * @return A {@link DescribedPredicate} returning {@code true} if and only if the package of the
          * tested {@link JavaClass} matches the identifier
          */
         @PublicAPI(usage = ACCESS)

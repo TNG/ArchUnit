@@ -90,7 +90,7 @@ public abstract class Location {
 
     /**
      * @param part A part to check the respective location {@link URI} for
-     * @return true, if the respective {@link URI} contains the given part
+     * @return {@code true}, if the respective {@link URI} contains the given part, {@code false} otherwise
      */
     @PublicAPI(usage = ACCESS)
     public boolean contains(String part) {
@@ -99,7 +99,7 @@ public abstract class Location {
 
     /**
      * @param pattern A pattern to compare the respective location {@link URI} against
-     * @return true, if the respective {@link URI} matches the given pattern
+     * @return {@code true}, if the respective {@link URI} matches the given pattern, {@code false} otherwise
      */
     @PublicAPI(usage = ACCESS)
     public boolean matches(Pattern pattern) {
@@ -112,7 +112,8 @@ public abstract class Location {
     /**
      * This is a generalization of {@link #isJar()}. Before JDK 9, the only archives were Jar files,
      * starting with JDK 9, we also have JRTs (the JDK modules).
-     * @return true, iff this location represents an archive, like a JAR or JRT
+     *
+     * @return {@code true}, if this location represents an archive, like a JAR or JRT, {@code false} otherwise
      */
     @PublicAPI(usage = ACCESS)
     public abstract boolean isArchive();
