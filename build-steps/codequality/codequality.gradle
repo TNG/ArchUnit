@@ -18,3 +18,13 @@ productionProjects*.with {
 
     spotbugsTest.enabled = false
 }
+
+productionProjects*.with {
+    apply plugin: 'com.diffplug.spotless'
+
+    spotless {
+        java {
+            removeUnusedImports()
+        }
+    }
+}

@@ -1,7 +1,6 @@
 package com.tngtech.archunit.lang;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -10,7 +9,6 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Iterator;
 import java.util.List;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
