@@ -153,7 +153,7 @@ interface UrlSource extends Iterable<URL> {
 
         private static Optional<URI> parseUrl(Path parent, String classpathUrlEntry) {
             try {
-                return Optional.of(convertToJarUrlIfNecessary(parent.toUri().resolve(URI.create(classpathUrlEntry).getSchemeSpecificPart())));
+                return Optional.of(convertToJarUrlIfNecessary(parent.toUri().resolve(URI.create(classpathUrlEntry).getRawSchemeSpecificPart())));
             } catch (Exception e) {
                 LOG.warn("Cannot parse URL classpath entry " + classpathUrlEntry, e);
                 return Optional.absent();
