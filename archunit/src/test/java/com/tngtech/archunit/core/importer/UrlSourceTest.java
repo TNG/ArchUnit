@@ -109,6 +109,20 @@ public class UrlSourceTest {
     }
 
     @Test
+    public void handles_jar_uri_with_spaces() throws Exception {
+        File folderWithSpaces = temporaryFolder.newFolder("folder with spaces");
+        File folder = temporaryFolder.newFolder();
+
+        WrittenJarFile jarInFolderWithSpaces = writeJarWithManifestClasspathAttribute(folderWithSpaces, "folder-with-spaces");
+        WrittenJarFile parentJar = writeJarWithManifestClasspathAttribute(folder, "parent", ManifestClasspathEntry.absoluteUrl(jarInFolderWithSpaces.path));
+
+        System.setProperty(JAVA_CLASS_PATH_PROP, parentJar.path.toString());
+        UrlSource urls = UrlSource.From.classPathSystemProperties();
+
+        assertThat(urls).containsAll(concat(parentJar.getExpectedClasspathUrls(), jarInFolderWithSpaces.getExpectedClasspathUrls()));
+    }
+
+    @Test
     public void recursively_resolves_classpath_attributes_in_manifests() throws Exception {
         File folder = temporaryFolder.newFolder();
         WrittenJarFile grandChildOne = writeJarWithManifestClasspathAttribute(folder, subPath("grandchild", "one"));
