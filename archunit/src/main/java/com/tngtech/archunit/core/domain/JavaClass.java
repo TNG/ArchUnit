@@ -262,7 +262,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * Of all these class declarations only {@code TopLevel} is a top level class, since all
      * other classes are declared within the body of {@code TopLevel} and are thereby nested classes.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isNestedClass()
@@ -300,7 +300,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * (which will have some generated name like {@code TopLevel$1})
      * are considered nested classes. {@code TopLevel} on the other side is no nested class.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
@@ -340,7 +340,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * (which will have some generated name like {@code TopLevel$1}), as well as {@code TopLevel}
      * itself, are not considered member classes.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
@@ -381,7 +381,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * are no inner classes, because the former two explicitly or implicitly have the
      * {@code static} modifier while the latter one is a top level class.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
@@ -421,7 +421,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * either are top level, directly declared within the body of {@code TopLevel} or are anonymous
      * and thus have no name.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
@@ -462,7 +462,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * All the other classes {@code TopLevel}, {@code InnerClass}, {@code NestedStaticClass} and
      * {@code LocalClass} are considered non-anonymous.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
