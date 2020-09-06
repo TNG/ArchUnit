@@ -77,6 +77,10 @@ public final class SourceCodeLocation {
         description = formatLocation(sourceClass, lineNumber);
     }
 
+    int getLineNumber() {
+        return lineNumber;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(sourceClass, lineNumber);
