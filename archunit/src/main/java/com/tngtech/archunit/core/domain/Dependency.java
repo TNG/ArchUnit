@@ -140,7 +140,8 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
         String description = dependencyDescription + " in " + originClass.getSourceCodeLocation();
-        return Optional.of(new Dependency(originClass, targetClass, 0, description));
+        int lineNumber = originClass.getSourceCodeLocation().getLineNumber();
+        return Optional.of(new Dependency(originClass, targetClass, lineNumber, description));
     }
 
     private static String bracketFormat(String name) {
