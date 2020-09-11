@@ -11,6 +11,7 @@ import org.assertj.core.api.AbstractObjectAssert;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
+import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DependencyAssertion extends AbstractObjectAssert<DependencyAssertion, Dependency> {
@@ -94,5 +95,19 @@ public class DependencyAssertion extends AbstractObjectAssert<DependencyAssertio
                         .as("Dependency target matches '%s.class'", targetClass.getSimpleName()),
                 assertThat(dependencyTarget(HasName.Predicates.name(targetClass.getName())).apply(actual))
                         .as("Dependency target matches '%s.class'", targetClass.getSimpleName()));
+    }
+
+    public LocationAssertion hasDescription(String originDescription, String dependencyDescription, String targetDescription) {
+        String expectedOriginDependsOnTargetDescription = quote(String.format("<%s> %s <%s>", originDescription, dependencyDescription, targetDescription));
+        String descriptionPattern = String.format(".+ %s in \\([^ ]+:\\d+\\)", expectedOriginDependsOnTargetDescription);
+        assertThat(actual.getDescription()).matches(descriptionPattern);
+        return new LocationAssertion();
+    }
+
+    public class LocationAssertion {
+        public DependencyAssertion inLocation(Class<?> expectedLocationSource, int expectedLineNumber) {
+            assertThat(actual.getDescription()).endsWith(String.format("in (%s.java:%d)", expectedLocationSource.getSimpleName(), expectedLineNumber));
+            return DependencyAssertion.this;
+        }
     }
 }

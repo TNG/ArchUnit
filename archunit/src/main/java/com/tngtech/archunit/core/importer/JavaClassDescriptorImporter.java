@@ -34,8 +34,12 @@ class JavaClassDescriptorImporter {
         return JavaClassDescriptor.From.name(type.getClassName());
     }
 
+    static boolean isAsmType(Object value) {
+        return value instanceof Type;
+    }
+
     static Object importAsmTypeIfPossible(Object value) {
-        return value instanceof Type ? importAsmType((Type) value) : value;
+        return isAsmType(value) ? importAsmType((Type) value) : value;
     }
 
     static JavaClassDescriptor importAsmType(String typeDescriptor) {

@@ -154,6 +154,10 @@ public class DomainObjectCreationContext {
         return ThrowsClause.from(codeUnit, types);
     }
 
+    public static InstanceofCheck createInstanceofCheck(JavaCodeUnit codeUnit, JavaClass target, int lineNumber) {
+        return InstanceofCheck.from(codeUnit, target, lineNumber);
+    }
+
     public static JavaTypeVariable createTypeVariable(String name, JavaClass erasure) {
         return new JavaTypeVariable(name, erasure);
     }

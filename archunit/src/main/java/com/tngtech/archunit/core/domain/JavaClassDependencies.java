@@ -38,6 +38,7 @@ class JavaClassDependencies {
     private final Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass;
     private final Set<JavaAnnotation<?>> annotationsWithTypeOfClass;
     private final Set<JavaAnnotation<?>> annotationsWithParameterTypeOfClass;
+    private final Set<InstanceofCheck> instanceofChecksWithTypeOfClass;
     private final Supplier<Set<Dependency>> directDependenciesFromClass;
     private final Supplier<Set<Dependency>> directDependenciesToClass;
 
@@ -51,6 +52,7 @@ class JavaClassDependencies {
         this.constructorsWithThrowsDeclarationTypeOfClass = context.getConstructorThrowsDeclarationsOfType(javaClass);
         this.annotationsWithTypeOfClass = context.getAnnotationsOfType(javaClass);
         this.annotationsWithParameterTypeOfClass = context.getAnnotationsWithParameterOfType(javaClass);
+        this.instanceofChecksWithTypeOfClass = context.getInstanceofChecksOfType(javaClass);
         this.directDependenciesFromClass = getDirectDependenciesFromClassSupplier();
         this.directDependenciesToClass = getDirectDependenciesToClassSupplier();
     }
@@ -68,6 +70,7 @@ class JavaClassDependencies {
                 result.addAll(throwsDeclarationDependenciesFromSelf());
                 result.addAll(constructorParameterDependenciesFromSelf());
                 result.addAll(annotationDependenciesFromSelf());
+                result.addAll(instanceofCheckDependenciesFromSelf());
                 return result.build();
             }
         });
@@ -86,6 +89,7 @@ class JavaClassDependencies {
                 result.addAll(throwsDeclarationDependenciesToSelf());
                 result.addAll(constructorParameterDependenciesToSelf());
                 result.addAll(annotationDependenciesToSelf());
+                result.addAll(instanceofCheckDependenciesToSelf());
                 return result.build();
             }
         });
@@ -129,6 +133,10 @@ class JavaClassDependencies {
 
     Set<JavaAnnotation<?>> getAnnotationsWithTypeOfClass() {
         return annotationsWithTypeOfClass;
+    }
+
+    Set<InstanceofCheck> getInstanceofChecksWithTypeOfClass() {
+        return instanceofChecksWithTypeOfClass;
     }
 
     private Set<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
@@ -200,6 +208,16 @@ class JavaClassDependencies {
                 .addAll(annotationDependencies(javaClass.getMethods()))
                 .addAll(annotationDependencies(javaClass.getConstructors()))
                 .build();
+    }
+
+    private Set<Dependency> instanceofCheckDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : javaClass.getCodeUnits()) {
+            for (InstanceofCheck instanceofCheck : codeUnit.getInstanceofChecks()) {
+                result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck).asSet());
+            }
+        }
+        return result.build();
     }
 
     private <T extends HasDescription & HasAnnotations<?>> Set<Dependency> annotationDependencies(Set<T> annotatedObjects) {
@@ -290,6 +308,14 @@ class JavaClassDependencies {
         }
         for (JavaAnnotation<?> annotation : annotationsWithParameterTypeOfClass) {
             result.addAll(Dependency.tryCreateFromAnnotationMember(annotation, javaClass).asSet());
+        }
+        return result;
+    }
+
+    private Set<Dependency> instanceofCheckDependenciesToSelf() {
+        Set<Dependency> result = new HashSet<>();
+        for (InstanceofCheck instanceofCheck : getInstanceofChecksWithTypeOfClass()) {
+            result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck).asSet());
         }
         return result;
     }
