@@ -94,6 +94,7 @@ import com.tngtech.archunit.example.layers.persistence.second.dao.OtherDao;
 import com.tngtech.archunit.example.layers.persistence.second.dao.jpa.OtherJpa;
 import com.tngtech.archunit.example.layers.security.Secured;
 import com.tngtech.archunit.example.layers.service.ComplexServiceAnnotation;
+import com.tngtech.archunit.example.layers.service.ProxiedConnection;
 import com.tngtech.archunit.example.layers.service.ServiceHelper;
 import com.tngtech.archunit.example.layers.service.ServiceInterface;
 import com.tngtech.archunit.example.layers.service.ServiceViolatingDaoRules;
@@ -631,6 +632,13 @@ class ExamplesIntegrationTest {
                         toMethod(ServiceViolatingLayerRules.class, "properlySecured")
                         .inLine(15)
                         .asDependency())
+                .by(callFromMethod(OtherJpa.class, "testConnection")
+                        .toMethod(ProxiedConnection.class, "refresh")
+                        .inLine(27)
+                        .asDependency())
+                .by(method(OtherJpa.class, "testConnection")
+                        .checkingInstanceOf(ProxiedConnection.class)
+                        .inLine(26))
 
                 .ofRule("no classes should depend on classes that are assignable to javax.persistence.EntityManager")
                 .by(callFromMethod(ServiceViolatingDaoRules.class, "illegallyUseEntityManager").
@@ -691,6 +699,9 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(DaoCallingService.class, violateLayerRules)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(14))
+                .by(callFromMethod(OtherJpa.class, "testConnection")
+                        .toMethod(ProxiedConnection.class, "refresh")
+                        .inLine(27))
 
                 .ofRule("classes that reside in a package '..service..' should " +
                         "only be accessed by any package ['..controller..', '..service..']")
@@ -700,6 +711,9 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SomeMediator.class, violateLayerRulesIndirectly)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(15))
+                .by(callFromMethod(OtherJpa.class, "testConnection")
+                        .toMethod(ProxiedConnection.class, "refresh")
+                        .inLine(27))
 
                 .ofRule("classes that reside in a package '..service..' should "
                         + "only access classes that reside in any package ['..service..', '..persistence..', 'java..']")
@@ -737,8 +751,14 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(DaoCallingService.class, violateLayerRules)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(14).asDependency())
+                .by(callFromMethod(OtherJpa.class, "testConnection")
+                        .toMethod(ProxiedConnection.class, "refresh")
+                        .inLine(27).asDependency())
                 .by(field(DaoCallingService.class, "service").ofType(ServiceViolatingLayerRules.class))
                 .by(inheritanceFrom(DaoCallingService.class).implementing(ServiceInterface.class))
+                .by(method(OtherJpa.class, "testConnection")
+                        .checkingInstanceOf(ProxiedConnection.class)
+                        .inLine(26))
 
                 .ofRule("classes that reside in a package '..service..' should " +
                         "only have dependent classes that reside in any package ['..controller..', '..service..']")
@@ -748,10 +768,16 @@ class ExamplesIntegrationTest {
                 .by(callFromMethod(SomeMediator.class, violateLayerRulesIndirectly)
                         .toMethod(ServiceViolatingLayerRules.class, ServiceViolatingLayerRules.doSomething)
                         .inLine(15).asDependency())
+                .by(callFromMethod(OtherJpa.class, "testConnection")
+                        .toMethod(ProxiedConnection.class, "refresh")
+                        .inLine(27).asDependency())
                 .by(inheritanceFrom(DaoCallingService.class).implementing(ServiceInterface.class))
                 .by(constructor(SomeMediator.class).withParameter(ServiceViolatingLayerRules.class))
                 .by(field(SomeMediator.class, "service").ofType(ServiceViolatingLayerRules.class))
                 .by(field(DaoCallingService.class, "service").ofType(ServiceViolatingLayerRules.class))
+                .by(method(OtherJpa.class, "testConnection")
+                        .checkingInstanceOf(ProxiedConnection.class)
+                        .inLine(26))
 
                 .ofRule("classes that reside in a package '..service..' should "
                         + "only depend on classes that reside in any package ['..service..', '..persistence..', 'java..', 'javax..']")
@@ -826,6 +852,11 @@ class ExamplesIntegrationTest {
                                         .inLine(25)
                                         .asDependency())
 
+                                .by(callFromMethod(OtherJpa.class, "testConnection")
+                                        .toMethod(ProxiedConnection.class, "refresh")
+                                        .inLine(27)
+                                        .asDependency())
+
                                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withParameter(UseCaseTwoController.class))
 
                                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withReturnType(SomeGuiController.class))
@@ -834,7 +865,10 @@ class ExamplesIntegrationTest {
                                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SimpleControllerAnnotation.class))
                                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SomeEnum.class))
                                 .by(method(ComplexServiceAnnotation.class, "controllerAnnotation").withReturnType(ComplexControllerAnnotation.class))
-                                .by(method(ComplexServiceAnnotation.class, "controllerEnum").withReturnType(SomeEnum.class));
+                                .by(method(ComplexServiceAnnotation.class, "controllerEnum").withReturnType(SomeEnum.class))
+                                .by(method(OtherJpa.class, "testConnection")
+                                        .checkingInstanceOf(ProxiedConnection.class)
+                                        .inLine(26));
 
         ExpectedTestFailures expectedTestFailures = ExpectedTestFailures
                 .forTests(
@@ -935,7 +969,7 @@ class ExamplesIntegrationTest {
                 .ofRule("no code units that are declared in classes that reside in a package '..persistence..' "
                         + "should be annotated with @" + Secured.class.getSimpleName())
                 .by(ExpectedConstructor.of(SomeJpa.class).inLine(15).beingAnnotatedWith(Secured.class))
-                .by(ExpectedMethod.of(OtherJpa.class, "getEntityManager").inLine(31).beingAnnotatedWith(Secured.class))
+                .by(ExpectedMethod.of(OtherJpa.class, "getEntityManager").inLine(35).beingAnnotatedWith(Secured.class))
 
                 .toDynamicTests();
     }

@@ -51,6 +51,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     private final JavaClass returnType;
     private final JavaClassList parameters;
     private final String fullName;
+    private final Set<InstanceofCheck> instanceofChecks;
 
     private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
     private Set<JavaMethodCall> methodCalls = Collections.emptySet();
@@ -61,6 +62,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         this.returnType = builder.getReturnType();
         this.parameters = builder.getParameters();
         fullName = formatMethod(getOwner().getName(), getName(), getRawParameterTypes());
+        instanceofChecks = builder.getInstanceofChecks(this);
     }
 
     /**
@@ -109,6 +111,11 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getConstructorCallsFromSelf() {
         return constructorCalls;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<InstanceofCheck> getInstanceofChecks() {
+        return instanceofChecks;
     }
 
     @PublicAPI(usage = ACCESS)

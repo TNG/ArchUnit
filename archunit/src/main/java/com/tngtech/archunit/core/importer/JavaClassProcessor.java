@@ -50,7 +50,6 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +59,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
+import static com.tngtech.archunit.core.importer.RawInstanceofCheck.from;
 
 class JavaClassProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassProcessor.class);
@@ -325,6 +325,13 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
+        public void visitTypeInsn(int opcode, String type) {
+            if (opcode == Opcodes.INSTANCEOF) {
+                codeUnitBuilder.addInstanceOfCheck(from(JavaClassDescriptorImporter.createFromAsmObjectTypeName(type), actualLineNumber));
+            }
+        }
+
+        @Override
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
             return new AnnotationProcessor(addAnnotationTo(annotations), annotationBuilderFor(desc));
         }
@@ -566,7 +573,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visit(String name, Object value) {
-            if (value instanceof Type) {
+            if (JavaClassDescriptorImporter.isAsmType(value)) {
                 setDerivedComponentType(JavaClass.class);
             } else {
                 setDerivedComponentType(value.getClass());
