@@ -18,39 +18,39 @@ package com.tngtech.archunit.core.importer;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import org.objectweb.asm.Type;
 
-class JavaTypeImporter {
+class JavaClassDescriptorImporter {
     /**
      * Takes an 'internal' ASM object type name, i.e. the class name but with slashes instead of periods,
      * i.e. java/lang/Object (note that this is not a descriptor like Ljava/lang/Object;)
      */
-    static JavaType createFromAsmObjectTypeName(String objectTypeName) {
+    static JavaClassDescriptor createFromAsmObjectTypeName(String objectTypeName) {
         return importAsmType(Type.getObjectType(objectTypeName));
     }
 
-    static JavaType importAsmType(Type type) {
-        return JavaType.From.name(type.getClassName());
+    static JavaClassDescriptor importAsmType(Type type) {
+        return JavaClassDescriptor.From.name(type.getClassName());
     }
 
     static Object importAsmTypeIfPossible(Object value) {
         return value instanceof Type ? importAsmType((Type) value) : value;
     }
 
-    static JavaType importAsmType(String typeDescriptor) {
+    static JavaClassDescriptor importAsmType(String typeDescriptor) {
         return importAsmType(Type.getType(typeDescriptor));
     }
 
-    static List<JavaType> importAsmMethodArgumentTypes(String methodDescriptor) {
-        ImmutableList.Builder<JavaType> result = ImmutableList.builder();
+    static List<JavaClassDescriptor> importAsmMethodArgumentTypes(String methodDescriptor) {
+        ImmutableList.Builder<JavaClassDescriptor> result = ImmutableList.builder();
         for (Type type : Type.getArgumentTypes(methodDescriptor)) {
             result.add(importAsmType(type));
         }
         return result.build();
     }
 
-    static JavaType importAsmMethodReturnType(String methodDescriptor) {
+    static JavaClassDescriptor importAsmMethodReturnType(String methodDescriptor) {
         return importAsmType(Type.getReturnType(methodDescriptor));
     }
 }

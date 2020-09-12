@@ -2,12 +2,14 @@ package com.tngtech.archunit.testutil;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.util.Files;
 
@@ -56,15 +58,24 @@ public class TestUtils {
         return result;
     }
 
-    public static Set<String> namesOf(HasName[] thingsWithNames) {
-        return namesOf(ImmutableSet.copyOf(thingsWithNames));
+    public static List<String> namesOf(HasName[] thingsWithNames) {
+        return namesOf(ImmutableList.copyOf(thingsWithNames));
     }
 
-    public static Set<String> namesOf(Iterable<? extends HasName> thingsWithNames) {
-        Set<String> result = new LinkedHashSet<>();
+    public static List<String> namesOf(Iterable<? extends HasName> thingsWithNames) {
+        List<String> result = new ArrayList<>();
         for (HasName hasName : thingsWithNames) {
             result.add(hasName.getName());
         }
         return result;
+    }
+
+    public static <T extends HasName> void sortByName(T[] result) {
+        Arrays.sort(result, new Comparator<HasName>() {
+            @Override
+            public int compare(HasName o1, HasName o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
     }
 }

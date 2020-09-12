@@ -40,7 +40,6 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  */
 @PublicAPI(usage = ACCESS)
 public final class SourceCodeLocation {
-    private static final String LOCATION_TEMPLATE = "(%s:%d)";
 
     @PublicAPI(usage = ACCESS)
     public static SourceCodeLocation of(JavaClass sourceClass) {
@@ -57,7 +56,7 @@ public final class SourceCodeLocation {
                 ? sourceClass.getSource().get().getFileName()
                 : Optional.<String>absent();
         String sourceFileName = recordedSourceFileName.isPresent() ? recordedSourceFileName.get() : guessSourceFileName(sourceClass);
-        return String.format(LOCATION_TEMPLATE, sourceFileName, lineNumber);
+        return "(" + sourceFileName + ":" + lineNumber + ")";
     }
 
     private static String guessSourceFileName(JavaClass location) {

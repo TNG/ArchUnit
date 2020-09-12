@@ -70,7 +70,8 @@ import static com.tngtech.archunit.core.domain.TestUtils.importPackagesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
-import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
@@ -89,7 +90,7 @@ public class JavaClassTest {
         JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("anArray");
 
         assertThat(method.getRawReturnType().isArray()).isTrue();
-        assertThat(method.getRawReturnType().tryGetComponentType().get()).matches(Object.class);
+        assertThatType(method.getRawReturnType().tryGetComponentType().get()).matches(Object.class);
     }
 
     @Test
@@ -108,10 +109,20 @@ public class JavaClassTest {
         JavaClass twoDimArray = classes.get(ClassAccessingTwoDimensionalArray.class).getField("array").getRawType();
 
         assertThat(oneDimArray.isArray()).isTrue();
-        assertThat(oneDimArray.tryGetComponentType().get()).isEqualTo(type);
+        assertThatType(oneDimArray.tryGetComponentType().get()).isEqualTo(type);
         assertThat(twoDimArray.isArray()).isTrue();
-        assertThat(twoDimArray.tryGetComponentType().get()).isEqualTo(oneDimArray);
-        assertThat(twoDimArray.tryGetComponentType().get().tryGetComponentType().get()).isEqualTo(type);
+        assertThatType(twoDimArray.tryGetComponentType().get()).isEqualTo(oneDimArray);
+        assertThatType(twoDimArray.tryGetComponentType().get().tryGetComponentType().get()).isEqualTo(type);
+    }
+
+    @Test
+    public void erased_type_of_class_is_the_class_itself() {
+        class SimpleClass {
+        }
+
+        JavaType type = new ClassFileImporter().importClass(SimpleClass.class);
+
+        assertThat(type.toErasure()).isEqualTo(type);
     }
 
     @Test
@@ -131,7 +142,7 @@ public class JavaClassTest {
         assertThat(oneDim.getName()).isEqualTo(OnlyReferencingMultiDimArray[].class.getName());
 
         JavaClass original = oneDim.getComponentType();
-        assertThat(original).isEqualTo(javaClass);
+        assertThatType(original).isEqualTo(javaClass);
     }
 
     @Test
@@ -143,10 +154,10 @@ public class JavaClassTest {
         assertThat(javaClass.getMethods()).hasSize(2);
 
         for (JavaField field : javaClass.getFields()) {
-            assertThat(field.getOwner()).isSameAs(javaClass);
+            assertThatType(field.getOwner()).isSameAs(javaClass);
         }
         for (JavaCodeUnit method : javaClass.getCodeUnits()) {
-            assertThat(method.getOwner()).isSameAs(javaClass);
+            assertThatType(method.getOwner()).isSameAs(javaClass);
         }
     }
 
@@ -482,7 +493,7 @@ public class JavaClassTest {
         Set<JavaClass> targets = FluentIterable.from(javaClass.getDirectDependenciesFromSelf())
                 .transform(toGuava(GET_TARGET_CLASS)).toSet();
 
-        assertThatClasses(targets).matchInAnyOrder(
+        assertThatTypes(targets).matchInAnyOrder(
                 B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
                 List.class, Serializable.class, SomeSuperClass.class,
                 WithType.class, WithNestedAnnotations.class, OnClass.class, OnMethod.class,
@@ -606,16 +617,16 @@ public class JavaClassTest {
 
         Set<JavaClass> origins = getOriginsOfDependenciesTo(classes.get(WithType.class));
 
-        assertThatClasses(origins).matchInAnyOrder(ClassWithAnnotationDependencies.class, ClassWithSelfReferences.class, OnMethodParam.class);
+        assertThatTypes(origins).matchInAnyOrder(ClassWithAnnotationDependencies.class, ClassWithSelfReferences.class, OnMethodParam.class);
 
         origins = getOriginsOfDependenciesTo(classes.get(B.class));
 
-        assertThatClasses(origins).matchInAnyOrder(
+        assertThatTypes(origins).matchInAnyOrder(
                 ClassWithAnnotationDependencies.class, OnMethodParam.class, AAccessingB.class, AhavingMembersOfTypeB.class);
 
         origins = getOriginsOfDependenciesTo(classes.get(SomeEnumAsNestedAnnotationParameter.class));
 
-        assertThatClasses(origins).matchInAnyOrder(
+        assertThatTypes(origins).matchInAnyOrder(
                 ClassWithAnnotationDependencies.class, WithEnum.class);
     }
 

@@ -15,16 +15,18 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT;
@@ -36,11 +38,12 @@ class ImportedClasses {
             Sets.immutableEnumSet(PUBLIC, ABSTRACT, FINAL);
 
     private final ImmutableMap<String, JavaClass> directlyImported;
-    private final Map<String, JavaClass> additionalClasses = new HashMap<>();
+    private final Map<String, JavaClass> allClasses = new HashMap<>();
     private final ClassResolver resolver;
 
     ImportedClasses(Map<String, JavaClass> directlyImported, ClassResolver resolver) {
         this.directlyImported = ImmutableMap.copyOf(directlyImported);
+        allClasses.putAll(directlyImported);
         this.resolver = resolver;
     }
 
@@ -49,29 +52,21 @@ class ImportedClasses {
     }
 
     JavaClass getOrResolve(String typeName) {
-        ensurePresent(typeName);
-        return directlyImported.containsKey(typeName) ?
-                directlyImported.get(typeName) :
-                additionalClasses.get(typeName);
+        JavaClass javaClass = allClasses.get(typeName);
+        if (javaClass == null) {
+            Optional<JavaClass> resolved = resolver.tryResolve(typeName);
+            javaClass = resolved.isPresent() ? resolved.get() : simpleClassOf(typeName);
+            allClasses.put(typeName, javaClass);
+        }
+        return javaClass;
     }
 
     void ensurePresent(String typeName) {
-        if (!contain(typeName)) {
-            Optional<JavaClass> resolved = resolver.tryResolve(typeName);
-            JavaClass newClass = resolved.isPresent() ? resolved.get() : simpleClassOf(typeName);
-            additionalClasses.put(typeName, newClass);
-        }
+        getOrResolve(typeName);
     }
 
-    private boolean contain(String name) {
-        return directlyImported.containsKey(name) || additionalClasses.containsKey(name);
-    }
-
-    Map<String, JavaClass> getAll() {
-        return ImmutableMap.<String, JavaClass>builder()
-                .putAll(directlyImported)
-                .putAll(additionalClasses)
-                .build();
+    Collection<JavaClass> getAllWithOuterClassesSortedBeforeInnerClasses() {
+        return ImmutableSortedMap.copyOf(allClasses).values();
     }
 
     ClassesByTypeName byTypeName() {
@@ -84,14 +79,14 @@ class ImportedClasses {
     }
 
     private static JavaClass simpleClassOf(String typeName) {
-        JavaType type = JavaType.From.name(typeName);
-        DomainBuilders.JavaClassBuilder builder = new DomainBuilders.JavaClassBuilder().withType(type);
-        addModifiersIfPossible(builder, type);
+        JavaClassDescriptor descriptor = JavaClassDescriptor.From.name(typeName);
+        DomainBuilders.JavaClassBuilder builder = new DomainBuilders.JavaClassBuilder().withDescriptor(descriptor);
+        addModifiersIfPossible(builder, descriptor);
         return builder.build();
     }
 
-    private static void addModifiersIfPossible(DomainBuilders.JavaClassBuilder builder, JavaType type) {
-        if (type.isPrimitive() || type.isArray()) {
+    private static void addModifiersIfPossible(DomainBuilders.JavaClassBuilder builder, JavaClassDescriptor descriptor) {
+        if (descriptor.isPrimitive() || descriptor.isArray()) {
             builder.withModifiers(PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS);
         }
     }

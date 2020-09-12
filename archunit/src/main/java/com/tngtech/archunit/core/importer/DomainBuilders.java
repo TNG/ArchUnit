@@ -15,6 +15,8 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
@@ -38,6 +41,7 @@ import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
@@ -50,16 +54,23 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Sets.union;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTypeVariable;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createWildcardType;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 @Internal
@@ -196,18 +207,18 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaFieldBuilder extends JavaMemberBuilder<JavaField, JavaFieldBuilder> {
-        private JavaType type;
+        private JavaClassDescriptor type;
 
         JavaFieldBuilder() {
         }
 
-        JavaFieldBuilder withType(JavaType type) {
+        JavaFieldBuilder withType(JavaClassDescriptor type) {
             this.type = type;
             return self();
         }
 
         public JavaClass getType() {
-            return get(type.getName());
+            return get(type.getFullyQualifiedClassName());
         }
 
         @Override
@@ -218,30 +229,30 @@ public final class DomainBuilders {
 
     @Internal
     public abstract static class JavaCodeUnitBuilder<OUTPUT, SELF extends JavaCodeUnitBuilder<OUTPUT, SELF>> extends JavaMemberBuilder<OUTPUT, SELF> {
-        private JavaType returnType;
-        private List<JavaType> parameters;
-        private List<JavaType> throwsDeclarations;
+        private JavaClassDescriptor returnType;
+        private List<JavaClassDescriptor> parameters;
+        private List<JavaClassDescriptor> throwsDeclarations;
 
         private JavaCodeUnitBuilder() {
         }
 
-        SELF withReturnType(JavaType type) {
+        SELF withReturnType(JavaClassDescriptor type) {
             returnType = type;
             return self();
         }
 
-        SELF withParameters(List<JavaType> parameters) {
+        SELF withParameters(List<JavaClassDescriptor> parameters) {
             this.parameters = parameters;
             return self();
         }
 
-        SELF withThrowsClause(List<JavaType> throwsDeclarations) {
+        SELF withThrowsClause(List<JavaClassDescriptor> throwsDeclarations) {
             this.throwsDeclarations = throwsDeclarations;
             return self();
         }
 
         public JavaClass getReturnType() {
-            return get(returnType.getName());
+            return get(returnType.getFullyQualifiedClassName());
         }
 
         public JavaClassList getParameters() {
@@ -252,10 +263,10 @@ public final class DomainBuilders {
             return createThrowsClause(codeUnit, asJavaClasses(this.throwsDeclarations));
         }
 
-        private List<JavaClass> asJavaClasses(List<JavaType> javaTypes) {
+        private List<JavaClass> asJavaClasses(List<JavaClassDescriptor> descriptors) {
             ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-            for (JavaType javaType : javaTypes) {
-                result.add(get(javaType.getName()));
+            for (JavaClassDescriptor javaClassDescriptor : descriptors) {
+                result.add(get(javaClassDescriptor.getFullyQualifiedClassName()));
             }
             return result.build();
         }
@@ -319,7 +330,7 @@ public final class DomainBuilders {
     public static final class JavaClassBuilder {
         private Optional<SourceDescriptor> sourceDescriptor = Optional.absent();
         private Optional<String> sourceFileName = Optional.absent();
-        private JavaType javaType;
+        private JavaClassDescriptor descriptor;
         private boolean isInterface;
         private boolean isEnum;
         private boolean isAnonymousClass;
@@ -339,8 +350,8 @@ public final class DomainBuilders {
             return this;
         }
 
-        JavaClassBuilder withType(JavaType javaType) {
-            this.javaType = javaType;
+        JavaClassBuilder withDescriptor(JavaClassDescriptor descriptor) {
+            this.descriptor = descriptor;
             return this;
         }
 
@@ -370,7 +381,7 @@ public final class DomainBuilders {
         }
 
         JavaClassBuilder withSimpleName(String simpleName) {
-            this.javaType = javaType.withSimpleName(simpleName);
+            this.descriptor = descriptor.withSimpleClassName(simpleName);
             return this;
         }
 
@@ -384,8 +395,8 @@ public final class DomainBuilders {
                     : Optional.<Source>absent();
         }
 
-        public JavaType getJavaType() {
-            return javaType;
+        public JavaClassDescriptor getDescriptor() {
+            return descriptor;
         }
 
         public boolean isInterface() {
@@ -411,19 +422,19 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaAnnotationBuilder {
-        private JavaType type;
+        private JavaClassDescriptor type;
         private final Map<String, ValueBuilder> values = new LinkedHashMap<>();
         private ClassesByTypeName importedClasses;
 
         JavaAnnotationBuilder() {
         }
 
-        JavaAnnotationBuilder withType(JavaType type) {
+        JavaAnnotationBuilder withType(JavaClassDescriptor type) {
             this.type = type;
             return this;
         }
 
-        JavaType getJavaType() {
+        JavaClassDescriptor getTypeDescriptor() {
             return type;
         }
 
@@ -433,7 +444,7 @@ public final class DomainBuilders {
         }
 
         public JavaClass getType() {
-            return importedClasses.get(type.getName());
+            return importedClasses.get(type.getFullyQualifiedClassName());
         }
 
         public <T extends HasDescription> Map<String, Object> getValues(T owner) {
@@ -449,7 +460,7 @@ public final class DomainBuilders {
         }
 
         private void addDefaultValues(ImmutableMap.Builder<String, Object> result, ClassesByTypeName importedClasses) {
-            for (JavaMethod method : importedClasses.get(type.getName()).getMethods()) {
+            for (JavaMethod method : importedClasses.get(type.getFullyQualifiedClassName()).getMethods()) {
                 if (!values.containsKey(method.getName()) && method.getDefaultValue().isPresent()) {
                     result.put(method.getName(), method.getDefaultValue().get());
                 }
@@ -487,19 +498,166 @@ public final class DomainBuilders {
     @Internal
     public static final class JavaStaticInitializerBuilder extends JavaCodeUnitBuilder<JavaStaticInitializer, JavaStaticInitializerBuilder> {
         JavaStaticInitializerBuilder() {
-            withReturnType(JavaType.From.name(void.class.getName()));
-            withParameters(Collections.<JavaType>emptyList());
+            withReturnType(JavaClassDescriptor.From.name(void.class.getName()));
+            withParameters(Collections.<JavaClassDescriptor>emptyList());
             withName(JavaStaticInitializer.STATIC_INITIALIZER_NAME);
             withDescriptor("()V");
             withAnnotations(Collections.<JavaAnnotationBuilder>emptySet());
             withModifiers(Collections.<JavaModifier>emptySet());
-            withThrowsClause(Collections.<JavaType>emptyList());
+            withThrowsClause(Collections.<JavaClassDescriptor>emptyList());
         }
 
         @Override
         JavaStaticInitializer construct(JavaStaticInitializerBuilder builder, ClassesByTypeName importedClasses) {
             return DomainObjectCreationContext.createJavaStaticInitializer(builder);
         }
+    }
+
+    interface JavaTypeCreationProcess {
+        JavaType finish(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes);
+    }
+
+    @Internal
+    public static final class JavaTypeParameterBuilder {
+        private final String name;
+        private final List<JavaTypeCreationProcess> upperBounds = new ArrayList<>();
+        private ClassesByTypeName importedClasses;
+
+        JavaTypeParameterBuilder(String name) {
+            this.name = checkNotNull(name);
+        }
+
+        void addBound(JavaTypeCreationProcess bound) {
+            upperBounds.add(bound);
+        }
+
+        public JavaTypeVariable build(ClassesByTypeName importedClasses) {
+            this.importedClasses = importedClasses;
+            return createTypeVariable(name, this.importedClasses.get(Object.class.getName()));
+        }
+
+        String getName() {
+            return name;
+        }
+
+        public List<JavaType> getUpperBounds(Iterable<JavaTypeVariable> allGenericParametersInContext) {
+            return buildJavaTypes(upperBounds, allGenericParametersInContext, importedClasses);
+        }
+    }
+
+    static class TypeParametersBuilder {
+        private final Collection<JavaTypeParameterBuilder> typeParameterBuilders;
+
+        TypeParametersBuilder(Collection<JavaTypeParameterBuilder> typeParameterBuilders) {
+            this.typeParameterBuilders = typeParameterBuilders;
+        }
+
+        public List<JavaTypeVariable> build(JavaClass owner, ClassesByTypeName classesByTypeName) {
+            if (typeParameterBuilders.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            Map<JavaTypeVariable, JavaTypeParameterBuilder> typeArgumentsToBuilders = new LinkedHashMap<>();
+            for (JavaTypeParameterBuilder builder : typeParameterBuilders) {
+                typeArgumentsToBuilders.put(builder.build(classesByTypeName), builder);
+            }
+            Set<JavaTypeVariable> allGenericParametersInContext = union(allTypeParametersInEnclosingClassesOf(owner), typeArgumentsToBuilders.keySet());
+            for (Map.Entry<JavaTypeVariable, JavaTypeParameterBuilder> typeParameterToBuilder : typeArgumentsToBuilders.entrySet()) {
+                List<JavaType> upperBounds = typeParameterToBuilder.getValue().getUpperBounds(allGenericParametersInContext);
+                completeTypeVariable(typeParameterToBuilder.getKey(), upperBounds);
+            }
+            return ImmutableList.copyOf(typeArgumentsToBuilders.keySet());
+        }
+
+        private Set<JavaTypeVariable> allTypeParametersInEnclosingClassesOf(JavaClass javaClass) {
+            Set<JavaTypeVariable> result = new HashSet<>();
+            while (javaClass.getEnclosingClass().isPresent()) {
+                result.addAll(javaClass.getEnclosingClass().get().getTypeParameters());
+                javaClass = javaClass.getEnclosingClass().get();
+            }
+            return result;
+        }
+    }
+
+    interface JavaTypeBuilder {
+        JavaType build(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName importedClasses);
+    }
+
+    @Internal
+    public static final class JavaWildcardTypeBuilder implements JavaTypeBuilder {
+        private final List<JavaTypeCreationProcess> lowerBoundCreationProcesses = new ArrayList<>();
+        private final List<JavaTypeCreationProcess> upperBoundCreationProcesses = new ArrayList<>();
+        private Iterable<JavaTypeVariable> allTypeParametersInContext;
+        private ClassesByTypeName importedClasses;
+
+        JavaWildcardTypeBuilder() {
+        }
+
+        public JavaWildcardTypeBuilder addLowerBound(JavaTypeCreationProcess boundCreationProcess) {
+            lowerBoundCreationProcesses.add(boundCreationProcess);
+            return this;
+        }
+
+        public JavaWildcardTypeBuilder addUpperBound(JavaTypeCreationProcess boundCreationProcess) {
+            upperBoundCreationProcesses.add(boundCreationProcess);
+            return this;
+        }
+
+        @Override
+        public JavaWildcardType build(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName importedClasses) {
+            this.allTypeParametersInContext = allTypeParametersInContext;
+            this.importedClasses = importedClasses;
+            return createWildcardType(this);
+        }
+
+        public List<JavaType> getUpperBounds() {
+            return buildJavaTypes(upperBoundCreationProcesses, allTypeParametersInContext, importedClasses);
+        }
+
+        public List<JavaType> getLowerBounds() {
+            return buildJavaTypes(lowerBoundCreationProcesses, allTypeParametersInContext, importedClasses);
+        }
+
+        public JavaClass getUnboundErasureType(List<JavaType> upperBounds) {
+            return DomainBuilders.getUnboundErasureType(upperBounds, importedClasses);
+        }
+    }
+
+    static class JavaParameterizedTypeBuilder implements JavaTypeBuilder {
+        private final JavaClassDescriptor type;
+        private final List<JavaTypeCreationProcess> typeArgumentCreationProcesses = new ArrayList<>();
+
+        JavaParameterizedTypeBuilder(JavaClassDescriptor type) {
+            this.type = type;
+        }
+
+        void addTypeArgument(JavaTypeCreationProcess typeCreationProcess) {
+            typeArgumentCreationProcesses.add(typeCreationProcess);
+        }
+
+        @Override
+        public JavaParameterizedType build(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes) {
+            List<JavaType> typeArguments = buildJavaTypes(typeArgumentCreationProcesses, allTypeParametersInContext, classes);
+            return new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments);
+        }
+
+        String getTypeName() {
+            return type.getFullyQualifiedClassName();
+        }
+    }
+
+    private static List<JavaType> buildJavaTypes(List<? extends JavaTypeCreationProcess> typeCreationProcesses, Iterable<JavaTypeVariable> allGenericParametersInContext, ClassesByTypeName classes) {
+        ImmutableList.Builder<JavaType> result = ImmutableList.builder();
+        for (JavaTypeCreationProcess typeCreationProcess : typeCreationProcesses) {
+            result.add(typeCreationProcess.finish(allGenericParametersInContext, classes));
+        }
+        return result.build();
+    }
+
+    private static JavaClass getUnboundErasureType(List<JavaType> upperBounds, ClassesByTypeName importedClasses) {
+        return upperBounds.size() > 0
+                ? upperBounds.get(0).toErasure()
+                : importedClasses.get(Object.class.getName());
     }
 
     @Internal
@@ -745,6 +903,40 @@ public final class DomainBuilders {
 
         MethodCallTarget build() {
             return DomainObjectCreationContext.createMethodCallTarget(this);
+        }
+    }
+
+    private static class ImportedParameterizedType implements JavaParameterizedType {
+        private final JavaType type;
+        private final List<JavaType> typeArguments;
+
+        ImportedParameterizedType(JavaType type, List<JavaType> typeArguments) {
+            this.type = type;
+            this.typeArguments = typeArguments;
+        }
+
+        @Override
+        public String getName() {
+            return type.getName();
+        }
+
+        @Override
+        public JavaClass toErasure() {
+            return type.toErasure();
+        }
+
+        @Override
+        public List<JavaType> getActualTypeArguments() {
+            return typeArguments;
+        }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "{" + type.getName() + formatTypeArguments() + '}';
+        }
+
+        private String formatTypeArguments() {
+            return typeArguments.isEmpty() ? "" : "<" + Joiner.on(", ").join(typeArguments) + ">";
         }
     }
 }

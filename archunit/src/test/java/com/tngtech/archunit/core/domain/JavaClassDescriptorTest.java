@@ -17,14 +17,14 @@ import org.objectweb.asm.Type;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
-public class JavaTypeTest {
+public class JavaClassDescriptorTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
     @UseDataProvider("primitives")
     public void primitive_types_by_name_and_descriptor(String name, Class<?> expected) {
-        JavaType primitiveType = JavaType.From.name(name);
+        JavaClassDescriptor primitiveType = JavaClassDescriptor.From.name(name);
         assertThat(primitiveType.isPrimitive()).isTrue();
         assertThat(primitiveType.isArray()).isFalse();
         assertThat(primitiveType.tryGetComponentType()).isAbsent();
@@ -35,17 +35,17 @@ public class JavaTypeTest {
     @Test
     @UseDataProvider("arrays")
     public void array_types_by_name_and_canonical_name(String name, Class<?> expected) {
-        JavaType arrayType = JavaType.From.name(name);
+        JavaClassDescriptor arrayType = JavaClassDescriptor.From.name(name);
         assertThat(arrayType.isPrimitive()).isFalse();
         assertThat(arrayType.isArray()).isTrue();
-        assertThat(arrayType.tryGetComponentType()).contains(JavaType.From.name(expected.getComponentType().getName()));
+        assertThat(arrayType.tryGetComponentType()).contains(JavaClassDescriptor.From.name(expected.getComponentType().getName()));
 
         assertThat(arrayType).isEquivalentTo(expected);
     }
 
     @Test
     public void object_name() {
-        JavaType objectType = JavaType.From.name(Object.class.getName());
+        JavaClassDescriptor objectType = JavaClassDescriptor.From.name(Object.class.getName());
         assertThat(objectType.isPrimitive()).isFalse();
         assertThat(objectType.isArray()).isFalse();
         assertThat(objectType.tryGetComponentType()).isAbsent();
@@ -56,24 +56,24 @@ public class JavaTypeTest {
     @Test
     @UseDataProvider(value = "primitives")
     public void resolves_primitive_type_names(String name, Class<?> expected) {
-        assertThat(JavaType.From.name(name).resolveClass()).isEqualTo(expected);
+        assertThat(JavaClassDescriptor.From.name(name).resolveClass()).isEqualTo(expected);
     }
 
     @Test
     @UseDataProvider(value = "arrays")
     public void resolves_arrays_type_names(String name, Class<?> expected) {
-        assertThat(JavaType.From.name(name).resolveClass()).isEqualTo(expected);
+        assertThat(JavaClassDescriptor.From.name(name).resolveClass()).isEqualTo(expected);
     }
 
     @Test
     public void resolves_standard_class_name() {
-        assertThat(JavaType.From.name(getClass().getName()).resolveClass()).isEqualTo(getClass());
+        assertThat(JavaClassDescriptor.From.name(getClass().getName()).resolveClass()).isEqualTo(getClass());
     }
 
     @Test
     public void resolving_throws_exception_if_type_doesnt_exist() {
         thrown.expect(ReflectionException.class);
-        JavaType.From.name("does.not.exist").resolveClass();
+        JavaClassDescriptor.From.name("does.not.exist").resolveClass();
     }
 
     @Test
@@ -81,28 +81,28 @@ public class JavaTypeTest {
         Serializable input = new Serializable() {
         };
 
-        JavaType anonymousType = JavaType.From.name(input.getClass().getName());
+        JavaClassDescriptor anonymousType = JavaClassDescriptor.From.name(input.getClass().getName());
 
-        assertThat(anonymousType.getName()).isEqualTo(getClass().getName() + "$1");
-        assertThat(anonymousType.getSimpleName()).isEmpty();
+        assertThat(anonymousType.getFullyQualifiedClassName()).isEqualTo(getClass().getName() + "$1");
+        assertThat(anonymousType.getSimpleClassName()).isEmpty();
         assertThat(anonymousType.getPackageName()).isEqualTo(getClass().getPackage().getName());
     }
 
     @Test
     public void special_chars_type() {
-        JavaType specialChars = JavaType.From.name("s_123_wéirdâ.Weird_αρετη_Type");
+        JavaClassDescriptor specialChars = JavaClassDescriptor.From.name("s_123_wéirdâ.Weird_αρετη_Type");
 
-        assertThat(specialChars.getName()).isEqualTo("s_123_wéirdâ.Weird_αρετη_Type");
-        assertThat(specialChars.getSimpleName()).isEqualTo("Weird_αρετη_Type");
+        assertThat(specialChars.getFullyQualifiedClassName()).isEqualTo("s_123_wéirdâ.Weird_αρετη_Type");
+        assertThat(specialChars.getSimpleClassName()).isEqualTo("Weird_αρετη_Type");
         assertThat(specialChars.getPackageName()).isEqualTo("s_123_wéirdâ");
     }
 
     @Test
     public void default_package() {
-        JavaType specialChars = JavaType.From.name("DefaultPackage");
+        JavaClassDescriptor specialChars = JavaClassDescriptor.From.name("DefaultPackage");
 
-        assertThat(specialChars.getName()).isEqualTo("DefaultPackage");
-        assertThat(specialChars.getSimpleName()).isEqualTo("DefaultPackage");
+        assertThat(specialChars.getFullyQualifiedClassName()).isEqualTo("DefaultPackage");
+        assertThat(specialChars.getSimpleClassName()).isEqualTo("DefaultPackage");
         assertThat(specialChars.getPackageName()).isEmpty();
     }
 
@@ -119,6 +119,43 @@ public class JavaTypeTest {
                 .addAll(namesToPrimitive(float.class))
                 .addAll(namesToPrimitive(double.class))
                 .build();
+    }
+
+    @Test
+    public void convert_object_descriptor_to_array_descriptor() {
+        JavaClassDescriptor arrayDescriptor = JavaClassDescriptor.From.name(Object.class.getName()).toArrayDescriptor();
+
+        assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(Object[].class.getName());
+        assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(Object[].class.getSimpleName());
+        assertThat(arrayDescriptor.getPackageName()).isEqualTo(Object.class.getPackage().getName());
+    }
+
+    @Test
+    public void convert_primitive_descriptor_to_array_descriptor() {
+        JavaClassDescriptor arrayDescriptor = JavaClassDescriptor.From.name(int.class.getName()).toArrayDescriptor();
+
+        assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(int[].class.getName());
+        assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(int[].class.getSimpleName());
+        assertThat(arrayDescriptor.getPackageName()).isEmpty();
+    }
+
+    @Test
+    public void convert_array_descriptor_to_2_dim_array_descriptor() {
+        JavaClassDescriptor arrayDescriptor = JavaClassDescriptor.From.name(Object[].class.getName()).toArrayDescriptor();
+
+        assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(Object[][].class.getName());
+        assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(Object[][].class.getSimpleName());
+        assertThat(arrayDescriptor.getPackageName()).isEqualTo(Object.class.getPackage().getName());
+    }
+
+    @Test
+    public void converts_descriptor_repeatedly_multi_dim_array_descriptor() {
+        JavaClassDescriptor arrayDescriptor = JavaClassDescriptor.From.name(Object.class.getName())
+                .toArrayDescriptor().toArrayDescriptor().toArrayDescriptor();
+
+        assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(Object[][][].class.getName());
+        assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(Object[][][].class.getSimpleName());
+        assertThat(arrayDescriptor.getPackageName()).isEqualTo(Object.class.getPackage().getName());
     }
 
     private static List<List<Object>> namesToPrimitive(Class<?> primitiveType) {

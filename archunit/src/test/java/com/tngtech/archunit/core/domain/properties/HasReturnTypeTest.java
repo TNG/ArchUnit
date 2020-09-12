@@ -5,8 +5,10 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
+import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 
 public class HasReturnTypeTest {
     @Test
@@ -44,7 +46,7 @@ public class HasReturnTypeTest {
     @Test
     public void function_get_return_type() {
         JavaClass expectedType = importClassWithContext(String.class);
-        assertThat(HasReturnType.Functions.GET_RAW_RETURN_TYPE.apply(newHasReturnType(expectedType)))
+        assertThatType(GET_RAW_RETURN_TYPE.apply(newHasReturnType(expectedType)))
                 .as("result of GET_RAW_RETURN_TYPE").isEqualTo(expectedType);
     }
 

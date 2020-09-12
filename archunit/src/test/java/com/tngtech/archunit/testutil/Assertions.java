@@ -1,19 +1,12 @@
 package com.tngtech.archunit.testutil;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
@@ -23,6 +16,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
@@ -33,9 +27,9 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
-import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -47,6 +41,7 @@ import com.tngtech.archunit.testutil.assertion.ConditionEventsAssertion;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaClassDescriptorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
@@ -56,22 +51,21 @@ import com.tngtech.archunit.testutil.assertion.JavaMembersAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMethodsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaTypeAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaTypesAssertion;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.api.ObjectAssertFactory;
-import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodSimple;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
-import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
-import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.runtimePropertiesOf;
-import static com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion.sortByName;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static <T> ArchConditionAssertion<T> assertThat(ArchCondition<T> archCondition) {
@@ -94,12 +88,16 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new DescribedPredicateAssertion<>(predicate);
     }
 
-    public static JavaClassAssertion assertThat(JavaClass javaClass) {
-        return new JavaClassAssertion(javaClass);
+    public static JavaTypeAssertion assertThatType(JavaType javaType) {
+        return new JavaTypeAssertion(javaType);
     }
 
-    public static JavaClassesAssertion assertThatClasses(Iterable<JavaClass> javaClasses) {
-        return new JavaClassesAssertion(javaClasses);
+    public static JavaTypeVariableAssertion assertThatTypeVariable(JavaTypeVariable typeVariable) {
+        return new JavaTypeVariableAssertion(typeVariable);
+    }
+
+    public static JavaTypesAssertion assertThatTypes(Iterable<? extends JavaType> javaTypes) {
+        return new JavaTypesAssertion(javaTypes);
     }
 
     public static JavaPackagesAssertion assertThatPackages(Iterable<JavaPackage> javaPackages) {
@@ -134,8 +132,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaFieldsAssertion(fields);
     }
 
-    public static JavaClassesAssertion assertThat(JavaClass[] javaClasses) {
-        return new JavaClassesAssertion(javaClasses);
+    public static JavaTypesAssertion assertThat(JavaType[] javaTypes) {
+        return new JavaTypesAssertion(javaTypes);
     }
 
     public static JavaClassListAssertion assertThat(JavaClassList javaClasses) {
@@ -158,8 +156,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaEnumConstantsAssertion(enumConstants);
     }
 
-    public static JavaTypeAssertion assertThat(JavaType javaType) {
-        return new JavaTypeAssertion(javaType);
+    public static JavaClassDescriptorAssertion assertThat(JavaClassDescriptor javaClassDescriptor) {
+        return new JavaClassDescriptorAssertion(javaClassDescriptor);
     }
 
     public static ThrowsDeclarationAssertion assertThat(ThrowsDeclaration<?> throwsDeclaration) {
@@ -195,7 +193,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return new Step2(originClass, codeUnitName);
         }
 
-        public class Step2 {
+        public static class Step2 {
             private final Class<?> originClass;
             private final String originCodeUnitName;
 
@@ -249,104 +247,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new ConstructorCallAssertion(call);
     }
 
-    public static class JavaClassesAssertion extends AbstractObjectAssert<JavaClassesAssertion, JavaClass[]> {
-        private JavaClassesAssertion(JavaClass[] actual) {
-            super(actual, JavaClassesAssertion.class);
-        }
-
-        private JavaClassesAssertion(Iterable<JavaClass> actual) {
-            super(sort(actual), JavaClassesAssertion.class);
-        }
-
-        private static JavaClass[] sort(Iterable<JavaClass> actual) {
-            JavaClass[] result = Iterables.toArray(actual, JavaClass.class);
-            sortByName(result);
-            return result;
-        }
-
-        public void matchInAnyOrder(Iterable<Class<?>> classes) {
-            Class<?>[] sorted = Iterables.toArray(classes, Class.class);
-            Arrays.sort(sorted, new Comparator<Class<?>>() {
-                @Override
-                public int compare(Class<?> o1, Class<?> o2) {
-                    return o1.getName().compareTo(o2.getName());
-                }
-            });
-            matchExactly(sorted);
-        }
-
-        public void matchInAnyOrder(Class<?>... classes) {
-            matchInAnyOrder(ImmutableSet.copyOf(classes));
-        }
-
-        public void matchExactly(Class<?>... classes) {
-            assertThat(TestUtils.namesOf(actual)).as("classes").containsExactlyElementsOf(namesOf(classes));
-            for (int i = 0; i < actual.length; i++) {
-                assertThat(actual[i]).as("Element %d", i).matches(classes[i]);
-            }
-        }
-
-        public JavaClassesAssertion contain(Class<?>... classes) {
-            contain(ImmutableSet.copyOf(classes));
-            return this;
-        }
-
-        public void doNotContain(Class<?>... classes) {
-            assertThat(actualNames()).doesNotContainAnyElementsOf(JavaClass.namesOf(classes));
-        }
-
-        public void contain(Iterable<Class<?>> classes) {
-            List<String> expectedNames = JavaClass.namesOf(Lists.newArrayList(classes));
-            assertThat(actualNames()).as("actual classes").containsAll(expectedNames);
-        }
-
-        private Set<String> actualNames() {
-            Set<String> actualNames = new HashSet<>();
-            for (JavaClass javaClass : actual) {
-                actualNames.add(javaClass.getName());
-            }
-            return actualNames;
-        }
-    }
-
-    public static class JavaClassAssertion extends AbstractObjectAssert<JavaClassAssertion, JavaClass> {
-        private static final Pattern ARRAY_PATTERN = Pattern.compile("(\\[+)(.*)");
-
-        private JavaClassAssertion(JavaClass javaClass) {
-            super(javaClass, JavaClassAssertion.class);
-        }
-
-        public void matches(Class<?> clazz) {
-            assertThat(actual.getName()).as("Name of " + actual)
-                    .isEqualTo(clazz.getName());
-            assertThat(actual.getSimpleName()).as("Simple name of " + actual)
-                    .isEqualTo(ensureArrayName(clazz.getSimpleName()));
-            assertThat(actual.getPackage().getName()).as("Package of " + actual)
-                    .isEqualTo(getExpectedPackageName(clazz));
-            assertThat(actual.getPackageName()).as("Package name of " + actual)
-                    .isEqualTo(getExpectedPackageName(clazz));
-            assertThat(actual.getModifiers()).as("Modifiers of " + actual)
-                    .isEqualTo(JavaModifier.getModifiersForClass(clazz.getModifiers()));
-            assertThat(actual.isArray()).as(actual + " is array").isEqualTo(clazz.isArray());
-            assertThat(runtimePropertiesOf(actual.getAnnotations())).as("Annotations of " + actual)
-                    .isEqualTo(propertiesOf(clazz.getAnnotations()));
-
-            if (clazz.isArray()) {
-                new JavaClassAssertion(actual.getComponentType()).matches(clazz.getComponentType());
-            }
-        }
-
-        private String ensureArrayName(String name) {
-            String suffix = "";
-            Matcher matcher = ARRAY_PATTERN.matcher(name);
-            if (matcher.matches()) {
-                name = Type.getType(matcher.group(2)).getClassName();
-                suffix = Strings.repeat("[]", matcher.group(1).length());
-            }
-            return name + suffix;
-        }
-    }
-
     public static class JavaClassListAssertion
             extends AbstractListAssert<JavaClassListAssertion, List<? extends JavaClass>, JavaClass, ObjectAssert<JavaClass>> {
         private JavaClassListAssertion(JavaClassList javaClasses) {
@@ -356,7 +256,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         public void matches(Class<?>... classes) {
             assertThat(actual).as("JavaClasses").hasSize(classes.length);
             for (int i = 0; i < actual.size(); i++) {
-                assertThat(actual.get(i)).as("Element %d", i).matches(classes[i]);
+                assertThatType(actual.get(i)).as("Element %d", i).matches(classes[i]);
             }
         }
 
@@ -397,7 +297,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public void matches(Class<?> clazz) {
-            assertThat(actual.getRawType()).as("Type of " + actual)
+            assertThatType(actual.getRawType()).as("Type of " + actual)
                     .matches(clazz);
         }
     }
@@ -541,23 +441,4 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, JavaType> {
-        private JavaTypeAssertion(JavaType actual) {
-            super(actual, JavaTypeAssertion.class);
-        }
-
-        public void isEquivalentTo(Class<?> clazz) {
-            assertThat(actual.getName()).as("name").isEqualTo(clazz.getName());
-            assertThat(actual.getSimpleName()).as("simple name").isEqualTo(clazz.getSimpleName());
-            String expectedPackageName = getExpectedPackageName(clazz);
-            assertThat(actual.getPackageName()).as("package").isEqualTo(expectedPackageName);
-        }
-    }
-
-    private static String getExpectedPackageName(Class<?> clazz) {
-        if (!clazz.isArray()) {
-            return clazz.getPackage() != null ? clazz.getPackage().getName() : "";
-        }
-        return getExpectedPackageName(clazz.getComponentType());
-    }
 }

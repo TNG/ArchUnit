@@ -28,7 +28,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static com.tngtech.archunit.junit.CacheMode.PER_CLASS;
-import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -114,13 +114,13 @@ public class ClassCacheTest {
                 .withPackagesRoots(ClassCacheTest.class)
                 .withLocationProviders(TestLocationProviderOfClass_String.class, TestLocationProviderOfClass_Rule.class));
 
-        assertThatClasses(classes).contain(String.class, Rule.class, getClass());
+        assertThatTypes(classes).contain(String.class, Rule.class, getClass());
 
         classes = cache.getClassesToAnalyzeFor(TestClassWithLocationProviderUsingTestClass.class,
                 analyzeLocation(LocationOfClass.Provider.class));
 
-        assertThatClasses(classes).contain(String.class);
-        assertThatClasses(classes).doNotContain(getClass());
+        assertThatTypes(classes).contain(String.class);
+        assertThatTypes(classes).doNotContain(getClass());
     }
 
     @Test

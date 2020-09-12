@@ -58,19 +58,21 @@ import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 
-public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
+public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
     private final Optional<Source> source;
     private final SourceCodeLocation sourceCodeLocation;
-    private final JavaType javaType;
+    private final JavaClassDescriptor descriptor;
     private JavaPackage javaPackage;
     private final boolean isInterface;
     private final boolean isEnum;
     private final boolean isAnonymousClass;
     private final boolean isMemberClass;
     private final Set<JavaModifier> modifiers;
+    private List<JavaTypeVariable> typeParameters = emptyList();
     private final Supplier<Class<?>> reflectSupplier;
     private Set<JavaField> fields = emptySet();
     private Set<JavaCodeUnit> codeUnits = emptySet();
@@ -101,7 +103,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
-        javaType = checkNotNull(builder.getJavaType());
+        descriptor = checkNotNull(builder.getDescriptor());
         isInterface = builder.isInterface();
         isEnum = builder.isEnum();
         isAnonymousClass = builder.isAnonymousClass();
@@ -138,7 +140,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @Override
     @PublicAPI(usage = ACCESS)
     public String getName() {
-        return javaType.getName();
+        return descriptor.getFullyQualifiedClassName();
     }
 
     /**
@@ -152,7 +154,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     @PublicAPI(usage = ACCESS)
     public String getSimpleName() {
-        return javaType.getSimpleName();
+        return descriptor.getSimpleClassName();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -166,12 +168,12 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     @PublicAPI(usage = ACCESS)
     public String getPackageName() {
-        return javaType.getPackageName();
+        return descriptor.getPackageName();
     }
 
     @PublicAPI(usage = ACCESS)
     public boolean isPrimitive() {
-        return javaType.isPrimitive();
+        return descriptor.isPrimitive();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -213,7 +215,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     @PublicAPI(usage = ACCESS)
     public boolean isArray() {
-        return javaType.isArray();
+        return descriptor.isArray();
     }
 
     /**
@@ -260,7 +262,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      * Of all these class declarations only {@code TopLevel} is a top level class, since all
      * other classes are declared within the body of {@code TopLevel} and are thereby nested classes.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isNestedClass()
@@ -298,7 +300,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      * (which will have some generated name like {@code TopLevel$1})
      * are considered nested classes. {@code TopLevel} on the other side is no nested class.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
@@ -338,7 +340,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      * (which will have some generated name like {@code TopLevel$1}), as well as {@code TopLevel}
      * itself, are not considered member classes.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
@@ -379,7 +381,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      * are no inner classes, because the former two explicitly or implicitly have the
      * {@code static} modifier while the latter one is a top level class.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
@@ -419,7 +421,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      * either are top level, directly declared within the body of {@code TopLevel} or are anonymous
      * and thus have no name.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
@@ -460,7 +462,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
      * All the other classes {@code TopLevel}, {@code InnerClass}, {@code NestedStaticClass} and
      * {@code LocalClass} are considered non-anonymous.
      * <br><br>
-     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se13/html/jls-8.html">
+     * Compare e.g. <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-8.html">
      *     Java Language Specification</a>
      *
      * @see #isTopLevelClass()
@@ -564,6 +566,17 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation<JavaClass>> tryGetAnnotationOfType(String typeName) {
         return Optional.fromNullable(annotations.get(typeName));
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public List<JavaTypeVariable> getTypeParameters() {
+        return typeParameters;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public JavaClass toErasure() {
+        return this;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1179,6 +1192,14 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
         }
     }
 
+    void completeEnclosingClassFrom(ImportContext context) {
+        enclosingClass = context.createEnclosingClass(this);
+    }
+
+    void completeTypeParametersFrom(ImportContext context) {
+        typeParameters = context.createTypeParameters(this);
+    }
+
     void completeMembers(final ImportContext context) {
         fields = context.createFields(this);
         methods = context.createMethods(this);
@@ -1200,7 +1221,6 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     CompletionProcess completeFrom(ImportContext context) {
         completeComponentType(context);
-        enclosingClass = context.createEnclosingClass(this);
         javaClassDependencies = new JavaClassDependencies(this, context);
         return new CompletionProcess();
     }
@@ -1208,7 +1228,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     private void completeComponentType(ImportContext context) {
         JavaClass current = this;
         while (current.isArray() && !current.componentType.isPresent()) {
-            JavaClass componentType = context.resolveClass(current.javaType.tryGetComponentType().get().getName());
+            JavaClass componentType = context.resolveClass(current.descriptor.tryGetComponentType().get().getFullyQualifiedClassName());
             current.componentType = Optional.of(componentType);
             current = componentType;
         }
@@ -1216,7 +1236,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
 
     @Override
     public String toString() {
-        return "JavaClass{name='" + javaType.getName() + "'}";
+        return "JavaClass{name='" + descriptor.getFullyQualifiedClassName() + "'}";
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1225,7 +1245,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     }
 
     @PublicAPI(usage = ACCESS)
-    public static List<String> namesOf(List<Class<?>> paramTypes) {
+    public static List<String> namesOf(Iterable<Class<?>> paramTypes) {
         ArrayList<String> result = new ArrayList<>();
         for (Class<?> paramType : paramTypes) {
             result.add(paramType.getName());
@@ -1741,7 +1761,7 @@ public class JavaClass implements HasName.AndFullName, HasAnnotations<JavaClass>
     private class ReflectClassSupplier implements Supplier<Class<?>> {
         @Override
         public Class<?> get() {
-            return javaType.resolveClass(getCurrentClassLoader(getClass()));
+            return descriptor.resolveClass(getCurrentClassLoader(getClass()));
         }
     }
 }

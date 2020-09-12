@@ -45,7 +45,10 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Together with {@link DomainBuilders}, this class is the link to create domain objects from the import
@@ -62,7 +65,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder
 @Internal
 public class DomainObjectCreationContext {
     public static JavaClasses createJavaClasses(
-            Map<String, JavaClass> selectedClasses, Map<String, JavaClass> allClasses, ImportContext importContext) {
+            Map<String, JavaClass> selectedClasses, Collection<JavaClass> allClasses, ImportContext importContext) {
 
         return JavaClasses.of(selectedClasses, allClasses, importContext);
     }
@@ -73,6 +76,14 @@ public class DomainObjectCreationContext {
 
     public static void completeClassHierarchy(JavaClass javaClass, ImportContext importContext) {
         javaClass.completeClassHierarchyFrom(importContext);
+    }
+
+    public static void completeEnclosingClass(JavaClass javaClass, ImportContext importContext) {
+        javaClass.completeEnclosingClassFrom(importContext);
+    }
+
+    public static void completeTypeParameters(JavaClass javaClass, ImportContext importContext) {
+        javaClass.completeTypeParametersFrom(importContext);
     }
 
     public static void completeMembers(JavaClass javaClass, ImportContext importContext) {
@@ -141,6 +152,24 @@ public class DomainObjectCreationContext {
 
     public static <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> createThrowsClause(CODE_UNIT codeUnit, List<JavaClass> types) {
         return ThrowsClause.from(codeUnit, types);
+    }
+
+    public static JavaTypeVariable createTypeVariable(String name, JavaClass erasure) {
+        return new JavaTypeVariable(name, erasure);
+    }
+
+    public static void completeTypeVariable(JavaTypeVariable variable, List<JavaType> upperBounds) {
+        variable.setUpperBounds(upperBounds);
+    }
+
+    public static JavaGenericArrayType createGenericArrayType(JavaType componentType, JavaClass erasure) {
+        checkArgument(componentType instanceof JavaTypeVariable || componentType instanceof JavaGenericArrayType,
+                "Component type of a generic array type can only be a type variable or a generic array type. This is most likely a bug.");
+        return new JavaGenericArrayType(componentType.getName() + "[]", componentType, erasure);
+    }
+
+    public static JavaWildcardType createWildcardType(JavaWildcardTypeBuilder builder) {
+        return new JavaWildcardType(builder);
     }
 
     static class AccessContext {

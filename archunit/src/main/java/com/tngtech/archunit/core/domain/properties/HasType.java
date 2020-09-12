@@ -19,6 +19,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaType;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
@@ -26,6 +27,9 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public interface HasType {
+
+    @PublicAPI(usage = ACCESS)
+    JavaType getType();
 
     @PublicAPI(usage = ACCESS)
     JavaClass getRawType();
@@ -48,7 +52,6 @@ public interface HasType {
         public static DescribedPredicate<HasType> rawType(DescribedPredicate<? super JavaClass> predicate) {
             return GET_RAW_TYPE.is(predicate).as("raw type " + predicate.getDescription());
         }
-
     }
 
     final class Functions {
@@ -62,6 +65,5 @@ public interface HasType {
                 return input.getRawType();
             }
         };
-
     }
 }

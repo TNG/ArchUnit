@@ -23,7 +23,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.TestUtils.dependencyFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
-import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SlicesTest {
@@ -100,8 +100,8 @@ public class SlicesTest {
         assertThat(slices.getDescription()).isEqualTo("slices assigned from some description");
         assertThat(slices).extractingResultOf("getDescription").containsOnly("Any Lang - $2", "Any Adjusted - Util");
         assertThat(slices).hasSize(2);
-        assertThatClasses(getSliceOf(Object.class, slices)).contain(Number.class);
-        assertThatClasses(getSliceOf(List.class, slices)).contain(Collection.class);
+        assertThatTypes(getSliceOf(Object.class, slices)).contain(Number.class);
+        assertThatTypes(getSliceOf(List.class, slices)).contain(Collection.class);
         Assertions.assertThat(tryGetSliceOf(File.class, slices))
                 .as("Slice of class java.io.File (which should be missing from the assignment)")
                 .isAbsent();
