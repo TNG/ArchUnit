@@ -1,0 +1,89 @@
+package com.tngtech.archunit.testutil.assertion;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.testutil.TestUtils;
+import org.assertj.core.api.AbstractObjectAssert;
+
+import static com.google.common.collect.Iterables.toArray;
+import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.TestUtils.sortByName;
+import static java.util.Arrays.sort;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion, JavaType[]> {
+    public JavaTypesAssertion(JavaType[] actual) {
+        super(actual, JavaTypesAssertion.class);
+    }
+
+    public JavaTypesAssertion(Iterable<? extends JavaType> actual) {
+        super(toArray(actual, JavaType.class), JavaTypesAssertion.class);
+    }
+
+    public void matchInAnyOrder(Iterable<Class<?>> classes) {
+        assertThat(TestUtils.namesOf(actual)).as("classes").containsOnlyElementsOf(namesOf(classes));
+
+        JavaType[] actualSorted = sortedJavaTypes(actual);
+        Class<?>[] expectedSorted = sortedClasses(classes);
+        for (int i = 0; i < actualSorted.length; i++) {
+            assertThatType(actualSorted[i]).as("Element %d", i).matches(expectedSorted[i]);
+        }
+    }
+
+    public void matchInAnyOrder(Class<?>... classes) {
+        matchInAnyOrder(ImmutableSet.copyOf(classes));
+    }
+
+    public void matchExactly(Class<?>... classes) {
+        assertThat(TestUtils.namesOf(actual)).as("classes").containsExactlyElementsOf(namesOf(classes));
+        matchInAnyOrder(classes);
+    }
+
+    public JavaTypesAssertion contain(Class<?>... classes) {
+        contain(ImmutableSet.copyOf(classes));
+        return this;
+    }
+
+    public void doNotContain(Class<?>... classes) {
+        assertThat(actualNames()).doesNotContainAnyElementsOf(JavaClass.namesOf(classes));
+    }
+
+    public void contain(Iterable<Class<?>> classes) {
+        List<String> expectedNames = JavaClass.namesOf(Lists.newArrayList(classes));
+        assertThat(actualNames()).as("actual classes").containsAll(expectedNames);
+    }
+
+    private Set<String> actualNames() {
+        Set<String> actualNames = new HashSet<>();
+        for (JavaType javaClass : actual) {
+            actualNames.add(javaClass.getName());
+        }
+        return actualNames;
+    }
+
+    private JavaType[] sortedJavaTypes(JavaType[] javaTypes) {
+        JavaType[] result = Arrays.copyOf(javaTypes, javaTypes.length);
+        sortByName(result);
+        return result;
+    }
+
+    private Class<?>[] sortedClasses(Iterable<Class<?>> classes) {
+        Class<?>[] sorted = toArray(classes, Class.class);
+        sort(sorted, new Comparator<Class<?>>() {
+            @Override
+            public int compare(Class<?> o1, Class<?> o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        return sorted;
+    }
+}

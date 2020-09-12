@@ -134,7 +134,7 @@ class AnnotationPropertiesFormatter {
 
         /**
          * Configures that the identifier is omitted if the annotation is a
-         * <a href="https://docs.oracle.com/javase/specs/jls/se14/html/jls-9.html#jls-9.7.3">single-element annotation</a>
+         * <a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-9.html#jls-9.7.3">single-element annotation</a>
          * and the identifier of the only element is "value".
          *
          * <ul><li>Example with this configuration: {@code @Copyright("2020 Acme Corporation")}</li>

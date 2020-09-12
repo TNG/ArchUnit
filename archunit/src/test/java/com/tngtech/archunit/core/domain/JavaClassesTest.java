@@ -12,7 +12,7 @@ import org.junit.rules.ExpectedException;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
-import static com.tngtech.archunit.testutil.Assertions.assertThatClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,7 +37,7 @@ public class JavaClassesTest {
 
         JavaPackage javaPackage = restrictedClasses.getPackage(SomeClass.class.getPackage().getName());
 
-        assertThatClasses(javaPackage.getClasses()).contain(SomeOtherClass.class);
+        assertThatTypes(javaPackage.getClasses()).contain(SomeOtherClass.class);
     }
 
     @Test

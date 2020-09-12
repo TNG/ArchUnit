@@ -30,13 +30,13 @@ import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.properties.HasDescriptor;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
@@ -102,7 +102,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             RawConstructorCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
-                targetOwner = this.classes.getOrResolve(record.target.owner.getName());
+                targetOwner = this.classes.getOrResolve(record.target.owner.getFullyQualifiedClassName());
                 callerSupplier = createCallerSupplier(record.caller, classes);
             }
 
@@ -154,7 +154,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             RawMethodCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
-                targetOwner = this.classes.getOrResolve(record.target.owner.getName());
+                targetOwner = this.classes.getOrResolve(record.target.owner.getFullyQualifiedClassName());
                 callerSupplier = createCallerSupplier(record.caller, classes);
             }
 
@@ -167,7 +167,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             public MethodCallTarget getTarget() {
                 Supplier<Set<JavaMethod>> methodsSupplier = new MethodTargetSupplier(targetOwner.getAllMethods(), record.target);
                 JavaClassList parameters = getArgumentTypesFrom(record.target.desc, classes);
-                JavaClass returnType = classes.getOrResolve(JavaTypeImporter.importAsmMethodReturnType(record.target.desc).getName());
+                JavaClass returnType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmMethodReturnType(record.target.desc).getFullyQualifiedClassName());
                 return new MethodCallTargetBuilder()
                         .withOwner(targetOwner)
                         .withName(record.target.name)
@@ -207,7 +207,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             RawFieldAccessRecordProcessed(RawAccessRecord.ForField record, ImportedClasses classes) {
                 this.record = record;
                 this.classes = classes;
-                targetOwner = this.classes.getOrResolve(record.target.owner.getName());
+                targetOwner = this.classes.getOrResolve(record.target.owner.getFullyQualifiedClassName());
                 callerSupplier = createCallerSupplier(record.caller, classes);
             }
 
@@ -224,7 +224,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             @Override
             public FieldAccessTarget getTarget() {
                 Supplier<Optional<JavaField>> fieldSupplier = new FieldTargetSupplier(targetOwner.getAllFields(), record.target);
-                JavaClass fieldType = classes.getOrResolve(JavaTypeImporter.importAsmType(record.target.desc).getName());
+                JavaClass fieldType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmType(record.target.desc).getFullyQualifiedClassName());
                 return new FieldAccessTargetBuilder()
                         .withOwner(targetOwner)
                         .withName(record.target.name)
@@ -290,8 +290,8 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
         private static JavaClassList getArgumentTypesFrom(String descriptor, ImportedClasses classes) {
             List<JavaClass> paramTypes = new ArrayList<>();
-            for (JavaType type : JavaTypeImporter.importAsmMethodArgumentTypes(descriptor)) {
-                paramTypes.add(classes.getOrResolve(type.getName()));
+            for (JavaClassDescriptor type : JavaClassDescriptorImporter.importAsmMethodArgumentTypes(descriptor)) {
+                paramTypes.add(classes.getOrResolve(type.getFullyQualifiedClassName()));
             }
             return createJavaClassList(paramTypes);
         }

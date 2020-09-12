@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,15 +45,18 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingClass;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
 import static com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.importer.DomainBuilders.buildAnnotations;
@@ -96,8 +100,8 @@ class ClassGraphCreator implements ImportContext {
 
     JavaClasses complete() {
         ensureCallTargetsArePresent();
-        ensureClassHierarchies();
-        completeMembers();
+        ensureClassHierarchiesAndEnclosingClasses();
+        completeTypeParametersAndMembers();
         completeAnnotations();
         for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
             tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
@@ -108,28 +112,29 @@ class ClassGraphCreator implements ImportContext {
         for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
             tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords);
         }
-        return createJavaClasses(classes.getDirectlyImported(), classes.getAll(), this);
+        return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
     }
 
     private void ensureCallTargetsArePresent() {
         for (RawAccessRecord record : importRecord.getAccessRecords()) {
-            classes.ensurePresent(record.target.owner.getName());
+            classes.ensurePresent(record.target.owner.getFullyQualifiedClassName());
         }
     }
 
-    private void ensureClassHierarchies() {
+    private void ensureClassHierarchiesAndEnclosingClasses() {
         ensureClassesOfHierarchyInContext();
-        for (JavaClass javaClass : classes.getAll().values()) {
+        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
             completeClassHierarchy(javaClass, this);
+            completeEnclosingClass(javaClass, this);
         }
     }
 
     private void ensureClassesOfHierarchyInContext() {
-        for (String superClassName : ImmutableSet.copyOf(importRecord.getSuperClassNamesBySubClass().values())) {
+        for (String superClassName : importRecord.getAllSuperClassNames()) {
             resolveInheritance(superClassName, superClassStrategy);
         }
 
-        for (String superInterfaceName : ImmutableSet.copyOf(importRecord.getInterfaceNamesBySubInterface().values())) {
+        for (String superInterfaceName : importRecord.getAllSuperInterfaceNames()) {
             resolveInheritance(superInterfaceName, interfaceStrategy);
         }
     }
@@ -140,14 +145,15 @@ class ClassGraphCreator implements ImportContext {
         }
     }
 
-    private void completeMembers() {
-        for (JavaClass javaClass : classes.getAll().values()) {
+    private void completeTypeParametersAndMembers() {
+        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
+            DomainObjectCreationContext.completeTypeParameters(javaClass, this);
             DomainObjectCreationContext.completeMembers(javaClass, this);
         }
     }
 
     private void completeAnnotations() {
-        for (JavaClass javaClass : classes.getAll().values()) {
+        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
             DomainObjectCreationContext.completeAnnotations(javaClass, this);
             for (JavaMember member : concat(javaClass.getFields(), javaClass.getMethods(), javaClass.getConstructors())) {
                 memberDependenciesByTarget.registerAnnotations(member.getAnnotations());
@@ -259,6 +265,12 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
+    public List<JavaTypeVariable> createTypeParameters(JavaClass owner) {
+        TypeParametersBuilder typeParametersBuilder = importRecord.getTypeParameterBuildersFor(owner.getName());
+        return typeParametersBuilder.build(owner, classes.byTypeName());
+    }
+
+    @Override
     public Set<JavaField> createFields(JavaClass owner) {
         Set<JavaField> fields = build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
         memberDependenciesByTarget.registerFields(fields);
@@ -289,7 +301,8 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
-        Map<String, JavaAnnotation<JavaClass>> annotations = buildAnnotations(owner, importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
+        Map<String, JavaAnnotation<JavaClass>> annotations =
+                buildAnnotations(owner, importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
         memberDependenciesByTarget.registerAnnotations(annotations.values());
         return annotations;
     }

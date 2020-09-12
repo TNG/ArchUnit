@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -26,6 +27,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +37,14 @@ import static com.google.common.base.Preconditions.checkState;
 class ClassFileImportRecord {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportRecord.class);
 
+    private static final TypeParametersBuilder NO_TYPE_PARAMETERS =
+            new TypeParametersBuilder(Collections.<JavaTypeParameterBuilder>emptySet());
+
     private final Map<String, JavaClass> classes = new HashMap<>();
 
     private final Map<String, String> superClassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
+    private final Map<String, TypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaMethodBuilder> methodBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
@@ -58,6 +65,10 @@ class ClassFileImportRecord {
 
     void addInterfaces(String ownerName, Set<String> interfaceNames) {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
+    }
+
+    public void addTypeParameters(String ownerName, TypeParametersBuilder builder) {
+        typeParametersBuilderByOwner.put(ownerName, builder);
     }
 
     void addField(String ownerName, DomainBuilders.JavaFieldBuilder fieldBuilder) {
@@ -93,6 +104,13 @@ class ClassFileImportRecord {
 
     Set<String> getInterfaceNamesFor(String ownerName) {
         return interfaceNamesByOwner.get(ownerName);
+    }
+
+    TypeParametersBuilder getTypeParameterBuildersFor(String ownerName) {
+        if (!typeParametersBuilderByOwner.containsKey(ownerName)) {
+            return NO_TYPE_PARAMETERS;
+        }
+        return typeParametersBuilderByOwner.get(ownerName);
     }
 
     Set<DomainBuilders.JavaFieldBuilder> getFieldBuildersFor(String ownerName) {
@@ -161,12 +179,12 @@ class ClassFileImportRecord {
                 .build();
     }
 
-    Map<String, String> getSuperClassNamesBySubClass() {
-        return superClassNamesByOwner;
+    Set<String> getAllSuperClassNames() {
+        return ImmutableSet.copyOf(superClassNamesByOwner.values());
     }
 
-    SetMultimap<String, String> getInterfaceNamesBySubInterface() {
-        return interfaceNamesByOwner;
+    Set<String> getAllSuperInterfaceNames() {
+        return ImmutableSet.copyOf(interfaceNamesByOwner.values());
     }
 
     // NOTE: ASM calls visitInnerClass and visitOuterClass several times, sometimes when the outer class is imported

@@ -241,7 +241,7 @@ public class AnnotationProxyTest {
     public void array_is_converted_to_the_correct_type() {
         ImportTestUtils.ImportedTestClasses importedClasses = simpleImportedClasses();
         JavaAnnotation<?> annotation = new JavaAnnotationTestBuilder()
-                .withType(JavaType.From.name(TestAnnotation.class.getName()))
+                .withType(JavaClassDescriptor.From.name(TestAnnotation.class.getName()))
                 .addProperty("types", new Object[0])
                 .addProperty("enumConstants", new Object[0])
                 .addProperty("subAnnotations", new Object[0])
@@ -333,9 +333,9 @@ public class AnnotationProxyTest {
 
         Class<?> typeWithDefault() default Serializable.class;
 
-        Class[] types();
+        Class<?>[] types();
 
-        Class[] typesWithDefault() default {Serializable.class, String.class};
+        Class<?>[] typesWithDefault() default {Serializable.class, String.class};
 
         TestEnum enumConstant();
 

@@ -120,7 +120,7 @@ class AnnotationProxy {
 
         @Override
         public Class<?> convert(JavaClass input, Class<?> returnType) {
-            return JavaType.From.javaClass(input).resolveClass(classLoader);
+            return JavaClassDescriptor.From.javaClass(input).resolveClass(classLoader);
         }
 
         @Override
@@ -150,7 +150,7 @@ class AnnotationProxy {
     private static class JavaEnumConstantConversion implements Conversion<JavaEnumConstant> {
         @Override
         public Enum<?> convert(JavaEnumConstant input, Class<?> returnType) {
-            for (Object constant : JavaType.From.javaClass(input.getDeclaringClass()).resolveClass().getEnumConstants()) {
+            for (Object constant : JavaClassDescriptor.From.javaClass(input.getDeclaringClass()).resolveClass().getEnumConstants()) {
                 Enum<?> anEnum = (Enum<?>) constant;
                 if (anEnum.name().equals(input.name())) {
                     return anEnum;
@@ -196,7 +196,7 @@ class AnnotationProxy {
             // JavaAnnotation.getType() will return the type name of a Class<? extends Annotation>
             @SuppressWarnings("unchecked")
             Class<? extends Annotation> type = (Class<? extends Annotation>)
-                    JavaType.From.javaClass(input.getRawType()).resolveClass(classLoader);
+                    JavaClassDescriptor.From.javaClass(input.getRawType()).resolveClass(classLoader);
             return AnnotationProxy.of(type, input);
         }
 

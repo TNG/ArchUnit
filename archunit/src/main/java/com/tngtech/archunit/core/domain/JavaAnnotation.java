@@ -120,6 +120,11 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
     }
 
     @Override
+    public JavaType getType() {
+        return type;
+    }
+
+    @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass getRawType() {
         return type;

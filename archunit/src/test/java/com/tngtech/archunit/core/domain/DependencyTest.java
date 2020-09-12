@@ -24,6 +24,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
@@ -33,7 +34,7 @@ public class DependencyTest {
         JavaMethodCall call = simulateCall().from(getClass(), "toString").to(Object.class, "toString");
 
         Dependency dependency = Dependency.tryCreateFromAccess(call).get();
-        assertThat(dependency.getTargetClass()).as("target class").isEqualTo(call.getTargetOwner());
+        assertThatType(dependency.getTargetClass()).as("target class").isEqualTo(call.getTargetOwner());
         assertThat(dependency.getDescription())
                 .as("description").isEqualTo(call.getDescription());
     }
@@ -65,8 +66,8 @@ public class DependencyTest {
 
         Dependency dependency = Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration).get();
 
-        assertThat(dependency.getOriginClass()).matches(ClassWithDependencyOnThrowable.class);
-        assertThat(dependency.getTargetClass()).matches(IOException.class);
+        assertThatType(dependency.getOriginClass()).matches(ClassWithDependencyOnThrowable.class);
+        assertThatType(dependency.getTargetClass()).matches(IOException.class);
         assertThat(dependency.getDescription()).as("description")
                 .contains("Method <" + origin.getFullName() + "> throws type <" + IOException.class.getName() + ">");
     }
@@ -88,8 +89,8 @@ public class DependencyTest {
         Class<?> annotationClass = annotation.getRawType().reflect();
 
         Dependency dependency = Dependency.tryCreateFromAnnotation(annotation).get();
-        assertThat(dependency.getOriginClass()).isEqualTo(annotatedClass);
-        assertThat(dependency.getTargetClass()).matches(annotationClass);
+        assertThatType(dependency.getOriginClass()).isEqualTo(annotatedClass);
+        assertThatType(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
                 .contains("Class <" + annotatedClass.getName() + "> is annotated with <" + annotationClass.getName() + ">");
     }
@@ -112,8 +113,8 @@ public class DependencyTest {
         Class<?> annotationClass = annotation.getRawType().reflect();
 
         Dependency dependency = Dependency.tryCreateFromAnnotation(annotation).get();
-        assertThat(dependency.getOriginClass()).matches(ClassWithAnnotatedMembers.class);
-        assertThat(dependency.getTargetClass()).matches(annotationClass);
+        assertThatType(dependency.getOriginClass()).matches(ClassWithAnnotatedMembers.class);
+        assertThatType(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
                 .contains(annotatedMember.getDescription() + " is annotated with <" + annotationClass.getName() + ">");
     }
@@ -125,8 +126,8 @@ public class DependencyTest {
         JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
         Dependency dependency = Dependency.tryCreateFromAnnotationMember(annotation, memberType).get();
-        assertThat(dependency.getOriginClass()).isEqualTo(annotatedClass);
-        assertThat(dependency.getTargetClass()).isEqualTo(memberType);
+        assertThatType(dependency.getOriginClass()).isEqualTo(annotatedClass);
+        assertThatType(dependency.getTargetClass()).isEqualTo(memberType);
         assertThat(dependency.getDescription()).as("description")
                 .contains("Class <" + annotatedClass.getName() + "> has annotation member of type <" + memberType.getName() + ">");
     }
@@ -138,8 +139,8 @@ public class DependencyTest {
         JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
         Dependency dependency = Dependency.tryCreateFromAnnotationMember(annotation, memberType).get();
-        assertThat(dependency.getOriginClass()).isEqualTo(annotatedMember.getOwner());
-        assertThat(dependency.getTargetClass()).isEqualTo(memberType);
+        assertThatType(dependency.getOriginClass()).isEqualTo(annotatedMember.getOwner());
+        assertThatType(dependency.getTargetClass()).isEqualTo(memberType);
         assertThat(dependency.getDescription()).as("description")
                 .contains(annotatedMember.getDescription() + " has annotation member of type <" + memberType.getName() + ">");
     }
@@ -198,14 +199,14 @@ public class DependencyTest {
 
     @Test
     public void functions() {
-        assertThat(GET_ORIGIN_CLASS.apply(createDependency(Origin.class, Target.class))).matches(Origin.class);
-        assertThat(GET_TARGET_CLASS.apply(createDependency(Origin.class, Target.class))).matches(Target.class);
+        assertThatType(GET_ORIGIN_CLASS.apply(createDependency(Origin.class, Target.class))).matches(Origin.class);
+        assertThatType(GET_TARGET_CLASS.apply(createDependency(Origin.class, Target.class))).matches(Target.class);
     }
 
     private Dependency createDependency(JavaClass origin, JavaClass target) {
         Dependency dependency = Dependency.fromInheritance(origin, target);
-        assertThat(dependency.getOriginClass()).as("origin class").isEqualTo(origin);
-        assertThat(dependency.getTargetClass()).as("target class").isEqualTo(target);
+        assertThatType(dependency.getOriginClass()).as("origin class").isEqualTo(origin);
+        assertThatType(dependency.getTargetClass()).as("target class").isEqualTo(target);
         return dependency;
     }
 
@@ -257,10 +258,12 @@ public class DependencyTest {
     }
 
     @SomeAnnotation(SomeMemberType.class)
-    private static class ClassWithDependencyOnAnnotation { }
+    private interface InterfaceWithDependencyOnAnnotation {
+    }
 
     @SomeAnnotation(SomeMemberType.class)
-    private interface InterfaceWithDependencyOnAnnotation { }
+    private static class ClassWithDependencyOnAnnotation {
+    }
 
     @SuppressWarnings("unused")
     private static class ClassWithAnnotatedMembers {

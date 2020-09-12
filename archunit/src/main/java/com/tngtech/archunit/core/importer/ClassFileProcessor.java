@@ -24,6 +24,7 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
@@ -87,28 +88,33 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void onDeclaredTypeParameters(TypeParametersBuilder typeParametersBuilder) {
+            importRecord.addTypeParameters(ownerName, typeParametersBuilder);
+        }
+
+        @Override
         public void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder) {
             importRecord.addField(ownerName, fieldBuilder);
         }
 
         @Override
-        public void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder builder) {
-            importRecord.addConstructor(ownerName, builder);
+        public void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder) {
+            importRecord.addConstructor(ownerName, constructorBuilder);
         }
 
         @Override
-        public void onDeclaredMethod(DomainBuilders.JavaMethodBuilder builder) {
-            importRecord.addMethod(ownerName, builder);
+        public void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder) {
+            importRecord.addMethod(ownerName, methodBuilder);
         }
 
         @Override
-        public void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder builder) {
-            importRecord.setStaticInitializer(ownerName, builder);
+        public void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
+            importRecord.setStaticInitializer(ownerName, staticInitializerBuilder);
         }
 
         @Override
-        public void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotations) {
-            importRecord.addAnnotations(ownerName, annotations);
+        public void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
+            importRecord.addAnnotations(ownerName, annotationBuilders);
         }
 
         @Override
