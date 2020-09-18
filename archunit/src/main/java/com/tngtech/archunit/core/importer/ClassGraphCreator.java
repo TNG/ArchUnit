@@ -162,14 +162,21 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void resolveAnnotationHierarchy(JavaClass javaClass) {
-        for (String annotationName : importRecord.getAnnotationTypeNamesFor(javaClass)) {
-            boolean hadBeenPreviouslyResolved = classes.isPresent(annotationName);
-            JavaClass annotationType = classes.getOrResolve(annotationName);
+        for (String annotationTypeName : getAnnotationTypeNamesToResolveFor(javaClass)) {
+            boolean hadBeenPreviouslyResolved = classes.isPresent(annotationTypeName);
+            JavaClass annotationType = classes.getOrResolve(annotationTypeName);
 
             if (!hadBeenPreviouslyResolved) {
                 resolveAnnotationHierarchy(annotationType);
             }
         }
+    }
+
+    private Set<String> getAnnotationTypeNamesToResolveFor(JavaClass javaClass) {
+        return ImmutableSet.<String>builder()
+                .addAll(importRecord.getAnnotationTypeNamesFor(javaClass))
+                .addAll(importRecord.getMemberAnnotationTypeNamesFor(javaClass))
+                .build();
     }
 
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
