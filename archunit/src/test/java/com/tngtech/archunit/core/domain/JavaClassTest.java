@@ -297,6 +297,17 @@ public class JavaClassTest {
     }
 
     @Test
+    public void isMetaAnnotatedWith_correctly_resolves_cyclic_annotations() {
+        JavaClass javaClass = importClasses(ClassWithCyclicMetaAnnotation.class,
+                AnnotationWithCyclicAnnotation.class, MetaAnnotationWithCyclicAnnotation.class,
+                Retention.class).get(ClassWithCyclicMetaAnnotation.class);
+
+        assertThat(javaClass.isMetaAnnotatedWith(Deprecated.class)).isFalse();
+        assertThat(javaClass.isMetaAnnotatedWith(Retention.class)).isTrue();
+        assertThat(javaClass.isMetaAnnotatedWith(MetaAnnotationWithCyclicAnnotation.class)).isTrue();
+    }
+
+    @Test
     public void allAccesses_contains_accesses_from_superclass() {
         JavaClass javaClass = importClasses(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
@@ -1481,6 +1492,20 @@ public class JavaClassTest {
 
     enum SomeEnumAsAnnotationArrayParameter {
         ANNOTATION_ARRAY_PARAMETER
+    }
+
+    @AnnotationWithCyclicAnnotation
+    @Retention(RUNTIME)
+    @interface MetaAnnotationWithCyclicAnnotation {
+    }
+
+    @AnnotationWithCyclicAnnotation
+    @MetaAnnotationWithCyclicAnnotation
+    @interface AnnotationWithCyclicAnnotation {
+    }
+
+    @AnnotationWithCyclicAnnotation
+    private static class ClassWithCyclicMetaAnnotation {
     }
 
     @SuppressWarnings("ALL")
