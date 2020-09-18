@@ -24,6 +24,7 @@ import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -150,6 +151,28 @@ class ClassFileImportRecord {
 
     Set<DomainBuilders.JavaAnnotationBuilder> getAnnotationsFor(JavaClass owner) {
         return annotationsByOwner.get(owner.getName());
+    }
+
+    Set<String> getMemberAnnotationTypeNamesFor(JavaClass owner) {
+        Iterable<DomainBuilders.JavaMemberBuilder<?, ?>> memberBuilders = Iterables.concat(
+                fieldBuildersByOwner.get(owner.getName()),
+                methodBuildersByOwner.get(owner.getName()),
+                constructorBuildersByOwner.get(owner.getName()),
+                nullToEmpty(staticInitializerBuildersByOwner.get(owner.getName())));
+
+        ImmutableSet.Builder<String> result = ImmutableSet.builder();
+        for (DomainBuilders.JavaMemberBuilder<?, ?> memberBuilder : memberBuilders) {
+            for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : annotationsByOwner.get(getMemberKey(owner.getName(), memberBuilder.getName(), memberBuilder.getDescriptor()))) {
+                result.add(annotationBuilder.getFullyQualifiedClassName());
+            }
+        }
+        return result.build();
+    }
+
+    private Iterable<DomainBuilders.JavaMemberBuilder<?, ?>> nullToEmpty(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
+        return staticInitializerBuilder != null
+                ? Collections.<DomainBuilders.JavaMemberBuilder<?, ?>>singleton(staticInitializerBuilder)
+                : Collections.<DomainBuilders.JavaMemberBuilder<?, ?>>emptySet();
     }
 
     Set<DomainBuilders.JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {

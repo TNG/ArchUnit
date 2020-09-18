@@ -708,8 +708,7 @@ public class ClassFileImporterTest {
                 .getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.get("mandatory")).contains("mandatory");
-        // NOTE: If we haven't imported the annotation itself, the import can't determine default values
-        assertThat(annotation.get("optional")).isAbsent();
+        assertThat(annotation.get("optional")).contains("optional");
 
         SomeAnnotation reflected = annotation.as(SomeAnnotation.class);
         assertThat(reflected.mandatory()).isEqualTo("mandatory");
@@ -902,8 +901,7 @@ public class ClassFileImporterTest {
                 .getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.get("mandatory")).contains("mandatory");
-        // NOTE: If we haven't imported the annotation itself, the import can't determine default values
-        assertThat(annotation.get("optional")).isAbsent();
+        assertThat(annotation.get("optional")).contains("optional");
 
         SomeAnnotation reflected = annotation.as(SomeAnnotation.class);
         assertThat(reflected.mandatory()).isEqualTo("mandatory");
