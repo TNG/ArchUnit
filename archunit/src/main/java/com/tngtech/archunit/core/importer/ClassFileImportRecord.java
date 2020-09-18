@@ -140,6 +140,14 @@ class ClassFileImportRecord {
         return Optional.fromNullable(staticInitializerBuildersByOwner.get(ownerName));
     }
 
+    Set<String> getAnnotationTypeNamesFor(JavaClass owner) {
+        ImmutableSet.Builder<String> result = ImmutableSet.builder();
+        for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : annotationsByOwner.get(owner.getName())) {
+            result.add(annotationBuilder.getFullyQualifiedClassName());
+        }
+        return result.build();
+    }
+
     Set<DomainBuilders.JavaAnnotationBuilder> getAnnotationsFor(JavaClass owner) {
         return annotationsByOwner.get(owner.getName());
     }
