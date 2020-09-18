@@ -61,6 +61,10 @@ class ImportedClasses {
         return javaClass;
     }
 
+    boolean isPresent(String typeName) {
+        return allClasses.containsKey(typeName);
+    }
+
     void ensurePresent(String typeName) {
         getOrResolve(typeName);
     }
@@ -90,5 +94,4 @@ class ImportedClasses {
             builder.withModifiers(PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS);
         }
     }
-
 }

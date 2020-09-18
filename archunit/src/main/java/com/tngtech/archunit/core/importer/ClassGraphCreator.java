@@ -105,6 +105,7 @@ class ClassGraphCreator implements ImportContext {
     JavaClasses complete() {
         ensureCallTargetsArePresent();
         ensureClassesOfInheritanceHierarchiesArePresent();
+        ensureMetaAnnotationsArePresent();
         completeClasses();
         completeAccesses();
         return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
@@ -151,6 +152,23 @@ class ClassGraphCreator implements ImportContext {
         }
         for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
             tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords);
+        }
+    }
+
+    private void ensureMetaAnnotationsArePresent() {
+        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
+            resolveAnnotationHierarchy(javaClass);
+        }
+    }
+
+    private void resolveAnnotationHierarchy(JavaClass javaClass) {
+        for (String annotationName : importRecord.getAnnotationTypeNamesFor(javaClass)) {
+            boolean hadBeenPreviouslyResolved = classes.isPresent(annotationName);
+            JavaClass annotationType = classes.getOrResolve(annotationName);
+
+            if (!hadBeenPreviouslyResolved) {
+                resolveAnnotationHierarchy(annotationType);
+            }
         }
     }
 

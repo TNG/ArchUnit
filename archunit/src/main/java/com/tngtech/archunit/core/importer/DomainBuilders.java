@@ -436,6 +436,10 @@ public final class DomainBuilders {
             return type;
         }
 
+        String getFullyQualifiedClassName() {
+            return type.getFullyQualifiedClassName();
+        }
+
         JavaAnnotationBuilder addProperty(String key, ValueBuilder valueBuilder) {
             values.put(key, valueBuilder);
             return this;
