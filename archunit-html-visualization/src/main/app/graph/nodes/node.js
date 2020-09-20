@@ -641,24 +641,24 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     }
 
     _setDependencyInForegroundOrBackground(dependency) {
-        const nodeOverlapsDependencyEndPointButIsNotSibling = (siblingContainingEndNode, node, point) =>
-        !siblingContainingEndNode !== node && node._nodeShape.containsPoint(point);
+      const nodeOverlapsDependencyEndPointButIsNotSibling = (siblingContainingEndNode, node, point) =>
+      !siblingContainingEndNode !== node && node._nodeShape.containsPoint(point);
 
-        const siblingOverlappingStartNode = new Set(this.parent._filteredChildren.filter(c =>
-        nodeOverlapsDependencyEndPointButIsNotSibling(dependency.siblingContainingOrigin, c, dependency.dependency.startPoint)));
-        const siblingOverlappingEndNode = new Set(this.parent._filteredChildren.filter(c =>
-        nodeOverlapsDependencyEndPointButIsNotSibling(dependency.siblingContainingTarget, c, dependency.dependency.endPoint)));
+      const siblingOverlappingStartNode = new Set(this.parent._filteredChildren.filter(c =>
+      nodeOverlapsDependencyEndPointButIsNotSibling(dependency.siblingContainingOrigin, c, dependency.dependency.startPoint)));
+      const siblingOverlappingEndNode = new Set(this.parent._filteredChildren.filter(c =>
+      nodeOverlapsDependencyEndPointButIsNotSibling(dependency.siblingContainingTarget, c, dependency.dependency.endPoint)));
 
-        const endNodes = [dependency.siblingContainingOrigin, dependency.siblingContainingTarget];
+      const endNodes = [dependency.siblingContainingOrigin, dependency.siblingContainingTarget];
 
-        const nodeOverlapsBothEndPointsAndLiesInBetween = () => [...siblingOverlappingStartNode].some(n => siblingOverlappingEndNode.has(n) &&
-        endNodes.some(e => e._layerWithinParentNode > n._layerWithinParentNode)
-        && endNodes.some(e => e._layerWithinParentNode < n._layerWithinParentNode));
-        const nodeOverlapsOneEndPointAndLiesInFrontOfTheOverlappedNodeButBehindTheOther = () =>
-        [...siblingOverlappingStartNode].some(n => n._layerWithinParentNode > dependency.siblingContainingOrigin._layerWithinParentNode && n._layerWithinParentNode < dependency.siblingContainingTarget._layerWithinParentNode)
-        || [...siblingOverlappingEndNode].some(n => n._layerWithinParentNode > dependency.siblingContainingTarget._layerWithinParentNode && n._layerWithinParentNode < dependency.siblingContainingOrigin._layerWithinParentNode);
+      const nodeOverlapsBothEndPointsAndLiesInBetween = () => [...siblingOverlappingStartNode].some(n => siblingOverlappingEndNode.has(n) &&
+      endNodes.some(e => e._layerWithinParentNode > n._layerWithinParentNode)
+      && endNodes.some(e => e._layerWithinParentNode < n._layerWithinParentNode));
+      const nodeOverlapsOneEndPointAndLiesInFrontOfTheOverlappedNodeButBehindTheOther = () =>
+      [...siblingOverlappingStartNode].some(n => n._layerWithinParentNode > dependency.siblingContainingOrigin._layerWithinParentNode && n._layerWithinParentNode < dependency.siblingContainingTarget._layerWithinParentNode)
+      || [...siblingOverlappingEndNode].some(n => n._layerWithinParentNode > dependency.siblingContainingTarget._layerWithinParentNode && n._layerWithinParentNode < dependency.siblingContainingOrigin._layerWithinParentNode);
 
-        if (nodeOverlapsBothEndPointsAndLiesInBetween() || nodeOverlapsOneEndPointAndLiesInFrontOfTheOverlappedNodeButBehindTheOther()) {
+      if (nodeOverlapsBothEndPointsAndLiesInBetween() || nodeOverlapsOneEndPointAndLiesInFrontOfTheOverlappedNodeButBehindTheOther()) {
         dependency.dependency.setContainerEndNodeToEndNodeInBackground();
       } else {
         dependency.dependency.setContainerEndNodeToEndNodeInForeground();
