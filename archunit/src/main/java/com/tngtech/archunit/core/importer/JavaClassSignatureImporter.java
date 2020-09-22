@@ -41,8 +41,8 @@ import static com.google.common.base.Functions.compose;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
 
-class JavaGenericTypeImporter {
-    private static final Logger log = LoggerFactory.getLogger(JavaGenericTypeImporter.class);
+class JavaClassSignatureImporter {
+    private static final Logger log = LoggerFactory.getLogger(JavaClassSignatureImporter.class);
 
     static void parseAsmTypeSignature(String signature, DeclarationHandler declarationHandler) {
         if (signature == null) {
@@ -51,15 +51,15 @@ class JavaGenericTypeImporter {
 
         log.trace("Analyzing signature: {}", signature);
 
-        JavaTypeVariableProcessor typeVariableProcessor = new JavaTypeVariableProcessor();
-        new SignatureReader(signature).accept(typeVariableProcessor);
-        declarationHandler.onDeclaredTypeParameters(new TypeParametersBuilder(typeVariableProcessor.getTypeParameterBuilders()));
+        SignatureProcessor signatureProcessor = new SignatureProcessor();
+        new SignatureReader(signature).accept(signatureProcessor);
+        declarationHandler.onDeclaredTypeParameters(new TypeParametersBuilder(signatureProcessor.getTypeParameterBuilders()));
     }
 
-    private static class JavaTypeVariableProcessor extends SignatureVisitor {
+    private static class SignatureProcessor extends SignatureVisitor {
         private final BoundProcessor boundProcessor = new BoundProcessor();
 
-        JavaTypeVariableProcessor() {
+        SignatureProcessor() {
             super(ASM_API_VERSION);
         }
 
@@ -238,7 +238,6 @@ class JavaGenericTypeImporter {
         }
 
         @Override
-        @SuppressWarnings("ConstantConditions") // we never return null by convention
         public void visitClassType(String internalObjectName) {
             JavaClassDescriptor type = typeMapping.apply(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
             log.trace("Encountered {} for {}: Class type {}", typeArgumentType.description, parameterizedType.getTypeName(), type.getFullyQualifiedClassName());

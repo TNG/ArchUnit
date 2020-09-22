@@ -114,7 +114,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         className = descriptor.getFullyQualifiedClassName();
         declarationHandler.onNewClass(className, superclassName, interfaceNames);
-        JavaGenericTypeImporter.parseAsmTypeSignature(signature, declarationHandler);
+        JavaClassSignatureImporter.parseAsmTypeSignature(signature, declarationHandler);
     }
 
     private boolean alreadyImported(JavaClassDescriptor descriptor) {
