@@ -161,7 +161,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
     }
 
     public static JavaFieldAssertion assertThat(FieldAccessTarget target) {
-        return assertThat(target.resolveField().get());
+        return assertThat(target.resolveMember().get());
     }
 
     public static JavaFieldAssertion assertThat(JavaField field) {

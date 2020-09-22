@@ -2,7 +2,9 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Method;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitCallTarget;
 import org.junit.Test;
@@ -156,10 +158,20 @@ public class AccessTargetTest {
     }
 
     @Test
-    public void throws_declarations_on_non_unique_call_Targets_are_intersected() {
+    public void throws_declarations_on_non_unique_call_Targets_match_Reflection_API() {
         CodeUnitCallTarget target = getTarget("diamondMethod");
 
-        assertDeclarations(target, SecondCheckedException.class, ThirdCheckedException.class);
+        assertDeclarations(target, FirstCheckedException.class, SecondCheckedException.class, ThirdCheckedException.class);
+    }
+
+    @Test
+    public void function_resolve_member() {
+        CodeUnitCallTarget target = getTarget("diamondMethod");
+
+        assertThat(AccessTarget.Functions.RESOLVE_MEMBER.apply(target))
+                .contains(target.resolveMember().get());
+        assertThat(AccessTarget.Functions.RESOLVE.apply(target))
+                .isEqualTo(ImmutableSet.of(target.resolveMember().get()));
     }
 
     @Test
@@ -202,12 +214,23 @@ public class AccessTargetTest {
     }
 
     private void assertDeclarations(CodeUnitCallTarget target, Class<?>... exceptionTypes) {
+        Method reflectedMethod = publicMethod(target.getOwner().reflect(), target.getName());
+        assertThat(reflectedMethod.getExceptionTypes()).containsOnly(exceptionTypes);
+
         ThrowsClause<CodeUnitCallTarget> throwsClause = target.getThrowsClause();
         assertThatTypes(throwsClause.getTypes()).matchExactly(exceptionTypes);
         for (ThrowsDeclaration<CodeUnitCallTarget> throwsDeclaration : throwsClause) {
             assertThatType(throwsDeclaration.getDeclaringClass()).isEqualTo(target.getOwner());
             assertThat(throwsDeclaration.getOwner()).isEqualTo(target.getThrowsClause());
             assertThat(throwsDeclaration.getLocation()).isEqualTo(target);
+        }
+    }
+
+    private Method publicMethod(Class<?> clazz, String methodName) {
+        try {
+            return clazz.getMethod(methodName);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -225,7 +248,7 @@ public class AccessTargetTest {
         throw new AssertionError(String.format("Couldn't find target %s.%s", javaClass.getSimpleName(), targetName));
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private static class Origin {
         private Target target;
         private C c;
@@ -259,10 +282,10 @@ public class AccessTargetTest {
         void withoutThrowsDeclaration() {
         }
 
-        void withASingleThrowsDeclaration() throws FirstCheckedException {
+        public void withASingleThrowsDeclaration() throws FirstCheckedException {
         }
 
-        void withMultipleThrowsDeclarations() throws FirstCheckedException, SecondCheckedException {
+        public void withMultipleThrowsDeclarations() throws FirstCheckedException, SecondCheckedException {
         }
     }
 

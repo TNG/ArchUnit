@@ -15,19 +15,15 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedHashMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
@@ -40,7 +36,6 @@ import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
@@ -48,8 +43,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
-import static java.util.Collections.singletonList;
+import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 
 interface AccessRecord<TARGET extends AccessTarget> {
     JavaCodeUnit getCaller();
@@ -172,7 +166,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public MethodCallTarget getTarget() {
-                Supplier<Set<JavaMethod>> methodsSupplier = new MethodTargetSupplier(targetOwner.getAllMethods(), record.target);
+                Supplier<Optional<JavaMethod>> methodsSupplier = new MethodTargetSupplier(targetOwner, record.target);
                 List<JavaClass> parameters = getArgumentTypesFrom(record.target.desc, classes);
                 JavaClass returnType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmMethodReturnType(record.target.desc).getFullyQualifiedClassName());
                 return new MethodCallTargetBuilder()
@@ -180,7 +174,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                         .withName(record.target.name)
                         .withParameters(parameters)
                         .withReturnType(returnType)
-                        .withMethods(methodsSupplier)
+                        .withMethod(methodsSupplier)
                         .build();
             }
 
@@ -189,18 +183,18 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 return record.lineNumber;
             }
 
-            private static class MethodTargetSupplier implements Supplier<Set<JavaMethod>> {
-                private final Set<JavaMethod> allMethods;
+            private static class MethodTargetSupplier implements Supplier<Optional<JavaMethod>> {
+                private final JavaClass targetOwner;
                 private final TargetInfo target;
 
-                MethodTargetSupplier(Set<JavaMethod> allMethods, TargetInfo target) {
-                    this.allMethods = allMethods;
+                MethodTargetSupplier(JavaClass targetOwner, TargetInfo target) {
+                    this.targetOwner = targetOwner;
                     this.target = target;
                 }
 
                 @Override
-                public Set<JavaMethod> get() {
-                    return tryFindMatchingTargets(allMethods, target, METHOD_SIGNATURE_PREDICATE);
+                public Optional<JavaMethod> get() {
+                    return searchTargetMethod(targetOwner, target);
                 }
             }
         }
@@ -230,7 +224,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public FieldAccessTarget getTarget() {
-                Supplier<Optional<JavaField>> fieldSupplier = new FieldTargetSupplier(targetOwner.getAllFields(), record.target);
+                Supplier<Optional<JavaField>> fieldSupplier = new FieldTargetSupplier(targetOwner, record.target);
                 JavaClass fieldType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(record.target.desc).getFullyQualifiedClassName());
                 return new FieldAccessTargetBuilder()
                         .withOwner(targetOwner)
@@ -246,17 +240,17 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
 
             private static class FieldTargetSupplier implements Supplier<Optional<JavaField>> {
-                private final Set<JavaField> allFields;
+                private final JavaClass targetOwner;
                 private final TargetInfo target;
 
-                FieldTargetSupplier(Set<JavaField> allFields, TargetInfo target) {
-                    this.allFields = allFields;
+                FieldTargetSupplier(JavaClass targetOwner, TargetInfo target) {
+                    this.targetOwner = targetOwner;
                     this.target = target;
                 }
 
                 @Override
                 public Optional<JavaField> get() {
-                    return uniqueTargetIn(tryFindMatchingTargets(allFields, target, FIELD_SIGNATURE_PREDICATE));
+                    return searchTargetField(targetOwner, target);
                 }
             }
         }
@@ -280,63 +274,6 @@ interface AccessRecord<TARGET extends AccessTarget> {
                     " that matches supposed caller " + caller);
         }
 
-        private static <MEMBER extends JavaMember, TARGET extends TargetInfo> Set<MEMBER>
-        tryFindMatchingTargets(Set<MEMBER> possibleTargets, TARGET target, SignaturePredicate<TARGET> signaturePredicate) {
-            ImmutableSet.Builder<MEMBER> result = ImmutableSet.builder();
-            for (MEMBER possibleTarget : possibleTargets) {
-                if (matches(possibleTarget, target, signaturePredicate)) {
-                    result.add(possibleTarget);
-                }
-            }
-            return result.build();
-        }
-
-        private static <MEMBER extends JavaMember, TARGET extends TargetInfo> boolean matches(MEMBER member, TARGET target, SignaturePredicate<TARGET> signaturePredicate) {
-            if (!target.name.equals(member.getName()) || !target.desc.equals(member.getDescriptor())) {
-                return false;
-            }
-            return target.owner.getFullyQualifiedClassName().equals(member.getOwner().getName()) ||
-                    containsExactlyOneMatch(new ClassHierarchyPath(target.owner, member.getOwner()), target, signaturePredicate);
-        }
-
-        private static <TARGET extends TargetInfo> boolean containsExactlyOneMatch(Iterable<JavaClass> classes, TARGET target, SignaturePredicate<TARGET> signaturePredicate) {
-            Set<JavaClass> matching = new HashSet<>();
-            for (JavaClass javaClass : classes) {
-                if (signaturePredicate.exists(javaClass, target)) {
-                    matching.add(javaClass);
-                }
-            }
-            return matching.size() == 1;
-        }
-
-        private interface SignaturePredicate<TARGET extends TargetInfo> {
-            boolean exists(JavaClass clazz, TARGET target);
-        }
-
-        private static final SignaturePredicate<TargetInfo> FIELD_SIGNATURE_PREDICATE = new SignaturePredicate<TargetInfo>() {
-            @Override
-            public boolean exists(JavaClass clazz, TargetInfo target) {
-                Optional<JavaField> field = clazz.tryGetField(target.name);
-                return field.isPresent() && target.desc.equals(field.get().getDescriptor());
-            }
-        };
-
-        private static final SignaturePredicate<TargetInfo> METHOD_SIGNATURE_PREDICATE = new SignaturePredicate<TargetInfo>() {
-            @Override
-            public boolean exists(JavaClass clazz, TargetInfo target) {
-                for (JavaMethod method : clazz.getMethods()) {
-                    if (method.getName().equals(target.name) && method.getDescriptor().equals(target.desc)) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
-
-        private static <T> Optional<T> uniqueTargetIn(Collection<T> collection) {
-            return collection.size() == 1 ? Optional.of(getOnlyElement(collection)) : Optional.<T>empty();
-        }
-
         private static List<JavaClass> getArgumentTypesFrom(String descriptor, ImportedClasses classes) {
             ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
             for (JavaClassDescriptor type : JavaClassDescriptorImporter.importAsmMethodArgumentTypes(descriptor)) {
@@ -345,150 +282,123 @@ interface AccessRecord<TARGET extends AccessTarget> {
             return result.build();
         }
 
-        private static class ClassHierarchyPath implements Iterable<JavaClass> {
-            private final List<JavaClass> path;
-
-            public ClassHierarchyPath(JavaClassDescriptor childType, JavaClass parent) {
-                Optional<JavaClass> child = tryFindChildInHierarchy(childType, parent);
-                path = child.isPresent() ? createPath(parent, child.get()) : Collections.<JavaClass>emptyList();
+        private static Optional<JavaField> searchTargetField(JavaClass targetOwner, TargetInfo targetInfo) {
+            Optional<JavaField> directlyFound = targetOwner.tryGetField(targetInfo.name);
+            if (directlyFound.isPresent()) {
+                return directlyFound;
             }
 
-            private Optional<JavaClass> tryFindChildInHierarchy(JavaClassDescriptor childType, JavaClass parent) {
-                for (JavaClass subclass : parent.getAllSubclasses()) {
-                    if (subclass.getName().equals(childType.getFullyQualifiedClassName())) {
-                        return Optional.of(subclass);
+            // if a matching field has been found in an interface, it must be the one and only matching field,
+            // since it is public static final and the compiler would forbid the call without disambiguation otherwise
+            Optional<JavaField> foundOnInterface = searchFieldInInterfaces(targetOwner, targetInfo);
+            if (foundOnInterface.isPresent()) {
+                return foundOnInterface;
+            }
+
+            return searchFieldInSuperClass(targetOwner, targetInfo);
+        }
+
+        private static Optional<JavaField> searchFieldInInterfaces(JavaClass targetOwner, TargetInfo targetInfo) {
+            for (JavaClass rawInterface : targetOwner.getRawInterfaces()) {
+                Optional<JavaField> foundOnInterface = searchTargetField(rawInterface, targetInfo);
+                if (foundOnInterface.isPresent()) {
+                    return foundOnInterface;
+                }
+            }
+            return Optional.empty();
+        }
+
+        private static Optional<JavaField> searchFieldInSuperClass(JavaClass targetOwner, TargetInfo targetInfo) {
+            return targetOwner.getRawSuperclass().isPresent()
+                    ? searchTargetField(targetOwner.getRawSuperclass().get(), targetInfo)
+                    : Optional.<JavaField>empty();
+        }
+
+        private static Optional<JavaMethod> searchTargetMethod(JavaClass targetOwner, TargetInfo targetInfo) {
+            MatchingMethods matchingMethods = new MatchingMethods(targetInfo);
+            matchingMethods.addMatching(targetOwner.getMethods(), true);
+            return matchingMethods.hasMatch()
+                    // shortcut -> if we found it directly in the class we don't need to look further up the hierarchy
+                    ? matchingMethods.determineMostSpecificMethod()
+                    : searchTargetMethodInHierarchy(targetOwner, matchingMethods);
+        }
+
+        private static Optional<JavaMethod> searchTargetMethodInHierarchy(JavaClass targetOwner, MatchingMethods matchingMethods) {
+            Optional<JavaClass> superclass = targetOwner.getRawSuperclass();
+            if (superclass.isPresent()) {
+                matchingMethods.addMatching(superclass.get().getMethods(), true);
+                searchTargetMethodInHierarchy(superclass.get(), matchingMethods);
+            }
+            for (JavaClass interfaceType : targetOwner.getRawInterfaces()) {
+                matchingMethods.addMatching(interfaceType.getMethods(), false);
+                searchTargetMethodInHierarchy(interfaceType, matchingMethods);
+            }
+            return matchingMethods.determineMostSpecificMethod();
+        }
+
+        private static class MatchingMethods {
+            private final TargetInfo target;
+            private final LinkedHashMultimap<JavaClass, JavaMethod> matchingMethodsByReturnType = LinkedHashMultimap.create();
+
+            private MatchingMethods(TargetInfo target) {
+                this.target = target;
+            }
+
+            void addMatching(Collection<JavaMethod> methods, boolean includeStatic) {
+                for (JavaMethod method : methods) {
+                    if (matches(method, includeStatic)) {
+                        matchingMethodsByReturnType.put(method.getRawReturnType(), method);
                     }
                 }
-                return Optional.empty();
             }
 
-            private List<JavaClass> createPath(JavaClass parent, JavaClass child) {
-                ImmutableList.Builder<JavaClass> pathBuilder = ImmutableList.<JavaClass>builder().add(child);
-                HierarchyResolutionStrategy hierarchyResolutionStrategy = hierarchyResolutionStrategyFrom(child).to(parent);
-                while (hierarchyResolutionStrategy.hasNext()) {
-                    pathBuilder.add(hierarchyResolutionStrategy.next());
-                }
-                return pathBuilder.build();
+            private boolean matches(JavaMethod method, boolean includeStatic) {
+                return method.getName().equals(target.name)
+                        && method.getDescriptor().equals(target.desc)
+                        && (includeStatic || !method.getModifiers().contains(STATIC));
             }
 
-            private HierarchyResolutionStrategyCreator hierarchyResolutionStrategyFrom(JavaClass child) {
-                return new HierarchyResolutionStrategyCreator(child);
+            boolean hasMatch() {
+                return !matchingMethodsByReturnType.isEmpty();
             }
 
-            @Override
-            public Iterator<JavaClass> iterator() {
-                return path.iterator();
+            /**
+             * We roughly follow the algorithm of {@link Class#getMethod(String, Class[])}. We look for the most specific return type,
+             * if there should be return types without a hierarchical correlation we simply pick the first. If there should be methods
+             * with the same return type, but declaring classes without hierarchical correlation we will try to follow the JDK version,
+             * even though it does not seem to be specified clearly (thus it could change with a different JDK implementation, but
+             * unit tests should tell us).
+             */
+            Optional<JavaMethod> determineMostSpecificMethod() {
+                if (!hasMatch()) {
+                    return Optional.empty();
+                }
+                if (matchingMethodsByReturnType.size() == 1) {
+                    return determineMostSpecificMethodWithSameReturnType(matchingMethodsByReturnType.values());
+                }
+
+                Collection<JavaMethod> methodsWithMostSpecificReturnType = determineMethodsWithMostSpecificReturnType(matchingMethodsByReturnType);
+                return determineMostSpecificMethodWithSameReturnType(methodsWithMostSpecificReturnType);
             }
 
-            private interface HierarchyResolutionStrategy {
-                boolean hasNext();
-
-                JavaClass next();
-            }
-
-            private static class HierarchyResolutionStrategyCreator {
-                private final JavaClass child;
-
-                private HierarchyResolutionStrategyCreator(JavaClass child) {
-                    this.child = child;
-                }
-
-                public HierarchyResolutionStrategy to(JavaClass parent) {
-                    return parent.isInterface() ?
-                            new InterfaceHierarchyResolutionStrategy(child, parent) :
-                            new ClassHierarchyResolutionStrategy(child, parent);
-                }
-            }
-
-            private static class ClassHierarchyResolutionStrategy implements HierarchyResolutionStrategy {
-                private final JavaClass parent;
-                private JavaClass current;
-
-                private ClassHierarchyResolutionStrategy(JavaClass child, JavaClass parent) {
-                    this.current = child;
-                    this.parent = parent;
-                }
-
-                @Override
-                public boolean hasNext() {
-                    return !current.equals(parent) && current.getRawSuperclass().isPresent();
-                }
-
-                @Override
-                public JavaClass next() {
-                    current = current.getRawSuperclass().get();
-                    return current;
-                }
-            }
-
-            private static class InterfaceHierarchyResolutionStrategy implements HierarchyResolutionStrategy {
-                private final Iterator<JavaClass> interfaces;
-                private final JavaClass parent;
-                private JavaClass current;
-
-                private InterfaceHierarchyResolutionStrategy(JavaClass child, JavaClass parent) {
-                    interfaces = interfacesBetween(child, parent);
-                    this.parent = parent;
-                    current = child;
-                }
-
-                private Iterator<JavaClass> interfacesBetween(JavaClass from, JavaClass target) {
-                    Node node = new Node(from);
-                    List<JavaClass> result = new ArrayList<>();
-                    for (Node parent : node.parents) {
-                        result.addAll(parent.to(target));
-                    }
-                    return result.iterator();
-                }
-
-                @Override
-                public boolean hasNext() {
-                    return !current.equals(parent) && interfaces.hasNext();
-                }
-
-                @Override
-                public JavaClass next() {
-                    current = interfaces.next();
-                    return current;
-                }
-            }
-
-            private static class Node {
-                private final JavaClass child;
-                private final Set<Node> parents = new HashSet<>();
-
-                private Node(JavaClass child) {
-                    this.child = child;
-                    for (JavaClass i : child.getRawInterfaces()) {
-                        parents.add(new Node(i));
+            private static Optional<JavaMethod> determineMostSpecificMethodWithSameReturnType(Collection<JavaMethod> methods) {
+                JavaMethod result = null;
+                for (JavaMethod method : methods) {
+                    if (result == null || method.getOwner().isAssignableTo(result.getOwner().getName())) {
+                        result = method;
                     }
                 }
+                return Optional.ofNullable(result);
+            }
 
-                public List<JavaClass> to(JavaClass target) {
-                    if (child.equals(target)) {
-                        return singletonList(child);
+            private static Collection<JavaMethod> determineMethodsWithMostSpecificReturnType(LinkedHashMultimap<JavaClass, JavaMethod> matchingMethodsByReturnType) {
+                Map.Entry<JavaClass, Collection<JavaMethod>> result = null;
+                for (Map.Entry<JavaClass, Collection<JavaMethod>> entry : matchingMethodsByReturnType.asMap().entrySet()) {
+                    if (result == null || entry.getKey().isAssignableTo(result.getKey().getName())) {
+                        result = entry;
                     }
-                    Set<JavaClass> result = new LinkedHashSet<>();
-                    for (Node parent : parents) {
-                        if (parent.contains(target)) {
-                            result.add(child);
-                            result.addAll(parent.to(target));
-                        }
-                    }
-                    return new ArrayList<>(result);
                 }
-
-                public boolean contains(JavaClass target) {
-                    if (child.equals(target)) {
-                        return true;
-                    }
-                    for (Node parent : parents) {
-                        if (parent.contains(target)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
+                return result != null ? result.getValue() : Collections.<JavaMethod>emptySet();
             }
         }
     }

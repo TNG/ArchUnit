@@ -1101,18 +1101,18 @@ public final class DomainBuilders {
 
     @Internal
     public static final class MethodCallTargetBuilder extends CodeUnitCallTargetBuilder<MethodCallTargetBuilder> {
-        private Supplier<Set<JavaMethod>> methods;
+        private Supplier<Optional<JavaMethod>> method;
 
         MethodCallTargetBuilder() {
         }
 
-        MethodCallTargetBuilder withMethods(final Supplier<Set<JavaMethod>> methods) {
-            this.methods = methods;
+        MethodCallTargetBuilder withMethod(final Supplier<Optional<JavaMethod>> method) {
+            this.method = method;
             return this;
         }
 
-        public Supplier<Set<JavaMethod>> getMethods() {
-            return methods;
+        public Supplier<Optional<JavaMethod>> getMethod() {
+            return method;
         }
 
         MethodCallTarget build() {

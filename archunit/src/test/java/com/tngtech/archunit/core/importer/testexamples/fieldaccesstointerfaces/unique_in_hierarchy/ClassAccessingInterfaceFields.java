@@ -1,5 +1,6 @@
-package com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces;
+package com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.unique_in_hierarchy;
 
+@SuppressWarnings("unused")
 public class ClassAccessingInterfaceFields {
     private ClassWithInterfacesWithFields classWithInterfacesWithFields;
 
