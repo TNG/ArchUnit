@@ -55,7 +55,6 @@ ext {
         testTask.enabled = false
 
         def taskMinimumJdkVersion = testTask.name.replaceAll(/jdk(\d+)Test/, '$1').with { it ==~ /\d+/ ? JavaVersion.toVersion(it) : proj.targetCompatibility }
-        def additionalJdksToTest = testJdks().findAll { it.javaVersion >= taskMinimumJdkVersion }
 
         def findJavaExecutable = { jdkPath ->
             def javaExecutableUnix = new File("${jdkPath}", 'bin/java')
@@ -65,13 +64,14 @@ ext {
             result
         }
 
-        additionalJdksToTest.each { jdk ->
+        testJdks().each { jdk ->
             def additionalTestTask = proj.tasks.create(name: "${testTask.name}${jdk.suffix}", type: Test) {
                 executable = findJavaExecutable(jdk.jdkPath)
 
                 testClassesDirs = testTask.testClassesDirs
                 classpath = testTask.classpath
             }
+            additionalTestTask.enabled = jdk.javaVersion >= taskMinimumJdkVersion
 
             testTask.dependsOn(additionalTestTask)
         }
