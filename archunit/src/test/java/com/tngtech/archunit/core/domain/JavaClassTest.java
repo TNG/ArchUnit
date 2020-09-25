@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core.domain;
 
+import java.io.File;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.util.AbstractList;
@@ -77,6 +78,7 @@ import static com.tngtech.archunit.testutil.Conditions.containing;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -85,6 +87,77 @@ import static org.mockito.Mockito.when;
 public class JavaClassTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void finds_array_component_types_as_dependencies_from_self() {
+        @SuppressWarnings("unused")
+        class ArrayComponentTypeDependencies {
+            private String[] strings;
+
+            public ArrayComponentTypeDependencies(Integer[] ints) {
+            }
+
+            private void internal() {
+                new File[0].clone();
+            }
+
+            public Object[] objects() {
+                return null;
+            }
+
+            public void foo(Float[] floats) {
+            }
+        }
+
+        JavaClass javaClass = importClassWithContext(ArrayComponentTypeDependencies.class);
+
+        // Assert the presence of both the array type and the component type of the array for all dependencies
+        assertThat(javaClass.getDirectDependenciesFromSelf())
+                .areAtLeastOne(callDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(File[].class)
+                        .inLineNumber(101))
+                .areAtLeastOne(componentTypeDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(File.class)
+                        .inLineNumber(101))
+
+                .areAtLeastOne(methodReturnTypeDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(Object[].class)
+                        .inLineNumber(0))
+                .areAtLeastOne(componentTypeDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(Object.class)
+                        .inLineNumber(0))
+
+                .areAtLeastOne(fieldTypeDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(String[].class)
+                        .inLineNumber(0))
+                .areAtLeastOne(componentTypeDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(String.class)
+                        .inLineNumber(0))
+
+                .areAtLeastOne(parameterTypeDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(Integer[].class)
+                        .inLineNumber(0))
+                .areAtLeastOne(componentTypeDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(Integer.class)
+                        .inLineNumber(0))
+
+                .areAtLeastOne(parameterTypeDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(Float[].class)
+                        .inLineNumber(0))
+                .areAtLeastOne(componentTypeDependency()
+                        .from(ArrayComponentTypeDependencies.class)
+                        .to(Float.class)
+                        .inLineNumber(0));
+    }
 
     @Test
     public void finds_array_type() {
@@ -1061,6 +1134,10 @@ public class JavaClassTest {
         return new DependencyConditionCreation("has annotation member of type");
     }
 
+    private static DependencyConditionCreation componentTypeDependency() {
+        return new DependencyConditionCreation("depends on component type");
+    }
+
     private static AnyDependencyConditionCreation anyDependency() {
         return new AnyDependencyConditionCreation();
     }
@@ -1128,7 +1205,7 @@ public class JavaClassTest {
 
                 Step3(Class<?> target) {
                     this.target = target;
-                    targetDescription = target.getSimpleName();
+                    targetDescription = target.getName();
                 }
 
                 Step3(Class<?> target, String targetName) {
@@ -1144,7 +1221,7 @@ public class JavaClassTest {
                             return value.getOriginClass().isEquivalentTo(origin) &&
                                     value.getTargetClass().isEquivalentTo(target) &&
                                     value.getDescription().matches(String.format(".*%s.*%s.*%s.*:%d.*",
-                                            origin.getSimpleName(), descriptionPart, targetDescription, lineNumber));
+                                            quote(origin.getSimpleName()), quote(descriptionPart), quote(targetDescription), lineNumber));
                         }
                     };
                 }

@@ -15,17 +15,18 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
@@ -62,11 +63,17 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         this.sourceCodeLocation = SourceCodeLocation.of(originClass, lineNumber);
     }
 
-    static Optional<Dependency> tryCreateFromAccess(JavaAccess<?> access) {
-        if (access.getOriginOwner().equals(access.getTargetOwner()) || access.getTargetOwner().isPrimitive()) {
-            return Optional.absent();
+    static Set<Dependency> tryCreateFromAccess(JavaAccess<?> access) {
+        JavaClass originOwner = access.getOriginOwner();
+        JavaClass targetOwner = access.getTargetOwner();
+        if (originOwner.equals(targetOwner) || targetOwner.isPrimitive()) {
+            return Collections.emptySet();
         }
-        return Optional.of(new Dependency(access.getOriginOwner(), access.getTargetOwner(), access.getLineNumber(), access.getDescription()));
+
+        ImmutableSet.Builder<Dependency> dependencies = ImmutableSet.<Dependency>builder()
+                .addAll(createComponentTypeDependencies(originOwner, access.getOrigin().getDescription(), targetOwner, access.getSourceCodeLocation()));
+        dependencies.add(new Dependency(originOwner, targetOwner, access.getLineNumber(), access.getDescription()));
+        return dependencies.build();
     }
 
     static Dependency fromInheritance(JavaClass origin, JavaClass targetSuperType) {
@@ -87,32 +94,32 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return new Dependency(origin, targetSuperType, 0, description);
     }
 
-    static Optional<Dependency> tryCreateFromField(JavaField field) {
+    static Set<Dependency> tryCreateFromField(JavaField field) {
         return tryCreateDependencyFromJavaMember(field, "has type", field.getRawType());
     }
 
-    static Optional<Dependency> tryCreateFromReturnType(JavaMethod method) {
+    static Set<Dependency> tryCreateFromReturnType(JavaMethod method) {
         return tryCreateDependencyFromJavaMember(method, "has return type", method.getRawReturnType());
     }
 
-    static Optional<Dependency> tryCreateFromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {
+    static Set<Dependency> tryCreateFromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {
         return tryCreateDependencyFromJavaMember(codeUnit, "has parameter of type", parameter);
     }
 
-    static Optional<Dependency> tryCreateFromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
+    static Set<Dependency> tryCreateFromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
         return tryCreateDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
-    static Optional<Dependency> tryCreateFromInstanceofCheck(InstanceofCheck instanceofCheck) {
+    static Set<Dependency> tryCreateFromInstanceofCheck(InstanceofCheck instanceofCheck) {
         return tryCreateDependencyFromJavaMemberWithLocation(instanceofCheck.getOwner(), "checks instanceof", instanceofCheck.getRawType(), instanceofCheck.getLineNumber());
     }
 
-    static Optional<Dependency> tryCreateFromAnnotation(JavaAnnotation<?> target) {
+    static Set<Dependency> tryCreateFromAnnotation(JavaAnnotation<?> target) {
         Origin origin = findSuitableOrigin(target);
         return tryCreateDependency(origin.originClass, origin.originDescription, "is annotated with", target.getRawType());
     }
 
-    static Optional<Dependency> tryCreateFromAnnotationMember(JavaAnnotation<?> annotation, JavaClass memberType) {
+    static Set<Dependency> tryCreateFromAnnotationMember(JavaAnnotation<?> annotation, JavaClass memberType) {
         Origin origin = findSuitableOrigin(annotation);
         return tryCreateDependency(origin.originClass, origin.originDescription, "has annotation member of type", memberType);
     }
@@ -130,32 +137,47 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         throw new IllegalStateException("Could not find suitable dependency origin for " + annotation);
     }
 
-    private static Optional<Dependency> tryCreateDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
+    private static Set<Dependency> tryCreateDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
         return tryCreateDependency(origin.getOwner(), origin.getDescription(), dependencyType, target);
     }
 
-    private static Optional<Dependency> tryCreateDependencyFromJavaMemberWithLocation(JavaMember origin, String dependencyType, JavaClass target, int lineNumber) {
+    private static Set<Dependency> tryCreateDependencyFromJavaMemberWithLocation(JavaMember origin, String dependencyType, JavaClass target, int lineNumber) {
         return tryCreateDependency(origin.getOwner(), origin.getDescription(), dependencyType, target, SourceCodeLocation.of(origin.getOwner(), lineNumber));
     }
 
-    private static Optional<Dependency> tryCreateDependency(
+    private static Set<Dependency> tryCreateDependency(
             JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass) {
 
         return tryCreateDependency(originClass, originDescription, dependencyType, targetClass, originClass.getSourceCodeLocation());
     }
 
-    private static Optional<Dependency> tryCreateDependency(
+    private static Set<Dependency> tryCreateDependency(
             JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
 
         if (originClass.equals(targetClass) || targetClass.isPrimitive()) {
-            return Optional.absent();
+            return Collections.emptySet();
         }
 
+        ImmutableSet.Builder<Dependency> dependencies = ImmutableSet.<Dependency>builder()
+                .addAll(createComponentTypeDependencies(originClass, originDescription, targetClass, sourceCodeLocation));
         String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
         String description = dependencyDescription + " in " + sourceCodeLocation;
-        int lineNumber = sourceCodeLocation.getLineNumber();
-        return Optional.of(new Dependency(originClass, targetClass, lineNumber, description));
+        dependencies.add(new Dependency(originClass, targetClass, sourceCodeLocation.getLineNumber(), description));
+        return dependencies.build();
+    }
+
+    private static Set<Dependency> createComponentTypeDependencies(JavaClass originClass, String originDescription, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        JavaClass componentType = targetClass;
+        while (componentType.isArray()) {
+            componentType = componentType.getComponentType();
+            String componentTypeTargetDescription = bracketFormat(componentType.getName());
+            String componentTypeDependencyDescription = originDescription + " depends on component type " + componentTypeTargetDescription;
+            String componentTypeDescription = componentTypeDependencyDescription + " in " + sourceCodeLocation;
+            result.add(new Dependency(originClass, componentType, sourceCodeLocation.getLineNumber(), componentTypeDescription));
+        }
+        return result.build();
     }
 
     private static String bracketFormat(String name) {
