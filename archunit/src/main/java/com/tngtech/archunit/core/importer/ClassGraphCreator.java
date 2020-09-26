@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.ImportContext;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaAnnotation.DefaultParameterVisitor;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -239,6 +240,11 @@ class ClassGraphCreator implements ImportContext {
         return memberDependenciesByTarget.getAnnotationsWithParameterOfType(javaClass);
     }
 
+    @Override
+    public Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass) {
+        return memberDependenciesByTarget.getInstanceofChecksOfType(javaClass);
+    }
+
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
     B accessBuilderFrom(B builder, AccessRecord<T> record) {
         return builder
@@ -294,9 +300,12 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
         Optional<DomainBuilders.JavaStaticInitializerBuilder> builder = importRecord.getStaticInitializerBuilderFor(owner.getName());
-        return builder.isPresent() ?
-                Optional.of(builder.get().build(owner, classes.byTypeName())) :
-                Optional.<JavaStaticInitializer>absent();
+        if (!builder.isPresent()) {
+            return Optional.absent();
+        }
+        JavaStaticInitializer staticInitializer = builder.get().build(owner, classes.byTypeName());
+        memberDependenciesByTarget.registerStaticInitializer(staticInitializer);
+        return Optional.of(staticInitializer);
     }
 
     @Override
@@ -329,6 +338,7 @@ class ClassGraphCreator implements ImportContext {
         private final SetMultimap<JavaClass, ThrowsDeclaration<JavaConstructor>> constructorThrowsDeclarationDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationParameterTypeDependencies = HashMultimap.create();
+        private final SetMultimap<JavaClass, InstanceofCheck> instanceofCheckDependencies = HashMultimap.create();
 
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
@@ -345,6 +355,9 @@ class ClassGraphCreator implements ImportContext {
                 for (ThrowsDeclaration<JavaMethod> throwsDeclaration : method.getThrowsClause()) {
                     methodsThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
                 }
+                for (InstanceofCheck instanceofCheck : method.getInstanceofChecks()) {
+                    instanceofCheckDependencies.put(instanceofCheck.getRawType(), instanceofCheck);
+                }
             }
         }
 
@@ -355,6 +368,9 @@ class ClassGraphCreator implements ImportContext {
                 }
                 for (ThrowsDeclaration<JavaConstructor> throwsDeclaration : constructor.getThrowsClause()) {
                     constructorThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
+                }
+                for (InstanceofCheck instanceofCheck : constructor.getInstanceofChecks()) {
+                    instanceofCheckDependencies.put(instanceofCheck.getRawType(), instanceofCheck);
                 }
             }
         }
@@ -379,6 +395,12 @@ class ClassGraphCreator implements ImportContext {
                         memberAnnotation.accept(this);
                     }
                 });
+            }
+        }
+
+        void registerStaticInitializer(JavaStaticInitializer staticInitializer) {
+            for (InstanceofCheck instanceofCheck : staticInitializer.getInstanceofChecks()) {
+                instanceofCheckDependencies.put(instanceofCheck.getRawType(), instanceofCheck);
             }
         }
 
@@ -412,6 +434,10 @@ class ClassGraphCreator implements ImportContext {
 
         Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
             return annotationParameterTypeDependencies.get(javaClass);
+        }
+
+        Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass) {
+            return instanceofCheckDependencies.get(javaClass);
         }
     }
 }

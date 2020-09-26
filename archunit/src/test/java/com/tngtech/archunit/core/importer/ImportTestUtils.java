@@ -24,6 +24,7 @@ import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.ImportContext;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -443,6 +444,11 @@ public class ImportTestUtils {
 
         @Override
         public Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
 

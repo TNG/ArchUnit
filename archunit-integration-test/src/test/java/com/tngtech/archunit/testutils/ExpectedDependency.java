@@ -143,8 +143,29 @@ public class ExpectedDependency implements ExpectedRelation {
             return new ExpectedDependency(owner, annotationType, getDependencyPattern(getOriginName(), "is annotated with", annotationType.getName(), 0));
         }
 
+        public AddsLineNumber checkingInstanceOf(Class<?> target) {
+            return new AddsLineNumber(owner, getOriginName(), target);
+        }
+
         private String getOriginName() {
             return owner.getName() + "." + memberName;
+        }
+
+        public static class AddsLineNumber {
+            private final Class<?> owner;
+            private final String origin;
+            private final Class<?> target;
+
+            private AddsLineNumber(Class<?> owner, String origin, Class<?> target) {
+                this.owner = owner;
+                this.origin = origin;
+                this.target = target;
+            }
+
+            public ExpectedDependency inLine(int lineNumber) {
+                String dependencyPattern = getDependencyPattern(origin, "checks instanceof", target.getName(), lineNumber);
+                return new ExpectedDependency(owner, target, dependencyPattern);
+            }
         }
     }
 

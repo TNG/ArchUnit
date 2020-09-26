@@ -64,5 +64,7 @@ public interface ImportContext {
 
     Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass);
 
+    Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass);
+
     JavaClass resolveClass(String fullyQualifiedClassName);
 }
