@@ -65,6 +65,7 @@ sourceSets {
 dependencies {
     jdk9mainImplementation sourceSets.main.output
     jdk9testImplementation sourceSets.test.output
+    jdk9testImplementation sourceSets.test.compileClasspath
     jdk9testImplementation sourceSets.jdk9main.output
 
     runtimeOnly sourceSets.jdk9main.output
@@ -92,6 +93,7 @@ task jdk9Test(type: Test) {
 [test, jdk9Test].each { testTask ->
     addMultiJdkTestsFor project, testTask
 }
+test.finalizedBy(jdk9Test)
 
 spotbugsJdk9test.enabled = false
 
