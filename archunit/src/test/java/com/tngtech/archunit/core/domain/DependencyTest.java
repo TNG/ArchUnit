@@ -6,6 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 
 import com.google.common.base.MoreObjects;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck;
+import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget;
 import com.tngtech.archunit.testutil.Assertions;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -25,6 +27,8 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContex
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
@@ -70,6 +74,30 @@ public class DependencyTest {
         assertThatType(dependency.getTargetClass()).matches(IOException.class);
         assertThat(dependency.getDescription()).as("description")
                 .contains("Method <" + origin.getFullName() + "> throws type <" + IOException.class.getName() + ">");
+    }
+
+    @DataProvider
+    public static Object[][] with_instanceof_check_members() {
+        JavaClass javaClass = importClassesWithContext(ClassWithDependencyOnInstanceofCheck.class, InstanceOfCheckTarget.class)
+                .get(ClassWithDependencyOnInstanceofCheck.class);
+
+        return $$(
+                $(javaClass.getStaticInitializer().get(), 6),
+                $(javaClass.getConstructor(Object.class), 9),
+                $(javaClass.getMethod("method", Object.class), 13));
+    }
+
+    @Test
+    @UseDataProvider("with_instanceof_check_members")
+    public void Dependency_from_instanceof_check_in_code_unit(JavaCodeUnit memberWithInstanceofCheck, int expectedLineNumber) {
+        InstanceofCheck instanceofCheck = getOnlyElement(memberWithInstanceofCheck.getInstanceofChecks());
+
+        Dependency dependency = Dependency.tryCreateFromInstanceofCheck(instanceofCheck).get();
+
+        Assertions.assertThatDependency(dependency)
+                .matches(ClassWithDependencyOnInstanceofCheck.class, InstanceOfCheckTarget.class)
+                .hasDescription(memberWithInstanceofCheck.getFullName(), "checks instanceof", InstanceOfCheckTarget.class.getName())
+                .inLocation(ClassWithDependencyOnInstanceofCheck.class, expectedLineNumber);
     }
 
     @DataProvider

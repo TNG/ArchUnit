@@ -103,6 +103,10 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return tryCreateDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
+    static Optional<Dependency> tryCreateFromInstanceofCheck(InstanceofCheck instanceofCheck) {
+        return tryCreateDependencyFromJavaMemberWithLocation(instanceofCheck.getOwner(), "checks instanceof", instanceofCheck.getRawType(), instanceofCheck.getLineNumber());
+    }
+
     static Optional<Dependency> tryCreateFromAnnotation(JavaAnnotation<?> target) {
         Origin origin = findSuitableOrigin(target);
         return tryCreateDependency(origin.originClass, origin.originDescription, "is annotated with", target.getRawType());
@@ -130,8 +134,18 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return tryCreateDependency(origin.getOwner(), origin.getDescription(), dependencyType, target);
     }
 
+    private static Optional<Dependency> tryCreateDependencyFromJavaMemberWithLocation(JavaMember origin, String dependencyType, JavaClass target, int lineNumber) {
+        return tryCreateDependency(origin.getOwner(), origin.getDescription(), dependencyType, target, SourceCodeLocation.of(origin.getOwner(), lineNumber));
+    }
+
     private static Optional<Dependency> tryCreateDependency(
             JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass) {
+
+        return tryCreateDependency(originClass, originDescription, dependencyType, targetClass, originClass.getSourceCodeLocation());
+    }
+
+    private static Optional<Dependency> tryCreateDependency(
+            JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
 
         if (originClass.equals(targetClass) || targetClass.isPrimitive()) {
             return Optional.absent();
@@ -139,8 +153,9 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
 
         String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
-        String description = dependencyDescription + " in " + originClass.getSourceCodeLocation();
-        return Optional.of(new Dependency(originClass, targetClass, 0, description));
+        String description = dependencyDescription + " in " + sourceCodeLocation;
+        int lineNumber = sourceCodeLocation.getLineNumber();
+        return Optional.of(new Dependency(originClass, targetClass, lineNumber, description));
     }
 
     private static String bracketFormat(String name) {

@@ -39,6 +39,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -66,6 +67,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.V
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createInstanceofCheck;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
@@ -232,6 +234,7 @@ public final class DomainBuilders {
         private JavaClassDescriptor returnType;
         private List<JavaClassDescriptor> parameters;
         private List<JavaClassDescriptor> throwsDeclarations;
+        private final List<RawInstanceofCheck> instanceOfChecks = new ArrayList<>();
 
         private JavaCodeUnitBuilder() {
         }
@@ -251,6 +254,11 @@ public final class DomainBuilders {
             return self();
         }
 
+        SELF addInstanceOfCheck(RawInstanceofCheck rawInstanceOfChecks) {
+            this.instanceOfChecks.add(rawInstanceOfChecks);
+            return self();
+        }
+
         public JavaClass getReturnType() {
             return get(returnType.getFullyQualifiedClassName());
         }
@@ -261,6 +269,14 @@ public final class DomainBuilders {
 
         public <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> getThrowsClause(CODE_UNIT codeUnit) {
             return createThrowsClause(codeUnit, asJavaClasses(this.throwsDeclarations));
+        }
+
+        public Set<InstanceofCheck> getInstanceofChecks(JavaCodeUnit codeUnit) {
+            ImmutableSet.Builder<InstanceofCheck> result = ImmutableSet.builder();
+            for (RawInstanceofCheck instanceOfCheck : this.instanceOfChecks) {
+                result.add(createInstanceofCheck(codeUnit, get(instanceOfCheck.getTarget().getFullyQualifiedClassName()), instanceOfCheck.getLineNumber()));
+            }
+            return result.build();
         }
 
         private List<JavaClass> asJavaClasses(List<JavaClassDescriptor> descriptors) {

@@ -450,7 +450,15 @@ public class JavaClassTest {
                 .areAtLeast(2, parameterTypeDependency()
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
-                        .inLineNumber(0));
+                        .inLineNumber(0))
+                .areAtLeastOne(methodChecksInstanceOfDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(7))
+                .areAtLeastOne(methodChecksInstanceOfDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(25));
     }
 
     @Test
@@ -558,7 +566,15 @@ public class JavaClassTest {
                 .areAtLeast(2, parameterTypeDependency()
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
-                        .inLineNumber(0));
+                        .inLineNumber(0))
+                .areAtLeastOne(methodChecksInstanceOfDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(7))
+                .areAtLeastOne(methodChecksInstanceOfDependency()
+                        .from(AhavingMembersOfTypeB.class)
+                        .to(B.class)
+                        .inLineNumber(25));
 
         JavaClass exceptionClass = importClassesWithContext(AhavingMembersOfTypeB.class, B.BException.class)
                 .get(B.BException.class);
@@ -984,6 +1000,10 @@ public class JavaClassTest {
 
     private static DependencyConditionCreation methodThrowsDeclarationDependency() {
         return new DependencyConditionCreation("throws type");
+    }
+
+    private static DependencyConditionCreation methodChecksInstanceOfDependency() {
+        return new DependencyConditionCreation("checks instanceof");
     }
 
     private static DependencyConditionCreation annotationTypeDependency() {
