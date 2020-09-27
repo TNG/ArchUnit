@@ -7,7 +7,8 @@ def testJdksDefinition = [
         [suffix: "Jre11", javaVersion: JavaVersion.VERSION_11, jdkProp: "java11Home"],
         [suffix: "Jre12", javaVersion: JavaVersion.VERSION_12, jdkProp: "java12Home"],
         [suffix: "Jre13", javaVersion: JavaVersion.VERSION_13, jdkProp: "java13Home"],
-        [suffix: "Jre14", javaVersion: JavaVersion.VERSION_14, jdkProp: "java14Home"]
+        [suffix: "Jre14", javaVersion: JavaVersion.VERSION_14, jdkProp: "java14Home"],
+        [suffix: "Jre15", javaVersion: JavaVersion.VERSION_15, jdkProp: "java15Home"]
 ]
         .findAll { project.hasProperty(it.jdkProp) }
         .collect { config -> config + [jdkPath: unquote(project[config.jdkProp])] }
