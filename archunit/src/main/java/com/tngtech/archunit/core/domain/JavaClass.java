@@ -250,6 +250,22 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     /**
+     * The base component type is the class' {@link #getComponentType() component type} if it is a one-dimensional array,
+     * the repeated application of {@link #getComponentType()} if it is a multi-dimensional array,
+     * or the class itself if it is no array.
+     * For example, the base component type of {@code int}, {@code int[]}, {@code int[][]}, ... is always {@code int}.
+     * @return The base component type of this class
+     */
+    @PublicAPI(usage = ACCESS)
+    JavaClass getBaseComponentType() {
+        JavaClass type = this;
+        while (type.isArray()) {
+            type = type.getComponentType();
+        }
+        return type;
+    }
+
+    /**
      * A <b>top level class</b> is a class that is not a nested class, i.e. not declared within the body
      * of another class.<br><br>
      *

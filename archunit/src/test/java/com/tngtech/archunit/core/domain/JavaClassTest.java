@@ -21,7 +21,6 @@ import com.tngtech.archunit.core.domain.testobjects.AhavingMembersOfTypeB;
 import com.tngtech.archunit.core.domain.testobjects.AllPrimitiveDependencies;
 import com.tngtech.archunit.core.domain.testobjects.B;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
-import com.tngtech.archunit.core.domain.testobjects.IsArrayTestClass;
 import com.tngtech.archunit.core.domain.testobjects.SuperA;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.testexamples.arrays.ClassAccessingOneDimensionalArray;
@@ -32,6 +31,7 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -77,6 +77,7 @@ import static com.tngtech.archunit.testutil.Conditions.containing;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -87,18 +88,43 @@ public class JavaClassTest {
 
     @Test
     public void finds_array_type() {
-        JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("anArray");
+        @SuppressWarnings("unused")
+        class IsArrayTestClass {
+            Object[] anArray() {
+                return null;
+            }
+        }
 
-        assertThat(method.getRawReturnType().isArray()).isTrue();
-        assertThatType(method.getRawReturnType().tryGetComponentType().get()).matches(Object.class);
+        JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("anArray");
+        JavaClass arrayType = method.getRawReturnType();
+
+        assertThat(arrayType.isArray()).isTrue();
+        assertThatType(arrayType.tryGetComponentType().get())
+                .isSameAs(arrayType.getComponentType())
+                .isSameAs(arrayType.getBaseComponentType())
+                .matches(Object.class);
     }
 
     @Test
     public void finds_non_array_type() {
-        JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("notAnArray");
+        @SuppressWarnings("unused")
+        class IsArrayTestClass {
+            Object notAnArray() {
+                return null;
+            }
+        }
 
-        assertThat(method.getRawReturnType().isArray()).isFalse();
-        assertThat(method.getRawReturnType().tryGetComponentType()).isAbsent();
+        JavaMethod method = importClassWithContext(IsArrayTestClass.class).getMethod("notAnArray");
+        final JavaClass nonArrayType = method.getRawReturnType();
+
+        assertThat(nonArrayType.isArray()).isFalse();
+        assertThat(nonArrayType.tryGetComponentType()).isAbsent();
+        assertThatThrownBy(new ThrowingCallable() {
+            public void call() {
+                nonArrayType.getComponentType();
+            }
+        }).isInstanceOf(IllegalArgumentException.class);
+        assertThat(nonArrayType.getBaseComponentType()).isSameAs(nonArrayType);
     }
 
     @Test
@@ -144,6 +170,12 @@ public class JavaClassTest {
 
         JavaClass original = oneDim.getComponentType();
         assertThatType(original).isEqualTo(javaClass);
+
+        assertThat(arrayType.getBaseComponentType())
+                .isSameAs(twoDim.getBaseComponentType())
+                .isSameAs(oneDim.getBaseComponentType())
+                .isSameAs(original.getBaseComponentType())
+                .isSameAs(original);
     }
 
     @Test
