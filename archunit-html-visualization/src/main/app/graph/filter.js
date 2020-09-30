@@ -80,28 +80,22 @@ const Filter = class {
   }
 };
 
-const StaticFilter = class extends Filter {
-  constructor(key, filterPrecondition, filter, dependentFilterKeys) {
+const DynamicFilter = class extends Filter {
+  constructor(key, filterPrecondition, getFilter, dependentFilterKeys, isStatic) {
     super(key, filterPrecondition, dependentFilterKeys);
-    this._filter = filter;
+    this._getFilter = getFilter;
+    this._isStatic = isStatic;
   }
 
   set filter(value) {
-    this._filter = value;
+    this._getFilter = value;
+    this._isStatic = true;
   }
 
   get filter() {
-    return this._filterPrecondition.filterIsEnabled ? this._filter : matchAll;
-  }
-};
-
-const DynamicFilter = class extends Filter {
-  constructor(key, filterPrecondition, getFilter, dependentFilterKeys) {
-    super(key, filterPrecondition, dependentFilterKeys);
-    this._getFilter = getFilter;
-  }
-
-  get filter() {
+    if (this._isStatic) {
+      return this._filterPrecondition.filterIsEnabled ? this._getFilter : matchAll;
+    }
     return this._filterPrecondition.filterIsEnabled ? this._getFilter() : matchAll;
   }
 };
@@ -186,33 +180,17 @@ const FilterCollection = class {
 const buildFilterGroup = (key, filterObject) => {
   const filterGroup = new FilterGroup(key, filterObject);
   const filterGroupBuilder = {
-    addStaticFilter: (key, filter, dependentFilterKeys = []) => {
-      return {
-        withDynamicFilterPrecondition: getFilterIsEnabled => {
-          filterGroup.addFilter(new StaticFilter(key,
-            new DynamicFilterPrecondition(getFilterIsEnabled), filter, dependentFilterKeys));
-          return filterGroupBuilder;
-        },
-
-        withStaticFilterPrecondition: filterIsEnabled => {
-          filterGroup.addFilter(new StaticFilter(key,
-            new StaticFilterPrecondition(filterIsEnabled), filter, dependentFilterKeys));
-          return filterGroupBuilder;
-        }
-      }
-    },
-
-    addDynamicFilter: (key, getFilter, dependentFilterKeys = []) => {
+    addDynamicFilter: (key, getFilter, dependentFilterKeys = [], isStatic = false) => {
       return {
         withDynamicFilterPrecondition: getFilterIsEnabled => {
           filterGroup.addFilter(new DynamicFilter(key,
-            new DynamicFilterPrecondition(getFilterIsEnabled), getFilter, dependentFilterKeys));
+            new DynamicFilterPrecondition(getFilterIsEnabled), getFilter, dependentFilterKeys, isStatic));
           return filterGroupBuilder;
         },
 
         withStaticFilterPrecondition: filterIsEnabled => {
           filterGroup.addFilter(new DynamicFilter(key,
-            new StaticFilterPrecondition(filterIsEnabled), getFilter, dependentFilterKeys));
+            new StaticFilterPrecondition(filterIsEnabled), getFilter, dependentFilterKeys, isStatic));
           return filterGroupBuilder;
         }
       }

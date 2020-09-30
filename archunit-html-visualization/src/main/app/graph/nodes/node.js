@@ -278,17 +278,17 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     _initializeFilterGroup() {
       this._filterGroup =
         buildFilterGroup('nodes', this._getFilterObject())
-          .addStaticFilter('type', () => this._getTypeFilter(true, true), ['nodes.typeAndName'])
+          .addDynamicFilter('type', () => this._getTypeFilter(true, true), ['nodes.typeAndName'], true)
           .withStaticFilterPrecondition(true)
           .addDynamicFilter('name', () => this._getNameFilter(), ['nodes.typeAndName'])
           .withStaticFilterPrecondition(true)
           //Hint: the _matchesOrHasChildThatMatches-method must be used already here, not only for the combinedFilter, because otherwise dependencies
           //of classes, that do not match the filter but have inner classes matching the filter, would be hidden
-          .addStaticFilter('typeAndName', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('type') && c.matchesFilter('name')), ['nodes.combinedFilter'])
+          .addDynamicFilter('typeAndName', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('type') && c.matchesFilter('name')), ['nodes.combinedFilter'], true)
           .withStaticFilterPrecondition(true)
           .addDynamicFilter('visibleViolations', () => this.getVisibleViolationsFilter(), ['nodes.combinedFilter'])
           .withStaticFilterPrecondition(false)
-          .addStaticFilter('combinedFilter', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('typeAndName') && c.matchesFilter('visibleViolations')))
+          .addDynamicFilter('combinedFilter', node => node._matchesOrHasChildThatMatches(c => c.matchesFilter('typeAndName') && c.matchesFilter('visibleViolations')), [], true)
           .withStaticFilterPrecondition(true)
           .build();
     }

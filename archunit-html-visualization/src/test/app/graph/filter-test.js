@@ -24,7 +24,7 @@ describe('filters', () => {
   it('does initialize all filters with true', () => {
     const collection = getNumbersCollection(30);
     const filterGroup = buildFilterGroup('group', collection)
-      .addStaticFilter('boundsFilter', () => false)
+      .addDynamicFilter('boundsFilter', () => false, [], true)
       .withStaticFilterPrecondition(true)
       .build();
     buildFilterCollection()
@@ -37,7 +37,7 @@ describe('filters', () => {
   it('can apply single static filter with static precondition', () => {
     const collection = getNumbersCollection(30);
     const filterGroup = buildFilterGroup('group', collection)
-      .addStaticFilter('boundsFilter', n => n.value >= 10 && n.value <= 20, [])
+      .addDynamicFilter('boundsFilter', n => n.value >= 10 && n.value <= 20, [], true)
       .withStaticFilterPrecondition(false)
       .build();
     const filter = buildFilterCollection()
@@ -58,7 +58,7 @@ describe('filters', () => {
     const collection = getNumbersCollection(30);
     let filterIsEnabled = false;
     const filterGroup = buildFilterGroup('group', collection)
-      .addStaticFilter('boundsFilter', n => n.value >= 10 && n.value <= 20, [])
+      .addDynamicFilter('boundsFilter', n => n.value >= 10 && n.value <= 20, [], true)
       .withDynamicFilterPrecondition(() => filterIsEnabled)
       .build();
     const filter = buildFilterCollection()
@@ -101,11 +101,11 @@ describe('filters', () => {
     const collection = getNumbersCollection(30);
 
     const filterGroup = buildFilterGroup('group', collection)
-      .addStaticFilter('dividableByTwo', n => n.value % 2 === 0)
+      .addDynamicFilter('dividableByTwo', n => n.value % 2 === 0, [], true)
       .withStaticFilterPrecondition(true)
-      .addStaticFilter('dividableByThree', n => n.value % 3 === 0)
+      .addDynamicFilter('dividableByThree', n => n.value % 3 === 0, [], true)
       .withStaticFilterPrecondition(true)
-      .addStaticFilter('biggerThan10', n => n.value >= 10)
+      .addDynamicFilter('biggerThan10', n => n.value >= 10, [], true)
       .withStaticFilterPrecondition(false)
       .build();
     const filter = buildFilterCollection()
@@ -128,9 +128,9 @@ describe('filters', () => {
     const collection = getNumbersCollection(100);
 
     const filterGroup = buildFilterGroup('group', collection)
-      .addStaticFilter('dividableByThree', n => n.value % 3 === 0, ['group.squareOfThreeDividable'])
+      .addDynamicFilter('dividableByThree', n => n.value % 3 === 0, ['group.squareOfThreeDividable'], true)
       .withStaticFilterPrecondition(true)
-      .addStaticFilter('squareOfThreeDividable', n => collection.numbers.filter(c => c.matchesFilter.get('dividableByThree')).some(c => n.value === c.value * c.value))
+      .addDynamicFilter('squareOfThreeDividable', n => collection.numbers.filter(c => c.matchesFilter.get('dividableByThree')).some(c => n.value === c.value * c.value), [], true)
       .withStaticFilterPrecondition(true)
       .build();
     const filter = buildFilterCollection()
@@ -147,18 +147,18 @@ describe('filters', () => {
     const collection2 = getNumbersCollection(100);
 
     const filterGroup1 = buildFilterGroup('group1', collection1)
-      .addStaticFilter('someFilter', () => false)
+      .addDynamicFilter('someFilter', () => false, [], true)
       .withStaticFilterPrecondition(true)
-      .addStaticFilter('squareOfThreeDividable', n => collection1.numbers.filter(c => c.matchesFilter.get('dividableByThree')).some(c => n.value === c.value * c.value), ['group2.sumOfTwoThreeSquares'])
+      .addDynamicFilter('squareOfThreeDividable', n => collection1.numbers.filter(c => c.matchesFilter.get('dividableByThree')).some(c => n.value === c.value * c.value), ['group2.sumOfTwoThreeSquares'], true)
       .withStaticFilterPrecondition(true)
-      .addStaticFilter('dividableByThree', n => n.value % 3 === 0 && n.matchesFilter.get('someFilter'), ['group1.squareOfThreeDividable'])
+      .addDynamicFilter('dividableByThree', n => n.value % 3 === 0 && n.matchesFilter.get('someFilter'), ['group1.squareOfThreeDividable'], true)
       .withStaticFilterPrecondition(true)
       .build();
     const filterGroup2 = buildFilterGroup('group2', collection2)
-      .addStaticFilter('sumOfTwoThreeSquares', n => {
+      .addDynamicFilter('sumOfTwoThreeSquares', n => {
         const filtered = collection1.numbers.filter(c => c.matchesFilter.get('squareOfThreeDividable'));
         return filtered.some(s1 => filtered.some(s2 => n.value === s1.value + s2.value));
-      })
+      }, [], true)
       .withStaticFilterPrecondition(true)
       .build();
     const filter = buildFilterCollection()
