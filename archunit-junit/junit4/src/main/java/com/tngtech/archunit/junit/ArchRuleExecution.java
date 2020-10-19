@@ -22,10 +22,12 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 
 class ArchRuleExecution extends ArchTestExecution {
+    private final Class<?> testJavaClass;
     private final Field ruleField;
 
-    ArchRuleExecution(Class<?> testClass, Field ruleField, boolean ignore) {
+    ArchRuleExecution(Class<?> testJavaClass, Class<?> testClass, Field ruleField, boolean ignore) {
         super(testClass, ignore);
+        this.testJavaClass = testJavaClass;
 
         ArchTestInitializationException.check(ArchRule.class.isAssignableFrom(ruleField.getType()),
                 "Rule field %s.%s to check must be of type %s",
@@ -47,7 +49,7 @@ class ArchRuleExecution extends ArchTestExecution {
 
     @Override
     Description describeSelf() {
-        return Description.createTestDescription(testClass, ruleField.getName());
+        return Description.createTestDescription(testJavaClass, ruleField.getName());
     }
 
     @Override

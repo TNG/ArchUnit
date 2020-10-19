@@ -24,10 +24,12 @@ import org.junit.runner.Description;
 import static com.tngtech.archunit.junit.ReflectionUtils.invokeMethod;
 
 class ArchTestMethodExecution extends ArchTestExecution {
+    private final Class<?> testJavaClass;
     private final Method testMethod;
 
-    ArchTestMethodExecution(Class<?> testClass, Method testMethod, boolean ignore) {
+    ArchTestMethodExecution(Class<?> testJavaClass, Class<?> testClass, Method testMethod, boolean ignore) {
         super(testClass, ignore);
+        this.testJavaClass = testJavaClass;
         this.testMethod = testMethod;
     }
 
@@ -52,7 +54,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
 
     @Override
     Description describeSelf() {
-        return Description.createTestDescription(testClass, testMethod.getName());
+        return Description.createTestDescription(testJavaClass, testMethod.getName());
     }
 
     @Override
