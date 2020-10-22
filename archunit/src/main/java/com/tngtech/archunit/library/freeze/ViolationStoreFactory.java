@@ -183,7 +183,7 @@ class ViolationStoreFactory {
 
         private List<String> readLines(String ruleDetailsFileName) {
             String violationsText = readStoreFile(ruleDetailsFileName);
-            List<String> lines = Splitter.on(UNESCAPED_LINE_BREAK_PATTERN).splitToList(violationsText);
+            List<String> lines = Splitter.on(UNESCAPED_LINE_BREAK_PATTERN).omitEmptyStrings().splitToList(violationsText);
             return unescape(lines);
         }
 
