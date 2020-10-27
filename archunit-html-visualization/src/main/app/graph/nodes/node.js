@@ -560,12 +560,11 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
     _drag(dx, dy) {
       this._root.scheduleAction(() => {
         this._nodeShape.jumpToRelativeDisplacement(dx, dy, visualizationStyles.getCirclePadding());
-        this._listeners.forEach(listener => listener.onNodeRimChanged(this)); //FIXME: does this really make sense??
+        this._listeners.forEach(listener => listener.onNodeRimChanged(this));
         this._focus(true);
       });
     }
 
-    //FIXME: clean up
     _focus(doRecursiveFocus = false) {
       const dependenciesToSiblingNodes = this._root.getDependenciesDirectlyWithinNode(this.parent)
         .map(d => ({
@@ -591,10 +590,12 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
         this.parent._view.addChildView(node._view);
       });
 
-      dependenciesToSiblingNodes
-        .forEach(dependency => dependency.dependency.setContainerEndNodeToEndNodeInForeground());
-
       this._parent._focus(this);
+
+      if (doRecursiveFocus) {
+        const dependenciesOfNode = this._root.getDependenciesOfNode(this);
+        dependenciesOfNode.forEach(dependency => dependency.setContainerEndNodeToEndNodeInForeground());
+      }
     }
 
     _focusDependentNodesOutsideParent(dependenciesToSiblingNodes) {
