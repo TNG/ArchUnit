@@ -26,6 +26,7 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.Supplier;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasDescriptor;
@@ -80,10 +81,15 @@ public abstract class JavaMember implements
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaAnnotation<? extends JavaMember> getAnnotationOfType(String typeName) {
-        return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(String.format(
-                "Member %s is not annotated with @%s",
-                getFullName(), typeName)));
+    public JavaAnnotation<? extends JavaMember> getAnnotationOfType(final String typeName) {
+        return tryGetAnnotationOfType(typeName).getOrThrow(new Supplier<IllegalArgumentException>() {
+            @Override
+            public IllegalArgumentException get() {
+                return new IllegalArgumentException(String.format(
+                        "Member %s is not annotated with @%s",
+                        getFullName(), typeName));
+            }
+        });
     }
 
     @Override

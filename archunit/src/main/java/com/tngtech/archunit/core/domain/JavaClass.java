@@ -233,8 +233,13 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public JavaClass getComponentType() {
-        return tryGetComponentType().getOrThrow(new IllegalStateException(
-                String.format("Type %s is no array", getSimpleName())));
+        return tryGetComponentType().getOrThrow(new com.tngtech.archunit.base.Supplier<IllegalStateException>() {
+            @Override
+            public IllegalStateException get() {
+                return new IllegalStateException(
+                        String.format("Type %s is no array", getSimpleName()));
+            }
+        });
     }
 
     /**
@@ -558,9 +563,14 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaAnnotation<JavaClass> getAnnotationOfType(String typeName) {
-        return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(
-                String.format("Type %s is not annotated with @%s", getSimpleName(), typeName)));
+    public JavaAnnotation<JavaClass> getAnnotationOfType(final String typeName) {
+        return tryGetAnnotationOfType(typeName).getOrThrow(new com.tngtech.archunit.base.Supplier<IllegalArgumentException>() {
+            @Override
+            public IllegalArgumentException get() {
+                return new IllegalArgumentException(
+                        String.format("Type %s is not annotated with @%s", getSimpleName(), typeName));
+            }
+        });
     }
 
     @Override
@@ -714,8 +724,13 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * @throws IllegalArgumentException If this class does not have such a field.
      */
     @PublicAPI(usage = ACCESS)
-    public JavaField getField(String name) {
-        return tryGetField(name).getOrThrow(new IllegalArgumentException("No field with name '" + name + " in class " + getName()));
+    public JavaField getField(final String name) {
+        return tryGetField(name).getOrThrow(new com.tngtech.archunit.base.Supplier<IllegalArgumentException>() {
+            @Override
+            public IllegalArgumentException get() {
+                return new IllegalArgumentException("No field with name '" + name + " in class " + getName());
+            }
+        });
     }
 
     /**

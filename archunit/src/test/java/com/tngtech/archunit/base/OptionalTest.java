@@ -34,6 +34,25 @@ public class OptionalTest {
     }
 
     @Test
+    public void getOrThrow_supplier_works() {
+        assertThat(Optional.of("test").getOrThrow(new Supplier<IllegalStateException>() {
+            @Override
+            public IllegalStateException get() {
+                return new IllegalStateException("SupplierBummer");
+            }
+        })).isEqualTo("test");
+
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage("SupplierBummer");
+        Optional.absent().getOrThrow(new Supplier<IllegalStateException>() {
+            @Override
+            public IllegalStateException get() {
+                return new IllegalStateException("SupplierBummer");
+            }
+        });
+    }
+
+    @Test
     public void transform_works() {
         assertThat(Optional.of(5).transform(TO_STRING)).isEqualTo(Optional.of("5"));
 
