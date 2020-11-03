@@ -821,6 +821,9 @@ public interface ClassesShould {
      * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
+     * NOTE: 'access' refers only to violations by real accesses, i.e. accessing a field, and calling a method.
+     * Compare with {@link #dependOnClassesThat()} that catches a wider variety of violations.
+     *
      * @return A syntax element that allows choosing which classes should be accessed
      */
     @PublicAPI(usage = ACCESS)
@@ -833,6 +836,9 @@ public interface ClassesShould {
      * <pre><code>
      * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #accessClassesThat(DescribedPredicate) accessClassesThat(myPredicate)}
      * </code></pre>
+     *
+     * NOTE: 'access' refers only to violations by real accesses, i.e. accessing a field, and calling a method.
+     * Compare with {@link #dependOnClassesThat(DescribedPredicate)} that catches a wider variety of violations.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the access target
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -848,6 +854,9 @@ public interface ClassesShould {
      * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
+     * NOTE: 'access' refers only to violations by real accesses, i.e. accessing a field, and calling a method.
+     * Compare with {@link #onlyDependOnClassesThat()}) that catches a wider variety of violations.
+     *
      * @return A syntax element that allows choosing which classes should only be accessed
      */
     @PublicAPI(usage = ACCESS)
@@ -860,6 +869,9 @@ public interface ClassesShould {
      * <pre><code>
      * {@link ArchRuleDefinition#noClasses() classes()}.{@link GivenClasses#should() should()}.{@link #onlyAccessClassesThat(DescribedPredicate) onlyAccessClassesThat(myPredicate)}
      * </code></pre>
+     *
+     * NOTE: 'access' refers only to violations by real accesses, i.e. accessing a field, and calling a method.
+     * Compare with {@link #onlyDependOnClassesThat(DescribedPredicate)} that catches a wider variety of violations.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the access target
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -875,6 +887,9 @@ public interface ClassesShould {
      * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #dependOnClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
+     * NOTE: 'dependOn' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
+     * Compare with {@link #accessClassesThat()} that catches violations only by real accesses.
+     *
      * @return A syntax element that allows choosing to which classes a dependency should exist
      */
     @PublicAPI(usage = ACCESS)
@@ -887,6 +902,9 @@ public interface ClassesShould {
      * <pre><code>
      * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #dependOnClassesThat(DescribedPredicate) dependOnClassesThat(myPredicate)}
      * </code></pre>
+     *
+     * NOTE: 'dependOn' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
+     * Compare with {@link #accessClassesThat(DescribedPredicate)} that catches violations only by real accesses.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency target
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -902,6 +920,9 @@ public interface ClassesShould {
      * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
      *
+     * NOTE: 'dependOn' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
+     * Compare with {@link #onlyAccessClassesThat()} that catches violations only by real accesses.
+     *
      * @return A syntax element that allows choosing to which classes a dependency should only exist
      */
     @PublicAPI(usage = ACCESS)
@@ -914,6 +935,9 @@ public interface ClassesShould {
      * <pre><code>
      * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyDependOnClassesThat(DescribedPredicate) onlyDependOnClassesThat(myPredicate)}
      * </code></pre>
+     *
+     * NOTE: 'dependOn' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
+     * Compare with {@link #onlyAccessClassesThat(DescribedPredicate)} that catches violations only by real accesses.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency target
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
