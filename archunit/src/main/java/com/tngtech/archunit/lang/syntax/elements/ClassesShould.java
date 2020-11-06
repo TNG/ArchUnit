@@ -946,11 +946,16 @@ public interface ClassesShould {
     ClassesShouldConjunction onlyDependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
 
     /**
-     * @return A syntax element that allows restricting how classes should be accessed
+     * Asserts that only certain classes access the classes selected by this rule.<br>
      * <br>E.g.
      * <pre><code>
      * {@link #onlyBeAccessed()}.{@link OnlyBeAccessedSpecification#byAnyPackage(String...) byAnyPackage(String...)}
      * </code></pre>
+     *
+     * NOTE: 'access' refers only to violations by real accesses, i.e. accessing a field, and calling a method.
+     * Compare with {@link #onlyHaveDependentClassesThat()} that catches a wider variety of violations.
+     *
+     * @return A syntax element that allows restricting how classes should be accessed
      */
     @PublicAPI(usage = ACCESS)
     OnlyBeAccessedSpecification<ClassesShouldConjunction> onlyBeAccessed();
@@ -961,6 +966,9 @@ public interface ClassesShould {
      * <pre><code>
      * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyHaveDependentClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
      * </code></pre>
+     *
+     * NOTE: 'depends' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
+     * Compare with {@link #onlyBeAccessed()} that catches violations only by real accesses.
      *
      * @return A syntax element that allows choosing from which classes a dependency to these classes may exist
      */
@@ -973,6 +981,10 @@ public interface ClassesShould {
      * <pre><code>
      * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link #onlyHaveDependentClassesThat(DescribedPredicate) onlyHaveDependentClassesThat(myPredicate)}
      * </code></pre>
+     *
+     * NOTE: 'depends' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
+     * Compare with {@link #onlyBeAccessed()}.{@link OnlyBeAccessedSpecification#byClassesThat(DescribedPredicate) byClassesThat(DescribedPredicate)}
+     * that catches violations only by real accesses.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency origin
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
