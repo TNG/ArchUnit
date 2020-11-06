@@ -33,7 +33,7 @@ ext {
     googleRelocationPackage = "${thirdPartyRelocationPackage}.com.google"
 
     dependency = [
-            asm                 : [group: 'org.ow2.asm', name: 'asm', version: '8.0.1'],
+            asm                 : [group: 'org.ow2.asm', name: 'asm', version: '9.0'],
             guava               : [group: 'com.google.guava', name: 'guava', version: '20.0'],
             slf4j               : [group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'],
             log4j_api           : [group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'],
@@ -98,7 +98,13 @@ allprojects {
     version = '0.15.0-SNAPSHOT'
 
     repositories {
-        mavenCentral()
+        mavenCentral {
+            metadataSources {
+                mavenPom()
+                artifact()
+                ignoreGradleMetadataRedirection()
+            }
+        }
     }
 }
 
