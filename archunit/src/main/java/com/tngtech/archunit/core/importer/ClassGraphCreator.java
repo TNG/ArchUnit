@@ -55,7 +55,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
-import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingClass;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
@@ -156,7 +155,7 @@ class ClassGraphCreator implements ImportContext {
     private void completeAnnotations() {
         for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
             DomainObjectCreationContext.completeAnnotations(javaClass, this);
-            for (JavaMember member : concat(javaClass.getFields(), javaClass.getMethods(), javaClass.getConstructors())) {
+            for (JavaMember member : javaClass.getMembers()) {
                 memberDependenciesByTarget.registerAnnotations(member.getAnnotations());
             }
         }
