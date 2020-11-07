@@ -17,10 +17,10 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
@@ -48,7 +48,7 @@ public abstract class JavaMember implements
 
     private final String name;
     private final String descriptor;
-    private final Supplier<Map<String, JavaAnnotation<JavaMember>>> annotations;
+    private Map<String, JavaAnnotation<JavaMember>> annotations = Collections.emptyMap();
     private final JavaClass owner;
     private final SourceCodeLocation sourceCodeLocation;
     private final Set<JavaModifier> modifiers;
@@ -56,7 +56,6 @@ public abstract class JavaMember implements
     JavaMember(JavaMemberBuilder<?, ?> builder) {
         this.name = checkNotNull(builder.getName());
         this.descriptor = checkNotNull(builder.getDescriptor());
-        this.annotations = builder.getAnnotations(this);
         this.owner = checkNotNull(builder.getOwner());
         this.sourceCodeLocation = SourceCodeLocation.of(owner, builder.getFirstLineNumber());
         this.modifiers = checkNotNull(builder.getModifiers());
@@ -65,7 +64,7 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<? extends JavaAnnotation<? extends JavaMember>> getAnnotations() {
-        return ImmutableSet.copyOf(annotations.get().values());
+        return ImmutableSet.copyOf(annotations.values());
     }
 
     /**
@@ -96,7 +95,7 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public Optional<? extends JavaAnnotation<? extends JavaMember>> tryGetAnnotationOfType(String typeName) {
-        return Optional.fromNullable(annotations.get().get(typeName));
+        return Optional.fromNullable(annotations.get(typeName));
     }
 
     @Override
@@ -108,13 +107,13 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(String typeName) {
-        return annotations.get().containsKey(typeName);
+        return annotations.containsKey(typeName);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.get().values(), predicate);
+        return CanBeAnnotated.Utils.isAnnotatedWith(annotations.values(), predicate);
     }
 
     @Override
@@ -132,7 +131,7 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.get().values(), predicate);
+        return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
     }
 
     @Override
@@ -177,6 +176,10 @@ public abstract class JavaMember implements
      */
     @PublicAPI(usage = ACCESS)
     public abstract Member reflect();
+
+    void completeAnnotations(ImportContext context) {
+        annotations = context.createAnnotations(this);
+    }
 
     @Override
     public String toString() {

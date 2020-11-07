@@ -34,6 +34,7 @@ import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -48,33 +49,30 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 public class ImportTestUtils {
 
     private static Set<JavaConstructor> createConstructors(JavaClass owner, Class<?> inputClass, ClassesByTypeName importedClasses) {
-        return finish(constructorBuildersFor(inputClass, importedClasses), owner, importedClasses);
+        return finish(constructorBuildersFor(inputClass), owner, importedClasses);
     }
 
     private static Set<JavaMethod> createMethods(JavaClass owner, Class<?> inputClass, ClassesByTypeName importedClasses) {
-        return finish(methodBuildersFor(inputClass, importedClasses), owner, importedClasses);
+        return finish(methodBuildersFor(inputClass), owner, importedClasses);
     }
 
     private static Set<JavaField> createFields(JavaClass owner, Class<?> inputClass, ClassesByTypeName importedClasses) {
-        return finish(fieldBuildersFor(inputClass, importedClasses), owner, importedClasses);
+        return finish(fieldBuildersFor(inputClass), owner, importedClasses);
     }
 
-    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuildersFor(Class<?> inputClass,
-            ClassesByTypeName importedClasses) {
+    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuildersFor(Class<?> inputClass) {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
         for (Field field : inputClass.getDeclaredFields()) {
             fieldBuilders.add(new DomainBuilders.JavaFieldBuilder()
                     .withName(field.getName())
                     .withDescriptor(Type.getDescriptor(field.getType()))
-                    .withAnnotations(javaAnnotationBuildersFrom(field.getAnnotations(), inputClass, importedClasses))
                     .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
                     .withType(JavaClassDescriptor.From.name(field.getType().getName())));
         }
         return fieldBuilders;
     }
 
-    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuildersFor(Class<?> inputClass,
-            ClassesByTypeName importedClasses) {
+    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuildersFor(Class<?> inputClass) {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         for (Method method : inputClass.getDeclaredMethods()) {
             methodBuilders.add(new DomainBuilders.JavaMethodBuilder()
@@ -82,15 +80,13 @@ public class ImportTestUtils {
                     .withParameters(typesFrom(method.getParameterTypes()))
                     .withName(method.getName())
                     .withDescriptor(Type.getMethodDescriptor(method))
-                    .withAnnotations(javaAnnotationBuildersFrom(method.getAnnotations(), inputClass, importedClasses))
                     .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers()))
                     .withThrowsClause(typesFrom(method.getExceptionTypes())));
         }
         return methodBuilders;
     }
 
-    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuildersFor(Class<?> inputClass,
-            ClassesByTypeName importedClasses) {
+    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuildersFor(Class<?> inputClass) {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
             constructorBuilders.add(new DomainBuilders.JavaConstructorBuilder()
@@ -98,7 +94,6 @@ public class ImportTestUtils {
                     .withParameters(typesFrom(constructor.getParameterTypes()))
                     .withName(CONSTRUCTOR_NAME)
                     .withDescriptor(Type.getConstructorDescriptor(constructor))
-                    .withAnnotations(javaAnnotationBuildersFrom(constructor.getAnnotations(), inputClass, importedClasses))
                     .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers()))
                     .withThrowsClause(typesFrom(constructor.getExceptionTypes())));
         }
@@ -110,15 +105,6 @@ public class ImportTestUtils {
         ImmutableSet.Builder<T> result = ImmutableSet.builder();
         for (DomainBuilders.BuilderWithBuildParameter<JavaClass, T> builder : builders) {
             result.add(builder.build(owner, importedClasses));
-        }
-        return result.build();
-    }
-
-    private static Set<DomainBuilders.JavaAnnotationBuilder> javaAnnotationBuildersFrom(Annotation[] reflectionAnnotations,
-            Class<?> annotatedClass, ClassesByTypeName importedClasses) {
-        ImmutableSet.Builder<DomainBuilders.JavaAnnotationBuilder> result = ImmutableSet.builder();
-        for (Annotation annotation : reflectionAnnotations) {
-            result.add(javaAnnotationBuilderFrom(annotation, annotatedClass, importedClasses));
         }
         return result.build();
     }
@@ -384,6 +370,11 @@ public class ImportTestUtils {
 
         @Override
         public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
             return Collections.emptyMap();
         }
 
