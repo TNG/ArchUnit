@@ -1,9 +1,0 @@
-language: java
-
-script:
-- ./gradlew --no-daemon --scan --info -PallTests clean build publishToMavenLocal runMavenTest
-
-jdk:
-  - openjdk11
-
-sudo: required
