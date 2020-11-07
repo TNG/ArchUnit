@@ -127,6 +127,7 @@ public class JavaClassTest {
 
     @Test
     public void finds_component_type_chain_of_otherwise_unreferenced_component_type() {
+        @SuppressWarnings("unused")
         class OnlyReferencingMultiDimArray {
             OnlyReferencingMultiDimArray[][][] field;
         }
@@ -517,8 +518,11 @@ public class JavaClassTest {
                 List.class, Serializable.class, SomeSuperClass.class,
                 WithType.class, WithNestedAnnotations.class, OnClass.class, OnMethod.class,
                 OnConstructor.class, OnField.class, MetaAnnotated.class, WithEnum.class, WithPrimitive.class,
+                WithOtherEnum.class, WithOtherType.class,
                 SomeEnumAsAnnotationParameter.class, SomeEnumAsAnnotationArrayParameter.class,
-                SomeEnumAsNestedAnnotationParameter.class, SomeEnumAsDefaultParameter.class);
+                SomeEnumAsNestedAnnotationParameter.class, SomeEnumAsDefaultParameter.class,
+                SomeOtherEnumAsAnnotationParameter.class, SomeOtherEnumAsDefaultParameter.class,
+                SomeOtherEnumAsAnnotationArrayParameter.class, SomeTypeAsDefaultParameter.class);
     }
 
     @Test
@@ -1071,7 +1075,7 @@ public class JavaClassTest {
 
         private class Step2 {
             private final Class<?> origin;
-            private String originDescription;
+            private final String originDescription;
 
             Step2(Class<?> origin) {
                 this.origin = origin;
@@ -1197,7 +1201,7 @@ public class JavaClassTest {
         }
 
         private class Evaluation<SELF> {
-            private List<AbstractBooleanAssert<?>> assignableAssertion = new ArrayList<>();
+            private final List<AbstractBooleanAssert<?>> assignableAssertion = new ArrayList<>();
 
             private final Set<Class<?>> additionalTypes = new HashSet<>();
 
@@ -1293,6 +1297,7 @@ public class JavaClassTest {
     }
 
     static class ClassWithInnerClass {
+        @SuppressWarnings("InnerClassMayBeStatic")
         class Inner {
         }
     }
@@ -1379,6 +1384,7 @@ public class JavaClassTest {
             };
         }
 
+        @SuppressWarnings("InnerClassMayBeStatic")
         private class NamedInnerClass {
             private class NestedNamedInnerClass {
             }
@@ -1395,13 +1401,15 @@ public class JavaClassTest {
             nested = {
                     @WithType(type = B.class)
             },
+            typeWithDefaults = @WithOtherType,
             withEnum = @WithEnum(
                     someEnum = SomeEnumAsNestedAnnotationParameter.NESTED_ANNOTATION_PARAMETER,
                     enumArray = {SomeEnumAsAnnotationArrayParameter.ANNOTATION_ARRAY_PARAMETER}
             )
     )
     @MetaAnnotated
-    public static class ClassWithAnnotationDependencies extends SomeSuperClass {
+    @SuppressWarnings("unused")
+    private static class ClassWithAnnotationDependencies extends SomeSuperClass {
         @OnField(SomeEnumAsAnnotationParameter.ANNOTATION_PARAMETER)
         Object field;
 
@@ -1418,48 +1426,62 @@ public class JavaClassTest {
         }
     }
 
-    @interface OnClass {
+    private @interface OnClass {
     }
 
-    @interface OnField {
+    private @interface OnField {
         SomeEnumAsAnnotationParameter value();
     }
 
-    @interface OnConstructor {
+    private @interface OnConstructor {
     }
 
-    @interface OnMethod {
+    private @interface OnMethod {
     }
 
     @WithType(type = B.class)
-    @interface OnMethodParam {
+    private @interface OnMethodParam {
     }
 
     @Retention(RUNTIME)
-    @interface WithType {
+    private @interface WithType {
         Class<?> type();
     }
 
+    @SuppressWarnings("unused")
     @Retention(RUNTIME)
-    @interface WithNestedAnnotations {
+    private @interface WithOtherType {
+        Class<?> typeWithDefault() default SomeTypeAsDefaultParameter.class;
+    }
+
+    @SuppressWarnings("unused")
+    @Retention(RUNTIME)
+    private @interface WithNestedAnnotations {
         Class<?> outerType();
 
         WithType[] nested();
 
+        WithOtherType typeWithDefaults();
+
         WithEnum withEnum();
+
+        WithOtherEnum annotationWithDefault() default @WithOtherEnum(
+                someEnum = SomeOtherEnumAsAnnotationParameter.OTHER_ANNOTATION_PARAMETER,
+                enumArray = {SomeOtherEnumAsAnnotationArrayParameter.OTHER_ANNOTATION_ARRAY_PARAMETER, SomeOtherEnumAsAnnotationArrayParameter.OTHER_ANNOTATION_ARRAY_PARAMETER});
     }
 
     @Retention(RUNTIME)
     @MetaAnnotation
-    @interface MetaAnnotation {
+    private @interface MetaAnnotation {
     }
 
     @Retention(RUNTIME)
     @MetaAnnotation
-    @interface MetaAnnotated {
+    private @interface MetaAnnotated {
     }
 
-    @interface WithEnum {
+    @SuppressWarnings("unused")
+    private @interface WithEnum {
         SomeEnumAsDefaultParameter enumWithDefault() default SomeEnumAsDefaultParameter.DEFAULT_PARAMETER;
 
         SomeEnumAsNestedAnnotationParameter someEnum();
@@ -1467,8 +1489,17 @@ public class JavaClassTest {
         SomeEnumAsAnnotationArrayParameter[] enumArray();
     }
 
+    @SuppressWarnings("unused")
+    private @interface WithOtherEnum {
+        SomeOtherEnumAsDefaultParameter enumWithDefault() default SomeOtherEnumAsDefaultParameter.OTHER_DEFAULT_PARAMETER;
+
+        SomeOtherEnumAsAnnotationParameter someEnum();
+
+        SomeOtherEnumAsAnnotationArrayParameter[] enumArray();
+    }
+
     @Retention(RUNTIME)
-    @interface WithPrimitive {
+    private @interface WithPrimitive {
         int someInt();
 
         int[] someInts();
@@ -1478,30 +1509,45 @@ public class JavaClassTest {
         String[] someStrings();
     }
 
-    enum SomeEnumAsAnnotationParameter {
+    private enum SomeEnumAsAnnotationParameter {
         ANNOTATION_PARAMETER
     }
 
-    enum SomeEnumAsNestedAnnotationParameter {
+    private enum SomeOtherEnumAsAnnotationParameter {
+        OTHER_ANNOTATION_PARAMETER
+    }
+
+    private enum SomeEnumAsNestedAnnotationParameter {
         NESTED_ANNOTATION_PARAMETER
     }
 
-    enum SomeEnumAsDefaultParameter {
+    private enum SomeEnumAsDefaultParameter {
         DEFAULT_PARAMETER
     }
 
-    enum SomeEnumAsAnnotationArrayParameter {
+    private enum SomeOtherEnumAsDefaultParameter {
+        OTHER_DEFAULT_PARAMETER
+    }
+
+    private enum SomeEnumAsAnnotationArrayParameter {
         ANNOTATION_ARRAY_PARAMETER
+    }
+
+    private enum SomeOtherEnumAsAnnotationArrayParameter {
+        OTHER_ANNOTATION_ARRAY_PARAMETER
+    }
+
+    private static class SomeTypeAsDefaultParameter {
     }
 
     @AnnotationWithCyclicAnnotation
     @Retention(RUNTIME)
-    @interface MetaAnnotationWithCyclicAnnotation {
+    private @interface MetaAnnotationWithCyclicAnnotation {
     }
 
     @AnnotationWithCyclicAnnotation
     @MetaAnnotationWithCyclicAnnotation
-    @interface AnnotationWithCyclicAnnotation {
+    private @interface AnnotationWithCyclicAnnotation {
     }
 
     @AnnotationWithCyclicAnnotation

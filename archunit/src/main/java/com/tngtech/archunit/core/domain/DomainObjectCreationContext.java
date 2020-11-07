@@ -126,8 +126,8 @@ public class DomainObjectCreationContext {
         return new AccessTarget.ConstructorCallTarget(builder);
     }
 
-    public static JavaMethod createJavaMethod(JavaMethodBuilder builder) {
-        return new JavaMethod(builder);
+    public static JavaMethod createJavaMethod(JavaMethodBuilder builder, Function<JavaMethod, Optional<Object>> createAnnotationDefaultValue) {
+        return new JavaMethod(builder, createAnnotationDefaultValue);
     }
 
     public static JavaMethodCall createJavaMethodCall(JavaMethodCallBuilder builder) {

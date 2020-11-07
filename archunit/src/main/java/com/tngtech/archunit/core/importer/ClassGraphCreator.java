@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -49,6 +50,7 @@ import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
@@ -155,9 +157,6 @@ class ClassGraphCreator implements ImportContext {
     private void completeAnnotations() {
         for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
             DomainObjectCreationContext.completeAnnotations(javaClass, this);
-            for (JavaMember member : javaClass.getMembers()) {
-                memberDependenciesByTarget.registerAnnotations(member.getAnnotations());
-            }
         }
     }
 
@@ -284,7 +283,19 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Set<JavaMethod> createMethods(JavaClass owner) {
-        Set<JavaMethod> methods = build(importRecord.getMethodBuildersFor(owner.getName()), owner, classes.byTypeName());
+        Set<DomainBuilders.JavaMethodBuilder> methodBuilders = importRecord.getMethodBuildersFor(owner.getName());
+        if (owner.isAnnotation()) {
+            for (DomainBuilders.JavaMethodBuilder methodBuilder : methodBuilders) {
+                methodBuilder.withAnnotationDefaultValue(new Function<JavaMethod, Optional<Object>>() {
+                    @Override
+                    public Optional<Object> apply(JavaMethod method) {
+                        Optional<ValueBuilder> defaultValueBuilder = importRecord.getAnnotationDefaultValueBuilderFor(method);
+                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, classes.byTypeName()) : Optional.absent();
+                    }
+                });
+            }
+        }
+        Set<JavaMethod> methods = build(methodBuilders, owner, classes.byTypeName());
         memberDependenciesByTarget.registerMethods(methods);
         return methods;
     }
@@ -309,8 +320,16 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
-        Map<String, JavaAnnotation<JavaClass>> annotations =
-                buildAnnotations(owner, importRecord.getAnnotationsFor(owner.getName()), classes.byTypeName());
+        return createAnnotations(owner, importRecord.getAnnotationsFor(owner));
+    }
+
+    @Override
+    public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
+        return createAnnotations(owner, importRecord.getAnnotationsFor(owner));
+    }
+
+    private <OWNER extends HasDescription> Map<String, JavaAnnotation<OWNER>> createAnnotations(OWNER owner, Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
+        Map<String, JavaAnnotation<OWNER>> annotations = buildAnnotations(owner, annotationBuilders, classes.byTypeName());
         memberDependenciesByTarget.registerAnnotations(annotations.values());
         return annotations;
     }
