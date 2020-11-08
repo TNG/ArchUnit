@@ -100,6 +100,7 @@ class JavaClassProcessor extends ClassVisitor {
         LOG.trace("Found interfaces {} on class '{}'", interfaceNames, name);
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
         boolean opCodeForEnumIsPresent = (access & Opcodes.ACC_ENUM) != 0;
+        boolean opCodeForAnnotationIsPresent = (access & Opcodes.ACC_ANNOTATION) != 0;
         Optional<String> superClassName = getSuperClassName(superName, opCodeForInterfaceIsPresent);
         LOG.trace("Found superclass {} on class '{}'", superClassName.orNull(), name);
 
@@ -108,6 +109,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withDescriptor(descriptor)
                 .withInterface(opCodeForInterfaceIsPresent)
                 .withEnum(opCodeForEnumIsPresent)
+                .withAnnotation(opCodeForAnnotationIsPresent)
                 .withModifiers(JavaModifier.getModifiersForClass(access));
 
         className = descriptor.getFullyQualifiedClassName();

@@ -600,6 +600,22 @@ public interface ClassesThat<CONJUNCTION> {
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotEnums();
 
+    /**
+     * Matches annotations.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areAnnotations();
+
+    /**
+     * Matches everything except annotations.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotAnnotations();
+
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areTopLevelClasses();
 
