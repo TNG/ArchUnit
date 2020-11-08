@@ -165,6 +165,7 @@ import com.tngtech.archunit.core.importer.testexamples.pathone.Class11;
 import com.tngtech.archunit.core.importer.testexamples.pathone.Class12;
 import com.tngtech.archunit.core.importer.testexamples.pathtwo.Class21;
 import com.tngtech.archunit.core.importer.testexamples.pathtwo.Class22;
+import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportOne;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportTwo;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
@@ -249,7 +250,7 @@ public class ClassFileImporterTest {
     @Test
     public void imports_simple_package() throws Exception {
         Set<String> expectedClassNames = Sets.newHashSet(
-                ClassToImportOne.class.getName(), ClassToImportTwo.class.getName(), InterfaceToImport.class.getName(), EnumToImport.class.getName());
+                ClassToImportOne.class.getName(), ClassToImportTwo.class.getName(), InterfaceToImport.class.getName(), EnumToImport.class.getName(), AnnotationToImport.class.getName());
 
         Iterable<JavaClass> classes = classesIn("testexamples/simpleimport");
 
@@ -269,6 +270,7 @@ public class ClassFileImporterTest {
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isFalse();
+        assertThat(javaClass.isAnnotation()).as("is annotation").isFalse();
         assertThat(javaClass.getEnclosingClass()).as("enclosing class").isAbsent();
         assertThat(javaClass.isTopLevelClass()).as("is top level class").isTrue();
         assertThat(javaClass.isNestedClass()).as("is nested class").isFalse();
@@ -293,12 +295,33 @@ public class ClassFileImporterTest {
         assertThatTypes(javaClass.getAllInterfaces()).matchInAnyOrder(Enum.class.getInterfaces());
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isTrue();
+        assertThat(javaClass.isAnnotation()).as("is annotation").isFalse();
 
         JavaEnumConstant constant = javaClass.getEnumConstant(EnumToImport.FIRST.name());
         assertThatType(constant.getDeclaringClass()).as("declaring class").isEqualTo(javaClass);
         assertThat(constant.name()).isEqualTo(EnumToImport.FIRST.name());
         assertThat(javaClass.getEnumConstants()).extractingResultOf("name").as("enum constant names")
                 .containsOnly(EnumToImport.FIRST.name(), EnumToImport.SECOND.name());
+    }
+
+    @Test
+    public void imports_simple_annotation() throws Exception {
+        JavaClass javaClass = classesIn("testexamples/simpleimport").get(AnnotationToImport.class);
+
+        assertThat(javaClass.getName()).as("full name").isEqualTo(AnnotationToImport.class.getName());
+        assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(AnnotationToImport.class.getSimpleName());
+        assertThat(javaClass.getPackageName()).as("package name").isEqualTo(AnnotationToImport.class.getPackage().getName());
+        assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC, JavaModifier.ABSTRACT);
+        assertThat(javaClass.getSuperClass()).as("super class").isAbsent();
+        assertThatTypes(javaClass.getInterfaces()).as("interfaces").matchInAnyOrder(Annotation.class);
+        assertThat(javaClass.isInterface()).as("is interface").isTrue();
+        assertThat(javaClass.isEnum()).as("is enum").isFalse();
+        assertThat(javaClass.isAnnotation()).as("is annotation").isTrue();
+
+        assertThat(getAnnotationDefaultValue(javaClass, "someStringMethod", String.class)).isEqualTo("DEFAULT");
+        assertThatType(getAnnotationDefaultValue(javaClass, "someTypeMethod", JavaClass.class)).matches(List.class);
+        assertThat(getAnnotationDefaultValue(javaClass, "someEnumMethod", JavaEnumConstant.class)).isEquivalentTo(EnumToImport.SECOND);
+        assertThatType(getAnnotationDefaultValue(javaClass, "someAnnotationMethod", JavaAnnotation.class).getRawType()).matches(Deprecated.class);
     }
 
     @DataProvider
@@ -2340,6 +2363,11 @@ public class ClassFileImporterTest {
     private <T extends HasName> T findAnyByName(Iterable<T> thingsWithName, String name) {
         T result = getFirst(getByName(thingsWithName, name), null);
         return checkNotNull(result, "No object with name '" + name + "' is present in " + thingsWithName);
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <T> T getAnnotationDefaultValue(JavaClass javaClass, String methodName, Class<T> valueType) {
+        return (T) javaClass.getMethod(methodName).getDefaultValue().get();
     }
 
     private ImportedClasses classesIn(String path) throws Exception {

@@ -349,6 +349,7 @@ public final class DomainBuilders {
         private JavaClassDescriptor descriptor;
         private boolean isInterface;
         private boolean isEnum;
+        private boolean isAnnotation;
         private boolean isAnonymousClass;
         private boolean isMemberClass;
         private Set<JavaModifier> modifiers = new HashSet<>();
@@ -391,6 +392,11 @@ public final class DomainBuilders {
             return this;
         }
 
+        public JavaClassBuilder withAnnotation(boolean isAnnotation) {
+            this.isAnnotation = isAnnotation;
+            return this;
+        }
+
         JavaClassBuilder withModifiers(Set<JavaModifier> modifiers) {
             this.modifiers = modifiers;
             return this;
@@ -421,6 +427,10 @@ public final class DomainBuilders {
 
         public boolean isEnum() {
             return isEnum;
+        }
+
+        public boolean isAnnotation() {
+            return isAnnotation;
         }
 
         public boolean isAnonymousClass() {

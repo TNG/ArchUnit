@@ -28,6 +28,7 @@ import com.tngtech.archunit.lang.syntax.elements.GivenMembersConjunction;
 
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ANNOTATIONS;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ANONYMOUS_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ENUMS;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INNER_CLASSES;
@@ -353,6 +354,16 @@ class MembersDeclaredInClassesThat<MEMBER extends JavaMember, CONJUNCTION extend
     @Override
     public CONJUNCTION areNotEnums() {
         return givenWith(are(not(ENUMS)));
+    }
+
+    @Override
+    public CONJUNCTION areAnnotations() {
+        return givenWith(are(ANNOTATIONS));
+    }
+
+    @Override
+    public CONJUNCTION areNotAnnotations() {
+        return givenWith(are(not(ANNOTATIONS)));
     }
 
     @Override

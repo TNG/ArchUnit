@@ -69,6 +69,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private JavaPackage javaPackage;
     private final boolean isInterface;
     private final boolean isEnum;
+    private final boolean isAnnotation;
     private final boolean isAnonymousClass;
     private final boolean isMemberClass;
     private final Set<JavaModifier> modifiers;
@@ -106,6 +107,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         descriptor = checkNotNull(builder.getDescriptor());
         isInterface = builder.isInterface();
         isEnum = builder.isEnum();
+        isAnnotation = builder.isAnnotation();
         isAnonymousClass = builder.isAnonymousClass();
         isMemberClass = builder.isMemberClass();
         modifiers = checkNotNull(builder.getModifiers());
@@ -184,6 +186,11 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     @PublicAPI(usage = ACCESS)
     public boolean isEnum() {
         return isEnum;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean isAnnotation() {
+        return isAnnotation;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1422,6 +1429,14 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             @Override
             public boolean apply(JavaClass input) {
                 return input.isEnum();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> ANNOTATIONS = new DescribedPredicate<JavaClass>("annotations") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isAnnotation();
             }
         };
 

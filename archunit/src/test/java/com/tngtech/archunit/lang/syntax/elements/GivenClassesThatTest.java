@@ -608,6 +608,22 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void areAnnotations_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().areAnnotations())
+                .on(Deprecated.class, Collection.class, SafeVarargs.class, Integer.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Deprecated.class, SafeVarargs.class);
+    }
+
+    @Test
+    public void areNotAnnotations_predicate() {
+        List<JavaClass> classes = filterResultOf(classes().that().areNotAnnotations())
+                .on(Deprecated.class, Collection.class, SafeVarargs.class, Integer.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Collection.class, Integer.class);
+    }
+
+    @Test
     public void areTopLevelClasses_predicate() {
         List<JavaClass> classes = filterResultOf(classes().that().areTopLevelClasses())
                 .on(List.class, Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.class,
