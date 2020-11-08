@@ -714,6 +714,26 @@ public class ShouldClassesThatTest {
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areAnnotations_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areAnnotations())
+                .on(ClassAccessingAnnotation.class, ClassAccessingString.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotation.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void areNotAnnotations_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.areNotAnnotations())
+                .on(ClassAccessingAnnotation.class, ClassAccessingString.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingString.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
     public void areTopLevelClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 noClassesShouldThatRuleStart.areTopLevelClasses())
@@ -1565,7 +1585,7 @@ public class ShouldClassesThatTest {
     }
 
     private static class ClassAccessingList {
-        @SuppressWarnings("unused")
+        @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
         void call(List<?> list) {
             list.size();
         }
@@ -1577,7 +1597,7 @@ public class ShouldClassesThatTest {
     }
 
     private static class ClassAccessingArrayList {
-        @SuppressWarnings("unused")
+        @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
         void call(ArrayList<?> list) {
             list.size();
         }
@@ -1604,7 +1624,7 @@ public class ShouldClassesThatTest {
     }
 
     private static class ClassAccessingCollection {
-        @SuppressWarnings("unused")
+        @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
         void call(Collection<?> collection) {
             collection.size();
         }
@@ -1739,6 +1759,15 @@ public class ShouldClassesThatTest {
         @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
         void access() {
             StandardCopyOption.ATOMIC_MOVE.name();
+        }
+    }
+
+    private static class ClassAccessingAnnotation {
+        Deprecated deprecated;
+
+        @SuppressWarnings({"unused"})
+        void access() {
+            deprecated.annotationType();
         }
     }
 

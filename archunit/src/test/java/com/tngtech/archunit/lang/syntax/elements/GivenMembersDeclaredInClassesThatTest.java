@@ -604,6 +604,22 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
+    public void areAnnotations_predicate() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areAnnotations())
+                .on(Deprecated.class, Collection.class, SafeVarargs.class, Integer.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(Deprecated.class, SafeVarargs.class);
+    }
+
+    @Test
+    public void areNotAnnotations_predicate() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNotAnnotations())
+                .on(Deprecated.class, Collection.class, SafeVarargs.class, Integer.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(Collection.class, Integer.class);
+    }
+
+    @Test
     public void areTopLevelClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areTopLevelClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,

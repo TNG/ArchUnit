@@ -823,6 +823,26 @@ public class ShouldOnlyByClassesThatTest {
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
+    public void areAnnotations_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areAnnotations())
+                .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByAnnotation.class, AnnotationAccessingAClass.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, SimpleClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void areNotAnnotations_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                classesShouldOnlyBeBy.areNotAnnotations())
+                .on(ClassAccessingSimpleClass.class, SimpleClass.class, ClassBeingAccessedByAnnotation.class, AnnotationAccessingAClass.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotation.class, AnnotationAccessingAClass.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
     public void areTopLevelClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areTopLevelClasses())
@@ -1241,6 +1261,14 @@ public class ShouldOnlyByClassesThatTest {
         static void access() {
             new ClassBeingAccessedByEnum();
         }
+    }
+
+    private static class ClassBeingAccessedByAnnotation {
+    }
+
+    @SuppressWarnings({"unused"})
+    private @interface AnnotationAccessingAClass {
+        ClassBeingAccessedByAnnotation access = new ClassBeingAccessedByAnnotation();
     }
 
     private static class ClassAccessingStaticNestedClass {
