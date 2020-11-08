@@ -481,16 +481,7 @@ public final class DomainBuilders {
                     result.put(entry.getKey(), value.get());
                 }
             }
-            addDefaultValues(result, importedClasses);
             return result.build();
-        }
-
-        private void addDefaultValues(ImmutableMap.Builder<String, Object> result, ClassesByTypeName importedClasses) {
-            for (JavaMethod method : importedClasses.get(type.getFullyQualifiedClassName()).getMethods()) {
-                if (!values.containsKey(method.getName()) && method.getDefaultValue().isPresent()) {
-                    result.put(method.getName(), method.getDefaultValue().get());
-                }
-            }
         }
 
         public <T extends HasDescription> JavaAnnotation<T> build(T owner, ClassesByTypeName importedClasses) {
