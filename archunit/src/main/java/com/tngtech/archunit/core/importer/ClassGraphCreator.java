@@ -30,7 +30,6 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
-import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -57,8 +56,11 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeAnnotations;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingClass;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeMembers;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeParameters;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
 import static com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.importer.DomainBuilders.buildAnnotations;
@@ -102,18 +104,9 @@ class ClassGraphCreator implements ImportContext {
 
     JavaClasses complete() {
         ensureCallTargetsArePresent();
-        ensureClassHierarchiesAndEnclosingClasses();
-        completeTypeParametersAndMembers();
-        completeAnnotations();
-        for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
-            tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
-        }
-        for (RawAccessRecord methodCallRecord : importRecord.getRawMethodCallRecords()) {
-            tryProcess(methodCallRecord, AccessRecord.Factory.forMethodCallRecord(), processedMethodCallRecords);
-        }
-        for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
-            tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords);
-        }
+        ensureClassesOfInheritanceHierarchiesArePresent();
+        completeClasses();
+        completeAccesses();
         return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
     }
 
@@ -123,15 +116,7 @@ class ClassGraphCreator implements ImportContext {
         }
     }
 
-    private void ensureClassHierarchiesAndEnclosingClasses() {
-        ensureClassesOfHierarchyInContext();
-        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
-            completeClassHierarchy(javaClass, this);
-            completeEnclosingClass(javaClass, this);
-        }
-    }
-
-    private void ensureClassesOfHierarchyInContext() {
+    private void ensureClassesOfInheritanceHierarchiesArePresent() {
         for (String superClassName : importRecord.getAllSuperClassNames()) {
             resolveInheritance(superClassName, superClassStrategy);
         }
@@ -147,16 +132,25 @@ class ClassGraphCreator implements ImportContext {
         }
     }
 
-    private void completeTypeParametersAndMembers() {
+    private void completeClasses() {
         for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
-            DomainObjectCreationContext.completeTypeParameters(javaClass, this);
-            DomainObjectCreationContext.completeMembers(javaClass, this);
+            completeClassHierarchy(javaClass, this);
+            completeEnclosingClass(javaClass, this);
+            completeTypeParameters(javaClass, this);
+            completeMembers(javaClass, this);
+            completeAnnotations(javaClass, this);
         }
     }
 
-    private void completeAnnotations() {
-        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
-            DomainObjectCreationContext.completeAnnotations(javaClass, this);
+    private void completeAccesses() {
+        for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
+            tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
+        }
+        for (RawAccessRecord methodCallRecord : importRecord.getRawMethodCallRecords()) {
+            tryProcess(methodCallRecord, AccessRecord.Factory.forMethodCallRecord(), processedMethodCallRecords);
+        }
+        for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
+            tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords);
         }
     }
 
@@ -290,7 +284,7 @@ class ClassGraphCreator implements ImportContext {
                     @Override
                     public Optional<Object> apply(JavaMethod method) {
                         Optional<ValueBuilder> defaultValueBuilder = importRecord.getAnnotationDefaultValueBuilderFor(method);
-                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, classes.byTypeName()) : Optional.absent();
+                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, ClassGraphCreator.this) : Optional.absent();
                     }
                 });
             }
@@ -329,7 +323,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private <OWNER extends HasDescription> Map<String, JavaAnnotation<OWNER>> createAnnotations(OWNER owner, Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
-        Map<String, JavaAnnotation<OWNER>> annotations = buildAnnotations(owner, annotationBuilders, classes.byTypeName());
+        Map<String, JavaAnnotation<OWNER>> annotations = buildAnnotations(owner, annotationBuilders, this);
         memberDependenciesByTarget.registerAnnotations(annotations.values());
         return annotations;
     }
@@ -345,6 +339,16 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public JavaClass resolveClass(String fullyQualifiedClassName) {
         return classes.getOrResolve(fullyQualifiedClassName);
+    }
+
+    @Override
+    public Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {
+        for (DomainBuilders.JavaMethodBuilder methodBuilder : importRecord.getMethodBuildersFor(declaringClassName)) {
+            if (methodBuilder.getName().equals(methodName) && methodBuilder.hasNoParameters()) {
+                return Optional.of(classes.getOrResolve(methodBuilder.getReturnTypeName()));
+            }
+        }
+        return Optional.absent();
     }
 
     private static class MemberDependenciesByTarget {

@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core.importer;
 
+import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -19,7 +20,7 @@ public class JavaAnnotationTestBuilder {
         return this;
     }
 
-    public JavaAnnotation<?> build(JavaClass owner, ClassesByTypeName byTypeName) {
-        return delegate.build(owner, byTypeName);
+    public JavaAnnotation<?> build(JavaClass owner, ImportContext importContext) {
+        return delegate.build(owner, importContext);
     }
 }

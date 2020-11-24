@@ -10,5 +10,5 @@ public @interface AnnotationToImport {
 
     EnumToImport someEnumMethod() default EnumToImport.SECOND;
 
-    Deprecated someAnnotationMethod() default @Deprecated;
+    AnnotationParameter someAnnotationMethod() default @AnnotationParameter;
 }
