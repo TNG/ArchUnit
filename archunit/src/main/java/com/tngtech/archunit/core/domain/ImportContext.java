@@ -69,4 +69,6 @@ public interface ImportContext {
     Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass);
 
     JavaClass resolveClass(String fullyQualifiedClassName);
+
+    Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName);
 }

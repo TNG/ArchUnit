@@ -36,11 +36,11 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
+import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
-import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
@@ -613,7 +613,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         // NOTE: If the declared annotation is not imported itself, we can still use this heuristic,
         //       to determine additional information about the respective array.
-        //       (It the annotation is imported itself, we could easily determine this from the respective
+        //       (If the annotation is imported itself, we could easily determine this from the respective
         //       JavaClass methods)
         private void setDerivedComponentType(Class<?> type) {
             checkState(derivedComponentType == null || derivedComponentType.equals(type),
@@ -629,13 +629,13 @@ class JavaClassProcessor extends ClassVisitor {
 
         private class ArrayValueBuilder extends ValueBuilder {
             @Override
-            public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
-                Optional<Class<?>> componentType = determineComponentType(importedClasses);
+            public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
+                Optional<Class<?>> componentType = determineComponentType(importContext);
                 if (!componentType.isPresent()) {
                     return Optional.absent();
                 }
 
-                return Optional.of(toArray(componentType.get(), buildValues(owner, importedClasses)));
+                return Optional.of(toArray(componentType.get(), buildValues(owner, importContext)));
             }
 
             @SuppressWarnings({"unchecked", "rawtypes"}) // NOTE: We assume the component type matches the list
@@ -660,34 +660,34 @@ class JavaClassProcessor extends ClassVisitor {
                 return values.toArray((Object[]) Array.newInstance(componentType, values.size()));
             }
 
-            private <T extends HasDescription> List<Object> buildValues(T owner, ClassesByTypeName importedClasses) {
+            private <T extends HasDescription> List<Object> buildValues(T owner, ImportContext importContext) {
                 List<Object> result = new ArrayList<>();
                 for (ValueBuilder value : values) {
-                    result.addAll(value.build(owner, importedClasses).asSet());
+                    result.addAll(value.build(owner, importContext).asSet());
                 }
                 return result;
             }
 
-            private Optional<Class<?>> determineComponentType(ClassesByTypeName importedClasses) {
+            private Optional<Class<?>> determineComponentType(ImportContext importContext) {
                 if (derivedComponentType != null) {
                     return Optional.<Class<?>>of(derivedComponentType);
                 }
 
-                JavaClass annotationType = importedClasses.get(annotationArrayContext.getDeclaringAnnotationTypeName());
-                Optional<JavaMethod> method = annotationType
-                        .tryGetMethod(annotationArrayContext.getDeclaringAnnotationMemberName());
+                Optional<JavaClass> returnType = importContext.getMethodReturnType(
+                        annotationArrayContext.getDeclaringAnnotationTypeName(),
+                        annotationArrayContext.getDeclaringAnnotationMemberName());
 
-                return method.isPresent() ?
-                        determineComponentTypeFromReturnValue(method.get()) :
+                return returnType.isPresent() ?
+                        determineComponentTypeFromReturnValue(returnType.get()) :
                         Optional.<Class<?>>absent();
             }
 
-            private Optional<Class<?>> determineComponentTypeFromReturnValue(JavaMethod method) {
-                if (method.getRawReturnType().isEquivalentTo(Class[].class)) {
+            private Optional<Class<?>> determineComponentTypeFromReturnValue(JavaClass returnType) {
+                if (returnType.isEquivalentTo(Class[].class)) {
                     return Optional.<Class<?>>of(JavaClass.class);
                 }
 
-                return resolveComponentTypeFrom(method.getRawReturnType().getName());
+                return resolveComponentTypeFrom(returnType.getName());
             }
 
             @MayResolveTypesViaReflection(reason = "Resolving primitives does not really use reflection")
@@ -731,10 +731,10 @@ class JavaClassProcessor extends ClassVisitor {
     private static ValueBuilder javaEnumBuilder(final String desc, final String value) {
         return new ValueBuilder() {
             @Override
-            public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
+            public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
                 return Optional.<Object>of(
                         new DomainBuilders.JavaEnumConstantBuilder()
-                                .withDeclaringClass(importedClasses.get(JavaClassDescriptorImporter.importAsmType(desc).getFullyQualifiedClassName()))
+                                .withDeclaringClass(importContext.resolveClass(JavaClassDescriptorImporter.importAsmType(desc).getFullyQualifiedClassName()))
                                 .withName(value)
                                 .build());
             }
@@ -747,8 +747,8 @@ class JavaClassProcessor extends ClassVisitor {
             if (value instanceof JavaClassDescriptor) {
                 return new ValueBuilder() {
                     @Override
-                    public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
-                        return Optional.<Object>of(importedClasses.get(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
+                    public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
+                        return Optional.<Object>of(importContext.resolveClass(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
                     }
                 };
             }

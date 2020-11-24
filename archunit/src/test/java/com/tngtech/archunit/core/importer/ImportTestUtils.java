@@ -117,24 +117,24 @@ public class ImportTestUtils {
                 .build();
     }
 
-    private static Map<String, Object> mapOf(Annotation annotation, Class<?> annotatedClass, ClassesByTypeName importedClasses) {
+    private static Map<String, Object> mapOf(Annotation annotation, Class<?> annotatedClass, ImportContext importContext) {
         ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
         for (Method method : annotation.annotationType().getDeclaredMethods()) {
-            result.put(method.getName(), get(annotation, annotatedClass, method.getName(), importedClasses));
+            result.put(method.getName(), get(annotation, annotatedClass, method.getName(), importContext));
         }
         return result.build();
     }
 
-    private static Object get(Annotation annotation, Class<?> owner, String methodName, ClassesByTypeName importedClasses) {
+    private static Object get(Annotation annotation, Class<?> owner, String methodName, ImportContext importContext) {
         try {
             Method method = annotation.annotationType().getMethod(methodName);
             method.setAccessible(true);
             Object result = method.invoke(annotation);
             if (result instanceof Class) {
-                return importedClasses.get(((Class<?>) result).getName());
+                return importContext.resolveClass(((Class<?>) result).getName());
             }
             if (result instanceof Class[]) {
-                List<JavaClass> classes = javaClassesFrom((Class<?>[]) result, importedClasses);
+                List<JavaClass> classes = javaClassesFrom((Class<?>[]) result, importContext);
                 return classes.toArray(new JavaClass[0]);
             }
             if (result instanceof Enum<?>) {
@@ -155,10 +155,10 @@ public class ImportTestUtils {
         }
     }
 
-    private static List<JavaClass> javaClassesFrom(Class<?>[] classes, ClassesByTypeName importedClasses) {
+    private static List<JavaClass> javaClassesFrom(Class<?>[] classes, ImportContext importContext) {
         ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
         for (Class<?> c : classes) {
-            result.add(importedClasses.get(c.getName()));
+            result.add(importContext.resolveClass(c.getName()));
         }
         return result.build();
     }
@@ -172,13 +172,13 @@ public class ImportTestUtils {
     }
 
     private static List<? extends JavaAnnotation<?>> javaAnnotationsFrom(Annotation[] annotations, Class<?> owner) {
-        return javaAnnotationsFrom(annotations, simpleImportedClasses(), owner);
+        return javaAnnotationsFrom(annotations, simulateImportContext(owner, simpleImportedClasses()), owner);
     }
 
-    private static List<JavaAnnotation<JavaClass>> javaAnnotationsFrom(Annotation[] annotations, ClassesByTypeName importedClasses, Class<?> owner) {
+    private static List<JavaAnnotation<JavaClass>> javaAnnotationsFrom(Annotation[] annotations, ImportContext importContext, Class<?> owner) {
         List<JavaAnnotation<JavaClass>> result = new ArrayList<>();
         for (Annotation a : annotations) {
-            result.add(ImportTestUtils.javaAnnotationFrom(a, owner, importedClasses));
+            result.add(ImportTestUtils.javaAnnotationFrom(a, owner, importContext));
         }
         return result;
     }
@@ -247,15 +247,15 @@ public class ImportTestUtils {
     }
 
     public static JavaAnnotation<JavaClass> javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass) {
-        return javaAnnotationFrom(annotation, annotatedClass, ImportTestUtils.simpleImportedClasses());
+        return javaAnnotationFrom(annotation, annotatedClass, simulateImportContext(annotatedClass, ImportTestUtils.simpleImportedClasses()));
     }
 
-    private static JavaAnnotation<JavaClass> javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass, ClassesByTypeName importedClasses) {
-        return javaAnnotationBuilderFrom(annotation, annotatedClass, importedClasses).build(importedClasses.get(annotatedClass.getName()), importedClasses);
+    private static JavaAnnotation<JavaClass> javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass, ImportContext importContext) {
+        return javaAnnotationBuilderFrom(annotation, annotatedClass, importContext).build(importContext.resolveClass(annotatedClass.getName()), importContext);
     }
 
     private static DomainBuilders.JavaAnnotationBuilder javaAnnotationBuilderFrom(Annotation annotation, Class<?> annotatedClass,
-            ClassesByTypeName importedClasses) {
+            ImportContext importedClasses) {
         DomainBuilders.JavaAnnotationBuilder builder = new DomainBuilders.JavaAnnotationBuilder()
                 .withType(JavaClassDescriptor.From.name(annotation.annotationType().getName()));
         for (Map.Entry<String, Object> entry : mapOf(annotation, annotatedClass, importedClasses).entrySet()) {
@@ -295,12 +295,12 @@ public class ImportTestUtils {
 
             @Override
             public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
-                return annotationsFor(inputClass, importedClasses);
+                return annotationsFor(inputClass, simulateImportContext(inputClass, importedClasses));
             }
         };
     }
 
-    private static ImmutableMap<String, JavaAnnotation<JavaClass>> annotationsFor(Class<?> inputClass, ImportedTestClasses importedClasses) {
+    private static ImmutableMap<String, JavaAnnotation<JavaClass>> annotationsFor(Class<?> inputClass, ImportContext importedClasses) {
         return FluentIterable.from(javaAnnotationsFrom(inputClass.getAnnotations(), importedClasses, inputClass))
                 .uniqueIndex(new Function<JavaAnnotation<?>, String>() {
                     @Override
@@ -446,6 +446,11 @@ public class ImportTestUtils {
         @Override
         public JavaClass resolveClass(String fullyQualifiedClassName) {
             throw new UnsupportedOperationException("Override me where necessary");
+        }
+
+        @Override
+        public Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {
+            return Optional.absent();
         }
     }
 }
