@@ -145,6 +145,7 @@ public class ClassFileImporterTest {
                 .isInterface(false)
                 .isEnum(false)
                 .isAnnotation(false)
+                .isRecord(false)
                 .hasNoEnclosingClass()
                 .isTopLevelClass(true)
                 .isNestedClass(false)
@@ -167,7 +168,8 @@ public class ClassFileImporterTest {
                 .hasAllInterfacesMatchingInAnyOrder(Enum.class.getInterfaces())
                 .isInterface(false)
                 .isEnum(true)
-                .isAnnotation(false);
+                .isAnnotation(false)
+                .isRecord(false);
 
         JavaEnumConstant constant = javaClass.getEnumConstant(EnumToImport.FIRST.name());
         assertThatType(constant.getDeclaringClass()).as("declaring class").isEqualTo(javaClass);
@@ -193,7 +195,8 @@ public class ClassFileImporterTest {
                 .isMemberClass(true)
                 .isInnerClass(false)
                 .isLocalClass(false)
-                .isAnonymousClass(false);
+                .isAnonymousClass(false)
+                .isRecord(false);
     }
 
     @Test
@@ -207,7 +210,8 @@ public class ClassFileImporterTest {
                 .isMemberClass(true)
                 .isInnerClass(true)
                 .isLocalClass(false)
-                .isAnonymousClass(false);
+                .isAnonymousClass(false)
+                .isRecord(false);
     }
 
     @Test
@@ -222,7 +226,8 @@ public class ClassFileImporterTest {
                 .isMemberClass(false)
                 .isInnerClass(true)
                 .isLocalClass(false)
-                .isAnonymousClass(true);
+                .isAnonymousClass(true)
+                .isRecord(false);
     }
 
     @Test
@@ -237,7 +242,8 @@ public class ClassFileImporterTest {
                 .isMemberClass(false)
                 .isInnerClass(true)
                 .isLocalClass(true)
-                .isAnonymousClass(false);
+                .isAnonymousClass(false)
+                .isRecord(false);
     }
 
     @Test
@@ -265,7 +271,8 @@ public class ClassFileImporterTest {
                 .hasNoSuperclass()
                 .hasNoInterfaces()
                 .isInterface(true)
-                .isEnum(false);
+                .isEnum(false)
+                .isRecord(false);
     }
 
     @Test

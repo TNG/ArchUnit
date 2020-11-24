@@ -50,6 +50,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.RecordComponentVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,6 +139,21 @@ class JavaClassProcessor extends ClassVisitor {
         if (!importAborted() && source != null) {
             javaClassBuilder.withSourceFileName(source);
         }
+    }
+
+    @Override
+    public RecordComponentVisitor visitRecordComponent(String name, String descriptor, String signature) {
+        javaClassBuilder.withRecord(true);
+
+        // Records are implicitly static and final (compare JLS 8.10 Record Declarations)
+        // Thus we ensure that those modifiers are always present (the access flag in visit(..) does not contain STATIC)
+        ImmutableSet<JavaModifier> recordModifiers = ImmutableSet.<JavaModifier>builder()
+                .addAll(javaClassBuilder.getModifiers())
+                .add(JavaModifier.STATIC, JavaModifier.FINAL)
+                .build();
+        javaClassBuilder.withModifiers(recordModifiers);
+
+        return super.visitRecordComponent(name, descriptor, signature);
     }
 
     @Override

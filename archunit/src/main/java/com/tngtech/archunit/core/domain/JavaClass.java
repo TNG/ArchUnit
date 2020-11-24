@@ -67,6 +67,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private final boolean isInterface;
     private final boolean isEnum;
     private final boolean isAnnotation;
+    private final boolean isRecord;
     private final boolean isAnonymousClass;
     private final boolean isMemberClass;
     private final Set<JavaModifier> modifiers;
@@ -133,6 +134,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         isInterface = builder.isInterface();
         isEnum = builder.isEnum();
         isAnnotation = builder.isAnnotation();
+        isRecord = builder.isRecord();
         isAnonymousClass = builder.isAnonymousClass();
         isMemberClass = builder.isMemberClass();
         modifiers = checkNotNull(builder.getModifiers());
@@ -216,6 +218,20 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotation() {
         return isAnnotation;
+    }
+
+    /**
+     * Returns whether this class is a <b>record</b>
+     * according to the Java Language Specification.
+     * <p>
+     * Records were added as preview feature with JDK 14/15
+     * and were released as regular feature with JDK 16.
+     * <p>
+     * See also <a href="https://openjdk.java.net/jeps/395">JEP 395: Records</a>
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isRecord() {
+        return isRecord;
     }
 
     @PublicAPI(usage = ACCESS)
