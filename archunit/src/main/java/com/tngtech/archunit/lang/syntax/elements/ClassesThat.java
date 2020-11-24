@@ -625,6 +625,24 @@ public interface ClassesThat<CONJUNCTION> {
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areNotAnnotations();
 
+    /**
+     * Matches records.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     * @see JavaClass#isRecord()
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areRecords();
+
+    /**
+     * Matches everything except records.
+     *
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     * @see JavaClass#isRecord()
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION areNotRecords();
+
     @PublicAPI(usage = ACCESS)
     CONJUNCTION areTopLevelClasses();
 

@@ -1581,6 +1581,14 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         };
 
         @PublicAPI(usage = ACCESS)
+        public static final DescribedPredicate<JavaClass> RECORDS = new DescribedPredicate<JavaClass>("records") {
+            @Override
+            public boolean apply(JavaClass input) {
+                return input.isRecord();
+            }
+        };
+
+        @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> TOP_LEVEL_CLASSES = new DescribedPredicate<JavaClass>("top level classes") {
             @Override
             public boolean apply(JavaClass input) {

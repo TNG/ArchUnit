@@ -585,6 +585,16 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     }
 
     @Override
+    public ClassesShouldConjunction beRecords() {
+        return addCondition(ArchConditions.beRecords());
+    }
+
+    @Override
+    public ClassesShouldConjunction notBeRecords() {
+        return addCondition(ArchConditions.notBeRecords());
+    }
+
+    @Override
     public ClassesShouldConjunction beTopLevelClasses() {
         return addCondition(ArchConditions.beTopLevelClasses());
     }

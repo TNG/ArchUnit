@@ -853,6 +853,18 @@ public class ShouldOnlyByClassesThatTest {
     }
 
     @Test
+    public void areRecords_predicate() {
+        // Tested in ShouldOnlyByClassesThatRecordsTest, we'll satisfy the consistency test with this quick hack
+        classes().should().onlyBeAccessed().byClassesThat().areRecords();
+    }
+
+    @Test
+    public void areNotRecords_predicate() {
+        // Tested in ShouldOnlyByClassesThatRecordsTest, we'll satisfy the consistency test with this quick hack
+        classes().should().onlyBeAccessed().byClassesThat().areNotRecords();
+    }
+
+    @Test
     @UseDataProvider("should_only_be_by_rule_starts")
     public void areTopLevelClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
