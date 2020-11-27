@@ -19,6 +19,9 @@ importing all classes into a Java code structure. You can find examples for the 
 [ArchUnit Examples](https://github.com/TNG/ArchUnit-Examples) and the sources on
 [GitHub](https://github.com/TNG/ArchUnit).
 
+There also exists a port for .NET/C#, which you can find [here](https://archunitnet.readthedocs.io/en/latest/).
+
+
 ### News
 
 {% for i in (0..2) %}
