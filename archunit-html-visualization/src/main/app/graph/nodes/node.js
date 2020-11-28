@@ -575,6 +575,8 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       if (doRecursiveFocus) {
         this._focusDependentNodesOutsideParent(dependenciesToSiblingNodes);
       }
+      this.putOverlappingDependenciesInBackground();
+
       const dependentNodesWithDependencies = this._getDependentNodesOfNodeFrom(dependenciesToSiblingNodes);
       const dependentNodesOfThis = [...dependentNodesWithDependencies.keys()];
 
@@ -596,6 +598,13 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
         const dependenciesOfNode = this._root.getDependenciesOfNode(this);
         dependenciesOfNode.forEach(dependency => dependency.setContainerEndNodeToEndNodeInForeground());
       }
+    }
+
+    putOverlappingDependenciesInBackground() {
+      const dependenciesWithinParent = this._root.getDependenciesOfLeavesWithinNode(this._parent)
+      const dependenciesOverlappingNode = new Set(dependenciesWithinParent.filter(d => (this._nodeShape.containsPoint(d.startPoint) ||
+        this._nodeShape.containsPoint(d.endPoint)) && (d.originNode !== this && d.targetNode !== this)));
+      dependenciesOverlappingNode.forEach(d => d.setContainerEndNodeToEndNodeInBackground())
     }
 
     _focusDependentNodesOutsideParent(dependenciesToSiblingNodes) {

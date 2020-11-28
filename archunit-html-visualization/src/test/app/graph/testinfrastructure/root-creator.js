@@ -50,6 +50,7 @@ const createRootFromClassNames = (...args) => {
   root.getLinks = () => [];
   root.getDependenciesDirectlyWithinNode = () => [];
   root.getDependenciesOfNode = () => [];
+  root.getDependenciesOfLeavesWithinNode = () => [];
   return root;
 };
 

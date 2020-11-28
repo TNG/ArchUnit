@@ -273,6 +273,11 @@ const init = (getDependencyCreator) => {
       return this._getVisibleDependencies().filter(d => d.originNode === node || d.targetNode === node);
     }
 
+    getDependenciesOfLeavesWithinNode(node) {
+      return this._getVisibleDependencies().filter(d => (d.originNode._isLeaf() && node.getCurrentChildren().includes(d.originNode)) ||
+                                                        (d.targetNode._isLeaf() && node.getCurrentChildren().includes(d.targetNode)));
+    }
+
     getDependenciesDirectlyWithinNode(node) {
       return this._getVisibleDependencies().filter(d => d.originNode.getSelfOrFirstPredecessorMatching(pred => pred.isPredecessorOfNodeOrItself(d.targetNode)) === node && d.originNode !== node && d.targetNode !== node);
     }

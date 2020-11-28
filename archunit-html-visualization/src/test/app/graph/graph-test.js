@@ -171,7 +171,7 @@ describe('Graph', () => {
     });
 
     it('a node that is focused brings all of its dependent nodes into the foreground', async() => {
-      const jsonRoot = createJsonFromClassNames('com.tngtech.pkg1.FocusClass', 'com.tngtech.pkg1.DependentClass', 'com.tngtech.pkg1.OtherClass', 'com.tngtech.pkg2.DependentClass', 'com.tngtech.pkg2.OtherClass')
+      const jsonRoot = createJsonFromClassNames('com.tngtech.pkg1.FocusClass', 'com.tngtech.pkg1.DependentClass', 'com.tngtech.pkg1.OtherClass', 'com.tngtech.pkg2.DependentClass', 'com.tngtech.pkg2.OtherClass');
       const jsonDependencies = createDependencies()
         .addMethodCall().from('com.tngtech.pkg1.FocusClass', 'startMethod()')
         .to('com.tngtech.pkg1.DependentClass', 'endMethod()')
@@ -195,7 +195,34 @@ describe('Graph', () => {
 
       expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg1.DependentClass').liesInFrontOf('com.tngtech.pkg1.OtherClass')).to.be.true;
       expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.DependentClass').liesInFrontOf('com.tngtech.pkg2.OtherClass')).to.be.true;
-    })
+    });
+
+    it('a node is not overlapped by dependencies from sibling nodes', async() => {
+      const jsonRoot = createJsonFromClassNames('com.tngtech.pkg1.FocusClass1', 'com.tngtech.pkg1.FocusClass2', 'com.tngtech.pkg2.DependentClass1', 'com.tngtech.pkg2.DepClass2');
+      const jsonDependencies = createDependencies()
+      .addMethodCall().from('com.tngtech.pkg1.FocusClass1', 'startMethod()')
+      .to('com.tngtech.pkg2.DependentClass1', 'endMethod()')
+      .addMethodCall().from('com.tngtech.pkg1.FocusClass2', 'startMethod()')
+      .to('com.tngtech.pkg2.DepClass2', 'endMethod()')
+      .build();
+
+      const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+      await graphUi.clickNode('com.tngtech');
+      await graphUi.clickNode('com.tngtech.pkg1');
+      await graphUi.clickNode('com.tngtech.pkg2');
+
+      const otherNodeInPkg1 = graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.DependentClass1');
+      await otherNodeInPkg1.dragOverCompletely('com.tngtech.pkg2.DepClass2');
+
+      await graphUi.dragNode('com.tngtech.pkg1.FocusClass2', 1, 1);
+
+      expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.DepClass2').liesInFrontOf('com.tngtech.pkg2.DependentClass1')).to.be.true;
+
+      await graphUi.dragNode('com.tngtech.pkg1.FocusClass1', 1, 1);
+
+      expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.DependentClass1').liesInFrontOf('com.tngtech.pkg2.DepClass2')).to.be.true;
+      expect(graphUi.getVisibleDependencyWithName('com.tngtech.pkg1.FocusClass2-com.tngtech.pkg2.DepClass2').isInFrontOf(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.DependentClass1')._svg)).to.be.false;
+    });
   });
 
   it('can change the fold-states of the nodes to show all violations', async() => {
