@@ -3,6 +3,8 @@ main:
     url: /getting-started
   - title: "Motivation"
     url: /motivation
+  - title: "Use Cases"
+    url: /use-cases
   - title: "News"
     url: /news
   - title: "User Guide"
