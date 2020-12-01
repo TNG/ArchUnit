@@ -165,6 +165,7 @@ import com.tngtech.archunit.core.importer.testexamples.pathone.Class11;
 import com.tngtech.archunit.core.importer.testexamples.pathone.Class12;
 import com.tngtech.archunit.core.importer.testexamples.pathtwo.Class21;
 import com.tngtech.archunit.core.importer.testexamples.pathtwo.Class22;
+import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportOne;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportTwo;
@@ -250,7 +251,12 @@ public class ClassFileImporterTest {
     @Test
     public void imports_simple_package() throws Exception {
         Set<String> expectedClassNames = Sets.newHashSet(
-                ClassToImportOne.class.getName(), ClassToImportTwo.class.getName(), InterfaceToImport.class.getName(), EnumToImport.class.getName(), AnnotationToImport.class.getName());
+                ClassToImportOne.class.getName(),
+                ClassToImportTwo.class.getName(),
+                InterfaceToImport.class.getName(),
+                EnumToImport.class.getName(),
+                AnnotationToImport.class.getName(),
+                AnnotationParameter.class.getName());
 
         Iterable<JavaClass> classes = classesIn("testexamples/simpleimport");
 
@@ -321,7 +327,7 @@ public class ClassFileImporterTest {
         assertThat(getAnnotationDefaultValue(javaClass, "someStringMethod", String.class)).isEqualTo("DEFAULT");
         assertThatType(getAnnotationDefaultValue(javaClass, "someTypeMethod", JavaClass.class)).matches(List.class);
         assertThat(getAnnotationDefaultValue(javaClass, "someEnumMethod", JavaEnumConstant.class)).isEquivalentTo(EnumToImport.SECOND);
-        assertThatType(getAnnotationDefaultValue(javaClass, "someAnnotationMethod", JavaAnnotation.class).getRawType()).matches(Deprecated.class);
+        assertThatType(getAnnotationDefaultValue(javaClass, "someAnnotationMethod", JavaAnnotation.class).getRawType()).matches(AnnotationParameter.class);
     }
 
     @DataProvider
@@ -702,8 +708,7 @@ public class ClassFileImporterTest {
                 .getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.get("mandatory")).contains("mandatory");
-        // NOTE: If we haven't imported the annotation itself, the import can't determine default values
-        assertThat(annotation.get("optional")).isAbsent();
+        assertThat(annotation.get("optional")).contains("optional");
 
         SomeAnnotation reflected = annotation.as(SomeAnnotation.class);
         assertThat(reflected.mandatory()).isEqualTo("mandatory");
@@ -896,8 +901,7 @@ public class ClassFileImporterTest {
                 .getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.get("mandatory")).contains("mandatory");
-        // NOTE: If we haven't imported the annotation itself, the import can't determine default values
-        assertThat(annotation.get("optional")).isAbsent();
+        assertThat(annotation.get("optional")).contains("optional");
 
         SomeAnnotation reflected = annotation.as(SomeAnnotation.class);
         assertThat(reflected.mandatory()).isEqualTo("mandatory");
@@ -986,10 +990,9 @@ public class ClassFileImporterTest {
         JavaAnnotation<?> annotation = clazz.getAnnotationOfType(SomeAnnotation.class.getName());
 
         assertThat(annotation.get("mandatory")).contains("mandatory");
-        // NOTE: If we haven't imported the annotation itself, the import can't determine default values
-        assertThat(annotation.get("optional")).isAbsent();
+        assertThat(annotation.get("optional")).contains("optional");
         assertThat((JavaEnumConstant) annotation.get("mandatoryEnum").get()).isEquivalentTo(SOME_VALUE);
-        assertThat(annotation.get("optionalEnum")).isAbsent();
+        assertThat((JavaEnumConstant) annotation.get("optionalEnum").get()).isEquivalentTo(OTHER_VALUE);
 
         SomeAnnotation reflected = clazz.getAnnotationOfType(SomeAnnotation.class);
         assertThat(reflected.mandatory()).isEqualTo("mandatory");

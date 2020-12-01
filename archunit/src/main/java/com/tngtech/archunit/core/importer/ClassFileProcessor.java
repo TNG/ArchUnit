@@ -113,8 +113,18 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
-            importRecord.addAnnotations(ownerName, annotationBuilders);
+        public void onDeclaredClassAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
+            importRecord.addClassAnnotations(ownerName, annotationBuilders);
+        }
+
+        @Override
+        public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations) {
+            importRecord.addMemberAnnotations(ownerName, memberName, descriptor, annotations);
+        }
+
+        @Override
+        public void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, DomainBuilders.JavaAnnotationBuilder.ValueBuilder valueBuilder) {
+            importRecord.addAnnotationDefaultValue(ownerName, methodName, methodDescriptor, valueBuilder);
         }
 
         @Override

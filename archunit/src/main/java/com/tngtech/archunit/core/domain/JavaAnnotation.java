@@ -18,6 +18,7 @@ package com.tngtech.archunit.core.domain;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
@@ -193,7 +194,17 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
      */
     @PublicAPI(usage = ACCESS)
     public Optional<Object> get(String property) {
-        return Optional.fromNullable(values.get(property));
+        Object directResult = values.get(property);
+        return directResult != null
+                ? Optional.of(directResult)
+                : tryGetDefaultValue(property);
+    }
+
+    private Optional<Object> tryGetDefaultValue(String property) {
+        Optional<JavaMethod> method = type.tryGetMethod(property);
+        return method.isPresent()
+                ? method.get().getDefaultValue()
+                : Optional.absent();
     }
 
     /**
@@ -201,7 +212,14 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
      */
     @PublicAPI(usage = ACCESS)
     public Map<String, Object> getProperties() {
-        return values;
+        ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
+        result.putAll(values);
+        for (JavaMethod method : type.getMethods()) {
+            if (!values.containsKey(method.getName()) && method.getDefaultValue().isPresent()) {
+                result.put(method.getName(), method.getDefaultValue().get());
+            }
+        }
+        return result.build();
     }
 
     /**

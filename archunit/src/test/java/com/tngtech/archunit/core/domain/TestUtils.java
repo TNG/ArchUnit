@@ -2,7 +2,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,7 +21,6 @@ import com.tngtech.archunit.core.domain.Source.Md5sum;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.ImportTestUtils;
-import com.tngtech.archunit.core.importer.ImportTestUtils.ImportedTestClasses;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
@@ -131,14 +129,6 @@ public class TestUtils {
             result.add(javaClass.reflect());
         }
         return result.toArray(new Class<?>[0]);
-    }
-
-    static ImportedTestClasses simpleImportedClasses() {
-        return ImportTestUtils.simpleImportedClasses();
-    }
-
-    static JavaAnnotation<?> javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass) {
-        return ImportTestUtils.javaAnnotationFrom(annotation, annotatedClass);
     }
 
     public static FieldAccessTarget targetFrom(JavaField javaField) {

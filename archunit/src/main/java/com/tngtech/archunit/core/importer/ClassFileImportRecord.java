@@ -24,9 +24,12 @@ import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import org.slf4j.Logger;
@@ -50,6 +53,7 @@ class ClassFileImportRecord {
     private final SetMultimap<String, DomainBuilders.JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
     private final Map<String, DomainBuilders.JavaStaticInitializerBuilder> staticInitializerBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
+    private final Map<String, DomainBuilders.JavaAnnotationBuilder.ValueBuilder> annotationDefaultValuesByOwner = new HashMap<>();
     private final EnclosingClassesByInnerClasses enclosingClassNamesByOwner = new EnclosingClassesByInnerClasses();
 
     private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
@@ -90,8 +94,16 @@ class ClassFileImportRecord {
         staticInitializerBuildersByOwner.put(ownerName, builder);
     }
 
-    void addAnnotations(String ownerName, Set<DomainBuilders.JavaAnnotationBuilder> annotations) {
+    void addClassAnnotations(String ownerName, Set<DomainBuilders.JavaAnnotationBuilder> annotations) {
         this.annotationsByOwner.putAll(ownerName, annotations);
+    }
+
+    void addMemberAnnotations(String declaringClassName, String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations) {
+        this.annotationsByOwner.putAll(getMemberKey(declaringClassName, memberName, descriptor), annotations);
+    }
+
+    void addAnnotationDefaultValue(String declaringClassName, String methodName, String descriptor, DomainBuilders.JavaAnnotationBuilder.ValueBuilder valueBuilder) {
+        annotationDefaultValuesByOwner.put(getMemberKey(declaringClassName, methodName, descriptor), valueBuilder);
     }
 
     void setEnclosingClass(String ownerName, String enclosingClassName) {
@@ -129,8 +141,46 @@ class ClassFileImportRecord {
         return Optional.fromNullable(staticInitializerBuildersByOwner.get(ownerName));
     }
 
-    Set<DomainBuilders.JavaAnnotationBuilder> getAnnotationsFor(String ownerName) {
-        return annotationsByOwner.get(ownerName);
+    Set<String> getAnnotationTypeNamesFor(JavaClass owner) {
+        ImmutableSet.Builder<String> result = ImmutableSet.builder();
+        for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : annotationsByOwner.get(owner.getName())) {
+            result.add(annotationBuilder.getFullyQualifiedClassName());
+        }
+        return result.build();
+    }
+
+    Set<DomainBuilders.JavaAnnotationBuilder> getAnnotationsFor(JavaClass owner) {
+        return annotationsByOwner.get(owner.getName());
+    }
+
+    Set<String> getMemberAnnotationTypeNamesFor(JavaClass owner) {
+        Iterable<DomainBuilders.JavaMemberBuilder<?, ?>> memberBuilders = Iterables.concat(
+                fieldBuildersByOwner.get(owner.getName()),
+                methodBuildersByOwner.get(owner.getName()),
+                constructorBuildersByOwner.get(owner.getName()),
+                nullToEmpty(staticInitializerBuildersByOwner.get(owner.getName())));
+
+        ImmutableSet.Builder<String> result = ImmutableSet.builder();
+        for (DomainBuilders.JavaMemberBuilder<?, ?> memberBuilder : memberBuilders) {
+            for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : annotationsByOwner.get(getMemberKey(owner.getName(), memberBuilder.getName(), memberBuilder.getDescriptor()))) {
+                result.add(annotationBuilder.getFullyQualifiedClassName());
+            }
+        }
+        return result.build();
+    }
+
+    private Iterable<DomainBuilders.JavaMemberBuilder<?, ?>> nullToEmpty(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
+        return staticInitializerBuilder != null
+                ? Collections.<DomainBuilders.JavaMemberBuilder<?, ?>>singleton(staticInitializerBuilder)
+                : Collections.<DomainBuilders.JavaMemberBuilder<?, ?>>emptySet();
+    }
+
+    Set<DomainBuilders.JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {
+        return annotationsByOwner.get(getMemberKey(owner));
+    }
+
+    Optional<DomainBuilders.JavaAnnotationBuilder.ValueBuilder> getAnnotationDefaultValueBuilderFor(JavaMethod method) {
+        return Optional.fromNullable(annotationDefaultValuesByOwner.get(getMemberKey(method)));
     }
 
     Optional<String> getEnclosingClassFor(String ownerName) {
@@ -185,6 +235,14 @@ class ClassFileImportRecord {
 
     Set<String> getAllSuperInterfaceNames() {
         return ImmutableSet.copyOf(interfaceNamesByOwner.values());
+    }
+
+    private static String getMemberKey(JavaMember member) {
+        return getMemberKey(member.getOwner().getName(), member.getName(), member.getDescriptor());
+    }
+
+    private static String getMemberKey(String declaringClassName, String methodName, String descriptor) {
+        return declaringClassName + "|" + methodName + "|" + descriptor;
     }
 
     // NOTE: ASM calls visitInnerClass and visitOuterClass several times, sometimes when the outer class is imported

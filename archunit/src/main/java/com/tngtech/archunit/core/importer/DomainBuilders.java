@@ -26,11 +26,11 @@ import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
@@ -39,6 +39,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
+import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -51,7 +52,6 @@ import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -62,7 +62,6 @@ import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.ThrowsClause;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.union;
@@ -80,10 +79,10 @@ public final class DomainBuilders {
     private DomainBuilders() {
     }
 
-    static <T extends HasDescription> Map<String, JavaAnnotation<T>> buildAnnotations(T owner, Set<JavaAnnotationBuilder> annotations, ClassesByTypeName importedClasses) {
+    static <T extends HasDescription> Map<String, JavaAnnotation<T>> buildAnnotations(T owner, Set<JavaAnnotationBuilder> annotations, ImportContext importContext) {
         ImmutableMap.Builder<String, JavaAnnotation<T>> result = ImmutableMap.builder();
         for (JavaAnnotationBuilder annotationBuilder : annotations) {
-            JavaAnnotation<T> javaAnnotation = annotationBuilder.build(owner, importedClasses);
+            JavaAnnotation<T> javaAnnotation = annotationBuilder.build(owner, importContext);
             result.put(javaAnnotation.getRawType().getName(), javaAnnotation);
         }
         return result.build();
@@ -126,7 +125,6 @@ public final class DomainBuilders {
 
         private String name;
         private String descriptor;
-        private Set<JavaAnnotationBuilder> annotations;
         private Set<JavaModifier> modifiers;
         private JavaClass owner;
         private ClassesByTypeName importedClasses;
@@ -142,11 +140,6 @@ public final class DomainBuilders {
 
         SELF withDescriptor(String descriptor) {
             this.descriptor = descriptor;
-            return self();
-        }
-
-        SELF withAnnotations(Set<JavaAnnotationBuilder> annotations) {
-            this.annotations = annotations;
             return self();
         }
 
@@ -172,15 +165,6 @@ public final class DomainBuilders {
 
         public String getName() {
             return name;
-        }
-
-        public Supplier<Map<String, JavaAnnotation<JavaMember>>> getAnnotations(final JavaMember owner) {
-            return Suppliers.memoize(new Supplier<Map<String, JavaAnnotation<JavaMember>>>() {
-                @Override
-                public Map<String, JavaAnnotation<JavaMember>> get() {
-                    return buildAnnotations(owner, annotations, importedClasses);
-                }
-            });
         }
 
         public String getDescriptor() {
@@ -259,6 +243,14 @@ public final class DomainBuilders {
             return self();
         }
 
+        String getReturnTypeName() {
+            return returnType.getFullyQualifiedClassName();
+        }
+
+        boolean hasNoParameters() {
+            return parameters.isEmpty();
+        }
+
         public JavaClass getReturnType() {
             return get(returnType.getFullyQualifiedClassName());
         }
@@ -290,44 +282,24 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaMethodBuilder extends JavaCodeUnitBuilder<JavaMethod, JavaMethodBuilder> {
-        private Optional<ValueBuilder> annotationDefaultValueBuilder = Optional.absent();
-        private Supplier<Optional<Object>> annotationDefaultValue = Suppliers.ofInstance(Optional.absent());
+        private static final Function<JavaMethod, Optional<Object>> NO_ANNOTATION_DEFAULT_VALUE = new Function<JavaMethod, Optional<Object>>() {
+            @Override
+            public Optional<Object> apply(JavaMethod input) {
+                return Optional.absent();
+            }
+        };
+        private Function<JavaMethod, Optional<Object>> createAnnotationDefaultValue = NO_ANNOTATION_DEFAULT_VALUE;
 
         JavaMethodBuilder() {
         }
 
-        JavaMethodBuilder withAnnotationDefaultValue(ValueBuilder defaultValue) {
-            annotationDefaultValueBuilder = Optional.of(defaultValue);
-            return this;
-        }
-
-        public Supplier<Optional<Object>> getAnnotationDefaultValue() {
-            return annotationDefaultValue;
+        void withAnnotationDefaultValue(Function<JavaMethod, Optional<Object>> createAnnotationDefaultValue) {
+            this.createAnnotationDefaultValue = createAnnotationDefaultValue;
         }
 
         @Override
         JavaMethod construct(JavaMethodBuilder builder, final ClassesByTypeName importedClasses) {
-            if (annotationDefaultValueBuilder.isPresent()) {
-                annotationDefaultValue = Suppliers.memoize(new DefaultValueSupplier(getOwner(), annotationDefaultValueBuilder.get(), importedClasses));
-            }
-            return DomainObjectCreationContext.createJavaMethod(builder);
-        }
-
-        private static class DefaultValueSupplier implements Supplier<Optional<Object>> {
-            private final JavaClass owner;
-            private final ValueBuilder valueBuilder;
-            private final ClassesByTypeName importedClasses;
-
-            DefaultValueSupplier(JavaClass owner, ValueBuilder valueBuilder, ClassesByTypeName importedClasses) {
-                this.owner = owner;
-                this.valueBuilder = valueBuilder;
-                this.importedClasses = importedClasses;
-            }
-
-            @Override
-            public Optional<Object> get() {
-                return valueBuilder.build(owner, importedClasses);
-            }
+            return DomainObjectCreationContext.createJavaMethod(builder, createAnnotationDefaultValue);
         }
     }
 
@@ -450,7 +422,7 @@ public final class DomainBuilders {
     public static final class JavaAnnotationBuilder {
         private JavaClassDescriptor type;
         private final Map<String, ValueBuilder> values = new LinkedHashMap<>();
-        private ClassesByTypeName importedClasses;
+        private ImportContext importContext;
 
         JavaAnnotationBuilder() {
         }
@@ -464,47 +436,42 @@ public final class DomainBuilders {
             return type;
         }
 
+        String getFullyQualifiedClassName() {
+            return type.getFullyQualifiedClassName();
+        }
+
         JavaAnnotationBuilder addProperty(String key, ValueBuilder valueBuilder) {
             values.put(key, valueBuilder);
             return this;
         }
 
         public JavaClass getType() {
-            return importedClasses.get(type.getFullyQualifiedClassName());
+            return importContext.resolveClass(type.getFullyQualifiedClassName());
         }
 
         public <T extends HasDescription> Map<String, Object> getValues(T owner) {
             ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
             for (Map.Entry<String, ValueBuilder> entry : values.entrySet()) {
-                Optional<Object> value = entry.getValue().build(owner, importedClasses);
+                Optional<Object> value = entry.getValue().build(owner, importContext);
                 if (value.isPresent()) {
                     result.put(entry.getKey(), value.get());
                 }
             }
-            addDefaultValues(result, importedClasses);
             return result.build();
         }
 
-        private void addDefaultValues(ImmutableMap.Builder<String, Object> result, ClassesByTypeName importedClasses) {
-            for (JavaMethod method : importedClasses.get(type.getFullyQualifiedClassName()).getMethods()) {
-                if (!values.containsKey(method.getName()) && method.getDefaultValue().isPresent()) {
-                    result.put(method.getName(), method.getDefaultValue().get());
-                }
-            }
-        }
-
-        public <T extends HasDescription> JavaAnnotation<T> build(T owner, ClassesByTypeName importedClasses) {
-            this.importedClasses = importedClasses;
+        public <T extends HasDescription> JavaAnnotation<T> build(T owner, ImportContext importContext) {
+            this.importContext = importContext;
             return DomainObjectCreationContext.createJavaAnnotation(owner, this);
         }
 
         abstract static class ValueBuilder {
-            abstract <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses);
+            abstract <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext);
 
             static ValueBuilder ofFinished(final Object value) {
                 return new ValueBuilder() {
                     @Override
-                    <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportContext unused) {
                         return Optional.of(value);
                     }
                 };
@@ -513,8 +480,8 @@ public final class DomainBuilders {
             static ValueBuilder from(final JavaAnnotationBuilder builder) {
                 return new ValueBuilder() {
                     @Override
-                    <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
-                        return Optional.<Object>of(builder.build(owner, importedClasses));
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
+                        return Optional.<Object>of(builder.build(owner, importContext));
                     }
                 };
             }
@@ -528,7 +495,6 @@ public final class DomainBuilders {
             withParameters(Collections.<JavaClassDescriptor>emptyList());
             withName(JavaStaticInitializer.STATIC_INITIALIZER_NAME);
             withDescriptor("()V");
-            withAnnotations(Collections.<JavaAnnotationBuilder>emptySet());
             withModifiers(Collections.<JavaModifier>emptySet());
             withThrowsClause(Collections.<JavaClassDescriptor>emptyList());
         }

@@ -1223,7 +1223,10 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     void completeAnnotations(final ImportContext context) {
-        this.annotations = context.createAnnotations(this);
+        annotations = context.createAnnotations(this);
+        for (JavaMember member : members) {
+            member.completeAnnotations(context);
+        }
     }
 
     CompletionProcess completeFrom(ImportContext context) {
