@@ -14,15 +14,12 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.core.InitialConfiguration;
-import com.tngtech.archunit.core.importer.ImportTestUtils;
-import com.tngtech.archunit.core.importer.JavaAnnotationTestBuilder;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.assertj.core.api.Condition;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static com.tngtech.archunit.core.domain.TestUtils.javaAnnotationFrom;
-import static com.tngtech.archunit.core.domain.TestUtils.simpleImportedClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnnotationProxyTest {
@@ -31,14 +28,14 @@ public class AnnotationProxyTest {
 
     @Test
     public void annotation_type_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.annotationType()).isEqualTo(TestAnnotation.class);
     }
 
     @Test
     public void primitive_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.primitive())
                 .as(annotation.annotationType().getSimpleName() + ".primitive()")
@@ -47,7 +44,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void primitive_default_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.primitiveWithDefault())
                 .as(annotation.annotationType().getSimpleName() + ".primitiveWithDefault()")
@@ -56,7 +53,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void primitives_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.primitives())
                 .as(annotation.annotationType().getSimpleName() + ".primitives()")
@@ -65,7 +62,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void primitives_defaults_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.primitivesWithDefault())
                 .as(annotation.annotationType().getSimpleName() + ".primitivesWithDefault()")
@@ -74,7 +71,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void string_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.string())
                 .as(annotation.annotationType().getSimpleName() + ".string()")
@@ -83,7 +80,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void string_default_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.stringWithDefault())
                 .as(annotation.annotationType().getSimpleName() + ".stringWithDefault()")
@@ -92,7 +89,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void strings_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.strings())
                 .as(annotation.annotationType().getSimpleName() + ".strings()")
@@ -101,7 +98,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void strings_default_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.stringsWithDefault())
                 .as(annotation.annotationType().getSimpleName() + ".stringsWithDefault()")
@@ -110,7 +107,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void type_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.type())
                 .as(annotation.annotationType().getSimpleName() + ".type()")
@@ -119,7 +116,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void type_default_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.typeWithDefault())
                 .as(annotation.annotationType().getSimpleName() + ".typeWithDefault()")
@@ -128,7 +125,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void types_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.types())
                 .as(annotation.annotationType().getSimpleName() + ".types()")
@@ -137,7 +134,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void types_default_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.typesWithDefault())
                 .as(annotation.annotationType().getSimpleName() + ".typesWithDefault()")
@@ -146,7 +143,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void enumConstant_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.enumConstant())
                 .as(annotation.annotationType().getSimpleName() + ".enumConstant()")
@@ -155,7 +152,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void enumConstant_default_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.enumConstantWithDefault())
                 .as(annotation.annotationType().getSimpleName() + ".enumConstantWithDefault()")
@@ -164,7 +161,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void enumConstants_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.enumConstants())
                 .as(annotation.annotationType().getSimpleName() + ".enumConstants()")
@@ -173,7 +170,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void enumConstants_default_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.enumConstantsWithDefault())
                 .as(annotation.annotationType().getSimpleName() + ".enumConstantsWithDefault()")
@@ -182,7 +179,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void subAnnotation_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.subAnnotation().value())
                 .as(annotation.annotationType().getSimpleName() + ".subAnnotation().value()")
@@ -191,7 +188,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void subAnnotation_default_is_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation.subAnnotationWithDefault().value())
                 .as(annotation.annotationType().getSimpleName() + ".subAnnotationWithDefault().value()")
@@ -200,7 +197,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void subAnnotations_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(valuesOf(annotation.subAnnotations()))
                 .as(annotation.annotationType().getSimpleName() + ".subAnnotations()*.value()")
@@ -209,7 +206,7 @@ public class AnnotationProxyTest {
 
     @Test
     public void subAnnotations_default_are_returned() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(valuesOf(annotation.subAnnotationsWithDefault()))
                 .as(annotation.annotationType().getSimpleName() + ".subAnnotationsWithDefault()*.value()")
@@ -219,7 +216,7 @@ public class AnnotationProxyTest {
     @Test
     // NOTE: For now we'll just implement reference equality and hashcode of the proxy object
     public void equals_hashcode_and_toString() {
-        TestAnnotation annotation = getProxyFor(TestAnnotation.class);
+        TestAnnotation annotation = importAnnotation(ClassWithTestAnnotation.class, TestAnnotation.class);
 
         assertThat(annotation).isEqualTo(annotation);
         assertThat(annotation.hashCode()).isEqualTo(annotation.hashCode());
@@ -228,7 +225,8 @@ public class AnnotationProxyTest {
 
     @Test
     public void wrong_annotation_type_is_rejected() {
-        JavaAnnotation<?> mismatch = javaAnnotationFrom(TestAnnotation.class.getAnnotation(Retention.class), getClass());
+        JavaAnnotation<?> mismatch = new ClassFileImporter().importClasses(TestAnnotation.class, Retention.class)
+                .get(TestAnnotation.class).getAnnotationOfType(Retention.class.getName());
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage(Retention.class.getSimpleName());
@@ -239,15 +237,8 @@ public class AnnotationProxyTest {
 
     @Test
     public void array_is_converted_to_the_correct_type() {
-        ImportTestUtils.ImportedTestClasses importedClasses = simpleImportedClasses();
-        JavaAnnotation<?> annotation = new JavaAnnotationTestBuilder()
-                .withType(JavaClassDescriptor.From.name(TestAnnotation.class.getName()))
-                .addProperty("types", new Object[0])
-                .addProperty("enumConstants", new Object[0])
-                .addProperty("subAnnotations", new Object[0])
-                .build(importedClasses.get(getClass().getName()), importedClasses);
+        TestAnnotation reflected = importAnnotation(ClassWithTestAnnotationWithEmptyArrays.class, TestAnnotation.class);
 
-        TestAnnotation reflected = annotation.as(TestAnnotation.class);
         assertThat(reflected.types()).isEmpty();
         assertThat(reflected.enumConstants()).isEmpty();
         assertThat(reflected.subAnnotations()).isEmpty();
@@ -285,7 +276,7 @@ public class AnnotationProxyTest {
                                 subAnnotationFormatter(formatter, "defaultOne"),
                                 subAnnotationFormatter(formatter, "defaultTwo")}))
                 .build();
-        ensureInSync(Irrelevant.class.getAnnotation(type), result);
+        ensureInSync(ClassWithTestAnnotation.class.getAnnotation(type), result);
         return result;
     }
 
@@ -373,7 +364,21 @@ public class AnnotationProxyTest {
             enumConstants = {TestEnum.SECOND, TestEnum.THIRD},
             subAnnotation = @SubAnnotation("custom"),
             subAnnotations = {@SubAnnotation("customOne"), @SubAnnotation("customTwo")})
-    private static class Irrelevant {
+    private static class ClassWithTestAnnotation {
+    }
+
+    @TestAnnotation(
+            primitive = 0,
+            primitives = {},
+            string = "",
+            strings = {},
+            type = TestAnnotation.class,
+            types = {},
+            enumConstant = TestEnum.SECOND,
+            enumConstants = {},
+            subAnnotation = @SubAnnotation(""),
+            subAnnotations = {})
+    private static class ClassWithTestAnnotationWithEmptyArrays {
     }
 
     private void ensureInSync(TestAnnotation annotation, Map<String, String> result) {
@@ -422,8 +427,7 @@ public class AnnotationProxyTest {
         };
     }
 
-    private <A extends Annotation> A getProxyFor(Class<A> annotationType) {
-        JavaAnnotation<?> toProxy = javaAnnotationFrom(Irrelevant.class.getAnnotation(annotationType), Irrelevant.class);
-        return AnnotationProxy.of(annotationType, toProxy);
+    private <A extends Annotation> A importAnnotation(Class<?> ownerType, Class<A> annotationType) {
+        return new ClassFileImporter().importClasses(ownerType, annotationType).get(ownerType).getAnnotationOfType(annotationType);
     }
 }

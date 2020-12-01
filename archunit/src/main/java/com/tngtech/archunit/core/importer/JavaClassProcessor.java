@@ -36,11 +36,11 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
+import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
-import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
@@ -210,7 +210,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withModifiers(JavaModifier.getModifiersForField(access))
                 .withDescriptor(desc);
         declarationHandler.onDeclaredField(fieldBuilder);
-        return new FieldProcessor(fieldBuilder);
+        return new FieldProcessor(fieldBuilder, declarationHandler);
     }
 
     @Override
@@ -232,7 +232,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withDescriptor(desc)
                 .withThrowsClause(typesFrom(exceptions));
 
-        return new MethodProcessor(className, accessHandler, codeUnitBuilder);
+        return new MethodProcessor(className, accessHandler, codeUnitBuilder, declarationHandler);
     }
 
     private List<JavaClassDescriptor> typesFrom(String[] throwsDeclarations) {
@@ -276,7 +276,7 @@ class JavaClassProcessor extends ClassVisitor {
             return;
         }
 
-        declarationHandler.onDeclaredAnnotations(annotations);
+        declarationHandler.onDeclaredClassAnnotations(annotations);
         LOG.trace("Done analyzing {}", className);
     }
 
@@ -292,14 +292,16 @@ class JavaClassProcessor extends ClassVisitor {
         private final String declaringClassName;
         private final AccessHandler accessHandler;
         private final DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder;
+        private final DeclarationHandler declarationHandler;
         private final Set<DomainBuilders.JavaAnnotationBuilder> annotations = new HashSet<>();
         private int actualLineNumber;
 
-        MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder) {
+        MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
             this.declaringClassName = declaringClassName;
             this.accessHandler = accessHandler;
             this.codeUnitBuilder = codeUnitBuilder;
+            this.declarationHandler = declarationHandler;
         }
 
         @Override
@@ -340,21 +342,23 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitAnnotationDefault() {
-            return new AnnotationDefaultProcessor(declaringClassName, codeUnitBuilder);
+            return new AnnotationDefaultProcessor(declaringClassName, codeUnitBuilder, declarationHandler);
         }
 
         @Override
         public void visitEnd() {
-            codeUnitBuilder.withAnnotations(annotations);
+            declarationHandler.onDeclaredMemberAnnotations(codeUnitBuilder.getName(), codeUnitBuilder.getDescriptor(), annotations);
         }
 
         private static class AnnotationDefaultProcessor extends AnnotationVisitor {
             private final String annotationTypeName;
+            private final DeclarationHandler declarationHandler;
             private final DomainBuilders.JavaMethodBuilder methodBuilder;
 
-            AnnotationDefaultProcessor(String annotationTypeName, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder) {
+            AnnotationDefaultProcessor(String annotationTypeName, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler) {
                 super(ClassFileProcessor.ASM_API_VERSION);
                 this.annotationTypeName = annotationTypeName;
+                this.declarationHandler = declarationHandler;
                 checkArgument(codeUnitBuilder instanceof DomainBuilders.JavaMethodBuilder,
                         "tried to import annotation defaults for code unit '%s' that is not a method " +
                                 "(as any annotation.property() is assumed to be), " +
@@ -365,34 +369,35 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void visit(String name, Object value) {
-                methodBuilder.withAnnotationDefaultValue(AnnotationTypeConversion.convert(value));
+                declarationHandler.onDeclaredAnnotationDefaultValue(methodBuilder.getName(), methodBuilder.getDescriptor(), AnnotationTypeConversion.convert(value));
             }
 
             @Override
             public void visitEnum(String name, String desc, String value) {
-                methodBuilder.withAnnotationDefaultValue(javaEnumBuilder(desc, value));
+                declarationHandler.onDeclaredAnnotationDefaultValue(methodBuilder.getName(), methodBuilder.getDescriptor(), javaEnumBuilder(desc, value));
             }
 
             @Override
             public AnnotationVisitor visitAnnotation(String name, String desc) {
-                return new AnnotationProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder), annotationBuilderFor(desc));
+                return new AnnotationProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler), annotationBuilderFor(desc));
             }
 
             @Override
             public AnnotationVisitor visitArray(String name) {
-                return new AnnotationArrayProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder));
+                return new AnnotationArrayProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler));
             }
-
         }
     }
 
     private static class SetAsAnnotationDefault implements TakesAnnotationBuilder, AnnotationArrayContext {
         private final String annotationTypeName;
         private final DomainBuilders.JavaMethodBuilder methodBuilder;
+        private final DeclarationHandler declarationHandler;
 
-        private SetAsAnnotationDefault(String annotationTypeName, DomainBuilders.JavaMethodBuilder methodBuilder) {
+        private SetAsAnnotationDefault(String annotationTypeName, DomainBuilders.JavaMethodBuilder methodBuilder, DeclarationHandler declarationHandler) {
             this.annotationTypeName = annotationTypeName;
             this.methodBuilder = methodBuilder;
+            this.declarationHandler = declarationHandler;
         }
 
         @Override
@@ -412,7 +417,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void setArrayResult(ValueBuilder valueBuilder) {
-            methodBuilder.withAnnotationDefaultValue(valueBuilder);
+            declarationHandler.onDeclaredAnnotationDefaultValue(methodBuilder.getName(), methodBuilder.getDescriptor(), valueBuilder);
         }
     }
 
@@ -431,7 +436,11 @@ class JavaClassProcessor extends ClassVisitor {
 
         void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder);
 
-        void onDeclaredAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders);
+        void onDeclaredClassAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders);
+
+        void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations);
+
+        void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, ValueBuilder valueBuilder);
 
         void registerEnclosingClass(String ownerName, String enclosingClassName);
     }
@@ -467,12 +476,14 @@ class JavaClassProcessor extends ClassVisitor {
 
     private static class FieldProcessor extends FieldVisitor {
         private final DomainBuilders.JavaFieldBuilder fieldBuilder;
+        private final DeclarationHandler declarationHandler;
         private final Set<DomainBuilders.JavaAnnotationBuilder> annotations = new HashSet<>();
 
-        private FieldProcessor(DomainBuilders.JavaFieldBuilder fieldBuilder) {
+        private FieldProcessor(DomainBuilders.JavaFieldBuilder fieldBuilder, DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
 
             this.fieldBuilder = fieldBuilder;
+            this.declarationHandler = declarationHandler;
         }
 
         @Override
@@ -482,7 +493,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitEnd() {
-            fieldBuilder.withAnnotations(annotations);
+            declarationHandler.onDeclaredMemberAnnotations(fieldBuilder.getName(), fieldBuilder.getDescriptor(), annotations);
         }
     }
 
@@ -520,7 +531,7 @@ class JavaClassProcessor extends ClassVisitor {
             return new AnnotationArrayProcessor(new AnnotationArrayContext() {
                 @Override
                 public String getDeclaringAnnotationTypeName() {
-                    return annotationBuilder.getTypeDescriptor().getFullyQualifiedClassName();
+                    return annotationBuilder.getFullyQualifiedClassName();
                 }
 
                 @Override
@@ -602,7 +613,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         // NOTE: If the declared annotation is not imported itself, we can still use this heuristic,
         //       to determine additional information about the respective array.
-        //       (It the annotation is imported itself, we could easily determine this from the respective
+        //       (If the annotation is imported itself, we could easily determine this from the respective
         //       JavaClass methods)
         private void setDerivedComponentType(Class<?> type) {
             checkState(derivedComponentType == null || derivedComponentType.equals(type),
@@ -618,13 +629,13 @@ class JavaClassProcessor extends ClassVisitor {
 
         private class ArrayValueBuilder extends ValueBuilder {
             @Override
-            public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
-                Optional<Class<?>> componentType = determineComponentType(importedClasses);
+            public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
+                Optional<Class<?>> componentType = determineComponentType(importContext);
                 if (!componentType.isPresent()) {
                     return Optional.absent();
                 }
 
-                return Optional.of(toArray(componentType.get(), buildValues(owner, importedClasses)));
+                return Optional.of(toArray(componentType.get(), buildValues(owner, importContext)));
             }
 
             @SuppressWarnings({"unchecked", "rawtypes"}) // NOTE: We assume the component type matches the list
@@ -649,34 +660,34 @@ class JavaClassProcessor extends ClassVisitor {
                 return values.toArray((Object[]) Array.newInstance(componentType, values.size()));
             }
 
-            private <T extends HasDescription> List<Object> buildValues(T owner, ClassesByTypeName importedClasses) {
+            private <T extends HasDescription> List<Object> buildValues(T owner, ImportContext importContext) {
                 List<Object> result = new ArrayList<>();
                 for (ValueBuilder value : values) {
-                    result.addAll(value.build(owner, importedClasses).asSet());
+                    result.addAll(value.build(owner, importContext).asSet());
                 }
                 return result;
             }
 
-            private Optional<Class<?>> determineComponentType(ClassesByTypeName importedClasses) {
+            private Optional<Class<?>> determineComponentType(ImportContext importContext) {
                 if (derivedComponentType != null) {
                     return Optional.<Class<?>>of(derivedComponentType);
                 }
 
-                JavaClass annotationType = importedClasses.get(annotationArrayContext.getDeclaringAnnotationTypeName());
-                Optional<JavaMethod> method = annotationType
-                        .tryGetMethod(annotationArrayContext.getDeclaringAnnotationMemberName());
+                Optional<JavaClass> returnType = importContext.getMethodReturnType(
+                        annotationArrayContext.getDeclaringAnnotationTypeName(),
+                        annotationArrayContext.getDeclaringAnnotationMemberName());
 
-                return method.isPresent() ?
-                        determineComponentTypeFromReturnValue(method.get()) :
+                return returnType.isPresent() ?
+                        determineComponentTypeFromReturnValue(returnType.get()) :
                         Optional.<Class<?>>absent();
             }
 
-            private Optional<Class<?>> determineComponentTypeFromReturnValue(JavaMethod method) {
-                if (method.getRawReturnType().isEquivalentTo(Class[].class)) {
+            private Optional<Class<?>> determineComponentTypeFromReturnValue(JavaClass returnType) {
+                if (returnType.isEquivalentTo(Class[].class)) {
                     return Optional.<Class<?>>of(JavaClass.class);
                 }
 
-                return resolveComponentTypeFrom(method.getRawReturnType().getName());
+                return resolveComponentTypeFrom(returnType.getName());
             }
 
             @MayResolveTypesViaReflection(reason = "Resolving primitives does not really use reflection")
@@ -720,10 +731,10 @@ class JavaClassProcessor extends ClassVisitor {
     private static ValueBuilder javaEnumBuilder(final String desc, final String value) {
         return new ValueBuilder() {
             @Override
-            public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
+            public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
                 return Optional.<Object>of(
                         new DomainBuilders.JavaEnumConstantBuilder()
-                                .withDeclaringClass(importedClasses.get(JavaClassDescriptorImporter.importAsmType(desc).getFullyQualifiedClassName()))
+                                .withDeclaringClass(importContext.resolveClass(JavaClassDescriptorImporter.importAsmType(desc).getFullyQualifiedClassName()))
                                 .withName(value)
                                 .build());
             }
@@ -736,8 +747,8 @@ class JavaClassProcessor extends ClassVisitor {
             if (value instanceof JavaClassDescriptor) {
                 return new ValueBuilder() {
                     @Override
-                    public <T extends HasDescription> Optional<Object> build(T owner, ClassesByTypeName importedClasses) {
-                        return Optional.<Object>of(importedClasses.get(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
+                    public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
+                        return Optional.<Object>of(importContext.resolveClass(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
                     }
                 };
             }

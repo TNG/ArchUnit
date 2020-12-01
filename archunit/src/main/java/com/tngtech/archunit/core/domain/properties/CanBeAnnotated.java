@@ -19,6 +19,8 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
@@ -157,7 +159,24 @@ public interface CanBeAnnotated {
                 DescribedPredicate<? super JavaAnnotation<?>> predicate) {
 
             for (JavaAnnotation<?> annotation : annotations) {
-                if (annotation.getRawType().isAnnotatedWith(predicate) || annotation.getRawType().isMetaAnnotatedWith(predicate)) {
+                if (isMetaAnnotatedWith(annotation, predicate, new HashSet<String>())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static boolean isMetaAnnotatedWith(
+                JavaAnnotation<?> annotation,
+                DescribedPredicate<? super JavaAnnotation<?>> predicate,
+                Set<String> visitedAnnotations) {
+
+            if (!visitedAnnotations.add(annotation.getRawType().getName())) {
+                return false;
+            }
+
+            for (JavaAnnotation<?> metaAnnotation : annotation.getRawType().getAnnotations()) {
+                if (predicate.apply(metaAnnotation) || isMetaAnnotatedWith(metaAnnotation, predicate, visitedAnnotations)) {
                     return true;
                 }
             }

@@ -40,6 +40,8 @@ public interface ImportContext {
 
     Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner);
 
+    Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner);
+
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
     Set<JavaFieldAccess> getFieldAccessesFor(JavaCodeUnit codeUnit);
@@ -67,4 +69,6 @@ public interface ImportContext {
     Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass);
 
     JavaClass resolveClass(String fullyQualifiedClassName);
+
+    Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName);
 }
