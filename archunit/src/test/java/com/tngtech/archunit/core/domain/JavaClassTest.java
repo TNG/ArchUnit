@@ -1,5 +1,7 @@
 package com.tngtech.archunit.core.domain;
 
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.util.AbstractList;
@@ -7,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.FluentIterable;
@@ -575,6 +578,59 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_from_self_by_type_parameter() {
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameters<
+                FIRST extends List<?> & Serializable & Comparable<FIRST>,
+                SECOND extends Map<
+                        Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                        Map<? extends BufferedInputStream[][],
+                                Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>>>>,
+                SELF extends ClassWithTypeParameters<FIRST, SECOND, SELF>> {
+        }
+
+        JavaClass javaClass = importClasses(ClassWithTypeParameters.class).get(ClassWithTypeParameters.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(from(ClassWithTypeParameters.class).to(List.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'FIRST' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(Serializable.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'FIRST' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(Comparable.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'FIRST' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(Map.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(Map.Entry.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(String.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(BufferedInputStream[][].class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(Serializable.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(List.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(Set.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(Iterable.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+
+                        .from(ClassWithTypeParameters.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+                );
+    }
+
+    @Test
     public void direct_dependencies_from_self_finds_correct_set_of_target_types() {
         JavaClass javaClass = importPackagesOf(getClass()).get(ClassWithAnnotationDependencies.class);
 
@@ -741,6 +797,34 @@ public class JavaClassTest {
                                 .withDescriptionContaining("Method <%s.asCallTarget()> depends on component type <%s>",
                                         ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency.class.getName())
                                 .inLocation(ArrayComponentTypeDependencies.class, 18));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_type_parameter() {
+        class ClassOtherTypeSignaturesDependOn {
+        }
+        @SuppressWarnings("unused")
+        class FirstDependingOnOtherThroughTypeParameter<T extends ClassOtherTypeSignaturesDependOn> {
+        }
+        @SuppressWarnings("unused")
+        class SecondDependingOnOtherThroughTypeParameter<
+                U extends Map<?, List<? super Set<? extends ClassOtherTypeSignaturesDependOn>>>,
+                V extends Map<ClassOtherTypeSignaturesDependOn, ClassOtherTypeSignaturesDependOn>> {
+        }
+
+        JavaClass someClass = importClasses(ClassOtherTypeSignaturesDependOn.class, FirstDependingOnOtherThroughTypeParameter.class, SecondDependingOnOtherThroughTypeParameter.class)
+                .get(ClassOtherTypeSignaturesDependOn.class);
+
+        assertThatDependencies(someClass.getDirectDependenciesToSelf())
+                .contain(from(FirstDependingOnOtherThroughTypeParameter.class).to(ClassOtherTypeSignaturesDependOn.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'T' depending on")
+
+                        .from(SecondDependingOnOtherThroughTypeParameter.class).to(ClassOtherTypeSignaturesDependOn.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'U' depending on")
+
+                        .from(SecondDependingOnOtherThroughTypeParameter.class).to(ClassOtherTypeSignaturesDependOn.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'V' depending on")
+                );
     }
 
     @Test

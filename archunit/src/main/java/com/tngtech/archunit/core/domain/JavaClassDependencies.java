@@ -25,6 +25,7 @@ import com.tngtech.archunit.core.domain.JavaAnnotation.DefaultParameterVisitor;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 
 import static com.google.common.base.Suppliers.memoize;
+import static com.google.common.collect.Iterables.concat;
 
 class JavaClassDependencies {
     private final JavaClass javaClass;
@@ -49,6 +50,7 @@ class JavaClassDependencies {
                 result.addAll(constructorParameterDependenciesFromSelf());
                 result.addAll(annotationDependenciesFromSelf());
                 result.addAll(instanceofCheckDependenciesFromSelf());
+                result.addAll(typeParameterDependenciesFromSelf());
                 return result.build();
             }
         });
@@ -135,6 +137,53 @@ class JavaClassDependencies {
             for (InstanceofCheck instanceofCheck : codeUnit.getInstanceofChecks()) {
                 result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
             }
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> typeParameterDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaTypeVariable<?> typeVariable : javaClass.getTypeParameters()) {
+            result.addAll(getDependenciesFromTypeParameter(typeVariable));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> getDependenciesFromTypeParameter(JavaTypeVariable<?> typeVariable) {
+        ImmutableSet.Builder<Dependency> dependenciesBuilder = ImmutableSet.builder();
+        for (JavaType bound : typeVariable.getUpperBounds()) {
+            for (JavaClass typeParameterDependency : dependenciesOfType(bound)) {
+                dependenciesBuilder.addAll(Dependency.tryCreateFromTypeParameter(typeVariable, typeParameterDependency));
+            }
+        }
+        return dependenciesBuilder.build();
+    }
+
+    private static Iterable<JavaClass> dependenciesOfType(JavaType javaType) {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        if (javaType instanceof JavaClass) {
+            result.add((JavaClass) javaType);
+        } else if (javaType instanceof JavaParameterizedType) {
+            result.addAll(dependenciesOfParameterizedType((JavaParameterizedType) javaType));
+        } else if (javaType instanceof JavaWildcardType) {
+            result.addAll(dependenciesOfWildcardType((JavaWildcardType) javaType));
+        }
+        return result.build();
+    }
+
+    private static Set<JavaClass> dependenciesOfParameterizedType(JavaParameterizedType parameterizedType) {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.<JavaClass>builder()
+                .add(parameterizedType.toErasure());
+        for (JavaType typeArgument : parameterizedType.getActualTypeArguments()) {
+            result.addAll(dependenciesOfType(typeArgument));
+        }
+        return result.build();
+    }
+
+    private static Set<JavaClass> dependenciesOfWildcardType(JavaWildcardType javaType) {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        for (JavaType bound : concat(javaType.getUpperBounds(), javaType.getLowerBounds())) {
+            result.addAll(dependenciesOfType(bound));
         }
         return result.build();
     }
