@@ -1,3 +1,7 @@
+import groovy.transform.Canonical
+
+import static java.nio.charset.StandardCharsets.UTF_8
+
 plugins {
   id "org.asciidoctor.convert" version "2.4.0"
 }
@@ -30,4 +34,63 @@ asciidoctorj {
 }
 
 asciidoctor.dependsOn cleanUserGuide
-task renderUserGuide(dependsOn: asciidoctor)
+
+task createUseCasesPage {
+    doLast {
+        def useCases = file('userguide/004_What_to_Check.adoc').text
+            .split(/(?m)^=== /).tail()
+            .collect { String section ->
+                String heading = section.lines().findFirst().get()
+                String[] sourceCodeSnippets = section.split(/(\[source,)|(\[plantuml,)/).tail()
+                    .collect { String snippet -> snippet.split(/(?m)^----$/)[1].trim() }
+
+                List<Snippet> snippets = sourceCodeSnippets.collate(2).collect { plantUmlAndJavaSnippetPair ->
+                    new Snippet(plantUmlSourceCode: plantUmlAndJavaSnippetPair[0], javaSourceCode: plantUmlAndJavaSnippetPair[1])
+                }
+                new UseCase(heading: heading, snippets: snippets)
+            }
+
+        file('_pages/use-cases.md').text = """
+---
+title: Use Cases
+layout: splash
+permalink: /use-cases
+---
+
+${useCases.collect {it.toMarkDown() }.join('\n')}
+""".stripLeading()
+    }
+}
+
+task renderUserGuide(dependsOn: [asciidoctor, createUseCasesPage])
+
+@Canonical
+class UseCase {
+    String heading
+    List<Snippet> snippets
+
+    String toMarkDown() {
+        """
+## ${heading}
+
+${snippets.collect { it.toMarkDown() }.join('\n') }
+        """.stripLeading()
+    }
+}
+
+@Canonical
+class Snippet {
+    String plantUmlSourceCode
+    String javaSourceCode
+
+    String toMarkDown() {
+        String plantUmlUrl = "http://www.plantuml.com/plantuml/svg/~h${plantUmlSourceCode.getBytes(UTF_8).encodeHex()}"
+        """
+![diagram](${plantUmlUrl})
+
+```
+${javaSourceCode}
+```
+        """.stripLeading()
+    }
+}
