@@ -150,11 +150,11 @@ public class DomainObjectCreationContext {
         return InstanceofCheck.from(codeUnit, target, lineNumber);
     }
 
-    public static JavaTypeVariable createTypeVariable(String name, JavaClass erasure) {
-        return new JavaTypeVariable(name, erasure);
+    public static <OWNER extends HasDescription> JavaTypeVariable<OWNER> createTypeVariable(String name, OWNER owner, JavaClass erasure) {
+        return new JavaTypeVariable<>(name, owner, erasure);
     }
 
-    public static void completeTypeVariable(JavaTypeVariable variable, List<JavaType> upperBounds) {
+    public static void completeTypeVariable(JavaTypeVariable<?> variable, List<JavaType> upperBounds) {
         variable.setUpperBounds(upperBounds);
     }
 
@@ -164,7 +164,7 @@ public class DomainObjectCreationContext {
         return new JavaGenericArrayType(componentType.getName() + "[]", componentType, erasure);
     }
 
-    public static JavaWildcardType createWildcardType(JavaWildcardTypeBuilder builder) {
+    public static JavaWildcardType createWildcardType(JavaWildcardTypeBuilder<?> builder) {
         return new JavaWildcardType(builder);
     }
 }

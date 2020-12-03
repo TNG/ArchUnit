@@ -505,64 +505,67 @@ public final class DomainBuilders {
         }
     }
 
-    interface JavaTypeCreationProcess {
-        JavaType finish(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes);
+    interface JavaTypeCreationProcess<OWNER> {
+        JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes);
     }
 
     @Internal
-    public static final class JavaTypeParameterBuilder {
+    public static final class JavaTypeParameterBuilder<OWNER extends HasDescription> {
         private final String name;
-        private final List<JavaTypeCreationProcess> upperBounds = new ArrayList<>();
+        private final List<JavaTypeCreationProcess<OWNER>> upperBounds = new ArrayList<>();
+        private OWNER owner;
         private ClassesByTypeName importedClasses;
 
         JavaTypeParameterBuilder(String name) {
             this.name = checkNotNull(name);
         }
 
-        void addBound(JavaTypeCreationProcess bound) {
+        void addBound(JavaTypeCreationProcess<OWNER> bound) {
             upperBounds.add(bound);
         }
 
-        public JavaTypeVariable build(ClassesByTypeName importedClasses) {
+        public JavaTypeVariable<OWNER> build(OWNER owner, ClassesByTypeName importedClasses) {
+            this.owner = owner;
             this.importedClasses = importedClasses;
-            return createTypeVariable(name, this.importedClasses.get(Object.class.getName()));
+            return createTypeVariable(name, owner, this.importedClasses.get(Object.class.getName()));
         }
 
         String getName() {
             return name;
         }
 
-        public List<JavaType> getUpperBounds(Iterable<JavaTypeVariable> allGenericParametersInContext) {
-            return buildJavaTypes(upperBounds, allGenericParametersInContext, importedClasses);
+        @SuppressWarnings("unchecked") // Iterable is covariant
+        public List<JavaType> getUpperBounds(Iterable<? extends JavaTypeVariable<?>> allGenericParametersInContext) {
+            return buildJavaTypes(upperBounds, owner, (Iterable<JavaTypeVariable<?>>) allGenericParametersInContext, importedClasses);
         }
     }
 
     static class TypeParametersBuilder {
-        private final Collection<JavaTypeParameterBuilder> typeParameterBuilders;
+        private final Collection<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders;
 
-        TypeParametersBuilder(Collection<JavaTypeParameterBuilder> typeParameterBuilders) {
+        TypeParametersBuilder(Collection<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders) {
             this.typeParameterBuilders = typeParameterBuilders;
         }
 
-        public List<JavaTypeVariable> build(JavaClass owner, ClassesByTypeName classesByTypeName) {
+        public List<JavaTypeVariable<JavaClass>> build(JavaClass owner, ClassesByTypeName classesByTypeName) {
             if (typeParameterBuilders.isEmpty()) {
                 return Collections.emptyList();
             }
 
-            Map<JavaTypeVariable, JavaTypeParameterBuilder> typeArgumentsToBuilders = new LinkedHashMap<>();
-            for (JavaTypeParameterBuilder builder : typeParameterBuilders) {
-                typeArgumentsToBuilders.put(builder.build(classesByTypeName), builder);
+            Map<JavaTypeVariable<JavaClass>, JavaTypeParameterBuilder<JavaClass>> typeArgumentsToBuilders = new LinkedHashMap<>();
+            for (JavaTypeParameterBuilder<JavaClass> builder : typeParameterBuilders) {
+                typeArgumentsToBuilders.put(builder.build(owner, classesByTypeName), builder);
             }
-            Set<JavaTypeVariable> allGenericParametersInContext = union(allTypeParametersInEnclosingClassesOf(owner), typeArgumentsToBuilders.keySet());
-            for (Map.Entry<JavaTypeVariable, JavaTypeParameterBuilder> typeParameterToBuilder : typeArgumentsToBuilders.entrySet()) {
+            Set<JavaTypeVariable<JavaClass>> allGenericParametersInContext = union(allTypeParametersInEnclosingClassesOf(owner), typeArgumentsToBuilders.keySet());
+            for (Map.Entry<JavaTypeVariable<JavaClass>, JavaTypeParameterBuilder<JavaClass>> typeParameterToBuilder : typeArgumentsToBuilders.entrySet()) {
                 List<JavaType> upperBounds = typeParameterToBuilder.getValue().getUpperBounds(allGenericParametersInContext);
                 completeTypeVariable(typeParameterToBuilder.getKey(), upperBounds);
             }
             return ImmutableList.copyOf(typeArgumentsToBuilders.keySet());
         }
 
-        private Set<JavaTypeVariable> allTypeParametersInEnclosingClassesOf(JavaClass javaClass) {
-            Set<JavaTypeVariable> result = new HashSet<>();
+        private Set<JavaTypeVariable<JavaClass>> allTypeParametersInEnclosingClassesOf(JavaClass javaClass) {
+            Set<JavaTypeVariable<JavaClass>> result = new HashSet<>();
             while (javaClass.getEnclosingClass().isPresent()) {
                 result.addAll(javaClass.getEnclosingClass().get().getTypeParameters());
                 javaClass = javaClass.getEnclosingClass().get();
@@ -571,43 +574,45 @@ public final class DomainBuilders {
         }
     }
 
-    interface JavaTypeBuilder {
-        JavaType build(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName importedClasses);
+    interface JavaTypeBuilder<OWNER extends HasDescription> {
+        JavaType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName importedClasses);
     }
 
     @Internal
-    public static final class JavaWildcardTypeBuilder implements JavaTypeBuilder {
-        private final List<JavaTypeCreationProcess> lowerBoundCreationProcesses = new ArrayList<>();
-        private final List<JavaTypeCreationProcess> upperBoundCreationProcesses = new ArrayList<>();
-        private Iterable<JavaTypeVariable> allTypeParametersInContext;
+    public static final class JavaWildcardTypeBuilder<OWNER extends HasDescription> implements JavaTypeBuilder<OWNER> {
+        private final List<JavaTypeCreationProcess<OWNER>> lowerBoundCreationProcesses = new ArrayList<>();
+        private final List<JavaTypeCreationProcess<OWNER>> upperBoundCreationProcesses = new ArrayList<>();
+        private OWNER owner;
+        private Iterable<JavaTypeVariable<?>> allTypeParametersInContext;
         private ClassesByTypeName importedClasses;
 
         JavaWildcardTypeBuilder() {
         }
 
-        public JavaWildcardTypeBuilder addLowerBound(JavaTypeCreationProcess boundCreationProcess) {
+        public JavaWildcardTypeBuilder<OWNER> addLowerBound(JavaTypeCreationProcess<OWNER> boundCreationProcess) {
             lowerBoundCreationProcesses.add(boundCreationProcess);
             return this;
         }
 
-        public JavaWildcardTypeBuilder addUpperBound(JavaTypeCreationProcess boundCreationProcess) {
+        public JavaWildcardTypeBuilder<OWNER> addUpperBound(JavaTypeCreationProcess<OWNER> boundCreationProcess) {
             upperBoundCreationProcesses.add(boundCreationProcess);
             return this;
         }
 
         @Override
-        public JavaWildcardType build(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName importedClasses) {
+        public JavaWildcardType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName importedClasses) {
+            this.owner = owner;
             this.allTypeParametersInContext = allTypeParametersInContext;
             this.importedClasses = importedClasses;
             return createWildcardType(this);
         }
 
         public List<JavaType> getUpperBounds() {
-            return buildJavaTypes(upperBoundCreationProcesses, allTypeParametersInContext, importedClasses);
+            return buildJavaTypes(upperBoundCreationProcesses, owner, allTypeParametersInContext, importedClasses);
         }
 
         public List<JavaType> getLowerBounds() {
-            return buildJavaTypes(lowerBoundCreationProcesses, allTypeParametersInContext, importedClasses);
+            return buildJavaTypes(lowerBoundCreationProcesses, owner, allTypeParametersInContext, importedClasses);
         }
 
         public JavaClass getUnboundErasureType(List<JavaType> upperBounds) {
@@ -615,21 +620,21 @@ public final class DomainBuilders {
         }
     }
 
-    static class JavaParameterizedTypeBuilder implements JavaTypeBuilder {
+    static class JavaParameterizedTypeBuilder<OWNER extends HasDescription> implements JavaTypeBuilder<OWNER> {
         private final JavaClassDescriptor type;
-        private final List<JavaTypeCreationProcess> typeArgumentCreationProcesses = new ArrayList<>();
+        private final List<JavaTypeCreationProcess<OWNER>> typeArgumentCreationProcesses = new ArrayList<>();
 
         JavaParameterizedTypeBuilder(JavaClassDescriptor type) {
             this.type = type;
         }
 
-        void addTypeArgument(JavaTypeCreationProcess typeCreationProcess) {
+        void addTypeArgument(JavaTypeCreationProcess<OWNER> typeCreationProcess) {
             typeArgumentCreationProcesses.add(typeCreationProcess);
         }
 
         @Override
-        public JavaParameterizedType build(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes) {
-            List<JavaType> typeArguments = buildJavaTypes(typeArgumentCreationProcesses, allTypeParametersInContext, classes);
+        public JavaParameterizedType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+            List<JavaType> typeArguments = buildJavaTypes(typeArgumentCreationProcesses, owner, allTypeParametersInContext, classes);
             return new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments);
         }
 
@@ -638,10 +643,10 @@ public final class DomainBuilders {
         }
     }
 
-    private static List<JavaType> buildJavaTypes(List<? extends JavaTypeCreationProcess> typeCreationProcesses, Iterable<JavaTypeVariable> allGenericParametersInContext, ClassesByTypeName classes) {
+    private static <OWNER> List<JavaType> buildJavaTypes(List<? extends JavaTypeCreationProcess<OWNER>> typeCreationProcesses, OWNER owner, Iterable<JavaTypeVariable<?>> allGenericParametersInContext, ClassesByTypeName classes) {
         ImmutableList.Builder<JavaType> result = ImmutableList.builder();
-        for (JavaTypeCreationProcess typeCreationProcess : typeCreationProcesses) {
-            result.add(typeCreationProcess.finish(allGenericParametersInContext, classes));
+        for (JavaTypeCreationProcess<OWNER> typeCreationProcess : typeCreationProcesses) {
+            result.add(typeCreationProcess.finish(owner, allGenericParametersInContext, classes));
         }
         return result.build();
     }

@@ -237,7 +237,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public List<JavaTypeVariable> createTypeParameters(JavaClass owner) {
+    public List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner) {
         TypeParametersBuilder typeParametersBuilder = importRecord.getTypeParameterBuildersFor(owner.getName());
         return typeParametersBuilder.build(owner, classes.byTypeName());
     }

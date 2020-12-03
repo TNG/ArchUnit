@@ -21,6 +21,8 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasUpperBounds;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -42,13 +44,15 @@ import static java.util.Collections.emptyList;
  * {@code SomeInterfaceOne} and {@code SomeInterfaceTwo}.
  */
 @PublicAPI(usage = ACCESS)
-public final class JavaTypeVariable implements JavaType, HasUpperBounds {
+public final class JavaTypeVariable<OWNER extends HasDescription> implements JavaType, HasOwner<OWNER>, HasUpperBounds {
     private final String name;
+    private final OWNER owner;
     private List<JavaType> upperBounds = emptyList();
     private JavaClass erasure;
 
-    JavaTypeVariable(String name, JavaClass erasure) {
+    JavaTypeVariable(String name, OWNER owner, JavaClass erasure) {
         this.name = name;
+        this.owner = owner;
         this.erasure = erasure;
     }
 
@@ -65,6 +69,27 @@ public final class JavaTypeVariable implements JavaType, HasUpperBounds {
     @PublicAPI(usage = ACCESS)
     public String getName() {
         return name;
+    }
+
+    /**
+     * This method is simply an alias for {@link #getOwner()} that is more familiar to users
+     * of the Java Reflection API.
+     *
+     * @see TypeVariable#getGenericDeclaration()
+     */
+    @PublicAPI(usage = ACCESS)
+    public OWNER getGenericDeclaration() {
+        return getOwner();
+    }
+
+    /**
+     * @return The 'owner' of this type parameter, i.e. the Java object that declared this
+     *         {@link TypeVariable} as a type parameter. For type parameter {@code T} of
+     *         {@code SomeClass<T>} this would be the {@code JavaClass} representing {@code SomeClass}
+     */
+    @Override
+    public OWNER getOwner() {
+        return owner;
     }
 
     /**
