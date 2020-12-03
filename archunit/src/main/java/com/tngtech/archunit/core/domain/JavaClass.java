@@ -72,7 +72,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private final boolean isAnonymousClass;
     private final boolean isMemberClass;
     private final Set<JavaModifier> modifiers;
-    private List<JavaTypeVariable> typeParameters = emptyList();
+    private List<JavaTypeVariable<JavaClass>> typeParameters = emptyList();
     private final Supplier<Class<?>> reflectSupplier;
     private Set<JavaField> fields = emptySet();
     private Set<JavaCodeUnit> codeUnits = emptySet();
@@ -644,7 +644,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     @PublicAPI(usage = ACCESS)
-    public List<JavaTypeVariable> getTypeParameters() {
+    public List<JavaTypeVariable<JavaClass>> getTypeParameters() {
         return typeParameters;
     }
 

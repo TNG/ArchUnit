@@ -75,9 +75,9 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
 
     @SuppressWarnings("OptionalGetWithoutIsPresent") // checked via AssertJ
     public JavaTypeVariableOfClassAssertion hasTypeParameter(String name) {
-        List<JavaTypeVariable> typeVariables = actualClass().getTypeParameters();
+        List<JavaTypeVariable<JavaClass>> typeVariables = actualClass().getTypeParameters();
 
-        Optional<JavaTypeVariable> variable = FluentIterable.from(typeVariables).firstMatch(toGuava(name(name)));
+        Optional<JavaTypeVariable<JavaClass>> variable = FluentIterable.from(typeVariables).firstMatch(toGuava(name(name)));
         assertThat(variable).as("Type variable with name '%s'", name).isPresent();
 
         return new JavaTypeVariableOfClassAssertion(variable.get());
@@ -109,8 +109,8 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
         return getExpectedPackageName(clazz.getComponentType());
     }
 
-    public class JavaTypeVariableOfClassAssertion extends AbstractObjectAssert<JavaTypeVariableOfClassAssertion, JavaTypeVariable> {
-        private JavaTypeVariableOfClassAssertion(JavaTypeVariable actual) {
+    public class JavaTypeVariableOfClassAssertion extends AbstractObjectAssert<JavaTypeVariableOfClassAssertion, JavaTypeVariable<JavaClass>> {
+        private JavaTypeVariableOfClassAssertion(JavaTypeVariable<JavaClass> actual) {
             super(actual, JavaTypeVariableOfClassAssertion.class);
         }
 

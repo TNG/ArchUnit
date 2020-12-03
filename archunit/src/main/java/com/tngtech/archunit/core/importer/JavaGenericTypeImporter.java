@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaType;
@@ -58,7 +59,7 @@ class JavaGenericTypeImporter {
     private static class JavaTypeVariableProcessor extends SignatureVisitor {
         private static final BoundProcessor boundProcessor = new BoundProcessor();
 
-        private final List<JavaTypeParameterBuilder> typeParameterBuilders = new ArrayList<>();
+        private final List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders = new ArrayList<>();
 
         JavaTypeVariableProcessor() {
             super(ASM_API_VERSION);
@@ -67,7 +68,7 @@ class JavaGenericTypeImporter {
         @Override
         public void visitFormalTypeParameter(String name) {
             log.trace("Encountered type parameter {}", name);
-            JavaTypeParameterBuilder type = new JavaTypeParameterBuilder(name);
+            JavaTypeParameterBuilder<JavaClass> type = new JavaTypeParameterBuilder<>(name);
             boundProcessor.setCurrentType(type);
             typeParameterBuilders.add(type);
         }
@@ -83,14 +84,14 @@ class JavaGenericTypeImporter {
         }
 
         private static class BoundProcessor extends SignatureVisitor {
-            private JavaTypeParameterBuilder currentType;
-            private JavaParameterizedTypeBuilder currentBound;
+            private JavaTypeParameterBuilder<JavaClass> currentType;
+            private JavaParameterizedTypeBuilder<JavaClass> currentBound;
 
             BoundProcessor() {
                 super(ASM_API_VERSION);
             }
 
-            void setCurrentType(JavaTypeParameterBuilder type) {
+            void setCurrentType(JavaTypeParameterBuilder<JavaClass> type) {
                 this.currentType = type;
             }
 
@@ -98,20 +99,20 @@ class JavaGenericTypeImporter {
             public void visitClassType(String internalObjectName) {
                 JavaClassDescriptor type = JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName);
                 log.trace("Encountered upper bound for {}: Class type {}", currentType.getName(), type.getFullyQualifiedClassName());
-                this.currentBound = new JavaParameterizedTypeBuilder(type);
-                currentType.addBound(new NewJavaTypeCreationProcess(this.currentBound));
+                this.currentBound = new JavaParameterizedTypeBuilder<>(type);
+                currentType.addBound(new NewJavaTypeCreationProcess<>(this.currentBound));
             }
 
             @Override
             public void visitTypeArgument() {
                 log.trace("Encountered wildcard for {}", currentBound.getTypeName());
-                currentBound.addTypeArgument(new NewJavaTypeCreationProcess(new JavaWildcardTypeBuilder()));
+                currentBound.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>()));
             }
 
             @Override
             public void visitTypeVariable(String name) {
                 log.trace("Encountered upper bound for {}: Type variable {}", currentType.getName(), name);
-                currentType.addBound(new ReferenceCreationProcess(name, ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY));
+                currentType.addBound(new ReferenceCreationProcess<JavaClass>(name, ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY));
             }
 
             @Override
@@ -121,20 +122,20 @@ class JavaGenericTypeImporter {
         }
     }
 
-    private static class NewJavaTypeCreationProcess implements JavaTypeCreationProcess {
-        private final JavaTypeBuilder builder;
+    private static class NewJavaTypeCreationProcess<OWNER extends HasDescription> implements JavaTypeCreationProcess<OWNER> {
+        private final JavaTypeBuilder<OWNER> builder;
 
-        NewJavaTypeCreationProcess(JavaTypeBuilder builder) {
+        NewJavaTypeCreationProcess(JavaTypeBuilder<OWNER> builder) {
             this.builder = builder;
         }
 
         @Override
-        public JavaType finish(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes) {
-            return builder.build(allTypeParametersInContext, classes);
+        public JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+            return builder.build(owner, allTypeParametersInContext, classes);
         }
     }
 
-    private static class ReferenceCreationProcess implements JavaTypeCreationProcess {
+    private static class ReferenceCreationProcess<OWNER extends HasDescription> implements JavaTypeCreationProcess<OWNER> {
         private final String typeVariableName;
         private final JavaTypeVariableFinisher finisher;
 
@@ -144,18 +145,18 @@ class JavaGenericTypeImporter {
         }
 
         @Override
-        public JavaType finish(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes) {
-            return finisher.finish(createTypeVariable(allTypeParametersInContext, classes), classes);
+        public JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+            return finisher.finish(createTypeVariable(owner, allTypeParametersInContext, classes), classes);
         }
 
-        private JavaType createTypeVariable(Iterable<JavaTypeVariable> allTypeParametersInContext, ClassesByTypeName classes) {
-            for (JavaTypeVariable existingTypeVariable : allTypeParametersInContext) {
+        private JavaType createTypeVariable(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+            for (JavaTypeVariable<?> existingTypeVariable : allTypeParametersInContext) {
                 if (existingTypeVariable.getName().equals(typeVariableName)) {
                     return existingTypeVariable;
                 }
             }
             // type variables can be missing from the import context -> create a simple unbound type variable since we have no more information
-            return new JavaTypeParameterBuilder(typeVariableName).build(classes);
+            return new JavaTypeParameterBuilder<>(typeVariableName).build(owner, classes);
         }
 
         abstract static class JavaTypeVariableFinisher {
@@ -194,6 +195,7 @@ class JavaGenericTypeImporter {
     private static class TypeArgumentProcessor extends SignatureVisitor {
         private static final Function<JavaClassDescriptor, JavaClassDescriptor> TO_ARRAY_TYPE = new Function<JavaClassDescriptor, JavaClassDescriptor>() {
             @Override
+            @SuppressWarnings("ConstantConditions") // we never return null by convention
             public JavaClassDescriptor apply(JavaClassDescriptor input) {
                 return input.toArrayDescriptor();
             }
@@ -213,15 +215,15 @@ class JavaGenericTypeImporter {
         };
 
         private final TypeArgumentType typeArgumentType;
-        private final JavaParameterizedTypeBuilder parameterizedType;
+        private final JavaParameterizedTypeBuilder<JavaClass> parameterizedType;
         private final Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping;
         private final ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher;
 
-        private JavaParameterizedTypeBuilder currentTypeArgument;
+        private JavaParameterizedTypeBuilder<JavaClass> currentTypeArgument;
 
         TypeArgumentProcessor(
                 TypeArgumentType typeArgumentType,
-                JavaParameterizedTypeBuilder parameterizedType,
+                JavaParameterizedTypeBuilder<JavaClass> parameterizedType,
                 Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping,
                 ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher) {
             super(ASM_API_VERSION);
@@ -232,17 +234,18 @@ class JavaGenericTypeImporter {
         }
 
         @Override
+        @SuppressWarnings("ConstantConditions") // we never return null by convention
         public void visitClassType(String internalObjectName) {
             JavaClassDescriptor type = typeMapping.apply(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
             log.trace("Encountered {} for {}: Class type {}", typeArgumentType.description, parameterizedType.getTypeName(), type.getFullyQualifiedClassName());
-            currentTypeArgument = new JavaParameterizedTypeBuilder(type);
-            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new NewJavaTypeCreationProcess(this.currentTypeArgument));
+            currentTypeArgument = new JavaParameterizedTypeBuilder<>(type);
+            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new NewJavaTypeCreationProcess<>(this.currentTypeArgument));
         }
 
         @Override
         public void visitTypeArgument() {
             log.trace("Encountered wildcard for {}", currentTypeArgument.getTypeName());
-            currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess(new JavaWildcardTypeBuilder()));
+            currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>()));
         }
 
         @Override
@@ -250,7 +253,7 @@ class JavaGenericTypeImporter {
             if (log.isTraceEnabled()) {
                 log.trace("Encountered {} for {}: Type variable {}", typeArgumentType.description, parameterizedType.getTypeName(), typeVariableFinisher.getFinishedName(name));
             }
-            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess(name, typeVariableFinisher));
+            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess<JavaClass>(name, typeVariableFinisher));
         }
 
         @Override
@@ -265,7 +268,7 @@ class JavaGenericTypeImporter {
 
         static TypeArgumentProcessor create(
                 char identifier,
-                JavaParameterizedTypeBuilder parameterizedType,
+                JavaParameterizedTypeBuilder<JavaClass> parameterizedType,
                 Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping,
                 ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher) {
 
@@ -289,27 +292,27 @@ class JavaGenericTypeImporter {
             this.description = description;
         }
 
-        abstract void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder parameterizedType, JavaTypeCreationProcess creationProcess);
+        abstract void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder<JavaClass> parameterizedType, JavaTypeCreationProcess<JavaClass> creationProcess);
     }
 
     private static final TypeArgumentType PARAMETERIZED_TYPE = new TypeArgumentType("type argument") {
         @Override
-        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder parameterizedType, JavaTypeCreationProcess typeCreationProcess) {
+        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder<JavaClass> parameterizedType, JavaTypeCreationProcess<JavaClass> typeCreationProcess) {
             parameterizedType.addTypeArgument(typeCreationProcess);
         }
     };
 
     private static final TypeArgumentType WILDCARD_WITH_UPPER_BOUND = new TypeArgumentType("wildcard with upper bound") {
         @Override
-        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder parameterizedType, JavaTypeCreationProcess typeCreationProcess) {
-            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess(new JavaWildcardTypeBuilder().addUpperBound(typeCreationProcess)));
+        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder<JavaClass> parameterizedType, JavaTypeCreationProcess<JavaClass> typeCreationProcess) {
+            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>().addUpperBound(typeCreationProcess)));
         }
     };
 
     private static final TypeArgumentType WILDCARD_WITH_LOWER_BOUND = new TypeArgumentType("wildcard with lower bound") {
         @Override
-        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder parameterizedType, JavaTypeCreationProcess typeCreationProcess) {
-            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess(new JavaWildcardTypeBuilder().addLowerBound(typeCreationProcess)));
+        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder<JavaClass> parameterizedType, JavaTypeCreationProcess<JavaClass> typeCreationProcess) {
+            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>().addLowerBound(typeCreationProcess)));
         }
     };
 }
