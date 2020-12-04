@@ -228,12 +228,12 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     /**
      * This is a convenience method for {@link #tryGetComponentType()} in cases where
      * clients know that this type is certainly an array type and thus the component type present.
-     * @throws IllegalArgumentException if this class is no array
+     * @throws IllegalStateException if this class is no array
      * @return The result of {@link #tryGetComponentType()}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClass getComponentType() {
-        return tryGetComponentType().getOrThrow(new IllegalArgumentException(
+        return tryGetComponentType().getOrThrow(new IllegalStateException(
                 String.format("Type %s is no array", getSimpleName())));
     }
 
