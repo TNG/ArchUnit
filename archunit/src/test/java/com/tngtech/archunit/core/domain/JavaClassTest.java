@@ -123,7 +123,7 @@ public class JavaClassTest {
             public void call() {
                 nonArrayType.getComponentType();
             }
-        }).isInstanceOf(IllegalArgumentException.class);
+        }).isInstanceOf(IllegalStateException.class);
         assertThat(nonArrayType.getBaseComponentType()).isSameAs(nonArrayType);
     }
 
