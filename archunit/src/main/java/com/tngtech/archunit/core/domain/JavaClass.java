@@ -228,12 +228,12 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     /**
      * This is a convenience method for {@link #tryGetComponentType()} in cases where
      * clients know that this type is certainly an array type and thus the component type present.
-     * @throws IllegalArgumentException if this class is no array
+     * @throws IllegalStateException if this class is no array
      * @return The result of {@link #tryGetComponentType()}
      */
     @PublicAPI(usage = ACCESS)
     public JavaClass getComponentType() {
-        return tryGetComponentType().getOrThrow(new IllegalArgumentException(
+        return tryGetComponentType().getOrThrow(new IllegalStateException(
                 String.format("Type %s is no array", getSimpleName())));
     }
 
@@ -247,6 +247,22 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     @PublicAPI(usage = ACCESS)
     Optional<JavaClass> tryGetComponentType() {
         return componentType;
+    }
+
+    /**
+     * The base component type is the class' {@link #getComponentType() component type} if it is a one-dimensional array,
+     * the repeated application of {@link #getComponentType()} if it is a multi-dimensional array,
+     * or the class itself if it is no array.
+     * For example, the base component type of {@code int}, {@code int[]}, {@code int[][]}, ... is always {@code int}.
+     * @return The base component type of this class
+     */
+    @PublicAPI(usage = ACCESS)
+    JavaClass getBaseComponentType() {
+        JavaClass type = this;
+        while (type.isArray()) {
+            type = type.getComponentType();
+        }
+        return type;
     }
 
     /**
