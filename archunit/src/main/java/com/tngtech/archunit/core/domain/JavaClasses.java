@@ -19,15 +19,19 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.ForwardingCollection;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Guava;
-import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -199,7 +203,9 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
             setPackage(clazz, defaultPackage);
             clazz.completeFrom(importContext);
         }
-        new AccessContext.TopProcess(allClasses, importContext).finish();
+        for (JavaClass clazz : allClasses) {
+            registerAccessesTo(clazz, importContext);
+        }
         return new JavaClasses(defaultPackage, selectedClasses);
     }
 
@@ -208,5 +214,53 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
                 ? defaultPackage
                 : defaultPackage.getPackage(clazz.getPackageName());
         clazz.setPackage(javaPackage);
+    }
+
+    private static void registerAccessesTo(JavaClass clazz, final ImportContext importContext) {
+        for (final JavaField field : clazz.getFields()) {
+            field.registerAccessesToField(Suppliers.memoize(new AccessSupplier<>(field.getOwner(), new Function<JavaClass, Set<JavaFieldAccess>>() {
+                @Override
+                public Set<JavaFieldAccess> apply(JavaClass input) {
+                    return importContext.getAccessesToField(input, field);
+                }
+            })));
+        }
+        for (final JavaMethod method : clazz.getMethods()) {
+            method.registerCallsToMethod(Suppliers.memoize(new AccessSupplier<>(method.getOwner(), new Function<JavaClass, Set<JavaMethodCall>>() {
+                @Override
+                public Set<JavaMethodCall> apply(JavaClass input) {
+                    return importContext.getCallsToMethod(input, method);
+                }
+            })));
+        }
+        for (final JavaConstructor constructor : clazz.getConstructors()) {
+            constructor.registerCallsToConstructor(importContext.getCallsToConstructor(constructor));
+        }
+    }
+
+    private static class AccessSupplier<T extends JavaAccess<?>> implements Supplier<Set<T>> {
+        private final JavaClass owner;
+        private final Function<JavaClass, Set<T>> mapToAccesses;
+
+        AccessSupplier(JavaClass owner, Function<JavaClass, Set<T>> mapToAccesses) {
+            this.owner = owner;
+            this.mapToAccesses = mapToAccesses;
+        }
+
+        @Override
+        public Set<T> get() {
+            ImmutableSet.Builder<T> result = ImmutableSet.builder();
+            for (final JavaClass javaClass : getPossibleTargetClassesForAccess()) {
+                result.addAll(mapToAccesses.apply(javaClass));
+            }
+            return result.build();
+        }
+
+        private Set<JavaClass> getPossibleTargetClassesForAccess() {
+            return ImmutableSet.<JavaClass>builder()
+                    .add(owner)
+                    .addAll(owner.getAllSubClasses())
+                    .build();
+        }
     }
 }
