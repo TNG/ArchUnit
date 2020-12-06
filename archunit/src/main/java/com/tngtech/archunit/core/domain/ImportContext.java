@@ -50,6 +50,12 @@ public interface ImportContext {
 
     Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit);
 
+    Set<JavaConstructorCall> getCallsToConstructor(JavaConstructor constructor);
+
+    Set<JavaFieldAccess> getAccessesToField(JavaClass javaClass, JavaField field);
+
+    Set<JavaMethodCall> getCallsToMethod(JavaClass javaClass, JavaMethod method);
+
     Set<JavaField> getFieldsOfType(JavaClass javaClass);
 
     Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass);

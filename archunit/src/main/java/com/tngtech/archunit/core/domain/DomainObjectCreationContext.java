@@ -17,17 +17,13 @@ package com.tngtech.archunit.core.domain;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
@@ -177,17 +173,11 @@ public class DomainObjectCreationContext {
     }
 
     static class AccessContext {
-        final SetMultimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget = HashMultimap.create();
-        final SetMultimap<JavaClass, JavaMethodCall> methodCallsByTarget = HashMultimap.create();
-        final SetMultimap<String, JavaConstructorCall> constructorCallsByTarget = HashMultimap.create();
 
         private AccessContext() {
         }
 
         void mergeWith(AccessContext other) {
-            fieldAccessesByTarget.putAll(other.fieldAccessesByTarget);
-            methodCallsByTarget.putAll(other.methodCallsByTarget);
-            constructorCallsByTarget.putAll(other.constructorCallsByTarget);
         }
 
         static class Part extends AccessContext {
@@ -195,23 +185,16 @@ public class DomainObjectCreationContext {
             }
 
             Part(JavaCodeUnit codeUnit) {
-                for (JavaFieldAccess access : codeUnit.getFieldAccesses()) {
-                    fieldAccessesByTarget.put(access.getTarget().getOwner(), access);
-                }
-                for (JavaMethodCall call : codeUnit.getMethodCallsFromSelf()) {
-                    methodCallsByTarget.put(call.getTarget().getOwner(), call);
-                }
-                for (JavaConstructorCall call : codeUnit.getConstructorCallsFromSelf()) {
-                    constructorCallsByTarget.put(call.getTarget().getFullName(), call);
-                }
             }
         }
 
         static class TopProcess extends AccessContext {
             private final Collection<JavaClass> classes;
+            private final ImportContext importContext;
 
-            TopProcess(Collection<JavaClass> classes) {
+            TopProcess(Collection<JavaClass> classes, ImportContext importContext) {
                 this.classes = classes;
+                this.importContext = importContext;
             }
 
             void finish() {
@@ -223,7 +206,7 @@ public class DomainObjectCreationContext {
                         method.registerCallsToMethod(getMethodCallsOf(method));
                     }
                     for (final JavaConstructor constructor : clazz.getConstructors()) {
-                        constructor.registerCallsToConstructor(constructorCallsByTarget.get(constructor.getFullName()));
+                        constructor.registerCallsToConstructor(importContext.getCallsToConstructor(constructor));
                     }
                 }
             }
@@ -233,7 +216,7 @@ public class DomainObjectCreationContext {
             }
 
             private Function<JavaClass, Set<JavaFieldAccess>> fieldAccessTargetResolvesTo(final JavaField field) {
-                return new ClassToFieldAccessesToSelf(fieldAccessesByTarget, field);
+                return new ClassToFieldAccessesToSelf(importContext, field);
             }
 
             private Supplier<Set<JavaMethodCall>> getMethodCallsOf(final JavaMethod method) {
@@ -241,48 +224,36 @@ public class DomainObjectCreationContext {
             }
 
             private Function<JavaClass, Set<JavaMethodCall>> methodCallTargetResolvesTo(final JavaMethod method) {
-                return new ClassToMethodCallsToSelf(methodCallsByTarget, method);
+                return new ClassToMethodCallsToSelf(importContext, method);
             }
 
             private static class ClassToFieldAccessesToSelf implements Function<JavaClass, Set<JavaFieldAccess>> {
-                private final Multimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget;
+                private final ImportContext importContext;
                 private final JavaField field;
 
-                ClassToFieldAccessesToSelf(SetMultimap<JavaClass, JavaFieldAccess> fieldAccessesByTarget, JavaField field) {
-                    this.fieldAccessesByTarget = fieldAccessesByTarget;
+                ClassToFieldAccessesToSelf(ImportContext importContext, JavaField field) {
+                    this.importContext = importContext;
                     this.field = field;
                 }
 
                 @Override
                 public Set<JavaFieldAccess> apply(JavaClass input) {
-                    Set<JavaFieldAccess> result = new HashSet<>();
-                    for (JavaFieldAccess access : fieldAccessesByTarget.get(input)) {
-                        if (access.getTarget().resolveField().asSet().contains(field)) {
-                            result.add(access);
-                        }
-                    }
-                    return result;
+                    return importContext.getAccessesToField(input, field);
                 }
             }
 
             private static class ClassToMethodCallsToSelf implements Function<JavaClass, Set<JavaMethodCall>> {
-                private final Multimap<JavaClass, JavaMethodCall> methodCallsByTarget;
+                private final ImportContext importContext;
                 private final JavaMethod method;
 
-                ClassToMethodCallsToSelf(SetMultimap<JavaClass, JavaMethodCall> methodCallsByTarget, JavaMethod method) {
-                    this.methodCallsByTarget = methodCallsByTarget;
+                ClassToMethodCallsToSelf(ImportContext importContext, JavaMethod method) {
+                    this.importContext = importContext;
                     this.method = method;
                 }
 
                 @Override
                 public Set<JavaMethodCall> apply(JavaClass input) {
-                    Set<JavaMethodCall> result = new HashSet<>();
-                    for (JavaMethodCall call : methodCallsByTarget.get(input)) {
-                        if (call.getTarget().resolve().contains(method)) {
-                            result.add(call);
-                        }
-                    }
-                    return result;
+                    return importContext.getCallsToMethod(input, method);
                 }
             }
 
