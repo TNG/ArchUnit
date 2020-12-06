@@ -3,17 +3,24 @@ package com.tngtech.archunit.testutil.assertion;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.tngtech.archunit.core.domain.Dependency;
 import org.assertj.core.api.AbstractIterableAssert;
 
+import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Iterables.getLast;
+import static java.lang.System.lineSeparator;
+import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DependenciesAssertion extends AbstractIterableAssert<
-        DependenciesAssertion, Iterable<? extends Dependency>, Dependency, DependencyAssertion> {
+        DependenciesAssertion, Iterable<Dependency>, Dependency, DependencyAssertion> {
 
     public DependenciesAssertion(Iterable<Dependency> dependencies) {
         super(dependencies, DependenciesAssertion.class);
@@ -53,18 +60,38 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         return this;
     }
 
-    public DependenciesAssertion containOnly(final ExpectedDependencies expectedDependencies) {
-        FluentIterable<? extends Dependency> rest = FluentIterable.from(actual);
-        for (final List<Class<?>> expectedDependency : expectedDependencies) {
-            rest = rest.filter(new Predicate<Dependency>() {
-                @Override
-                public boolean apply(Dependency input) {
-                    return !matches(input, expectedDependency.get(0), expectedDependency.get(1));
-                }
-            });
-        }
-        assertThat(rest.toSet()).as("unexpected elements").isEmpty();
+    public DependenciesAssertion contain(final ExpectedDependencies expectedDependencies) {
+        matchExpectedDependencies(expectedDependencies)
+                .assertNoMissingDependencies();
         return this;
+    }
+
+    public DependenciesAssertion containOnly(final ExpectedDependencies expectedDependencies) {
+        ExpectedDependenciesMatchResult result = matchExpectedDependencies(expectedDependencies);
+        result.assertNoMissingDependencies();
+        result.assertAllDependenciesMatched();
+        return this;
+    }
+
+    private ExpectedDependenciesMatchResult matchExpectedDependencies(ExpectedDependencies expectedDependencies) {
+        FluentIterable<Dependency> rest = FluentIterable.from(actual);
+        List<ExpectedDependency> missingDependencies = new ArrayList<>();
+        for (final ExpectedDependency expectedDependency : expectedDependencies) {
+            if (!rest.anyMatch(matches(expectedDependency))) {
+                missingDependencies.add(expectedDependency);
+            }
+            rest = rest.filter(not(matches(expectedDependency)));
+        }
+        return new ExpectedDependenciesMatchResult(missingDependencies, rest.toList());
+    }
+
+    private Predicate<Dependency> matches(final ExpectedDependency expectedDependency) {
+        return new Predicate<Dependency>() {
+            @Override
+            public boolean apply(Dependency input) {
+                return expectedDependency.matches(input);
+            }
+        };
     }
 
     public DependenciesAssertion containOnly(Class<?> expectedOrigin, Class<?> expectedTarget) {
@@ -96,14 +123,14 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         }
     }
 
-    public static class ExpectedDependencies implements Iterable<List<Class<?>>> {
-        List<List<Class<?>>> expectedDependencies = new ArrayList<>();
+    public static class ExpectedDependencies implements Iterable<ExpectedDependency> {
+        List<ExpectedDependency> expectedDependencies = new ArrayList<>();
 
         private ExpectedDependencies() {
         }
 
         @Override
-        public Iterator<List<Class<?>>> iterator() {
+        public Iterator<ExpectedDependency> iterator() {
             return expectedDependencies.iterator();
         }
 
@@ -112,8 +139,77 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         }
 
         ExpectedDependencies add(Class<?> origin, Class<?> target) {
-            expectedDependencies.add(ImmutableList.of(origin, target));
+            expectedDependencies.add(new ExpectedDependency(origin, target));
             return this;
+        }
+
+        public ExpectedDependencies withDescriptionContaining(String descriptionTemplate, Object... args) {
+            getLast(expectedDependencies).descriptionContaining(descriptionTemplate, args);
+            return this;
+        }
+
+        public ExpectedDependencies inLocation(Class<?> location, int lineNumber) {
+            getLast(expectedDependencies).location(location, lineNumber);
+            return this;
+        }
+    }
+
+    private static class ExpectedDependency {
+        private final Class<?> origin;
+        private final Class<?> target;
+        private Optional<Pattern> descriptionPattern = Optional.absent();
+        private Optional<String> locationPart = Optional.absent();
+
+        ExpectedDependency(Class<?> origin, Class<?> target) {
+            this.origin = origin;
+            this.target = target;
+        }
+
+        boolean matches(Dependency dependency) {
+            if (!dependency.getOriginClass().isEquivalentTo(origin) || !dependency.getTargetClass().isEquivalentTo(target)) {
+                return false;
+            }
+            if (descriptionPattern.isPresent() && !descriptionPattern.get().matcher(dependency.getDescription()).matches()) {
+                return false;
+            }
+            return !locationPart.isPresent() || dependency.getDescription().endsWith(locationPart.get());
+        }
+
+        public void descriptionContaining(String descriptionTemplate, Object[] args) {
+            String descriptionPart = String.format(descriptionTemplate, args);
+            descriptionPattern = Optional.of(Pattern.compile(".*" + quote(descriptionPart) + ".*"));
+        }
+
+        public void location(Class<?> location, int lineNumber) {
+            locationPart = Optional.of(String.format("in (%s.java:%d)", location.getSimpleName(), lineNumber));
+        }
+
+        @Override
+        public String toString() {
+            String dependency = origin.getName() + " -> " + target.getName();
+            String location = locationPart.isPresent() ? " " + locationPart.get() : "";
+            String description = descriptionPattern.isPresent() ? " with description matching " + descriptionPattern.get() : "";
+            return dependency + location + description;
+        }
+    }
+
+    private static class ExpectedDependenciesMatchResult {
+        private final Iterable<ExpectedDependency> missingDependencies;
+        private final Iterable<Dependency> unexpectedDependencies;
+
+        private ExpectedDependenciesMatchResult(Iterable<ExpectedDependency> missingDependencies, Iterable<Dependency> unexpectedDependencies) {
+            this.missingDependencies = missingDependencies;
+            this.unexpectedDependencies = unexpectedDependencies;
+        }
+
+        void assertNoMissingDependencies() {
+            if (!Iterables.isEmpty(missingDependencies)) {
+                throw new AssertionError("Could not find expected dependencies:" + lineSeparator() + Joiner.on(lineSeparator()).join(missingDependencies));
+            }
+        }
+
+        public void assertAllDependenciesMatched() {
+            assertThat(unexpectedDependencies).as("unexpected dependencies").isEmpty();
         }
     }
 }

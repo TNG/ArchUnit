@@ -3,12 +3,17 @@ package com.tngtech.archunit.core.domain;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Set;
 
 import com.google.common.base.MoreObjects;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.testutil.Assertions;
+import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -26,21 +31,100 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
 public class DependencyTest {
+
+    @DataProvider
+    public static Object[][] field_array_types() throws NoSuchFieldException {
+        @SuppressWarnings("unused")
+        class ClassWithArrayDependencies {
+            private String[] oneDimArray;
+            private String[][] multiDimArray;
+        }
+        return testForEach(
+                ClassWithArrayDependencies.class.getDeclaredField("oneDimArray"),
+                ClassWithArrayDependencies.class.getDeclaredField("multiDimArray"));
+    }
+
+    @Test
+    @UseDataProvider("field_array_types")
+    public void Dependencies_from_field_with_component_type(Field reflectionArrayField) {
+        Class<?> reflectionDeclaringClass = reflectionArrayField.getDeclaringClass();
+        JavaField field = new ClassFileImporter().importClasses(reflectionDeclaringClass).get(reflectionDeclaringClass).getField(reflectionArrayField.getName());
+
+        Set<Dependency> dependencies = Dependency.tryCreateFromField(field);
+
+        DependenciesAssertion.ExpectedDependencies expectedDependencies = from(reflectionDeclaringClass).to(reflectionArrayField.getType())
+                .withDescriptionContaining("Field <%s> has type <%s>", field.getFullName(), reflectionArrayField.getType().getName())
+                .inLocation(DependencyTest.class, 0);
+        Class<?> expectedComponentType = reflectionArrayField.getType().getComponentType();
+        while (expectedComponentType != null) {
+            expectedDependencies.from(reflectionDeclaringClass).to(expectedComponentType)
+                    .withDescriptionContaining("Field <%s> depends on component type <%s>", field.getFullName(), expectedComponentType.getName())
+                    .inLocation(DependencyTest.class, 0);
+            expectedComponentType = expectedComponentType.getComponentType();
+        }
+
+        assertThatDependencies(dependencies).containOnly(expectedDependencies);
+    }
+
     @Test
     public void Dependency_from_access() {
         JavaMethodCall call = simulateCall().from(getClass(), "toString").to(Object.class, "toString");
 
-        Dependency dependency = Dependency.tryCreateFromAccess(call).get();
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromAccess(call));
         assertThatType(dependency.getTargetClass()).as("target class").isEqualTo(call.getTargetOwner());
         assertThat(dependency.getDescription())
                 .as("description").isEqualTo(call.getDescription());
+    }
+
+    @DataProvider
+    public static Object[][] method_calls_to_array_types() throws NoSuchMethodException {
+        @SuppressWarnings("unused")
+        class ClassWithArrayDependencies {
+            private void oneDimArray() {
+                new String[0].clone();
+            }
+
+            private void multiDimArray() {
+                new String[0][0].clone();
+            }
+        }
+        return $$(
+                $(ClassWithArrayDependencies.class.getDeclaredMethod("oneDimArray"), String[].class, 93),
+                $(ClassWithArrayDependencies.class.getDeclaredMethod("multiDimArray"), String[][].class, 97)
+        );
+    }
+
+    @Test
+    @UseDataProvider("method_calls_to_array_types")
+    public void Dependency_from_access_with_component_type(Method reflectionMethodWithArrayMethodCall, Class<?> arrayType, int expectedLineNumber) {
+        Class<?> reflectionDeclaringClass = reflectionMethodWithArrayMethodCall.getDeclaringClass();
+        JavaMethod method = new ClassFileImporter().importClasses(reflectionDeclaringClass)
+                .get(reflectionDeclaringClass).getMethod(reflectionMethodWithArrayMethodCall.getName());
+        JavaMethodCall call = getOnlyElement(method.getMethodCallsFromSelf());
+
+        Set<Dependency> dependencies = Dependency.tryCreateFromAccess(call);
+
+        DependenciesAssertion.ExpectedDependencies expectedDependencies = from(reflectionDeclaringClass).to(arrayType)
+                .withDescriptionContaining("Method <%s> calls method <%s>", method.getFullName(), arrayType.getName() + ".clone()")
+                .inLocation(DependencyTest.class, expectedLineNumber);
+        Class<?> expectedComponentType = arrayType.getComponentType();
+        while (expectedComponentType != null) {
+            expectedDependencies.from(reflectionDeclaringClass).to(expectedComponentType)
+                    .withDescriptionContaining("Method <%s> depends on component type <%s>", method.getFullName(), expectedComponentType.getName())
+                    .inLocation(DependencyTest.class, expectedLineNumber);
+            expectedComponentType = expectedComponentType.getComponentType();
+        }
+
+        assertThatDependencies(dependencies).containOnly(expectedDependencies);
     }
 
     @Test
@@ -68,7 +152,7 @@ public class DependencyTest {
                 .get(ClassWithDependencyOnThrowable.class).getMethod("method");
         ThrowsDeclaration<JavaMethod> throwsDeclaration = getOnlyElement(origin.getThrowsClause());
 
-        Dependency dependency = Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration).get();
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration));
 
         assertThatType(dependency.getOriginClass()).matches(ClassWithDependencyOnThrowable.class);
         assertThatType(dependency.getTargetClass()).matches(IOException.class);
@@ -92,7 +176,7 @@ public class DependencyTest {
     public void Dependency_from_instanceof_check_in_code_unit(JavaCodeUnit memberWithInstanceofCheck, int expectedLineNumber) {
         InstanceofCheck instanceofCheck = getOnlyElement(memberWithInstanceofCheck.getInstanceofChecks());
 
-        Dependency dependency = Dependency.tryCreateFromInstanceofCheck(instanceofCheck).get();
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
 
         Assertions.assertThatDependency(dependency)
                 .matches(ClassWithDependencyOnInstanceofCheck.class, InstanceOfCheckTarget.class)
@@ -116,7 +200,7 @@ public class DependencyTest {
         JavaAnnotation<?> annotation = annotatedClass.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
-        Dependency dependency = Dependency.tryCreateFromAnnotation(annotation).get();
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromAnnotation(annotation));
         assertThatType(dependency.getOriginClass()).isEqualTo(annotatedClass);
         assertThatType(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
@@ -140,7 +224,7 @@ public class DependencyTest {
         JavaAnnotation<?> annotation = annotatedMember.getAnnotations().iterator().next();
         Class<?> annotationClass = annotation.getRawType().reflect();
 
-        Dependency dependency = Dependency.tryCreateFromAnnotation(annotation).get();
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromAnnotation(annotation));
         assertThatType(dependency.getOriginClass()).matches(ClassWithAnnotatedMembers.class);
         assertThatType(dependency.getTargetClass()).matches(annotationClass);
         assertThat(dependency.getDescription()).as("description")
@@ -153,7 +237,7 @@ public class DependencyTest {
         JavaAnnotation<?> annotation = annotatedClass.getAnnotationOfType(SomeAnnotation.class.getName());
         JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
-        Dependency dependency = Dependency.tryCreateFromAnnotationMember(annotation, memberType).get();
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromAnnotationMember(annotation, memberType));
         assertThatType(dependency.getOriginClass()).isEqualTo(annotatedClass);
         assertThatType(dependency.getTargetClass()).isEqualTo(memberType);
         assertThat(dependency.getDescription()).as("description")
@@ -166,7 +250,7 @@ public class DependencyTest {
         JavaAnnotation<?> annotation = annotatedMember.getAnnotationOfType(SomeAnnotation.class.getName());
         JavaClass memberType = ((JavaClass) annotation.get("value").get());
 
-        Dependency dependency = Dependency.tryCreateFromAnnotationMember(annotation, memberType).get();
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromAnnotationMember(annotation, memberType));
         assertThatType(dependency.getOriginClass()).isEqualTo(annotatedMember.getOwner());
         assertThatType(dependency.getTargetClass()).isEqualTo(memberType);
         assertThat(dependency.getDescription()).as("description")

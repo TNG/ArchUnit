@@ -140,7 +140,7 @@ public class TestUtils {
     }
 
     public static Dependency dependencyFrom(JavaAccess<?> access) {
-        return Dependency.tryCreateFromAccess(access).get();
+        return getOnlyElement(Dependency.tryCreateFromAccess(access));
     }
 
     public static class AccessesSimulator {
