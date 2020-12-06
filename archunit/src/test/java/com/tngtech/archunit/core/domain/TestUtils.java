@@ -181,7 +181,7 @@ public class TestUtils {
             for (MethodCallTarget target : targets) {
                 calls.add(newMethodCall(method, target, lineNumber));
             }
-            when(context.getMethodCallsFor(method)).thenReturn(ImmutableSet.copyOf(calls));
+            when(context.createMethodCallsFor(method)).thenReturn(ImmutableSet.copyOf(calls));
             method.completeFrom(context);
             return getCallToTarget(methodCallTarget);
         }
@@ -206,7 +206,7 @@ public class TestUtils {
 
         public void to(JavaField target, AccessType accessType) {
             ImportContext context = mock(ImportContext.class);
-            when(context.getFieldAccessesFor(method))
+            when(context.createFieldAccessesFor(method))
                     .thenReturn(ImmutableSet.of(
                             newFieldAccess(method, target, lineNumber, accessType)
                     ));

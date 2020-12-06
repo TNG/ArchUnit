@@ -44,11 +44,11 @@ public interface ImportContext {
 
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
-    Set<JavaFieldAccess> getFieldAccessesFor(JavaCodeUnit codeUnit);
+    Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit);
 
-    Set<JavaMethodCall> getMethodCallsFor(JavaCodeUnit codeUnit);
+    Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit);
 
-    Set<JavaConstructorCall> getConstructorCallsFor(JavaCodeUnit codeUnit);
+    Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit);
 
     Set<JavaField> getFieldsOfType(JavaClass javaClass);
 

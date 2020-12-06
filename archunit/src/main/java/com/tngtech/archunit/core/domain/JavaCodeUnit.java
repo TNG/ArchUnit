@@ -158,9 +158,9 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     }
 
     AccessContext.Part completeFrom(ImportContext context) {
-        fieldAccesses = context.getFieldAccessesFor(this);
-        methodCalls = context.getMethodCallsFor(this);
-        constructorCalls = context.getConstructorCallsFor(this);
+        fieldAccesses = context.createFieldAccessesFor(this);
+        methodCalls = context.createMethodCallsFor(this);
+        constructorCalls = context.createConstructorCallsFor(this);
 
         return new AccessContext.Part(this);
     }
