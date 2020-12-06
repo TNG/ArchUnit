@@ -36,7 +36,6 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
-import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
@@ -1279,10 +1278,12 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         }
     }
 
-    CompletionProcess completeFrom(ImportContext context) {
+    void completeFrom(ImportContext context) {
         completeComponentType(context);
         javaClassDependencies = new JavaClassDependencies(this, context);
-        return new CompletionProcess();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            codeUnit.completeFrom(context);
+        }
     }
 
     private void completeComponentType(ImportContext context) {
@@ -1811,16 +1812,6 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             public boolean apply(JavaClass input) {
                 return input.isEquivalentTo(clazz);
             }
-        }
-    }
-
-    class CompletionProcess {
-        AccessContext.Part completeCodeUnitsFrom(ImportContext context) {
-            AccessContext.Part part = new AccessContext.Part();
-            for (JavaCodeUnit codeUnit : codeUnits) {
-                part.mergeWith(codeUnit.completeFrom(context));
-            }
-            return part;
         }
     }
 
