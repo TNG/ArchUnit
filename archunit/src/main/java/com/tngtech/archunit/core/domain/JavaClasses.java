@@ -17,10 +17,8 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -196,13 +194,12 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
     static JavaClasses of(
             Map<String, JavaClass> selectedClasses, Collection<JavaClass> allClasses, ImportContext importContext) {
 
-        CompletionProcess completionProcess = new CompletionProcess(allClasses, importContext);
         JavaPackage defaultPackage = JavaPackage.from(allClasses);
         for (JavaClass clazz : allClasses) {
             setPackage(clazz, defaultPackage);
-            completionProcess.completeClass(clazz);
+            clazz.completeFrom(importContext);
         }
-        completionProcess.finish();
+        new AccessContext.TopProcess(allClasses, importContext).finish();
         return new JavaClasses(defaultPackage, selectedClasses);
     }
 
@@ -211,28 +208,5 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
                 ? defaultPackage
                 : defaultPackage.getPackage(clazz.getPackageName());
         clazz.setPackage(javaPackage);
-    }
-
-    private static class CompletionProcess {
-        private final Set<JavaClass.CompletionProcess> classCompletionProcesses = new HashSet<>();
-        private final Collection<JavaClass> classes;
-        private final ImportContext context;
-
-        CompletionProcess(Collection<JavaClass> classes, ImportContext context) {
-            this.classes = classes;
-            this.context = context;
-        }
-
-        void completeClass(JavaClass clazz) {
-            classCompletionProcesses.add(clazz.completeFrom(context));
-        }
-
-        void finish() {
-            AccessContext.TopProcess accessCompletionProcess = new AccessContext.TopProcess(classes, context);
-            for (JavaClass.CompletionProcess process : classCompletionProcesses) {
-                accessCompletionProcess.mergeWith(process.completeCodeUnitsFrom(context));
-            }
-            accessCompletionProcess.finish();
-        }
     }
 }

@@ -28,7 +28,6 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
-import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
@@ -157,12 +156,10 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         return (Optional<? extends JavaAnnotation<? extends JavaCodeUnit>>) super.tryGetAnnotationOfType(typeName);
     }
 
-    AccessContext.Part completeFrom(ImportContext context) {
+    void completeFrom(ImportContext context) {
         fieldAccesses = context.createFieldAccessesFor(this);
         methodCalls = context.createMethodCallsFor(this);
         constructorCalls = context.createConstructorCallsFor(this);
-
-        return new AccessContext.Part(this);
     }
 
     @ResolvesTypesViaReflection
