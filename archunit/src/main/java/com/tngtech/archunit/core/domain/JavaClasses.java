@@ -228,7 +228,7 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
         }
 
         void finish() {
-            AccessContext.TopProcess accessCompletionProcess = new AccessContext.TopProcess(classes);
+            AccessContext.TopProcess accessCompletionProcess = new AccessContext.TopProcess(classes, context);
             for (JavaClass.CompletionProcess process : classCompletionProcesses) {
                 accessCompletionProcess.mergeWith(process.completeCodeUnitsFrom(context));
             }
