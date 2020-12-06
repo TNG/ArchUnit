@@ -19,11 +19,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
@@ -170,118 +166,5 @@ public class DomainObjectCreationContext {
 
     public static JavaWildcardType createWildcardType(JavaWildcardTypeBuilder builder) {
         return new JavaWildcardType(builder);
-    }
-
-    static class AccessContext {
-
-        private AccessContext() {
-        }
-
-        void mergeWith(AccessContext other) {
-        }
-
-        static class Part extends AccessContext {
-            Part() {
-            }
-
-            Part(JavaCodeUnit codeUnit) {
-            }
-        }
-
-        static class TopProcess extends AccessContext {
-            private final Collection<JavaClass> classes;
-            private final ImportContext importContext;
-
-            TopProcess(Collection<JavaClass> classes, ImportContext importContext) {
-                this.classes = classes;
-                this.importContext = importContext;
-            }
-
-            void finish() {
-                for (JavaClass clazz : classes) {
-                    for (JavaField field : clazz.getFields()) {
-                        field.registerAccessesToField(getFieldAccessesTo(field));
-                    }
-                    for (JavaMethod method : clazz.getMethods()) {
-                        method.registerCallsToMethod(getMethodCallsOf(method));
-                    }
-                    for (final JavaConstructor constructor : clazz.getConstructors()) {
-                        constructor.registerCallsToConstructor(importContext.getCallsToConstructor(constructor));
-                    }
-                }
-            }
-
-            private Supplier<Set<JavaFieldAccess>> getFieldAccessesTo(final JavaField field) {
-                return Suppliers.memoize(new AccessSupplier<>(field.getOwner(), fieldAccessTargetResolvesTo(field)));
-            }
-
-            private Function<JavaClass, Set<JavaFieldAccess>> fieldAccessTargetResolvesTo(final JavaField field) {
-                return new ClassToFieldAccessesToSelf(importContext, field);
-            }
-
-            private Supplier<Set<JavaMethodCall>> getMethodCallsOf(final JavaMethod method) {
-                return Suppliers.memoize(new AccessSupplier<>(method.getOwner(), methodCallTargetResolvesTo(method)));
-            }
-
-            private Function<JavaClass, Set<JavaMethodCall>> methodCallTargetResolvesTo(final JavaMethod method) {
-                return new ClassToMethodCallsToSelf(importContext, method);
-            }
-
-            private static class ClassToFieldAccessesToSelf implements Function<JavaClass, Set<JavaFieldAccess>> {
-                private final ImportContext importContext;
-                private final JavaField field;
-
-                ClassToFieldAccessesToSelf(ImportContext importContext, JavaField field) {
-                    this.importContext = importContext;
-                    this.field = field;
-                }
-
-                @Override
-                public Set<JavaFieldAccess> apply(JavaClass input) {
-                    return importContext.getAccessesToField(input, field);
-                }
-            }
-
-            private static class ClassToMethodCallsToSelf implements Function<JavaClass, Set<JavaMethodCall>> {
-                private final ImportContext importContext;
-                private final JavaMethod method;
-
-                ClassToMethodCallsToSelf(ImportContext importContext, JavaMethod method) {
-                    this.importContext = importContext;
-                    this.method = method;
-                }
-
-                @Override
-                public Set<JavaMethodCall> apply(JavaClass input) {
-                    return importContext.getCallsToMethod(input, method);
-                }
-            }
-
-            private static class AccessSupplier<T extends JavaAccess<?>> implements Supplier<Set<T>> {
-                private final JavaClass owner;
-                private final Function<JavaClass, Set<T>> mapToAccesses;
-
-                AccessSupplier(JavaClass owner, Function<JavaClass, Set<T>> mapToAccesses) {
-                    this.owner = owner;
-                    this.mapToAccesses = mapToAccesses;
-                }
-
-                @Override
-                public Set<T> get() {
-                    ImmutableSet.Builder<T> result = ImmutableSet.builder();
-                    for (final JavaClass javaClass : getPossibleTargetClassesForAccess()) {
-                        result.addAll(mapToAccesses.apply(javaClass));
-                    }
-                    return result.build();
-                }
-
-                private Set<JavaClass> getPossibleTargetClassesForAccess() {
-                    return ImmutableSet.<JavaClass>builder()
-                            .add(owner)
-                            .addAll(owner.getAllSubClasses())
-                            .build();
-                }
-            }
-        }
     }
 }
