@@ -189,7 +189,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaFieldAccess> getFieldAccessesFor(JavaCodeUnit codeUnit) {
+    public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit) {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (FieldAccessRecord record : processedFieldAccessRecords.get(codeUnit)) {
             result.add(accessBuilderFrom(new JavaFieldAccessBuilder(), record)
@@ -200,7 +200,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaMethodCall> getMethodCallsFor(JavaCodeUnit codeUnit) {
+    public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit) {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
         for (AccessRecord<MethodCallTarget> record : processedMethodCallRecords.get(codeUnit)) {
             result.add(accessBuilderFrom(new JavaMethodCallBuilder(), record).build());
@@ -209,7 +209,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaConstructorCall> getConstructorCallsFor(JavaCodeUnit codeUnit) {
+    public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit) {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
         for (AccessRecord<ConstructorCallTarget> record : processedConstructorCallRecords.get(codeUnit)) {
             result.add(accessBuilderFrom(new JavaConstructorCallBuilder(), record).build());

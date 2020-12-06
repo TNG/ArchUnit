@@ -384,17 +384,17 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Set<JavaFieldAccess> getFieldAccessesFor(JavaCodeUnit codeUnit) {
+        public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaMethodCall> getMethodCallsFor(JavaCodeUnit codeUnit) {
+        public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaConstructorCall> getConstructorCallsFor(JavaCodeUnit codeUnit) {
+        public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }
 
