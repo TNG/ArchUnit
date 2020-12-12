@@ -82,8 +82,54 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private Set<JavaConstructor> constructors = emptySet();
     private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
     private Optional<JavaClass> superClass = Optional.absent();
+    private final Supplier<List<JavaClass>> allSuperClasses = Suppliers.memoize(new Supplier<List<JavaClass>>() {
+        @Override
+        public List<JavaClass> get() {
+            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+            JavaClass current = JavaClass.this;
+            while (current.getSuperClass().isPresent()) {
+                current = current.getSuperClass().get();
+                result.add(current);
+            }
+            return result.build();
+        }
+    });
     private final Set<JavaClass> interfaces = new HashSet<>();
+    private final Supplier<Set<JavaClass>> allInterfaces = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
+        @Override
+        public Set<JavaClass> get() {
+            ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+            for (JavaClass i : interfaces) {
+                result.add(i);
+                result.addAll(i.getAllInterfaces());
+            }
+            if (superClass.isPresent()) {
+                result.addAll(superClass.get().getAllInterfaces());
+            }
+            return result.build();
+        }
+    });
+    private final Supplier<List<JavaClass>> classHierarchy = Suppliers.memoize(new Supplier<List<JavaClass>>() {
+        @Override
+        public List<JavaClass> get() {
+            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+            result.add(JavaClass.this);
+            result.addAll(getAllSuperClasses());
+            return result.build();
+        }
+    });
     private final Set<JavaClass> subClasses = new HashSet<>();
+    private final Supplier<Set<JavaClass>> allSubClasses = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
+        @Override
+        public Set<JavaClass> get() {
+            Set<JavaClass> result = new HashSet<>();
+            for (JavaClass subClass : subClasses) {
+                result.add(subClass);
+                result.addAll(subClass.getAllSubClasses());
+            }
+            return result;
+        }
+    });
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Optional<JavaClass> componentType = Optional.absent();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
@@ -618,10 +664,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public List<JavaClass> getClassHierarchy() {
-        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-        result.add(this);
-        result.addAll(getAllSuperClasses());
-        return result.build();
+        return classHierarchy.get();
     }
 
     /**
@@ -630,13 +673,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public List<JavaClass> getAllSuperClasses() {
-        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-        JavaClass current = this;
-        while (current.getSuperClass().isPresent()) {
-            current = current.getSuperClass().get();
-            result.add(current);
-        }
-        return result.build();
+        return allSuperClasses.get();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -651,15 +688,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllInterfaces() {
-        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
-        for (JavaClass i : interfaces) {
-            result.add(i);
-            result.addAll(i.getAllInterfaces());
-        }
-        if (superClass.isPresent()) {
-            result.addAll(superClass.get().getAllInterfaces());
-        }
-        return result.build();
+        return allInterfaces.get();
     }
 
     /**
@@ -686,12 +715,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllSubClasses() {
-        Set<JavaClass> result = new HashSet<>();
-        for (JavaClass subClass : subClasses) {
-            result.add(subClass);
-            result.addAll(subClass.getAllSubClasses());
-        }
-        return result;
+        return allSubClasses.get();
     }
 
     @PublicAPI(usage = ACCESS)
