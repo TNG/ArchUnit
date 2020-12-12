@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -40,7 +39,6 @@ import com.tngtech.archunit.core.domain.properties.HasOwner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
 
@@ -205,7 +203,7 @@ class RawAccessRecord {
             private final List<JavaClass> path = new ArrayList<>();
 
             private ClassHierarchyPath(JavaClassDescriptor childType, JavaClass parent) {
-                Set<JavaClass> classesToSearchForChild = Sets.union(singleton(parent), parent.getAllSubClasses());
+                Set<JavaClass> classesToSearchForChild = parent.getAllSubClasses();
                 Optional<JavaClass> child = tryFind(classesToSearchForChild, nameMatching(quote(childType.getFullyQualifiedClassName())));
                 if (child.isPresent()) {
                     createPath(child.get(), parent);
