@@ -140,7 +140,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
                 @Override
                 public Optional<JavaConstructor> get() {
-                    return uniqueTargetIn(tryFindMatchingTargets(targetOwner.getAllConstructors(), target));
+                    return uniqueTargetIn(tryFindMatchingTargets(targetOwner.getConstructors(), target));
                 }
             }
         }
