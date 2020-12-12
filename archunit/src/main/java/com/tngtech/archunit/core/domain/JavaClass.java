@@ -1295,6 +1295,12 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         }
     }
 
+    void setReverseDependencies(ReverseDependencies reverseDependencies) {
+        for (JavaMember member : members) {
+            member.setReverseDependencies(reverseDependencies);
+        }
+    }
+
     @Override
     public String toString() {
         return "JavaClass{name='" + descriptor.getFullyQualifiedClassName() + "'}";

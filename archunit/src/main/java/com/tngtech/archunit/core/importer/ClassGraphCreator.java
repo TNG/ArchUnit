@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -193,11 +192,9 @@ class ClassGraphCreator implements ImportContext {
     public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit) {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (FieldAccessRecord record : processedFieldAccessRecords.get(codeUnit)) {
-            JavaFieldAccess access = accessBuilderFrom(new JavaFieldAccessBuilder(), record)
+            result.add(accessBuilderFrom(new JavaFieldAccessBuilder(), record)
                     .withAccessType(record.getAccessType())
-                    .build();
-            result.add(access);
-            memberDependenciesByTarget.registerFieldAccess(access);
+                    .build());
         }
         return result.build();
     }
@@ -206,9 +203,7 @@ class ClassGraphCreator implements ImportContext {
     public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit) {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
         for (AccessRecord<MethodCallTarget> record : processedMethodCallRecords.get(codeUnit)) {
-            JavaMethodCall methodCall = accessBuilderFrom(new JavaMethodCallBuilder(), record).build();
-            result.add(methodCall);
-            memberDependenciesByTarget.registerMethodCall(methodCall);
+            result.add(accessBuilderFrom(new JavaMethodCallBuilder(), record).build());
         }
         return result.build();
     }
@@ -217,26 +212,9 @@ class ClassGraphCreator implements ImportContext {
     public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit) {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
         for (AccessRecord<ConstructorCallTarget> record : processedConstructorCallRecords.get(codeUnit)) {
-            JavaConstructorCall constructorCall = accessBuilderFrom(new JavaConstructorCallBuilder(), record).build();
-            result.add(constructorCall);
-            memberDependenciesByTarget.registerConstructorCall(constructorCall);
+            result.add(accessBuilderFrom(new JavaConstructorCallBuilder(), record).build());
         }
         return result.build();
-    }
-
-    @Override
-    public Set<JavaConstructorCall> getCallsToConstructor(JavaConstructor constructor) {
-        return memberDependenciesByTarget.getCallsToConstructor(constructor);
-    }
-
-    @Override
-    public Set<JavaFieldAccess> getAccessesToField(JavaClass javaClass, JavaField field) {
-        return memberDependenciesByTarget.getAccessesToField(javaClass, field);
-    }
-
-    @Override
-    public Set<JavaMethodCall> getCallsToMethod(JavaClass javaClass, JavaMethod method) {
-        return memberDependenciesByTarget.getCallsToMethod(javaClass, method);
     }
 
     @Override
@@ -399,9 +377,6 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private static class MemberDependenciesByTarget {
-        private final SetMultimap<JavaClass, JavaFieldAccess> fieldAccessDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaMethodCall> methodCallDependencies = HashMultimap.create();
-        private final SetMultimap<String, JavaConstructorCall> constructorCallDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaField> fieldTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaMethod> methodParameterTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaMethod> methodReturnTypeDependencies = HashMultimap.create();
@@ -411,18 +386,6 @@ class ClassGraphCreator implements ImportContext {
         private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationParameterTypeDependencies = HashMultimap.create();
         private final SetMultimap<JavaClass, InstanceofCheck> instanceofCheckDependencies = HashMultimap.create();
-
-        void registerFieldAccess(JavaFieldAccess access) {
-            fieldAccessDependencies.put(access.getTargetOwner(), access);
-        }
-
-        void registerMethodCall(JavaMethodCall call) {
-            methodCallDependencies.put(call.getTargetOwner(), call);
-        }
-
-        void registerConstructorCall(JavaConstructorCall call) {
-            constructorCallDependencies.put(call.getTarget().getFullName(), call);
-        }
 
         void registerFields(Set<JavaField> fields) {
             for (JavaField field : fields) {
@@ -486,30 +449,6 @@ class ClassGraphCreator implements ImportContext {
             for (InstanceofCheck instanceofCheck : staticInitializer.getInstanceofChecks()) {
                 instanceofCheckDependencies.put(instanceofCheck.getRawType(), instanceofCheck);
             }
-        }
-
-        Set<JavaConstructorCall> getCallsToConstructor(JavaConstructor constructor) {
-            return constructorCallDependencies.get(constructor.getFullName());
-        }
-
-        Set<JavaFieldAccess> getAccessesToField(JavaClass javaClass, JavaField field) {
-            Set<JavaFieldAccess> result = new HashSet<>();
-            for (JavaFieldAccess access : fieldAccessDependencies.get(javaClass)) {
-                if (access.getTarget().resolveField().asSet().contains(field)) {
-                    result.add(access);
-                }
-            }
-            return result;
-        }
-
-        Set<JavaMethodCall> getCallsToMethod(JavaClass javaClass, JavaMethod method) {
-            Set<JavaMethodCall> result = new HashSet<>();
-            for (JavaMethodCall call : methodCallDependencies.get(javaClass)) {
-                if (call.getTarget().resolve().contains(method)) {
-                    result.add(call);
-                }
-            }
-            return result;
         }
 
         Set<JavaField> getFieldsOfType(JavaClass javaClass) {

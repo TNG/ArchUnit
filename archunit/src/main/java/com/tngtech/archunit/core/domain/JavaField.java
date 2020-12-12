@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
@@ -29,13 +28,11 @@ import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public class JavaField extends JavaMember implements HasType {
     private final JavaClass type;
     private final Supplier<Field> fieldSupplier;
-    private Supplier<Set<JavaFieldAccess>> accessesToSelf = Suppliers.ofInstance(Collections.<JavaFieldAccess>emptySet());
 
     JavaField(DomainBuilders.JavaFieldBuilder builder) {
         super(builder);
@@ -71,7 +68,7 @@ public class JavaField extends JavaMember implements HasType {
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getAccessesToSelf() {
-        return accessesToSelf.get();
+        return getReverseDependencies().getAccessesTo(this);
     }
 
     @Override
@@ -104,10 +101,6 @@ public class JavaField extends JavaMember implements HasType {
     @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Field <" + getFullName() + ">";
-    }
-
-    void registerAccessesToField(Supplier<Set<JavaFieldAccess>> accesses) {
-        this.accessesToSelf = checkNotNull(accesses);
     }
 
     @ResolvesTypesViaReflection

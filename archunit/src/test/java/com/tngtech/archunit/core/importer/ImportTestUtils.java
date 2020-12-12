@@ -399,21 +399,6 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Set<JavaConstructorCall> getCallsToConstructor(JavaConstructor constructor) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaFieldAccess> getAccessesToField(JavaClass javaClass, JavaField field) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaMethodCall> getCallsToMethod(JavaClass javaClass, JavaMethod method) {
-            return Collections.emptySet();
-        }
-
-        @Override
         public Set<JavaField> getFieldsOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
