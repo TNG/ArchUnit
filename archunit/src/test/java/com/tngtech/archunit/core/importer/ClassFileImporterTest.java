@@ -95,12 +95,9 @@ import com.tngtech.archunit.core.importer.testexamples.complexmethodimport.Class
 import com.tngtech.archunit.core.importer.testexamples.constructorimport.ClassWithComplexConstructor;
 import com.tngtech.archunit.core.importer.testexamples.constructorimport.ClassWithSimpleConstructors;
 import com.tngtech.archunit.core.importer.testexamples.constructorimport.ClassWithThrowingConstructor;
-import com.tngtech.archunit.core.importer.testexamples.dependents.ClassDependingOnParentThroughChild;
 import com.tngtech.archunit.core.importer.testexamples.dependents.ClassHoldingDependencies;
 import com.tngtech.archunit.core.importer.testexamples.dependents.FirstClassWithDependency;
-import com.tngtech.archunit.core.importer.testexamples.dependents.ParentClassHoldingDependencies;
 import com.tngtech.archunit.core.importer.testexamples.dependents.SecondClassWithDependency;
-import com.tngtech.archunit.core.importer.testexamples.dependents.SubClassHoldingDependencies;
 import com.tngtech.archunit.core.importer.testexamples.diamond.ClassCallingDiamond;
 import com.tngtech.archunit.core.importer.testexamples.diamond.ClassImplementingD;
 import com.tngtech.archunit.core.importer.testexamples.diamond.InterfaceB;
@@ -1381,6 +1378,36 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void classes_know_shadowed_field_accesses_to_themselves() {
+        @SuppressWarnings("unused")
+        class Base {
+            String shadowed;
+            String nonShadowed;
+        }
+        class Child extends Base {
+            String shadowed;
+        }
+        @SuppressWarnings("unused")
+        class Accessor {
+            void access(Child child) {
+                consume(child.shadowed);
+                consume(child.nonShadowed);
+            }
+
+            void consume(String string) {
+            }
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Accessor.class, Base.class, Child.class);
+
+        JavaFieldAccess access = getOnlyByCaller(
+                classes.get(Base.class).getFieldAccessesToSelf(), classes.get(Accessor.class).getMethod("access", Child.class));
+        assertThatAccess(access).isFrom("access", Child.class).isTo("nonShadowed");
+        access = getOnlyByCaller(
+                classes.get(Child.class).getFieldAccessesToSelf(), classes.get(Accessor.class).getMethod("access", Child.class));
+        assertThatAccess(access).isFrom("access", Child.class).isTo("shadowed");
+    }
+
+    @Test
     public void methods_know_callers() throws Exception {
         ImportedClasses classes = classesIn("testexamples/dependents");
         JavaClass classHoldingDependencies = classes.get(ClassHoldingDependencies.class);
@@ -1410,6 +1437,34 @@ public class ClassFileImporterTest {
                 .addAll(getByTargetOwner(secondClassWithDependency.getMethodCallsFromSelf(), classHoldingDependencies))
                 .build();
         assertThat(calls).as("Method calls to class").isEqualTo(expected);
+    }
+
+    @Test
+    public void classes_know_overridden_method_calls_to_themselves() {
+        @SuppressWarnings("unused")
+        class Base {
+            void overridden() {
+            }
+
+            void nonOverridden() {
+            }
+        }
+        class Child extends Base {
+            @Override
+            void overridden() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class Caller {
+            void call(Child child) {
+                child.overridden();
+                child.nonOverridden();
+            }
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Caller.class, Base.class, Child.class);
+
+        assertThatCall(getOnlyElement(classes.get(Base.class).getMethodCallsToSelf())).isFrom("call", Child.class).isTo("nonOverridden");
+        assertThatCall(getOnlyElement(classes.get(Child.class).getMethodCallsToSelf())).isFrom("call", Child.class).isTo("overridden");
     }
 
     @Test
@@ -1446,6 +1501,30 @@ public class ClassFileImporterTest {
     }
 
     @Test
+    public void classes_know_constructor_calls_to_themselves_for_subclass_default_constructors() {
+        // For constructors it's impossible to be accessed via a subclass,
+        // since the byte code always holds an explicitly declared constructor.
+        // Thus we do expect a call to the constructor of the subclass and one from subclass to super class
+        @SuppressWarnings("unused")
+        class Base {
+            Base() {
+            }
+        }
+        class Child extends Base {
+        }
+        @SuppressWarnings("unused")
+        class Caller {
+            void call() {
+                new Child();
+            }
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Caller.class, Base.class, Child.class);
+
+        assertThatCall(getOnlyElement(classes.get(Base.class).getConstructorCallsToSelf())).isFrom(Child.class, CONSTRUCTOR_NAME, getClass()).isTo(Base.class);
+        assertThatCall(getOnlyElement(classes.get(Child.class).getConstructorCallsToSelf())).isFrom(Caller.class, "call").isTo(Child.class);
+    }
+
+    @Test
     public void classes_know_accesses_to_themselves() throws Exception {
         ImportedClasses classes = classesIn("testexamples/dependents");
         JavaClass classHoldingDependencies = classes.get(ClassHoldingDependencies.class);
@@ -1459,37 +1538,6 @@ public class ClassFileImporterTest {
                 .addAll(getByTargetOwner(secondClassWithDependency.getAccessesFromSelf(), classHoldingDependencies))
                 .build();
         assertThat(accesses).as("Accesses to ClassWithDependents").isEqualTo(expected);
-    }
-
-    @Test
-    public void inherited_field_accesses_and_method_calls_are_resolved() throws Exception {
-        ImportedClasses classes = classesIn("testexamples/dependents");
-        JavaClass classHoldingDependencies = classes.get(ParentClassHoldingDependencies.class);
-        JavaClass subClassHoldingDependencies = classes.get(SubClassHoldingDependencies.class);
-        JavaClass dependentClass = classes.get(ClassDependingOnParentThroughChild.class);
-
-        Set<JavaFieldAccess> fieldAccessesToSelf = classHoldingDependencies.getFieldAccessesToSelf();
-        Set<JavaFieldAccess> expectedFieldAccesses =
-                getByTargetNot(dependentClass.getFieldAccessesFromSelf(), dependentClass);
-        assertThat(fieldAccessesToSelf).as("Field accesses to class").isEqualTo(expectedFieldAccesses);
-
-        Set<JavaMethodCall> methodCalls = classHoldingDependencies.getMethodCallsToSelf();
-        Set<JavaMethodCall> expectedMethodCalls =
-                getByTargetNot(dependentClass.getMethodCallsFromSelf(), dependentClass);
-        assertThat(methodCalls).as("Method calls to class").isEqualTo(expectedMethodCalls);
-
-        // NOTE: For constructors it's impossible to be accessed via a subclass,
-        //       since the byte code always holds an explicitly declared constructor
-
-        Set<JavaConstructorCall> constructorCalls = classHoldingDependencies.getConstructorCallsToSelf();
-        Set<JavaConstructorCall> expectedConstructorCalls =
-                getByTargetOwner(subClassHoldingDependencies.getConstructorCallsFromSelf(), classHoldingDependencies.getName());
-        assertThat(constructorCalls).as("Constructor calls to class").isEqualTo(expectedConstructorCalls);
-
-        constructorCalls = subClassHoldingDependencies.getConstructorCallsToSelf();
-        expectedConstructorCalls =
-                getByTargetOwner(dependentClass.getConstructorCallsFromSelf(), subClassHoldingDependencies.getName());
-        assertThat(constructorCalls).as("Constructor calls to class").isEqualTo(expectedConstructorCalls);
     }
 
     @Test

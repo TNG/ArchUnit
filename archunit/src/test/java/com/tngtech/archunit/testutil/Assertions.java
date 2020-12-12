@@ -43,8 +43,8 @@ import com.tngtech.archunit.testutil.assertion.ConditionEventsAssertion;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
-import com.tngtech.archunit.testutil.assertion.JavaClassDescriptorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaClassDescriptorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
@@ -379,8 +379,13 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return isFrom(access.getOrigin().getOwner().getCodeUnitWithParameterTypes(name, parameterTypes));
         }
 
+        public SELF isFrom(Class<?> originClass, String name, Class<?>... parameterTypes) {
+            assertThatType(access.getOriginOwner()).matches(originClass);
+            return isFrom(name, parameterTypes);
+        }
+
         public SELF isFrom(JavaCodeUnit codeUnit) {
-            assertThat(access.getOrigin()).as("Origin of field access").isEqualTo(codeUnit);
+            assertThat(access.getOrigin()).as("Origin of access").isEqualTo(codeUnit);
             return newAssertion(access);
         }
 
@@ -413,8 +418,13 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return new AccessToFieldAssertion(access);
         }
 
-        public AccessToFieldAssertion isTo(String name) {
-            return isTo(access.getTarget().getOwner().getField(name));
+        public AccessToFieldAssertion isTo(final String name) {
+            return isTo(new Condition<FieldAccessTarget>("field with name '" + name + "'") {
+                @Override
+                public boolean matches(FieldAccessTarget fieldAccessTarget) {
+                    return fieldAccessTarget.getName().equals(name);
+                }
+            });
         }
 
         public AccessToFieldAssertion isTo(JavaField field) {
@@ -436,6 +446,16 @@ public class Assertions extends org.assertj.core.api.Assertions {
             return isTo(resolvedTargetFrom(target));
         }
 
+        public MethodCallAssertion isTo(final String methodName, final Class<?>... parameterTypes) {
+            return isTo(new Condition<MethodCallTarget>("method " + methodName + "(" + namesOf(parameterTypes) + ")") {
+                @Override
+                public boolean matches(MethodCallTarget methodCallTarget) {
+                    return methodCallTarget.getName().equals(methodName)
+                            && TestUtils.namesOf(methodCallTarget.getRawParameterTypes()).equals(namesOf(parameterTypes));
+                }
+            });
+        }
+
         @Override
         protected MethodCallAssertion newAssertion(JavaMethodCall call) {
             return new MethodCallAssertion(call);
@@ -449,6 +469,15 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
         public ConstructorCallAssertion isTo(JavaConstructor target) {
             return isTo(targetFrom(target));
+        }
+
+        public ConstructorCallAssertion isTo(final Class<?> constructorOwner) {
+            return isTo(new Condition<ConstructorCallTarget>() {
+                @Override
+                public boolean matches(ConstructorCallTarget constructorCallTarget) {
+                    return constructorCallTarget.getOwner().isEquivalentTo(constructorOwner);
+                }
+            });
         }
 
         @Override
