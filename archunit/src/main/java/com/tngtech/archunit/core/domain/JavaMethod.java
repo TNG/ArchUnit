@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
@@ -29,14 +28,12 @@ import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 
 public class JavaMethod extends JavaCodeUnit {
     private final Supplier<Method> methodSupplier;
     private final ThrowsClause<JavaMethod> throwsClause;
-    private Supplier<Set<JavaMethodCall>> callsToSelf = Suppliers.ofInstance(Collections.<JavaMethodCall>emptySet());
     private final Optional<Object> annotationDefaultValue;
 
     JavaMethod(DomainBuilders.JavaMethodBuilder builder, Function<JavaMethod, Optional<Object>> createAnnotationDefaultValue) {
@@ -72,7 +69,7 @@ public class JavaMethod extends JavaCodeUnit {
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getAccessesToSelf() {
-        return callsToSelf.get();
+        return getReverseDependencies().getCallsTo(this);
     }
 
     @Override
@@ -105,10 +102,6 @@ public class JavaMethod extends JavaCodeUnit {
     @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Method <" + getFullName() + ">";
-    }
-
-    void registerCallsToMethod(Supplier<Set<JavaMethodCall>> calls) {
-        this.callsToSelf = checkNotNull(calls);
     }
 
     @ResolvesTypesViaReflection
