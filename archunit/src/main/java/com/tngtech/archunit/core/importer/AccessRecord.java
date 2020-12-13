@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -25,9 +26,9 @@ import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -50,9 +51,7 @@ import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
-import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static java.util.Collections.singletonList;
-import static java.util.regex.Pattern.quote;
 
 interface AccessRecord<TARGET extends AccessTarget> {
     JavaCodeUnit getCaller();
@@ -349,31 +348,29 @@ interface AccessRecord<TARGET extends AccessTarget> {
         }
 
         private static class ClassHierarchyPath implements Iterable<JavaClass> {
-            private final List<JavaClass> path = new ArrayList<>();
+            private final List<JavaClass> path;
 
             public ClassHierarchyPath(JavaClassDescriptor childType, JavaClass parent) {
-                Set<JavaClass> classesToSearchForChild = parent.getAllSubClasses();
-                Optional<JavaClass> child = tryFind(classesToSearchForChild, nameMatching(quote(childType.getFullyQualifiedClassName())));
-                if (child.isPresent()) {
-                    createPath(child.get(), parent);
-                }
+                Optional<JavaClass> child = tryFindChildInHierarchy(childType, parent);
+                path = child.isPresent() ? createPath(parent, child.get()) : Collections.<JavaClass>emptyList();
             }
 
-            private static <T> Optional<T> tryFind(Iterable<T> collection, DescribedPredicate<? super T> predicate) {
-                for (T elem : collection) {
-                    if (predicate.apply(elem)) {
-                        return Optional.of(elem);
+            private Optional<JavaClass> tryFindChildInHierarchy(JavaClassDescriptor childType, JavaClass parent) {
+                for (JavaClass subclass : parent.getAllSubClasses()) {
+                    if (subclass.getName().equals(childType.getFullyQualifiedClassName())) {
+                        return Optional.of(subclass);
                     }
                 }
                 return Optional.absent();
             }
 
-            private void createPath(JavaClass child, JavaClass parent) {
+            private List<JavaClass> createPath(JavaClass parent, JavaClass child) {
+                ImmutableList.Builder<JavaClass> pathBuilder = ImmutableList.<JavaClass>builder().add(child);
                 HierarchyResolutionStrategy hierarchyResolutionStrategy = hierarchyResolutionStrategyFrom(child).to(parent);
-                path.add(child);
                 while (hierarchyResolutionStrategy.hasNext()) {
-                    path.add(hierarchyResolutionStrategy.next());
+                    pathBuilder.add(hierarchyResolutionStrategy.next());
                 }
+                return pathBuilder.build();
             }
 
             private HierarchyResolutionStrategyCreator hierarchyResolutionStrategyFrom(JavaClass child) {
