@@ -9,6 +9,7 @@ import com.tngtech.archunit.example.layers.controller.one.UseCaseOneTwoControlle
 import com.tngtech.archunit.example.layers.controller.two.UseCaseTwoController;
 import com.tngtech.archunit.example.layers.security.Secured;
 
+@SuppressWarnings("unused")
 @MyService
 @ComplexServiceAnnotation(
         controllerAnnotation = @ComplexControllerAnnotation(simpleControllerAnnotation = @SimpleControllerAnnotation),
@@ -17,9 +18,6 @@ import com.tngtech.archunit.example.layers.security.Secured;
         serviceType = ServiceType.STANDARD
 )
 public class ServiceViolatingLayerRules {
-    public static final String illegalAccessToController = "illegalAccessToController";
-    public static final String doSomething = "doSomething";
-    public static final String dependentMethod = "dependentMethod";
 
     void illegalAccessToController() {
         System.out.println(UseCaseOneTwoController.someString);
@@ -34,7 +32,16 @@ public class ServiceViolatingLayerRules {
         return null;
     }
 
+    public SomeGuiController[][] dependentOnComponentTypeMethod(UseCaseTwoController[] otherController) {
+        return null;
+    }
+
     @Secured
     public void properlySecured() {
     }
+
+    public static final String illegalAccessToController = "illegalAccessToController";
+    public static final String doSomething = "doSomething";
+    public static final String dependentMethod = "dependentMethod";
+    public static final String dependentOnComponentTypeMethod = "dependentOnComponentTypeMethod";
 }

@@ -15,8 +15,12 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -39,7 +43,7 @@ final class ReverseDependencies {
     private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationTypeDependencies;
     private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationParameterTypeDependencies;
     private final SetMultimap<JavaClass, InstanceofCheck> instanceofCheckDependencies;
-    private final LoadingCache<JavaClass, Set<Dependency>> directDependenciesToClassCache;
+    private final Supplier<SetMultimap<JavaClass, Dependency>> directDependenciesToClass;
 
     private ReverseDependencies(ReverseDependencies.Creation creation) {
         accessToFieldCache = CacheBuilder.newBuilder().build(new ResolvingAccessLoader<>(creation.fieldAccessDependencies.build()));
@@ -54,7 +58,22 @@ final class ReverseDependencies {
         this.annotationTypeDependencies = creation.annotationTypeDependencies.build();
         this.annotationParameterTypeDependencies = creation.annotationParameterTypeDependencies.build();
         this.instanceofCheckDependencies = creation.instanceofCheckDependencies.build();
-        this.directDependenciesToClassCache = CacheBuilder.newBuilder().build(new DependenciesToClassLoader());
+        this.directDependenciesToClass = createDirectDependenciesToClassSupplier(creation.allDependencies);
+    }
+
+    private static Supplier<SetMultimap<JavaClass, Dependency>> createDirectDependenciesToClassSupplier(final List<JavaClassDependencies> allDependencies) {
+        return Suppliers.memoize(new Supplier<SetMultimap<JavaClass, Dependency>>() {
+            @Override
+            public SetMultimap<JavaClass, Dependency> get() {
+                ImmutableSetMultimap.Builder<JavaClass, Dependency> result = ImmutableSetMultimap.builder();
+                for (JavaClassDependencies dependencies : allDependencies) {
+                    for (Dependency dependency : dependencies.getDirectDependenciesFromClass()) {
+                        result.put(dependency.getTargetClass(), dependency);
+                    }
+                }
+                return result.build();
+            }
+        });
     }
 
     Set<JavaFieldAccess> getAccessesTo(JavaField field) {
@@ -106,7 +125,7 @@ final class ReverseDependencies {
     }
 
     Set<Dependency> getDirectDependenciesTo(JavaClass clazz) {
-        return directDependenciesToClassCache.getUnchecked(clazz);
+        return directDependenciesToClass.get().get(clazz);
     }
 
     static final ReverseDependencies EMPTY = new ReverseDependencies(new Creation());
@@ -124,14 +143,16 @@ final class ReverseDependencies {
         private final ImmutableSetMultimap.Builder<JavaClass, JavaAnnotation<?>> annotationTypeDependencies = ImmutableSetMultimap.builder();
         private final ImmutableSetMultimap.Builder<JavaClass, JavaAnnotation<?>> annotationParameterTypeDependencies = ImmutableSetMultimap.builder();
         private final ImmutableSetMultimap.Builder<JavaClass, InstanceofCheck> instanceofCheckDependencies = ImmutableSetMultimap.builder();
+        private final List<JavaClassDependencies> allDependencies = new ArrayList<>();
 
-        public void registerDependenciesOf(JavaClass clazz) {
+        public void registerDependenciesOf(JavaClass clazz, JavaClassDependencies classDependencies) {
             registerAccesses(clazz);
             registerFields(clazz);
             registerMethods(clazz);
             registerConstructors(clazz);
             registerAnnotations(clazz);
             registerStaticInitializer(clazz);
+            allDependencies.add(classDependencies);
         }
 
         private void registerAccesses(JavaClass clazz) {
@@ -267,44 +288,6 @@ final class ReverseDependencies {
         public Set<JavaConstructorCall> load(JavaConstructor member) {
             ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
             result.addAll(accessesToSelf.get(member.getFullName()));
-            return result.build();
-        }
-    }
-
-    private static class DependenciesToClassLoader extends CacheLoader<JavaClass, Set<Dependency>> {
-        @Override
-        public Set<Dependency> load(JavaClass clazz) throws Exception {
-            ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-            for (JavaAccess<?> access : clazz.getAccessesToSelf()) {
-                result.addAll(Dependency.tryCreateFromAccess(access));
-            }
-            for (JavaClass subClass : clazz.getSubClasses()) {
-                result.add(Dependency.fromInheritance(subClass, clazz));
-            }
-            for (JavaField field : clazz.getFieldsWithTypeOfSelf()) {
-                result.addAll(Dependency.tryCreateFromField(field));
-            }
-            for (JavaMethod method : clazz.getMethodsWithReturnTypeOfSelf()) {
-                result.addAll(Dependency.tryCreateFromReturnType(method));
-            }
-            for (JavaMethod method : clazz.getMethodsWithParameterTypeOfSelf()) {
-                result.addAll(Dependency.tryCreateFromParameter(method, clazz));
-            }
-            for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : clazz.getMethodThrowsDeclarationsWithTypeOfSelf()) {
-                result.addAll(Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration));
-            }
-            for (JavaConstructor constructor : clazz.getConstructorsWithParameterTypeOfSelf()) {
-                result.addAll(Dependency.tryCreateFromParameter(constructor, clazz));
-            }
-            for (JavaAnnotation<?> annotation : clazz.getAnnotationsWithTypeOfSelf()) {
-                result.addAll(Dependency.tryCreateFromAnnotation(annotation));
-            }
-            for (JavaAnnotation<?> annotation : clazz.getAnnotationsWithParameterTypeOfSelf()) {
-                result.addAll(Dependency.tryCreateFromAnnotationMember(annotation, clazz));
-            }
-            for (InstanceofCheck instanceofCheck : clazz.getInstanceofChecksWithTypeOfSelf()) {
-                result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
-            }
             return result.build();
         }
     }

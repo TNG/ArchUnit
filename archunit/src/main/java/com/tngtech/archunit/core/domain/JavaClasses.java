@@ -197,8 +197,8 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
         JavaPackage defaultPackage = JavaPackage.from(allClasses);
         for (JavaClass clazz : allClasses) {
             setPackage(clazz, defaultPackage);
-            clazz.completeFrom(importContext);
-            reverseDependenciesCreation.registerDependenciesOf(clazz);
+            JavaClassDependencies classDependencies = clazz.completeFrom(importContext);
+            reverseDependenciesCreation.registerDependenciesOf(clazz, classDependencies);
         }
         reverseDependenciesCreation.finish(allClasses);
         return new JavaClasses(defaultPackage, selectedClasses);

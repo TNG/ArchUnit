@@ -1295,12 +1295,13 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         }
     }
 
-    void completeFrom(ImportContext context) {
+    JavaClassDependencies completeFrom(ImportContext context) {
         completeComponentType(context);
         for (JavaCodeUnit codeUnit : codeUnits) {
             codeUnit.completeFrom(context);
         }
         javaClassDependencies = new JavaClassDependencies(this);
+        return javaClassDependencies;
     }
 
     private void completeComponentType(ImportContext context) {

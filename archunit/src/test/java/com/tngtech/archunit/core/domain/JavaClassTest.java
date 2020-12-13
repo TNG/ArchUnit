@@ -539,8 +539,7 @@ public class JavaClassTest {
                 .areAtLeastOne(annotationMemberOfTypeDependency()
                         .from(ClassWithAnnotationDependencies.class)
                         .to(B.class)
-                        .inLineNumber(0))
-        ;
+                        .inLineNumber(0));
     }
 
     @Test
@@ -712,12 +711,46 @@ public class JavaClassTest {
     }
 
     @Test
+    public void finds_array_component_types_as_dependencies_to_self() {
+        JavaClass javaClass = new ClassFileImporter().importClasses(ArrayComponentTypeDependencies.class, ComponentTypeDependency.class)
+                .get(ComponentTypeDependency.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesToSelf())
+                .contain(
+                        from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Field <%s.asField> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 0).
+
+                                from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Constructor <%s.<init>(%s)> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency[].class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 0).
+
+                                from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Method <%s.asMethodParameter(%s)> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency[].class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 0).
+
+                                from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Method <%s.asReturnType()> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 0).
+
+                                from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Method <%s.asCallTarget()> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 18));
+    }
+
+    @Test
     public void direct_dependencies_to_self_finds_correct_set_of_origin_types() {
         JavaClasses classes = importPackagesOf(getClass());
 
         Set<JavaClass> origins = getOriginsOfDependenciesTo(classes.get(WithType.class));
 
-        assertThatTypes(origins).matchInAnyOrder(ClassWithAnnotationDependencies.class, ClassWithSelfReferences.class, OnMethodParam.class);
+        assertThatTypes(origins).matchInAnyOrder(
+                ClassWithAnnotationDependencies.class, ClassWithSelfReferences.class, WithNestedAnnotations.class, OnMethodParam.class);
 
         origins = getOriginsOfDependenciesTo(classes.get(B.class));
 
