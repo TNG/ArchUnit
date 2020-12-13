@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core.domain;
 
-import java.io.File;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.util.AbstractList;
@@ -20,7 +19,9 @@ import com.tngtech.archunit.core.domain.testobjects.AAccessingB;
 import com.tngtech.archunit.core.domain.testobjects.AExtendingSuperAImplementingInterfaceForA;
 import com.tngtech.archunit.core.domain.testobjects.AhavingMembersOfTypeB;
 import com.tngtech.archunit.core.domain.testobjects.AllPrimitiveDependencies;
+import com.tngtech.archunit.core.domain.testobjects.ArrayComponentTypeDependencies;
 import com.tngtech.archunit.core.domain.testobjects.B;
+import com.tngtech.archunit.core.domain.testobjects.ComponentTypeDependency;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
 import com.tngtech.archunit.core.domain.testobjects.SuperA;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -71,11 +72,13 @@ import static com.tngtech.archunit.core.domain.TestUtils.importPackagesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
+import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.regex.Pattern.quote;
@@ -542,73 +545,34 @@ public class JavaClassTest {
 
     @Test
     public void finds_array_component_types_as_dependencies_from_self() {
-        @SuppressWarnings("unused")
-        class ArrayComponentTypeDependencies {
-            private String[] asField;
-
-            ArrayComponentTypeDependencies(Integer[] asConstructorParameter) {
-            }
-
-            void asMethodParameter(Float[] asMethodParameter) {
-            }
-
-            Object[] asReturnType() {
-                return null;
-            }
-
-            void asCallTarget() {
-                new File[0].clone();
-            }
-        }
-
         JavaClass javaClass = importClassWithContext(ArrayComponentTypeDependencies.class);
 
-        // Assert the presence of both the array type and the component type of the array for all dependencies
-        assertThat(javaClass.getDirectDependenciesFromSelf())
-                .areAtLeastOne(callDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(File[].class)
-                        .inLineNumber(560))
-                .areAtLeastOne(componentTypeDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(File.class)
-                        .inLineNumber(560))
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(
+                        from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Field <%s.asField> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 0).
 
-                .areAtLeastOne(methodReturnTypeDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(Object[].class)
-                        .inLineNumber(0))
-                .areAtLeastOne(componentTypeDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(Object.class)
-                        .inLineNumber(0))
+                                from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Constructor <%s.<init>(%s)> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency[].class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 0).
 
-                .areAtLeastOne(fieldTypeDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(String[].class)
-                        .inLineNumber(0))
-                .areAtLeastOne(componentTypeDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(String.class)
-                        .inLineNumber(0))
+                                from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Method <%s.asMethodParameter(%s)> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency[].class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 0).
 
-                .areAtLeastOne(parameterTypeDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(Integer[].class)
-                        .inLineNumber(0))
-                .areAtLeastOne(componentTypeDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(Integer.class)
-                        .inLineNumber(0))
+                                from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Method <%s.asReturnType()> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 0).
 
-                .areAtLeastOne(parameterTypeDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(Float[].class)
-                        .inLineNumber(0))
-                .areAtLeastOne(componentTypeDependency()
-                        .from(ArrayComponentTypeDependencies.class)
-                        .to(Float.class)
-                        .inLineNumber(0));
+                                from(ArrayComponentTypeDependencies.class).to(ComponentTypeDependency.class)
+                                .withDescriptionContaining("Method <%s.asCallTarget()> depends on component type <%s>",
+                                        ArrayComponentTypeDependencies.class.getName(), ComponentTypeDependency.class.getName())
+                                .inLocation(ArrayComponentTypeDependencies.class, 18));
     }
 
     @Test
@@ -1132,10 +1096,6 @@ public class JavaClassTest {
 
     private static DependencyConditionCreation annotationMemberOfTypeDependency() {
         return new DependencyConditionCreation("has annotation member of type");
-    }
-
-    private static DependencyConditionCreation componentTypeDependency() {
-        return new DependencyConditionCreation("depends on component type");
     }
 
     private static AnyDependencyConditionCreation anyDependency() {
