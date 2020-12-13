@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.lang.reflect.TypeVariable;
 import java.util.List;
 
 import com.google.common.base.Joiner;
@@ -67,7 +68,10 @@ public final class JavaTypeVariable implements JavaType, HasUpperBounds {
     }
 
     /**
-     * @see #getUpperBounds()
+     * This method is simply an alias for {@link #getUpperBounds()} that is more familiar to users
+     * of the Java Reflection API.
+     *
+     * @see TypeVariable#getBounds()
      */
     @PublicAPI(usage = ACCESS)
     public List<JavaType> getBounds() {
