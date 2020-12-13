@@ -167,13 +167,13 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
 
     private static Set<Dependency> createComponentTypeDependencies(JavaClass originClass, String originDescription, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        JavaClass componentType = targetClass;
-        while (componentType.isArray()) {
-            componentType = componentType.getComponentType();
-            String componentTypeTargetDescription = bracketFormat(componentType.getName());
+        Optional<JavaClass> componentType = targetClass.tryGetComponentType();
+        while (componentType.isPresent()) {
+            String componentTypeTargetDescription = bracketFormat(componentType.get().getName());
             String componentTypeDependencyDescription = originDescription + " depends on component type " + componentTypeTargetDescription;
             String componentTypeDescription = componentTypeDependencyDescription + " in " + sourceCodeLocation;
-            result.addAll(tryCreateDependency(originClass, componentType, componentTypeDescription, sourceCodeLocation.getLineNumber()).asSet());
+            result.addAll(tryCreateDependency(originClass, componentType.get(), componentTypeDescription, sourceCodeLocation.getLineNumber()).asSet());
+            componentType = componentType.get().tryGetComponentType();
         }
         return result.build();
     }
