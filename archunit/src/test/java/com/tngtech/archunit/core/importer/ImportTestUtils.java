@@ -24,7 +24,6 @@ import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.ImportContext;
-import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -40,7 +39,6 @@ import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import org.objectweb.asm.Type;
 
@@ -395,51 +393,6 @@ public class ImportTestUtils {
 
         @Override
         public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaField> getFieldsOfType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsOfType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaAnnotation<?>> getAnnotationsOfType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass) {
             return Collections.emptySet();
         }
 

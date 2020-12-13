@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
@@ -26,38 +25,17 @@ import com.tngtech.archunit.core.domain.JavaAnnotation.DefaultParameterVisitor;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 
 import static com.google.common.base.Suppliers.memoize;
-import static com.google.common.collect.Sets.union;
 
 class JavaClassDependencies {
     private final JavaClass javaClass;
-    private final Set<JavaField> fieldsWithTypeOfClass;
-    private final Set<JavaMethod> methodsWithParameterTypeOfClass;
-    private final Set<JavaMethod> methodsWithReturnTypeOfClass;
-    private final Set<ThrowsDeclaration<JavaMethod>> methodsWithThrowsDeclarationTypeOfClass;
-    private final Set<JavaConstructor> constructorsWithParameterTypeOfClass;
-    private final Set<ThrowsDeclaration<JavaConstructor>> constructorsWithThrowsDeclarationTypeOfClass;
-    private final Set<JavaAnnotation<?>> annotationsWithTypeOfClass;
-    private final Set<JavaAnnotation<?>> annotationsWithParameterTypeOfClass;
-    private final Set<InstanceofCheck> instanceofChecksWithTypeOfClass;
     private final Supplier<Set<Dependency>> directDependenciesFromClass;
-    private final Supplier<Set<Dependency>> directDependenciesToClass;
 
-    JavaClassDependencies(JavaClass javaClass, ImportContext context) {
+    JavaClassDependencies(JavaClass javaClass) {
         this.javaClass = javaClass;
-        this.fieldsWithTypeOfClass = context.getFieldsOfType(javaClass);
-        this.methodsWithParameterTypeOfClass = context.getMethodsWithParameterOfType(javaClass);
-        this.methodsWithReturnTypeOfClass = context.getMethodsWithReturnType(javaClass);
-        this.methodsWithThrowsDeclarationTypeOfClass = context.getMethodThrowsDeclarationsOfType(javaClass);
-        this.constructorsWithParameterTypeOfClass = context.getConstructorsWithParameterOfType(javaClass);
-        this.constructorsWithThrowsDeclarationTypeOfClass = context.getConstructorThrowsDeclarationsOfType(javaClass);
-        this.annotationsWithTypeOfClass = context.getAnnotationsOfType(javaClass);
-        this.annotationsWithParameterTypeOfClass = context.getAnnotationsWithParameterOfType(javaClass);
-        this.instanceofChecksWithTypeOfClass = context.getInstanceofChecksOfType(javaClass);
-        this.directDependenciesFromClass = getDirectDependenciesFromClassSupplier();
-        this.directDependenciesToClass = getDirectDependenciesToClassSupplier();
+        this.directDependenciesFromClass = createDirectDependenciesFromClassSupplier();
     }
 
-    private Supplier<Set<Dependency>> getDirectDependenciesFromClassSupplier() {
+    private Supplier<Set<Dependency>> createDirectDependenciesFromClassSupplier() {
         return memoize(new Supplier<Set<Dependency>>() {
             @Override
             public Set<Dependency> get() {
@@ -76,67 +54,8 @@ class JavaClassDependencies {
         });
     }
 
-    private Supplier<Set<Dependency>> getDirectDependenciesToClassSupplier() {
-        return memoize(new Supplier<Set<Dependency>>() {
-            @Override
-            public Set<Dependency> get() {
-                ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-                result.addAll(dependenciesFromAccesses(javaClass.getAccessesToSelf()));
-                result.addAll(inheritanceDependenciesToSelf());
-                result.addAll(fieldDependenciesToSelf());
-                result.addAll(returnTypeDependenciesToSelf());
-                result.addAll(methodParameterDependenciesToSelf());
-                result.addAll(throwsDeclarationDependenciesToSelf());
-                result.addAll(constructorParameterDependenciesToSelf());
-                result.addAll(annotationDependenciesToSelf());
-                result.addAll(instanceofCheckDependenciesToSelf());
-                return result.build();
-            }
-        });
-    }
-
     Set<Dependency> getDirectDependenciesFromClass() {
         return directDependenciesFromClass.get();
-    }
-
-    Set<Dependency> getDirectDependenciesToClass() {
-        return directDependenciesToClass.get();
-    }
-
-    Set<JavaField> getFieldsWithTypeOfClass() {
-        return fieldsWithTypeOfClass;
-    }
-
-    Set<JavaMethod> getMethodsWithParameterTypeOfClass() {
-        return methodsWithParameterTypeOfClass;
-    }
-
-    Set<JavaMethod> getMethodsWithReturnTypeOfClass() {
-        return methodsWithReturnTypeOfClass;
-    }
-
-    Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsWithTypeOfClass() {
-        return methodsWithThrowsDeclarationTypeOfClass;
-    }
-
-    Set<JavaConstructor> getConstructorsWithParameterTypeOfClass() {
-        return constructorsWithParameterTypeOfClass;
-    }
-
-    Set<ThrowsDeclaration<JavaConstructor>> getConstructorsWithThrowsDeclarationTypeOfClass() {
-        return constructorsWithThrowsDeclarationTypeOfClass;
-    }
-
-    private Set<ThrowsDeclaration<? extends JavaCodeUnit>> getThrowsDeclarationsWithTypeOfClass() {
-        return union(methodsWithThrowsDeclarationTypeOfClass, constructorsWithThrowsDeclarationTypeOfClass);
-    }
-
-    Set<JavaAnnotation<?>> getAnnotationsWithTypeOfClass() {
-        return annotationsWithTypeOfClass;
-    }
-
-    Set<InstanceofCheck> getInstanceofChecksWithTypeOfClass() {
-        return instanceofChecksWithTypeOfClass;
     }
 
     private Set<Dependency> dependenciesFromAccesses(Set<JavaAccess<?>> accesses) {
@@ -251,72 +170,5 @@ class JavaClassDependencies {
             });
         }
         return result.build();
-    }
-
-    private Set<Dependency> inheritanceDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaClass subClass : javaClass.getSubClasses()) {
-            result.add(Dependency.fromInheritance(subClass, javaClass));
-        }
-        return result;
-    }
-
-    private Set<Dependency> fieldDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaField field : javaClass.getFieldsWithTypeOfSelf()) {
-            result.addAll(Dependency.tryCreateFromField(field));
-        }
-        return result;
-    }
-
-    private Set<Dependency> returnTypeDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaMethod method : javaClass.getMethodsWithReturnTypeOfSelf()) {
-            result.addAll(Dependency.tryCreateFromReturnType(method));
-        }
-        return result;
-    }
-
-    private Set<Dependency> methodParameterDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaMethod method : javaClass.getMethodsWithParameterTypeOfSelf()) {
-            result.addAll(Dependency.tryCreateFromParameter(method, javaClass));
-        }
-        return result;
-    }
-
-    private Set<Dependency> throwsDeclarationDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : getThrowsDeclarationsWithTypeOfClass()) {
-            result.addAll(Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration));
-        }
-        return result;
-    }
-
-    private Set<Dependency> constructorParameterDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaConstructor constructor : javaClass.getConstructorsWithParameterTypeOfSelf()) {
-            result.addAll(Dependency.tryCreateFromParameter(constructor, javaClass));
-        }
-        return result;
-    }
-
-    private Iterable<? extends Dependency> annotationDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (JavaAnnotation<?> annotation : annotationsWithTypeOfClass) {
-            result.addAll(Dependency.tryCreateFromAnnotation(annotation));
-        }
-        for (JavaAnnotation<?> annotation : annotationsWithParameterTypeOfClass) {
-            result.addAll(Dependency.tryCreateFromAnnotationMember(annotation, javaClass));
-        }
-        return result;
-    }
-
-    private Set<Dependency> instanceofCheckDependenciesToSelf() {
-        Set<Dependency> result = new HashSet<>();
-        for (InstanceofCheck instanceofCheck : getInstanceofChecksWithTypeOfClass()) {
-            result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
-        }
-        return result;
     }
 }

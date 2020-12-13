@@ -146,6 +146,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         }
     });
     private JavaClassDependencies javaClassDependencies;
+    private ReverseDependencies reverseDependencies;
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
@@ -1037,7 +1038,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesToSelf() {
-        return javaClassDependencies.getDirectDependenciesToClass();
+        return reverseDependencies.getDirectDependenciesTo(this);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1081,7 +1082,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaField> getFieldsWithTypeOfSelf() {
-        return javaClassDependencies.getFieldsWithTypeOfClass();
+        return reverseDependencies.getFieldsWithTypeOf(this);
     }
 
     /**
@@ -1089,7 +1090,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethodsWithParameterTypeOfSelf() {
-        return javaClassDependencies.getMethodsWithParameterTypeOfClass();
+        return reverseDependencies.getMethodsWithParameterTypeOf(this);
     }
 
     /**
@@ -1097,7 +1098,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethodsWithReturnTypeOfSelf() {
-        return javaClassDependencies.getMethodsWithReturnTypeOfClass();
+        return reverseDependencies.getMethodsWithReturnTypeOf(this);
     }
 
     /**
@@ -1105,7 +1106,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsWithTypeOfSelf() {
-        return javaClassDependencies.getMethodThrowsDeclarationsWithTypeOfClass();
+        return reverseDependencies.getMethodThrowsDeclarationsWithTypeOf(this);
     }
 
     /**
@@ -1113,7 +1114,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructor> getConstructorsWithParameterTypeOfSelf() {
-        return javaClassDependencies.getConstructorsWithParameterTypeOfClass();
+        return reverseDependencies.getConstructorsWithParameterTypeOf(this);
     }
 
     /**
@@ -1121,7 +1122,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaConstructor>> getConstructorsWithThrowsDeclarationTypeOfSelf() {
-        return javaClassDependencies.getConstructorsWithThrowsDeclarationTypeOfClass();
+        return reverseDependencies.getConstructorsWithThrowsDeclarationTypeOf(this);
     }
 
     /**
@@ -1129,7 +1130,23 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaAnnotation<?>> getAnnotationsWithTypeOfSelf() {
-        return javaClassDependencies.getAnnotationsWithTypeOfClass();
+        return reverseDependencies.getAnnotationsWithTypeOf(this);
+    }
+
+    /**
+     * @return All imported {@link JavaAnnotation JavaAnnotations} that have a parameter with type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaAnnotation<?>> getAnnotationsWithParameterTypeOfSelf() {
+        return reverseDependencies.getAnnotationsWithParameterTypeOf(this);
+    }
+
+    /**
+     * @return All imported {@link InstanceofCheck InstanceofChecks} that check if another class is an instance of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<InstanceofCheck> getInstanceofChecksWithTypeOfSelf() {
+        return reverseDependencies.getInstanceofChecksWithTypeOf(this);
     }
 
     /**
@@ -1280,10 +1297,10 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     void completeFrom(ImportContext context) {
         completeComponentType(context);
-        javaClassDependencies = new JavaClassDependencies(this, context);
         for (JavaCodeUnit codeUnit : codeUnits) {
             codeUnit.completeFrom(context);
         }
+        javaClassDependencies = new JavaClassDependencies(this);
     }
 
     private void completeComponentType(ImportContext context) {
@@ -1296,6 +1313,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     void setReverseDependencies(ReverseDependencies reverseDependencies) {
+        this.reverseDependencies = reverseDependencies;
         for (JavaMember member : members) {
             member.setReverseDependencies(reverseDependencies);
         }

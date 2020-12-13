@@ -31,7 +31,7 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
         super(actual, JavaAnnotationAssertion.class);
     }
 
-    private JavaAnnotationAssertion hasType(Class<? extends Annotation> annotationType) {
+    public JavaAnnotationAssertion hasType(Class<? extends Annotation> annotationType) {
         assertThatType(actual.getRawType())
                 .as("annotation type of " + descriptionText())
                 .matches(annotationType);
