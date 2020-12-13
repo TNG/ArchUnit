@@ -50,24 +50,6 @@ public interface ImportContext {
 
     Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit);
 
-    Set<JavaField> getFieldsOfType(JavaClass javaClass);
-
-    Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass);
-
-    Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass);
-
-    Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsOfType(JavaClass javaClass);
-
-    Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass);
-
-    Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass);
-
-    Set<JavaAnnotation<?>> getAnnotationsOfType(JavaClass javaClass);
-
-    Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass);
-
-    Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass);
-
     JavaClass resolveClass(String fullyQualifiedClassName);
 
     Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName);

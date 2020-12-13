@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,15 +30,12 @@ import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.ImportContext;
-import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
-import com.tngtech.archunit.core.domain.JavaAnnotation.DefaultParameterVisitor;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
-import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMember;
@@ -47,7 +43,6 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
@@ -75,7 +70,6 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
     private final Function<JavaClass, Set<String>> superClassStrategy;
     private final Function<JavaClass, Set<String>> interfaceStrategy;
-    private final MemberDependenciesByTarget memberDependenciesByTarget = new MemberDependenciesByTarget();
 
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
@@ -217,51 +211,6 @@ class ClassGraphCreator implements ImportContext {
         return result.build();
     }
 
-    @Override
-    public Set<JavaField> getFieldsOfType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getFieldsOfType(javaClass);
-    }
-
-    @Override
-    public Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getMethodsWithParameterOfType(javaClass);
-    }
-
-    @Override
-    public Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getMethodsWithReturnType(javaClass);
-    }
-
-    @Override
-    public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsOfType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getMethodThrowsDeclarationsOfType(javaClass);
-    }
-
-    @Override
-    public Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getConstructorsWithParameterOfType(javaClass);
-    }
-
-    @Override
-    public Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getConstructorThrowsDeclarationsOfType(javaClass);
-    }
-
-    @Override
-    public Set<JavaAnnotation<?>> getAnnotationsOfType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getAnnotationsOfType(javaClass);
-    }
-
-    @Override
-    public Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getAnnotationsWithParameterOfType(javaClass);
-    }
-
-    @Override
-    public Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass) {
-        return memberDependenciesByTarget.getInstanceofChecksOfType(javaClass);
-    }
-
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
     B accessBuilderFrom(B builder, AccessRecord<T> record) {
         return builder
@@ -295,9 +244,7 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Set<JavaField> createFields(JavaClass owner) {
-        Set<JavaField> fields = build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
-        memberDependenciesByTarget.registerFields(fields);
-        return fields;
+        return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
     }
 
     @Override
@@ -314,16 +261,12 @@ class ClassGraphCreator implements ImportContext {
                 });
             }
         }
-        Set<JavaMethod> methods = build(methodBuilders, owner, classes.byTypeName());
-        memberDependenciesByTarget.registerMethods(methods);
-        return methods;
+        return build(methodBuilders, owner, classes.byTypeName());
     }
 
     @Override
     public Set<JavaConstructor> createConstructors(JavaClass owner) {
-        Set<JavaConstructor> constructors = build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes.byTypeName());
-        memberDependenciesByTarget.registerConstructors(constructors);
-        return constructors;
+        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes.byTypeName());
     }
 
     @Override
@@ -333,7 +276,6 @@ class ClassGraphCreator implements ImportContext {
             return Optional.absent();
         }
         JavaStaticInitializer staticInitializer = builder.get().build(owner, classes.byTypeName());
-        memberDependenciesByTarget.registerStaticInitializer(staticInitializer);
         return Optional.of(staticInitializer);
     }
 
@@ -348,9 +290,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private <OWNER extends HasDescription> Map<String, JavaAnnotation<OWNER>> createAnnotations(OWNER owner, Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
-        Map<String, JavaAnnotation<OWNER>> annotations = buildAnnotations(owner, annotationBuilders, this);
-        memberDependenciesByTarget.registerAnnotations(annotations.values());
-        return annotations;
+        return buildAnnotations(owner, annotationBuilders, this);
     }
 
     @Override
@@ -374,117 +314,5 @@ class ClassGraphCreator implements ImportContext {
             }
         }
         return Optional.absent();
-    }
-
-    private static class MemberDependenciesByTarget {
-        private final SetMultimap<JavaClass, JavaField> fieldTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaMethod> methodParameterTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaMethod> methodReturnTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, ThrowsDeclaration<JavaMethod>> methodsThrowsDeclarationDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaConstructor> constructorParameterTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, ThrowsDeclaration<JavaConstructor>> constructorThrowsDeclarationDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, JavaAnnotation<?>> annotationParameterTypeDependencies = HashMultimap.create();
-        private final SetMultimap<JavaClass, InstanceofCheck> instanceofCheckDependencies = HashMultimap.create();
-
-        void registerFields(Set<JavaField> fields) {
-            for (JavaField field : fields) {
-                fieldTypeDependencies.put(field.getRawType(), field);
-            }
-        }
-
-        void registerMethods(Set<JavaMethod> methods) {
-            for (JavaMethod method : methods) {
-                for (JavaClass parameter : method.getRawParameterTypes()) {
-                    methodParameterTypeDependencies.put(parameter, method);
-                }
-                methodReturnTypeDependencies.put(method.getRawReturnType(), method);
-                for (ThrowsDeclaration<JavaMethod> throwsDeclaration : method.getThrowsClause()) {
-                    methodsThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
-                }
-                for (InstanceofCheck instanceofCheck : method.getInstanceofChecks()) {
-                    instanceofCheckDependencies.put(instanceofCheck.getRawType(), instanceofCheck);
-                }
-            }
-        }
-
-        void registerConstructors(Set<JavaConstructor> constructors) {
-            for (JavaConstructor constructor : constructors) {
-                for (JavaClass parameter : constructor.getRawParameterTypes()) {
-                    constructorParameterTypeDependencies.put(parameter, constructor);
-                }
-                for (ThrowsDeclaration<JavaConstructor> throwsDeclaration : constructor.getThrowsClause()) {
-                    constructorThrowsDeclarationDependencies.put(throwsDeclaration.getRawType(), throwsDeclaration);
-                }
-                for (InstanceofCheck instanceofCheck : constructor.getInstanceofChecks()) {
-                    instanceofCheckDependencies.put(instanceofCheck.getRawType(), instanceofCheck);
-                }
-            }
-        }
-
-        void registerAnnotations(Collection<? extends JavaAnnotation<?>> annotations) {
-            for (final JavaAnnotation<?> annotation : annotations) {
-                annotationTypeDependencies.put(annotation.getRawType(), annotation);
-                annotation.accept(new DefaultParameterVisitor() {
-                    @Override
-                    public void visitClass(String propertyName, JavaClass javaClass) {
-                        annotationParameterTypeDependencies.put(javaClass, annotation);
-                    }
-
-                    @Override
-                    public void visitEnumConstant(String propertyName, JavaEnumConstant enumConstant) {
-                        annotationParameterTypeDependencies.put(enumConstant.getDeclaringClass(), annotation);
-                    }
-
-                    @Override
-                    public void visitAnnotation(String propertyName, JavaAnnotation<?> memberAnnotation) {
-                        annotationParameterTypeDependencies.put(memberAnnotation.getRawType(), annotation);
-                        memberAnnotation.accept(this);
-                    }
-                });
-            }
-        }
-
-        void registerStaticInitializer(JavaStaticInitializer staticInitializer) {
-            for (InstanceofCheck instanceofCheck : staticInitializer.getInstanceofChecks()) {
-                instanceofCheckDependencies.put(instanceofCheck.getRawType(), instanceofCheck);
-            }
-        }
-
-        Set<JavaField> getFieldsOfType(JavaClass javaClass) {
-            return fieldTypeDependencies.get(javaClass);
-        }
-
-        Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass) {
-            return methodParameterTypeDependencies.get(javaClass);
-        }
-
-        Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass) {
-            return methodReturnTypeDependencies.get(javaClass);
-        }
-
-        Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsOfType(JavaClass javaClass) {
-            return methodsThrowsDeclarationDependencies.get(javaClass);
-        }
-
-        Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass) {
-            return constructorParameterTypeDependencies.get(javaClass);
-        }
-
-        Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass) {
-            return constructorThrowsDeclarationDependencies.get(javaClass);
-        }
-
-        Set<JavaAnnotation<?>> getAnnotationsOfType(JavaClass javaClass) {
-            return annotationTypeDependencies.get(javaClass);
-        }
-
-        Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass) {
-            return annotationParameterTypeDependencies.get(javaClass);
-        }
-
-        Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass) {
-            return instanceofCheckDependencies.get(javaClass);
-        }
     }
 }

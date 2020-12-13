@@ -38,6 +38,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassList;
@@ -126,6 +127,10 @@ import com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall.Su
 import com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall.SuperClassWithCalledMethod;
 import com.tngtech.archunit.core.importer.testexamples.innerclassimport.CalledClass;
 import com.tngtech.archunit.core.importer.testexamples.innerclassimport.ClassWithInnerClass;
+import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.ChecksInstanceofInConstructor;
+import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.ChecksInstanceofInMethod;
+import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.ChecksInstanceofInStaticInitializer;
+import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.InstanceofChecked;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassA;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassBDependingOnClassA;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassCDependingOnClassB_SuperClassOfX;
@@ -1590,6 +1595,17 @@ public class ClassFileImporterTest {
                 classes.get(FirstCheckedException.class).getConstructorsWithThrowsDeclarationTypeOfSelf();
         assertThatType(getOnlyElement(throwsDeclarations).getDeclaringClass()).matches(ClassWithThrowingConstructor.class);
         assertThat(classes.get(FirstCheckedException.class).getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
+    }
+
+    @Test
+    public void classes_know_which_instanceof_checks_check_their_type() {
+        JavaClass clazz = new ClassFileImporter().importPackagesOf(InstanceofChecked.class).get(InstanceofChecked.class);
+
+        Set<JavaClass> origins = new HashSet<>();
+        for (InstanceofCheck instanceofCheck : clazz.getInstanceofChecksWithTypeOfSelf()) {
+            origins.add(instanceofCheck.getOwner().getOwner());
+        }
+        assertThatTypes(origins).matchInAnyOrder(ChecksInstanceofInMethod.class, ChecksInstanceofInConstructor.class, ChecksInstanceofInStaticInitializer.class);
     }
 
     @Test

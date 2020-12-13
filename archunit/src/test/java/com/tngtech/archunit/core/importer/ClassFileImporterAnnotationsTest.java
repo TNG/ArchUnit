@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -451,6 +452,43 @@ public class ClassFileImporterAnnotationsTest {
         Set<JavaAnnotation<?>> annotations = classes.get(SimpleAnnotation.class).getAnnotationsWithTypeOfSelf();
 
         assertThat(getOnlyElement(annotations).getOwner()).isEqualTo(classes.get(ClassWithOneAnnotation.class));
+    }
+
+    @Test
+    public void classes_know_which_annotation_members_have_their_type() {
+        @SuppressWarnings("unused")
+        @ParameterAnnotation(value = String.class)
+        class Dependent {
+            @ParameterAnnotation(value = String.class)
+            String field;
+
+            @ParameterAnnotation(value = String.class)
+            Dependent() {
+            }
+
+            @ParameterAnnotation(value = String.class)
+            void method() {
+            }
+
+            @ParameterAnnotation(value = List.class)
+            void notToFind() {
+            }
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(Dependent.class, ParameterAnnotation.class, String.class);
+        Set<JavaAnnotation<?>> annotations = classes.get(String.class).getAnnotationsWithParameterTypeOfSelf();
+
+        for (JavaAnnotation<?> annotation : annotations) {
+            assertThatAnnotation(annotation).hasType(ParameterAnnotation.class);
+        }
+
+        Set<JavaAnnotation<?>> expected = ImmutableSet.<JavaAnnotation<?>>of(
+                classes.get(Dependent.class).getAnnotationOfType(ParameterAnnotation.class.getName()),
+                classes.get(Dependent.class).getField("field").getAnnotationOfType(ParameterAnnotation.class.getName()),
+                classes.get(Dependent.class).getConstructor(getClass()).getAnnotationOfType(ParameterAnnotation.class.getName()),
+                classes.get(Dependent.class).getMethod("method").getAnnotationOfType(ParameterAnnotation.class.getName())
+        );
+        assertThat(annotations).as("annotations with parameter type " + String.class.getSimpleName()).containsOnlyElementsOf(expected);
     }
 
     @Test
