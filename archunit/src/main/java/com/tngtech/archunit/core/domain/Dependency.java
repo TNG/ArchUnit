@@ -54,6 +54,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     private final int lineNumber;
     private final String description;
     private final SourceCodeLocation sourceCodeLocation;
+    private final int hashCode;
 
     private Dependency(JavaClass originClass, JavaClass targetClass, int lineNumber, String description) {
         checkArgument(!originClass.equals(targetClass) || targetClass.isPrimitive(),
@@ -65,6 +66,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         this.lineNumber = lineNumber;
         this.description = description;
         this.sourceCodeLocation = SourceCodeLocation.of(originClass, lineNumber);
+        hashCode = Objects.hash(originClass, targetClass, lineNumber, description);
     }
 
     static Set<Dependency> tryCreateFromAccess(JavaAccess<?> access) {
@@ -222,7 +224,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
 
     @Override
     public int hashCode() {
-        return Objects.hash(originClass, targetClass, lineNumber, description);
+        return hashCode;
     }
 
     @Override
