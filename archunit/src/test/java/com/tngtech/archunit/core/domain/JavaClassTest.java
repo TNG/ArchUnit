@@ -1666,10 +1666,11 @@ public class JavaClassTest {
     @SuppressWarnings("ALL")
     private static class ClassWithSelfReferences extends Exception {
         static {
-            ClassWithSelfReferences selfReference = new ClassWithSelfReferences(null, null);
+            ClassWithSelfReferences selfReference = new ClassWithSelfReferences(null, (ClassWithSelfReferences) null);
         }
 
         ClassWithSelfReferences fieldSelfReference;
+        ClassWithSelfReferences[] arrayFieldSelfReference;
 
         ClassWithSelfReferences() throws ClassWithSelfReferences {
         }
@@ -1677,25 +1678,38 @@ public class JavaClassTest {
         ClassWithSelfReferences(Object any, ClassWithSelfReferences selfReference) {
         }
 
+        ClassWithSelfReferences(Object any, ClassWithSelfReferences[] selfReference) {
+        }
+
         ClassWithSelfReferences methodReturnTypeSelfReference() {
+            return null;
+        }
+
+        ClassWithSelfReferences[] methodArrayReturnTypeSelfReference() {
             return null;
         }
 
         void methodParameterSelfReference(Object any, ClassWithSelfReferences selfReference) {
         }
 
+        void methodArrayParameterSelfReference(Object any, ClassWithSelfReferences[] selfReference) {
+        }
+
         void methodCallSelfReference() {
             ClassWithSelfReferences self = null;
             self.methodParameterSelfReference(null, null);
+            ClassWithSelfReferences[] arraySelf = null;
+            arraySelf.clone();
         }
 
         void constructorCallSelfReference() {
-            new ClassWithSelfReferences(null, null);
+            new ClassWithSelfReferences(null, (ClassWithSelfReferences) null);
         }
 
         void fieldAccessSelfReference() {
             ClassWithSelfReferences self = null;
             self.fieldSelfReference = null;
+            self.arrayFieldSelfReference = null;
         }
 
         @WithType(type = ClassWithSelfReferences.class)
