@@ -763,6 +763,19 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
+    public void doNotBelongToAnyOf() {
+        List<JavaMember> members =
+                filterResultOf(members().that().areDeclaredInClassesThat().doNotBelongToAnyOf(ClassWithInnerClasses.class, String.class))
+                        .on(ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class,
+                                ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                                List.class, String.class, Iterable.class, StringBuilder.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(
+                List.class, Iterable.class, StringBuilder.class
+        );
+    }
+
+    @Test
     public void and_conjunction() {
         List<JavaMember> members = filterResultOf(
                 members().that().areDeclaredInClassesThat().haveNameMatching(".*\\..*i.*")

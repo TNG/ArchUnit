@@ -675,4 +675,12 @@ public interface ClassesThat<CONJUNCTION> {
     @PublicAPI(usage = ACCESS)
     CONJUNCTION belongToAnyOf(Class<?>... classes);
 
+    /**
+     * Inverted form of {@link #belongToAnyOf belongToAnyOf(Outer.class)}
+     *
+     * @param classes List of {@link Class} objects.
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION doNotBelongToAnyOf(Class<?>... classes);
 }

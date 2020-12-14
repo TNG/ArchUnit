@@ -987,6 +987,20 @@ public class ShouldOnlyByClassesThatTest {
         assertThatTypes(classes).matchInAnyOrder(AnotherClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class);
     }
 
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void doNotBelongToAnyOf(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterViolationCausesInFailureReport(
+                classesShouldOnlyBeBy.doNotBelongToAnyOf(ClassWithInnerClasses.class))
+                .on(ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class,
+                        ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                        AnotherClassWithInnerClasses.class, AnotherClassWithInnerClasses.InnerClass.class,
+                        AnotherClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                        ClassBeingAccessedByInnerClass.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class);
+    }
+
     @DataProvider
     public static Object[][] byClassesThat_predicate_rules() {
         return testForEach(
@@ -1183,7 +1197,7 @@ public class ShouldOnlyByClassesThatTest {
 
     @SuppressWarnings("unused")
     private static class ClassAccessingItself {
-        private String field;
+        private final String field;
 
         ClassAccessingItself(String field) {
             this.field = field;
@@ -1299,7 +1313,7 @@ public class ShouldOnlyByClassesThatTest {
         }
     }
 
-    private static Runnable anonymousClassBeingAccessed = new Runnable() {
+    private static final Runnable anonymousClassBeingAccessed = new Runnable() {
         @Override
         public void run() {
             new ClassAccessingAnonymousClass();
