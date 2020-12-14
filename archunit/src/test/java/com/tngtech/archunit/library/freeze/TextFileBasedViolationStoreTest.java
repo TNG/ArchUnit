@@ -80,6 +80,15 @@ public class TextFileBasedViolationStoreTest {
     }
 
     @Test
+    public void reads_empty_list_of_violations() {
+        store.save(defaultRule(), ImmutableList.<String>of());
+
+        List<String> storedViolations = store.getViolations(defaultRule());
+
+        assertThat(storedViolations).isEmpty();
+    }
+
+    @Test
     public void stores_violations_of_multiple_rules() {
         ArchRule firstRule = rule("first rule");
         store.save(firstRule, ImmutableList.of("first violation1", "first violation2"));
