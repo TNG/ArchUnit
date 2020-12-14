@@ -759,6 +759,16 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void doNotBelongToAnyOf() {
+        List<JavaClass> classes = filterResultOf(classes().that().doNotBelongToAnyOf(ClassWithInnerClasses.class, String.class))
+                .on(ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class, ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class,
+                        List.class, String.class, Iterable.class, StringBuilder.class);
+
+        assertThatTypes(classes).matchInAnyOrder(
+                List.class, Iterable.class, StringBuilder.class);
+    }
+
+    @Test
     public void and_conjunction() {
         List<JavaClass> classes = filterResultOf(
                 classes().that().haveNameMatching(".*\\..*i.*")

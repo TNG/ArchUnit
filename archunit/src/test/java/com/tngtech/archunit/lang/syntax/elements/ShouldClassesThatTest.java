@@ -866,6 +866,17 @@ public class ShouldClassesThatTest {
     }
 
     @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void doNotBelongToAnyOf(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.doNotBelongToAnyOf(ClassWithInnerClasses.class, String.class))
+                .on(ClassAccessingNestedInnerClass.class, ClassWithInnerClasses.class, ClassWithInnerClasses.InnerClass.class,
+                        ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class, ClassAccessingString.class, ClassAccessingIterable.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingIterable.class);
+    }
+
+    @Test
     @UseDataProvider("classes_should_only_that_rule_starts")
     public void only_haveFullyQualifiedName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
