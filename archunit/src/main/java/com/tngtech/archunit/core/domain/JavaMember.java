@@ -81,9 +81,11 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaAnnotation<? extends JavaMember> getAnnotationOfType(String typeName) {
-        return tryGetAnnotationOfType(typeName).getOrThrow(new IllegalArgumentException(String.format(
-                "Member %s is not annotated with @%s",
-                getFullName(), typeName)));
+        Optional<? extends JavaAnnotation<? extends JavaMember>> annotation = tryGetAnnotationOfType(typeName);
+        if (!annotation.isPresent()) {
+            throw new IllegalArgumentException(String.format("Member %s is not annotated with @%s", getFullName(), typeName));
+        }
+        return annotation.get();
     }
 
     @Override
