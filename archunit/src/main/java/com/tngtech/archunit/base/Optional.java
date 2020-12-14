@@ -42,7 +42,6 @@ public abstract class Optional<T> {
     }
 
     @PublicAPI(usage = ACCESS)
-    @SuppressWarnings("unchecked")
     public static <T> Optional<T> absent() {
         return Absent.getInstance();
     }
@@ -53,8 +52,15 @@ public abstract class Optional<T> {
     @PublicAPI(usage = ACCESS)
     public abstract T get();
 
+    /**
+     * @deprecated Use {@link #getOrThrow(Supplier)} instead (this version always instantiates the exception, no matter if needed)
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public abstract T getOrThrow(RuntimeException e);
+
+    @PublicAPI(usage = ACCESS)
+    public abstract T getOrThrow(Supplier<? extends RuntimeException> exceptionSupplier);
 
     @PublicAPI(usage = ACCESS)
     public abstract <U> Optional<U> transform(Function<? super T, U> function);
@@ -115,6 +121,11 @@ public abstract class Optional<T> {
         }
 
         @Override
+        public T getOrThrow(Supplier<? extends RuntimeException> exceptionSupplier) {
+            throw exceptionSupplier.get();
+        }
+
+        @Override
         public <U> Optional<U> transform(Function<? super T, U> function) {
             return absent();
         }
@@ -169,6 +180,11 @@ public abstract class Optional<T> {
 
         @Override
         public T getOrThrow(RuntimeException e) {
+            return object;
+        }
+
+        @Override
+        public T getOrThrow(Supplier<? extends RuntimeException> exceptionSupplier) {
             return object;
         }
 
