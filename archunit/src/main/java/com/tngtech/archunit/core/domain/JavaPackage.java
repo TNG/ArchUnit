@@ -86,12 +86,11 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     @PublicAPI(usage = ACCESS)
     public HasAnnotations<?> getPackageInfo() {
-        return tryGetPackageInfo().getOrThrow(new com.tngtech.archunit.base.Supplier<IllegalArgumentException>() {
-            @Override
-            public IllegalArgumentException get() {
-                return new IllegalArgumentException(String.format("%s does not contain a package-info.java", getDescription()));
-            }
-        });
+        Optional<? extends HasAnnotations<?>> packageInfo = tryGetPackageInfo();
+        if (!packageInfo.isPresent()) {
+            throw new IllegalArgumentException(String.format("%s does not contain a package-info.java", getDescription()));
+        }
+        return packageInfo.get();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -116,14 +115,12 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaAnnotation<JavaPackage> getAnnotationOfType(final String typeName) {
-        return tryGetAnnotationOfType(typeName).getOrThrow(new com.tngtech.archunit.base.Supplier<IllegalArgumentException>() {
-            @Override
-            public IllegalArgumentException get() {
-                return new IllegalArgumentException(
-                        String.format("%s is not annotated with @%s", getDescription(), typeName));
-            }
-        });
+    public JavaAnnotation<JavaPackage> getAnnotationOfType(String typeName) {
+        Optional<JavaAnnotation<JavaPackage>> annotation = tryGetAnnotationOfType(typeName);
+        if (!annotation.isPresent()) {
+            throw new IllegalArgumentException(String.format("%s is not annotated with @%s", getDescription(), typeName));
+        }
+        return annotation.get();
     }
 
     @Override
