@@ -205,6 +205,8 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.namesOf;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
@@ -1709,6 +1711,48 @@ public class ClassFileImporterTest {
         clazz = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
 
         assertThat(clazz.getSuperClass().get().getMethods()).isEmpty();
+    }
+
+    @DataProvider
+    public static Object[][] classes_not_directly_imported() {
+        class Element {
+        }
+        @SuppressWarnings("unused")
+        class DependsOnArray {
+            Element[] array;
+        }
+        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
+        JavaClass resolvedFromClasspath = new ClassFileImporter().importClasses(DependsOnArray.class)
+                .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
+
+        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+        JavaClass stub = new ClassFileImporter().importClasses(DependsOnArray.class)
+                .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
+
+        return $$(
+                $("Resolved from classpath", resolvedFromClasspath),
+                $("Stub class", stub)
+        );
+    }
+
+    @Test
+    @UseDataProvider("classes_not_directly_imported")
+    public void classes_not_directly_imported_have_empty_dependencies(@SuppressWarnings("unused") String description, JavaClass notDirectlyImported) {
+        assertThat(notDirectlyImported.getDirectDependenciesFromSelf()).isEmpty();
+        assertThat(notDirectlyImported.getDirectDependenciesToSelf()).isEmpty();
+        assertThat(notDirectlyImported.getFieldAccessesToSelf()).isEmpty();
+        assertThat(notDirectlyImported.getMethodCallsToSelf()).isEmpty();
+        assertThat(notDirectlyImported.getConstructorCallsToSelf()).isEmpty();
+        assertThat(notDirectlyImported.getAccessesToSelf()).isEmpty();
+        assertThat(notDirectlyImported.getFieldsWithTypeOfSelf()).isEmpty();
+        assertThat(notDirectlyImported.getMethodsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(notDirectlyImported.getMethodsWithReturnTypeOfSelf()).isEmpty();
+        assertThat(notDirectlyImported.getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
+        assertThat(notDirectlyImported.getConstructorsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(notDirectlyImported.getConstructorsWithThrowsDeclarationTypeOfSelf()).isEmpty();
+        assertThat(notDirectlyImported.getAnnotationsWithTypeOfSelf()).isEmpty();
+        assertThat(notDirectlyImported.getAnnotationsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(notDirectlyImported.getInstanceofChecksWithTypeOfSelf()).isEmpty();
     }
 
     @Test
