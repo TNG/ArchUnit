@@ -44,29 +44,11 @@ public interface ImportContext {
 
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
-    Set<JavaFieldAccess> getFieldAccessesFor(JavaCodeUnit codeUnit);
+    Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit);
 
-    Set<JavaMethodCall> getMethodCallsFor(JavaCodeUnit codeUnit);
+    Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit);
 
-    Set<JavaConstructorCall> getConstructorCallsFor(JavaCodeUnit codeUnit);
-
-    Set<JavaField> getFieldsOfType(JavaClass javaClass);
-
-    Set<JavaMethod> getMethodsWithParameterOfType(JavaClass javaClass);
-
-    Set<JavaMethod> getMethodsWithReturnType(JavaClass javaClass);
-
-    Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsOfType(JavaClass javaClass);
-
-    Set<JavaConstructor> getConstructorsWithParameterOfType(JavaClass javaClass);
-
-    Set<ThrowsDeclaration<JavaConstructor>> getConstructorThrowsDeclarationsOfType(JavaClass javaClass);
-
-    Set<JavaAnnotation<?>> getAnnotationsOfType(JavaClass javaClass);
-
-    Set<JavaAnnotation<?>> getAnnotationsWithParameterOfType(JavaClass javaClass);
-
-    Set<InstanceofCheck> getInstanceofChecksOfType(JavaClass javaClass);
+    Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit);
 
     JavaClass resolveClass(String fullyQualifiedClassName);
 

@@ -36,7 +36,6 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
-import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
@@ -82,8 +81,54 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private Set<JavaConstructor> constructors = emptySet();
     private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
     private Optional<JavaClass> superClass = Optional.absent();
+    private final Supplier<List<JavaClass>> allSuperClasses = Suppliers.memoize(new Supplier<List<JavaClass>>() {
+        @Override
+        public List<JavaClass> get() {
+            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+            JavaClass current = JavaClass.this;
+            while (current.getSuperClass().isPresent()) {
+                current = current.getSuperClass().get();
+                result.add(current);
+            }
+            return result.build();
+        }
+    });
     private final Set<JavaClass> interfaces = new HashSet<>();
+    private final Supplier<Set<JavaClass>> allInterfaces = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
+        @Override
+        public Set<JavaClass> get() {
+            ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+            for (JavaClass i : interfaces) {
+                result.add(i);
+                result.addAll(i.getAllInterfaces());
+            }
+            if (superClass.isPresent()) {
+                result.addAll(superClass.get().getAllInterfaces());
+            }
+            return result.build();
+        }
+    });
+    private final Supplier<List<JavaClass>> classHierarchy = Suppliers.memoize(new Supplier<List<JavaClass>>() {
+        @Override
+        public List<JavaClass> get() {
+            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+            result.add(JavaClass.this);
+            result.addAll(getAllSuperClasses());
+            return result.build();
+        }
+    });
     private final Set<JavaClass> subClasses = new HashSet<>();
+    private final Supplier<Set<JavaClass>> allSubClasses = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
+        @Override
+        public Set<JavaClass> get() {
+            Set<JavaClass> result = new HashSet<>();
+            for (JavaClass subClass : subClasses) {
+                result.add(subClass);
+                result.addAll(subClass.getAllSubClasses());
+            }
+            return result;
+        }
+    });
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Optional<JavaClass> componentType = Optional.absent();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
@@ -101,6 +146,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         }
     });
     private JavaClassDependencies javaClassDependencies;
+    private ReverseDependencies reverseDependencies;
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
@@ -618,10 +664,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public List<JavaClass> getClassHierarchy() {
-        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-        result.add(this);
-        result.addAll(getAllSuperClasses());
-        return result.build();
+        return classHierarchy.get();
     }
 
     /**
@@ -630,13 +673,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public List<JavaClass> getAllSuperClasses() {
-        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-        JavaClass current = this;
-        while (current.getSuperClass().isPresent()) {
-            current = current.getSuperClass().get();
-            result.add(current);
-        }
-        return result.build();
+        return allSuperClasses.get();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -651,15 +688,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllInterfaces() {
-        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
-        for (JavaClass i : interfaces) {
-            result.add(i);
-            result.addAll(i.getAllInterfaces());
-        }
-        if (superClass.isPresent()) {
-            result.addAll(superClass.get().getAllInterfaces());
-        }
-        return result.build();
+        return allInterfaces.get();
     }
 
     /**
@@ -686,12 +715,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllSubClasses() {
-        Set<JavaClass> result = new HashSet<>();
-        for (JavaClass subClass : subClasses) {
-            result.add(subClass);
-            result.addAll(subClass.getAllSubClasses());
-        }
-        return result;
+        return allSubClasses.get();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1014,7 +1038,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesToSelf() {
-        return javaClassDependencies.getDirectDependenciesToClass();
+        return reverseDependencies.getDirectDependenciesTo(this);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1058,7 +1082,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaField> getFieldsWithTypeOfSelf() {
-        return javaClassDependencies.getFieldsWithTypeOfClass();
+        return reverseDependencies.getFieldsWithTypeOf(this);
     }
 
     /**
@@ -1066,7 +1090,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethodsWithParameterTypeOfSelf() {
-        return javaClassDependencies.getMethodsWithParameterTypeOfClass();
+        return reverseDependencies.getMethodsWithParameterTypeOf(this);
     }
 
     /**
@@ -1074,7 +1098,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethodsWithReturnTypeOfSelf() {
-        return javaClassDependencies.getMethodsWithReturnTypeOfClass();
+        return reverseDependencies.getMethodsWithReturnTypeOf(this);
     }
 
     /**
@@ -1082,7 +1106,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaMethod>> getMethodThrowsDeclarationsWithTypeOfSelf() {
-        return javaClassDependencies.getMethodThrowsDeclarationsWithTypeOfClass();
+        return reverseDependencies.getMethodThrowsDeclarationsWithTypeOf(this);
     }
 
     /**
@@ -1090,7 +1114,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructor> getConstructorsWithParameterTypeOfSelf() {
-        return javaClassDependencies.getConstructorsWithParameterTypeOfClass();
+        return reverseDependencies.getConstructorsWithParameterTypeOf(this);
     }
 
     /**
@@ -1098,7 +1122,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<ThrowsDeclaration<JavaConstructor>> getConstructorsWithThrowsDeclarationTypeOfSelf() {
-        return javaClassDependencies.getConstructorsWithThrowsDeclarationTypeOfClass();
+        return reverseDependencies.getConstructorsWithThrowsDeclarationTypeOf(this);
     }
 
     /**
@@ -1106,7 +1130,23 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaAnnotation<?>> getAnnotationsWithTypeOfSelf() {
-        return javaClassDependencies.getAnnotationsWithTypeOfClass();
+        return reverseDependencies.getAnnotationsWithTypeOf(this);
+    }
+
+    /**
+     * @return All imported {@link JavaAnnotation JavaAnnotations} that have a parameter with type of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaAnnotation<?>> getAnnotationsWithParameterTypeOfSelf() {
+        return reverseDependencies.getAnnotationsWithParameterTypeOf(this);
+    }
+
+    /**
+     * @return All imported {@link InstanceofCheck InstanceofChecks} that check if another class is an instance of this class.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<InstanceofCheck> getInstanceofChecksWithTypeOfSelf() {
+        return reverseDependencies.getInstanceofChecksWithTypeOf(this);
     }
 
     /**
@@ -1255,10 +1295,13 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         }
     }
 
-    CompletionProcess completeFrom(ImportContext context) {
+    JavaClassDependencies completeFrom(ImportContext context) {
         completeComponentType(context);
-        javaClassDependencies = new JavaClassDependencies(this, context);
-        return new CompletionProcess();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            codeUnit.completeFrom(context);
+        }
+        javaClassDependencies = new JavaClassDependencies(this);
+        return javaClassDependencies;
     }
 
     private void completeComponentType(ImportContext context) {
@@ -1267,6 +1310,13 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             JavaClass componentType = context.resolveClass(current.descriptor.tryGetComponentType().get().getFullyQualifiedClassName());
             current.componentType = Optional.of(componentType);
             current = componentType;
+        }
+    }
+
+    void setReverseDependencies(ReverseDependencies reverseDependencies) {
+        this.reverseDependencies = reverseDependencies;
+        for (JavaMember member : members) {
+            member.setReverseDependencies(reverseDependencies);
         }
     }
 
@@ -1787,16 +1837,6 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             public boolean apply(JavaClass input) {
                 return input.isEquivalentTo(clazz);
             }
-        }
-    }
-
-    class CompletionProcess {
-        AccessContext.Part completeCodeUnitsFrom(ImportContext context) {
-            AccessContext.Part part = new AccessContext.Part();
-            for (JavaCodeUnit codeUnit : codeUnits) {
-                part.mergeWith(codeUnit.completeFrom(context));
-            }
-            return part;
         }
     }
 

@@ -52,6 +52,7 @@ public abstract class JavaMember implements
     private final JavaClass owner;
     private final SourceCodeLocation sourceCodeLocation;
     private final Set<JavaModifier> modifiers;
+    private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;
 
     JavaMember(JavaMemberBuilder<?, ?> builder) {
         this.name = checkNotNull(builder.getName());
@@ -181,6 +182,14 @@ public abstract class JavaMember implements
 
     void completeAnnotations(ImportContext context) {
         annotations = context.createAnnotations(this);
+    }
+
+    protected ReverseDependencies getReverseDependencies() {
+        return reverseDependencies;
+    }
+
+    void setReverseDependencies(ReverseDependencies reverseDependencies) {
+        this.reverseDependencies = reverseDependencies;
     }
 
     @Override

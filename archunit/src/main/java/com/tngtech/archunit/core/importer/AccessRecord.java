@@ -17,11 +17,16 @@ package com.tngtech.archunit.core.importer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Optional;
@@ -36,10 +41,8 @@ import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.properties.HasDescriptor;
-import com.tngtech.archunit.core.domain.properties.HasName;
-import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
@@ -48,6 +51,7 @@ import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
+import static java.util.Collections.singletonList;
 
 interface AccessRecord<TARGET extends AccessTarget> {
     JavaCodeUnit getCaller();
@@ -140,7 +144,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
                 @Override
                 public Optional<JavaConstructor> get() {
-                    return uniqueTargetIn(tryFindMatchingTargets(targetOwner.getAllConstructors(), target));
+                    for (JavaConstructor constructor : targetOwner.getConstructors()) {
+                        if (constructor.getDescriptor().equals(target.desc)) {
+                            return Optional.of(constructor);
+                        }
+                    }
+                    return Optional.absent();
                 }
             }
         }
@@ -193,7 +202,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
                 @Override
                 public Set<JavaMethod> get() {
-                    return tryFindMatchingTargets(allMethods, target);
+                    return tryFindMatchingTargets(allMethods, target, METHOD_SIGNATURE_PREDICATE);
                 }
             }
         }
@@ -249,7 +258,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
                 @Override
                 public Optional<JavaField> get() {
-                    return uniqueTargetIn(tryFindMatchingTargets(allFields, target));
+                    return uniqueTargetIn(tryFindMatchingTargets(allFields, target, FIELD_SIGNATURE_PREDICATE));
                 }
             }
         }
@@ -273,16 +282,58 @@ interface AccessRecord<TARGET extends AccessTarget> {
                     " that matches supposed caller " + caller);
         }
 
-        private static <T extends HasName & HasDescriptor & HasOwner<JavaClass>> Set<T>
-        tryFindMatchingTargets(Set<T> possibleTargets, TargetInfo targetInfo) {
-            ImmutableSet.Builder<T> result = ImmutableSet.builder();
-            for (T possibleTarget : possibleTargets) {
-                if (targetInfo.matches(possibleTarget)) {
+        private static <MEMBER extends JavaMember, TARGET extends TargetInfo> Set<MEMBER>
+        tryFindMatchingTargets(Set<MEMBER> possibleTargets, TARGET target, SignaturePredicate<TARGET> signaturePredicate) {
+            ImmutableSet.Builder<MEMBER> result = ImmutableSet.builder();
+            for (MEMBER possibleTarget : possibleTargets) {
+                if (matches(possibleTarget, target, signaturePredicate)) {
                     result.add(possibleTarget);
                 }
             }
             return result.build();
         }
+
+        private static <MEMBER extends JavaMember, TARGET extends TargetInfo> boolean matches(MEMBER member, TARGET target, SignaturePredicate<TARGET> signaturePredicate) {
+            if (!target.name.equals(member.getName()) || !target.desc.equals(member.getDescriptor())) {
+                return false;
+            }
+            return target.owner.getFullyQualifiedClassName().equals(member.getOwner().getName()) ||
+                    containsExactlyOneMatch(new ClassHierarchyPath(target.owner, member.getOwner()), target, signaturePredicate);
+        }
+
+        private static <TARGET extends TargetInfo> boolean containsExactlyOneMatch(Iterable<JavaClass> classes, TARGET target, SignaturePredicate<TARGET> signaturePredicate) {
+            Set<JavaClass> matching = new HashSet<>();
+            for (JavaClass javaClass : classes) {
+                if (signaturePredicate.exists(javaClass, target)) {
+                    matching.add(javaClass);
+                }
+            }
+            return matching.size() == 1;
+        }
+
+        private interface SignaturePredicate<TARGET extends TargetInfo> {
+            boolean exists(JavaClass clazz, TARGET target);
+        }
+
+        private static final SignaturePredicate<TargetInfo> FIELD_SIGNATURE_PREDICATE = new SignaturePredicate<TargetInfo>() {
+            @Override
+            public boolean exists(JavaClass clazz, TargetInfo target) {
+                Optional<JavaField> field = clazz.tryGetField(target.name);
+                return field.isPresent() && target.desc.equals(field.get().getDescriptor());
+            }
+        };
+
+        private static final SignaturePredicate<TargetInfo> METHOD_SIGNATURE_PREDICATE = new SignaturePredicate<TargetInfo>() {
+            @Override
+            public boolean exists(JavaClass clazz, TargetInfo target) {
+                for (JavaMethod method : clazz.getMethods()) {
+                    if (method.getName().equals(target.name) && method.getDescriptor().equals(target.desc)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
 
         private static <T> Optional<T> uniqueTargetIn(Collection<T> collection) {
             return collection.size() == 1 ? Optional.of(getOnlyElement(collection)) : Optional.<T>absent();
@@ -294,6 +345,153 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 paramTypes.add(classes.getOrResolve(type.getFullyQualifiedClassName()));
             }
             return createJavaClassList(paramTypes);
+        }
+
+        private static class ClassHierarchyPath implements Iterable<JavaClass> {
+            private final List<JavaClass> path;
+
+            public ClassHierarchyPath(JavaClassDescriptor childType, JavaClass parent) {
+                Optional<JavaClass> child = tryFindChildInHierarchy(childType, parent);
+                path = child.isPresent() ? createPath(parent, child.get()) : Collections.<JavaClass>emptyList();
+            }
+
+            private Optional<JavaClass> tryFindChildInHierarchy(JavaClassDescriptor childType, JavaClass parent) {
+                for (JavaClass subclass : parent.getAllSubClasses()) {
+                    if (subclass.getName().equals(childType.getFullyQualifiedClassName())) {
+                        return Optional.of(subclass);
+                    }
+                }
+                return Optional.absent();
+            }
+
+            private List<JavaClass> createPath(JavaClass parent, JavaClass child) {
+                ImmutableList.Builder<JavaClass> pathBuilder = ImmutableList.<JavaClass>builder().add(child);
+                HierarchyResolutionStrategy hierarchyResolutionStrategy = hierarchyResolutionStrategyFrom(child).to(parent);
+                while (hierarchyResolutionStrategy.hasNext()) {
+                    pathBuilder.add(hierarchyResolutionStrategy.next());
+                }
+                return pathBuilder.build();
+            }
+
+            private HierarchyResolutionStrategyCreator hierarchyResolutionStrategyFrom(JavaClass child) {
+                return new HierarchyResolutionStrategyCreator(child);
+            }
+
+            @Override
+            public Iterator<JavaClass> iterator() {
+                return path.iterator();
+            }
+
+            private interface HierarchyResolutionStrategy {
+                boolean hasNext();
+
+                JavaClass next();
+            }
+
+            private static class HierarchyResolutionStrategyCreator {
+                private final JavaClass child;
+
+                private HierarchyResolutionStrategyCreator(JavaClass child) {
+                    this.child = child;
+                }
+
+                public HierarchyResolutionStrategy to(JavaClass parent) {
+                    return parent.isInterface() ?
+                            new InterfaceHierarchyResolutionStrategy(child, parent) :
+                            new ClassHierarchyResolutionStrategy(child, parent);
+                }
+            }
+
+            private static class ClassHierarchyResolutionStrategy implements HierarchyResolutionStrategy {
+                private final JavaClass parent;
+                private JavaClass current;
+
+                private ClassHierarchyResolutionStrategy(JavaClass child, JavaClass parent) {
+                    this.current = child;
+                    this.parent = parent;
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return !current.equals(parent) && current.getSuperClass().isPresent();
+                }
+
+                @Override
+                public JavaClass next() {
+                    current = current.getSuperClass().get();
+                    return current;
+                }
+            }
+
+            private static class InterfaceHierarchyResolutionStrategy implements HierarchyResolutionStrategy {
+                private final Iterator<JavaClass> interfaces;
+                private final JavaClass parent;
+                private JavaClass current;
+
+                private InterfaceHierarchyResolutionStrategy(JavaClass child, JavaClass parent) {
+                    interfaces = interfacesBetween(child, parent);
+                    this.parent = parent;
+                    current = child;
+                }
+
+                private Iterator<JavaClass> interfacesBetween(JavaClass from, JavaClass target) {
+                    Node node = new Node(from);
+                    List<JavaClass> result = new ArrayList<>();
+                    for (Node parent : node.parents) {
+                        result.addAll(parent.to(target));
+                    }
+                    return result.iterator();
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return !current.equals(parent) && interfaces.hasNext();
+                }
+
+                @Override
+                public JavaClass next() {
+                    current = interfaces.next();
+                    return current;
+                }
+            }
+
+            private static class Node {
+                private final JavaClass child;
+                private final Set<Node> parents = new HashSet<>();
+
+                private Node(JavaClass child) {
+                    this.child = child;
+                    for (JavaClass i : child.getInterfaces()) {
+                        parents.add(new Node(i));
+                    }
+                }
+
+                public List<JavaClass> to(JavaClass target) {
+                    if (child.equals(target)) {
+                        return singletonList(child);
+                    }
+                    Set<JavaClass> result = new LinkedHashSet<>();
+                    for (Node parent : parents) {
+                        if (parent.contains(target)) {
+                            result.add(child);
+                            result.addAll(parent.to(target));
+                        }
+                    }
+                    return new ArrayList<>(result);
+                }
+
+                public boolean contains(JavaClass target) {
+                    if (child.equals(target)) {
+                        return true;
+                    }
+                    for (Node parent : parents) {
+                        if (parent.contains(target)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
         }
     }
 }

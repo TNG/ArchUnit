@@ -139,6 +139,11 @@ public class ExpectedDependency implements ExpectedRelation {
             return new ExpectedDependency(owner, returnType, dependencyPattern);
         }
 
+        public ExpectedDependency dependingOnComponentType(Class<?> componentType) {
+            String dependencyPattern = getDependencyPattern(getOriginName(), "depends on component type", componentType.getName(), 0);
+            return new ExpectedDependency(owner, componentType, dependencyPattern);
+        }
+
         public ExpectedDependency withAnnotationType(Class<?> annotationType) {
             return new ExpectedDependency(owner, annotationType, getDependencyPattern(getOriginName(), "is annotated with", annotationType.getName(), 0));
         }

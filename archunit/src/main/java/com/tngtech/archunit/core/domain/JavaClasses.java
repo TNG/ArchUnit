@@ -17,10 +17,8 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -29,7 +27,6 @@ import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.ForwardingCollection;
 import com.tngtech.archunit.base.Guava;
-import com.tngtech.archunit.core.domain.DomainObjectCreationContext.AccessContext;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -196,13 +193,14 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
     static JavaClasses of(
             Map<String, JavaClass> selectedClasses, Collection<JavaClass> allClasses, ImportContext importContext) {
 
-        CompletionProcess completionProcess = new CompletionProcess(allClasses, importContext);
+        ReverseDependencies.Creation reverseDependenciesCreation = new ReverseDependencies.Creation();
         JavaPackage defaultPackage = JavaPackage.from(allClasses);
         for (JavaClass clazz : allClasses) {
             setPackage(clazz, defaultPackage);
-            completionProcess.completeClass(clazz);
+            JavaClassDependencies classDependencies = clazz.completeFrom(importContext);
+            reverseDependenciesCreation.registerDependenciesOf(clazz, classDependencies);
         }
-        completionProcess.finish();
+        reverseDependenciesCreation.finish(allClasses);
         return new JavaClasses(defaultPackage, selectedClasses);
     }
 
@@ -211,28 +209,5 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
                 ? defaultPackage
                 : defaultPackage.getPackage(clazz.getPackageName());
         clazz.setPackage(javaPackage);
-    }
-
-    private static class CompletionProcess {
-        private final Set<JavaClass.CompletionProcess> classCompletionProcesses = new HashSet<>();
-        private final Collection<JavaClass> classes;
-        private final ImportContext context;
-
-        CompletionProcess(Collection<JavaClass> classes, ImportContext context) {
-            this.classes = classes;
-            this.context = context;
-        }
-
-        void completeClass(JavaClass clazz) {
-            classCompletionProcesses.add(clazz.completeFrom(context));
-        }
-
-        void finish() {
-            AccessContext.TopProcess accessCompletionProcess = new AccessContext.TopProcess(classes);
-            for (JavaClass.CompletionProcess process : classCompletionProcesses) {
-                accessCompletionProcess.mergeWith(process.completeCodeUnitsFrom(context));
-            }
-            accessCompletionProcess.finish();
-        }
     }
 }

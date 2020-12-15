@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -27,6 +26,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
@@ -54,32 +54,31 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     private final int lineNumber;
     private final String description;
     private final SourceCodeLocation sourceCodeLocation;
+    private final int hashCode;
 
     private Dependency(JavaClass originClass, JavaClass targetClass, int lineNumber, String description) {
+        checkArgument(!originClass.equals(targetClass) || targetClass.isPrimitive(),
+                "Tried to create illegal dependency '%s' (%s -> %s), this is likely a bug!",
+                description, originClass.getSimpleName(), targetClass.getSimpleName());
+
         this.originClass = originClass;
         this.targetClass = targetClass;
         this.lineNumber = lineNumber;
         this.description = description;
         this.sourceCodeLocation = SourceCodeLocation.of(originClass, lineNumber);
+        hashCode = Objects.hash(originClass, targetClass, lineNumber, description);
     }
 
     static Set<Dependency> tryCreateFromAccess(JavaAccess<?> access) {
         JavaClass originOwner = access.getOriginOwner();
         JavaClass targetOwner = access.getTargetOwner();
-        if (originOwner.equals(targetOwner) || targetOwner.isPrimitive()) {
-            return Collections.emptySet();
-        }
-
         ImmutableSet.Builder<Dependency> dependencies = ImmutableSet.<Dependency>builder()
                 .addAll(createComponentTypeDependencies(originOwner, access.getOrigin().getDescription(), targetOwner, access.getSourceCodeLocation()));
-        dependencies.add(new Dependency(originOwner, targetOwner, access.getLineNumber(), access.getDescription()));
+        dependencies.addAll(tryCreateDependency(originOwner, targetOwner, access.getDescription(), access.getLineNumber()).asSet());
         return dependencies.build();
     }
 
     static Dependency fromInheritance(JavaClass origin, JavaClass targetSuperType) {
-        checkArgument(!origin.equals(targetSuperType) && !targetSuperType.isPrimitive(),
-                "It should never be possible to create an inheritance dependency to self or any primitive");
-
         String originType = origin.isInterface() ? "Interface" : "Class";
         String originDescription = originType + " " + bracketFormat(origin.getName());
 
@@ -91,7 +90,13 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetType + " " + targetDescription;
 
         String description = dependencyDescription + " in " + origin.getSourceCodeLocation();
-        return new Dependency(origin, targetSuperType, 0, description);
+        Optional<Dependency> result = tryCreateDependency(origin, targetSuperType, description, 0);
+
+        if (!result.isPresent()) {
+            throw new IllegalStateException(String.format("Tried to create illegal inheritance dependency '%s' (%s -> %s), this is likely a bug!",
+                    description, origin.getSimpleName(), targetSuperType.getSimpleName()));
+        }
+        return result.get();
     }
 
     static Set<Dependency> tryCreateFromField(JavaField field) {
@@ -153,31 +158,33 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
 
     private static Set<Dependency> tryCreateDependency(
             JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
-
-        if (originClass.equals(targetClass) || targetClass.isPrimitive()) {
-            return Collections.emptySet();
-        }
-
         ImmutableSet.Builder<Dependency> dependencies = ImmutableSet.<Dependency>builder()
                 .addAll(createComponentTypeDependencies(originClass, originDescription, targetClass, sourceCodeLocation));
         String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
         String description = dependencyDescription + " in " + sourceCodeLocation;
-        dependencies.add(new Dependency(originClass, targetClass, sourceCodeLocation.getLineNumber(), description));
+        dependencies.addAll(tryCreateDependency(originClass, targetClass, description, sourceCodeLocation.getLineNumber()).asSet());
         return dependencies.build();
     }
 
     private static Set<Dependency> createComponentTypeDependencies(JavaClass originClass, String originDescription, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        JavaClass componentType = targetClass;
-        while (componentType.isArray()) {
-            componentType = componentType.getComponentType();
-            String componentTypeTargetDescription = bracketFormat(componentType.getName());
+        Optional<JavaClass> componentType = targetClass.tryGetComponentType();
+        while (componentType.isPresent()) {
+            String componentTypeTargetDescription = bracketFormat(componentType.get().getName());
             String componentTypeDependencyDescription = originDescription + " depends on component type " + componentTypeTargetDescription;
             String componentTypeDescription = componentTypeDependencyDescription + " in " + sourceCodeLocation;
-            result.add(new Dependency(originClass, componentType, sourceCodeLocation.getLineNumber(), componentTypeDescription));
+            result.addAll(tryCreateDependency(originClass, componentType.get(), componentTypeDescription, sourceCodeLocation.getLineNumber()).asSet());
+            componentType = componentType.get().tryGetComponentType();
         }
         return result.build();
+    }
+
+    private static Optional<Dependency> tryCreateDependency(JavaClass originClass, JavaClass targetClass, String description, int lineNumber) {
+        if (originClass.equals(targetClass) || targetClass.isPrimitive()) {
+            return Optional.absent();
+        }
+        return Optional.of(new Dependency(originClass, targetClass, lineNumber, description));
     }
 
     private static String bracketFormat(String name) {
@@ -217,7 +224,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
 
     @Override
     public int hashCode() {
-        return Objects.hash(originClass, targetClass, lineNumber, description);
+        return hashCode;
     }
 
     @Override
