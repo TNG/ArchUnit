@@ -28,8 +28,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
-import com.tngtech.archunit.core.importer.RawAccessRecord.ConstructorTargetInfo;
-import com.tngtech.archunit.core.importer.RawAccessRecord.MethodTargetInfo;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImporter;
@@ -158,7 +156,7 @@ class ClassFileProcessor {
         public void handleFieldInstruction(int opcode, String owner, String name, String desc) {
             AccessType accessType = AccessType.forOpCode(opcode);
             LOG.trace("Found {} access to field {}.{}:{} in line {}", accessType, owner, name, desc, lineNumber);
-            TargetInfo target = new RawAccessRecord.FieldTargetInfo(owner, name, desc);
+            TargetInfo target = new TargetInfo(owner, name, desc);
             importRecord.registerFieldAccess(filled(new RawAccessRecord.ForField.Builder(), target)
                     .withAccessType(accessType)
                     .build());
@@ -168,10 +166,10 @@ class ClassFileProcessor {
         public void handleMethodInstruction(String owner, String name, String desc) {
             LOG.trace("Found call of method {}.{}:{} in line {}", owner, name, desc, lineNumber);
             if (CONSTRUCTOR_NAME.equals(name)) {
-                TargetInfo target = new ConstructorTargetInfo(owner, name, desc);
+                TargetInfo target = new TargetInfo(owner, name, desc);
                 importRecord.registerConstructorCall(filled(new RawAccessRecord.Builder(), target).build());
             } else {
-                TargetInfo target = new MethodTargetInfo(owner, name, desc);
+                TargetInfo target = new TargetInfo(owner, name, desc);
                 importRecord.registerMethodCall(filled(new RawAccessRecord.Builder(), target).build());
             }
         }

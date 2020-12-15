@@ -16,13 +16,10 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Constructor;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
 import com.tngtech.archunit.base.Optional;
@@ -36,7 +33,6 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 public final class JavaConstructor extends JavaCodeUnit {
     private final Supplier<Constructor<?>> constructorSupplier;
     private final ThrowsClause<JavaConstructor> throwsClause;
-    private Set<JavaConstructorCall> callsToSelf = Collections.emptySet();
 
     @PublicAPI(usage = ACCESS)
     public static final String CONSTRUCTOR_NAME = "<init>";
@@ -67,7 +63,7 @@ public final class JavaConstructor extends JavaCodeUnit {
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getAccessesToSelf() {
-        return callsToSelf;
+        return getReverseDependencies().getCallsTo(this);
     }
 
     @Override
@@ -100,10 +96,6 @@ public final class JavaConstructor extends JavaCodeUnit {
     @PublicAPI(usage = ACCESS)
     public String getDescription() {
         return "Constructor <" + getFullName() + ">";
-    }
-
-    void registerCallsToConstructor(Collection<JavaConstructorCall> calls) {
-        this.callsToSelf = ImmutableSet.copyOf(calls);
     }
 
     @ResolvesTypesViaReflection
