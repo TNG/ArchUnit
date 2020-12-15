@@ -25,6 +25,10 @@ public class ExpectedDependency implements ExpectedRelation {
         return new InheritanceCreator(clazz);
     }
 
+    public static TypeParameterCreator typeParameter(Class<?> clazz, String typeParameterName) {
+        return new TypeParameterCreator(clazz, typeParameterName);
+    }
+
     public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {
         return new AnnotationDependencyCreator(clazz);
     }
@@ -82,6 +86,21 @@ public class ExpectedDependency implements ExpectedRelation {
         public ExpectedDependency implementing(Class<?> anInterface) {
             return new ExpectedDependency(clazz, anInterface,
                     getDependencyPattern(clazz.getName(), "implements", anInterface.getName(), 0));
+        }
+    }
+
+    public static class TypeParameterCreator {
+        private final Class<?> clazz;
+        private final String typeParameterName;
+
+        private TypeParameterCreator(Class<?> clazz, String typeParameterName) {
+            this.clazz = clazz;
+            this.typeParameterName = typeParameterName;
+        }
+
+        public ExpectedDependency dependingOn(Class<?> typeParameterDependency) {
+            return new ExpectedDependency(clazz, typeParameterDependency,
+                    getDependencyPattern(clazz.getName(), "has type parameter '" + typeParameterName + "' depending on", typeParameterDependency.getName(), 0));
         }
     }
 

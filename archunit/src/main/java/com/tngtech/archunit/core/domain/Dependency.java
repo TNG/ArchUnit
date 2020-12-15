@@ -120,26 +120,31 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     static Set<Dependency> tryCreateFromAnnotation(JavaAnnotation<?> target) {
-        Origin origin = findSuitableOrigin(target);
+        Origin origin = findSuitableOrigin(target, target.getAnnotatedElement());
         return tryCreateDependency(origin.originClass, origin.originDescription, "is annotated with", target.getRawType());
     }
 
     static Set<Dependency> tryCreateFromAnnotationMember(JavaAnnotation<?> annotation, JavaClass memberType) {
-        Origin origin = findSuitableOrigin(annotation);
+        Origin origin = findSuitableOrigin(annotation, annotation.getAnnotatedElement());
         return tryCreateDependency(origin.originClass, origin.originDescription, "has annotation member of type", memberType);
     }
 
-    private static Origin findSuitableOrigin(JavaAnnotation<?> annotation) {
-        Object annotatedElement = annotation.getAnnotatedElement();
-        if (annotatedElement instanceof JavaMember) {
-            JavaMember member = (JavaMember) annotatedElement;
+    static Set<Dependency> tryCreateFromTypeParameter(JavaTypeVariable<?> typeParameter, JavaClass typeParameterDependency) {
+        String dependencyType = "has type parameter '" + typeParameter.getName() + "' depending on";
+        Origin origin = findSuitableOrigin(typeParameter, typeParameter.getOwner());
+        return tryCreateDependency(origin.originClass, origin.originDescription, dependencyType, typeParameterDependency);
+    }
+
+    private static Origin findSuitableOrigin(Object dependencyCause, Object originCandidate) {
+        if (originCandidate instanceof JavaMember) {
+            JavaMember member = (JavaMember) originCandidate;
             return new Origin(member.getOwner(), member.getDescription());
         }
-        if (annotatedElement instanceof JavaClass) {
-            JavaClass clazz = (JavaClass) annotatedElement;
+        if (originCandidate instanceof JavaClass) {
+            JavaClass clazz = (JavaClass) originCandidate;
             return new Origin(clazz, clazz.getDescription());
         }
-        throw new IllegalStateException("Could not find suitable dependency origin for " + annotation);
+        throw new IllegalStateException("Could not find suitable dependency origin for " + dependencyCause);
     }
 
     private static Set<Dependency> tryCreateDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {

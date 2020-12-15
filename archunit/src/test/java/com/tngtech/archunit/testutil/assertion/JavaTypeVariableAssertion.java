@@ -23,8 +23,8 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.ExpectedConcreteWildcardType.wildcardType;
 import static java.util.Collections.emptyList;
 
-public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVariableAssertion, JavaTypeVariable> {
-    public JavaTypeVariableAssertion(JavaTypeVariable actual) {
+public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVariableAssertion, JavaTypeVariable<?>> {
+    public JavaTypeVariableAssertion(JavaTypeVariable<?> actual) {
         super(actual, JavaTypeVariableAssertion.class);
     }
 
@@ -215,7 +215,7 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         @Override
         public void assertMatchWith(JavaType actual, DescriptionContext context) {
             assertThat(actual).as(context.step("JavaType").toString()).isInstanceOf(JavaTypeVariable.class);
-            JavaTypeVariable actualTypeVariable = (JavaTypeVariable) actual;
+            JavaTypeVariable<?> actualTypeVariable = (JavaTypeVariable<?>) actual;
             assertThat(actualTypeVariable.getName()).as(context.step("type variable name").toString()).isEqualTo(name);
 
             if (upperBounds != null) {

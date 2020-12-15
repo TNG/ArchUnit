@@ -96,7 +96,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaTypeAssertion(javaType);
     }
 
-    public static JavaTypeVariableAssertion assertThatTypeVariable(JavaTypeVariable typeVariable) {
+    public static JavaTypeVariableAssertion assertThatTypeVariable(JavaTypeVariable<?> typeVariable) {
         return new JavaTypeVariableAssertion(typeVariable);
     }
 

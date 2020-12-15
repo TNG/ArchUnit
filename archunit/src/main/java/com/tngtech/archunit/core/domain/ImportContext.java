@@ -28,7 +28,7 @@ public interface ImportContext {
 
     Set<JavaClass> createInterfaces(JavaClass owner);
 
-    List<JavaTypeVariable> createTypeParameters(JavaClass owner);
+    List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner);
 
     Set<JavaField> createFields(JavaClass owner);
 
