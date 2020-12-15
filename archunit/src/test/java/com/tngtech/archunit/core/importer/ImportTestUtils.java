@@ -342,7 +342,7 @@ public class ImportTestUtils {
         }
 
         @Override
-        public List<JavaTypeVariable> createTypeParameters(JavaClass owner) {
+        public List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner) {
             return Collections.emptyList();
         }
 

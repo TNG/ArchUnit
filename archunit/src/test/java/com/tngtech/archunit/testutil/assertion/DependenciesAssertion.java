@@ -166,13 +166,10 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         }
 
         boolean matches(Dependency dependency) {
-            if (!dependency.getOriginClass().isEquivalentTo(origin) || !dependency.getTargetClass().isEquivalentTo(target)) {
-                return false;
-            }
-            if (descriptionPattern.isPresent() && !descriptionPattern.get().matcher(dependency.getDescription()).matches()) {
-                return false;
-            }
-            return !locationPart.isPresent() || dependency.getDescription().endsWith(locationPart.get());
+            return dependency.getOriginClass().isEquivalentTo(origin)
+                    && dependency.getTargetClass().isEquivalentTo(target)
+                    && (!descriptionPattern.isPresent() || descriptionPattern.get().matcher(dependency.getDescription()).matches())
+                    && (!locationPart.isPresent() || dependency.getDescription().endsWith(locationPart.get()));
         }
 
         public void descriptionContaining(String descriptionTemplate, Object[] args) {

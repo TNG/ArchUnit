@@ -46,7 +46,7 @@ public class JavaWildcardType implements JavaType, HasUpperBounds {
     private final List<JavaType> lowerBounds;
     private final JavaClass erasure;
 
-    JavaWildcardType(JavaWildcardTypeBuilder builder) {
+    JavaWildcardType(JavaWildcardTypeBuilder<?> builder) {
         upperBounds = builder.getUpperBounds();
         lowerBounds = builder.getLowerBounds();
         erasure = builder.getUnboundErasureType(upperBounds);

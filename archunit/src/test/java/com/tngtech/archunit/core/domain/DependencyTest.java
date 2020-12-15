@@ -258,6 +258,24 @@ public class DependencyTest {
     }
 
     @Test
+    public void Dependency_from_type_parameter() {
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameters<T extends String> {
+        }
+
+        JavaClass javaClass = importClassesWithContext(ClassWithTypeParameters.class, String.class).get(ClassWithTypeParameters.class);
+        JavaTypeVariable<?> typeParameter = javaClass.getTypeParameters().get(0);
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromTypeParameter(typeParameter, typeParameter.getUpperBounds().get(0).toErasure()));
+
+        assertThatType(dependency.getOriginClass()).matches(ClassWithTypeParameters.class);
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "Class <%s> has type parameter '%s' depending on <%s> in (%s.java:0)",
+                ClassWithTypeParameters.class.getName(), typeParameter.getName(), String.class.getName(), getClass().getSimpleName()));
+    }
+
+    @Test
     public void origin_predicates_match() {
         assertThatDependency(Origin.class, Target.class)
                 .matchesOrigin(Origin.class)
