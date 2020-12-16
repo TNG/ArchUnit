@@ -27,7 +27,7 @@ classes().that().resideInAPackage("..foo..")
 
 ```
 classes().that().haveNameMatching(".*Bar")
-    .should().onlyBeAccessed().byClassesThat().haveSimpleName("Bar")
+    .should().onlyHaveDependentClassesThat().haveSimpleName("Bar")
 ```
         
         
@@ -54,7 +54,7 @@ classes().that().implement(Connection.class)
 
 ```
 classes().that().areAssignableTo(EntityManager.class)
-    .should().onlyBeAccessed().byAnyPackage("..persistence..")
+    .should().onlyHaveDependentClassesThat().resideInAnyPackage("..persistence..")
 ```
         
         
@@ -64,7 +64,7 @@ classes().that().areAssignableTo(EntityManager.class)
 
 ```
 classes().that().areAssignableTo(EntityManager.class)
-    .should().onlyBeAccessed().byClassesThat().areAnnotatedWith(Transactional.class)
+    .should().onlyHaveDependentClassesThat().areAnnotatedWith(Transactional.class)
 ```
         
         

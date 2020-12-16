@@ -877,7 +877,7 @@ class MyArchitectureTest {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().haveNameMatching(".*Bar")
-    .should().onlyBeAccessed().byClassesThat().haveSimpleName("Bar")</code></pre>
+    .should().onlyHaveDependentClassesThat().haveSimpleName("Bar")</code></pre>
 </div>
 </div>
 </div>
@@ -916,7 +916,7 @@ class MyArchitectureTest {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().areAssignableTo(EntityManager.class)
-    .should().onlyBeAccessed().byAnyPackage("..persistence..")</code></pre>
+    .should().onlyHaveDependentClassesThat().resideInAnyPackage("..persistence..")</code></pre>
 </div>
 </div>
 </div>
@@ -930,7 +930,7 @@ class MyArchitectureTest {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().areAssignableTo(EntityManager.class)
-    .should().onlyBeAccessed().byClassesThat().areAnnotatedWith(Transactional.class)</code></pre>
+    .should().onlyHaveDependentClassesThat().areAnnotatedWith(Transactional.class)</code></pre>
 </div>
 </div>
 </div>
