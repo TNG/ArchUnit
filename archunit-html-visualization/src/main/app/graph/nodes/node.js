@@ -597,6 +597,23 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       if (doRecursiveFocus) {
         const dependenciesOfNode = this._root.getDependenciesOfNode(this);
         dependenciesOfNode.forEach(dependency => dependency.setContainerEndNodeToEndNodeInForeground());
+        if (this._isLeaf()) {
+          const siblings = this._parent._originalChildren.filter(node => node !== this);
+          const dependentNodes = dependenciesOfNode.filter(dependency => dependency.originNode === this || dependency.targetNode === this)
+            .map(dependency => dependency.originNode === this ? dependency.targetNode : dependency.originNode);
+          // find all dependencies of dependentNodes in parent
+          const dependentSiblings = dependentNodes.filter(node => siblings.indexOf(node) >= 0);
+          const dependenciesOfDependentSiblings = [].concat.apply([], dependentSiblings.map(node => this._root.getDependenciesOfNode(node)))
+            .filter(dependency => siblings.indexOf(dependency.originNode) >= 0 && siblings.indexOf(dependency.targetNode) >= 0);
+          // find all nodes from siblings that overlaps with start or end point
+          const dependentNodesOfDependentSiblings = dependenciesOfDependentSiblings.map(dependency => dependency.originNode !== this ? dependency.originNode : dependency.targetNode);
+          const overlappingNodes = siblings.filter(sibling => dependentNodesOfDependentSiblings.filter(node => node !== sibling)
+            .map(dependentNode => sibling.overlapsWith(dependentNode))
+            .includes(true));
+          const dependenciesOverlappingNode = dependenciesOfDependentSiblings.filter(d => overlappingNodes.map(node => node._nodeShape.containsPoint(d.startPoint) ||
+            node._nodeShape.containsPoint(d.endPoint) && (d.originNode !== node && d.targetNode !== node)).includes(true));
+          dependenciesOverlappingNode.forEach(d => d.setContainerEndNodeToEndNodeInBackground());
+        }
       }
     }
 
