@@ -145,8 +145,9 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                     .build();
         }
     });
-    private JavaClassDependencies javaClassDependencies;
-    private ReverseDependencies reverseDependencies;
+    private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
+    private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
+    private boolean fullyImported = false;
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
@@ -1031,6 +1032,17 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     /**
+     * Returns the transitive closure of all dependencies originating from this class, i.e. its direct dependencies
+     * and the dependencies from all imported target classes.
+     * @return all transitive dependencies (including direct dependencies) from this class
+     * @see #getDirectDependenciesFromSelf()
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<Dependency> getTransitiveDependenciesFromSelf() {
+        return JavaClassTransitiveDependencies.findTransitiveDependenciesFrom(this);
+    }
+
+    /**
      * Like {@link #getDirectDependenciesFromSelf()}, but instead returns all dependencies where this class
      * is target.
      *
@@ -1147,6 +1159,17 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     @PublicAPI(usage = ACCESS)
     public Set<InstanceofCheck> getInstanceofChecksWithTypeOfSelf() {
         return reverseDependencies.getInstanceofChecksWithTypeOf(this);
+    }
+
+    /**
+     * @return Whether this class has been fully imported, including all dependencies.<br>
+     *         Classes that are only transitively imported are not necessarily fully imported.<br><br>
+     *         Suppose you only import a class {@code Foo} that calls a method of class {@code Bar}.
+     *         Then {@code Bar} is, as a dependency of the fully imported class {@code Foo}, only transitively imported.
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean isFullyImported() {
+        return fullyImported;
     }
 
     /**
@@ -1301,6 +1324,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             codeUnit.completeFrom(context);
         }
         javaClassDependencies = new JavaClassDependencies(this);
+        fullyImported = true;
         return javaClassDependencies;
     }
 

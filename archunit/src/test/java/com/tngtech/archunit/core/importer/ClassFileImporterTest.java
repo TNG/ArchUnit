@@ -205,6 +205,8 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.namesOf;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
@@ -242,6 +244,7 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/simpleimport");
         JavaClass javaClass = classes.get(ClassToImportOne.class);
 
+        assertThat(javaClass.isFullyImported()).isTrue();
         assertThat(javaClass.getName()).as("full name").isEqualTo(ClassToImportOne.class.getName());
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(ClassToImportOne.class.getSimpleName());
         assertThat(javaClass.getPackageName()).as("package name").isEqualTo(ClassToImportOne.class.getPackage().getName());
@@ -1709,6 +1712,49 @@ public class ClassFileImporterTest {
         clazz = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
 
         assertThat(clazz.getSuperClass().get().getMethods()).isEmpty();
+    }
+
+    @DataProvider
+    public static Object[][] classes_not_fully_imported() {
+        class Element {
+        }
+        @SuppressWarnings("unused")
+        class DependsOnArray {
+            Element[] array;
+        }
+        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
+        JavaClass resolvedFromClasspath = new ClassFileImporter().importClasses(DependsOnArray.class)
+                .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
+
+        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+        JavaClass stub = new ClassFileImporter().importClasses(DependsOnArray.class)
+                .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
+
+        return $$(
+                $("Resolved from classpath", resolvedFromClasspath),
+                $("Stub class", stub)
+        );
+    }
+
+    @Test
+    @UseDataProvider("classes_not_fully_imported")
+    public void classes_not_fully_imported_have_flag_fullyImported_false_and_empty_dependencies(@SuppressWarnings("unused") String description, JavaClass notFullyImported) {
+        assertThat(notFullyImported.isFullyImported()).isFalse();
+        assertThat(notFullyImported.getDirectDependenciesFromSelf()).isEmpty();
+        assertThat(notFullyImported.getDirectDependenciesToSelf()).isEmpty();
+        assertThat(notFullyImported.getFieldAccessesToSelf()).isEmpty();
+        assertThat(notFullyImported.getMethodCallsToSelf()).isEmpty();
+        assertThat(notFullyImported.getConstructorCallsToSelf()).isEmpty();
+        assertThat(notFullyImported.getAccessesToSelf()).isEmpty();
+        assertThat(notFullyImported.getFieldsWithTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getMethodsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getMethodsWithReturnTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getConstructorsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getConstructorsWithThrowsDeclarationTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getAnnotationsWithTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getAnnotationsWithParameterTypeOfSelf()).isEmpty();
+        assertThat(notFullyImported.getInstanceofChecksWithTypeOfSelf()).isEmpty();
     }
 
     @Test
