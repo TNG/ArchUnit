@@ -449,7 +449,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 0.14.1</span>
+<span id="revnumber">version 0.15.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -614,7 +614,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;0.14.1&lt;/version&gt;
+    &lt;version&gt;0.15.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -623,7 +623,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:0.14.1'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:0.15.0'
 }</code></pre>
 </div>
 </div>
@@ -644,7 +644,7 @@ from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;0.14.1&lt;/version&gt;
+    &lt;version&gt;0.15.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -653,7 +653,7 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:0.14.1'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:0.15.0'
 }</code></pre>
 </div>
 </div>
@@ -670,7 +670,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.14.1&lt;/version&gt;
+    &lt;version&gt;0.15.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -679,7 +679,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:0.14.1'
+   testImplementation 'com.tngtech.archunit:archunit:0.15.0'
 }</code></pre>
 </div>
 </div>
@@ -877,7 +877,7 @@ class MyArchitectureTest {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().haveNameMatching(".*Bar")
-    .should().onlyBeAccessed().byClassesThat().haveSimpleName("Bar")</code></pre>
+    .should().onlyHaveDependentClassesThat().haveSimpleName("Bar")</code></pre>
 </div>
 </div>
 </div>
@@ -885,7 +885,7 @@ class MyArchitectureTest {
 <h3 id="_class_and_package_containment_checks"><a class="anchor" href="#_class_and_package_containment_checks"></a>4.3. Class and Package Containment Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-package-contain.png" alt="class package contain" width="319" height="187">
+<img src="class-package-contain.png" alt="class package contain" width="348" height="203">
 </div>
 </div>
 <div class="listingblock">
@@ -910,13 +910,13 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-access-check.png" alt="inheritance access check" width="549" height="248">
+<img src="inheritance-access-check.png" alt="inheritance access check" width="569" height="266">
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().areAssignableTo(EntityManager.class)
-    .should().onlyBeAccessed().byAnyPackage("..persistence..")</code></pre>
+    .should().onlyHaveDependentClassesThat().resideInAnyPackage("..persistence..")</code></pre>
 </div>
 </div>
 </div>
@@ -930,7 +930,7 @@ class MyArchitectureTest {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().areAssignableTo(EntityManager.class)
-    .should().onlyBeAccessed().byClassesThat().areAnnotatedWith(Transactional.class)</code></pre>
+    .should().onlyHaveDependentClassesThat().areAnnotatedWith(Transactional.class)</code></pre>
 </div>
 </div>
 </div>
@@ -938,7 +938,7 @@ class MyArchitectureTest {
 <h3 id="_layer_checks"><a class="anchor" href="#_layer_checks"></a>4.6. Layer Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="layer-check.png" alt="layer check" width="627" height="538">
+<img src="layer-check.png" alt="layer check" width="643" height="598">
 </div>
 </div>
 <div class="listingblock">
@@ -958,7 +958,7 @@ class MyArchitectureTest {
 <h3 id="_cycle_checks"><a class="anchor" href="#_cycle_checks"></a>4.7. Cycle Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="cycle-check.png" alt="cycle check" width="729" height="338">
+<img src="cycle-check.png" alt="cycle check" width="749" height="398">
 </div>
 </div>
 <div class="listingblock">
@@ -1780,7 +1780,7 @@ contain dependencies on any <code>adapter</code> package.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="onion-architecture-check.png" alt="onion architecture check" width="1058" height="743">
+<img src="onion-architecture-check.png" alt="onion architecture check" width="1139" height="771">
 </div>
 </div>
 </div>
@@ -2328,6 +2328,10 @@ the imported Java classes will simply be dropped.</p>
     public static final ArchRule rule2 = classes().should()...
 }</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Note for users of JUnit 5: the annotation <code>@Disabled</code> has no effect here.
+Instead, <code>@ArchIgnore</code> should be used.</p>
 </div>
 </div>
 <div class="sect3">
