@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.jar.JarFile;
 
 import com.google.common.base.Predicate;
@@ -1722,18 +1723,24 @@ public class ClassFileImporterTest {
         class DependsOnArray {
             Element[] array;
         }
-        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
-        JavaClass resolvedFromClasspath = new ClassFileImporter().importClasses(DependsOnArray.class)
-                .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
 
-        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-        JavaClass stub = new ClassFileImporter().importClasses(DependsOnArray.class)
-                .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
+        return ArchConfigurationRule.resetConfigurationAround(new Callable<Object[][]>() {
+            @Override
+            public Object[][] call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
+                JavaClass resolvedFromClasspath = new ClassFileImporter().importClasses(DependsOnArray.class)
+                        .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
 
-        return $$(
-                $("Resolved from classpath", resolvedFromClasspath),
-                $("Stub class", stub)
-        );
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                JavaClass stub = new ClassFileImporter().importClasses(DependsOnArray.class)
+                        .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
+
+                return $$(
+                        $("Resolved from classpath", resolvedFromClasspath),
+                        $("Stub class", stub)
+                );
+            }
+        });
     }
 
     @Test
