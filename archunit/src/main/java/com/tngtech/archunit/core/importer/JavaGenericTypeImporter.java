@@ -53,24 +53,24 @@ class JavaGenericTypeImporter {
 
         JavaTypeVariableProcessor typeVariableProcessor = new JavaTypeVariableProcessor();
         new SignatureReader(signature).accept(typeVariableProcessor);
-        declarationHandler.onDeclaredTypeParameters(new TypeParametersBuilder(typeVariableProcessor.typeParameterBuilders));
+        declarationHandler.onDeclaredTypeParameters(new TypeParametersBuilder(typeVariableProcessor.getTypeParameterBuilders()));
     }
 
     private static class JavaTypeVariableProcessor extends SignatureVisitor {
-        private static final BoundProcessor boundProcessor = new BoundProcessor();
-
-        private final List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders = new ArrayList<>();
+        private final BoundProcessor boundProcessor = new BoundProcessor();
 
         JavaTypeVariableProcessor() {
             super(ASM_API_VERSION);
         }
 
+        List<JavaTypeParameterBuilder<JavaClass>> getTypeParameterBuilders() {
+            return boundProcessor.typeParameterBuilders;
+        }
+
         @Override
         public void visitFormalTypeParameter(String name) {
             log.trace("Encountered type parameter {}", name);
-            JavaTypeParameterBuilder<JavaClass> type = new JavaTypeParameterBuilder<>(name);
-            boundProcessor.setCurrentType(type);
-            typeParameterBuilders.add(type);
+            boundProcessor.addTypeParameter(name);
         }
 
         @Override
@@ -84,6 +84,8 @@ class JavaGenericTypeImporter {
         }
 
         private static class BoundProcessor extends SignatureVisitor {
+            private final List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders = new ArrayList<>();
+
             private JavaTypeParameterBuilder<JavaClass> currentType;
             private JavaParameterizedTypeBuilder<JavaClass> currentBound;
 
@@ -91,8 +93,10 @@ class JavaGenericTypeImporter {
                 super(ASM_API_VERSION);
             }
 
-            void setCurrentType(JavaTypeParameterBuilder<JavaClass> type) {
-                this.currentType = type;
+            void addTypeParameter(String typeName) {
+                currentType = new JavaTypeParameterBuilder<>(typeName);
+                currentBound = null;
+                typeParameterBuilders.add(currentType);
             }
 
             @Override
