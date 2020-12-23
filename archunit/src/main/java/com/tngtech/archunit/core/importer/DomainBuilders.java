@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -541,9 +540,9 @@ public final class DomainBuilders {
     }
 
     static class TypeParametersBuilder {
-        private final Collection<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders;
+        private final List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders;
 
-        TypeParametersBuilder(Collection<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders) {
+        TypeParametersBuilder(List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders) {
             this.typeParameterBuilders = typeParameterBuilders;
         }
 
