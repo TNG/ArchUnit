@@ -41,7 +41,7 @@ class ClassFileImportRecord {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportRecord.class);
 
     private static final TypeParametersBuilder NO_TYPE_PARAMETERS =
-            new TypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptySet());
+            new TypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptyList());
 
     private final Map<String, JavaClass> classes = new HashMap<>();
 
