@@ -3,7 +3,7 @@ layout: splash
 permalink: /imprint
 ---
 
-The following text has to be included in sites provided from Germany by German citicens, 
+The following text has to be included in sites provided from Germany by German citizens, 
 due to our sometimes strange, inconsistent and user-unfriendly data privacy laws.
 
 ### Imprint
