@@ -606,7 +606,7 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
           const dependenciesOfDependentSiblings = [].concat.apply([], dependentSiblings.map(node => this._root.getDependenciesOfNode(node)))
             .filter(dependency => siblings.indexOf(dependency.originNode) >= 0 && siblings.indexOf(dependency.targetNode) >= 0);
           // find all nodes from siblings that overlaps with start or end point
-          const dependentNodesOfDependentSiblings = dependenciesOfDependentSiblings.map(dependency => dependency.originNode !== this ? dependency.originNode : dependency.targetNode);
+          const dependentNodesOfDependentSiblings = [...new Set(dependenciesOfDependentSiblings.map(dependency => dependentSiblings.indexOf(dependency.originNode) === -1 ? dependency.originNode : dependency.targetNode))];
           const overlappingNodes = siblings.filter(sibling => dependentNodesOfDependentSiblings.filter(node => node !== sibling)
             .map(dependentNode => sibling.overlapsWith(dependentNode))
             .includes(true));

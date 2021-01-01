@@ -223,6 +223,36 @@ describe('Graph', () => {
       expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.DependentClass1').liesInFrontOf('com.tngtech.pkg2.DepClass2')).to.be.true;
       expect(graphUi.getVisibleDependencyWithName('com.tngtech.pkg1.FocusClass2-com.tngtech.pkg2.DepClass2').isInFrontOf(graphUi.rootUi.getNodeWithFullName('com.tngtech.pkg2.DependentClass1')._svg)).to.be.false;
     });
+
+    it('a dependency of a dependent node stays in background if it overlaps another node at start or end point', async() => {
+      const jsonRoot = createJsonFromClassNames('com.tngtech.FocusClass', 'com.tngtech.DependentClass', 'com.tngtech.DependencyOfDependentClass', 'com.tngtech.OtherClassOverlappingDependencyOfDependentClass');
+      const jsonDependencies = createDependencies()
+      .addMethodCall().from('com.tngtech.FocusClass', 'startMethod()')
+      .to('com.tngtech.DependentClass', 'endMethod()')
+      .addMethodCall().from('com.tngtech.DependentClass', 'startMethod()')
+      .to('com.tngtech.DependencyOfDependentClass', 'endMethod()')
+      .build();
+
+
+      const graphUi = await getGraphUi(jsonRoot, jsonDependencies);
+
+      await graphUi.changeCircleGeometrySettings(10, circlePadding);
+      await graphUi.clickNode('com.tngtech');
+
+      await graphUi.dragNode('com.tngtech.DependencyOfDependentClass', 1, 1);
+
+      const otherNode = graphUi.rootUi.getNodeWithFullName('com.tngtech.OtherClassOverlappingDependencyOfDependentClass');
+      await otherNode.dragOverCompletely('com.tngtech.DependencyOfDependentClass');
+
+      expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.OtherClassOverlappingDependencyOfDependentClass').liesInFrontOf('com.tngtech.DependencyOfDependentClass')).to.be.true;
+
+      await graphUi.dragNode('com.tngtech.FocusClass', 1, 1);
+
+      expect(graphUi.rootUi.getNodeWithFullName('com.tngtech.OtherClassOverlappingDependencyOfDependentClass').liesInFrontOf('com.tngtech.DependencyOfDependentClass')).to.be.true;
+      const node = graphUi.rootUi.getNodeWithFullName('com.tngtech.OtherClassOverlappingDependencyOfDependentClass');
+      expect(node._node._nodeShape.containsPoint(graphUi.getVisibleDependencyWithName('com.tngtech.DependentClass-com.tngtech.DependencyOfDependentClass')._dependency.endPoint)).to.be.true;
+      expect(graphUi.getVisibleDependencyWithName('com.tngtech.DependentClass-com.tngtech.DependencyOfDependentClass').isInFrontOf(node._svg)).to.be.false;
+    });
   });
 
   it('can change the fold-states of the nodes to show all violations', async() => {
