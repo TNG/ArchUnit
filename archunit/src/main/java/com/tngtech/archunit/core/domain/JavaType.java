@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -37,4 +38,17 @@ public interface JavaType extends HasName {
      */
     @PublicAPI(usage = ACCESS)
     JavaClass toErasure();
+
+    final class Functions {
+        private Functions() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaType, JavaClass> TO_ERASURE = new ChainableFunction<JavaType, JavaClass>() {
+            @Override
+            public JavaClass apply(JavaType input) {
+                return input.toErasure();
+            }
+        };
+    }
 }

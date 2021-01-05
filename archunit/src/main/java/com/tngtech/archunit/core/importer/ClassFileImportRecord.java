@@ -30,6 +30,7 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import org.slf4j.Logger;
@@ -48,6 +49,7 @@ class ClassFileImportRecord {
     private final Map<String, String> superclassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
     private final Map<String, TypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
+    private final Map<String, JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilderByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaMethodBuilder> methodBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
@@ -73,6 +75,10 @@ class ClassFileImportRecord {
 
     void addTypeParameters(String ownerName, TypeParametersBuilder builder) {
         typeParametersBuilderByOwner.put(ownerName, builder);
+    }
+
+    void addGenericSuperclass(String ownerName, JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
+        genericSuperclassBuilderByOwner.put(ownerName, genericSuperclassBuilder);
     }
 
     void addField(String ownerName, DomainBuilders.JavaFieldBuilder fieldBuilder) {
@@ -123,6 +129,10 @@ class ClassFileImportRecord {
             return NO_TYPE_PARAMETERS;
         }
         return typeParametersBuilderByOwner.get(ownerName);
+    }
+
+    Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclassFor(JavaClass owner) {
+        return Optional.fromNullable(genericSuperclassBuilderByOwner.get(owner.getName()));
     }
 
     Set<DomainBuilders.JavaFieldBuilder> getFieldBuildersFor(String ownerName) {

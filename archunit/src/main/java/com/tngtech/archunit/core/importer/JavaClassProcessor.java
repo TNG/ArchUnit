@@ -428,6 +428,8 @@ class JavaClassProcessor extends ClassVisitor {
 
         void onDeclaredTypeParameters(DomainBuilders.TypeParametersBuilder typeParametersBuilder);
 
+        void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder);
+
         void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder);
 
         void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder);

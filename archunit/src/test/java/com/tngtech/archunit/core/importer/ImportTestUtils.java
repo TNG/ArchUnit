@@ -38,6 +38,7 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
+import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import org.objectweb.asm.Type;
@@ -333,6 +334,11 @@ public class ImportTestUtils {
 
         @Override
         public Optional<JavaClass> createSuperclass(JavaClass owner) {
+            return Optional.absent();
+        }
+
+        @Override
+        public Optional<JavaType> createGenericSuperclass(JavaClass owner) {
             return Optional.absent();
         }
 

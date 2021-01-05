@@ -23,6 +23,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
@@ -42,18 +43,21 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
+import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeAnnotations;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingClass;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeGenericSuperclass;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeMembers;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeParameters;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
@@ -132,6 +136,7 @@ class ClassGraphCreator implements ImportContext {
             completeClassHierarchy(javaClass, this);
             completeEnclosingClass(javaClass, this);
             completeTypeParameters(javaClass, this);
+            completeGenericSuperclass(javaClass, this);
             completeMembers(javaClass, this);
             completeAnnotations(javaClass, this);
         }
@@ -225,6 +230,23 @@ class ClassGraphCreator implements ImportContext {
         return superclassName.isPresent() ?
                 Optional.of(classes.getOrResolve(superclassName.get())) :
                 Optional.<JavaClass>absent();
+    }
+
+    @Override
+    public Optional<JavaType> createGenericSuperclass(JavaClass owner) {
+        Optional<JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilder = importRecord.getGenericSuperclassFor(owner);
+        return genericSuperclassBuilder.isPresent()
+                ? Optional.of(genericSuperclassBuilder.get().build(owner, getTypeParametersInContextOf(owner), classes.byTypeName()))
+                : Optional.<JavaType>absent();
+    }
+
+    private static Iterable<JavaTypeVariable<?>> getTypeParametersInContextOf(JavaClass javaClass) {
+        Set<JavaTypeVariable<?>> result = Sets.<JavaTypeVariable<?>>newHashSet(javaClass.getTypeParameters());
+        while (javaClass.getEnclosingClass().isPresent()) {
+            javaClass = javaClass.getEnclosingClass().get();
+            result.addAll(javaClass.getTypeParameters());
+        }
+        return result;
     }
 
     @Override

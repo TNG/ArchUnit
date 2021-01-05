@@ -21,6 +21,7 @@ import java.util.List;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaType;
@@ -54,10 +55,16 @@ class JavaClassSignatureImporter {
         SignatureProcessor signatureProcessor = new SignatureProcessor();
         new SignatureReader(signature).accept(signatureProcessor);
         declarationHandler.onDeclaredTypeParameters(new TypeParametersBuilder(signatureProcessor.getTypeParameterBuilders()));
+
+        Optional<JavaParameterizedTypeBuilder<JavaClass>> genericSuperclass = signatureProcessor.getGenericSuperclass();
+        if (genericSuperclass.isPresent()) {
+            declarationHandler.onGenericSuperclass(genericSuperclass.get());
+        }
     }
 
     private static class SignatureProcessor extends SignatureVisitor {
         private final BoundProcessor boundProcessor = new BoundProcessor();
+        private final GenericSuperclassProcessor superclassProcessor = new GenericSuperclassProcessor();
 
         SignatureProcessor() {
             super(ASM_API_VERSION);
@@ -67,10 +74,19 @@ class JavaClassSignatureImporter {
             return boundProcessor.typeParameterBuilders;
         }
 
+        public Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclass() {
+            return Optional.fromNullable(superclassProcessor.superclass);
+        }
+
         @Override
         public void visitFormalTypeParameter(String name) {
             log.trace("Encountered type parameter {}", name);
             boundProcessor.addTypeParameter(name);
+        }
+
+        @Override
+        public SignatureVisitor visitSuperclass() {
+            return superclassProcessor;
         }
 
         @Override
@@ -121,7 +137,30 @@ class JavaClassSignatureImporter {
 
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
-                return TypeArgumentProcessor.create(wildcard, currentBound, Functions.<JavaClassDescriptor>identity(), ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY);
+                return TypeArgumentProcessor.create(wildcard, currentBound);
+            }
+        }
+
+        private static class GenericSuperclassProcessor extends SignatureVisitor {
+            private JavaParameterizedTypeBuilder<JavaClass> superclass;
+
+            GenericSuperclassProcessor() {
+                super(ASM_API_VERSION);
+            }
+
+            @Override
+            public void visitClassType(String internalObjectName) {
+                superclass = new JavaParameterizedTypeBuilder<>(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
+            }
+
+            @Override
+            public void visitInnerClassType(String name) {
+                superclass = superclass.forInnerClass(name);
+            }
+
+            @Override
+            public SignatureVisitor visitTypeArgument(char wildcard) {
+                return TypeArgumentProcessor.create(wildcard, superclass);
             }
         }
     }
@@ -267,6 +306,10 @@ class JavaClassSignatureImporter {
         @Override
         public SignatureVisitor visitArrayType() {
             return new TypeArgumentProcessor(typeArgumentType, parameterizedType, compose(typeMapping, TO_ARRAY_TYPE), typeVariableFinisher.after(GENERIC_ARRAY_CREATOR));
+        }
+
+        static TypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder<JavaClass> parameterizedType) {
+            return create(identifier, parameterizedType, Functions.<JavaClassDescriptor>identity(), ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY);
         }
 
         static TypeArgumentProcessor create(

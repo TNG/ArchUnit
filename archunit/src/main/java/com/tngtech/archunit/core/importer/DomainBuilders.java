@@ -642,6 +642,11 @@ public final class DomainBuilders {
         String getTypeName() {
             return type.getFullyQualifiedClassName();
         }
+
+        JavaParameterizedTypeBuilder<OWNER> forInnerClass(String simpleInnerClassName) {
+            return new JavaParameterizedTypeBuilder<>(JavaClassDescriptorImporter.createFromAsmObjectTypeName(
+                    type.getFullyQualifiedClassName() + '$' + simpleInnerClassName));
+        }
     }
 
     private static <OWNER> List<JavaType> buildJavaTypes(List<? extends JavaTypeCreationProcess<OWNER>> typeCreationProcesses, OWNER owner, Iterable<JavaTypeVariable<?>> allGenericParametersInContext, ClassesByTypeName classes) {

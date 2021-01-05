@@ -54,6 +54,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
+import static com.tngtech.archunit.core.domain.JavaType.Functions.TO_ERASURE;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
@@ -80,7 +81,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private Set<JavaMember> members = emptySet();
     private Set<JavaConstructor> constructors = emptySet();
     private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
-    private Optional<JavaClass> superclass = Optional.absent();
+    private Superclass superclass = Superclass.ABSENT;
     private final Supplier<List<JavaClass>> allRawSuperclasses = Suppliers.memoize(new Supplier<List<JavaClass>>() {
         @Override
         public List<JavaClass> get() {
@@ -102,9 +103,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                 result.add(i);
                 result.addAll(i.getAllInterfaces());
             }
-            if (superclass.isPresent()) {
-                result.addAll(superclass.get().getAllInterfaces());
-            }
+            result.addAll(superclass.getAllInterfaces());
             return result.build();
         }
     });
@@ -657,7 +656,12 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getRawSuperclass() {
-        return superclass;
+        return superclass.getRaw();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaType> getSuperclass() {
+        return superclass.get();
     }
 
     /**
@@ -1311,9 +1315,10 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     private void completeSuperclassFrom(ImportContext context) {
-        superclass = context.createSuperclass(this);
-        if (superclass.isPresent()) {
-            superclass.get().subclasses.add(this);
+        Optional<JavaClass> rawSuperclass = context.createSuperclass(this);
+        if (rawSuperclass.isPresent()) {
+            rawSuperclass.get().subclasses.add(this);
+            this.superclass = this.superclass.withRawType(rawSuperclass.get());
         }
     }
 
@@ -1330,6 +1335,13 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     void completeTypeParametersFrom(ImportContext context) {
         typeParameters = context.createTypeParameters(this);
+    }
+
+    void completeGenericSuperclassFrom(ImportContext context) {
+        Optional<JavaType> genericSuperclass = context.createGenericSuperclass(this);
+        if (genericSuperclass.isPresent()) {
+            superclass = superclass.withGenericType(genericSuperclass.get());
+        }
     }
 
     void completeMembers(final ImportContext context) {
@@ -1406,6 +1418,42 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     @PublicAPI(usage = ACCESS)
     public boolean isAnonymous() {
         return isAnonymousClass();
+    }
+
+    private static class Superclass {
+        private static final Superclass ABSENT = new Superclass(Optional.<JavaType>absent());
+
+        private final Optional<JavaClass> rawType;
+        private final Optional<JavaType> type;
+
+        private Superclass(JavaType type) {
+            this(Optional.of(type));
+        }
+
+        private Superclass(Optional<JavaType> type) {
+            this.rawType = type.transform(TO_ERASURE);
+            this.type = type;
+        }
+
+        Optional<JavaClass> getRaw() {
+            return rawType;
+        }
+
+        Optional<JavaType> get() {
+            return type.or(rawType);
+        }
+
+        Set<JavaClass> getAllInterfaces() {
+            return rawType.isPresent() ? rawType.get().getAllInterfaces() : Collections.<JavaClass>emptySet();
+        }
+
+        Superclass withRawType(JavaClass newRawType) {
+            return new Superclass(newRawType);
+        }
+
+        Superclass withGenericType(JavaType newGenericType) {
+            return new Superclass(newGenericType);
+        }
     }
 
     public static final class Functions {
