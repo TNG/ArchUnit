@@ -71,7 +71,7 @@ class ClassFileImportRecord {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
     }
 
-    public void addTypeParameters(String ownerName, TypeParametersBuilder builder) {
+    void addTypeParameters(String ownerName, TypeParametersBuilder builder) {
         typeParametersBuilderByOwner.put(ownerName, builder);
     }
 
