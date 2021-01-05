@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2020 TNG Technology Consulting GmbH
+ * Copyright 2014-2021 TNG Technology Consulting GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import com.google.common.collect.ImmutableSet;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
 
 class JavaClassTransitiveDependencies {
     private JavaClassTransitiveDependencies() {
