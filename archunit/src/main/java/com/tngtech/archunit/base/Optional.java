@@ -72,7 +72,7 @@ public abstract class Optional<T> {
     public abstract T or(T value);
 
     @PublicAPI(usage = ACCESS)
-    public abstract Optional<T> or(Optional<T> value);
+    public abstract Optional<T> or(Optional<? extends T> value);
 
     @PublicAPI(usage = ACCESS)
     public abstract Set<T> asSet();
@@ -106,8 +106,9 @@ public abstract class Optional<T> {
         }
 
         @Override
-        public Optional<T> or(Optional<T> value) {
-            return value;
+        @SuppressWarnings("unchecked") // cast is safe because Optional is covariant
+        public Optional<T> or(Optional<? extends T> value) {
+            return (Optional<T>) value;
         }
 
         @Override
@@ -169,7 +170,7 @@ public abstract class Optional<T> {
         }
 
         @Override
-        public Optional<T> or(Optional<T> value) {
+        public Optional<T> or(Optional<? extends T> value) {
             return this;
         }
 
