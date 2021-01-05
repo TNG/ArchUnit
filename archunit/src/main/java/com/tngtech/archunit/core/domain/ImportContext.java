@@ -26,6 +26,8 @@ import com.tngtech.archunit.base.Optional;
 public interface ImportContext {
     Optional<JavaClass> createSuperclass(JavaClass owner);
 
+    Optional<JavaType> createGenericSuperclass(JavaClass owner);
+
     Set<JavaClass> createInterfaces(JavaClass owner);
 
     List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner);

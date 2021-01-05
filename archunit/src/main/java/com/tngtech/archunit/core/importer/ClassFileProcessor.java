@@ -91,6 +91,11 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
+            importRecord.addGenericSuperclass(ownerName, genericSuperclassBuilder);
+        }
+
+        @Override
         public void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder) {
             importRecord.addField(ownerName, fieldBuilder);
         }
