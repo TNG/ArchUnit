@@ -3,10 +3,14 @@ package com.tngtech.archunit.core.importer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeArchives;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
+import com.tngtech.archunit.core.importer.ImportOption.OnlyIncludeTests;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -15,14 +19,17 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
+import static com.google.common.collect.ImmutableList.copyOf;
+import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.getLast;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_JARS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.ONLY_INCLUDE_TESTS;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.crossProduct;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -46,33 +53,62 @@ public class ImportOptionsTest {
     }
 
     @DataProvider
-    public static Object[][] folders() {
-        return crossProduct(do_not_include_tests(), $$(
-                // Gradle
-                $(new String[]{"build", "classes", "test"}, false),
-                $(new String[]{"build", "classes", "java", "test"}, false),
-                $(new String[]{"build", "classes", "otherlang", "test"}, false),
-                $(new String[]{"build", "test-classes"}, true),
-                $(new String[]{"build", "classes", "main"}, true),
-                $(new String[]{"build", "classes", "java", "main"}, true),
-                $(new String[]{"build", "classes", "java", "main", "my", "test"}, true),
-
-                // Maven
-                $(new String[]{"target", "classes", "test"}, true),
-                $(new String[]{"target", "test-classes"}, false),
-                $(new String[]{"target", "classes"}, true),
-
-                // IntelliJ
-                $(new String[]{"out", "production", "classes"}, true),
-                $(new String[]{"out", "test", "classes"}, false),
-                $(new String[]{"out", "test", "classes", "my", "test"}, false),
-                $(new String[]{"out", "some", "classes"}, true)
-        ));
+    public static Object[][] only_include_tests() {
+        return testForEach(new OnlyIncludeTests(), ONLY_INCLUDE_TESTS);
     }
 
     @Test
-    @UseDataProvider("folders")
-    public void detects_all_output_folder_structures(
+    @UseDataProvider("only_include_tests")
+    public void excludes_main_class(ImportOption onlyIncludeTests) {
+        assertThat(onlyIncludeTests.includes(locationOf(OnlyIncludeTests.class)))
+                .as("includes production location").isFalse();
+
+        assertThat(onlyIncludeTests.includes(locationOf(getClass())))
+                .as("includes test location").isTrue();
+    }
+
+    private static List<FolderPattern> getFolderPatterns() {
+        return ImmutableList.of(
+                // Gradle
+                new FolderPattern("build", "classes", "test").expectTestFolder(),
+                new FolderPattern("build", "classes", "java", "test").expectTestFolder(),
+                new FolderPattern("build", "classes", "otherlang", "test").expectTestFolder(),
+                new FolderPattern("build", "test-classes").expectMainFolder(),
+                new FolderPattern("build", "classes", "main").expectMainFolder(),
+                new FolderPattern("build", "classes", "java", "main").expectMainFolder(),
+                new FolderPattern("build", "classes", "java", "main", "my", "test").expectMainFolder(),
+
+                // Maven
+                new FolderPattern("target", "classes", "test").expectMainFolder(),
+                new FolderPattern("target", "test-classes").expectTestFolder(),
+                new FolderPattern("target", "classes").expectMainFolder(),
+
+                // IntelliJ
+                new FolderPattern("out", "production", "classes").expectMainFolder(),
+                new FolderPattern("out", "test", "classes").expectTestFolder(),
+                new FolderPattern("out", "test", "classes", "my", "test").expectTestFolder(),
+                new FolderPattern("out", "some", "classes").expectMainFolder()
+        );
+    }
+
+    @DataProvider
+    public static Object[][] test_location_predicates_and_expected_folder_patterns() {
+        List<Object[]> includeMainFolderInput = new ArrayList<>();
+        List<Object[]> includeTestFolderInput = new ArrayList<>();
+        for (FolderPattern folderPattern : getFolderPatterns()) {
+            includeMainFolderInput.add($(folderPattern.folders, folderPattern.isMainFolder));
+            includeTestFolderInput.add($(folderPattern.folders, !folderPattern.isMainFolder));
+        }
+
+        Object[][] doNotIncludeTestsDataPoints = crossProduct(do_not_include_tests(), includeMainFolderInput.toArray(new Object[0][]));
+        Object[][] onlyIncludeTestsDataPoints = crossProduct(only_include_tests(), includeTestFolderInput.toArray(new Object[0][]));
+
+        return copyOf(concat(asList(doNotIncludeTestsDataPoints), asList(onlyIncludeTestsDataPoints))).toArray(new Object[0][]);
+    }
+
+    @Test
+    @UseDataProvider("test_location_predicates_and_expected_folder_patterns")
+    public void correctly_detects_all_output_folder_structures(
             ImportOption doNotIncludeTests, String[] folderName, boolean expectedInclude) throws IOException {
 
         File folder = temporaryFolder.newFolder(folderName);
@@ -127,5 +163,27 @@ public class ImportOptionsTest {
 
     private static boolean comesFromJarArchive(Class<?> clazz) {
         return LocationTest.urlOfClass(clazz).getProtocol().equals("jar");
+    }
+
+    private static class FolderPattern {
+        final String[] folders;
+        final boolean isMainFolder;
+
+        FolderPattern(String... folders) {
+            this(folders, false);
+        }
+
+        private FolderPattern(String[] folders, boolean isMainFolder) {
+            this.folders = folders;
+            this.isMainFolder = isMainFolder;
+        }
+
+        FolderPattern expectMainFolder() {
+            return new FolderPattern(folders, true);
+        }
+
+        FolderPattern expectTestFolder() {
+            return new FolderPattern(folders, false);
+        }
     }
 }
