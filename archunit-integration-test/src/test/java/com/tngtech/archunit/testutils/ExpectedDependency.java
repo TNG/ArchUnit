@@ -29,6 +29,10 @@ public class ExpectedDependency implements ExpectedRelation {
         return new TypeParameterCreator(clazz, typeParameterName);
     }
 
+    public static GenericSuperclassTypeArgumentCreator genericSuperclass(Class<?> clazz, Class<?> genericSuperclassErasure) {
+        return new GenericSuperclassTypeArgumentCreator(clazz, genericSuperclassErasure);
+    }
+
     public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {
         return new AnnotationDependencyCreator(clazz);
     }
@@ -101,6 +105,24 @@ public class ExpectedDependency implements ExpectedRelation {
         public ExpectedDependency dependingOn(Class<?> typeParameterDependency) {
             return new ExpectedDependency(clazz, typeParameterDependency,
                     getDependencyPattern(clazz.getName(), "has type parameter '" + typeParameterName + "' depending on", typeParameterDependency.getName(), 0));
+        }
+    }
+
+    public static class GenericSuperclassTypeArgumentCreator {
+        private final Class<?> childClass;
+        private final Class<?> genericSuperclassErasure;
+
+        private GenericSuperclassTypeArgumentCreator(Class<?> childClass, Class<?> genericSuperclassErasure) {
+            this.childClass = childClass;
+            this.genericSuperclassErasure = genericSuperclassErasure;
+        }
+
+        public ExpectedDependency dependingOn(Class<?> superclassTypeArgumentDependency) {
+            return new ExpectedDependency(childClass, superclassTypeArgumentDependency,
+                    getDependencyPattern(childClass.getName(),
+                            "has generic superclass <" + genericSuperclassErasure.getName() + "> with type argument depending on",
+                            superclassTypeArgumentDependency.getName(),
+                            0));
         }
     }
 

@@ -487,6 +487,34 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_from_self_by_inheritance_through_generic_superclass_parameters() {
+        @SuppressWarnings("unused")
+        class Base<X, Y> {
+        }
+        class Child<FIRST, SECOND> extends Base<
+                Comparable<Child<FIRST, SECOND>>,
+                Map<
+                        Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                        Map<? extends BufferedInputStream[][],
+                                Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>>>>> {
+        }
+
+        JavaClass javaClass = importClassWithContext(Child.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(from(Child.class).to(Base.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("extends")
+
+                        .from(Child.class)
+                        .withExpectedDescriptionTemplate("has generic superclass <" + Base.class.getName() + "> with type argument depending on <#target>")
+                        .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+
+                        .from(Child.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
     public void direct_dependencies_from_self_by_member_declarations() {
         JavaClass javaClass = importClasses(AhavingMembersOfTypeB.class, B.class).get(AhavingMembersOfTypeB.class);
 
@@ -596,41 +624,18 @@ public class JavaClassTest {
         JavaClass javaClass = importClasses(ClassWithTypeParameters.class).get(ClassWithTypeParameters.class);
 
         assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
-                .contain(from(ClassWithTypeParameters.class).to(List.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'FIRST' depending on")
+                .contain(from(ClassWithTypeParameters.class)
+                        .withExpectedDescriptionTemplate("type parameter 'FIRST' depending on")
+                        .to(List.class, Serializable.class, Comparable.class)
+                        .inLocation(getClass(), 0)
 
-                        .from(ClassWithTypeParameters.class).to(Serializable.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'FIRST' depending on")
+                        .from(ClassWithTypeParameters.class)
+                        .withExpectedDescriptionTemplate("type parameter 'SECOND' depending on")
+                        .to(Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+                        .inLocation(getClass(), 0)
 
-                        .from(ClassWithTypeParameters.class).to(Comparable.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'FIRST' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Map.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Map.Entry.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(String.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(BufferedInputStream[][].class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Serializable.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(List.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Set.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Iterable.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(File.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+                        .from(ClassWithTypeParameters.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
                 );
     }
 
@@ -691,6 +696,42 @@ public class JavaClassTest {
                         .from(AExtendingSuperAImplementingInterfaceForA.class)
                         .to(InterfaceForA.class)
                         .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_inheritance_through_generic_superclass_parameters() {
+        @SuppressWarnings("unused")
+        class FirstBase<X, Y> {
+        }
+        class FirstChild extends FirstBase<
+                Comparable<FirstChild>,
+                Map<
+                        Map.Entry<?, Map.Entry<String, ?>>,
+                        Map<? extends BufferedInputStream[][],
+                                Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<?, ? extends File>>>>>>>>> {
+        }
+        @SuppressWarnings("unused")
+        class SecondBase<T> {
+        }
+        class SecondChild extends SecondBase<Map<?, ? super File>> {
+        }
+
+        JavaClasses javaClasses = importClassesWithContext(FirstChild.class, SecondChild.class, BufferedInputStream.class, File.class);
+
+        assertThatDependencies(javaClasses.get(File.class).getDirectDependenciesToSelf())
+                .contain(from(FirstChild.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Class <%s> has generic superclass <%s> with type argument depending on <%s>",
+                                FirstChild.class.getName(), FirstBase.class.getName(), File.class.getName())
+
+                        .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Class <%s> has generic superclass <%s> with type argument depending on <%s>",
+                                SecondChild.class.getName(), SecondBase.class.getName(), File.class.getName())
+                );
+
+        assertThatDependencies(javaClasses.get(BufferedInputStream.class).getDirectDependenciesToSelf())
+                .contain(from(FirstChild.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
     }
 
     @Test

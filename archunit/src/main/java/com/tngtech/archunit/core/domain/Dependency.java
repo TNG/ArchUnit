@@ -135,6 +135,11 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return tryCreateDependency(origin.originClass, origin.originDescription, dependencyType, typeParameterDependency);
     }
 
+    static Set<Dependency> tryCreateFromGenericSuperclassTypeArguments(JavaClass originClass, JavaType superclass, JavaClass typeArgumentDependency) {
+        String dependencyType = "has generic superclass " + bracketFormat(superclass.getName()) + " with type argument depending on";
+        return tryCreateDependency(originClass, originClass.getDescription(), dependencyType, typeArgumentDependency);
+    }
+
     private static Origin findSuitableOrigin(Object dependencyCause, Object originCandidate) {
         if (originCandidate instanceof JavaMember) {
             JavaMember member = (JavaMember) originCandidate;
