@@ -7,6 +7,7 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
@@ -29,7 +30,7 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
     }
 
     public void hasBoundsMatching(Class<?>... bounds) {
-        hasBoundsMatching(ExpectedConcreteParameterizedType.wrap(bounds));
+        hasBoundsMatching(ExpectedConcreteClass.wrap(bounds));
     }
 
     public void hasBoundsMatching(ExpectedConcreteType... bounds) {
@@ -45,6 +46,10 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         }
     }
 
+    public static ExpectedConcreteClass concreteClass(Class<?> expectedType) {
+        return new ExpectedConcreteClass(expectedType);
+    }
+
     public static ExpectedConcreteParameterizedType parameterizedType(Class<?> expectedType) {
         return new ExpectedConcreteParameterizedType(expectedType);
     }
@@ -53,16 +58,39 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         void assertMatchWith(JavaType actual, DescriptionContext context);
     }
 
+    public static class ExpectedConcreteClass implements ExpectedConcreteType {
+        private final Class<?> clazz;
+
+        private ExpectedConcreteClass(Class<?> clazz) {
+            this.clazz = clazz;
+        }
+
+        @Override
+        public void assertMatchWith(JavaType actual, DescriptionContext context) {
+            DescriptionContext newContext = context.describe(ensureSimpleName(actual.getName()));
+            assertThat(actual).as(newContext.toString()).isInstanceOf(JavaClass.class);
+            assertThatType(actual).as(newContext.toString()).matches(clazz);
+        }
+
+        static ExpectedConcreteType[] wrap(Class<?>[] classes) {
+            ExpectedConcreteType[] result = new ExpectedConcreteType[classes.length];
+            for (int i = 0; i < classes.length; i++) {
+                result[i] = new ExpectedConcreteClass(classes[i]);
+            }
+            return result;
+        }
+    }
+
     public static class ExpectedConcreteParameterizedType implements ExpectedConcreteType {
-        private Type type;
+        private final Type type;
         private final List<ExpectedConcreteType> typeParameters = new ArrayList<>();
 
         private ExpectedConcreteParameterizedType(Type type) {
             this.type = type;
         }
 
-        public ExpectedConcreteType withTypeArguments(Type... type) {
-            return withTypeArguments(ExpectedConcreteParameterizedType.wrap(type));
+        public ExpectedConcreteType withTypeArguments(Class<?>... type) {
+            return withTypeArguments(ExpectedConcreteClass.wrap(type));
         }
 
         public ExpectedConcreteType withTypeArguments(ExpectedConcreteType... type) {
@@ -75,7 +103,7 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         }
 
         public ExpectedConcreteType withWildcardTypeParameterWithUpperBound(Class<?> bound) {
-            return withWildcardTypeParameterWithUpperBound(new ExpectedConcreteParameterizedType(bound));
+            return withWildcardTypeParameterWithUpperBound(new ExpectedConcreteClass(bound));
         }
 
         public ExpectedConcreteType withWildcardTypeParameterWithUpperBound(ExpectedConcreteType bound) {
@@ -83,7 +111,7 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         }
 
         public ExpectedConcreteType withWildcardTypeParameterWithLowerBound(Class<?> bound) {
-            return withWildcardTypeParameterWithLowerBound(new ExpectedConcreteParameterizedType(bound));
+            return withWildcardTypeParameterWithLowerBound(new ExpectedConcreteClass(bound));
         }
 
         public ExpectedConcreteType withWildcardTypeParameterWithLowerBound(ExpectedConcreteType bound) {
@@ -97,14 +125,15 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         @Override
         public void assertMatchWith(JavaType actual, DescriptionContext context) {
             DescriptionContext newContext = context.describe(ensureSimpleName(actual.getName()));
-            assertThatType(actual).as(newContext.toString()).matches(type);
+            assertThatType(actual.toErasure()).as(newContext.toString()).matches(type);
             assertTypeParametersMatch(actual, newContext);
         }
 
         private void assertTypeParametersMatch(JavaType actual, DescriptionContext context) {
             DescriptionContext parameterContext = context.step("type parameters").describeTypeParameters();
-            if (!typeParameters.isEmpty() && !(actual instanceof JavaParameterizedType)) {
-                Assert.fail(String.format("%s: Not parameterized, but expected to have type parameters %s", parameterContext, typeParameters));
+            if (!(actual instanceof JavaParameterizedType)) {
+                Assert.fail(String.format(
+                        "%s: Actual type is not parameterized, but expected to be parameterized with type parameters %s", parameterContext, typeParameters));
             }
             List<JavaType> actualTypeParameters = ((JavaParameterizedType) actual).getActualTypeArguments();
             assertConcreteTypesMatch(parameterContext, actualTypeParameters, typeParameters);
@@ -117,14 +146,6 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
 
         private String formatTypeParameters() {
             return !typeParameters.isEmpty() ? "<" + Joiner.on(", ").join(typeParameters) + ">" : "";
-        }
-
-        static ExpectedConcreteType[] wrap(Type... types) {
-            ExpectedConcreteType[] result = new ExpectedConcreteType[types.length];
-            for (int i = 0; i < types.length; i++) {
-                result[i] = new ExpectedConcreteParameterizedType(types[i]);
-            }
-            return result;
         }
     }
 
@@ -168,7 +189,7 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         }
 
         public ExpectedConcreteWildcardType withUpperBound(Class<?> bound) {
-            return withUpperBound(new ExpectedConcreteParameterizedType(bound));
+            return withUpperBound(new ExpectedConcreteClass(bound));
         }
 
         public ExpectedConcreteWildcardType withUpperBound(ExpectedConcreteType bound) {
@@ -177,7 +198,7 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         }
 
         public ExpectedConcreteWildcardType withLowerBound(Class<?> bound) {
-            return withLowerBound(new ExpectedConcreteParameterizedType(bound));
+            return withLowerBound(new ExpectedConcreteClass(bound));
         }
 
         public ExpectedConcreteWildcardType withLowerBound(ExpectedConcreteType bound) {
@@ -199,7 +220,7 @@ public class JavaTypeVariableAssertion extends AbstractObjectAssert<JavaTypeVari
         }
 
         public ExpectedConcreteTypeVariable withUpperBounds(Class<?>... bounds) {
-            return withUpperBounds(ExpectedConcreteParameterizedType.wrap(bounds));
+            return withUpperBounds(ExpectedConcreteClass.wrap(bounds));
         }
 
         public ExpectedConcreteTypeVariable withUpperBounds(ExpectedConcreteType... bounds) {

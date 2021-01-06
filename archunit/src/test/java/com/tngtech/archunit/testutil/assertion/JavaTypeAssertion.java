@@ -89,7 +89,8 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
     }
 
     private JavaClass actualClass() {
-        return actual instanceof JavaClass ? (JavaClass) actual : actual.toErasure();
+        assertThat(actual).as(describeAssertion(actual.getName())).isInstanceOf(JavaClass.class);
+        return (JavaClass) actual;
     }
 
     private String ensureArrayName(String name) {

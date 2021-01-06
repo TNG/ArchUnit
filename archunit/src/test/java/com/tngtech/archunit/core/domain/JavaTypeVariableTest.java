@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
-import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypeErasuresOf;
 
 public class JavaTypeVariableTest {
 
@@ -45,8 +45,8 @@ public class JavaTypeVariableTest {
 
         JavaTypeVariable<JavaClass> type = new ClassFileImporter().importClass(ClassWithUnboundTypeParameter.class).getTypeParameters().get(0);
 
-        assertThatTypes(type.getBounds()).matchExactly(HashMap.class, Serializable.class);
-        assertThatTypes(type.getUpperBounds()).matchExactly(HashMap.class, Serializable.class);
+        assertThatTypeErasuresOf(type.getBounds()).matchExactly(HashMap.class, Serializable.class);
+        assertThatTypeErasuresOf(type.getUpperBounds()).matchExactly(HashMap.class, Serializable.class);
     }
 
     @Test

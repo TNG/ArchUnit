@@ -24,6 +24,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.ExpectedConcreteTypeVariable.typeVariable;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.ExpectedConcreteTypeVariableArray.typeVariableArray;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.ExpectedConcreteWildcardType.wildcardType;
+import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.concreteClass;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.parameterizedType;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -492,7 +493,7 @@ public class ClassFileImporterGenericClassesTest {
                 .hasTypeParameter("A")
                 .withBoundsMatching(
                         parameterizedType(List.class).withWildcardTypeParameter(),
-                        parameterizedType(Serializable.class),
+                        concreteClass(Serializable.class),
                         parameterizedType(Comparable.class).withTypeArguments(typeVariable("A")))
                 .hasTypeParameter("B")
                 .withBoundsMatching(typeVariable("A"))
@@ -502,7 +503,7 @@ public class ClassFileImporterGenericClassesTest {
                                 parameterizedType(Map.Entry.class).withTypeArguments(
                                         typeVariable("A"),
                                         parameterizedType(Map.Entry.class).withTypeArguments(
-                                                parameterizedType(String.class), typeVariable("B"))),
+                                                concreteClass(String.class), typeVariable("B"))),
                                 parameterizedType(Map.class).withTypeArguments(
                                         wildcardType().withUpperBound(String.class),
                                         parameterizedType(Map.class).withTypeArguments(
@@ -558,7 +559,7 @@ public class ClassFileImporterGenericClassesTest {
                                         parameterizedType(Map.class).withTypeArguments(
                                                 wildcardType().withLowerBound(String[][][].class),
                                                 wildcardType()),
-                                        parameterizedType(Serializable[][].class)))
+                                        concreteClass(Serializable[][].class)))
                 );
     }
 
