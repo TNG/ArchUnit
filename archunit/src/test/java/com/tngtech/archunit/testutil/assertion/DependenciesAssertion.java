@@ -10,6 +10,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
 import org.assertj.core.api.AbstractIterableAssert;
 
@@ -111,6 +112,7 @@ public class DependenciesAssertion extends AbstractIterableAssert<
 
     public static class ExpectedDependenciesCreator {
         private final ExpectedDependencies expectedDependencies;
+        private Optional<String> descriptionTemplate = Optional.absent();
         private final Class<?> origin;
 
         private ExpectedDependenciesCreator(ExpectedDependencies expectedDependencies, Class<?> origin) {
@@ -118,8 +120,16 @@ public class DependenciesAssertion extends AbstractIterableAssert<
             this.origin = origin;
         }
 
-        public ExpectedDependencies to(Class<?> target) {
-            return expectedDependencies.add(origin, target);
+        public ExpectedDependenciesCreator withExpectedDescriptionTemplate(String descriptionTemplate) {
+            this.descriptionTemplate = Optional.of(descriptionTemplate);
+            return this;
+        }
+
+        public ExpectedDependencies to(Class<?>... targets) {
+            for (Class<?> target : targets) {
+                expectedDependencies.add(origin, target, descriptionTemplate);
+            }
+            return expectedDependencies;
         }
     }
 
@@ -138,9 +148,12 @@ public class DependenciesAssertion extends AbstractIterableAssert<
             return new ExpectedDependenciesCreator(this, origin);
         }
 
-        ExpectedDependencies add(Class<?> origin, Class<?> target) {
-            expectedDependencies.add(new ExpectedDependency(origin, target));
-            return this;
+        void add(Class<?> origin, Class<?> target, Optional<String> descriptionTemplate) {
+            ExpectedDependency expectedDependency = new ExpectedDependency(origin, target);
+            if (descriptionTemplate.isPresent()) {
+                expectedDependency.descriptionContaining(descriptionTemplate.get().replace("#target", target.getName()));
+            }
+            expectedDependencies.add(expectedDependency);
         }
 
         public ExpectedDependencies withDescriptionContaining(String descriptionTemplate, Object... args) {
@@ -172,7 +185,7 @@ public class DependenciesAssertion extends AbstractIterableAssert<
                     && (!locationPart.isPresent() || dependency.getDescription().endsWith(locationPart.get()));
         }
 
-        public void descriptionContaining(String descriptionTemplate, Object[] args) {
+        public void descriptionContaining(String descriptionTemplate, Object... args) {
             String descriptionPart = String.format(descriptionTemplate, args);
             descriptionPattern = Optional.of(Pattern.compile(".*" + quote(descriptionPart) + ".*"));
         }
@@ -190,7 +203,7 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         }
     }
 
-    private static class ExpectedDependenciesMatchResult {
+    private class ExpectedDependenciesMatchResult {
         private final Iterable<ExpectedDependency> missingDependencies;
         private final Iterable<Dependency> unexpectedDependencies;
 
@@ -201,8 +214,17 @@ public class DependenciesAssertion extends AbstractIterableAssert<
 
         void assertNoMissingDependencies() {
             if (!Iterables.isEmpty(missingDependencies)) {
-                throw new AssertionError("Could not find expected dependencies:" + lineSeparator() + Joiner.on(lineSeparator()).join(missingDependencies));
+                throw new AssertionError("Could not find expected dependencies:" + lineSeparator() + Joiner.on(lineSeparator()).join(missingDependencies)
+                        + lineSeparator() + "within: " + lineSeparator() + Joiner.on(lineSeparator()).join(descriptionsOf(actual)));
             }
+        }
+
+        private List<String> descriptionsOf(Iterable<? extends HasDescription> haveDescriptions) {
+            List<String> result = new ArrayList<>();
+            for (HasDescription hasDescription : haveDescriptions) {
+                result.add(hasDescription.getDescription());
+            }
+            return result;
         }
 
         public void assertAllDependenciesMatched() {

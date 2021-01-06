@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
@@ -265,6 +266,27 @@ public class DependencyTest {
         assertThat(dependency.getDescription()).as("description").contains(String.format(
                 "Class <%s> has type parameter '%s' depending on <%s> in (%s.java:0)",
                 ClassWithTypeParameters.class.getName(), typeParameter.getName(), String.class.getName(), getClass().getSimpleName()));
+    }
+
+    @Test
+    public void Dependency_from_generic_superclass_type_arguments() {
+        @SuppressWarnings("unused")
+        class Base<A> {
+        }
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameters extends Base<String> {
+        }
+
+        JavaClass javaClass = importClassesWithContext(ClassWithTypeParameters.class, String.class, Serializable.class).get(ClassWithTypeParameters.class);
+        JavaParameterizedType genericSuperClass = (JavaParameterizedType) javaClass.getSuperclass().get();
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericSuperclassTypeArguments(javaClass, genericSuperClass, (JavaClass) genericSuperClass.getActualTypeArguments().get(0)));
+
+        assertThatType(dependency.getOriginClass()).matches(ClassWithTypeParameters.class);
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "Class <%s> has generic superclass <%s> with type argument depending on <%s> in (%s.java:0)",
+                ClassWithTypeParameters.class.getName(), Base.class.getName(), String.class.getName(), getClass().getSimpleName()));
     }
 
     @Test
