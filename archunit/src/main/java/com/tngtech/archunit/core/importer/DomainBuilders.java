@@ -632,9 +632,11 @@ public final class DomainBuilders {
         }
 
         @Override
-        public JavaParameterizedType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+        public JavaType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
             List<JavaType> typeArguments = buildJavaTypes(typeArgumentCreationProcesses, owner, allTypeParametersInContext, classes);
-            return new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments);
+            return typeArguments.isEmpty()
+                    ? classes.get(type.getFullyQualifiedClassName())
+                    : new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments);
         }
 
         String getTypeName() {
