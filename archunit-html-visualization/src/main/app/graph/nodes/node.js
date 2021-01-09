@@ -207,6 +207,13 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
       }
       return Promise.all([...childrenPromises, ...promises]);
     }
+
+    _reverseDrawOrder(nodesInDrawOrder) {
+      nodesInDrawOrder.reverse().forEach(node => {
+        node._view.detachFromParent();
+        this._view.addChildView(node._view);
+      })
+    }
   };
 
   const Root = class extends Node {
@@ -586,13 +593,8 @@ const init = (NodeView, RootView, visualizationFunctions, visualizationStyles) =
 
       this._setNodesInForegroundOrBackground(nodesInDrawOrder);
 
-      // FIXME: A node should only know itself and its children, not siblings --> so: let his method operate on the children of a node
-      nodesInDrawOrder.reverse().forEach(node => {
-        node._view.detachFromParent();
-        this.parent._view.addChildView(node._view);
-      });
-
-      this._parent._focus();
+      this.parent._reverseDrawOrder(nodesInDrawOrder);
+      this.parent._focus();
 
       if (doRecursiveFocus) {
         const dependenciesOfNode = this._root.getDependenciesOfNode(this);
