@@ -1,0 +1,31 @@
+plugins {
+    id 'org.javamodularity.moduleplugin' version '1.7.0'
+}
+
+ext.moduleName = 'com.tngtech.archunit.javamodulestest'
+
+sourceCompatibility = JavaVersion.VERSION_1_9
+targetCompatibility = JavaVersion.VERSION_1_9
+
+dependencies {
+    testImplementation project(path: ':archunit', configuration: 'shadow')
+    testImplementation dependency.log4j_slf4j
+
+    testImplementation dependency.junit5JupiterApi
+
+    testRuntimeOnly dependency.junitPlatform
+    testRuntimeOnly dependency.junit5JupiterEngine
+}
+
+test {
+    useJUnitPlatform()
+}
+
+def addArchUnitModuleOptions = {
+    moduleOptions {
+        addModules = ['com.tngtech.archunit']
+        addReads = ['example_module': 'com.tngtech.archunit']
+    }
+}
+
+[compileTestJava, test]*.with(addArchUnitModuleOptions)
