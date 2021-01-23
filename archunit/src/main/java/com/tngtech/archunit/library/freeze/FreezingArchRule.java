@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import com.tngtech.archunit.ArchConfiguration;
@@ -27,6 +28,7 @@ import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.lang.Priority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,12 +75,16 @@ public final class FreezingArchRule implements ArchRule {
     private static final Logger log = LoggerFactory.getLogger(FreezingArchRule.class);
 
     private final ArchRule delegate;
-    private final ViolationStore store;
+    private final ViolationStoreLineBreakAdapter store;
     private final ViolationLineMatcher matcher;
 
     private FreezingArchRule(ArchRule delegate, ViolationStore store, ViolationLineMatcher matcher) {
+        this(delegate, new ViolationStoreLineBreakAdapter(store), matcher);
+    }
+
+    private FreezingArchRule(ArchRule delegate, ViolationStoreLineBreakAdapter store, ViolationLineMatcher matcher) {
         this.delegate = checkNotNull(delegate);
-        this.store = checkNotNull(store);
+        this.store = store;
         this.matcher = checkNotNull(matcher);
     }
 
@@ -105,7 +111,7 @@ public final class FreezingArchRule implements ArchRule {
     public EvaluationResult evaluate(JavaClasses classes) {
         store.initialize(ArchConfiguration.get().getSubProperties(FREEZE_STORE_PROPERTY_NAME));
 
-        EvaluationResult result = delegate.evaluate(classes);
+        EvaluationResultLineBreakAdapter result = new EvaluationResultLineBreakAdapter(delegate.evaluate(classes));
         if (!store.contains(delegate)) {
             return storeViolationsAndReturnSuccess(result);
         } else {
@@ -113,13 +119,13 @@ public final class FreezingArchRule implements ArchRule {
         }
     }
 
-    private EvaluationResult storeViolationsAndReturnSuccess(EvaluationResult result) {
+    private EvaluationResult storeViolationsAndReturnSuccess(EvaluationResultLineBreakAdapter result) {
         log.debug("No results present for rule '{}'. Freezing rule result...", delegate.getDescription());
-        store.save(delegate, result.getFailureReport().getDetails());
+        store.save(delegate, result.getViolations());
         return new EvaluationResult(delegate, result.getPriority());
     }
 
-    private EvaluationResult removeObsoleteViolationsFromStoreAndReturnNewViolations(EvaluationResult result) {
+    private EvaluationResult removeObsoleteViolationsFromStoreAndReturnNewViolations(EvaluationResultLineBreakAdapter result) {
         log.debug("Found frozen result for rule '{}'", delegate.getDescription());
         final List<String> knownViolations = store.getViolations(delegate);
         CategorizedViolations categorizedViolations = new CategorizedViolations(matcher, result, knownViolations);
@@ -135,7 +141,7 @@ public final class FreezingArchRule implements ArchRule {
         }
     }
 
-    private EvaluationResult filterOutKnownViolations(EvaluationResult result, final Set<String> knownActualViolations) {
+    private EvaluationResult filterOutKnownViolations(EvaluationResultLineBreakAdapter result, final Set<String> knownActualViolations) {
         log.debug("Filtering out known violations: {}", knownActualViolations);
         return result.filterDescriptionsMatching(new Predicate<String>() {
             @Override
@@ -196,14 +202,26 @@ public final class FreezingArchRule implements ArchRule {
         return new FreezingArchRule(rule, ViolationStoreFactory.create(), ViolationLineMatcherFactory.create());
     }
 
+    static String ensureUnixLineBreaks(String string) {
+        return string.replaceAll("\r\n", "\n");
+    }
+
+    private static List<String> ensureUnixLineBreaks(List<String> strings) {
+        List<String> result = new ArrayList<>();
+        for (String string : strings) {
+            result.add(ensureUnixLineBreaks(string));
+        }
+        return result;
+    }
+
     private static class CategorizedViolations {
         private final Set<String> knownActualViolations = new HashSet<>();
         private final List<String> storedSolvedViolations;
         private final List<String> storedUnsolvedViolations = new ArrayList<>();
 
-        CategorizedViolations(ViolationLineMatcher matcher, EvaluationResult actualResult, List<String> storedViolations) {
+        CategorizedViolations(ViolationLineMatcher matcher, EvaluationResultLineBreakAdapter actualResult, List<String> storedViolations) {
             List<String> storedViolationsLeft = new ArrayList<>(storedViolations);
-            for (String actualViolation : actualResult.getFailureReport().getDetails()) {
+            for (String actualViolation : actualResult.getViolations()) {
                 for (Iterator<String> iterator = storedViolationsLeft.iterator(); iterator.hasNext(); ) {
                     String storedViolation = iterator.next();
                     if (matcher.matches(actualViolation, storedViolation)) {
@@ -228,6 +246,55 @@ public final class FreezingArchRule implements ArchRule {
 
         List<String> getStoredUnsolvedViolations() {
             return storedUnsolvedViolations;
+        }
+    }
+
+    private static class ViolationStoreLineBreakAdapter {
+        private final ViolationStore store;
+
+        ViolationStoreLineBreakAdapter(ViolationStore store) {
+            this.store = checkNotNull(store);
+        }
+
+        void initialize(Properties properties) {
+            store.initialize(properties);
+        }
+
+        boolean contains(ArchRule rule) {
+            return store.contains(rule);
+        }
+
+        List<String> getViolations(ArchRule rule) {
+            return ensureUnixLineBreaks(store.getViolations(rule));
+        }
+
+        void save(ArchRule rule, List<String> violations) {
+            store.save(rule, ensureUnixLineBreaks(violations));
+        }
+    }
+
+    private static class EvaluationResultLineBreakAdapter {
+        private final EvaluationResult result;
+
+        private EvaluationResultLineBreakAdapter(EvaluationResult result) {
+            this.result = checkNotNull(result);
+        }
+
+        List<String> getViolations() {
+            return ensureUnixLineBreaks(result.getFailureReport().getDetails());
+        }
+
+        Priority getPriority() {
+            return result.getPriority();
+        }
+
+        EvaluationResult filterDescriptionsMatching(final Predicate<String> predicate) {
+            return result.filterDescriptionsMatching(new Predicate<String>() {
+                @Override
+                public boolean apply(String input) {
+                    return predicate.apply(ensureUnixLineBreaks(input));
+                }
+            });
         }
     }
 }
