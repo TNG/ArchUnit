@@ -1,6 +1,9 @@
 package com.tngtech.archunit.integration;
 
+import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.CertificateFactory;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -17,6 +20,7 @@ import javax.persistence.EntityManager;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.ClassBeingCalledInSliceOne;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.ClassOfMinimalCycleCallingSliceTwo;
@@ -127,6 +131,7 @@ import com.tngtech.archunit.example.plantuml.order.Order;
 import com.tngtech.archunit.example.plantuml.product.Product;
 import com.tngtech.archunit.exampletest.ControllerRulesTest;
 import com.tngtech.archunit.exampletest.SecurityTest;
+import com.tngtech.archunit.testutil.TransientCopyRule;
 import com.tngtech.archunit.testutils.CyclicErrorMatcher;
 import com.tngtech.archunit.testutils.ExpectedClass;
 import com.tngtech.archunit.testutils.ExpectedConstructor;
@@ -140,6 +145,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -176,6 +184,9 @@ import static com.tngtech.archunit.testutils.SliceDependencyErrorMatcher.sliceDe
 import static java.lang.System.lineSeparator;
 
 class ExamplesIntegrationTest {
+
+    @TempDir
+    static Path temporaryViolationStore;
 
     @BeforeAll
     static void initExtension() {
@@ -652,7 +663,29 @@ class ExamplesIntegrationTest {
                         .inLine(27)
                         .asDependency())
 
-                .toDynamicTests();
+                .toDynamicTests(this::withTemporaryViolationStore);
+    }
+
+    private void withTemporaryViolationStore(Runnable test) {
+        try {
+            File sourceDir = Paths.get(ArchConfiguration.get().getProperty("freeze.store.default.path")).toFile();
+            TransientCopyRule transientCopyRule = new TransientCopyRule();
+            transientCopyRule.copy(sourceDir, temporaryViolationStore.toFile());
+            transientCopyRule.apply(new Statement() {
+                @Override
+                public void evaluate() {
+                    String oldStorePath = ArchConfiguration.get().getProperty("freeze.store.default.path");
+                    ArchConfiguration.get().setProperty("freeze.store.default.path", temporaryViolationStore.toAbsolutePath().toString());
+                    try {
+                        test.run();
+                    } finally {
+                        ArchConfiguration.get().setProperty("freeze.store.default.path", oldStorePath);
+                    }
+                }
+            }, Description.EMPTY).evaluate();
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @TestFactory
