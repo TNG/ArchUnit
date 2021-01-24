@@ -233,7 +233,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             @Override
             public FieldAccessTarget getTarget() {
                 Supplier<Optional<JavaField>> fieldSupplier = new FieldTargetSupplier(targetOwner.getAllFields(), record.target);
-                JavaClass fieldType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmType(record.target.desc).getFullyQualifiedClassName());
+                JavaClass fieldType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(record.target.desc).getFullyQualifiedClassName());
                 return new FieldAccessTargetBuilder()
                         .withOwner(targetOwner)
                         .withName(record.target.name)
