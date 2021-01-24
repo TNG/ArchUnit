@@ -319,6 +319,14 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
+        public void visitLdcInsn(Object value) {
+            if (JavaClassDescriptorImporter.isAsmType(value)) {
+                codeUnitBuilder.addReferencedClassObject(
+                        RawReferencedClassObject.from(JavaClassDescriptorImporter.importAsmType(value), actualLineNumber));
+            }
+        }
+
+        @Override
         public void visitFieldInsn(int opcode, String owner, String name, String desc) {
             accessHandler.handleFieldInstruction(opcode, owner, name, desc);
         }
