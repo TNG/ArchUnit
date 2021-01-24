@@ -27,10 +27,14 @@ class JavaClassDescriptorImporter {
      * i.e. java/lang/Object (note that this is not a descriptor like Ljava/lang/Object;)
      */
     static JavaClassDescriptor createFromAsmObjectTypeName(String objectTypeName) {
-        return importAsmType(Type.getObjectType(objectTypeName));
+        return JavaClassDescriptor.From.name(Type.getObjectType(objectTypeName).getClassName());
     }
 
-    static JavaClassDescriptor importAsmType(Type type) {
+    static JavaClassDescriptor importAsmType(Object type) {
+        return importAsmType((Type) type);
+    }
+
+    private static JavaClassDescriptor importAsmType(Type type) {
         return JavaClassDescriptor.From.name(type.getClassName());
     }
 
@@ -39,7 +43,7 @@ class JavaClassDescriptorImporter {
     }
 
     static Object importAsmTypeIfPossible(Object value) {
-        return isAsmType(value) ? importAsmType((Type) value) : value;
+        return isAsmType(value) ? importAsmType(value) : value;
     }
 
     static JavaClassDescriptor importAsmTypeFromDescriptor(String typeDescriptor) {

@@ -33,6 +33,7 @@ import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -58,6 +59,7 @@ import com.tngtech.archunit.testutil.assertion.JavaPackagesAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypeAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypesAssertion;
+import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.AbstractObjectAssert;
@@ -159,6 +161,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaFieldAssertion assertThat(JavaField field) {
         return new JavaFieldAssertion(field);
+    }
+
+    public static ReferencedClassObjectsAssertion assertThatReferencedClassObjects(Set<ReferencedClassObject> referencedClassObjects) {
+        return new ReferencedClassObjectsAssertion(referencedClassObjects);
     }
 
     public static JavaEnumConstantAssertion assertThat(JavaEnumConstant enumConstant) {
