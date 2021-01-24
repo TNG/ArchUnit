@@ -206,7 +206,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         DomainBuilders.JavaFieldBuilder fieldBuilder = new DomainBuilders.JavaFieldBuilder()
                 .withName(name)
-                .withType(JavaClassDescriptorImporter.importAsmType(desc))
+                .withType(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc))
                 .withModifiers(JavaModifier.getModifiersForField(access))
                 .withDescriptor(desc);
         declarationHandler.onDeclaredField(fieldBuilder);
@@ -500,7 +500,7 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static DomainBuilders.JavaAnnotationBuilder annotationBuilderFor(String desc) {
-        return new DomainBuilders.JavaAnnotationBuilder().withType(JavaClassDescriptorImporter.importAsmType(desc));
+        return new DomainBuilders.JavaAnnotationBuilder().withType(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc));
     }
 
     private static class AnnotationProcessor extends AnnotationVisitor {
@@ -736,7 +736,7 @@ class JavaClassProcessor extends ClassVisitor {
             public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
                 return Optional.<Object>of(
                         new DomainBuilders.JavaEnumConstantBuilder()
-                                .withDeclaringClass(importContext.resolveClass(JavaClassDescriptorImporter.importAsmType(desc).getFullyQualifiedClassName()))
+                                .withDeclaringClass(importContext.resolveClass(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc).getFullyQualifiedClassName()))
                                 .withName(value)
                                 .build());
             }

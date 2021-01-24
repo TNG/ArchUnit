@@ -42,7 +42,7 @@ class JavaClassDescriptorImporter {
         return isAsmType(value) ? importAsmType((Type) value) : value;
     }
 
-    static JavaClassDescriptor importAsmType(String typeDescriptor) {
+    static JavaClassDescriptor importAsmTypeFromDescriptor(String typeDescriptor) {
         return importAsmType(Type.getType(typeDescriptor));
     }
 
