@@ -72,12 +72,16 @@ public class ExpectedTestFailures {
         return this;
     }
 
-    public Stream<DynamicTest> toDynamicTests() {
+    public Stream<DynamicTest> toDynamicTests(Consumer<Runnable> aroundTestInvoke) {
         return testClasses.stream()
                 .map(RunnableTest::from)
                 .map(test -> dynamicTest(
                         test.getDisplayName(),
-                        () -> assertActualAndExpectedViolationsMatch(test)));
+                        () -> aroundTestInvoke.accept(() -> assertActualAndExpectedViolationsMatch(test))));
+    }
+
+    public Stream<DynamicTest> toDynamicTests() {
+        return toDynamicTests(Runnable::run);
     }
 
     private void assertActualAndExpectedViolationsMatch(RunnableTest test) {

@@ -20,4 +20,5 @@ Method <com.tngtech.archunit.example.layers.service.ComplexServiceAnnotation.ser
 Method <com.tngtech.archunit.example.layers.service.ComplexServiceAnnotation.simpleServiceAnnotation()> has return type <com.tngtech.archunit.example.layers.service.SimpleServiceAnnotation> in (ComplexServiceAnnotation.java:0)
 Method <com.tngtech.archunit.example.layers.service.ServiceType.values()> calls method <[Lcom.tngtech.archunit.example.layers.service.ServiceType;.clone()> in (ServiceType.java:3)
 Method <com.tngtech.archunit.example.layers.service.ServiceType.values()> has return type <[Lcom.tngtech.archunit.example.layers.service.ServiceType;> in (ServiceType.java:0)
+Method <com.tngtech.archunit.example.layers.service.ServiceType.$values()> has return type <[Lcom.tngtech.archunit.example.layers.service.ServiceType;> in (ServiceType.java:0)
 Method <com.tngtech.archunit.example.layers.service.ServiceViolatingDaoRules.illegallyUseEntityManager()> calls method <com.tngtech.archunit.example.layers.service.ServiceViolatingDaoRules$MyEntityManager.persist(java.lang.Object)> in (ServiceViolatingDaoRules.java:27)
