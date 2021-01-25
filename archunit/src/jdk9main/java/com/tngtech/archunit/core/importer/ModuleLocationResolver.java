@@ -15,11 +15,21 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.io.File;
 import java.lang.module.ModuleFinder;
+import java.lang.module.ModuleReference;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
+import com.google.common.base.Splitter;
+
+import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Iterables.concat;
 import static java.util.stream.Collectors.toList;
 
@@ -27,12 +37,24 @@ class ModuleLocationResolver implements LocationResolver {
     @Override
     public UrlSource resolveClassPath() {
         Iterable<URL> classpath = UrlSource.From.classPathSystemProperties();
-        Iterable<URL> modulepath = ModuleFinder.ofSystem().findAll().stream()
+        Set<ModuleReference> systemModuleReferences = ModuleFinder.ofSystem().findAll();
+        Set<ModuleReference> configuredModuleReferences = ModuleFinder.of(modulepath()).findAll();
+        Iterable<URL> modulepath = Stream.concat(systemModuleReferences.stream(), configuredModuleReferences.stream())
                 .flatMap(moduleReference -> moduleReference.location().stream())
                 .map(this::toUrl)
                 .collect(toList());
 
         return UrlSource.From.iterable(concat(classpath, modulepath));
+    }
+
+    private Path[] modulepath() {
+        String modulepathProperty = nullToEmpty(System.getProperty("jdk.module.path"));
+        List<String> modulepath = Splitter.on(File.pathSeparatorChar).omitEmptyStrings().splitToList(modulepathProperty);
+        Path[] result = new Path[modulepath.size()];
+        for (int i = 0; i < modulepath.size(); i++) {
+            result[i] = Paths.get(modulepath.get(i));
+        }
+        return result;
     }
 
     private URL toUrl(URI uri) {
