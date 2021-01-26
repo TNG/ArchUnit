@@ -122,6 +122,12 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
                 instanceofCheck.getRawType(), instanceofCheck.getSourceCodeLocation());
     }
 
+    static Set<Dependency> tryCreateFromReferencedClassObject(ReferencedClassObject referencedClassObject) {
+        return tryCreateDependency(
+                referencedClassObject.getOwner(), "references class object",
+                referencedClassObject.getRawType(), referencedClassObject.getSourceCodeLocation());
+    }
+
     static Set<Dependency> tryCreateFromAnnotation(JavaAnnotation<?> target) {
         Origin origin = findSuitableOrigin(target, target.getAnnotatedElement());
         return tryCreateDependency(origin, "is annotated with", target.getRawType());

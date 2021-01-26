@@ -2,8 +2,13 @@ package com.tngtech.archunit.core.domain;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FilterInputStream;
 import java.io.Serializable;
 import java.lang.annotation.Retention;
+import java.nio.Buffer;
+import java.nio.charset.Charset;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,6 +30,7 @@ import com.tngtech.archunit.core.domain.testobjects.AllPrimitiveDependencies;
 import com.tngtech.archunit.core.domain.testobjects.ArrayComponentTypeDependencies;
 import com.tngtech.archunit.core.domain.testobjects.B;
 import com.tngtech.archunit.core.domain.testobjects.ComponentTypeDependency;
+import com.tngtech.archunit.core.domain.testobjects.DependenciesOnClassObjects;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
 import com.tngtech.archunit.core.domain.testobjects.SuperA;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -640,6 +646,31 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_from_self_by_referenced_class_objects() {
+        JavaClass javaClass = new ClassFileImporter().importClass(DependenciesOnClassObjects.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(from(DependenciesOnClassObjects.class).to(FilterInputStream.class).inLocation(DependenciesOnClassObjects.class, 16)
+                        .withDescriptionContaining("references class object")
+
+                        .from(DependenciesOnClassObjects.class).to(Buffer.class).inLocation(DependenciesOnClassObjects.class, 16)
+                        .withDescriptionContaining("references class object")
+
+                        .from(DependenciesOnClassObjects.class).to(File.class).inLocation(DependenciesOnClassObjects.class, 19)
+                        .withDescriptionContaining("references class object")
+
+                        .from(DependenciesOnClassObjects.class).to(Path.class).inLocation(DependenciesOnClassObjects.class, 19)
+                        .withDescriptionContaining("references class object")
+
+                        .from(DependenciesOnClassObjects.class).to(FileSystem.class).inLocation(DependenciesOnClassObjects.class, 22)
+                        .withDescriptionContaining("references class object")
+
+                        .from(DependenciesOnClassObjects.class).to(Charset.class).inLocation(DependenciesOnClassObjects.class, 22)
+                        .withDescriptionContaining("references class object")
+                );
+    }
+
+    @Test
     public void direct_dependencies_from_self_finds_correct_set_of_target_types() {
         JavaClass javaClass = importPackagesOf(getClass()).get(ClassWithAnnotationDependencies.class);
 
@@ -873,23 +904,38 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_to_self_by_referenced_class_objects() {
+        JavaClass javaClass = new ClassFileImporter()
+                .importClasses(DependenciesOnClassObjects.class, DependenciesOnClassObjects.MoreDependencies.class, Charset.class)
+                .get(Charset.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesToSelf())
+                .contain(from(DependenciesOnClassObjects.class).to(Charset.class).inLocation(DependenciesOnClassObjects.class, 22)
+                        .withDescriptionContaining("references class object")
+
+                        .from(DependenciesOnClassObjects.MoreDependencies.class).to(Charset.class).inLocation(DependenciesOnClassObjects.class, 27)
+                        .withDescriptionContaining("references class object")
+                );
+    }
+
+    @Test
     public void direct_dependencies_to_self_finds_correct_set_of_origin_types() {
         JavaClasses classes = importPackagesOf(getClass());
 
         Set<JavaClass> origins = getOriginsOfDependenciesTo(classes.get(WithType.class));
 
         assertThatTypes(origins).matchInAnyOrder(
-                ClassWithAnnotationDependencies.class, ClassWithSelfReferences.class, WithNestedAnnotations.class, OnMethodParam.class);
+                getClass(), ClassWithAnnotationDependencies.class, ClassWithSelfReferences.class, WithNestedAnnotations.class, OnMethodParam.class);
 
         origins = getOriginsOfDependenciesTo(classes.get(B.class));
 
         assertThatTypes(origins).matchInAnyOrder(
-                ClassWithAnnotationDependencies.class, OnMethodParam.class, AAccessingB.class, AhavingMembersOfTypeB.class);
+                getClass(), ClassWithAnnotationDependencies.class, OnMethodParam.class, AAccessingB.class, AhavingMembersOfTypeB.class);
 
         origins = getOriginsOfDependenciesTo(classes.get(SomeEnumAsNestedAnnotationParameter.class));
 
         assertThatTypes(origins).matchInAnyOrder(
-                ClassWithAnnotationDependencies.class, WithEnum.class);
+                getClass(), ClassWithAnnotationDependencies.class, WithEnum.class);
     }
 
     private Set<JavaClass> getOriginsOfDependenciesTo(JavaClass withType) {

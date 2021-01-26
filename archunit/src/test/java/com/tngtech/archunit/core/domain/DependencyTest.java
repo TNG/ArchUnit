@@ -6,13 +6,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.FileSystem;
 import java.util.Set;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithArrayDependencies;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget;
+import com.tngtech.archunit.core.domain.testobjects.DependenciesOnClassObjects;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.testutil.Assertions;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
@@ -24,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
@@ -32,6 +36,7 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyT
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
+import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
@@ -287,6 +292,24 @@ public class DependencyTest {
         assertThat(dependency.getDescription()).as("description").contains(String.format(
                 "Class <%s> has generic superclass <%s> with type argument depending on <%s> in (%s.java:0)",
                 ClassWithTypeParameters.class.getName(), Base.class.getName(), String.class.getName(), getClass().getSimpleName()));
+    }
+
+    @Test
+    public void Dependency_from_referenced_class_object() {
+        JavaMethod origin = new ClassFileImporter()
+                .importClass(DependenciesOnClassObjects.class)
+                .getMethod("referencedClassObjectsInMethod");
+        ReferencedClassObject referencedClassObject = getOnlyElement(FluentIterable.from(origin.getReferencedClassObjects())
+                .filter(toGuava(rawType(FileSystem.class)))
+                .toSet());
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromReferencedClassObject(referencedClassObject));
+
+        assertThatType(dependency.getOriginClass()).matches(DependenciesOnClassObjects.class);
+        assertThatType(dependency.getTargetClass()).matches(FileSystem.class);
+        assertThat(dependency.getDescription()).as("description")
+                .contains(String.format("Method <%s> references class object <%s> in (%s.java:%d)",
+                        origin.getFullName(), FileSystem.class.getName(), DependenciesOnClassObjects.class.getSimpleName(), 22));
     }
 
     @Test

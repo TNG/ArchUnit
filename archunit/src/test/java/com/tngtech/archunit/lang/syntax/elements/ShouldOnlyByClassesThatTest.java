@@ -934,7 +934,7 @@ public class ShouldOnlyByClassesThatTest {
     public void areAnonymousClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areAnonymousClasses())
-                .on(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass(),
+                .on(ClassAccessingAnonymousClass_Reference, anonymousClassBeingAccessed.getClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
         assertThatTypes(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
@@ -945,10 +945,10 @@ public class ShouldOnlyByClassesThatTest {
     public void areNotAnonymousClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotAnonymousClasses())
-                .on(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass(),
+                .on(ClassAccessingAnonymousClass_Reference, anonymousClassBeingAccessed.getClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnonymousClass.class, anonymousClassBeingAccessed.getClass());
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnonymousClass_Reference, anonymousClassBeingAccessed.getClass());
     }
 
     @Test
@@ -956,7 +956,7 @@ public class ShouldOnlyByClassesThatTest {
     public void areLocalClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areLocalClasses())
-                .on(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass(),
+                .on(ClassAccessingLocalClass_Reference, ClassBeingAccessedByLocalClass.getLocalClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
         assertThatTypes(classes).matchInAnyOrder(ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
@@ -967,10 +967,10 @@ public class ShouldOnlyByClassesThatTest {
     public void areNotLocalClasses_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(
                 classesShouldOnlyBeBy.areNotLocalClasses())
-                .on(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass(),
+                .on(ClassAccessingLocalClass_Reference, ClassBeingAccessedByLocalClass.getLocalClass(),
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByLocalClass.class, ClassBeingAccessedByLocalClass.getLocalClass());
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingLocalClass_Reference, ClassBeingAccessedByLocalClass.getLocalClass());
     }
 
     @Test
@@ -1048,6 +1048,14 @@ public class ShouldOnlyByClassesThatTest {
 
     private static DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
         return GET_NAME.is(equalTo(type.getName()));
+    }
+
+    private static Class<?> classForName(String className) {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static class ClassAccessedByFoo {
@@ -1306,6 +1314,8 @@ public class ShouldOnlyByClassesThatTest {
     private class InnerMemberClassBeingAccessed {
     }
 
+    // This must be loaded via Reflection, otherwise the test will be tainted by the dependency on the class object
+    private static final Class<?> ClassAccessingAnonymousClass_Reference = classForName("com.tngtech.archunit.lang.syntax.elements.ShouldOnlyByClassesThatTest$ClassAccessingAnonymousClass");
     private static class ClassAccessingAnonymousClass {
         @SuppressWarnings("unused")
         void access() {
@@ -1320,15 +1330,20 @@ public class ShouldOnlyByClassesThatTest {
         }
     };
 
+    // This must be loaded via Reflection, otherwise the test will be tainted by the dependency on the class object
+    private static final Class<?> ClassAccessingLocalClass_Reference = classForName("com.tngtech.archunit.lang.syntax.elements.ShouldOnlyByClassesThatTest$ClassBeingAccessedByLocalClass");
+
     private static class ClassBeingAccessedByLocalClass {
         static Class<?> getLocalClass() {
+            @SuppressWarnings({"unused", "InstantiationOfUtilityClass"})
             class LocalClass {
-                @SuppressWarnings("unused")
                 void access() {
                     new ClassBeingAccessedByLocalClass();
                 }
             }
-            return LocalClass.class;
+
+            // This must be loaded via Reflection, otherwise the test will be tainted by the dependency on the class object
+            return classForName("com.tngtech.archunit.lang.syntax.elements.ShouldOnlyByClassesThatTest$ClassBeingAccessedByLocalClass$1LocalClass");
         }
     }
 }
