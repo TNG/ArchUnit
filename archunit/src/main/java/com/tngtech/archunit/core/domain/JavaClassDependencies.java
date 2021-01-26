@@ -52,6 +52,7 @@ class JavaClassDependencies {
                 result.addAll(constructorParameterDependenciesFromSelf());
                 result.addAll(annotationDependenciesFromSelf());
                 result.addAll(instanceofCheckDependenciesFromSelf());
+                result.addAll(referencedClassObjectDependenciesFromSelf());
                 result.addAll(typeParameterDependenciesFromSelf());
                 return result.build();
             }
@@ -154,6 +155,14 @@ class JavaClassDependencies {
             for (InstanceofCheck instanceofCheck : codeUnit.getInstanceofChecks()) {
                 result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
             }
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> referencedClassObjectDependenciesFromSelf() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (ReferencedClassObject referencedClassObject : javaClass.getReferencedClassObjects()) {
+            result.addAll(Dependency.tryCreateFromReferencedClassObject(referencedClassObject));
         }
         return result.build();
     }
