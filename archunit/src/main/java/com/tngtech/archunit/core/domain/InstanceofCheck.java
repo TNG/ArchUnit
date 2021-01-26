@@ -19,6 +19,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasType;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -55,6 +56,15 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit> {
     @PublicAPI(usage = ACCESS)
     public int getLineNumber() {
         return lineNumber;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("owner", owner)
+                .add("target", target)
+                .add("lineNumber", lineNumber)
+                .toString();
     }
 
     static InstanceofCheck from(JavaCodeUnit owner, JavaClass target, int lineNumber) {
