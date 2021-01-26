@@ -17,22 +17,25 @@ package com.tngtech.archunit.core.domain;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.domain.properties.HasType;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit> {
+public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
 
     private final JavaCodeUnit owner;
     private final JavaClass target;
     private final int lineNumber;
+    private final SourceCodeLocation sourceCodeLocation;
 
     private InstanceofCheck(JavaCodeUnit owner, JavaClass target, int lineNumber) {
         this.owner = checkNotNull(owner);
         this.target = checkNotNull(target);
         this.lineNumber = lineNumber;
+        sourceCodeLocation = SourceCodeLocation.of(owner.getOwner(), lineNumber);
     }
 
     @Override
@@ -56,6 +59,11 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit> {
     @PublicAPI(usage = ACCESS)
     public int getLineNumber() {
         return lineNumber;
+    }
+
+    @Override
+    public SourceCodeLocation getSourceCodeLocation() {
+        return sourceCodeLocation;
     }
 
     @Override
