@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.importer;
 
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 class RawInstanceofCheck {
@@ -28,15 +29,23 @@ class RawInstanceofCheck {
         this.lineNumber = lineNumber;
     }
 
-    public static RawInstanceofCheck from(JavaClassDescriptor target, int lineNumber) {
+    static RawInstanceofCheck from(JavaClassDescriptor target, int lineNumber) {
         return new RawInstanceofCheck(target, lineNumber);
     }
 
-    public JavaClassDescriptor getTarget() {
+    JavaClassDescriptor getTarget() {
         return target;
     }
 
-    public int getLineNumber() {
+    int getLineNumber() {
         return lineNumber;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("target", target)
+                .add("lineNumber", lineNumber)
+                .toString();
     }
 }
