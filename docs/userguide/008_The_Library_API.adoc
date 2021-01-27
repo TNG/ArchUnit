@@ -268,7 +268,7 @@ classes().should(adhereToPlantUmlDiagram(
         mydiagram, consideringAllDependencies())
 
 // considers only dependencies specified in the PlantUML diagram
-// (so any unknown depedency will be ignored)
+// (so any unknown dependency will be ignored)
 classes().should(adhereToPlantUmlDiagram(
         mydiagram, consideringOnlyDependenciesInDiagram())
 

@@ -39,6 +39,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.io.Files.toByteArray;
 import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
+import static com.tngtech.archunit.library.freeze.FreezingArchRule.ensureUnixLineBreaks;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 class ViolationStoreFactory {
@@ -196,10 +197,6 @@ class ViolationStoreFactory {
             }
         }
 
-        private String ensureUnixLineBreaks(String string) {
-            return string.replaceAll("\r\n", "\n");
-        }
-
         private static class FileSyncedProperties {
             private final File propertiesFile;
             private final Properties loadedProperties;
@@ -234,15 +231,15 @@ class ViolationStoreFactory {
             }
 
             boolean containsKey(String propertyName) {
-                return loadedProperties.containsKey(propertyName);
+                return loadedProperties.containsKey(ensureUnixLineBreaks(propertyName));
             }
 
             String getProperty(String propertyName) {
-                return loadedProperties.getProperty(propertyName);
+                return loadedProperties.getProperty(ensureUnixLineBreaks(propertyName));
             }
 
             void setProperty(String propertyName, String value) {
-                loadedProperties.setProperty(propertyName, value);
+                loadedProperties.setProperty(ensureUnixLineBreaks(propertyName), ensureUnixLineBreaks(value));
                 syncFileSystem();
             }
 
