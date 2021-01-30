@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -541,9 +540,9 @@ public final class DomainBuilders {
     }
 
     static class TypeParametersBuilder {
-        private final Collection<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders;
+        private final List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders;
 
-        TypeParametersBuilder(Collection<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders) {
+        TypeParametersBuilder(List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders) {
             this.typeParameterBuilders = typeParameterBuilders;
         }
 
@@ -633,13 +632,20 @@ public final class DomainBuilders {
         }
 
         @Override
-        public JavaParameterizedType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+        public JavaType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
             List<JavaType> typeArguments = buildJavaTypes(typeArgumentCreationProcesses, owner, allTypeParametersInContext, classes);
-            return new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments);
+            return typeArguments.isEmpty()
+                    ? classes.get(type.getFullyQualifiedClassName())
+                    : new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments);
         }
 
         String getTypeName() {
             return type.getFullyQualifiedClassName();
+        }
+
+        JavaParameterizedTypeBuilder<OWNER> forInnerClass(String simpleInnerClassName) {
+            return new JavaParameterizedTypeBuilder<>(JavaClassDescriptorImporter.createFromAsmObjectTypeName(
+                    type.getFullyQualifiedClassName() + '$' + simpleInnerClassName));
         }
     }
 

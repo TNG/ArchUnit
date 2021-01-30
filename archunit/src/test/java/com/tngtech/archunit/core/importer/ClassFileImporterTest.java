@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.jar.JarFile;
 
 import com.google.common.base.Predicate;
@@ -76,19 +77,19 @@ import com.tngtech.archunit.core.importer.testexamples.callimport.CallsOwnConstr
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsOwnMethod;
 import com.tngtech.archunit.core.importer.testexamples.callimport.ExternalInterfaceMethodCall;
 import com.tngtech.archunit.core.importer.testexamples.callimport.ExternalOverriddenMethodCall;
-import com.tngtech.archunit.core.importer.testexamples.callimport.ExternalSubTypeConstructorCall;
+import com.tngtech.archunit.core.importer.testexamples.callimport.ExternalSubtypeConstructorCall;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.BaseClass;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.CollectionInterface;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.GrandParentInterface;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.OtherInterface;
-import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.OtherSubClass;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.OtherSubclass;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.ParentInterface;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SomeCollection;
-import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubClass;
-import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubInterface;
-import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubSubClass;
-import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubSubSubClass;
-import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubSubSubSubClass;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubSubSubSubclass;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubSubSubclass;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.SubSubclass;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.Subclass;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.Subinterface;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.YetAnotherInterface;
 import com.tngtech.archunit.core.importer.testexamples.complexexternal.ChildClass;
 import com.tngtech.archunit.core.importer.testexamples.complexexternal.ParentClass;
@@ -119,12 +120,12 @@ import com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.O
 import com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.ParentInterfaceWithFields;
 import com.tngtech.archunit.core.importer.testexamples.fieldimport.ClassWithIntAndObjectFields;
 import com.tngtech.archunit.core.importer.testexamples.fieldimport.ClassWithStringField;
-import com.tngtech.archunit.core.importer.testexamples.hierarchicalfieldaccess.AccessToSuperAndSubClassField;
-import com.tngtech.archunit.core.importer.testexamples.hierarchicalfieldaccess.SubClassWithAccessedField;
-import com.tngtech.archunit.core.importer.testexamples.hierarchicalfieldaccess.SuperClassWithAccessedField;
-import com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall.CallOfSuperAndSubClassMethod;
-import com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall.SubClassWithCalledMethod;
-import com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall.SuperClassWithCalledMethod;
+import com.tngtech.archunit.core.importer.testexamples.hierarchicalfieldaccess.AccessToSuperAndSubclassField;
+import com.tngtech.archunit.core.importer.testexamples.hierarchicalfieldaccess.SubclassWithAccessedField;
+import com.tngtech.archunit.core.importer.testexamples.hierarchicalfieldaccess.SuperclassWithAccessedField;
+import com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall.CallOfSuperAndSubclassMethod;
+import com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall.SubclassWithCalledMethod;
+import com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall.SuperclassWithCalledMethod;
 import com.tngtech.archunit.core.importer.testexamples.innerclassimport.CalledClass;
 import com.tngtech.archunit.core.importer.testexamples.innerclassimport.ClassWithInnerClass;
 import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.ChecksInstanceofInConstructor;
@@ -133,7 +134,7 @@ import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.ChecksIns
 import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.InstanceofChecked;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassA;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassBDependingOnClassA;
-import com.tngtech.archunit.core.importer.testexamples.integration.ClassCDependingOnClassB_SuperClassOfX;
+import com.tngtech.archunit.core.importer.testexamples.integration.ClassCDependingOnClassB_SuperclassOfX;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassD;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassXDependingOnClassesABCD;
 import com.tngtech.archunit.core.importer.testexamples.integration.InterfaceOfClassX;
@@ -249,7 +250,7 @@ public class ClassFileImporterTest {
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(ClassToImportOne.class.getSimpleName());
         assertThat(javaClass.getPackageName()).as("package name").isEqualTo(ClassToImportOne.class.getPackage().getName());
         assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC);
-        assertThatType(javaClass.getSuperClass().get()).as("super class").matches(Object.class);
+        assertThatType(javaClass.getRawSuperclass().get()).as("super class").matches(Object.class);
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
         assertThat(javaClass.isEnum()).as("is enum").isFalse();
@@ -273,7 +274,7 @@ public class ClassFileImporterTest {
         assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(EnumToImport.class.getSimpleName());
         assertThat(javaClass.getPackageName()).as("package name").isEqualTo(EnumToImport.class.getPackage().getName());
         assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
-        assertThatType(javaClass.getSuperClass().get()).as("super class").matches(Enum.class);
+        assertThatType(javaClass.getRawSuperclass().get()).as("super class").matches(Enum.class);
         assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
         assertThatTypes(javaClass.getAllInterfaces()).matchInAnyOrder(Enum.class.getInterfaces());
         assertThat(javaClass.isInterface()).as("is interface").isFalse();
@@ -372,7 +373,7 @@ public class ClassFileImporterTest {
         assertThat(simpleInterface.getName()).as("full name").isEqualTo(InterfaceToImport.class.getName());
         assertThat(simpleInterface.getSimpleName()).as("simple name").isEqualTo(InterfaceToImport.class.getSimpleName());
         assertThat(simpleInterface.getPackageName()).as("package name").isEqualTo(InterfaceToImport.class.getPackage().getName());
-        assertThat(simpleInterface.getSuperClass()).as("super class").isAbsent();
+        assertThat(simpleInterface.getRawSuperclass()).as("super class").isAbsent();
         assertThat(simpleInterface.getInterfaces()).as("interfaces").isEmpty();
         assertThat(simpleInterface.isInterface()).as("is interface").isTrue();
         assertThat(simpleInterface.isEnum()).as("is enum").isFalse();
@@ -681,31 +682,34 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    public void imports_sub_class_in_class_hierarchy_correctly() throws Exception {
-        JavaClass subClass = classesIn("testexamples/classhierarchyimport").get(SubClass.class);
+    public void imports_subclass_in_class_hierarchy_correctly() throws Exception {
+        JavaClass subclass = classesIn("testexamples/classhierarchyimport").get(Subclass.class);
 
-        assertThat(subClass.getConstructors()).hasSize(3);
-        assertThat(subClass.getFields()).hasSize(1);
-        assertThat(subClass.getMethods()).hasSize(3);
-        assertThat(subClass.getStaticInitializer().get().getMethodCallsFromSelf().size()).isGreaterThan(0);
+        assertThat(subclass.getConstructors()).hasSize(3);
+        assertThat(subclass.getFields()).hasSize(1);
+        assertThat(subclass.getMethods()).hasSize(3);
+        assertThat(subclass.getStaticInitializer().get().getMethodCallsFromSelf().size()).isGreaterThan(0);
     }
 
     @Test
-    public void creates_relations_between_super_and_sub_classes() throws Exception {
+    public void creates_relations_between_super_and_subclasses() throws Exception {
         ImportedClasses classes = classesIn("testexamples/classhierarchyimport");
         JavaClass baseClass = classes.get(BaseClass.class);
-        JavaClass subClass = classes.get(SubClass.class);
-        JavaClass otherSubClass = classes.get(OtherSubClass.class);
-        JavaClass subSubClass = classes.get(SubSubClass.class);
-        JavaClass subSubSubClass = classes.get(SubSubSubClass.class);
-        JavaClass subSubSubSubClass = classes.get(SubSubSubSubClass.class);
+        JavaClass subclass = classes.get(Subclass.class);
+        JavaClass otherSubclass = classes.get(OtherSubclass.class);
+        JavaClass subSubclass = classes.get(SubSubclass.class);
+        JavaClass subSubSubclass = classes.get(SubSubSubclass.class);
+        JavaClass subSubSubSubclass = classes.get(SubSubSubSubclass.class);
 
-        assertThat(baseClass.getSuperClass().get().reflect()).isEqualTo(Object.class);
-        assertThat(baseClass.getSubClasses()).containsOnly(subClass, otherSubClass);
-        assertThat(baseClass.getAllSubClasses()).containsOnly(subClass, otherSubClass, subSubClass, subSubSubClass, subSubSubSubClass);
-        assertThat(subClass.getSuperClass()).contains(baseClass);
-        assertThat(subClass.getAllSubClasses()).containsOnly(subSubClass, subSubSubClass, subSubSubSubClass);
-        assertThat(subSubClass.getSuperClass()).contains(subClass);
+        assertThat(baseClass.getRawSuperclass().get().reflect()).isEqualTo(Object.class);
+        assertThat(baseClass.getSubclasses()).containsOnly(subclass, otherSubclass);
+        assertThat(baseClass.getSubclasses()).containsOnly(subclass, otherSubclass);
+        assertThat(baseClass.getAllSubclasses()).containsOnly(subclass, otherSubclass, subSubclass, subSubSubclass, subSubSubSubclass);
+        assertThat(baseClass.getAllSubclasses()).containsOnly(subclass, otherSubclass, subSubclass, subSubSubclass, subSubSubSubclass);
+        assertThat(subclass.getRawSuperclass()).contains(baseClass);
+        assertThat(subclass.getRawSuperclass()).contains(baseClass);
+        assertThat(subclass.getAllSubclasses()).containsOnly(subSubclass, subSubSubclass, subSubSubSubclass);
+        assertThat(subSubclass.getRawSuperclass()).contains(subclass);
     }
 
     @Test
@@ -713,9 +717,9 @@ public class ClassFileImporterTest {
         ImportedClasses classes = classesIn("testexamples/classhierarchyimport");
         JavaClass baseClass = classes.get(BaseClass.class);
         JavaClass otherInterface = classes.get(OtherInterface.class);
-        JavaClass subClass = classes.get(SubClass.class);
-        JavaClass subInterface = classes.get(SubInterface.class);
-        JavaClass otherSubClass = classes.get(OtherSubClass.class);
+        JavaClass subclass = classes.get(Subclass.class);
+        JavaClass subinterface = classes.get(Subinterface.class);
+        JavaClass otherSubclass = classes.get(OtherSubclass.class);
         JavaClass parentInterface = classes.get(ParentInterface.class);
         JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
         JavaClass someCollection = classes.get(SomeCollection.class);
@@ -723,21 +727,21 @@ public class ClassFileImporterTest {
 
         assertThat(baseClass.getInterfaces()).containsOnly(otherInterface);
         assertThat(baseClass.getAllInterfaces()).containsOnly(otherInterface, grandParentInterface);
-        assertThat(subClass.getInterfaces()).containsOnly(subInterface);
-        assertThat(subClass.getAllInterfaces()).containsOnly(
-                subInterface, otherInterface, parentInterface, grandParentInterface);
-        assertThat(otherSubClass.getInterfaces()).containsOnly(parentInterface);
-        assertThat(otherSubClass.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface, otherInterface);
-        assertThat(someCollection.getInterfaces()).containsOnly(collectionInterface, otherInterface, subInterface);
+        assertThat(subclass.getInterfaces()).containsOnly(subinterface);
+        assertThat(subclass.getAllInterfaces()).containsOnly(
+                subinterface, otherInterface, parentInterface, grandParentInterface);
+        assertThat(otherSubclass.getInterfaces()).containsOnly(parentInterface);
+        assertThat(otherSubclass.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface, otherInterface);
+        assertThat(someCollection.getInterfaces()).containsOnly(collectionInterface, otherInterface, subinterface);
         assertThat(someCollection.getAllInterfaces()).extractingResultOf("reflect").containsOnly(
-                CollectionInterface.class, OtherInterface.class, SubInterface.class, ParentInterface.class,
+                CollectionInterface.class, OtherInterface.class, Subinterface.class, ParentInterface.class,
                 GrandParentInterface.class, Collection.class, Iterable.class);
     }
 
     @Test
     public void creates_relations_between_interfaces_and_interfaces() throws Exception {
         ImportedClasses classes = classesIn("testexamples/classhierarchyimport");
-        JavaClass subInterface = classes.get(SubInterface.class);
+        JavaClass subinterface = classes.get(Subinterface.class);
         JavaClass parentInterface = classes.get(ParentInterface.class);
         JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
         JavaClass collectionInterface = classes.get(CollectionInterface.class);
@@ -745,54 +749,54 @@ public class ClassFileImporterTest {
         assertThat(grandParentInterface.getAllInterfaces()).isEmpty();
         assertThat(parentInterface.getInterfaces()).containsOnly(grandParentInterface);
         assertThat(parentInterface.getAllInterfaces()).containsOnly(grandParentInterface);
-        assertThat(subInterface.getInterfaces()).containsOnly(parentInterface);
-        assertThat(subInterface.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface);
+        assertThat(subinterface.getInterfaces()).containsOnly(parentInterface);
+        assertThat(subinterface.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface);
         assertThat(collectionInterface.getInterfaces()).extractingResultOf("reflect").containsOnly(Collection.class);
     }
 
     @Test
-    public void creates_relations_between_interfaces_and_sub_classes() throws Exception {
+    public void creates_relations_between_interfaces_and_subclasses() throws Exception {
         ImportedClasses classes = classesIn("testexamples/classhierarchyimport");
         JavaClass baseClass = classes.get(BaseClass.class);
         JavaClass otherInterface = classes.get(OtherInterface.class);
-        JavaClass subClass = classes.get(SubClass.class);
-        JavaClass subSubClass = classes.get(SubSubClass.class);
-        JavaClass subSubSubClass = classes.get(SubSubSubClass.class);
-        JavaClass subSubSubSubClass = classes.get(SubSubSubSubClass.class);
-        JavaClass subInterface = classes.get(SubInterface.class);
-        JavaClass otherSubClass = classes.get(OtherSubClass.class);
+        JavaClass subclass = classes.get(Subclass.class);
+        JavaClass subSubclass = classes.get(SubSubclass.class);
+        JavaClass subSubSubclass = classes.get(SubSubSubclass.class);
+        JavaClass subSubSubSubclass = classes.get(SubSubSubSubclass.class);
+        JavaClass subinterface = classes.get(Subinterface.class);
+        JavaClass otherSubclass = classes.get(OtherSubclass.class);
         JavaClass parentInterface = classes.get(ParentInterface.class);
         JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
         JavaClass someCollection = classes.get(SomeCollection.class);
         JavaClass collectionInterface = classes.get(CollectionInterface.class);
 
-        assertThat(grandParentInterface.getSubClasses()).containsOnly(parentInterface, otherInterface);
-        assertThat(grandParentInterface.getAllSubClasses()).containsOnly(
-                parentInterface, subInterface, otherInterface,
-                baseClass, subClass, otherSubClass, subSubClass, subSubSubClass, subSubSubSubClass, someCollection
+        assertThat(grandParentInterface.getSubclasses()).containsOnly(parentInterface, otherInterface);
+        assertThat(grandParentInterface.getAllSubclasses()).containsOnly(
+                parentInterface, subinterface, otherInterface,
+                baseClass, subclass, otherSubclass, subSubclass, subSubSubclass, subSubSubSubclass, someCollection
         );
-        assertThat(parentInterface.getSubClasses()).containsOnly(subInterface, otherSubClass);
-        assertThat(parentInterface.getAllSubClasses()).containsOnly(
-                subInterface, subClass, subSubClass, subSubSubClass, subSubSubSubClass, someCollection, otherSubClass);
+        assertThat(parentInterface.getSubclasses()).containsOnly(subinterface, otherSubclass);
+        assertThat(parentInterface.getAllSubclasses()).containsOnly(
+                subinterface, subclass, subSubclass, subSubSubclass, subSubSubSubclass, someCollection, otherSubclass);
         JavaClass collection = getOnlyElement(collectionInterface.getInterfaces());
-        assertThat(collection.getAllSubClasses()).containsOnly(collectionInterface, someCollection);
+        assertThat(collection.getAllSubclasses()).containsOnly(collectionInterface, someCollection);
     }
 
     @Test
     public void creates_superclass_and_interface_relations_missing_from_context() {
-        JavaClass javaClass = new ClassFileImporter().importClass(SubSubSubSubClass.class);
+        JavaClass javaClass = new ClassFileImporter().importClass(SubSubSubSubclass.class);
 
-        assertThat(javaClass.getAllSuperClasses()).extracting("name")
+        assertThat(javaClass.getAllRawSuperclasses()).extracting("name")
                 .containsExactly(
-                        SubSubSubClass.class.getName(),
-                        SubSubClass.class.getName(),
-                        SubClass.class.getName(),
+                        SubSubSubclass.class.getName(),
+                        SubSubclass.class.getName(),
+                        Subclass.class.getName(),
                         BaseClass.class.getName(),
                         Object.class.getName());
 
         assertThat(javaClass.getAllInterfaces()).extracting("name")
                 .containsOnly(
-                        SubInterface.class.getName(),
+                        Subinterface.class.getName(),
                         YetAnotherInterface.class.getName(),
                         ParentInterface.class.getName(),
                         GrandParentInterface.class.getName(),
@@ -826,10 +830,10 @@ public class ClassFileImporterTest {
     public void imports_overridden_methods_correctly() throws Exception {
         ImportedClasses classes = classesIn("testexamples/classhierarchyimport");
         JavaClass baseClass = classes.get(BaseClass.class);
-        JavaClass subClass = classes.get(SubClass.class);
+        JavaClass subclass = classes.get(Subclass.class);
 
         assertThat(baseClass.getCodeUnitWithParameterTypes("getSomeField").getModifiers()).containsOnly(PROTECTED);
-        assertThat(subClass.getCodeUnitWithParameterTypes("getSomeField").getModifiers()).containsOnly(PUBLIC);
+        assertThat(subclass.getCodeUnitWithParameterTypes("getSomeField").getModifiers()).containsOnly(PUBLIC);
     }
 
     @Test
@@ -1059,27 +1063,27 @@ public class ClassFileImporterTest {
     @Test
     public void imports_shadowed_and_superclass_field_access() throws Exception {
         ImportedClasses classes = classesIn("testexamples/hierarchicalfieldaccess");
-        JavaClass classThatAccessesFieldOfSuperClass = classes.get(AccessToSuperAndSubClassField.class);
-        JavaClass superClassWithAccessedField = classes.get(SuperClassWithAccessedField.class);
-        JavaClass subClassWithAccessedField = classes.get(SubClassWithAccessedField.class);
+        JavaClass classThatAccessesFieldOfSuperclass = classes.get(AccessToSuperAndSubclassField.class);
+        JavaClass superclassWithAccessedField = classes.get(SuperclassWithAccessedField.class);
+        JavaClass subclassWithAccessedField = classes.get(SubclassWithAccessedField.class);
 
-        Set<JavaFieldAccess> accesses = classThatAccessesFieldOfSuperClass.getFieldAccessesFromSelf();
+        Set<JavaFieldAccess> accesses = classThatAccessesFieldOfSuperclass.getFieldAccessesFromSelf();
 
         assertThat(accesses).hasSize(2);
-        JavaField field = superClassWithAccessedField.getField("field");
-        FieldAccessTarget expectedSuperClassFieldAccess = new FieldAccessTargetBuilder()
-                .withOwner(subClassWithAccessedField)
+        JavaField field = superclassWithAccessedField.getField("field");
+        FieldAccessTarget expectedSuperclassFieldAccess = new FieldAccessTargetBuilder()
+                .withOwner(subclassWithAccessedField)
                 .withName(field.getName())
                 .withType(field.getRawType())
                 .withField(Suppliers.ofInstance(Optional.of(field)))
                 .build();
         assertThatAccess(getOnly(accesses, "field", GET))
-                .isFrom("accessSuperClassField")
-                .isTo(expectedSuperClassFieldAccess)
+                .isFrom("accessSuperclassField")
+                .isTo(expectedSuperclassFieldAccess)
                 .inLineNumber(5);
         assertThatAccess(getOnly(accesses, "maskedField", GET))
-                .isFrom("accessSubClassField")
-                .isTo(subClassWithAccessedField.getField("maskedField"))
+                .isFrom("accessSubclassField")
+                .isTo(subclassWithAccessedField.getField("maskedField"))
                 .inLineNumber(9);
     }
 
@@ -1105,35 +1109,35 @@ public class ClassFileImporterTest {
     @Test
     public void imports_shadowed_and_superclass_method_calls() throws Exception {
         ImportedClasses classes = classesIn("testexamples/hierarchicalmethodcall");
-        JavaClass classThatCallsMethodOfSuperClass = classes.get(CallOfSuperAndSubClassMethod.class);
-        JavaClass superClassWithCalledMethod = classes.get(SuperClassWithCalledMethod.class);
-        JavaClass subClassWithCalledMethod = classes.get(SubClassWithCalledMethod.class);
+        JavaClass classThatCallsMethodOfSuperclass = classes.get(CallOfSuperAndSubclassMethod.class);
+        JavaClass superclassWithCalledMethod = classes.get(SuperclassWithCalledMethod.class);
+        JavaClass subclassWithCalledMethod = classes.get(SubclassWithCalledMethod.class);
 
-        Set<JavaMethodCall> calls = classThatCallsMethodOfSuperClass.getMethodCallsFromSelf();
+        Set<JavaMethodCall> calls = classThatCallsMethodOfSuperclass.getMethodCallsFromSelf();
 
         assertThat(calls).hasSize(2);
 
-        JavaCodeUnit callSuperClassMethod = classThatCallsMethodOfSuperClass
-                .getCodeUnitWithParameterTypes(CallOfSuperAndSubClassMethod.callSuperClassMethod);
-        JavaMethod expectedSuperClassMethod = superClassWithCalledMethod.getMethod(SuperClassWithCalledMethod.method);
-        MethodCallTarget expectedSuperClassCall = new MethodCallTargetBuilder()
-                .withOwner(subClassWithCalledMethod)
-                .withName(expectedSuperClassMethod.getName())
-                .withParameters(expectedSuperClassMethod.getRawParameterTypes())
-                .withReturnType(expectedSuperClassMethod.getRawReturnType())
-                .withMethods(Suppliers.ofInstance(Collections.singleton(expectedSuperClassMethod)))
+        JavaCodeUnit callSuperclassMethod = classThatCallsMethodOfSuperclass
+                .getCodeUnitWithParameterTypes(CallOfSuperAndSubclassMethod.callSuperclassMethod);
+        JavaMethod expectedSuperclassMethod = superclassWithCalledMethod.getMethod(SuperclassWithCalledMethod.method);
+        MethodCallTarget expectedSuperclassCall = new MethodCallTargetBuilder()
+                .withOwner(subclassWithCalledMethod)
+                .withName(expectedSuperclassMethod.getName())
+                .withParameters(expectedSuperclassMethod.getRawParameterTypes())
+                .withReturnType(expectedSuperclassMethod.getRawReturnType())
+                .withMethods(Suppliers.ofInstance(Collections.singleton(expectedSuperclassMethod)))
                 .build();
-        assertThatCall(getOnlyByCaller(calls, callSuperClassMethod))
-                .isFrom(callSuperClassMethod)
-                .isTo(expectedSuperClassCall)
-                .inLineNumber(CallOfSuperAndSubClassMethod.callSuperClassLineNumber);
+        assertThatCall(getOnlyByCaller(calls, callSuperclassMethod))
+                .isFrom(callSuperclassMethod)
+                .isTo(expectedSuperclassCall)
+                .inLineNumber(CallOfSuperAndSubclassMethod.callSuperclassLineNumber);
 
-        JavaCodeUnit callSubClassMethod = classThatCallsMethodOfSuperClass
-                .getCodeUnitWithParameterTypes(CallOfSuperAndSubClassMethod.callSubClassMethod);
-        assertThatCall(getOnlyByCaller(calls, callSubClassMethod))
-                .isFrom(callSubClassMethod)
-                .isTo(subClassWithCalledMethod.getMethod(SubClassWithCalledMethod.maskedMethod))
-                .inLineNumber(CallOfSuperAndSubClassMethod.callSubClassLineNumber);
+        JavaCodeUnit callSubclassMethod = classThatCallsMethodOfSuperclass
+                .getCodeUnitWithParameterTypes(CallOfSuperAndSubclassMethod.callSubclassMethod);
+        assertThatCall(getOnlyByCaller(calls, callSubclassMethod))
+                .isFrom(callSubclassMethod)
+                .isTo(subclassWithCalledMethod.getMethod(SubclassWithCalledMethod.maskedMethod))
+                .inLineNumber(CallOfSuperAndSubclassMethod.callSubclassLineNumber);
     }
 
     @Test
@@ -1208,7 +1212,7 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_constructor_calls_to_sub_type_constructor_on_external_class() throws Exception {
-        JavaClass classWithExternalConstructorCall = classesIn("testexamples/callimport").get(ExternalSubTypeConstructorCall.class);
+        JavaClass classWithExternalConstructorCall = classesIn("testexamples/callimport").get(ExternalSubtypeConstructorCall.class);
 
         assertConstructorCall(classWithExternalConstructorCall.getCodeUnitWithParameterTypes("call"), ChildClass.class, 9);
         assertConstructorCall(classWithExternalConstructorCall.getCodeUnitWithParameterTypes("newHashMap"), HashMap.class, 13);
@@ -1324,7 +1328,7 @@ public class ClassFileImporterTest {
         Set<JavaClass> expectedTargetClasses = ImmutableSet.of(
                 classes.get(ClassA.class),
                 classes.get(ClassBDependingOnClassA.class),
-                classes.get(ClassCDependingOnClassB_SuperClassOfX.class),
+                classes.get(ClassCDependingOnClassB_SuperclassOfX.class),
                 classes.get(ClassD.class),
                 classes.get(InterfaceOfClassX.class)
         );
@@ -1340,7 +1344,7 @@ public class ClassFileImporterTest {
     @Test
     public void getDirectDependencies_does_not_return_transitive_dependencies() throws Exception {
         ImportedClasses classes = classesIn("testexamples/integration");
-        JavaClass javaClass = classes.get(ClassCDependingOnClassB_SuperClassOfX.class);
+        JavaClass javaClass = classes.get(ClassCDependingOnClassB_SuperclassOfX.class);
         JavaClass expectedTargetClass = classes.get(ClassBDependingOnClassA.class);
 
         Set<JavaClass> targetClasses = new HashSet<>();
@@ -1706,12 +1710,12 @@ public class ClassFileImporterTest {
         ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
         JavaClass clazz = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
 
-        assertThat(clazz.getSuperClass().get().getMethods()).isNotEmpty();
+        assertThat(clazz.getRawSuperclass().get().getMethods()).isNotEmpty();
 
         ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
         clazz = classesIn("testexamples/simpleimport").get(ClassToImportOne.class);
 
-        assertThat(clazz.getSuperClass().get().getMethods()).isEmpty();
+        assertThat(clazz.getRawSuperclass().get().getMethods()).isEmpty();
     }
 
     @DataProvider
@@ -1722,18 +1726,24 @@ public class ClassFileImporterTest {
         class DependsOnArray {
             Element[] array;
         }
-        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
-        JavaClass resolvedFromClasspath = new ClassFileImporter().importClasses(DependsOnArray.class)
-                .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
 
-        ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-        JavaClass stub = new ClassFileImporter().importClasses(DependsOnArray.class)
-                .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
+        return ArchConfigurationRule.resetConfigurationAround(new Callable<Object[][]>() {
+            @Override
+            public Object[][] call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
+                JavaClass resolvedFromClasspath = new ClassFileImporter().importClasses(DependsOnArray.class)
+                        .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
 
-        return $$(
-                $("Resolved from classpath", resolvedFromClasspath),
-                $("Stub class", stub)
-        );
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                JavaClass stub = new ClassFileImporter().importClasses(DependsOnArray.class)
+                        .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
+
+                return $$(
+                        $("Resolved from classpath", resolvedFromClasspath),
+                        $("Stub class", stub)
+                );
+            }
+        });
     }
 
     @Test

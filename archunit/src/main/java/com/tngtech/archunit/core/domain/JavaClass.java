@@ -54,6 +54,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
+import static com.tngtech.archunit.core.domain.JavaType.Functions.TO_ERASURE;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
@@ -80,14 +81,14 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private Set<JavaMember> members = emptySet();
     private Set<JavaConstructor> constructors = emptySet();
     private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
-    private Optional<JavaClass> superClass = Optional.absent();
-    private final Supplier<List<JavaClass>> allSuperClasses = Suppliers.memoize(new Supplier<List<JavaClass>>() {
+    private Superclass superclass = Superclass.ABSENT;
+    private final Supplier<List<JavaClass>> allRawSuperclasses = Suppliers.memoize(new Supplier<List<JavaClass>>() {
         @Override
         public List<JavaClass> get() {
             ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
             JavaClass current = JavaClass.this;
-            while (current.getSuperClass().isPresent()) {
-                current = current.getSuperClass().get();
+            while (current.getRawSuperclass().isPresent()) {
+                current = current.getRawSuperclass().get();
                 result.add(current);
             }
             return result.build();
@@ -102,9 +103,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                 result.add(i);
                 result.addAll(i.getAllInterfaces());
             }
-            if (superClass.isPresent()) {
-                result.addAll(superClass.get().getAllInterfaces());
-            }
+            result.addAll(superclass.getAllInterfaces());
             return result.build();
         }
     });
@@ -113,18 +112,18 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         public List<JavaClass> get() {
             ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
             result.add(JavaClass.this);
-            result.addAll(getAllSuperClasses());
+            result.addAll(getAllRawSuperclasses());
             return result.build();
         }
     });
-    private final Set<JavaClass> subClasses = new HashSet<>();
-    private final Supplier<Set<JavaClass>> allSubClasses = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
+    private final Set<JavaClass> subclasses = new HashSet<>();
+    private final Supplier<Set<JavaClass>> allSubclasses = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
         @Override
         public Set<JavaClass> get() {
             Set<JavaClass> result = new HashSet<>();
-            for (JavaClass subClass : subClasses) {
-                result.add(subClass);
-                result.addAll(subClass.getAllSubClasses());
+            for (JavaClass subclass : subclasses) {
+                result.add(subclass);
+                result.addAll(subclass.getAllSubclasses());
             }
             return result;
         }
@@ -656,12 +655,26 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     @PublicAPI(usage = ACCESS)
-    public Optional<JavaClass> getSuperClass() {
-        return superClass;
+    public Optional<JavaClass> getRawSuperclass() {
+        return superclass.getRaw();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaType> getSuperclass() {
+        return superclass.get();
     }
 
     /**
-     * @return The complete class hierarchy, i.e. the class itself and the result of {@link #getAllSuperClasses()}
+     * @deprecated Use {@link #getRawSuperclass()} instead
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaClass> getSuperClass() {
+        return getRawSuperclass();
+    }
+
+    /**
+     * @return The complete class hierarchy, i.e. the class itself and the result of {@link #getAllRawSuperclasses()}
      */
     @PublicAPI(usage = ACCESS)
     public List<JavaClass> getClassHierarchy() {
@@ -673,13 +686,31 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * then the super class of the super class and so on. Includes Object.class in the result.
      */
     @PublicAPI(usage = ACCESS)
+    public List<JavaClass> getAllRawSuperclasses() {
+        return allRawSuperclasses.get();
+    }
+
+    /**
+     * @deprecated Use {@link #getAllRawSuperclasses()} instead.
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
     public List<JavaClass> getAllSuperClasses() {
-        return allSuperClasses.get();
+        return getAllRawSuperclasses();
     }
 
     @PublicAPI(usage = ACCESS)
+    public Set<JavaClass> getSubclasses() {
+        return subclasses;
+    }
+
+    /**
+     * @deprecated Use {@link #getSubclasses()} instead.
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getSubClasses() {
-        return subClasses;
+        return getSubclasses();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -704,7 +735,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     public Set<JavaClass> getAllClassesSelfIsAssignableTo() {
         return ImmutableSet.<JavaClass>builder()
                 .add(this)
-                .addAll(getAllSuperClasses())
+                .addAll(getAllRawSuperclasses())
                 .addAll(getAllInterfaces())
                 .build();
     }
@@ -715,8 +746,17 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     @PublicAPI(usage = ACCESS)
+    public Set<JavaClass> getAllSubclasses() {
+        return allSubclasses.get();
+    }
+
+    /**
+     * @deprecated Use {@link #getAllSubclasses()} instead.
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllSubClasses() {
-        return allSubClasses.get();
+        return getAllSubclasses();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1194,7 +1234,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     @PublicAPI(usage = ACCESS)
     public boolean isAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
         List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
-                .add(this).addAll(getAllSubClasses()).build();
+                .add(this).addAll(getAllSubclasses()).build();
 
         return anyMatches(possibleTargets, predicate);
     }
@@ -1240,7 +1280,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     void completeClassHierarchyFrom(ImportContext context) {
-        completeSuperClassFrom(context);
+        completeSuperclassFrom(context);
         completeInterfacesFrom(context);
         allFields = Suppliers.memoize(new Supplier<Set<JavaField>>() {
             @Override
@@ -1274,17 +1314,18 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         });
     }
 
-    private void completeSuperClassFrom(ImportContext context) {
-        superClass = context.createSuperClass(this);
-        if (superClass.isPresent()) {
-            superClass.get().subClasses.add(this);
+    private void completeSuperclassFrom(ImportContext context) {
+        Optional<JavaClass> rawSuperclass = context.createSuperclass(this);
+        if (rawSuperclass.isPresent()) {
+            rawSuperclass.get().subclasses.add(this);
+            this.superclass = this.superclass.withRawType(rawSuperclass.get());
         }
     }
 
     private void completeInterfacesFrom(ImportContext context) {
         interfaces.addAll(context.createInterfaces(this));
         for (JavaClass i : interfaces) {
-            i.subClasses.add(this);
+            i.subclasses.add(this);
         }
     }
 
@@ -1294,6 +1335,13 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     void completeTypeParametersFrom(ImportContext context) {
         typeParameters = context.createTypeParameters(this);
+    }
+
+    void completeGenericSuperclassFrom(ImportContext context) {
+        Optional<JavaType> genericSuperclass = context.createGenericSuperclass(this);
+        if (genericSuperclass.isPresent()) {
+            superclass = superclass.withGenericType(genericSuperclass.get());
+        }
     }
 
     void completeMembers(final ImportContext context) {
@@ -1370,6 +1418,42 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     @PublicAPI(usage = ACCESS)
     public boolean isAnonymous() {
         return isAnonymousClass();
+    }
+
+    private static class Superclass {
+        private static final Superclass ABSENT = new Superclass(Optional.<JavaType>absent());
+
+        private final Optional<JavaClass> rawType;
+        private final Optional<JavaType> type;
+
+        private Superclass(JavaType type) {
+            this(Optional.of(type));
+        }
+
+        private Superclass(Optional<JavaType> type) {
+            this.rawType = type.transform(TO_ERASURE);
+            this.type = type;
+        }
+
+        Optional<JavaClass> getRaw() {
+            return rawType;
+        }
+
+        Optional<JavaType> get() {
+            return type.or(rawType);
+        }
+
+        Set<JavaClass> getAllInterfaces() {
+            return rawType.isPresent() ? rawType.get().getAllInterfaces() : Collections.<JavaClass>emptySet();
+        }
+
+        Superclass withRawType(JavaClass newRawType) {
+            return new Superclass(newRawType);
+        }
+
+        Superclass withGenericType(JavaType newGenericType) {
+            return new Superclass(newGenericType);
+        }
     }
 
     public static final class Functions {
@@ -1663,7 +1747,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> implement(final DescribedPredicate<? super JavaClass> predicate) {
             DescribedPredicate<JavaClass> selfIsImplementation = not(INTERFACES);
-            DescribedPredicate<JavaClass> interfacePredicate = predicate.<JavaClass>forSubType().and(INTERFACES);
+            DescribedPredicate<JavaClass> interfacePredicate = predicate.<JavaClass>forSubtype().and(INTERFACES);
             return selfIsImplementation.and(assignableTo(interfacePredicate))
                     .as("implement " + predicate.getDescription());
         }

@@ -50,11 +50,11 @@ public class ArchConditionsTest {
         JavaMethodCall callTodoNotCallMe = simulateCall.from(callingClass.getMethod("call"), 0).to(doNotCallMe);
 
         ArchCondition<JavaClass> condition = never(callMethodWhere(target(name("doNotCallMe"))
-                .and(target(owner(assignableTo(SomeSuperClass.class))))));
+                .and(target(owner(assignableTo(SomeSuperclass.class))))));
         assertThat(condition).checking(callingClass)
                 .containViolations(callTodoNotCallMe.getDescription());
 
-        condition = never(callMethodWhere(target(name("doNotCallMe")).and(target(owner(type(SomeSuperClass.class))))));
+        condition = never(callMethodWhere(target(name("doNotCallMe")).and(target(owner(type(SomeSuperclass.class))))));
         assertThat(condition).checking(callingClass)
                 .containNoViolation();
     }
@@ -145,7 +145,7 @@ public class ArchConditionsTest {
         }
     }
 
-    private static class SomeClass extends SomeSuperClass {
+    private static class SomeClass extends SomeSuperclass {
         void doNotCallMe() {
         }
 
@@ -153,6 +153,6 @@ public class ArchConditionsTest {
         }
     }
 
-    private static class SomeSuperClass {
+    private static class SomeSuperclass {
     }
 }

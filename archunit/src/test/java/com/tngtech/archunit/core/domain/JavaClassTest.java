@@ -244,23 +244,27 @@ public class JavaClassTest {
 
     @Test
     public void superclasses_are_found() {
-        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperclassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
 
-        assertThat(clazz.getAllSuperClasses()).extracting("name").containsExactly(
-                SuperClassWithFieldAndMethod.class.getName(),
+        assertThat(clazz.getAllRawSuperclasses()).extracting("name").containsExactly(
+                SuperclassWithFieldAndMethod.class.getName(),
+                Parent.class.getName(),
+                Object.class.getName());
+        assertThat(clazz.getAllRawSuperclasses()).extracting("name").containsExactly(
+                SuperclassWithFieldAndMethod.class.getName(),
                 Parent.class.getName(),
                 Object.class.getName());
     }
 
     @Test
     public void hierarchy_is_found() {
-        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+        JavaClass clazz = importClassesWithContext(ClassWithTwoFieldsAndTwoMethods.class, SuperclassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
 
         assertThat(clazz.getClassHierarchy()).extracting("name").containsExactly(
                 clazz.getName(),
-                SuperClassWithFieldAndMethod.class.getName(),
+                SuperclassWithFieldAndMethod.class.getName(),
                 Parent.class.getName(),
                 Object.class.getName());
     }
@@ -350,15 +354,15 @@ public class JavaClassTest {
 
     @Test
     public void allAccesses_contains_accesses_from_superclass() {
-        JavaClass javaClass = importClasses(ClassWithTwoFieldsAndTwoMethods.class, SuperClassWithFieldAndMethod.class, Parent.class)
+        JavaClass javaClass = importClasses(ClassWithTwoFieldsAndTwoMethods.class, SuperclassWithFieldAndMethod.class, Parent.class)
                 .get(ClassWithTwoFieldsAndTwoMethods.class);
         JavaClass anotherClass = importClassWithContext(Object.class);
         simulateCall().from(javaClass.getMethod("stringMethod"), 8).to(anotherClass.getMethod("toString"));
-        simulateCall().from(javaClass.getSuperClass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
+        simulateCall().from(javaClass.getRawSuperclass().get().getMethod("objectMethod"), 8).to(anotherClass.getMethod("toString"));
 
         assertThat(javaClass.getAccessesFromSelf()).extractingResultOf("getOriginOwner").containsOnly(javaClass);
         assertThat(javaClass.getAllAccessesFromSelf()).extractingResultOf("getOriginOwner")
-                .contains(javaClass, javaClass.getSuperClass().get());
+                .contains(javaClass, javaClass.getRawSuperclass().get());
     }
 
     @Test
@@ -483,6 +487,34 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_from_self_by_inheritance_through_generic_superclass_parameters() {
+        @SuppressWarnings("unused")
+        class Base<X, Y> {
+        }
+        class Child<FIRST, SECOND> extends Base<
+                Comparable<Child<FIRST, SECOND>>,
+                Map<
+                        Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                        Map<? extends BufferedInputStream[][],
+                                Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>>>>> {
+        }
+
+        JavaClass javaClass = importClassWithContext(Child.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(from(Child.class).to(Base.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("extends")
+
+                        .from(Child.class)
+                        .withExpectedDescriptionTemplate("has generic superclass <" + Base.class.getName() + "> with type argument depending on <#target>")
+                        .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+
+                        .from(Child.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
     public void direct_dependencies_from_self_by_member_declarations() {
         JavaClass javaClass = importClasses(AhavingMembersOfTypeB.class, B.class).get(AhavingMembersOfTypeB.class);
 
@@ -592,41 +624,18 @@ public class JavaClassTest {
         JavaClass javaClass = importClasses(ClassWithTypeParameters.class).get(ClassWithTypeParameters.class);
 
         assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
-                .contain(from(ClassWithTypeParameters.class).to(List.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'FIRST' depending on")
+                .contain(from(ClassWithTypeParameters.class)
+                        .withExpectedDescriptionTemplate("type parameter 'FIRST' depending on")
+                        .to(List.class, Serializable.class, Comparable.class)
+                        .inLocation(getClass(), 0)
 
-                        .from(ClassWithTypeParameters.class).to(Serializable.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'FIRST' depending on")
+                        .from(ClassWithTypeParameters.class)
+                        .withExpectedDescriptionTemplate("type parameter 'SECOND' depending on")
+                        .to(Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+                        .inLocation(getClass(), 0)
 
-                        .from(ClassWithTypeParameters.class).to(Comparable.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'FIRST' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Map.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Map.Entry.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(String.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(BufferedInputStream[][].class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Serializable.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(List.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Set.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(Iterable.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
-
-                        .from(ClassWithTypeParameters.class).to(File.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("type parameter 'SECOND' depending on")
+                        .from(ClassWithTypeParameters.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
                 );
     }
 
@@ -639,7 +648,7 @@ public class JavaClassTest {
 
         assertThatTypes(targets).matchInAnyOrder(
                 B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
-                List.class, Serializable.class, SomeSuperClass.class,
+                List.class, Serializable.class, SomeSuperclass.class,
                 WithType.class, WithNestedAnnotations.class, OnClass.class, OnMethod.class,
                 OnConstructor.class, OnField.class, MetaAnnotated.class, WithEnum.class, WithPrimitive.class,
                 WithOtherEnum.class, WithOtherType.class,
@@ -671,9 +680,9 @@ public class JavaClassTest {
 
     @Test
     public void direct_dependencies_to_self_by_inheritance() {
-        JavaClass superClass = importClassesWithContext(SuperA.class, AExtendingSuperAImplementingInterfaceForA.class).get(SuperA.class);
+        JavaClass superclass = importClassesWithContext(SuperA.class, AExtendingSuperAImplementingInterfaceForA.class).get(SuperA.class);
 
-        assertThat(superClass.getDirectDependenciesToSelf())
+        assertThat(superclass.getDirectDependenciesToSelf())
                 .areAtLeastOne(extendsDependency()
                         .from(AExtendingSuperAImplementingInterfaceForA.class)
                         .to(SuperA.class)
@@ -687,6 +696,42 @@ public class JavaClassTest {
                         .from(AExtendingSuperAImplementingInterfaceForA.class)
                         .to(InterfaceForA.class)
                         .inLineNumber(0));
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_inheritance_through_generic_superclass_parameters() {
+        @SuppressWarnings("unused")
+        class FirstBase<X, Y> {
+        }
+        class FirstChild extends FirstBase<
+                Comparable<FirstChild>,
+                Map<
+                        Map.Entry<?, Map.Entry<String, ?>>,
+                        Map<? extends BufferedInputStream[][],
+                                Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<?, ? extends File>>>>>>>>> {
+        }
+        @SuppressWarnings("unused")
+        class SecondBase<T> {
+        }
+        class SecondChild extends SecondBase<Map<?, ? super File>> {
+        }
+
+        JavaClasses javaClasses = importClassesWithContext(FirstChild.class, SecondChild.class, BufferedInputStream.class, File.class);
+
+        assertThatDependencies(javaClasses.get(File.class).getDirectDependenciesToSelf())
+                .contain(from(FirstChild.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Class <%s> has generic superclass <%s> with type argument depending on <%s>",
+                                FirstChild.class.getName(), FirstBase.class.getName(), File.class.getName())
+
+                        .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Class <%s> has generic superclass <%s> with type argument depending on <%s>",
+                                SecondChild.class.getName(), SecondBase.class.getName(), File.class.getName())
+                );
+
+        assertThatDependencies(javaClasses.get(BufferedInputStream.class).getDirectDependenciesToSelf())
+                .contain(from(FirstChild.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
     }
 
     @Test
@@ -886,7 +931,7 @@ public class JavaClassTest {
     public void predicate_withType() {
         assertThat(type(Parent.class))
                 .accepts(importClassWithContext(Parent.class))
-                .rejects(importClassWithContext(SuperClassWithFieldAndMethod.class));
+                .rejects(importClassWithContext(SuperclassWithFieldAndMethod.class));
 
         assertThat(type(System.class)).hasDescription("type java.lang.System");
     }
@@ -895,7 +940,7 @@ public class JavaClassTest {
     public void predicate_simpleName() {
         assertThat(simpleName(Parent.class.getSimpleName()))
                 .accepts(importClassWithContext(Parent.class))
-                .rejects(importClassWithContext(SuperClassWithFieldAndMethod.class));
+                .rejects(importClassWithContext(SuperclassWithFieldAndMethod.class));
 
         assertThat(simpleName("Simple")).hasDescription("simple name 'Simple'");
     }
@@ -962,17 +1007,17 @@ public class JavaClassTest {
 
     @Test
     public void predicate_assignableFrom() {
-        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
-                .to(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().from(SuperclassWithFieldAndMethod.class)
+                .to(SuperclassWithFieldAndMethod.class)
                 .isTrue();
         assertThatAssignable().from(ClassWithTwoFieldsAndTwoMethods.class)
-                .to(SuperClassWithFieldAndMethod.class)
+                .to(SuperclassWithFieldAndMethod.class)
                 .isTrue();
-        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().from(SuperclassWithFieldAndMethod.class)
                 .to(InterfaceWithMethod.class)
                 .isTrue();
         assertThatAssignable().from(ClassWithTwoFieldsAndTwoMethods.class)
-                .via(SuperClassWithFieldAndMethod.class)
+                .via(SuperclassWithFieldAndMethod.class)
                 .to(InterfaceWithMethod.class)
                 .isTrue();
         assertThatAssignable().from(InterfaceWithMethod.class)
@@ -981,14 +1026,14 @@ public class JavaClassTest {
         assertThatAssignable().from(Parent.class)
                 .to(InterfaceWithMethod.class)
                 .isFalse();
-        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().from(SuperclassWithFieldAndMethod.class)
                 .to(Parent.class)
                 .isTrue();
-        assertThatAssignable().from(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().from(SuperclassWithFieldAndMethod.class)
                 .to(ClassWithTwoFieldsAndTwoMethods.class)
                 .isFalse();
         assertThatAssignable().from(Parent.class)
-                .to(SuperClassWithFieldAndMethod.class)
+                .to(SuperclassWithFieldAndMethod.class)
                 .isFalse();
 
         assertThat(assignableFrom(System.class)).hasDescription("assignable from java.lang.System");
@@ -996,33 +1041,33 @@ public class JavaClassTest {
 
     @Test
     public void predicate_assignableTo() {
-        assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
-                .from(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().to(SuperclassWithFieldAndMethod.class)
+                .from(SuperclassWithFieldAndMethod.class)
                 .isTrue();
         assertThatAssignable().to(ClassWithTwoFieldsAndTwoMethods.class)
-                .from(SuperClassWithFieldAndMethod.class)
+                .from(SuperclassWithFieldAndMethod.class)
                 .isFalse();
         assertThatAssignable().to(InterfaceWithMethod.class)
                 .from(InterfaceWithMethod.class)
                 .isTrue();
         assertThatAssignable().to(InterfaceWithMethod.class)
-                .from(SuperClassWithFieldAndMethod.class)
+                .from(SuperclassWithFieldAndMethod.class)
                 .isTrue();
         assertThatAssignable().to(InterfaceWithMethod.class)
-                .via(SuperClassWithFieldAndMethod.class)
+                .via(SuperclassWithFieldAndMethod.class)
                 .from(ClassWithTwoFieldsAndTwoMethods.class)
                 .isTrue();
         assertThatAssignable().to(InterfaceWithMethod.class)
                 .from(Parent.class)
                 .isFalse();
-        assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().to(SuperclassWithFieldAndMethod.class)
                 .from(Parent.class)
                 .isFalse();
-        assertThatAssignable().to(SuperClassWithFieldAndMethod.class)
+        assertThatAssignable().to(SuperclassWithFieldAndMethod.class)
                 .from(ClassWithTwoFieldsAndTwoMethods.class)
                 .isTrue();
         assertThatAssignable().to(Parent.class)
-                .from(SuperClassWithFieldAndMethod.class)
+                .from(SuperclassWithFieldAndMethod.class)
                 .isTrue();
 
         assertThat(assignableTo(System.class)).hasDescription("assignable to java.lang.System");
@@ -1124,9 +1169,9 @@ public class JavaClassTest {
 
     @Test
     public void predicate_equivalentTo() {
-        JavaClass javaClass = importClasses(SuperClassWithFieldAndMethod.class, Parent.class).get(SuperClassWithFieldAndMethod.class);
+        JavaClass javaClass = importClasses(SuperclassWithFieldAndMethod.class, Parent.class).get(SuperclassWithFieldAndMethod.class);
 
-        assertThat(equivalentTo(SuperClassWithFieldAndMethod.class))
+        assertThat(equivalentTo(SuperclassWithFieldAndMethod.class))
                 .accepts(javaClass);
         assertThat(equivalentTo(Parent.class))
                 .rejects(javaClass)
@@ -1429,7 +1474,7 @@ public class JavaClassTest {
     }
 
     @SuppressWarnings("unused")
-    static class ClassWithTwoFieldsAndTwoMethods extends SuperClassWithFieldAndMethod {
+    static class ClassWithTwoFieldsAndTwoMethods extends SuperclassWithFieldAndMethod {
         String stringField;
         private int intField;
 
@@ -1442,7 +1487,7 @@ public class JavaClassTest {
     }
 
     @SuppressWarnings("unused")
-    abstract static class SuperClassWithFieldAndMethod extends Parent implements InterfaceWithMethod {
+    abstract static class SuperclassWithFieldAndMethod extends Parent implements InterfaceWithMethod {
         private Object objectField;
 
         @Override
@@ -1577,7 +1622,7 @@ public class JavaClassTest {
         }
     }
 
-    private static class SomeSuperClass {
+    private static class SomeSuperclass {
     }
 
     @OnClass
@@ -1595,7 +1640,7 @@ public class JavaClassTest {
     )
     @MetaAnnotated
     @SuppressWarnings("unused")
-    private static class ClassWithAnnotationDependencies extends SomeSuperClass {
+    private static class ClassWithAnnotationDependencies extends SomeSuperclass {
         @OnField(SomeEnumAsAnnotationParameter.ANNOTATION_PARAMETER)
         Object field;
 

@@ -215,7 +215,7 @@ public abstract class JavaMember implements
         public static DescribedPredicate<JavaMember> declaredIn(DescribedPredicate<? super JavaClass> predicate) {
             return Get.<JavaClass>owner().is(predicate)
                     .as("declared in %s", predicate.getDescription())
-                    .forSubType();
+                    .forSubtype();
         }
     }
 }

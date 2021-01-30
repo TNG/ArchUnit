@@ -7,7 +7,7 @@ import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
 import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.second.any.pkg.SecondAnyClass;
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
-import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubClass;
+import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
 import org.junit.Test;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
@@ -21,7 +21,7 @@ public class SliceTest {
 
         assertThatDependencies(slice.getDependenciesFromSelf()).containOnly(
                 from(FirstAnyPkgClass.class).to(Object.class)
-                        .from(FirstAnyPkgClass.class).to(SomePkgSubClass.class)
+                        .from(FirstAnyPkgClass.class).to(SomePkgSubclass.class)
                         .from(FirstAnyPkgClass.class).to(SecondThreeAnyClass.class)
                         .from(ClassOnlyDependentOnOwnPackageAndObject.class).to(Object.class)
                         .from(FirstThreeAnyClass.class).to(Object.class)
@@ -35,7 +35,7 @@ public class SliceTest {
 
         assertThatDependencies(slice.getDependenciesToSelf()).containOnly(
                 from(SecondAnyClass.class).to(FirstAnyPkgClass.class)
-                        .from(SomePkgSubClass.class).to(FirstAnyPkgClass.class)
+                        .from(SomePkgSubclass.class).to(FirstAnyPkgClass.class)
         );
     }
 

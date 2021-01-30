@@ -30,6 +30,7 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import org.slf4j.Logger;
@@ -41,13 +42,14 @@ class ClassFileImportRecord {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportRecord.class);
 
     private static final TypeParametersBuilder NO_TYPE_PARAMETERS =
-            new TypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptySet());
+            new TypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptyList());
 
     private final Map<String, JavaClass> classes = new HashMap<>();
 
-    private final Map<String, String> superClassNamesByOwner = new HashMap<>();
+    private final Map<String, String> superclassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
     private final Map<String, TypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
+    private final Map<String, JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilderByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaMethodBuilder> methodBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
@@ -60,19 +62,23 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
 
-    void setSuperClass(String ownerName, String superClassName) {
-        checkState(!superClassNamesByOwner.containsKey(ownerName),
+    void setSuperclass(String ownerName, String superclassName) {
+        checkState(!superclassNamesByOwner.containsKey(ownerName),
                 "Attempted to add %s as a second superclass to %s, this is most likely a bug",
-                superClassName, ownerName);
-        superClassNamesByOwner.put(ownerName, superClassName);
+                superclassName, ownerName);
+        superclassNamesByOwner.put(ownerName, superclassName);
     }
 
     void addInterfaces(String ownerName, Set<String> interfaceNames) {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
     }
 
-    public void addTypeParameters(String ownerName, TypeParametersBuilder builder) {
+    void addTypeParameters(String ownerName, TypeParametersBuilder builder) {
         typeParametersBuilderByOwner.put(ownerName, builder);
+    }
+
+    void addGenericSuperclass(String ownerName, JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
+        genericSuperclassBuilderByOwner.put(ownerName, genericSuperclassBuilder);
     }
 
     void addField(String ownerName, DomainBuilders.JavaFieldBuilder fieldBuilder) {
@@ -110,8 +116,8 @@ class ClassFileImportRecord {
         enclosingClassNamesByOwner.register(ownerName, enclosingClassName);
     }
 
-    Optional<String> getSuperClassFor(String name) {
-        return Optional.fromNullable(superClassNamesByOwner.get(name));
+    Optional<String> getSuperclassFor(String name) {
+        return Optional.fromNullable(superclassNamesByOwner.get(name));
     }
 
     Set<String> getInterfaceNamesFor(String ownerName) {
@@ -123,6 +129,10 @@ class ClassFileImportRecord {
             return NO_TYPE_PARAMETERS;
         }
         return typeParametersBuilderByOwner.get(ownerName);
+    }
+
+    Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclassFor(JavaClass owner) {
+        return Optional.fromNullable(genericSuperclassBuilderByOwner.get(owner.getName()));
     }
 
     Set<DomainBuilders.JavaFieldBuilder> getFieldBuildersFor(String ownerName) {
@@ -229,11 +239,11 @@ class ClassFileImportRecord {
                 .build();
     }
 
-    Set<String> getAllSuperClassNames() {
-        return ImmutableSet.copyOf(superClassNamesByOwner.values());
+    Set<String> getAllSuperclassNames() {
+        return ImmutableSet.copyOf(superclassNamesByOwner.values());
     }
 
-    Set<String> getAllSuperInterfaceNames() {
+    Set<String> getAllSuperinterfaceNames() {
         return ImmutableSet.copyOf(interfaceNamesByOwner.values());
     }
 

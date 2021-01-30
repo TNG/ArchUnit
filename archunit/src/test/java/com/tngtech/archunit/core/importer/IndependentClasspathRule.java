@@ -21,7 +21,7 @@ class IndependentClasspathRule extends ExternalResource {
     private final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
 
     @Override
-    protected void before() throws Throwable {
+    protected void before() {
         systemPropertiesRule.before();
     }
 

@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
@@ -26,6 +27,7 @@ import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.Iterables.concat;
+import static java.util.Collections.emptySet;
 
 class JavaClassDependencies {
     private final JavaClass javaClass;
@@ -70,8 +72,23 @@ class JavaClassDependencies {
 
     private Set<Dependency> inheritanceDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaClass superType : FluentIterable.from(javaClass.getInterfaces()).append(javaClass.getSuperClass().asSet())) {
-            result.add(Dependency.fromInheritance(javaClass, superType));
+        for (JavaClass supertype : FluentIterable.from(javaClass.getInterfaces()).append(javaClass.getRawSuperclass().asSet())) {
+            result.add(Dependency.fromInheritance(javaClass, supertype));
+        }
+        result.addAll(genericSuperclassTypeArgumentDependencies());
+        return result.build();
+    }
+
+    private Set<Dependency> genericSuperclassTypeArgumentDependencies() {
+        if (!javaClass.getSuperclass().isPresent() || !(javaClass.getSuperclass().get() instanceof JavaParameterizedType)) {
+            return emptySet();
+        }
+        JavaParameterizedType genericSuperclass = (JavaParameterizedType) javaClass.getSuperclass().get();
+
+        List<JavaType> actualTypeArguments = genericSuperclass.getActualTypeArguments();
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaClass superclassTypeArgumentDependency : dependenciesOfTypes(actualTypeArguments)) {
+            result.addAll(Dependency.tryCreateFromGenericSuperclassTypeArguments(javaClass, genericSuperclass, superclassTypeArgumentDependency));
         }
         return result.build();
     }
@@ -151,12 +168,20 @@ class JavaClassDependencies {
 
     private Set<Dependency> getDependenciesFromTypeParameter(JavaTypeVariable<?> typeVariable) {
         ImmutableSet.Builder<Dependency> dependenciesBuilder = ImmutableSet.builder();
-        for (JavaType bound : typeVariable.getUpperBounds()) {
-            for (JavaClass typeParameterDependency : dependenciesOfType(bound)) {
-                dependenciesBuilder.addAll(Dependency.tryCreateFromTypeParameter(typeVariable, typeParameterDependency));
-            }
+        for (JavaClass typeParameterDependency : dependenciesOfTypes(typeVariable.getUpperBounds())) {
+            dependenciesBuilder.addAll(Dependency.tryCreateFromTypeParameter(typeVariable, typeParameterDependency));
         }
         return dependenciesBuilder.build();
+    }
+
+    private Set<JavaClass> dependenciesOfTypes(Iterable<JavaType> types) {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        for (JavaType type : types) {
+            for (JavaClass typeParameterDependency : dependenciesOfType(type)) {
+                result.add(typeParameterDependency);
+            }
+        }
+        return result.build();
     }
 
     private static Iterable<JavaClass> dependenciesOfType(JavaType javaType) {

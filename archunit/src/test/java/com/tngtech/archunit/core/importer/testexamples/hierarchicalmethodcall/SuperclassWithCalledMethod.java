@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall;
 
-public class SuperClassWithCalledMethod {
+public class SuperclassWithCalledMethod {
     public static final String method = "method";
 
     String method() {

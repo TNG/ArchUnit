@@ -21,6 +21,7 @@ import java.util.List;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaType;
@@ -41,8 +42,8 @@ import static com.google.common.base.Functions.compose;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
 
-class JavaGenericTypeImporter {
-    private static final Logger log = LoggerFactory.getLogger(JavaGenericTypeImporter.class);
+class JavaClassSignatureImporter {
+    private static final Logger log = LoggerFactory.getLogger(JavaClassSignatureImporter.class);
 
     static void parseAsmTypeSignature(String signature, DeclarationHandler declarationHandler) {
         if (signature == null) {
@@ -51,26 +52,41 @@ class JavaGenericTypeImporter {
 
         log.trace("Analyzing signature: {}", signature);
 
-        JavaTypeVariableProcessor typeVariableProcessor = new JavaTypeVariableProcessor();
-        new SignatureReader(signature).accept(typeVariableProcessor);
-        declarationHandler.onDeclaredTypeParameters(new TypeParametersBuilder(typeVariableProcessor.typeParameterBuilders));
+        SignatureProcessor signatureProcessor = new SignatureProcessor();
+        new SignatureReader(signature).accept(signatureProcessor);
+        declarationHandler.onDeclaredTypeParameters(new TypeParametersBuilder(signatureProcessor.getTypeParameterBuilders()));
+
+        Optional<JavaParameterizedTypeBuilder<JavaClass>> genericSuperclass = signatureProcessor.getGenericSuperclass();
+        if (genericSuperclass.isPresent()) {
+            declarationHandler.onGenericSuperclass(genericSuperclass.get());
+        }
     }
 
-    private static class JavaTypeVariableProcessor extends SignatureVisitor {
-        private static final BoundProcessor boundProcessor = new BoundProcessor();
+    private static class SignatureProcessor extends SignatureVisitor {
+        private final BoundProcessor boundProcessor = new BoundProcessor();
+        private final GenericSuperclassProcessor superclassProcessor = new GenericSuperclassProcessor();
 
-        private final List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders = new ArrayList<>();
-
-        JavaTypeVariableProcessor() {
+        SignatureProcessor() {
             super(ASM_API_VERSION);
+        }
+
+        List<JavaTypeParameterBuilder<JavaClass>> getTypeParameterBuilders() {
+            return boundProcessor.typeParameterBuilders;
+        }
+
+        public Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclass() {
+            return Optional.fromNullable(superclassProcessor.superclass);
         }
 
         @Override
         public void visitFormalTypeParameter(String name) {
             log.trace("Encountered type parameter {}", name);
-            JavaTypeParameterBuilder<JavaClass> type = new JavaTypeParameterBuilder<>(name);
-            boundProcessor.setCurrentType(type);
-            typeParameterBuilders.add(type);
+            boundProcessor.addTypeParameter(name);
+        }
+
+        @Override
+        public SignatureVisitor visitSuperclass() {
+            return superclassProcessor;
         }
 
         @Override
@@ -84,6 +100,8 @@ class JavaGenericTypeImporter {
         }
 
         private static class BoundProcessor extends SignatureVisitor {
+            private final List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders = new ArrayList<>();
+
             private JavaTypeParameterBuilder<JavaClass> currentType;
             private JavaParameterizedTypeBuilder<JavaClass> currentBound;
 
@@ -91,8 +109,10 @@ class JavaGenericTypeImporter {
                 super(ASM_API_VERSION);
             }
 
-            void setCurrentType(JavaTypeParameterBuilder<JavaClass> type) {
-                this.currentType = type;
+            void addTypeParameter(String typeName) {
+                currentType = new JavaTypeParameterBuilder<>(typeName);
+                currentBound = null;
+                typeParameterBuilders.add(currentType);
             }
 
             @Override
@@ -117,7 +137,30 @@ class JavaGenericTypeImporter {
 
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
-                return TypeArgumentProcessor.create(wildcard, currentBound, Functions.<JavaClassDescriptor>identity(), ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY);
+                return TypeArgumentProcessor.create(wildcard, currentBound);
+            }
+        }
+
+        private static class GenericSuperclassProcessor extends SignatureVisitor {
+            private JavaParameterizedTypeBuilder<JavaClass> superclass;
+
+            GenericSuperclassProcessor() {
+                super(ASM_API_VERSION);
+            }
+
+            @Override
+            public void visitClassType(String internalObjectName) {
+                superclass = new JavaParameterizedTypeBuilder<>(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
+            }
+
+            @Override
+            public void visitInnerClassType(String name) {
+                superclass = superclass.forInnerClass(name);
+            }
+
+            @Override
+            public SignatureVisitor visitTypeArgument(char wildcard) {
+                return TypeArgumentProcessor.create(wildcard, superclass);
             }
         }
     }
@@ -234,7 +277,6 @@ class JavaGenericTypeImporter {
         }
 
         @Override
-        @SuppressWarnings("ConstantConditions") // we never return null by convention
         public void visitClassType(String internalObjectName) {
             JavaClassDescriptor type = typeMapping.apply(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
             log.trace("Encountered {} for {}: Class type {}", typeArgumentType.description, parameterizedType.getTypeName(), type.getFullyQualifiedClassName());
@@ -264,6 +306,10 @@ class JavaGenericTypeImporter {
         @Override
         public SignatureVisitor visitArrayType() {
             return new TypeArgumentProcessor(typeArgumentType, parameterizedType, compose(typeMapping, TO_ARRAY_TYPE), typeVariableFinisher.after(GENERIC_ARRAY_CREATOR));
+        }
+
+        static TypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder<JavaClass> parameterizedType) {
+            return create(identifier, parameterizedType, Functions.<JavaClassDescriptor>identity(), ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY);
         }
 
         static TypeArgumentProcessor create(

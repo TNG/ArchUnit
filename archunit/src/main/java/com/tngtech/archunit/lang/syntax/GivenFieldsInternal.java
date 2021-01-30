@@ -64,7 +64,7 @@ class GivenFieldsInternal
 
     @Override
     public FieldsShouldInternal should(ArchCondition<? super JavaField> condition) {
-        return new FieldsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaField>forSubType(), prepareCondition);
+        return new FieldsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaField>forSubtype(), prepareCondition);
     }
 
     @Override

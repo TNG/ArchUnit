@@ -63,7 +63,7 @@ class GivenConstructorsInternal extends AbstractGivenCodeUnitsInternal<JavaConst
 
     @Override
     public ConstructorsShouldInternal should(ArchCondition<? super JavaConstructor> condition) {
-        return new ConstructorsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaConstructor>forSubType(), prepareCondition);
+        return new ConstructorsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaConstructor>forSubtype(), prepareCondition);
     }
 
     private static class GivenConstructorsFactory implements Factory<JavaConstructor, GivenConstructorsInternal> {

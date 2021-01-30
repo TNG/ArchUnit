@@ -362,7 +362,7 @@ public final class Architectures {
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture definedBy(DescribedPredicate<? super JavaClass> predicate) {
                 checkNotNull(predicate, "Supplied predicate must not be null");
-                this.containsPredicate = predicate.forSubType();
+                this.containsPredicate = predicate.forSubtype();
                 return LayeredArchitecture.this.addLayerDefinition(this);
             }
 

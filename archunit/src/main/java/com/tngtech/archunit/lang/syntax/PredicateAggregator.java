@@ -58,7 +58,7 @@ public final class PredicateAggregator<T> {
             return new AddMode<T>() {
                 @Override
                 DescribedPredicate<T> apply(Optional<DescribedPredicate<T>> first, DescribedPredicate<? super T> other) {
-                    DescribedPredicate<T> second = other.forSubType();
+                    DescribedPredicate<T> second = other.forSubtype();
                     return first.isPresent() ? first.get().and(second) : second;
                 }
             };
@@ -68,7 +68,7 @@ public final class PredicateAggregator<T> {
             return new AddMode<T>() {
                 @Override
                 DescribedPredicate<T> apply(Optional<DescribedPredicate<T>> first, DescribedPredicate<? super T> other) {
-                    DescribedPredicate<T> second = other.forSubType();
+                    DescribedPredicate<T> second = other.forSubtype();
                     return first.isPresent() ? first.get().or(second) : second;
                 }
             };

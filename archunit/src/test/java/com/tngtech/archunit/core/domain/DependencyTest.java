@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
@@ -9,6 +10,7 @@ import java.util.Set;
 
 import com.google.common.base.MoreObjects;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.testobjects.ClassWithArrayDependencies;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck.InstanceOfCheckTarget;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -86,26 +88,17 @@ public class DependencyTest {
     }
 
     @DataProvider
-    public static Object[][] method_calls_to_array_types() throws NoSuchMethodException {
-        @SuppressWarnings("unused")
-        class ClassWithArrayDependencies {
-            private void oneDimArray() {
-                new String[0].clone();
-            }
-
-            private void multiDimArray() {
-                new String[0][0].clone();
-            }
-        }
+    public static Object[][] method_calls_to_array_types() {
         return $$(
-                $(ClassWithArrayDependencies.class.getDeclaredMethod("oneDimArray"), String[].class, 93),
-                $(ClassWithArrayDependencies.class.getDeclaredMethod("multiDimArray"), String[][].class, 97)
+                $(ClassWithArrayDependencies.class, "oneDimArray", String[].class, 6),
+                $(ClassWithArrayDependencies.class, "multiDimArray", String[][].class, 10)
         );
     }
 
     @Test
     @UseDataProvider("method_calls_to_array_types")
-    public void Dependency_from_access_with_component_type(Method reflectionMethodWithArrayMethodCall, Class<?> arrayType, int expectedLineNumber) {
+    public void Dependency_from_access_with_component_type(Class<?> classDependingOnArray, String nameOfMethodWithArrayMethodCall, Class<?> arrayType, int expectedLineNumber) throws NoSuchMethodException {
+        Method reflectionMethodWithArrayMethodCall = classDependingOnArray.getDeclaredMethod(nameOfMethodWithArrayMethodCall);
         Class<?> reflectionDeclaringClass = reflectionMethodWithArrayMethodCall.getDeclaringClass();
         JavaMethod method = new ClassFileImporter().importClasses(reflectionDeclaringClass)
                 .get(reflectionDeclaringClass).getMethod(reflectionMethodWithArrayMethodCall.getName());
@@ -115,12 +108,12 @@ public class DependencyTest {
 
         DependenciesAssertion.ExpectedDependencies expectedDependencies = from(reflectionDeclaringClass).to(arrayType)
                 .withDescriptionContaining("Method <%s> calls method <%s>", method.getFullName(), arrayType.getName() + ".clone()")
-                .inLocation(DependencyTest.class, expectedLineNumber);
+                .inLocation(classDependingOnArray, expectedLineNumber);
         Class<?> expectedComponentType = arrayType.getComponentType();
         while (expectedComponentType != null) {
             expectedDependencies.from(reflectionDeclaringClass).to(expectedComponentType)
                     .withDescriptionContaining("Method <%s> depends on component type <%s>", method.getFullName(), expectedComponentType.getName())
-                    .inLocation(DependencyTest.class, expectedLineNumber);
+                    .inLocation(classDependingOnArray, expectedLineNumber);
             expectedComponentType = expectedComponentType.getComponentType();
         }
 
@@ -140,7 +133,7 @@ public class DependencyTest {
         assertThat(dependency.getDescription()).as("description")
                 .contains("Class <" + origin.getName() + "> implements interface <" + target.getName() + ">");
 
-        origin = importClassWithContext(DependencySubInterface.class);
+        origin = importClassWithContext(DependencySubinterface.class);
         dependency = createDependency(origin, target);
         assertThat(dependency.getDescription()).as("description")
                 .contains("Interface <" + origin.getName() + "> extends interface <" + target.getName() + ">");
@@ -276,6 +269,27 @@ public class DependencyTest {
     }
 
     @Test
+    public void Dependency_from_generic_superclass_type_arguments() {
+        @SuppressWarnings("unused")
+        class Base<A> {
+        }
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameters extends Base<String> {
+        }
+
+        JavaClass javaClass = importClassesWithContext(ClassWithTypeParameters.class, String.class, Serializable.class).get(ClassWithTypeParameters.class);
+        JavaParameterizedType genericSuperClass = (JavaParameterizedType) javaClass.getSuperclass().get();
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericSuperclassTypeArguments(javaClass, genericSuperClass, (JavaClass) genericSuperClass.getActualTypeArguments().get(0)));
+
+        assertThatType(dependency.getOriginClass()).matches(ClassWithTypeParameters.class);
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "Class <%s> has generic superclass <%s> with type argument depending on <%s> in (%s.java:0)",
+                ClassWithTypeParameters.class.getName(), Base.class.getName(), String.class.getName(), getClass().getSimpleName()));
+    }
+
+    @Test
     public void origin_predicates_match() {
         assertThatDependency(Origin.class, Target.class)
                 .matchesOrigin(Origin.class)
@@ -361,7 +375,7 @@ public class DependencyTest {
     private static class DependencyClass {
     }
 
-    private interface DependencySubInterface extends DependencyInterface {
+    private interface DependencySubinterface extends DependencyInterface {
     }
 
     private interface DependencyInterface {

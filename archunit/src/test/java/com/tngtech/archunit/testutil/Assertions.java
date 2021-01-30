@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
@@ -102,6 +103,14 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaTypesAssertion assertThatTypes(Iterable<? extends JavaType> javaTypes) {
         return new JavaTypesAssertion(javaTypes);
+    }
+
+    public static JavaTypesAssertion assertThatTypeErasuresOf(Iterable<? extends JavaType> javaTypes) {
+        ImmutableList.Builder<JavaClass> erasures = ImmutableList.builder();
+        for (JavaType javaType : javaTypes) {
+            erasures.add(javaType.toErasure());
+        }
+        return new JavaTypesAssertion(erasures.build());
     }
 
     public static JavaPackagesAssertion assertThatPackages(Iterable<JavaPackage> javaPackages) {
