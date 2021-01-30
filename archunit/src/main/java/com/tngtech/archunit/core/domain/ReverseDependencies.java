@@ -272,7 +272,7 @@ final class ReverseDependencies {
         private Set<JavaClass> getPossibleTargetClassesForAccess(JavaClass owner) {
             return ImmutableSet.<JavaClass>builder()
                     .add(owner)
-                    .addAll(owner.getAllSubClasses())
+                    .addAll(owner.getAllSubclasses())
                     .build();
         }
     }

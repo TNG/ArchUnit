@@ -90,7 +90,7 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
 
     @Override
     public ClassesShouldConjunction should(ArchCondition<? super JavaClass> condition) {
-        return new ClassesShouldInternal(finishedClassesTransformer(), priority, condition.<JavaClass>forSubType(), prepareCondition);
+        return new ClassesShouldInternal(finishedClassesTransformer(), priority, condition.<JavaClass>forSubtype(), prepareCondition);
     }
 
     private static class GivenClassesFactory implements Factory<JavaClass, GivenClassesInternal> {

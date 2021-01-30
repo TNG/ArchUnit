@@ -39,7 +39,7 @@ public class ReflectionUtilsTest {
 
     @Test
     public void getAllSupertypes() {
-        assertThat(ReflectionUtils.getAllSuperTypes(Child.class)).containsOnly(
+        assertThat(ReflectionUtils.getAllSupertypes(Child.class)).containsOnly(
                 Child.class, ChildInterface.class, UpperMiddle.class, LowerMiddle.class, Parent.class,
                 SomeInterface.class, OtherInterface.class, Object.class
         );
@@ -47,7 +47,7 @@ public class ReflectionUtilsTest {
 
     @Test
     public void getAllMethods_of_interface() {
-        assertThat(ReflectionUtils.getAllMethods(SubInterface.class, always(true)))
+        assertThat(ReflectionUtils.getAllMethods(Subinterface.class, always(true)))
                 .containsOnly(
                         method(SomeInterface.class, "foo"),
                         method(OtherInterface.class, "bar"));
@@ -64,7 +64,7 @@ public class ReflectionUtilsTest {
 
     @Test
     public void getAllFields_of_interface() {
-        assertThat(ReflectionUtils.getAllFields(SubInterface.class, always(true)))
+        assertThat(ReflectionUtils.getAllFields(Subinterface.class, always(true)))
                 .containsOnly(
                         field(SomeInterface.class, "SOME_CONSTANT"),
                         field(OtherInterface.class, "OTHER_CONSTANT"));
@@ -162,6 +162,6 @@ public class ReflectionUtilsTest {
         void bar();
     }
 
-    private interface SubInterface extends SomeInterface, OtherInterface {
+    private interface Subinterface extends SomeInterface, OtherInterface {
     }
 }

@@ -1,6 +1,6 @@
 package com.tngtech.archunit.core.importer.testexamples.hierarchicalmethodcall;
 
-public class SubClassWithCalledMethod extends SuperClassWithCalledMethod {
+public class SubclassWithCalledMethod extends SuperclassWithCalledMethod {
     public static final String maskedMethod = "maskedMethod";
 
     @Override

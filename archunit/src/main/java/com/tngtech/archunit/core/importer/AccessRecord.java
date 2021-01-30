@@ -356,7 +356,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
 
             private Optional<JavaClass> tryFindChildInHierarchy(JavaClassDescriptor childType, JavaClass parent) {
-                for (JavaClass subclass : parent.getAllSubClasses()) {
+                for (JavaClass subclass : parent.getAllSubclasses()) {
                     if (subclass.getName().equals(childType.getFullyQualifiedClassName())) {
                         return Optional.of(subclass);
                     }
@@ -413,12 +413,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
                 @Override
                 public boolean hasNext() {
-                    return !current.equals(parent) && current.getSuperClass().isPresent();
+                    return !current.equals(parent) && current.getRawSuperclass().isPresent();
                 }
 
                 @Override
                 public JavaClass next() {
-                    current = current.getSuperClass().get();
+                    current = current.getRawSuperclass().get();
                     return current;
                 }
             }

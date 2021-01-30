@@ -136,13 +136,13 @@ public class PublicAPIRules {
                             .andShould().haveRawReturnType(not(guavaClass()).as("that are no Guava types")));
 
     private static DescribedPredicate<JavaClass> publicAPI() {
-        return annotatedWith(PublicAPI.class).<JavaClass>forSubType()
+        return annotatedWith(PublicAPI.class).<JavaClass>forSubtype()
                 .or(haveMemberThatBelongsToPublicApi())
                 .or(markedAsPublicAPIForInheritance());
     }
 
     private static DescribedPredicate<JavaClass> internal() {
-        return annotatedWith(Internal.class).<JavaClass>forSubType()
+        return annotatedWith(Internal.class).<JavaClass>forSubtype()
                 .or(equivalentTo(Internal.class));
     }
 
@@ -215,8 +215,8 @@ public class PublicAPIRules {
                     }
                 }
                 return input.getConstructors().isEmpty() &&
-                        input.getSuperClass().isPresent() &&
-                        haveAPublicConstructor().apply(input.getSuperClass().get());
+                        input.getRawSuperclass().isPresent() &&
+                        haveAPublicConstructor().apply(input.getRawSuperclass().get());
             }
         };
     }
@@ -236,8 +236,8 @@ public class PublicAPIRules {
     }
 
     private static DescribedPredicate<JavaMember> withoutAPIMarking() {
-        return not(annotatedWith(PublicAPI.class)).<JavaMember>forSubType()
-                .and(not(annotatedWith(Internal.class)).forSubType())
+        return not(annotatedWith(PublicAPI.class)).<JavaMember>forSubtype()
+                .and(not(annotatedWith(Internal.class)).forSubtype())
                 .and(declaredIn(modifier(PUBLIC)))
                 .as("without API marking");
     }

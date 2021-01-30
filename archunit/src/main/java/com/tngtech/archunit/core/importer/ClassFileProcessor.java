@@ -77,10 +77,10 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onNewClass(String className, Optional<String> superClassName, Set<String> interfaceNames) {
+        public void onNewClass(String className, Optional<String> superclassName, Set<String> interfaceNames) {
             ownerName = className;
-            if (superClassName.isPresent()) {
-                importRecord.setSuperClass(ownerName, superClassName.get());
+            if (superclassName.isPresent()) {
+                importRecord.setSuperclass(ownerName, superclassName.get());
             }
             importRecord.addInterfaces(ownerName, interfaceNames);
         }
@@ -88,6 +88,11 @@ class ClassFileProcessor {
         @Override
         public void onDeclaredTypeParameters(TypeParametersBuilder typeParametersBuilder) {
             importRecord.addTypeParameters(ownerName, typeParametersBuilder);
+        }
+
+        @Override
+        public void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
+            importRecord.addGenericSuperclass(ownerName, genericSuperclassBuilder);
         }
 
         @Override

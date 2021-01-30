@@ -68,9 +68,9 @@ public class SelectedClassResolverFromClasspathTest {
         });
     }
 
-    private ImmutableList<String> packages(String... subPackages) {
+    private ImmutableList<String> packages(String... subpackages) {
         ImmutableList.Builder<String> result = ImmutableList.builder();
-        for (String pkg : subPackages) {
+        for (String pkg : subpackages) {
             result.add(getClass().getPackage().getName() + ".testclasses." + pkg);
         }
         return result.build();

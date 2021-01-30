@@ -1,9 +1,9 @@
 package com.tngtech.archunit.library.testclasses.some.pkg;
 
-import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubClass;
+import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
 
 public class SomePkgClass {
-    SomePkgSubClass legalTarget;
+    SomePkgSubclass legalTarget;
 
     void call() {
         legalTarget.callMe();

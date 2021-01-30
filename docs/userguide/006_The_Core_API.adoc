@@ -170,11 +170,11 @@ class ClassAccessing {
 }
 
 class ClassBeingAccessed
-class SuperClassBeingAccessed {
+class SuperclassBeingAccessed {
   Object accessedField
 }
 
-SuperClassBeingAccessed <|-- ClassBeingAccessed
+SuperclassBeingAccessed <|-- ClassBeingAccessed
 ClassAccessing o-- ClassBeingAccessed
 
 ----
@@ -226,7 +226,7 @@ Two things might seem strange at the first look.
 
 First, why can a target resolve to zero matching members? The reason is that the set of classes
 that was imported does not need to have all classes involved within this resolution process.
-Consider the above example, if `SuperClassBeingAccessed` would not be imported, ArchUnit would
+Consider the above example, if `SuperclassBeingAccessed` would not be imported, ArchUnit would
 have no way of knowing where the actual targeted field resides. Thus in this case the
 resolution would return zero elements.
 

@@ -152,7 +152,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
             return new AddMode<T>() {
                 @Override
                 ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other) {
-                    ArchCondition<T> second = prepareCondition.apply(other.<T>forSubType());
+                    ArchCondition<T> second = prepareCondition.apply(other.<T>forSubtype());
                     return first.isPresent() ? first.get().and(second) : second;
                 }
             };
@@ -162,7 +162,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
             return new AddMode<T>() {
                 @Override
                 ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other) {
-                    ArchCondition<T> second = prepareCondition.apply(other.<T>forSubType());
+                    ArchCondition<T> second = prepareCondition.apply(other.<T>forSubtype());
                     return first.isPresent() ? first.get().or(second) : second;
                 }
             };

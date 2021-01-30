@@ -23,6 +23,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
@@ -42,18 +43,21 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
+import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeAnnotations;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingClass;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeGenericSuperclass;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeMembers;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeParameters;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClasses;
@@ -68,21 +72,21 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
-    private final Function<JavaClass, Set<String>> superClassStrategy;
+    private final Function<JavaClass, Set<String>> superclassStrategy;
     private final Function<JavaClass, Set<String>> interfaceStrategy;
 
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
         classes = new ImportedClasses(importRecord.getClasses(), classResolver);
-        superClassStrategy = createSuperClassStrategy();
+        superclassStrategy = createSuperclassStrategy();
         interfaceStrategy = createInterfaceStrategy();
     }
 
-    private Function<JavaClass, Set<String>> createSuperClassStrategy() {
+    private Function<JavaClass, Set<String>> createSuperclassStrategy() {
         return new Function<JavaClass, Set<String>>() {
             @Override
             public Set<String> apply(JavaClass input) {
-                return importRecord.getSuperClassFor(input.getName()).asSet();
+                return importRecord.getSuperclassFor(input.getName()).asSet();
             }
         };
     }
@@ -112,12 +116,12 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void ensureClassesOfInheritanceHierarchiesArePresent() {
-        for (String superClassName : importRecord.getAllSuperClassNames()) {
-            resolveInheritance(superClassName, superClassStrategy);
+        for (String superclassName : importRecord.getAllSuperclassNames()) {
+            resolveInheritance(superclassName, superclassStrategy);
         }
 
-        for (String superInterfaceName : importRecord.getAllSuperInterfaceNames()) {
-            resolveInheritance(superInterfaceName, interfaceStrategy);
+        for (String superinterfaceName : importRecord.getAllSuperinterfaceNames()) {
+            resolveInheritance(superinterfaceName, interfaceStrategy);
         }
     }
 
@@ -132,6 +136,7 @@ class ClassGraphCreator implements ImportContext {
             completeClassHierarchy(javaClass, this);
             completeEnclosingClass(javaClass, this);
             completeTypeParameters(javaClass, this);
+            completeGenericSuperclass(javaClass, this);
             completeMembers(javaClass, this);
             completeAnnotations(javaClass, this);
         }
@@ -220,11 +225,28 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Optional<JavaClass> createSuperClass(JavaClass owner) {
-        Optional<String> superClassName = importRecord.getSuperClassFor(owner.getName());
-        return superClassName.isPresent() ?
-                Optional.of(classes.getOrResolve(superClassName.get())) :
+    public Optional<JavaClass> createSuperclass(JavaClass owner) {
+        Optional<String> superclassName = importRecord.getSuperclassFor(owner.getName());
+        return superclassName.isPresent() ?
+                Optional.of(classes.getOrResolve(superclassName.get())) :
                 Optional.<JavaClass>absent();
+    }
+
+    @Override
+    public Optional<JavaType> createGenericSuperclass(JavaClass owner) {
+        Optional<JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilder = importRecord.getGenericSuperclassFor(owner);
+        return genericSuperclassBuilder.isPresent()
+                ? Optional.of(genericSuperclassBuilder.get().build(owner, getTypeParametersInContextOf(owner), classes.byTypeName()))
+                : Optional.<JavaType>absent();
+    }
+
+    private static Iterable<JavaTypeVariable<?>> getTypeParametersInContextOf(JavaClass javaClass) {
+        Set<JavaTypeVariable<?>> result = Sets.<JavaTypeVariable<?>>newHashSet(javaClass.getTypeParameters());
+        while (javaClass.getEnclosingClass().isPresent()) {
+            javaClass = javaClass.getEnclosingClass().get();
+            result.addAll(javaClass.getTypeParameters());
+        }
+        return result;
     }
 
     @Override

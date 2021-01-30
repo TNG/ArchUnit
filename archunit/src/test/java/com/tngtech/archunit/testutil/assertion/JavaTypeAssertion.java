@@ -9,9 +9,10 @@ import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.ExpectedConcreteType;
+import com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.objectweb.asm.Type;
 
@@ -88,8 +89,30 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
         return hasTypeParameter(name);
     }
 
+    public JavaTypeAssertion hasErasure(Class<?> rawType) {
+        new JavaTypeAssertion(actual.toErasure()).as("Erasure of %s", actual.getName()).matches(rawType);
+        return this;
+    }
+
+    public void hasActualTypeArguments(Class<?>... typeArguments) {
+        hasActualTypeArguments(ExpectedConcreteClass.wrap(typeArguments));
+    }
+
+    public void hasActualTypeArguments(ExpectedConcreteType... typeArguments) {
+        assertThat(actual).isInstanceOf(JavaParameterizedType.class);
+        JavaParameterizedType parameterizedType = (JavaParameterizedType) this.actual;
+
+        List<JavaType> actualTypeArguments = parameterizedType.getActualTypeArguments();
+        DescriptionContext context = new DescriptionContext(actual.getName()).describeTypeParameters().step("actual type arguments");
+        assertThat(actualTypeArguments).as(context.toString()).hasSameSizeAs(typeArguments);
+        for (int i = 0; i < actualTypeArguments.size(); i++) {
+            typeArguments[i].assertMatchWith(actualTypeArguments.get(i), context.describeElement(i, actualTypeArguments.size()));
+        }
+    }
+
     private JavaClass actualClass() {
-        return actual instanceof JavaClass ? (JavaClass) actual : actual.toErasure();
+        assertThat(actual).as(describeAssertion(actual.getName())).isInstanceOf(JavaClass.class);
+        return (JavaClass) actual;
     }
 
     private String ensureArrayName(String name) {

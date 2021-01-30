@@ -1,5 +1,5 @@
 package com.tngtech.archunit.core.importer.testexamples.hierarchicalfieldaccess;
 
-public class SubClassWithAccessedField extends SuperClassWithAccessedField {
+public class SubclassWithAccessedField extends SuperclassWithAccessedField {
     int maskedField;
 }

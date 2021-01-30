@@ -60,8 +60,16 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
      * Workaround for the limitations of the Java type system {@code ->} Can't specify this contravariant type at the language level
      */
     @SuppressWarnings("unchecked") // DescribedPredicate is contravariant
-    public <U extends T> DescribedPredicate<U> forSubType() {
+    public final <U extends T> DescribedPredicate<U> forSubtype() {
         return (DescribedPredicate<U>) this;
+    }
+
+    /**
+     * @deprecated Use {@link #forSubtype()} instead.
+     */
+    @Deprecated
+    public final <U extends T> DescribedPredicate<U> forSubType() {
+        return forSubtype();
     }
 
     @Override
@@ -114,15 +122,15 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     }
 
     public static <T> DescribedPredicate<T> describe(String description, Predicate<? super T> predicate) {
-        return new DescribePredicate<>(description, predicate).forSubType();
+        return new DescribePredicate<>(description, predicate).forSubtype();
     }
 
     public static <T> DescribedPredicate<T> doesNot(final DescribedPredicate<? super T> predicate) {
-        return not(predicate).as("does not %s", predicate.getDescription()).forSubType();
+        return not(predicate).as("does not %s", predicate.getDescription()).forSubtype();
     }
 
     public static <T> DescribedPredicate<T> doNot(final DescribedPredicate<? super T> predicate) {
-        return not(predicate).as("do not %s", predicate.getDescription()).forSubType();
+        return not(predicate).as("do not %s", predicate.getDescription()).forSubtype();
     }
 
     public static <T> DescribedPredicate<T> not(final DescribedPredicate<? super T> predicate) {
@@ -208,7 +216,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
         NotPredicate(DescribedPredicate<? super T> predicate) {
             super("not " + predicate.getDescription());
-            this.predicate = checkNotNull(predicate).forSubType();
+            this.predicate = checkNotNull(predicate).forSubtype();
         }
 
         @Override
@@ -317,7 +325,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
         AnyElementPredicate(DescribedPredicate<? super T> predicate) {
             super("any element that " + predicate.getDescription());
-            this.predicate = predicate.forSubType();
+            this.predicate = predicate.forSubtype();
         }
 
         @Override
@@ -336,7 +344,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
         AllElementsPredicate(DescribedPredicate<? super T> predicate) {
             super("all elements " + predicate.getDescription());
-            this.predicate = predicate.forSubType();
+            this.predicate = predicate.forSubtype();
         }
 
         @Override

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -41,6 +42,18 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
 
     public void matchInAnyOrder(Class<?>... classes) {
         matchInAnyOrder(ImmutableSet.copyOf(classes));
+    }
+
+    public void matchExactly(ExpectedConcreteType[] expected, DescriptionContext context) {
+        matchExactly(ImmutableList.copyOf(expected), context);
+    }
+
+    public void matchExactly(List<ExpectedConcreteType> expected, DescriptionContext context) {
+        assertThat(actual).as(context.describeElements(actual.length).toString()).hasSize(expected.size());
+        for (int i = 0; i < actual.length; i++) {
+            DescriptionContext elementContext = context.describeElement(i, actual.length);
+            expected.get(i).assertMatchWith(actual[i], elementContext);
+        }
     }
 
     public void matchExactly(Class<?>... classes) {

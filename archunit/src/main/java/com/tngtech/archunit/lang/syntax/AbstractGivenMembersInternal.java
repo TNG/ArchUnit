@@ -90,7 +90,7 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
 
         @Override
         public MembersShouldConjunction<JavaMember> should(ArchCondition<? super JavaMember> condition) {
-            return new MembersShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMember>forSubType(), prepareCondition);
+            return new MembersShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMember>forSubtype(), prepareCondition);
         }
 
         @Override

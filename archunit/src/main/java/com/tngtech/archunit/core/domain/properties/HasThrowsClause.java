@@ -70,7 +70,7 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<HasThrowsClause<?>> throwsClauseContainingType(DescribedPredicate<? super JavaClass> predicate) {
-            DescribedPredicate<ThrowsDeclaration<?>> declarationPredicate = GET_RAW_TYPE.is(predicate).forSubType();
+            DescribedPredicate<ThrowsDeclaration<?>> declarationPredicate = GET_RAW_TYPE.is(predicate).forSubtype();
             return throwsClause(anyElementThat(declarationPredicate)).as("throws clause containing type " + predicate.getDescription());
         }
 

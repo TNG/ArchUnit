@@ -42,10 +42,10 @@ public class ThirdPartyRulesTest {
                 target(is(constructor())).and(targetOwner(is(assignableTo(ThirdPartyClassWithProblem.class))));
 
         DescribedPredicate<JavaCall<?>> notFromWithinThirdPartyClass =
-                originOwner(is(not(assignableTo(ThirdPartyClassWithProblem.class)))).forSubType();
+                originOwner(is(not(assignableTo(ThirdPartyClassWithProblem.class)))).forSubtype();
 
         DescribedPredicate<JavaCall<?>> notFromWorkaroundFactory =
-                originOwner(is(not(equivalentTo(ThirdPartyClassWorkaroundFactory.class)))).forSubType();
+                originOwner(is(not(equivalentTo(ThirdPartyClassWorkaroundFactory.class)))).forSubtype();
 
         DescribedPredicate<JavaCall<?>> targetIsIllegalConstructorOfThirdPartyClass =
                 constructorCallOfThirdPartyClass.

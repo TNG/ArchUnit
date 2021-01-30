@@ -78,6 +78,10 @@ public class DomainObjectCreationContext {
         javaClass.completeTypeParametersFrom(importContext);
     }
 
+    public static void completeGenericSuperclass(JavaClass javaClass, ImportContext importContext) {
+        javaClass.completeGenericSuperclassFrom(importContext);
+    }
+
     public static void completeMembers(JavaClass javaClass, ImportContext importContext) {
         javaClass.completeMembers(importContext);
     }

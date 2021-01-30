@@ -38,16 +38,16 @@ class ReflectionUtils {
     private ReflectionUtils() {
     }
 
-    static Set<Class<?>> getAllSuperTypes(Class<?> type) {
+    static Set<Class<?>> getAllSupertypes(Class<?> type) {
         if (type == null) {
             return Collections.emptySet();
         }
 
         ImmutableSet.Builder<Class<?>> result = ImmutableSet.<Class<?>>builder()
                 .add(type)
-                .addAll(getAllSuperTypes(type.getSuperclass()));
+                .addAll(getAllSupertypes(type.getSuperclass()));
         for (Class<?> c : type.getInterfaces()) {
-            result.addAll(getAllSuperTypes(c));
+            result.addAll(getAllSupertypes(c));
         }
         return result.build();
     }
@@ -71,7 +71,7 @@ class ReflectionUtils {
     }
 
     private static <T> List<T> getAll(Class<?> type, Collector<T> collector) {
-        for (Class<?> t : getAllSuperTypes(type)) {
+        for (Class<?> t : getAllSupertypes(type)) {
             collector.collectFrom(t);
         }
         return collector.collected;
