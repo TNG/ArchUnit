@@ -449,7 +449,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 0.15.0</span>
+<span id="revnumber">version 0.16.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -614,7 +614,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;0.15.0&lt;/version&gt;
+    &lt;version&gt;0.16.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -623,7 +623,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:0.15.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:0.16.0'
 }</code></pre>
 </div>
 </div>
@@ -644,7 +644,7 @@ from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;0.15.0&lt;/version&gt;
+    &lt;version&gt;0.16.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -653,7 +653,7 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:0.15.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:0.16.0'
 }</code></pre>
 </div>
 </div>
@@ -670,7 +670,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.15.0&lt;/version&gt;
+    &lt;version&gt;0.16.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -679,7 +679,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:0.15.0'
+   testImplementation 'com.tngtech.archunit:archunit:0.16.0'
 }</code></pre>
 </div>
 </div>
@@ -846,7 +846,7 @@ class MyArchitectureTest {
 <h3 id="_package_dependency_checks"><a class="anchor" href="#_package_dependency_checks"></a>4.1. Package Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-no-access.png" alt="package deps no access" width="460" height="75">
+<img src="package-deps-no-access.png" alt="package deps no access" width="464" height="79">
 </div>
 </div>
 <div class="listingblock">
@@ -857,7 +857,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-only-access.png" alt="package deps only access" width="487" height="333">
+<img src="package-deps-only-access.png" alt="package deps only access" width="491" height="335">
 </div>
 </div>
 <div class="listingblock">
@@ -871,7 +871,7 @@ class MyArchitectureTest {
 <h3 id="_class_dependency_checks"><a class="anchor" href="#_class_dependency_checks"></a>4.2. Class Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-naming-deps.png" alt="class naming deps" width="324" height="213">
+<img src="class-naming-deps.png" alt="class naming deps" width="320" height="215">
 </div>
 </div>
 <div class="listingblock">
@@ -885,7 +885,7 @@ class MyArchitectureTest {
 <h3 id="_class_and_package_containment_checks"><a class="anchor" href="#_class_and_package_containment_checks"></a>4.3. Class and Package Containment Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-package-contain.png" alt="class package contain" width="348" height="203">
+<img src="class-package-contain.png" alt="class package contain" width="343" height="180">
 </div>
 </div>
 <div class="listingblock">
@@ -899,7 +899,7 @@ class MyArchitectureTest {
 <h3 id="_inheritance_checks"><a class="anchor" href="#_inheritance_checks"></a>4.4. Inheritance Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-naming-check.png" alt="inheritance naming check" width="468" height="224">
+<img src="inheritance-naming-check.png" alt="inheritance naming check" width="464" height="226">
 </div>
 </div>
 <div class="listingblock">
@@ -910,7 +910,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-access-check.png" alt="inheritance access check" width="569" height="266">
+<img src="inheritance-access-check.png" alt="inheritance access check" width="558" height="251">
 </div>
 </div>
 <div class="listingblock">
@@ -924,7 +924,7 @@ class MyArchitectureTest {
 <h3 id="_annotation_checks"><a class="anchor" href="#_annotation_checks"></a>4.5. Annotation Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="587" height="219">
+<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="583" height="221">
 </div>
 </div>
 <div class="listingblock">
@@ -938,7 +938,7 @@ class MyArchitectureTest {
 <h3 id="_layer_checks"><a class="anchor" href="#_layer_checks"></a>4.6. Layer Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="layer-check.png" alt="layer check" width="643" height="598">
+<img src="layer-check.png" alt="layer check" width="632" height="575">
 </div>
 </div>
 <div class="listingblock">
@@ -958,7 +958,7 @@ class MyArchitectureTest {
 <h3 id="_cycle_checks"><a class="anchor" href="#_cycle_checks"></a>4.7. Cycle Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="cycle-check.png" alt="cycle check" width="749" height="398">
+<img src="cycle-check.png" alt="cycle check" width="738" height="375">
 </div>
 </div>
 <div class="listingblock">
@@ -1166,7 +1166,7 @@ like this:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="domain-overview.png" alt="domain overview" width="984" height="691">
+<img src="domain-overview.png" alt="domain overview" width="988" height="693">
 </div>
 </div>
 <div class="paragraph">
@@ -1195,7 +1195,7 @@ inheritance is not completely straight forward. Consider for example</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-example.png" alt="resolution example" width="376" height="187">
+<img src="resolution-example.png" alt="resolution example" width="379" height="189">
 </div>
 </div>
 <div class="paragraph">
@@ -1210,7 +1210,7 @@ The situation looks roughly like</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-overview.png" alt="resolution overview" width="543" height="316">
+<img src="resolution-overview.png" alt="resolution overview" width="547" height="318">
 </div>
 </div>
 <div class="paragraph">
@@ -1219,7 +1219,7 @@ The situation looks roughly like</p>
 <div class="paragraph">
 <p>First, why can a target resolve to zero matching members? The reason is that the set of classes
 that was imported does not need to have all classes involved within this resolution process.
-Consider the above example, if <code>SuperClassBeingAccessed</code> would not be imported, ArchUnit would
+Consider the above example, if <code>SuperclassBeingAccessed</code> would not be imported, ArchUnit would
 have no way of knowing where the actual targeted field resides. Thus in this case the
 resolution would return zero elements.</p>
 </div>
@@ -1230,7 +1230,7 @@ cases, for example:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="diamond-example.png" alt="diamond example" width="513" height="222">
+<img src="diamond-example.png" alt="diamond example" width="517" height="224">
 </div>
 </div>
 <div class="paragraph">
@@ -1543,7 +1543,7 @@ HasName.Predicates.name("").and(JavaClass.Predicates.type(Serializable.class))
 JavaClass.Predicates.type(Serializable.class).and(HasName.Predicates.name(""))
 
 // Does compile, because the compiler now sees name(..) as a predicate for JavaClass
-DescribedPredicate&lt;JavaClass&gt; name = HasName.Predicates.name("").forSubType();
+DescribedPredicate&lt;JavaClass&gt; name = HasName.Predicates.name("").forSubtype();
 name.and(JavaClass.Predicates.type(Serializable.class));</code></pre>
 </div>
 </div>
@@ -1586,7 +1586,7 @@ a more generic API that controls the types of objects that our concept targets.<
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="import-vs-lang.png" alt="import vs lang" width="710" height="79">
+<img src="import-vs-lang.png" alt="import vs lang" width="714" height="81">
 </div>
 </div>
 <div class="paragraph">
@@ -1780,7 +1780,7 @@ contain dependencies on any <code>adapter</code> package.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="onion-architecture-check.png" alt="onion architecture check" width="1139" height="771">
+<img src="onion-architecture-check.png" alt="onion architecture check" width="1180" height="748">
 </div>
 </div>
 </div>
@@ -1917,7 +1917,7 @@ The way this works is to use the respective package identifiers (compare
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="159" height="183">
+<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="183" height="205">
 </div>
 </div>
 <div class="listingblock">
@@ -1948,7 +1948,7 @@ classes().should(adhereToPlantUmlDiagram(
         mydiagram, consideringAllDependencies())
 
 // considers only dependencies specified in the PlantUML diagram
-// (so any unknown depedency will be ignored)
+// (so any unknown dependency will be ignored)
 classes().should(adhereToPlantUmlDiagram(
         mydiagram, consideringOnlyDependenciesInDiagram())
 
