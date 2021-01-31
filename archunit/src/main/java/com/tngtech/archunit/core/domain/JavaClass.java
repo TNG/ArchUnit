@@ -648,6 +648,15 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         return typeParameters;
     }
 
+    @PublicAPI(usage = ACCESS)
+    public Set<ReferencedClassObject> getReferencedClassObjects() {
+        ImmutableSet.Builder<ReferencedClassObject> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            result.addAll(codeUnit.getReferencedClassObjects());
+        }
+        return result.build();
+    }
+
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass toErasure() {

@@ -20,21 +20,21 @@ import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class RawInstanceofCheck {
-    private final JavaClassDescriptor target;
+class RawReferencedClassObject {
+    private final JavaClassDescriptor type;
     private final int lineNumber;
 
-    private RawInstanceofCheck(JavaClassDescriptor target, int lineNumber) {
-        this.target = checkNotNull(target);
+    private RawReferencedClassObject(JavaClassDescriptor type, int lineNumber) {
+        this.type = checkNotNull(type);
         this.lineNumber = lineNumber;
     }
 
-    static RawInstanceofCheck from(JavaClassDescriptor target, int lineNumber) {
-        return new RawInstanceofCheck(target, lineNumber);
+    static RawReferencedClassObject from(JavaClassDescriptor target, int lineNumber) {
+        return new RawReferencedClassObject(target, lineNumber);
     }
 
-    JavaClassDescriptor getTarget() {
-        return target;
+    String getClassName() {
+        return type.getFullyQualifiedClassName();
     }
 
     int getLineNumber() {
@@ -44,7 +44,7 @@ class RawInstanceofCheck {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("target", target)
+                .add("type", type)
                 .add("lineNumber", lineNumber)
                 .toString();
     }

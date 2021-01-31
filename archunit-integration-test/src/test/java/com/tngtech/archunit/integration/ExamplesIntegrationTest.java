@@ -972,6 +972,9 @@ class ExamplesIntegrationTest {
                                 .by(field(ShoppingService.class, "productRepository").ofType(ProductRepository.class))
                                 .by(field(ShoppingService.class, "shoppingCartRepository").ofType(ShoppingCartRepository.class))
 
+                                .by(method(AdministrationCLI.class, "handle")
+                                        .referencingClassObject(ProductRepository.class)
+                                        .inLine(16))
                                 .by(callFromMethod(AdministrationCLI.class, "handle", String[].class, AdministrationPort.class)
                                         .toMethod(ProductRepository.class, "getTotalCount")
                                         .inLine(17).asDependency())

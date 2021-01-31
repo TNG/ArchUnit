@@ -28,6 +28,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -100,44 +101,52 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     static Set<Dependency> tryCreateFromField(JavaField field) {
-        return tryCreateDependencyFromJavaMember(field, "has type", field.getRawType());
+        return tryCreateDependency(field, "has type", field.getRawType());
     }
 
     static Set<Dependency> tryCreateFromReturnType(JavaMethod method) {
-        return tryCreateDependencyFromJavaMember(method, "has return type", method.getRawReturnType());
+        return tryCreateDependency(method, "has return type", method.getRawReturnType());
     }
 
     static Set<Dependency> tryCreateFromParameter(JavaCodeUnit codeUnit, JavaClass parameter) {
-        return tryCreateDependencyFromJavaMember(codeUnit, "has parameter of type", parameter);
+        return tryCreateDependency(codeUnit, "has parameter of type", parameter);
     }
 
     static Set<Dependency> tryCreateFromThrowsDeclaration(ThrowsDeclaration<? extends JavaCodeUnit> declaration) {
-        return tryCreateDependencyFromJavaMember(declaration.getLocation(), "throws type", declaration.getRawType());
+        return tryCreateDependency(declaration.getLocation(), "throws type", declaration.getRawType());
     }
 
     static Set<Dependency> tryCreateFromInstanceofCheck(InstanceofCheck instanceofCheck) {
-        return tryCreateDependencyFromJavaMemberWithLocation(instanceofCheck.getOwner(), "checks instanceof", instanceofCheck.getRawType(), instanceofCheck.getLineNumber());
+        return tryCreateDependency(
+                instanceofCheck.getOwner(), "checks instanceof",
+                instanceofCheck.getRawType(), instanceofCheck.getSourceCodeLocation());
+    }
+
+    static Set<Dependency> tryCreateFromReferencedClassObject(ReferencedClassObject referencedClassObject) {
+        return tryCreateDependency(
+                referencedClassObject.getOwner(), "references class object",
+                referencedClassObject.getRawType(), referencedClassObject.getSourceCodeLocation());
     }
 
     static Set<Dependency> tryCreateFromAnnotation(JavaAnnotation<?> target) {
         Origin origin = findSuitableOrigin(target, target.getAnnotatedElement());
-        return tryCreateDependency(origin.originClass, origin.originDescription, "is annotated with", target.getRawType());
+        return tryCreateDependency(origin, "is annotated with", target.getRawType());
     }
 
     static Set<Dependency> tryCreateFromAnnotationMember(JavaAnnotation<?> annotation, JavaClass memberType) {
         Origin origin = findSuitableOrigin(annotation, annotation.getAnnotatedElement());
-        return tryCreateDependency(origin.originClass, origin.originDescription, "has annotation member of type", memberType);
+        return tryCreateDependency(origin, "has annotation member of type", memberType);
     }
 
     static Set<Dependency> tryCreateFromTypeParameter(JavaTypeVariable<?> typeParameter, JavaClass typeParameterDependency) {
         String dependencyType = "has type parameter '" + typeParameter.getName() + "' depending on";
         Origin origin = findSuitableOrigin(typeParameter, typeParameter.getOwner());
-        return tryCreateDependency(origin.originClass, origin.originDescription, dependencyType, typeParameterDependency);
+        return tryCreateDependency(origin, dependencyType, typeParameterDependency);
     }
 
     static Set<Dependency> tryCreateFromGenericSuperclassTypeArguments(JavaClass originClass, JavaType superclass, JavaClass typeArgumentDependency) {
         String dependencyType = "has generic superclass " + bracketFormat(superclass.getName()) + " with type argument depending on";
-        return tryCreateDependency(originClass, originClass.getDescription(), dependencyType, typeArgumentDependency);
+        return tryCreateDependency(originClass, originClass.getDescription(), dependencyType, typeArgumentDependency, originClass.getSourceCodeLocation());
     }
 
     private static Origin findSuitableOrigin(Object dependencyCause, Object originCandidate) {
@@ -152,22 +161,20 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         throw new IllegalStateException("Could not find suitable dependency origin for " + dependencyCause);
     }
 
-    private static Set<Dependency> tryCreateDependencyFromJavaMember(JavaMember origin, String dependencyType, JavaClass target) {
-        return tryCreateDependency(origin.getOwner(), origin.getDescription(), dependencyType, target);
+    private static <T extends HasOwner<JavaClass> & HasDescription> Set<Dependency> tryCreateDependency(
+            T origin, String dependencyType, JavaClass targetClass) {
+        return tryCreateDependency(origin, dependencyType, targetClass, origin.getOwner().getSourceCodeLocation());
     }
 
-    private static Set<Dependency> tryCreateDependencyFromJavaMemberWithLocation(JavaMember origin, String dependencyType, JavaClass target, int lineNumber) {
-        return tryCreateDependency(origin.getOwner(), origin.getDescription(), dependencyType, target, SourceCodeLocation.of(origin.getOwner(), lineNumber));
-    }
+    private static <T extends HasOwner<JavaClass> & HasDescription> Set<Dependency> tryCreateDependency(
+            T origin, String dependencyType, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
 
-    private static Set<Dependency> tryCreateDependency(
-            JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass) {
-
-        return tryCreateDependency(originClass, originDescription, dependencyType, targetClass, originClass.getSourceCodeLocation());
+        return tryCreateDependency(origin.getOwner(), origin.getDescription(), dependencyType, targetClass, sourceCodeLocation);
     }
 
     private static Set<Dependency> tryCreateDependency(
             JavaClass originClass, String originDescription, String dependencyType, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
+
         ImmutableSet.Builder<Dependency> dependencies = ImmutableSet.<Dependency>builder()
                 .addAll(createComponentTypeDependencies(originClass, originDescription, targetClass, sourceCodeLocation));
         String targetDescription = bracketFormat(targetClass.getName());
@@ -177,7 +184,9 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return dependencies.build();
     }
 
-    private static Set<Dependency> createComponentTypeDependencies(JavaClass originClass, String originDescription, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
+    private static Set<Dependency> createComponentTypeDependencies(
+            JavaClass originClass, String originDescription, JavaClass targetClass, SourceCodeLocation sourceCodeLocation) {
+
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         Optional<JavaClass> componentType = targetClass.tryGetComponentType();
         while (componentType.isPresent()) {
@@ -271,13 +280,23 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return JavaClasses.of(classes);
     }
 
-    private static class Origin {
+    private static class Origin implements HasOwner<JavaClass>, HasDescription {
         private final JavaClass originClass;
         private final String originDescription;
 
         private Origin(JavaClass originClass, String originDescription) {
             this.originClass = originClass;
             this.originDescription = originDescription;
+        }
+
+        @Override
+        public JavaClass getOwner() {
+            return originClass;
+        }
+
+        @Override
+        public String getDescription() {
+            return originDescription;
         }
     }
 
