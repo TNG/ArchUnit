@@ -15,13 +15,16 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.Set;
 import java.util.regex.Pattern;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Predicate;
 import com.tngtech.archunit.PublicAPI;
 
+import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Predicates.or;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.NO_TEST_LOCATION;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.TEST_LOCATION;
 
 /**
  * Will be evaluated for every class location, to determine if the class should be imported.<br><br>
@@ -47,6 +50,14 @@ public interface ImportOption {
                 return doNotIncludeTests.includes(location);
             }
         },
+        ONLY_INCLUDE_TESTS {
+            private final OnlyIncludeTests onlyIncludeTests = new OnlyIncludeTests();
+
+            @Override
+            public boolean includes(Location location) {
+                return onlyIncludeTests.includes(location);
+            }
+        },
         DO_NOT_INCLUDE_JARS {
             private final DoNotIncludeJars doNotIncludeJars = new DoNotIncludeJars();
 
@@ -65,30 +76,51 @@ public interface ImportOption {
             public boolean includes(Location location) {
                 return doNotIncludeArchives.includes(location);
             }
+        };
+
+        static final PatternPredicate MAVEN_TEST_PATTERN = new PatternPredicate(".*/target/test-classes/.*");
+        static final PatternPredicate GRADLE_TEST_PATTERN = new PatternPredicate(".*/build/classes/([^/]+/)?test/.*");
+        static final PatternPredicate INTELLIJ_TEST_PATTERN = new PatternPredicate(".*/out/test/classes/.*");
+        static final Predicate<Location> TEST_LOCATION = or(MAVEN_TEST_PATTERN, GRADLE_TEST_PATTERN, INTELLIJ_TEST_PATTERN);
+        static final Predicate<Location> NO_TEST_LOCATION = not(TEST_LOCATION);
+
+        private static class PatternPredicate implements Predicate<Location> {
+            private final Pattern pattern;
+
+            PatternPredicate(String pattern) {
+                this.pattern = Pattern.compile(pattern);
+            }
+
+            @Override
+            @SuppressWarnings("ConstantConditions") // ArchUnit never uses null as a valid parameter
+            public boolean apply(Location input) {
+                return input.matches(pattern);
+            }
         }
     }
 
     /**
+     * Best effort {@link ImportOption} to check rules only on main classes.<br>
      * NOTE: This excludes all class files residing in some directory
      * ../target/test-classes/.., ../build/classes/test/.. or ../build/classes/someLang/test/.. (Maven/Gradle standard).
      * Thus it is just a best guess, how tests can be identified,
      * in other environments, it might be necessary, to implement the correct {@link ImportOption} yourself.
      */
     final class DoNotIncludeTests implements ImportOption {
-        private static final Pattern MAVEN_PATTERN = Pattern.compile(".*/target/test-classes/.*");
-        private static final Pattern GRADLE_PATTERN = Pattern.compile(".*/build/classes/([^/]+/)?test/.*");
-        private static final Pattern INTELLIJ_PATTERN = Pattern.compile(".*/out/test/classes/.*");
-
-        private static final Set<Pattern> EXCLUDED_PATTERN = ImmutableSet.of(MAVEN_PATTERN, GRADLE_PATTERN, INTELLIJ_PATTERN);
-
         @Override
         public boolean includes(Location location) {
-            for (Pattern pattern : EXCLUDED_PATTERN) {
-                if (location.matches(pattern)) {
-                    return false;
-                }
-            }
-            return true;
+            return NO_TEST_LOCATION.apply(location);
+        }
+    }
+
+    /**
+     * Best effort {@link ImportOption} to check rules only on test classes.<br>
+     * See {@link DoNotIncludeTests} for limitations of test class identification.
+     */
+    final class OnlyIncludeTests implements ImportOption {
+        @Override
+        public boolean includes(Location location) {
+            return TEST_LOCATION.apply(location);
         }
     }
 
