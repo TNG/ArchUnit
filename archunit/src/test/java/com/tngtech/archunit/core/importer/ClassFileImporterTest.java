@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core.importer;
 
 import java.io.File;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
@@ -12,6 +13,9 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.Buffer;
+import java.nio.charset.Charset;
+import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -147,6 +151,7 @@ import com.tngtech.archunit.core.importer.testexamples.pathone.Class11;
 import com.tngtech.archunit.core.importer.testexamples.pathone.Class12;
 import com.tngtech.archunit.core.importer.testexamples.pathtwo.Class21;
 import com.tngtech.archunit.core.importer.testexamples.pathtwo.Class22;
+import com.tngtech.archunit.core.importer.testexamples.referencedclassobjects.ReferencingClassObjects;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.ClassToImportOne;
@@ -159,6 +164,7 @@ import com.tngtech.archunit.core.importer.testexamples.syntheticimport.ClassWith
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.archunit.testutil.LogTestRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
+import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.ExpectedReferencedClassObject;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -174,6 +180,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
@@ -200,12 +207,14 @@ import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
+import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClassObjects;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.namesOf;
+import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
@@ -834,6 +843,31 @@ public class ClassFileImporterTest {
 
         assertThat(baseClass.getCodeUnitWithParameterTypes("getSomeField").getModifiers()).containsOnly(PROTECTED);
         assertThat(subclass.getCodeUnitWithParameterTypes("getSomeField").getModifiers()).containsOnly(PUBLIC);
+    }
+
+    @Test
+    public void imports_referenced_class_objects() {
+        JavaClass javaClass = new ClassFileImporter().importClass(ReferencingClassObjects.class);
+
+        Set<ExpectedReferencedClassObject> expectedInConstructor =
+                ImmutableSet.of(referencedClassObject(File.class, 19), referencedClassObject(Path.class, 19));
+        Set<ExpectedReferencedClassObject> expectedInMethod =
+                ImmutableSet.of(referencedClassObject(FileSystem.class, 22), referencedClassObject(Charset.class, 22));
+        Set<ExpectedReferencedClassObject> expectedInStaticInitializer =
+                ImmutableSet.of(referencedClassObject(FilterInputStream.class, 16), referencedClassObject(Buffer.class, 16));
+
+        assertThatReferencedClassObjects(javaClass.getConstructor().getReferencedClassObjects())
+                .hasSize(2)
+                .containReferencedClassObjects(expectedInConstructor);
+        assertThatReferencedClassObjects(javaClass.getMethod("referencedClassObjectsInMethod").getReferencedClassObjects())
+                .hasSize(2)
+                .containReferencedClassObjects(expectedInMethod);
+        assertThatReferencedClassObjects(javaClass.getStaticInitializer().get().getReferencedClassObjects())
+                .hasSize(2)
+                .containReferencedClassObjects(expectedInStaticInitializer);
+        assertThatReferencedClassObjects(javaClass.getReferencedClassObjects())
+                .hasSize(6)
+                .containReferencedClassObjects(concat(expectedInConstructor, expectedInMethod, expectedInStaticInitializer));
     }
 
     @Test

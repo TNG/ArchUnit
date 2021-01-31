@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.domain.properties.HasType;
@@ -24,30 +25,30 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
-
+@PublicAPI(usage = ACCESS)
+public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
     private final JavaCodeUnit owner;
-    private final JavaClass target;
+    private final JavaClass value;
     private final int lineNumber;
     private final SourceCodeLocation sourceCodeLocation;
 
-    private InstanceofCheck(JavaCodeUnit owner, JavaClass target, int lineNumber) {
+    private ReferencedClassObject(JavaCodeUnit owner, JavaClass value, int lineNumber) {
         this.owner = checkNotNull(owner);
-        this.target = checkNotNull(target);
+        this.value = checkNotNull(value);
         this.lineNumber = lineNumber;
         sourceCodeLocation = SourceCodeLocation.of(owner.getOwner(), lineNumber);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaClass getRawType() {
-        return target;
+    public JavaType getType() {
+        return getRawType();
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaType getType() {
-        return target;
+    public JavaClass getRawType() {
+        return value;
     }
 
     @Override
@@ -57,11 +58,17 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, H
     }
 
     @PublicAPI(usage = ACCESS)
+    public JavaClass getValue() {
+        return value;
+    }
+
+    @PublicAPI(usage = ACCESS)
     public int getLineNumber() {
         return lineNumber;
     }
 
     @Override
+    @PublicAPI(usage = ACCESS)
     public SourceCodeLocation getSourceCodeLocation() {
         return sourceCodeLocation;
     }
@@ -70,12 +77,26 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, H
     public String toString() {
         return toStringHelper(this)
                 .add("owner", owner)
-                .add("target", target)
-                .add("lineNumber", lineNumber)
+                .add("value", value)
+                .add("sourceCodeLocation", sourceCodeLocation)
                 .toString();
     }
 
-    static InstanceofCheck from(JavaCodeUnit owner, JavaClass target, int lineNumber) {
-        return new InstanceofCheck(owner, target, lineNumber);
+    static ReferencedClassObject from(JavaCodeUnit owner, JavaClass javaClass, int lineNumber) {
+        return new ReferencedClassObject(owner, javaClass, lineNumber);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static final class Functions {
+        private Functions() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<ReferencedClassObject, JavaClass> GET_VALUE = new ChainableFunction<ReferencedClassObject, JavaClass>() {
+            @Override
+            public JavaClass apply(ReferencedClassObject input) {
+                return input.getValue();
+            }
+        };
     }
 }
