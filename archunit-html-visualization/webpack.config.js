@@ -45,6 +45,11 @@ module.exports = env => {
     module: {
       rules: [
         {
+          test: /\.tsx?$/,
+          use: 'ts-loader',
+          exclude: /node_modules/,
+        },
+        {
           test: /\.css$/,
           use: [
             {loader: 'style-loader', options: {attributes: {id: 'visualization-styles'}}},
@@ -53,6 +58,9 @@ module.exports = env => {
           include: /visualization-styles.css/
         }
       ]
-    }
+    },
+    resolve: {
+      extensions: ['.tsx', '.ts', '.js'],
+    },
   }
 };
