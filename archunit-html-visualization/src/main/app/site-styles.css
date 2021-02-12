@@ -1,0 +1,60 @@
+body {
+    min-height: 100%;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: Verdana, sans-serif;
+    font-size: 100%;
+    vertical-align: baseline;
+    line-height: 1;
+}
+
+html, body {
+    overflow: hidden;
+}
+
+div {
+    font-size: 12px;
+    --menu-height: 80px;
+}
+
+.container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    min-height: inherit;
+
+    overflow: scroll;
+}
+
+/*#menu {*/
+/*    position: fixed;*/
+/*    left: 0;*/
+/*    top: 0;*/
+/*    width: 100%;*/
+/*}*/
+
+/*#violations-container {*/
+/*    margin-left: 10px;*/
+/*    margin-top: 55px;*/
+/*    margin-right: 5px;*/
+/*    height: 100%;*/
+/*    min-height: inherit;*/
+/*}*/
+
+/*#container {*/
+/*    height: 100%;*/
+/*    width: 100%;*/
+/*    max-height: 100vh;*/
+/*    max-width: 100vw;*/
+/*    overflow: scroll;*/
+/*    margin-top: 55px;*/
+/*    left: 0;*/
+/*}*/

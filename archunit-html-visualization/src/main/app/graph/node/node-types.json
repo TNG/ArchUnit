@@ -1,0 +1,6 @@
+{
+  "package": "package",
+  "class": "class",
+  "interface": "interface",
+  "abstractclass": "abstractclass"
+}
