@@ -1,0 +1,146 @@
+/*change the styles here to permanently customize your visualization*/
+
+/*circle styles*/
+circle {
+    stroke: black;
+    stroke-width: 1px;
+}
+
+.package circle {
+    fill: #0064A6;
+    fill-opacity: 0.25;
+}
+
+.class circle, .abstractclass circle, .interface circle {
+    fill: #A2A7AE;
+    fill-opacity: 1;
+}
+
+.interface circle {
+    stroke-dasharray: 2, 2;
+}
+
+.abstractclass circle {
+    stroke-dasharray: 10, 10;
+}
+
+.foldable {
+    cursor: pointer;
+}
+
+.unfoldable {
+    cursor: default;
+}
+
+.area {
+    cursor: pointer;
+}
+
+text {
+    cursor: inherit;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    text-anchor: middle;
+    font-weight: bold;
+}
+
+/*font-size of the text in the circles*/
+.node text {
+    font-size: 12px;
+}
+
+text.closeButton {
+    cursor: default;
+}
+
+/*padding between two circles*/
+.circle {
+    padding: 5px;
+}
+
+.package text {
+    font-style: italic;
+    font-weight: normal;
+}
+
+.class text, .abstractclass text, .interface text {
+    font-style: normal;
+    font-weight: bold;
+}
+
+/*edges styles*/
+line.dependency {
+    marker-end: url(#end_arrow);
+    stroke: black;
+}
+
+line.methodCall {
+    stroke: #0000FF;
+}
+
+tspan.methodCall {
+    fill: black;
+}
+
+line.fieldAccess {
+    stroke: #FFFF00;
+}
+
+tspan.fieldAccess {
+    fill: black;
+}
+
+line.constructorCall {
+    stroke: #FFA500;
+}
+
+tspan.constructorCall {
+    fill: black;
+}
+
+line.implementsAnonymous {
+    stroke-dasharray: 1px;
+    stroke: #00FFCC;
+}
+
+tspan.implementsAnonymous {
+    fill: black;
+}
+
+line.childrenAccess {
+    stroke: #FA64D4;
+}
+
+line.several {
+    stroke: #808080;
+}
+
+line.extends {
+    stroke-dasharray: 5px;
+}
+
+line.implements {
+    stroke-dasharray: 2px;
+}
+
+line.violation {
+    stroke: red;
+    stroke-width: 3px;
+}
+
+text.access {
+    font-weight: normal;
+    font-size: 12px;
+    text-anchor: start;
+}
+
+rect.frame {
+    fill: #dadada;
+}
+
+rect.hoverArea {
+    fill: none;
+    visibility: hidden;
+}

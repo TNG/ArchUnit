@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <title>ArchUnit HTML Visualization</title>
+  <link rel='stylesheet' href='site-styles.css'>
+
+  <script>
+    window.jsonGraph = 'injectJsonClassesToVisualizeHere';
+  </script>
+
+  <script src='build://d3.js'></script>
+
+</head>
+<body>
+
+<div class="container" id="container">
+  <svg id='visualization'>
+    <defs>
+      <marker id="end_arrow" viewBox="0 -5 10 10" refX="10" markerUnits="userSpaceOnUse" markerWidth="10"
+              markerHeight="10" orient="auto">
+        <path d="M0,-5L10,0L0,5"></path>
+      </marker>
+    </defs>
+  </svg>
+</div>
+
+<script src='build://visualization-bundle.js'></script>
+
+</body>
+</html>
