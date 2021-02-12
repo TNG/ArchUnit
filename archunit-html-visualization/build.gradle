@@ -1,0 +1,38 @@
+ext.moduleName = 'com.tngtech.archunit.htmlvisualization'
+
+dependencies {
+    api project(path: ':archunit', configuration: 'shadow')
+    implementation dependency.guava
+    implementation dependency.gson
+//    compile dependency.slf4j
+//
+    testImplementation dependency.log4j_api
+    testImplementation dependency.log4j_core
+    testImplementation dependency.log4j_slf4j
+    testImplementation dependency.junit4
+    testImplementation dependency.junit_dataprovider
+    testImplementation dependency.mockito
+    testImplementation dependency.assertj
+    testImplementation(dependency.assertj_guava) {
+        exclude module: 'assertj-core'
+        exclude module: 'guava'
+    }
+//    testCompile dependency.mockito
+//    testCompile dependency.assertj
+//    testCompile(dependency.assertj_guava) {
+//        exclude module: 'assertj-core'
+//        exclude module: 'guava'
+//    }
+//    testCompile dependency.json_assert
+//    testCompile dependency.junit_dataprovider
+
+    testImplementation project(path: ':archunit', configuration: 'tests')
+
+    // This is a hack for running tests with IntelliJ instead of delegating to Gradle,
+    // because for some reason this dependency cannot be resolved otherwise :-(
+    testRuntimeOnly dependency.asm
+}
+
+shadowJar {
+    exclude 'META-INF/maven/**'
+}
