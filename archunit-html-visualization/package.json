@@ -13,11 +13,15 @@
   "license": "Apache-2.0",
   "eslintConfig": {
     "root": true,
-    "extends": "eslint:recommended",
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
       "ecmaVersion": 2018,
       "sourceType": "module"
     },
+    "extends": [
+      "plugin:@typescript-eslint/recommended",
+      "eslint:recommended"
+    ],
     "env": {
       "es6": true,
       "browser": true,
@@ -40,7 +44,11 @@
           "destructuring": "any",
           "ignoreReadBeforeAssign": false
         }
-      ]
+      ],
+      "@typescript-eslint/no-var-requires": "off",
+      "@typescript-eslint/adjacent-overload-signatures": "off",
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/no-inferrable-types": "off"
     }
   },
   "devDependencies": {
@@ -49,6 +57,7 @@
     "eslint": "7.19.0",
     "eslint-plugin-html": "6.1.1",
     "eslint-plugin-promise": "4.3.1",
+    "@typescript-eslint/parser": "4.15.0",
     "@typescript-eslint/eslint-plugin": "4.15.0",
     "mocha": "8.3.0",
     "nodemon": "2.0.7",
