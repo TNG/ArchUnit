@@ -13,3 +13,5 @@ _site
 .jekyll-cache
 .asciidoctor
 verification-results
+node_modules
+nodejs
