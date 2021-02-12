@@ -4,6 +4,7 @@ const chai = require('chai');
 const chaiExtensions = require('../../testinfrastructure/general-chai-extensions');
 chai.use(chaiExtensions);
 const expect = chai.expect;
+const VERSION = require('../../testinfrastructure/constants');
 
 const Vector = require('../../../../../main/app/graph/infrastructure/vectors').Vector;
 const visualizationStyles = require('../../testinfrastructure/root-creator').getVisualizationStyles();
@@ -27,6 +28,7 @@ class RootUi {
       return nodeUi;
     };
     this._childUis = root.getOriginalChildren().map(child => createNodeUi(child, this, this));
+    console.log(VERSION.VERSION)
   }
 
   get childUis() {
