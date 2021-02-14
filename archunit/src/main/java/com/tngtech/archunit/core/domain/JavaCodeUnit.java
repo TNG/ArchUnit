@@ -163,7 +163,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
         return (Optional<? extends JavaAnnotation<? extends JavaCodeUnit>>) super.tryGetAnnotationOfType(typeName);
     }
 
-    void completeFrom(ImportContext context) {
+    void completeAccessesFrom(ImportContext context) {
         fieldAccesses = context.createFieldAccessesFor(this);
         methodCalls = context.createMethodCallsFor(this);
         constructorCalls = context.createConstructorCallsFor(this);
