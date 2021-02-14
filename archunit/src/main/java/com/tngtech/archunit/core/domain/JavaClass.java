@@ -45,14 +45,12 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
-import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.JavaType.Functions.TO_ERASURE;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
@@ -60,7 +58,6 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
 
 public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
     private final Optional<Source> source;
@@ -75,12 +72,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private final Set<JavaModifier> modifiers;
     private List<JavaTypeVariable<JavaClass>> typeParameters = emptyList();
     private final Supplier<Class<?>> reflectSupplier;
-    private Set<JavaField> fields = emptySet();
-    private Set<JavaCodeUnit> codeUnits = emptySet();
-    private Set<JavaMethod> methods = emptySet();
-    private Set<JavaMember> members = emptySet();
-    private Set<JavaConstructor> constructors = emptySet();
-    private Optional<JavaStaticInitializer> staticInitializer = Optional.absent();
+    private JavaClassMembers members = JavaClassMembers.empty(this);
     private Superclass superclass = Superclass.ABSENT;
     private final Supplier<List<JavaClass>> allRawSuperclasses = Suppliers.memoize(new Supplier<List<JavaClass>>() {
         @Override
@@ -131,19 +123,6 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     private Optional<JavaClass> enclosingClass = Optional.absent();
     private Optional<JavaClass> componentType = Optional.absent();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
-    private Supplier<Set<JavaMethod>> allMethods;
-    private Supplier<Set<JavaConstructor>> allConstructors;
-    private Supplier<Set<JavaField>> allFields;
-    private final Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(new Supplier<Set<JavaMember>>() {
-        @Override
-        public Set<JavaMember> get() {
-            return ImmutableSet.<JavaMember>builder()
-                    .addAll(getAllFields())
-                    .addAll(getAllMethods())
-                    .addAll(getAllConstructors())
-                    .build();
-        }
-    });
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
     private final CompletionProcess completionProcess = CompletionProcess.start();
@@ -257,13 +236,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaEnumConstant> getEnumConstants() {
-        ImmutableSet.Builder<JavaEnumConstant> result = ImmutableSet.builder();
-        for (JavaField field : fields) {
-            if (field.getModifiers().contains(ENUM)) {
-                result.add(new JavaEnumConstant(this, field.getName()));
-            }
-        }
-        return result.build();
+        return members.getEnumConstants();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -650,11 +623,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<ReferencedClassObject> getReferencedClassObjects() {
-        ImmutableSet.Builder<ReferencedClassObject> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
-            result.addAll(codeUnit.getReferencedClassObjects());
-        }
-        return result.build();
+        return members.getReferencedClassObjects();
     }
 
     @Override
@@ -770,23 +739,22 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaMember> getMembers() {
-        return members;
+        return members.get();
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaMember> getAllMembers() {
-        return allMembers.get();
+        return members.getAll();
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaField> getFields() {
-        return fields;
+        return members.getFields();
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaField> getAllFields() {
-        checkNotNull(allFields, "Method may not be called before construction of hierarchy is complete");
-        return allFields.get();
+        return members.getAllFields();
     }
 
     /**
@@ -795,11 +763,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public JavaField getField(String name) {
-        Optional<JavaField> field = tryGetField(name);
-        if (!field.isPresent()) {
-            throw new IllegalArgumentException("No field with name '" + name + " in class " + getName());
-        }
-        return field.get();
+        return members.getField(name);
     }
 
     /**
@@ -807,17 +771,12 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaField> tryGetField(String name) {
-        for (JavaField field : fields) {
-            if (name.equals(field.getName())) {
-                return Optional.of(field);
-            }
-        }
-        return Optional.absent();
+        return members.tryGetField(name);
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaCodeUnit> getCodeUnits() {
-        return codeUnits;
+        return members.getCodeUnits();
     }
 
     /**
@@ -853,26 +812,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
-        return findMatchingCodeUnit(codeUnits, name, parameters);
-    }
-
-    private <T extends JavaCodeUnit> T findMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
-        Optional<T> codeUnit = tryFindMatchingCodeUnit(codeUnits, name, parameters);
-        if (!codeUnit.isPresent()) {
-            throw new IllegalArgumentException(
-                    String.format("No code unit with name '%s' and parameters %s in codeUnits %s of class %s",
-                            name, parameters, codeUnits, getName()));
-        }
-        return codeUnit.get();
-    }
-
-    private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
-        for (T codeUnit : codeUnits) {
-            if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getRawParameterTypes().getNames())) {
-                return Optional.of(codeUnit);
-            }
-        }
-        return Optional.absent();
+        return members.getCodeUnitWithParameterTypeNames(name, parameters);
     }
 
     /**
@@ -881,7 +821,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name) {
-        return findMatchingCodeUnit(methods, name, Collections.<String>emptyList());
+        return members.getMethod(name, Collections.<String>emptyList());
     }
 
     /**
@@ -890,7 +830,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name, Class<?>... parameters) {
-        return findMatchingCodeUnit(methods, name, namesOf(parameters));
+        return members.getMethod(name, namesOf(parameters));
     }
 
     /**
@@ -898,7 +838,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name, String... parameters) {
-        return findMatchingCodeUnit(methods, name, ImmutableList.copyOf(parameters));
+        return members.getMethod(name, ImmutableList.copyOf(parameters));
     }
 
     /**
@@ -907,7 +847,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name) {
-        return tryFindMatchingCodeUnit(methods, name, Collections.<String>emptyList());
+        return members.tryGetMethod(name, Collections.<String>emptyList());
     }
 
     /**
@@ -916,7 +856,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name, Class<?>... parameters) {
-        return tryFindMatchingCodeUnit(methods, name, namesOf(parameters));
+        return members.tryGetMethod(name, namesOf(parameters));
     }
 
     /**
@@ -924,18 +864,17 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name, String... parameters) {
-        return tryFindMatchingCodeUnit(methods, name, ImmutableList.copyOf(parameters));
+        return members.tryGetMethod(name, ImmutableList.copyOf(parameters));
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getMethods() {
-        return methods;
+        return members.getMethods();
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethod> getAllMethods() {
-        checkNotNull(allMethods, "Method may not be called before construction of hierarchy is complete");
-        return allMethods.get();
+        return members.getAllMethods();
     }
 
     /**
@@ -944,7 +883,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor() {
-        return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, Collections.<String>emptyList());
+        return members.getConstructor(Collections.<String>emptyList());
     }
 
     /**
@@ -953,7 +892,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor(Class<?>... parameters) {
-        return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, namesOf(parameters));
+        return members.getConstructor(namesOf(parameters));
     }
 
     /**
@@ -961,7 +900,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor(String... parameters) {
-        return findMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, ImmutableList.copyOf(parameters));
+        return members.getConstructor(ImmutableList.copyOf(parameters));
     }
 
     /**
@@ -970,7 +909,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaConstructor> tryGetConstructor() {
-        return tryFindMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, Collections.<String>emptyList());
+        return members.tryGetConstructor(Collections.<String>emptyList());
     }
 
     /**
@@ -979,7 +918,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaConstructor> tryGetConstructor(Class<?>... parameters) {
-        return tryFindMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, namesOf(parameters));
+        return members.tryGetConstructor(namesOf(parameters));
     }
 
     /**
@@ -987,23 +926,22 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaConstructor> tryGetConstructor(String... parameters) {
-        return tryFindMatchingCodeUnit(constructors, CONSTRUCTOR_NAME, ImmutableList.copyOf(parameters));
+        return members.tryGetConstructor(ImmutableList.copyOf(parameters));
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructor> getConstructors() {
-        return constructors;
+        return members.getConstructors();
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructor> getAllConstructors() {
-        checkNotNull(allConstructors, "Method may not be called before construction of hierarchy is complete");
-        return allConstructors.get();
+        return members.getAllConstructors();
     }
 
     @PublicAPI(usage = ACCESS)
     public Optional<JavaStaticInitializer> getStaticInitializer() {
-        return staticInitializer;
+        return members.getStaticInitializer();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1025,11 +963,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getFieldAccessesFromSelf() {
-        ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
-            result.addAll(codeUnit.getFieldAccesses());
-        }
-        return result.build();
+        return members.getFieldAccessesFromSelf();
     }
 
     /**
@@ -1045,20 +979,12 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getMethodCallsFromSelf() {
-        ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
-            result.addAll(codeUnit.getMethodCallsFromSelf());
-        }
-        return result.build();
+        return members.getMethodCallsFromSelf();
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getConstructorCallsFromSelf() {
-        ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : codeUnits) {
-            result.addAll(codeUnit.getConstructorCallsFromSelf());
-        }
-        return result.build();
+        return members.getConstructorCallsFromSelf();
     }
 
     /**
@@ -1104,29 +1030,17 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaFieldAccess> getFieldAccessesToSelf() {
-        ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
-        for (JavaField field : fields) {
-            result.addAll(field.getAccessesToSelf());
-        }
-        return result.build();
+        return members.getFieldAccessesToSelf();
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getMethodCallsToSelf() {
-        ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
-        for (JavaMethod method : methods) {
-            result.addAll(method.getCallsOfSelf());
-        }
-        return result.build();
+        return members.getMethodCallsToSelf();
     }
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getConstructorCallsToSelf() {
-        ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
-        for (JavaConstructor constructor : constructors) {
-            result.addAll(constructor.getCallsOfSelf());
-        }
-        return result.build();
+        return members.getConstructorCallsToSelf();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1291,36 +1205,6 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     void completeClassHierarchyFrom(ImportContext context) {
         completeSuperclassFrom(context);
         completeInterfacesFrom(context);
-        allFields = Suppliers.memoize(new Supplier<Set<JavaField>>() {
-            @Override
-            public Set<JavaField> get() {
-                ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
-                for (JavaClass javaClass : concat(getClassHierarchy(), getAllInterfaces())) {
-                    result.addAll(javaClass.getFields());
-                }
-                return result.build();
-            }
-        });
-        allMethods = Suppliers.memoize(new Supplier<Set<JavaMethod>>() {
-            @Override
-            public Set<JavaMethod> get() {
-                ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
-                for (JavaClass javaClass : concat(getClassHierarchy(), getAllInterfaces())) {
-                    result.addAll(javaClass.getMethods());
-                }
-                return result.build();
-            }
-        });
-        allConstructors = Suppliers.memoize(new Supplier<Set<JavaConstructor>>() {
-            @Override
-            public Set<JavaConstructor> get() {
-                ImmutableSet.Builder<JavaConstructor> result = ImmutableSet.builder();
-                for (JavaClass javaClass : getClassHierarchy()) {
-                    result.addAll(javaClass.getConstructors());
-                }
-                return result.build();
-            }
-        });
         completionProcess.markClassHierarchyComplete();
     }
 
@@ -1358,34 +1242,19 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     void completeMembers(final ImportContext context) {
-        fields = context.createFields(this);
-        methods = context.createMethods(this);
-        constructors = context.createConstructors(this);
-        staticInitializer = context.createStaticInitializer(this);
-        codeUnits = ImmutableSet.<JavaCodeUnit>builder()
-                .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
-                .build();
-        members = ImmutableSet.<JavaMember>builder()
-                .addAll(fields)
-                .addAll(methods)
-                .addAll(constructors)
-                .build();
+        members = JavaClassMembers.create(this, context);
         completionProcess.markMembersComplete();
     }
 
     void completeAnnotations(final ImportContext context) {
         annotations = context.createAnnotations(this);
-        for (JavaMember member : members) {
-            member.completeAnnotations(context);
-        }
+        members.completeAnnotations(context);
         completionProcess.markAnnotationsComplete();
     }
 
     JavaClassDependencies completeFrom(ImportContext context) {
         completeComponentType(context);
-        for (JavaCodeUnit codeUnit : codeUnits) {
-            codeUnit.completeFrom(context);
-        }
+        members.completeAccessesFrom(context);
         javaClassDependencies = new JavaClassDependencies(this);
         return javaClassDependencies;
     }
@@ -1401,9 +1270,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     void setReverseDependencies(ReverseDependencies reverseDependencies) {
         this.reverseDependencies = reverseDependencies;
-        for (JavaMember member : members) {
-            member.setReverseDependencies(reverseDependencies);
-        }
+        members.setReverseDependencies(reverseDependencies);
         completionProcess.markDependenciesComplete();
     }
 

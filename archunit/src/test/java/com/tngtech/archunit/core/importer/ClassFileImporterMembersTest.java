@@ -361,8 +361,7 @@ public class ClassFileImporterMembersTest {
 
         JavaClass javaClass = new ClassFileImporter().importClass(FieldTypeWithoutAnyFurtherReference.class);
 
-        assertThat(javaClass.getField("field").getRawType().isFullyImported())
-                .as("field type is fully imported").isTrue();
+        assertThat(javaClass.getField("field").getRawType()).as("field type").isFullyImported(true);
     }
 
     @Test
@@ -376,10 +375,8 @@ public class ClassFileImporterMembersTest {
         JavaClass javaClass = new ClassFileImporter().importClass(ConstructorParameterTypesWithoutAnyFurtherReference.class);
 
         JavaConstructor constructor = javaClass.getConstructor(getClass(), FileSystem.class, Buffer.class);
-        assertThat(constructor.getRawParameterTypes().get(0).isFullyImported())
-                .as("constructor parameter type is fully imported").isTrue();
-        assertThat(constructor.getRawParameterTypes().get(1).isFullyImported())
-                .as("constructor parameter type is fully imported").isTrue();
+        assertThat(constructor.getRawParameterTypes().get(0)).as("constructor parameter type").isFullyImported(true);
+        assertThat(constructor.getRawParameterTypes().get(1)).as("constructor parameter type").isFullyImported(true);
     }
 
     @Test
@@ -393,8 +390,7 @@ public class ClassFileImporterMembersTest {
 
         JavaClass javaClass = new ClassFileImporter().importClass(MemberTypesWithoutAnyFurtherReference.class);
 
-        assertThat(javaClass.getMethod("returnType").getRawReturnType().isFullyImported())
-                .as("method return type is fully imported").isTrue();
+        assertThat(javaClass.getMethod("returnType").getRawReturnType()).as("method return type").isFullyImported(true);
     }
 
     @Test
@@ -408,9 +404,7 @@ public class ClassFileImporterMembersTest {
         JavaClass javaClass = new ClassFileImporter().importClass(MemberTypesWithoutAnyFurtherReference.class);
 
         JavaMethod method = javaClass.getMethod("methodParameters", Path.class, PrintStream.class);
-        assertThat(method.getRawParameterTypes().get(0).isFullyImported())
-                .as("method parameter type is fully imported").isTrue();
-        assertThat(method.getRawParameterTypes().get(1).isFullyImported())
-                .as("method parameter type is fully imported").isTrue();
+        assertThat(method.getRawParameterTypes().get(0)).as("method parameter type").isFullyImported(true);
+        assertThat(method.getRawParameterTypes().get(1)).as("method parameter type").isFullyImported(true);
     }
 }

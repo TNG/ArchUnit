@@ -182,7 +182,7 @@ public class TestUtils {
                 calls.add(newMethodCall(method, target, lineNumber));
             }
             when(context.createMethodCallsFor(method)).thenReturn(ImmutableSet.copyOf(calls));
-            method.completeFrom(context);
+            method.completeAccessesFrom(context);
             return getCallToTarget(methodCallTarget);
         }
 
@@ -210,7 +210,7 @@ public class TestUtils {
                     .thenReturn(ImmutableSet.of(
                             newFieldAccess(method, target, lineNumber, accessType)
                     ));
-            method.completeFrom(context);
+            method.completeAccessesFrom(context);
         }
     }
 
