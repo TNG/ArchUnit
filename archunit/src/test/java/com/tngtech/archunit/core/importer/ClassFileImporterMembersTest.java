@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.FilterInputStream;
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -349,5 +350,67 @@ public class ClassFileImporterMembersTest {
             origins.add(instanceofCheck.getOwner().getOwner());
         }
         assertThatTypes(origins).matchInAnyOrder(ChecksInstanceofInMethod.class, ChecksInstanceofInConstructor.class, ChecksInstanceofInStaticInitializer.class);
+    }
+
+    @Test
+    public void automatically_resolves_field_types() {
+        @SuppressWarnings("unused")
+        class FieldTypeWithoutAnyFurtherReference {
+            String field;
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClass(FieldTypeWithoutAnyFurtherReference.class);
+
+        assertThat(javaClass.getField("field").getRawType().isFullyImported())
+                .as("field type is fully imported").isTrue();
+    }
+
+    @Test
+    public void automatically_resolves_constructor_parameter_types() {
+        @SuppressWarnings("unused")
+        class ConstructorParameterTypesWithoutAnyFurtherReference {
+            ConstructorParameterTypesWithoutAnyFurtherReference(FileSystem constructorParam1, Buffer constructorParam2) {
+            }
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClass(ConstructorParameterTypesWithoutAnyFurtherReference.class);
+
+        JavaConstructor constructor = javaClass.getConstructor(getClass(), FileSystem.class, Buffer.class);
+        assertThat(constructor.getRawParameterTypes().get(0).isFullyImported())
+                .as("constructor parameter type is fully imported").isTrue();
+        assertThat(constructor.getRawParameterTypes().get(1).isFullyImported())
+                .as("constructor parameter type is fully imported").isTrue();
+    }
+
+    @Test
+    public void automatically_resolves_method_return_types() {
+        @SuppressWarnings("unused")
+        class MemberTypesWithoutAnyFurtherReference {
+            File returnType() {
+                return null;
+            }
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClass(MemberTypesWithoutAnyFurtherReference.class);
+
+        assertThat(javaClass.getMethod("returnType").getRawReturnType().isFullyImported())
+                .as("method return type is fully imported").isTrue();
+    }
+
+    @Test
+    public void automatically_resolves_method_parameter_types() {
+        @SuppressWarnings("unused")
+        class MemberTypesWithoutAnyFurtherReference {
+            void methodParameters(Path methodParam1, PrintStream methodParam2) {
+            }
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClass(MemberTypesWithoutAnyFurtherReference.class);
+
+        JavaMethod method = javaClass.getMethod("methodParameters", Path.class, PrintStream.class);
+        assertThat(method.getRawParameterTypes().get(0).isFullyImported())
+                .as("method parameter type is fully imported").isTrue();
+        assertThat(method.getRawParameterTypes().get(1).isFullyImported())
+                .as("method parameter type is fully imported").isTrue();
     }
 }

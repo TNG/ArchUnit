@@ -101,12 +101,19 @@ class ClassGraphCreator implements ImportContext {
     }
 
     JavaClasses complete() {
+        ensureMemberTypesArePresent();
         ensureCallTargetsArePresent();
         ensureClassesOfInheritanceHierarchiesArePresent();
         ensureMetaAnnotationsArePresent();
         completeClasses();
         completeAccesses();
         return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
+    }
+
+    private void ensureMemberTypesArePresent() {
+        for (String typeName : importRecord.getMemberSignatureTypeNames()) {
+            classes.ensurePresent(typeName);
+        }
     }
 
     private void ensureCallTargetsArePresent() {
