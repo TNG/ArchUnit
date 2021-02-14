@@ -146,7 +146,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     });
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
-    private boolean fullyImported = false;
+    private final CompletionProcess completionProcess = CompletionProcess.start();
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
@@ -1218,7 +1218,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public boolean isFullyImported() {
-        return fullyImported;
+        return completionProcess.hasFinished();
     }
 
     /**
@@ -1321,6 +1321,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                 return result.build();
             }
         });
+        completionProcess.markClassHierarchyComplete();
     }
 
     private void completeSuperclassFrom(ImportContext context) {
@@ -1340,10 +1341,12 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
     void completeEnclosingClassFrom(ImportContext context) {
         enclosingClass = context.createEnclosingClass(this);
+        completionProcess.markEnclosingClassComplete();
     }
 
     void completeTypeParametersFrom(ImportContext context) {
         typeParameters = context.createTypeParameters(this);
+        completionProcess.markTypeParametersComplete();
     }
 
     void completeGenericSuperclassFrom(ImportContext context) {
@@ -1351,6 +1354,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         if (genericSuperclass.isPresent()) {
             superclass = superclass.withGenericType(genericSuperclass.get());
         }
+        completionProcess.markGenericSuperclassComplete();
     }
 
     void completeMembers(final ImportContext context) {
@@ -1366,6 +1370,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                 .addAll(methods)
                 .addAll(constructors)
                 .build();
+        completionProcess.markMembersComplete();
     }
 
     void completeAnnotations(final ImportContext context) {
@@ -1373,6 +1378,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         for (JavaMember member : members) {
             member.completeAnnotations(context);
         }
+        completionProcess.markAnnotationsComplete();
     }
 
     JavaClassDependencies completeFrom(ImportContext context) {
@@ -1381,7 +1387,6 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             codeUnit.completeFrom(context);
         }
         javaClassDependencies = new JavaClassDependencies(this);
-        fullyImported = true;
         return javaClassDependencies;
     }
 
@@ -1399,6 +1404,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         for (JavaMember member : members) {
             member.setReverseDependencies(reverseDependencies);
         }
+        completionProcess.markDependenciesComplete();
     }
 
     @Override
@@ -1462,6 +1468,61 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
         Superclass withGenericType(JavaType newGenericType) {
             return new Superclass(newGenericType);
+        }
+    }
+
+    private static class CompletionProcess {
+        private boolean classHierarchyComplete = false;
+        private boolean enclosingClassComplete = false;
+        private boolean typeParametersComplete = false;
+        private boolean genericSuperclassComplete = false;
+        private boolean membersComplete = false;
+        private boolean annotationsComplete = false;
+        private boolean dependenciesComplete = false;
+
+        private CompletionProcess() {
+        }
+
+        boolean hasFinished() {
+            return classHierarchyComplete
+                    && enclosingClassComplete
+                    && typeParametersComplete
+                    && genericSuperclassComplete
+                    && membersComplete
+                    && annotationsComplete
+                    && dependenciesComplete;
+        }
+
+        public void markClassHierarchyComplete() {
+            this.classHierarchyComplete = true;
+        }
+
+        public void markEnclosingClassComplete() {
+            this.enclosingClassComplete = true;
+        }
+
+        public void markTypeParametersComplete() {
+            this.typeParametersComplete = true;
+        }
+
+        public void markGenericSuperclassComplete() {
+            this.genericSuperclassComplete = true;
+        }
+
+        public void markMembersComplete() {
+            this.membersComplete = true;
+        }
+
+        public void markAnnotationsComplete() {
+            this.annotationsComplete = true;
+        }
+
+        public void markDependenciesComplete() {
+            this.dependenciesComplete = true;
+        }
+
+        static CompletionProcess start() {
+            return new CompletionProcess();
         }
     }
 
