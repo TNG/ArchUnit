@@ -139,10 +139,7 @@ public class ClassFileImporterTest {
 
         assertThat(classes.get(ClassToImportOne.class))
                 .isFullyImported(true)
-                .hasName(ClassToImportOne.class.getName())
-                .hasSimpleName(ClassToImportOne.class.getSimpleName())
-                .hasPackageName(ClassToImportOne.class.getPackage().getName())
-                .hasOnlyModifiers(JavaModifier.PUBLIC)
+                .matches(ClassToImportOne.class)
                 .hasRawSuperclassMatching(Object.class)
                 .hasNoInterfaces()
                 .isInterface(false)
@@ -164,10 +161,7 @@ public class ClassFileImporterTest {
         JavaClass javaClass = new ClassFileImporter().importUrl(getClass().getResource("testexamples/simpleimport")).get(EnumToImport.class);
 
         assertThat(javaClass)
-                .hasName(EnumToImport.class.getName())
-                .hasSimpleName(EnumToImport.class.getSimpleName())
-                .hasPackageName(EnumToImport.class.getPackage().getName())
-                .hasOnlyModifiers(JavaModifier.PUBLIC, JavaModifier.FINAL)
+                .matches(EnumToImport.class)
                 .hasRawSuperclassMatching(Enum.class)
                 .hasNoInterfaces()
                 .hasAllInterfacesMatchingInAnyOrder(Enum.class.getInterfaces())
@@ -267,9 +261,7 @@ public class ClassFileImporterTest {
         JavaClass simpleInterface = new ClassFileImporter().importUrl(getClass().getResource("testexamples/simpleimport")).get(InterfaceToImport.class);
 
         assertThat(simpleInterface)
-                .hasName(InterfaceToImport.class.getName())
-                .hasSimpleName(InterfaceToImport.class.getSimpleName())
-                .hasPackageName(InterfaceToImport.class.getPackage().getName())
+                .matches(InterfaceToImport.class)
                 .hasNoSuperclass()
                 .hasNoInterfaces()
                 .isInterface(true)

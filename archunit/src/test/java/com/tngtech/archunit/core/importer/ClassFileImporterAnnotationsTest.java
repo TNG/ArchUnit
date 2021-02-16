@@ -16,7 +16,6 @@ import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassAnnotationWithArrays;
@@ -62,10 +61,7 @@ public class ClassFileImporterAnnotationsTest {
         JavaClass javaClass = new ClassFileImporter().importPackagesOf(AnnotationToImport.class).get(AnnotationToImport.class);
 
         assertThat(javaClass)
-                .hasName(AnnotationToImport.class.getName())
-                .hasSimpleName(AnnotationToImport.class.getSimpleName())
-                .hasPackageName(AnnotationToImport.class.getPackage().getName())
-                .hasOnlyModifiers(JavaModifier.PUBLIC, JavaModifier.ABSTRACT)
+                .matches(AnnotationToImport.class)
                 .hasNoSuperclass()
                 .hasInterfacesMatchingInAnyOrder(Annotation.class)
                 .isInterface(true)
