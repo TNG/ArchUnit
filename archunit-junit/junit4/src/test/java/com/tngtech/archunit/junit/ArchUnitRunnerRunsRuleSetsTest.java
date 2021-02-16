@@ -107,9 +107,9 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     }
 
     @Test
-    public void describes_nested_rules_within_their_declaring_class() {
+    public void describes_nested_rules_within_their_testing_class() {
         for (ArchTestExecution execution : runnerForRuleSet.getChildren()) {
-            assertThat(execution.describeSelf().getTestClass()).isEqualTo(Rules.class);
+            assertThat(execution.describeSelf().getTestClass()).isEqualTo(ArchTestWithRuleSet.class);
         }
     }
 

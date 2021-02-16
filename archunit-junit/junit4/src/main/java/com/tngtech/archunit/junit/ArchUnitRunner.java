@@ -114,11 +114,11 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
         if (ruleField.getType() == ArchRules.class) {
             return asTestExecutions(getArchRules(ruleField.getField()), ignore);
         }
-        return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), ignore));
+        return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), getTestClass().getJavaClass(), ruleField.getField(), ignore));
     }
 
     private Set<ArchTestExecution> asTestExecutions(ArchRules archRules, boolean forceIgnore) {
-        ExecutionTransformer executionTransformer = new ExecutionTransformer();
+        ExecutionTransformer executionTransformer = new ExecutionTransformer(getTestClass().getJavaClass());
         for (ArchRuleDeclaration<?> declaration : toDeclarations(archRules, getTestClass().getJavaClass(), ArchTest.class, forceIgnore)) {
             declaration.handleWith(executionTransformer);
         }
@@ -133,7 +133,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
         List<ArchTestExecution> result = new ArrayList<>();
         for (FrameworkMethod testMethod : getTestClass().getAnnotatedMethods(ArchTest.class)) {
             boolean ignore = elementShouldBeIgnored(testMethod.getMethod());
-            result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), testMethod.getMethod(), ignore));
+            result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), getTestClass().getJavaClass(), testMethod.getMethod(), ignore));
         }
         return result;
     }
@@ -170,15 +170,20 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
     private static class ExecutionTransformer implements ArchRuleDeclaration.Handler {
         private final ImmutableSet.Builder<ArchTestExecution> executions = ImmutableSet.builder();
+        private final Class<?> testJavaClass;
+
+        public ExecutionTransformer(Class<?> testJavaClass) {
+            this.testJavaClass = testJavaClass;
+        }
 
         @Override
         public void handleFieldDeclaration(Field field, Class<?> fieldOwner, boolean ignore) {
-            executions.add(new ArchRuleExecution(fieldOwner, field, ignore));
+            executions.add(new ArchRuleExecution(testJavaClass, fieldOwner, field, ignore));
         }
 
         @Override
         public void handleMethodDeclaration(Method method, Class<?> methodOwner, boolean ignore) {
-            executions.add(new ArchTestMethodExecution(methodOwner, method, ignore));
+            executions.add(new ArchTestMethodExecution(testJavaClass, methodOwner, method, ignore));
         }
 
         Set<ArchTestExecution> getExecutions() {
