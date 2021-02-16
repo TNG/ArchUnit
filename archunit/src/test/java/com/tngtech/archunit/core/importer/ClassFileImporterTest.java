@@ -136,43 +136,44 @@ public class ClassFileImporterTest {
     @Test
     public void imports_simple_class_details() {
         JavaClasses classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/simpleimport"));
-        JavaClass javaClass = classes.get(ClassToImportOne.class);
 
-        assertThat(javaClass.isFullyImported()).isTrue();
-        assertThat(javaClass.getName()).as("full name").isEqualTo(ClassToImportOne.class.getName());
-        assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(ClassToImportOne.class.getSimpleName());
-        assertThat(javaClass.getPackageName()).as("package name").isEqualTo(ClassToImportOne.class.getPackage().getName());
-        assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC);
-        assertThatType(javaClass.getRawSuperclass().get()).as("super class").matches(Object.class);
-        assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
-        assertThat(javaClass.isInterface()).as("is interface").isFalse();
-        assertThat(javaClass.isEnum()).as("is enum").isFalse();
-        assertThat(javaClass.isAnnotation()).as("is annotation").isFalse();
-        assertThat(javaClass.getEnclosingClass()).as("enclosing class").isAbsent();
-        assertThat(javaClass.isTopLevelClass()).as("is top level class").isTrue();
-        assertThat(javaClass.isNestedClass()).as("is nested class").isFalse();
-        assertThat(javaClass.isMemberClass()).as("is member class").isFalse();
-        assertThat(javaClass.isInnerClass()).as("is inner class").isFalse();
-        assertThat(javaClass.isLocalClass()).as("is local class").isFalse();
-        assertThat(javaClass.isAnonymousClass()).as("is anonymous class").isFalse();
-
-        assertThat(classes.get(ClassToImportTwo.class).getModifiers()).containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
+        assertThat(classes.get(ClassToImportOne.class))
+                .isFullyImported(true)
+                .hasName(ClassToImportOne.class.getName())
+                .hasSimpleName(ClassToImportOne.class.getSimpleName())
+                .hasPackageName(ClassToImportOne.class.getPackage().getName())
+                .hasOnlyModifiers(JavaModifier.PUBLIC)
+                .hasRawSuperclassMatching(Object.class)
+                .hasNoInterfaces()
+                .isInterface(false)
+                .isEnum(false)
+                .isAnnotation(false)
+                .hasNoEnclosingClass()
+                .isTopLevelClass(true)
+                .isNestedClass(false)
+                .isMemberClass(false)
+                .isInnerClass(false)
+                .isLocalClass(false)
+                .isAnonymousClass(false);
+        assertThat(classes.get(ClassToImportTwo.class))
+                .hasOnlyModifiers(JavaModifier.PUBLIC, JavaModifier.FINAL);
     }
 
     @Test
     public void imports_simple_enum() {
         JavaClass javaClass = new ClassFileImporter().importUrl(getClass().getResource("testexamples/simpleimport")).get(EnumToImport.class);
 
-        assertThat(javaClass.getName()).as("full name").isEqualTo(EnumToImport.class.getName());
-        assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(EnumToImport.class.getSimpleName());
-        assertThat(javaClass.getPackageName()).as("package name").isEqualTo(EnumToImport.class.getPackage().getName());
-        assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC, JavaModifier.FINAL);
-        assertThatType(javaClass.getRawSuperclass().get()).as("super class").matches(Enum.class);
-        assertThat(javaClass.getInterfaces()).as("interfaces").isEmpty();
-        assertThatTypes(javaClass.getAllInterfaces()).matchInAnyOrder(Enum.class.getInterfaces());
-        assertThat(javaClass.isInterface()).as("is interface").isFalse();
-        assertThat(javaClass.isEnum()).as("is enum").isTrue();
-        assertThat(javaClass.isAnnotation()).as("is annotation").isFalse();
+        assertThat(javaClass)
+                .hasName(EnumToImport.class.getName())
+                .hasSimpleName(EnumToImport.class.getSimpleName())
+                .hasPackageName(EnumToImport.class.getPackage().getName())
+                .hasOnlyModifiers(JavaModifier.PUBLIC, JavaModifier.FINAL)
+                .hasRawSuperclassMatching(Enum.class)
+                .hasNoInterfaces()
+                .hasAllInterfacesMatchingInAnyOrder(Enum.class.getInterfaces())
+                .isInterface(false)
+                .isEnum(true)
+                .isAnnotation(false);
 
         JavaEnumConstant constant = javaClass.getEnumConstant(EnumToImport.FIRST.name());
         assertThatType(constant.getDeclaringClass()).as("declaring class").isEqualTo(javaClass);
@@ -190,29 +191,29 @@ public class ClassFileImporterTest {
     @UseDataProvider("nested_static_classes")
     public void imports_simple_static_nested_class(Class<?> nestedStaticClass) {
         JavaClasses classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/innerclassimport"));
-        JavaClass staticNestedClass = classes.get(nestedStaticClass);
 
-        assertThatType(staticNestedClass).matches(nestedStaticClass);
-        assertThat(staticNestedClass.isTopLevelClass()).as("is top level class").isFalse();
-        assertThat(staticNestedClass.isNestedClass()).as("is nested class").isTrue();
-        assertThat(staticNestedClass.isMemberClass()).as("is member class").isTrue();
-        assertThat(staticNestedClass.isInnerClass()).as("is inner class").isFalse();
-        assertThat(staticNestedClass.isLocalClass()).as("is local class").isFalse();
-        assertThat(staticNestedClass.isAnonymousClass()).as("is anonymous class").isFalse();
+        assertThat(classes.get(nestedStaticClass))
+                .matches(nestedStaticClass)
+                .isTopLevelClass(false)
+                .isNestedClass(true)
+                .isMemberClass(true)
+                .isInnerClass(false)
+                .isLocalClass(false)
+                .isAnonymousClass(false);
     }
 
     @Test
     public void imports_simple_inner_class() {
         JavaClasses classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/innerclassimport"));
-        JavaClass innerClass = classes.get(ClassWithInnerClass.Inner.class);
 
-        assertThatType(innerClass).matches(ClassWithInnerClass.Inner.class);
-        assertThat(innerClass.isTopLevelClass()).as("is top level class").isFalse();
-        assertThat(innerClass.isNestedClass()).as("is nested class").isTrue();
-        assertThat(innerClass.isMemberClass()).as("is member class").isTrue();
-        assertThat(innerClass.isInnerClass()).as("is inner class").isTrue();
-        assertThat(innerClass.isLocalClass()).as("is local class").isFalse();
-        assertThat(innerClass.isAnonymousClass()).as("is anonymous class").isFalse();
+        assertThat(classes.get(ClassWithInnerClass.Inner.class))
+                .matches(ClassWithInnerClass.Inner.class)
+                .isTopLevelClass(false)
+                .isNestedClass(true)
+                .isMemberClass(true)
+                .isInnerClass(true)
+                .isLocalClass(false)
+                .isAnonymousClass(false);
     }
 
     @Test
@@ -220,13 +221,14 @@ public class ClassFileImporterTest {
         JavaClasses classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/innerclassimport"));
         JavaClass anonymousClass = classes.get(ClassWithInnerClass.class.getName() + "$1");
 
-        assertThatType(anonymousClass).matches(Class.forName(anonymousClass.getName()));
-        assertThat(anonymousClass.isTopLevelClass()).as("is top level class").isFalse();
-        assertThat(anonymousClass.isNestedClass()).as("is nested class").isTrue();
-        assertThat(anonymousClass.isMemberClass()).as("is member class").isFalse();
-        assertThat(anonymousClass.isInnerClass()).as("is inner class").isTrue();
-        assertThat(anonymousClass.isLocalClass()).as("is local class").isFalse();
-        assertThat(anonymousClass.isAnonymousClass()).as("is anonymous class").isTrue();
+        assertThat(anonymousClass)
+                .matches(Class.forName(anonymousClass.getName()))
+                .isTopLevelClass(false)
+                .isNestedClass(true)
+                .isMemberClass(false)
+                .isInnerClass(true)
+                .isLocalClass(false)
+                .isAnonymousClass(true);
     }
 
     @Test
@@ -234,13 +236,14 @@ public class ClassFileImporterTest {
         JavaClasses classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/innerclassimport"));
         JavaClass localClass = classes.get(ClassWithInnerClass.class.getName() + "$1LocalCaller");
 
-        assertThatType(localClass).matches(Class.forName(localClass.getName()));
-        assertThat(localClass.isTopLevelClass()).as("is top level class").isFalse();
-        assertThat(localClass.isNestedClass()).as("is nested class").isTrue();
-        assertThat(localClass.isMemberClass()).as("is member class").isFalse();
-        assertThat(localClass.isInnerClass()).as("is inner class").isTrue();
-        assertThat(localClass.isLocalClass()).as("is local class").isTrue();
-        assertThat(localClass.isAnonymousClass()).as("is anonymous class").isFalse();
+        assertThat(localClass)
+                .matches(Class.forName(localClass.getName()))
+                .isTopLevelClass(false)
+                .isNestedClass(true)
+                .isMemberClass(false)
+                .isInnerClass(true)
+                .isLocalClass(true)
+                .isAnonymousClass(false);
     }
 
     @Test
@@ -263,13 +266,14 @@ public class ClassFileImporterTest {
     public void imports_interfaces() {
         JavaClass simpleInterface = new ClassFileImporter().importUrl(getClass().getResource("testexamples/simpleimport")).get(InterfaceToImport.class);
 
-        assertThat(simpleInterface.getName()).as("full name").isEqualTo(InterfaceToImport.class.getName());
-        assertThat(simpleInterface.getSimpleName()).as("simple name").isEqualTo(InterfaceToImport.class.getSimpleName());
-        assertThat(simpleInterface.getPackageName()).as("package name").isEqualTo(InterfaceToImport.class.getPackage().getName());
-        assertThat(simpleInterface.getRawSuperclass()).as("super class").isAbsent();
-        assertThat(simpleInterface.getInterfaces()).as("interfaces").isEmpty();
-        assertThat(simpleInterface.isInterface()).as("is interface").isTrue();
-        assertThat(simpleInterface.isEnum()).as("is enum").isFalse();
+        assertThat(simpleInterface)
+                .hasName(InterfaceToImport.class.getName())
+                .hasSimpleName(InterfaceToImport.class.getSimpleName())
+                .hasPackageName(InterfaceToImport.class.getPackage().getName())
+                .hasNoSuperclass()
+                .hasNoInterfaces()
+                .isInterface(true)
+                .isEnum(false);
     }
 
     @Test
@@ -359,8 +363,8 @@ public class ClassFileImporterTest {
         JavaClass baseClass = classes.get(BaseClass.class);
         JavaClass parentInterface = classes.get(ParentInterface.class);
 
-        assertThat(baseClass.isInterface()).as(BaseClass.class.getSimpleName() + " is interface").isFalse();
-        assertThat(parentInterface.isInterface()).as(ParentInterface.class.getSimpleName() + " is interface").isTrue();
+        assertThat(baseClass).isInterface(false);
+        assertThat(parentInterface).isInterface(true);
     }
 
     @Test
@@ -370,8 +374,8 @@ public class ClassFileImporterTest {
         assertThat(baseClass.getConstructors()).as("Constructors of " + BaseClass.class.getSimpleName()).hasSize(2);
         assertThat(baseClass.getFields()).as("Fields of " + BaseClass.class.getSimpleName()).hasSize(1);
         assertThat(baseClass.getMethods()).as("Methods of " + BaseClass.class.getSimpleName()).hasSize(2);
-        assertThat(baseClass.getStaticInitializer().get().getMethodCallsFromSelf().size())
-                .as("Calls from %s.<clinit>()", BaseClass.class.getSimpleName()).isGreaterThan(0);
+        assertThat(baseClass.getStaticInitializer().get().getMethodCallsFromSelf())
+                .as("Calls from %s.<clinit>()", BaseClass.class.getSimpleName()).isNotEmpty();
     }
 
     @Test
@@ -381,7 +385,7 @@ public class ClassFileImporterTest {
         assertThat(subclass.getConstructors()).hasSize(3);
         assertThat(subclass.getFields()).hasSize(1);
         assertThat(subclass.getMethods()).hasSize(3);
-        assertThat(subclass.getStaticInitializer().get().getMethodCallsFromSelf().size()).isGreaterThan(0);
+        assertThat(subclass.getStaticInitializer().get().getMethodCallsFromSelf()).isNotEmpty();
     }
 
     @Test
@@ -590,8 +594,9 @@ public class ClassFileImporterTest {
 
         JavaClass middleClass = findAnyByName(classes,
                 "com.tngtech.archunit.core.importer.testexamples.outsideofclasspath.MiddleClass");
-        assertThat(middleClass.getSimpleName()).as("simple name").isEqualTo("MiddleClass");
-        assertThat(middleClass.isInterface()).as("is interface").isFalse();
+        assertThat(middleClass)
+                .hasSimpleName("MiddleClass")
+                .isInterface(false);
         assertThatCall(findAnyByName(middleClass.getMethodCallsFromSelf(), "println"))
                 .isFrom(middleClass.getMethod("overrideMe"))
                 .isTo(targetWithFullName(String.format("%s.println(%s)", PrintStream.class.getName(), String.class.getName())))
@@ -604,8 +609,9 @@ public class ClassFileImporterTest {
 
         JavaClass gimmeADescription = findAnyByName(classes,
                 "com.tngtech.archunit.core.importer.testexamples.outsideofclasspath.ExistingDependency$GimmeADescription");
-        assertThat(gimmeADescription.getSimpleName()).as("simple name").isEqualTo("GimmeADescription");
-        assertThat(gimmeADescription.isInterface()).as("is interface").isTrue();
+        assertThat(gimmeADescription)
+                .hasSimpleName("GimmeADescription")
+                .isInterface(true);
     }
 
     @Test
@@ -653,7 +659,7 @@ public class ClassFileImporterTest {
     @Test
     @UseDataProvider("classes_not_fully_imported")
     public void classes_not_fully_imported_have_flag_fullyImported_false_and_empty_dependencies(@SuppressWarnings("unused") String description, JavaClass notFullyImported) {
-        assertThat(notFullyImported.isFullyImported()).isFalse();
+        assertThat(notFullyImported).isFullyImported(false);
         assertThat(notFullyImported.getDirectDependenciesFromSelf()).isEmpty();
         assertThat(notFullyImported.getDirectDependenciesToSelf()).isEmpty();
         assertThat(notFullyImported.getFieldAccessesToSelf()).isEmpty();
@@ -791,7 +797,7 @@ public class ClassFileImporterTest {
     }
 
     private void assertSameSimpleNameOfArchUnitAndReflection(JavaClasses classes, Class<?> clazz) {
-        assertThat(classes.get(clazz.getName()).getSimpleName()).isEqualTo(clazz.getSimpleName());
+        assertThat(classes.get(clazz.getName())).hasSimpleName(clazz.getSimpleName());
     }
 
     private void copyClassFile(Class<?> clazz, File targetFolder) throws IOException, URISyntaxException {
