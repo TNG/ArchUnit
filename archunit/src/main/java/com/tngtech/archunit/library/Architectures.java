@@ -15,17 +15,6 @@
  */
 package com.tngtech.archunit.library;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -39,6 +28,17 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.PredicateAggregator;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -103,25 +103,29 @@ public final class Architectures {
         private final PredicateAggregator<Dependency> irrelevantDependenciesPredicate;
         private final Optional<String> overriddenDescription;
         private boolean optionalLayers;
+        private final Optional<AllClassesAreContainedInLayersSpec> allClassesAreCovered;
 
         private LayeredArchitecture() {
             this(new LayerDefinitions(),
                     new LinkedHashSet<LayerDependencySpecification>(),
                     new PredicateAggregator<Dependency>().thatORs(),
                     Optional.<String>absent(),
-                    false);
+                    false,
+                    Optional.<AllClassesAreContainedInLayersSpec>absent());
         }
 
         private LayeredArchitecture(LayerDefinitions layerDefinitions,
                 Set<LayerDependencySpecification> dependencySpecifications,
                 PredicateAggregator<Dependency> irrelevantDependenciesPredicate,
                 Optional<String> overriddenDescription,
-                boolean optionalLayers) {
+                boolean optionalLayers,
+                Optional<AllClassesAreContainedInLayersSpec> allClassesAreCovered) {
             this.layerDefinitions = layerDefinitions;
             this.dependencySpecifications = dependencySpecifications;
             this.irrelevantDependenciesPredicate = irrelevantDependenciesPredicate;
             this.overriddenDescription = overriddenDescription;
             this.optionalLayers = optionalLayers;
+            this.allClassesAreCovered = allClassesAreCovered;
         }
 
         /**
@@ -200,6 +204,9 @@ public final class Architectures {
             for (LayerDependencySpecification specification : dependencySpecifications) {
                 result.add(evaluateDependenciesShouldBeSatisfied(classes, specification));
             }
+            if (allClassesAreCovered.isPresent()) {
+                result.add(allClassesAreCovered.get().evaluate(classes, layerDefinitions));
+            }
             return result;
         }
 
@@ -210,6 +217,68 @@ public final class Architectures {
                         result.add(evaluateLayersShouldNotBeEmpty(classes, layerDefinition));
                     }
                 }
+            }
+        }
+
+        /**
+         * Ensure that all classes under test are contained within a defined layer of the architecture.
+         */
+        @PublicAPI(usage = ACCESS)
+        public LayeredArchitecture ensureAllClassesAreContainedInLayers() {
+            return ensureAllClassesAreContainedInLayersIgnoring(DescribedPredicate.<JavaClass>alwaysFalse());
+        }
+
+        /**
+         * Ensure that classes under test are contained within a defined layer of the architecture,
+         * ignoring those in any specified package.
+         */
+        @PublicAPI(usage = ACCESS)
+        public LayeredArchitecture ensureAllClassesAreContainedInLayersIgnoring(String... packageIdentifiers) {
+            String description = String.format("'%s'", Joiner.on("', '").join(packageIdentifiers));
+            return ensureAllClassesAreContainedInLayersIgnoring(resideInAnyPackage(packageIdentifiers).as(description));
+        }
+
+        /**
+         * Ensure that classes under test are contained within a defined layer of the architecture,
+         * ignoring those matching a specified predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public LayeredArchitecture ensureAllClassesAreContainedInLayersIgnoring(DescribedPredicate<? super JavaClass> ignoring) {
+            return new LayeredArchitecture(
+                    layerDefinitions,
+                    dependencySpecifications,
+                    irrelevantDependenciesPredicate,
+                    overriddenDescription,
+                    optionalLayers,
+                    Optional.of(new AllClassesAreContainedInLayersSpec(ignoring))
+            );
+        }
+
+        private static class AllClassesAreContainedInLayersSpec<T> {
+
+            private final Optional<DescribedPredicate<JavaClass>> ignoring;
+
+            private AllClassesAreContainedInLayersSpec(DescribedPredicate<JavaClass> ignoring) {
+                this.ignoring = Optional.fromNullable(ignoring);
+            }
+
+            public EvaluationResult evaluate(final JavaClasses classes, final LayerDefinitions layerDefinitions) {
+                return classes()
+                        .should(new ArchCondition<JavaClass>("All classes are contained in architecture") {
+                            @Override
+                            public void check(JavaClass item, ConditionEvents events) {
+                                if (ignoring.isPresent() && ignoring.get().apply(item)) {
+                                    return;
+                                }
+                                for (LayerDefinition layerDefinition : layerDefinitions) {
+                                    if (layerDefinition.containsPredicate().apply(item)) {
+                                        return;
+                                    }
+                                }
+                                events.add(violated(this, String.format("Class <%s> is not contained in architecture", item.getName())));
+                            }
+                        })
+                        .evaluate(classes);
             }
         }
 
@@ -277,8 +346,12 @@ public final class Architectures {
         @PublicAPI(usage = ACCESS)
         public LayeredArchitecture as(String newDescription) {
             return new LayeredArchitecture(
-                    layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate, Optional.of(newDescription), optionalLayers);
+                    layerDefinitions,
+                    dependencySpecifications,
+                    irrelevantDependenciesPredicate,
+                    Optional.of(newDescription),
+                    optionalLayers,
+                    allClassesAreCovered);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -295,8 +368,12 @@ public final class Architectures {
         public LayeredArchitecture ignoreDependency(
                 DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
             return new LayeredArchitecture(
-                    layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription, optionalLayers);
+                    layerDefinitions,
+                    dependencySpecifications,
+                    irrelevantDependenciesPredicate.add(dependency(origin, target)),
+                    overriddenDescription,
+                    optionalLayers,
+                    allClassesAreCovered);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -435,6 +512,8 @@ public final class Architectures {
         private Map<String, String[]> adapterPackageIdentifiers = new LinkedHashMap<>();
         private boolean optionalLayers = false;
         private List<IgnoredDependency> ignoredDependencies = new ArrayList<>();
+        private String[] ensureAllClassesAreContainedIgnoringPackageIdentifiers = new String[0];
+        private boolean ensureAllClassesAreContained;
 
         private OnionArchitecture() {
             overriddenDescription = Optional.absent();
@@ -498,6 +577,26 @@ public final class Architectures {
             return this;
         }
 
+        /**
+         * Ensure that all classes under test are contained within the onion architecture definition.
+         */
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture ensureAllClassesAreContainedInArchitecture() {
+            ensureAllClassesAreContained = true;
+            return this;
+        }
+
+        /**
+         * Ensure that classes under test are contained within the onion architecture definition,
+         * ignoring those in any specified package.
+         */
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture ensureAllClassesAreContainedInArchitectureIgnoring(String... packageIdentifiers) {
+            ensureAllClassesAreContained = true;
+            ensureAllClassesAreContainedIgnoringPackageIdentifiers = packageIdentifiers;
+            return this;
+        }
+
         private LayeredArchitecture layeredArchitectureDelegate() {
             LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture()
                     .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPackageIdentifiers)
@@ -515,9 +614,15 @@ public final class Architectures {
                         .layer(adapterLayer).definedBy(adapter.getValue())
                         .whereLayer(adapterLayer).mayNotBeAccessedByAnyLayer();
             }
+
             for (IgnoredDependency ignoredDependency : this.ignoredDependencies) {
                 layeredArchitectureDelegate = ignoredDependency.ignoreFor(layeredArchitectureDelegate);
             }
+
+            if (ensureAllClassesAreContained) {
+                layeredArchitectureDelegate = layeredArchitectureDelegate.ensureAllClassesAreContainedInLayersIgnoring(ensureAllClassesAreContainedIgnoringPackageIdentifiers);
+            }
+
             return layeredArchitectureDelegate.as(getDescription());
         }
 

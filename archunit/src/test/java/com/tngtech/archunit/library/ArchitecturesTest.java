@@ -1,11 +1,5 @@
 package com.tngtech.archunit.library;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -34,6 +28,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
@@ -263,6 +263,66 @@ public class ArchitecturesTest {
     }
 
     @Test
+    public void layered_architecture_ensure_all_classes_are_contained_in_architecture_fully() {
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                FirstAnyPkgClass.class,
+                SecondThreeAnyClass.class);
+
+        LayeredArchitecture architecture = layeredArchitecture()
+                .layer("One").definedBy("..first..")
+                .layer("Two").definedBy("..second..")
+                .ensureAllClassesAreContainedInLayers();
+
+        assertThat(architecture.evaluate(classes).hasViolation())
+                .isFalse();
+    }
+
+    @Test
+    public void layered_architecture_ensure_all_classes_are_contained_in_layers_with_ignoring() {
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                FirstAnyPkgClass.class,
+                SecondThreeAnyClass.class);
+
+        LayeredArchitecture architecture = layeredArchitecture()
+                .layer("One").definedBy("..first..")
+                .ensureAllClassesAreContainedInLayersIgnoring(simpleNameContaining("Second"));
+
+        assertThat(architecture.evaluate(classes).hasViolation())
+                .isFalse();
+    }
+
+    @Test
+    public void layered_architecture_ensure_all_classes_are_contained_in_layers_with_ignoring_packages() {
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                FirstAnyPkgClass.class,
+                SecondThreeAnyClass.class);
+
+        LayeredArchitecture architecture = layeredArchitecture()
+                .layer("One").definedBy("..first..")
+                .ensureAllClassesAreContainedInLayersIgnoring("..second..");
+
+        assertThat(architecture.evaluate(classes).hasViolation())
+                .isFalse();
+    }
+
+    @Test
+    public void layered_architecture_ensure_all_classes_are_contained_in_layers() {
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                FirstAnyPkgClass.class,
+                SecondThreeAnyClass.class);
+
+        LayeredArchitecture architecture = layeredArchitecture()
+                .layer("One").definedBy("..first..")
+                .ensureAllClassesAreContainedInLayers();
+
+        final EvaluationResult result = architecture.evaluate(classes);
+        assertThat(result.getFailureReport().getDetails())
+                .contains("Class <" + SecondThreeAnyClass.class.getName() + "> is not contained in architecture");
+        assertThat(result.hasViolation()).as("result has violation")
+                .isTrue();
+    }
+
+    @Test
     public void onion_architecture_description() {
         OnionArchitecture architecture = onionArchitecture()
                 .domainModels("onionarchitecture.domain.model..")
@@ -413,6 +473,58 @@ public class ArchitecturesTest {
                 expectedEmptyLayer("adapter"), expectedEmptyLayer("application service"),
                 expectedEmptyLayer("domain model"), expectedEmptyLayer("domain service")
         ));
+    }
+
+    @Test
+    public void onion_architecture_ensure_all_classes_are_contained_in_architecture_are_contained_in_architecture_fully() {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModels(absolute("onionarchitecture.domain.model"))
+                .domainServices(absolute("onionarchitecture.domain.service"))
+                .applicationServices(absolute("onionarchitecture.application"))
+                .adapter("cli", absolute("onionarchitecture.adapter.cli"))
+                .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
+                .adapter("rest", absolute("onionarchitecture.adapter.rest"))
+                .ensureAllClassesAreContainedInArchitecture();
+        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses.onionarchitecture");
+
+        assertThat(architecture.evaluate(classes).getFailureReport().getDetails())
+                .doesNotContain("Class <" + RestAdapterLayerClass.class.getName() + "> is not contained in architecture");
+    }
+
+    @Test
+    public void onion_architecture_ensure_all_classes_are_contained_in_architecture_with_ignoring_packages() {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModels(absolute("onionarchitecture.domain.model"))
+                .domainServices(absolute("onionarchitecture.domain.service"))
+                .applicationServices(absolute("onionarchitecture.application"))
+                .adapter("cli", absolute("onionarchitecture.adapter.cli"))
+                .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
+                .ensureAllClassesAreContainedInArchitectureIgnoring(absolute("onionarchitecture.adapter.rest"));
+        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses.onionarchitecture");
+
+        assertThat(architecture.evaluate(classes).getFailureReport().getDetails())
+                .doesNotContain("Class <" + RestAdapterLayerClass.class.getName() + "> is not contained in architecture");
+    }
+
+    @Test
+    public void onion_architecture_ensure_all_classes_are_contained_in_architecture_failure_message() {
+        OnionArchitecture architecture = onionArchitecture()
+                .domainModels(absolute("onionarchitecture.domain.model"))
+                .domainServices(absolute("onionarchitecture.domain.service"))
+                .applicationServices(absolute("onionarchitecture.application"))
+                .adapter("cli", absolute("onionarchitecture.adapter.cli"))
+                .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
+                .ensureAllClassesAreContainedInArchitecture();
+        JavaClasses classes = new ClassFileImporter().importPackages(getClass().getPackage().getName() + ".testclasses.onionarchitecture");
+
+        final EvaluationResult result = architecture.evaluate(classes);
+        for (String detail : result.getFailureReport().getDetails()) {
+            System.out.println(detail);
+        }
+        assertThat(result.getFailureReport().getDetails())
+                .contains("Class <" + RestAdapterLayerClass.class.getName() + "> is not contained in architecture");
+        assertThat(result.hasViolation()).as("result has violation")
+                .isTrue();
     }
 
     private String singleLine(EvaluationResult result) {
