@@ -51,7 +51,6 @@ import static com.tngtech.archunit.core.importer.testexamples.annotationmethodim
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
-import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.annotationProperty;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
@@ -62,16 +61,16 @@ public class ClassFileImporterAnnotationsTest {
     public void imports_simple_annotation() {
         JavaClass javaClass = new ClassFileImporter().importPackagesOf(AnnotationToImport.class).get(AnnotationToImport.class);
 
-        assertThat(javaClass.getName()).as("full name").isEqualTo(AnnotationToImport.class.getName());
-        assertThat(javaClass.getSimpleName()).as("simple name").isEqualTo(AnnotationToImport.class.getSimpleName());
-        assertThat(javaClass.getPackageName()).as("package name").isEqualTo(AnnotationToImport.class.getPackage().getName());
-        assertThat(javaClass.getModifiers()).as("modifiers").containsOnly(JavaModifier.PUBLIC, JavaModifier.ABSTRACT);
-        assertThat(javaClass.getRawSuperclass()).as("super class").isAbsent();
-        assertThatTypes(javaClass.getInterfaces()).as("interfaces").matchInAnyOrder(Annotation.class);
-        assertThat(javaClass.isInterface()).as("is interface").isTrue();
-        assertThat(javaClass.isEnum()).as("is enum").isFalse();
-        assertThat(javaClass.isAnnotation()).as("is annotation").isTrue();
-
+        assertThat(javaClass)
+                .hasName(AnnotationToImport.class.getName())
+                .hasSimpleName(AnnotationToImport.class.getSimpleName())
+                .hasPackageName(AnnotationToImport.class.getPackage().getName())
+                .hasOnlyModifiers(JavaModifier.PUBLIC, JavaModifier.ABSTRACT)
+                .hasNoSuperclass()
+                .hasInterfacesMatchingInAnyOrder(Annotation.class)
+                .isInterface(true)
+                .isEnum(false)
+                .isAnnotation(true);
         assertThat(getAnnotationDefaultValue(javaClass, "someStringMethod", String.class)).isEqualTo("DEFAULT");
         assertThatType(getAnnotationDefaultValue(javaClass, "someTypeMethod", JavaClass.class)).matches(List.class);
         assertThat(getAnnotationDefaultValue(javaClass, "someEnumMethod", JavaEnumConstant.class)).isEquivalentTo(EnumToImport.SECOND);

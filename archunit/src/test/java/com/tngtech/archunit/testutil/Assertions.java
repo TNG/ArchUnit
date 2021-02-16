@@ -46,6 +46,7 @@ import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaClassAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaClassDescriptorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
@@ -149,6 +150,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaTypesAssertion assertThat(JavaType[] javaTypes) {
         return new JavaTypesAssertion(javaTypes);
+    }
+
+    public static JavaClassAssertion assertThat(JavaClass javaClass) {
+        return new JavaClassAssertion(javaClass);
     }
 
     public static JavaClassListAssertion assertThat(JavaClassList javaClasses) {
