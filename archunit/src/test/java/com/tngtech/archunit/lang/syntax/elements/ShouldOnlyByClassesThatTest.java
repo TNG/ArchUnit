@@ -13,6 +13,8 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.access.ClassAccessingOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.accessed.ClassBeingAccessedByOtherClass;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.anotheraccess.YetAnotherClassAccessingOtherClass;
+import com.tngtech.archunit.lang.syntax.elements.testclasses.innerclassaccess.ClassWithInnerClasses.ClassAccessingInnerMemberClass;
+import com.tngtech.archunit.lang.syntax.elements.testclasses.innerclassaccess.ClassWithInnerClasses.InnerMemberClassBeingAccessed;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.otheraccess.ClassAlsoAccessingOtherClass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -926,7 +928,8 @@ public class ShouldOnlyByClassesThatTest {
                 .on(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class,
                         ClassAccessingOtherClass.class, ClassBeingAccessedByOtherClass.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class);
+        assertThatTypes(classes).matchInAnyOrder(
+                ClassAccessingInnerMemberClass.class, InnerMemberClassBeingAccessed.class);
     }
 
     @Test
@@ -1203,7 +1206,7 @@ public class ShouldOnlyByClassesThatTest {
     private static class ClassBeingAccessedByClassImplementingSomeInterface {
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private static class ClassAccessingItself {
         private final String field;
 
@@ -1301,17 +1304,6 @@ public class ShouldOnlyByClassesThatTest {
     }
 
     private static class StaticNestedClassBeingAccessed {
-    }
-
-    private class ClassAccessingInnerMemberClass {
-        @SuppressWarnings("unused")
-        void access() {
-            new InnerMemberClassBeingAccessed();
-        }
-    }
-
-    @SuppressWarnings("InnerClassMayBeStatic")
-    private class InnerMemberClassBeingAccessed {
     }
 
     // This must be loaded via Reflection, otherwise the test will be tainted by the dependency on the class object

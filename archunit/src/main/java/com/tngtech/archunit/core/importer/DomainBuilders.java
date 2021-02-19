@@ -204,6 +204,10 @@ public final class DomainBuilders {
             return self();
         }
 
+        String getTypeName() {
+            return type.getFullyQualifiedClassName();
+        }
+
         public JavaClass getType() {
             return get(type.getFullyQualifiedClassName());
         }
@@ -248,6 +252,14 @@ public final class DomainBuilders {
         SELF addInstanceOfCheck(RawInstanceofCheck rawInstanceOfChecks) {
             this.instanceOfChecks.add(rawInstanceOfChecks);
             return self();
+        }
+
+        List<String> getParameterTypeNames() {
+            ImmutableList.Builder<String> result = ImmutableList.builder();
+            for (JavaClassDescriptor parameter : parameters) {
+                result.add(parameter.getFullyQualifiedClassName());
+            }
+            return result.build();
         }
 
         String getReturnTypeName() {

@@ -135,6 +135,25 @@ class ClassFileImportRecord {
         return Optional.fromNullable(genericSuperclassBuilderByOwner.get(owner.getName()));
     }
 
+    Set<String> getMemberSignatureTypeNames() {
+        ImmutableSet.Builder<String> result = ImmutableSet.builder();
+        for (DomainBuilders.JavaFieldBuilder fieldBuilder : fieldBuildersByOwner.values()) {
+            result.add(fieldBuilder.getTypeName());
+        }
+        for (DomainBuilders.JavaConstructorBuilder constructorBuilder : constructorBuildersByOwner.values()) {
+            for (String parameterTypeName : constructorBuilder.getParameterTypeNames()) {
+                result.add(parameterTypeName);
+            }
+        }
+        for (DomainBuilders.JavaMethodBuilder methodBuilder : methodBuildersByOwner.values()) {
+            result.add(methodBuilder.getReturnTypeName());
+            for (String parameterTypeName : methodBuilder.getParameterTypeNames()) {
+                result.add(parameterTypeName);
+            }
+        }
+        return result.build();
+    }
+
     Set<DomainBuilders.JavaFieldBuilder> getFieldBuildersFor(String ownerName) {
         return fieldBuildersByOwner.get(ownerName);
     }
