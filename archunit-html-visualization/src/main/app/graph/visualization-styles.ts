@@ -5,14 +5,26 @@ const CIRCLE_STYLE_SELECTOR = '.circle';
 
 const LINE_STYLE_PREFIX = 'line.';
 
+interface VisualizationStyles {
+  getNodeFontSize: () => number,
+
+  setNodeFontSize: (sizeInPixels: number) => void,
+
+  getCirclePadding: () => number,
+
+  setCirclePadding: (paddingInPixels: number) => void,
+
+  getDependencyTitleFontSize: () => number
+}
+
 const DEPENDENCY_TEXT_STYLE_SELECTOR = 'text.access';
 
-const rgbToHex = (rgbString, defaultHex) => {
+const rgbToHex = (rgbString: string, defaultHex:string) => {
   if (!rgbString) {
     return defaultHex;
   }
-  let numbers = rgbString.split(",");
-  numbers = numbers.map(n => parseInt(n.replace(/[rgb()\s]/g, "")));
+  let numbersAsString: string[] = rgbString.split(",");
+  let numbers = numbersAsString.map(n => parseInt(n.replace(/[rgb()\s]/g, "")));
   const numbersAsHex = numbers.map(n => {
     const hex = n.toString(16);
     return hex.length === 1 ? "0" + hex : hex;
@@ -20,8 +32,8 @@ const rgbToHex = (rgbString, defaultHex) => {
   return numbersAsHex.reduce((acc, n) => acc + n, "#");
 };
 
-const stylesFrom = (styleSheet) => {
-  const unique = (elements) => {
+const stylesFrom = (styleSheet: CSSStyleSheet): VisualizationStyles => {
+  const unique = (elements: CSSPageRule[]): CSSPageRule => {
     if (elements.length === 0) {
       return null;
     }
@@ -30,7 +42,7 @@ const stylesFrom = (styleSheet) => {
     }
     return elements[0];
   };
-  const cssRules = Array.from(styleSheet.cssRules);
+  const cssRules = Array.from(styleSheet.cssRules) as CSSPageRule[]; // CSSPageRule extends CSSRule
   const nodeTextRule = unique(cssRules.filter(rule => rule.selectorText === NODE_TEXT_STYLE_SELECTOR));
   const circleRule = unique(cssRules.filter(rule => rule.selectorText === CIRCLE_STYLE_SELECTOR));
   const dependencyTextRule = unique(cssRules.filter(rule => rule.selectorText === DEPENDENCY_TEXT_STYLE_SELECTOR));
@@ -38,34 +50,32 @@ const stylesFrom = (styleSheet) => {
   return {
     getNodeFontSize: () => parseInt(nodeTextRule.style.getPropertyValue('font-size'), 10),
 
-    setNodeFontSize: (sizeInPixels) => {
+    setNodeFontSize: (sizeInPixels: number) => {
       nodeTextRule.style.setProperty('font-size', `${sizeInPixels}px`);
     },
 
     getCirclePadding: () => parseInt(circleRule.style.getPropertyValue('padding'), 10),
 
-    setCirclePadding: (paddingInPixels) => {
+    setCirclePadding: (paddingInPixels: number) => {
       circleRule.style.setProperty('padding', `${paddingInPixels}px`)
     },
 
     getDependencyTitleFontSize: () => parseInt(dependencyTextRule.style.getPropertyValue('font-size'), 10),
 
-    getLineStyle: (kind, title) => {
-      const rule = unique(cssRules.filter(rule => rule.selectorText === LINE_STYLE_PREFIX + kind));
-      return {
-        title: title,
-        styles: [{
-          name: "stroke",
-          value: rgbToHex(rule.style.getPropertyValue('stroke'), "#000000")
-        }, {
-          name: "stroke-dasharray",
-          value: rule.style.getPropertyValue('stroke-dasharray')
-        }]
-      };
-    }
+    // getLineStyle: (kind, title) => {
+    //   const rule = unique(cssRules.filter(rule => rule.selectorText === LINE_STYLE_PREFIX + kind));
+    //   return {
+    //     title: title,
+    //     styles: [{
+    //       name: "stroke",
+    //       value: rgbToHex(rule.style.getPropertyValue('stroke'), "#000000")
+    //     }, {
+    //       name: "stroke-dasharray",
+    //       value: rule.style.getPropertyValue('stroke-dasharray')
+    //     }]
+    //   };
+    // }
   };
 };
 
-module.exports = {
-  from: stylesFrom
-};
+export {VisualizationStyles, stylesFrom};

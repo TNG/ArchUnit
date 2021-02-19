@@ -1,16 +1,23 @@
 'use strict';
 
-const {Vector} = require('../infrastructure/vectors');
+import {Vector} from "../infrastructure/vectors";
+import {SVG} from "../infrastructure/svg"
+import {SvgSelection} from "../infrastructure/svg-selection";
 
-const init = (transitionDuration, svg, document) => {
+const init = (transitionDuration: number, svg: SVG, document: Document) => {
   class View {
-    constructor(fullNodeName, onkeyupHandler) {
+    private _svgElement: SvgSelection
+    private _svgElementForChildren: SvgSelection
+    private _svgSelectionForDependencies: SvgSelection
+    private _position: Vector
+
+    constructor(fullNodeName: string, onkeyupHandler: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any)) {
       this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
 
       this._svgElementForChildren = this._svgElement.addGroup();
       this._svgSelectionForDependencies = this._svgElement.addGroup();
 
-      document.onKeyUp(onkeyupHandler);
+      document.onkeyup = onkeyupHandler;
     }
 
     get position() {
@@ -21,7 +28,7 @@ const init = (transitionDuration, svg, document) => {
       return this._svgElement;
     }
 
-    addChildView(childView) {
+    addChildView(childView: View) {
       this._svgElementForChildren.addChild(childView._svgElement);
     }
 
@@ -29,12 +36,12 @@ const init = (transitionDuration, svg, document) => {
       return this._svgSelectionForDependencies;
     }
 
-    jumpToPosition(position) {
+    jumpToPosition(position: Vector) {
       this._svgElement.translate(position);
       this._position = Vector.from(position);
     }
 
-    moveToPosition(position) {
+    moveToPosition(position: Vector) {
       this._position = Vector.from(position);
       return this._svgElement.createTransitionWithDuration(transitionDuration)
         .step(svgSelection => svgSelection.translate(position))
