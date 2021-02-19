@@ -5,6 +5,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
@@ -23,6 +24,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
+import static com.google.common.collect.Iterables.getLast;
 import static com.tngtech.archunit.ArchUnitArchitectureTest.THIRDPARTY_PACKAGE_IDENTIFIER;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
@@ -45,6 +47,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 import static java.util.Arrays.stream;
+import static org.assertj.core.util.Lists.newArrayList;
 
 public class PublicAPIRules {
     @ArchTest
@@ -71,6 +74,12 @@ public class PublicAPIRules {
                     .should(notBePublic())
 
                     .because("users of ArchUnit should only access intended members, to preserve maintainability");
+
+    @ArchTest
+    public static final ArchRule all_public_API_members_are_accessible =
+            members()
+                    .that().areAnnotatedWith(PublicAPI.class)
+                    .should(bePubliclyAccessible());
 
     @ArchTest
     public static final ArchRule all_public_classes_that_are_not_meant_for_inheritance_or_internal_are_final =
@@ -201,6 +210,30 @@ public class PublicAPIRules {
                                 member.getName(),
                                 satisfied ? "not " : "",
                                 member.getSourceCodeLocation())));
+            }
+        };
+    }
+
+    private static ArchCondition<JavaMember> bePubliclyAccessible() {
+        return new ArchCondition<JavaMember>("be publicly accessible") {
+            @Override
+            public void check(JavaMember member, ConditionEvents events) {
+                boolean declaringClassIsPublic = getAllEnclosingClasses(member).allMatch(c -> c.getModifiers().contains(PUBLIC));
+                boolean satisfied = member.getModifiers().contains(PUBLIC) && declaringClassIsPublic;
+                events.add(new SimpleConditionEvent(member, satisfied,
+                        String.format("member %s.%s is %sdeclared in public location in %s",
+                                member.getOwner().getName(),
+                                member.getName(),
+                                satisfied ? "" : "not ",
+                                member.getSourceCodeLocation())));
+            }
+
+            private Stream<JavaClass> getAllEnclosingClasses(JavaMember member) {
+                List<JavaClass> enclosingClasses = newArrayList(member.getOwner());
+                while (getLast(enclosingClasses).getEnclosingClass().isPresent()) {
+                    enclosingClasses.add(getLast(enclosingClasses).getEnclosingClass().get());
+                }
+                return enclosingClasses.stream();
             }
         };
     }
