@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasName;
@@ -68,7 +69,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
  * For further elaboration refer to the documentation of {@link #resolve()}. In particular {@link #resolve()} attempts to find
  * matching {@link JavaMember JavaMembers} for the respective {@link AccessTarget}.
  */
-public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass> {
+public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass>, HasDescription {
     private final String name;
     private final JavaClass owner;
     private final String fullName;
@@ -220,8 +221,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         return false;
     }
 
-    abstract String getDescription();
-
     public static final class Functions {
         private Functions() {
         }
@@ -283,7 +282,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
         @Override
         @PublicAPI(usage = ACCESS)
-        String getDescription() {
+        public String getDescription() {
             return "field <" + getFullName() + ">";
         }
 
@@ -411,7 +410,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
         @Override
         @PublicAPI(usage = ACCESS)
-        String getDescription() {
+        public String getDescription() {
             return "constructor <" + getFullName() + ">";
         }
 
@@ -485,7 +484,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
         @Override
         @PublicAPI(usage = ACCESS)
-        String getDescription() {
+        public String getDescription() {
             return "method <" + getFullName() + ">";
         }
 

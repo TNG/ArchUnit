@@ -267,7 +267,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * @return The component type, if this type is an array, otherwise {@link Optional#absent()}
      */
     @PublicAPI(usage = ACCESS)
-    Optional<JavaClass> tryGetComponentType() {
+    public Optional<JavaClass> tryGetComponentType() {
         return componentType;
     }
 
@@ -279,7 +279,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      * @return The base component type of this class
      */
     @PublicAPI(usage = ACCESS)
-    JavaClass getBaseComponentType() {
+    public JavaClass getBaseComponentType() {
         JavaClass type = this;
         while (type.isArray()) {
             type = type.getComponentType();

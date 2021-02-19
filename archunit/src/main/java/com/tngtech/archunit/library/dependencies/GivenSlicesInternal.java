@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
-import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -29,7 +28,6 @@ import com.tngtech.archunit.library.dependencies.syntax.GivenSlicesConjunction;
 import com.tngtech.archunit.library.dependencies.syntax.SlicesShould;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.Guava.Iterables.filter;
 
 class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConjunction {
@@ -74,7 +72,6 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
      * @see Slices#namingSlices(String)
      */
     @Override
-    @PublicAPI(usage = ACCESS)
     public GivenNamedSlices namingSlices(String pattern) {
         return new GivenSlicesInternal(priority, classesTransformer.namingSlices(pattern));
     }
@@ -85,7 +82,6 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
     }
 
     @Override
-    @PublicAPI(usage = ACCESS)
     public SliceRule beFreeOfCycles() {
         return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
             @Override
@@ -96,7 +92,6 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
     }
 
     @Override
-    @PublicAPI(usage = ACCESS)
     public SliceRule notDependOnEachOther() {
         return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
             @Override
