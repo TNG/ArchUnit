@@ -1,15 +1,20 @@
 'use strict';
 
-const init = visualizationStyles => {
+import {InnerNode, Node} from "./node";
+import {VisualizationStyles} from "../visualization-styles";
 
-  const computeTextShift = (radius, width) => {
+const init = (visualizationStyles: VisualizationStyles) => {
+
+  const computeTextShift = (radius: number, width: number) => {
     const yCoordTopBorder = -1 * Math.sqrt(Math.pow(radius, 2) - Math.pow(width / 2, 2));
     const fontSize = visualizationStyles.getNodeFontSize();
     return yCoordTopBorder + fontSize;
   };
 
   return class {
-    constructor(node) {
+    private _node: InnerNode
+
+    constructor(node: InnerNode) {
       this._node = node;
     }
 

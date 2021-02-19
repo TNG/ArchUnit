@@ -54,6 +54,7 @@
   "devDependencies": {
     "@babel/core": "7.12.16",
     "@babel/register": "7.12.13",
+    "@types/d3": "6.3.0",
     "chai": "4.3.0",
     "css-loader": "5.0.2",
     "eslint": "7.19.0",
