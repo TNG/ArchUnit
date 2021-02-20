@@ -18,6 +18,7 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import org.assertj.core.api.AbstractObjectAssert;
+import org.assertj.core.api.ThrowableAssert;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -25,6 +26,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotationAssertion, JavaAnnotation<?>> {
     public JavaAnnotationAssertion(JavaAnnotation<?> actual) {
@@ -38,16 +40,23 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
         return this;
     }
 
+    public JavaAnnotationAssertion hasStringProperty(String propertyName, String expectedValue) {
+        assertThat(getPropertyOfType(propertyName, String.class))
+                .as(annotationPropertyDescription("String", propertyName))
+                .isEqualTo(expectedValue);
+        return this;
+    }
+
     public JavaAnnotationAssertion hasClassProperty(String propertyName, Class<?> expectedClass) {
         JavaClass actualClassValue = getPropertyOfType(propertyName, JavaClass.class);
-        assertThatType(actualClassValue).as("Class<?> @%s.%s()" + context(), actual.getRawType().getSimpleName(), propertyName).matches(expectedClass);
+        assertThatType(actualClassValue).as(annotationPropertyDescription("Class<?>", propertyName)).matches(expectedClass);
         return this;
     }
 
     public JavaAnnotationAssertion hasEnumProperty(String propertyName, Enum<?> expectedEnumConstant) {
         JavaEnumConstant actualEnumConstant = getPropertyOfType(propertyName, JavaEnumConstant.class);
         assertThat(actualEnumConstant)
-                .as("%s @%s.%s()" + context(), actualEnumConstant.getDeclaringClass().getSimpleName(), actual.getRawType().getSimpleName(), propertyName)
+                .as(annotationPropertyDescription(actualEnumConstant.getDeclaringClass().getSimpleName(), propertyName))
                 .isEquivalentTo(expectedEnumConstant);
         return this;
     }
@@ -55,6 +64,32 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
     public JavaAnnotationAssertion hasAnnotationProperty(String propertyName, AnnotationPropertyAssertion propertyAssertion) {
         JavaAnnotation<?> actualAnnotationProperty = getPropertyOfType(propertyName, JavaAnnotation.class);
         propertyAssertion.check(actual, propertyName, actualAnnotationProperty);
+        return this;
+    }
+
+    public JavaAnnotationAssertion hasExplicitlyDeclaredStringProperty(String propertyName, String expectedValue) {
+        String description = annotationPropertyDescription("String", propertyName);
+        assertThat(actual.hasExplicitlyDeclaredProperty(propertyName))
+                .as(description + " has explicitly declared value")
+                .isTrue();
+        assertThat(actual.getExplicitlyDeclaredProperty(propertyName)).as(description).isEqualTo(expectedValue);
+        assertThat(actual.tryGetExplicitlyDeclaredProperty(propertyName)).as(description).contains(expectedValue);
+        return this;
+    }
+
+    public JavaAnnotationAssertion hasNoExplicitlyDeclaredProperty(final String propertyName) {
+        String description = annotationPropertyDescription("String", propertyName);
+        assertThat(actual.hasExplicitlyDeclaredProperty(propertyName))
+                .as(description + " has explicitly declared value")
+                .isFalse();
+        assertThat(actual.tryGetExplicitlyDeclaredProperty(propertyName)).as(description).isAbsent();
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() {
+                actual.getExplicitlyDeclaredProperty(propertyName);
+            }
+        }).isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("%s has no explicitly declared property '%s'", actual.getDescription(), propertyName);
         return this;
     }
 
@@ -66,8 +101,9 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
         return (T) property.get();
     }
 
-    private String context() {
-        return Strings.isNullOrEmpty(descriptionText()) ? "" : " of " + descriptionText();
+    private String annotationPropertyDescription(String typeName, String propertyName) {
+        return String.format("%s @%s.%s()", typeName, actual.getRawType().getSimpleName(), propertyName)
+                + (Strings.isNullOrEmpty(descriptionText()) ? "" : " of " + descriptionText());
     }
 
     @SuppressWarnings("rawtypes")
