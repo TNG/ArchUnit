@@ -98,6 +98,30 @@ public class ClassFileImporterAnnotationsTest {
     }
 
     @Test
+    public void distinguishes_between_explicitly_set_values_and_default_values() {
+        @SuppressWarnings("DefaultAnnotationParam")
+        @SimpleAnnotationWithDefaultValues(
+                // this value is explicitly set to a different value than the default
+                defaultValue2 = "overwritten",
+                // this value is explicitly set, but actually the same as the default
+                defaultValue3 = "defaultValue3",
+                noDefault = "mustBeSet")
+        class AnnotatedClass {
+        }
+
+        JavaAnnotation<?> annotation = new ClassFileImporter().importClasses(AnnotatedClass.class)
+                .get(AnnotatedClass.class).getAnnotationOfType(SimpleAnnotationWithDefaultValues.class.getName());
+
+        assertThatAnnotation(annotation)
+                .hasExplicitlyDeclaredStringProperty("defaultValue2", "overwritten")
+                .hasExplicitlyDeclaredStringProperty("defaultValue3", "defaultValue3")
+                .hasExplicitlyDeclaredStringProperty("noDefault", "mustBeSet")
+
+                .hasNoExplicitlyDeclaredProperty("defaultValue1")
+                .hasStringProperty("defaultValue1", "defaultValue1");
+    }
+
+    @Test
     public void imports_class_with_one_annotation_correctly() {
         JavaClass clazz = new ClassFileImporter().importPackagesOf(ClassWithOneAnnotation.class)
                 .get(ClassWithOneAnnotation.class);
@@ -552,6 +576,17 @@ public class ClassFileImporterAnnotationsTest {
     @SuppressWarnings({"unchecked", "unused"})
     private static <T> T getAnnotationDefaultValue(JavaClass javaClass, String methodName, Class<T> valueType) {
         return (T) javaClass.getMethod(methodName).getDefaultValue().get();
+    }
+
+    @SuppressWarnings("unused")
+    private @interface SimpleAnnotationWithDefaultValues {
+        String defaultValue1() default "defaultValue1";
+
+        String defaultValue2() default "defaultValue2";
+
+        String defaultValue3() default "defaultValue3";
+
+        String noDefault();
     }
 
     @SuppressWarnings("unused")
