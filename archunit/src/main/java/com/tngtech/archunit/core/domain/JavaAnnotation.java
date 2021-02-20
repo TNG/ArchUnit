@@ -27,6 +27,7 @@ import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
@@ -180,7 +181,10 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
      * someAnnotation.get("types") &rarr; [JavaClass{SomeType}, JavaClass{AnotherType}]
      * </code></pre>
      *
-     * @param property The name of the annotation property, i.e. the declared method name
+     * This method will return an {@link #getExplicitlyDeclaredProperty(String) explicitly declared property},
+     * or the default value for the given property as a fallback.
+     *
+     * @param propertyName The name of the annotation property, i.e. the declared method name
      * @return the value of the given property, where the result type is more precisely
      * <ul>
      * <li>Class&lt;?&gt; &rarr; JavaClass{clazz}</li>
@@ -193,11 +197,11 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
      * </ul>
      */
     @PublicAPI(usage = ACCESS)
-    public Optional<Object> get(String property) {
-        Object directResult = values.get(property);
+    public Optional<Object> get(String propertyName) {
+        Object directResult = values.get(propertyName);
         return directResult != null
                 ? Optional.of(directResult)
-                : tryGetDefaultValue(property);
+                : tryGetDefaultValue(propertyName);
     }
 
     private Optional<Object> tryGetDefaultValue(String property) {
@@ -205,6 +209,57 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
         return method.isPresent()
                 ? method.get().getDefaultValue()
                 : Optional.absent();
+    }
+
+    /**
+     * Returns {@code true}, if and only if the value of this property has been explicitly declared
+     * within the annotation declaration. E.g.<br><br>
+     * <pre><code>
+     *  {@literal @}SomeAnnotation(prop = "explicitly declared")
+     *   class SomeClass {}
+     * </code></pre>
+     * The opposite is a non-explicitly declared property, e.g.<br><br>
+     * <pre><code>
+     *  {@literal @}interface SomeAnnotationWithDefault {
+     *       String prop() default "default";
+     *   }
+     *
+     *  {@literal @}SomeAnnotationWithDefault
+     *   class SomeClass {}
+     * </code></pre>
+     * Where the property {@code prop} has the implicit default value {@code "default"}, but no
+     * explicitly declared value.
+     *
+     * @param propertyName The name of the annotation property, i.e. the declared method name
+     * @return {@code true}, if and only if the value of this property has been explicitly declared
+     */
+    @PublicAPI(usage = ACCESS)
+    public boolean hasExplicitlyDeclaredProperty(String propertyName) {
+        return tryGetExplicitlyDeclaredProperty(propertyName).isPresent();
+    }
+
+    /**
+     * @param propertyName The name of the annotation property, i.e. the declared method name
+     * @return the same value as {@link #get(String)}, if the property is explicitly declared
+     *         (compare {@link #hasExplicitlyDeclaredProperty(String)});<br>
+     *         throws an exception if the property has not been explicitly declared (i.e. falls
+     *         back to a default value)
+     */
+    @PublicAPI(usage = ACCESS)
+    public Object getExplicitlyDeclaredProperty(String propertyName) {
+        Optional<Object> result = tryGetExplicitlyDeclaredProperty(propertyName);
+        checkArgument(result.isPresent(), getDescription() + " has no explicitly declared property '%s'", propertyName);
+        return result.get();
+    }
+
+    /**
+     * @param propertyName The name of the annotation property, i.e. the declared method name
+     * @return the same value as {@link #get(String)}, if the property is explicitly declared
+     *         (compare {@link #hasExplicitlyDeclaredProperty(String)}), otherwise {@link Optional#absent()}
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<Object> tryGetExplicitlyDeclaredProperty(String propertyName) {
+        return Optional.fromNullable(values.get(propertyName));
     }
 
     /**
