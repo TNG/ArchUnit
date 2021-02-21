@@ -72,6 +72,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.notHaveModifie
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
@@ -1718,7 +1719,7 @@ public class ClassesShouldTest {
     public void onlyCall_should_report_success_if_targets_are_non_resolvable(ArchRule rule, Class<?> classCallingUnresolvableTarget) {
         ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
 
-        assertThat(rule).checking(importClasses(classCallingUnresolvableTarget)).hasNoViolation();
+        assertThatRule(rule).checking(importClasses(classCallingUnresolvableTarget)).hasNoViolation();
     }
 
     static String locationPattern(Class<?> clazz) {
