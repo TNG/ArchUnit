@@ -775,91 +775,145 @@ public final class ArchConditions {
         return not(ArchConditions.<HAS_ANNOTATIONS>beMetaAnnotatedWith(predicate));
     }
 
+    /**
+     * @return a condition matching classes analogously to {@link JavaClass.Predicates#implement(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> implement(Class<?> interfaceType) {
         return new ImplementsCondition(JavaClass.Predicates.implement(interfaceType));
     }
 
+    /**
+     * @return negation of {@link #implement(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notImplement(Class<?> interfaceType) {
         return not(implement(interfaceType));
     }
 
+    /**
+     * @return A condition matching classes analogously to {@link JavaClass.Predicates#implement(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> implement(String interfaceTypeName) {
         return new ImplementsCondition(JavaClass.Predicates.implement(interfaceTypeName));
     }
 
+    /**
+     * @return negation of {@link #implement(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notImplement(String interfaceTypeName) {
         return not(implement(interfaceTypeName));
     }
 
+    /**
+     * @return A condition matching classes analogously to {@link JavaClass.Predicates#implement(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> implement(DescribedPredicate<? super JavaClass> predicate) {
         return new ImplementsCondition(JavaClass.Predicates.implement(predicate));
     }
 
+    /**
+     * @return negation of {@link #implement(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notImplement(DescribedPredicate<? super JavaClass> predicate) {
         return not(implement(predicate));
     }
 
+    /**
+     * @return A condition matching classes analogously to {@link JavaClass.Predicates#assignableTo(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(Class<?> type) {
         return new IsConditionByPredicate<>(assignableTo(type));
     }
 
+    /**
+     * @return negation of {@link #beAssignableTo(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeAssignableTo(Class<?> type) {
         return not(beAssignableTo(type));
     }
 
+    /**
+     * @return A condition matching classes analogously to {@link JavaClass.Predicates#assignableTo(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(String typeName) {
         return new IsConditionByPredicate<>(assignableTo(typeName));
     }
 
+    /**
+     * @return negation of {@link #beAssignableTo(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeAssignableTo(String typeName) {
         return not(beAssignableTo(typeName));
     }
 
+    /**
+     * @return A condition matching classes analogously to {@link JavaClass.Predicates#assignableTo(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
         return new IsConditionByPredicate<>(assignableTo(predicate));
     }
 
+    /**
+     * @return negation of {@link #beAssignableTo(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
         return not(beAssignableTo(predicate));
     }
 
+    /**
+     * @return A condition matching classes analogously to {@link JavaClass.Predicates#assignableFrom(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(Class<?> type) {
         return new IsConditionByPredicate<>(assignableFrom(type));
     }
 
+    /**
+     * @return negation of {@link #beAssignableFrom(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeAssignableFrom(Class<?> type) {
         return not(beAssignableFrom(type));
     }
 
+    /**
+     * @return A condition matching classes analogously to {@link JavaClass.Predicates#assignableFrom(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(String typeName) {
         return new IsConditionByPredicate<>(assignableFrom(typeName));
     }
 
+    /**
+     * @return negation of {@link #beAssignableFrom(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeAssignableFrom(String typeName) {
         return not(beAssignableFrom(typeName));
     }
 
+    /**
+     * @return A condition matching classes analogously to {@link JavaClass.Predicates#assignableFrom(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
         return new IsConditionByPredicate<>(assignableFrom(predicate));
     }
 
+    /**
+     * @return negation of {@link #beAssignableFrom(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
         return not(beAssignableFrom(predicate));

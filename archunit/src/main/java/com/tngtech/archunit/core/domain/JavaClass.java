@@ -1637,50 +1637,124 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             return new SimpleNameEndingWithPredicate(suffix);
         }
 
+        /**
+         * @param type the type to check for assignability
+         * @return a {@link DescribedPredicate} that returns {@code true}, if the respective {@link JavaClass}
+         *         is assignable to the supplied {@code type}. I.e. the type represented by the tested {@link JavaClass}
+         *         could be casted to the supplied {@code type}.<br>
+         *         This is the opposite of {@link #assignableFrom(Class)}:
+         *         some class {@code A} is assignable to a class {@code B} if and only if {@code B} is assignable from {@code A}.
+         *
+         * @see #assignableTo(String)
+         * @see #assignableTo(DescribedPredicate)
+         * @see #assignableFrom(Class)
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableTo(final Class<?> type) {
             return assignableTo(type.getName());
         }
 
+        /**
+         * @param type the type to check for assignability
+         * @return a {@link DescribedPredicate} that returns {@code true}, if the respective {@link JavaClass}
+         *         is assignable from the supplied {@code type}. I.e. the supplied {@code type}
+         *         could be casted to the type represented by the tested {@link JavaClass}.<br>
+         *         This is the opposite of {@link #assignableTo(Class)}:
+         *         some class {@code B} is assignable from a class {@code A} if and only if {@code A} is assignable to {@code B}.
+         *
+         * @see #assignableFrom(String)
+         * @see #assignableFrom(DescribedPredicate)
+         * @see #assignableTo(Class)
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableFrom(final Class<?> type) {
             return assignableFrom(type.getName());
         }
 
+        /**
+         * Same as {@link #assignableTo(Class)} but takes a fully qualified class name as an argument instead of a class object.
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableTo(final String typeName) {
             return assignableTo(GET_NAME.is(equalTo(typeName)).as(typeName));
         }
 
+        /**
+         * Same as {@link #assignableFrom(Class)} but takes a fully qualified class name as an argument instead of a class object.
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableFrom(final String typeName) {
             return assignableFrom(GET_NAME.is(equalTo(typeName)).as(typeName));
         }
 
+        /**
+         * Same as {@link #assignableTo(Class)}, but returns {@code true} whenever the tested {@link JavaClass}
+         * is assignable to a class that matches the supplied predicate.<br>
+         * This is the opposite of {@link #assignableFrom(DescribedPredicate)}:
+         * some class {@code A} is assignable to a class {@code B} if and only if {@code B} is assignable from {@code A}.
+         *
+         * @see #assignableTo(Class)
+         * @see #assignableTo(String)
+         * @see #assignableFrom(DescribedPredicate)
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableTo(final DescribedPredicate<? super JavaClass> predicate) {
             return new AssignableToPredicate(predicate);
         }
 
+        /**
+         * Same as {@link #assignableFrom(Class)}, but returns {@code true} whenever the tested {@link JavaClass}
+         * is assignable from a class that matches the supplied predicate.<br>
+         * This is the opposite of {@link #assignableTo(DescribedPredicate)}:
+         * some class {@code B} is assignable from a class {@code A} if and only if {@code A} is assignable to {@code A}.
+         *
+         * @see #assignableFrom(Class)
+         * @see #assignableFrom(String)
+         * @see #assignableTo(DescribedPredicate)
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> assignableFrom(final DescribedPredicate<? super JavaClass> predicate) {
             return new AssignableFromPredicate(predicate);
         }
 
+        /**
+         * @param type the interface type to check for
+         * @return a {@link DescribedPredicate} that returns {@code true} if the tested {@link JavaClass} implements the supplied
+         *         interface {@code type}. I.e. the supplied {@code type} must be an interface and the tested {@link JavaClass}
+         *         must be a class (it resembles delarations like {@code class A implements B},
+         *         which only works for a class {@code A} and an interface {@code B}).
+         * @throws InvalidSyntaxUsageException if {@code type} is not an interface
+         *
+         * @see #implement(String)
+         * @see #implement(DescribedPredicate)
+         * @see #assignableTo(Class)
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> implement(final Class<?> type) {
             if (!type.isInterface()) {
                 throw new InvalidSyntaxUsageException(String.format(
-                        "implement(type) can only ever be true, if type is an interface, but type %s is not", type.getName()));
+                        "implement(type) can only ever be true, if type is an interface, but type %s is not. "
+                                + "Do you maybe want to use the more generic assignableTo(type)?", type.getName()));
             }
             return implement(type.getName());
         }
 
+        /**
+         * Same as {@link #implement(Class)} but takes a fully qualified class name as an argument instead of a class object.
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> implement(final String typeName) {
             return implement(GET_NAME.is(equalTo(typeName)).as(typeName));
         }
 
+        /**
+         * Same as {@link #implement(Class)} but returns {@code true} whenever the tested {@link JavaClass} implements
+         * an interface that matches the supplied predicate.
+         *
+         * @see #implement(Class)
+         * @see #implement(String)
+         * @see #assignableTo(DescribedPredicate)
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> implement(final DescribedPredicate<? super JavaClass> predicate) {
             DescribedPredicate<JavaClass> selfIsImplementation = not(INTERFACES);

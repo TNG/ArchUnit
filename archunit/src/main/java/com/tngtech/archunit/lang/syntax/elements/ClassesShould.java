@@ -35,6 +35,7 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasName.Predicates;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -399,9 +400,14 @@ public interface ClassesShould {
 
     /**
      * Asserts that classes implement a certain interface.
+     * Note that this only matches non-interface {@link JavaClass classes} that implement the supplied interface {@code type}
+     * (compare {@link JavaClass.Predicates#implement(Class)}.
+     * For general assignability see {@link #beAssignableTo(Class)}
      *
      * @param type An interface imported classes should implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#implement(Class)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction implement(Class<?> type);
@@ -411,6 +417,8 @@ public interface ClassesShould {
      *
      * @param type An interface imported classes should NOT implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#notImplement(Class)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notImplement(Class<?> type);
@@ -418,9 +426,14 @@ public interface ClassesShould {
     /**
      * Asserts that classes implement a certain interface with the given type name. This is equivalent to
      * {@link #implement(Class)}, but does not depend on having a certain type on the classpath.
+     * Note that this only matches non-interface {@link JavaClass classes} that implement the supplied interface {@code typeName}
+     * (compare {@link JavaClass.Predicates#implement(Class)}.
+     * For general assignability see {@link #beAssignableTo(String)}
      *
      * @param typeName Name of an interface imported classes should implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#implement(String)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction implement(String typeName);
@@ -432,6 +445,8 @@ public interface ClassesShould {
      *
      * @param typeName Name of an interface imported classes should NOT implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#notImplement(String)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notImplement(String typeName);
@@ -440,9 +455,14 @@ public interface ClassesShould {
      * Asserts that classes implement a certain interface matching the given predicate. For example, a call with
      * {@link Predicates#name(String)} would be equivalent to
      * {@link #implement(String)}, but the approach is a lot more generic.
+     * Note that this only matches non-interface {@link JavaClass classes} that implement an interface matching the {@code predicate}
+     * (compare {@link JavaClass.Predicates#implement(Class)}.
+     * For general assignability see {@link #beAssignableTo(DescribedPredicate)}
      *
      * @param predicate A predicate identifying an interface imported classes should implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#implement(DescribedPredicate)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction implement(DescribedPredicate<? super JavaClass> predicate);
@@ -453,6 +473,8 @@ public interface ClassesShould {
      *
      * @param predicate A predicate identifying an interface imported classes should NOT implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#notImplement(DescribedPredicate)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notImplement(DescribedPredicate<? super JavaClass> predicate);
@@ -468,6 +490,8 @@ public interface ClassesShould {
      *
      * @param type An upper type bound to match imported classes against (imported subtypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#beAssignableTo(Class)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableTo(Class<?> type);
@@ -477,6 +501,8 @@ public interface ClassesShould {
      *
      * @param type An upper type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#notBeAssignableTo(Class)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableTo(Class<?> type);
@@ -487,6 +513,8 @@ public interface ClassesShould {
      *
      * @param typeName Name of an upper type bound to match imported classes against (imported subtypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#beAssignableTo(String)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableTo(String typeName);
@@ -498,6 +526,8 @@ public interface ClassesShould {
      *
      * @param typeName Name of an upper type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#notBeAssignableTo(String)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableTo(String typeName);
@@ -510,6 +540,8 @@ public interface ClassesShould {
      * @param predicate A predicate identifying an upper type bound to match imported classes against
      *                  (imported subtypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#beAssignableTo(DescribedPredicate)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableTo(DescribedPredicate<? super JavaClass> predicate);
@@ -520,6 +552,8 @@ public interface ClassesShould {
      *
      * @param predicate A predicate identifying an upper type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#notBeAssignableTo(DescribedPredicate)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableTo(DescribedPredicate<? super JavaClass> predicate);
@@ -539,6 +573,8 @@ public interface ClassesShould {
      *
      * @param type A lower type bound to match imported classes against (imported supertypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#beAssignableFrom(Class)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableFrom(Class<?> type);
@@ -548,6 +584,8 @@ public interface ClassesShould {
      *
      * @param type A lower type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#notBeAssignableFrom(Class)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableFrom(Class<?> type);
@@ -558,6 +596,8 @@ public interface ClassesShould {
      *
      * @param typeName Name of a lower type bound to match imported classes against (imported supertypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#beAssignableFrom(String)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableFrom(String typeName);
@@ -569,6 +609,8 @@ public interface ClassesShould {
      *
      * @param typeName Name of a lower type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#notBeAssignableFrom(String)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableFrom(String typeName);
@@ -581,6 +623,8 @@ public interface ClassesShould {
      * @param predicate A predicate identifying a lower type bound to match imported classes against
      *                  (imported supertypes will match)
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#beAssignableFrom(DescribedPredicate)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beAssignableFrom(DescribedPredicate<? super JavaClass> predicate);
@@ -591,6 +635,8 @@ public interface ClassesShould {
      *
      * @param predicate A predicate identifying a lower type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     *
+     * @see ArchConditions#notBeAssignableFrom(DescribedPredicate)
      */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeAssignableFrom(DescribedPredicate<? super JavaClass> predicate);
