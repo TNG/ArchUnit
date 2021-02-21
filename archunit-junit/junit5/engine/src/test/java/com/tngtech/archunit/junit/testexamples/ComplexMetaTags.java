@@ -1,17 +1,19 @@
 package com.tngtech.archunit.junit.testexamples;
 
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchRules;
-import com.tngtech.archunit.junit.ArchTag;
-import com.tngtech.archunit.junit.ArchTest;
-import com.tngtech.archunit.lang.ArchRule;
-
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.*;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTag;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.ArchTests;
+import com.tngtech.archunit.lang.ArchRule;
+
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @ComplexMetaTags.LibraryTag
@@ -22,11 +24,11 @@ public class ComplexMetaTags {
 
     @RulesTag
     @ArchTest
-    static final ArchRules classWithMetaTag = ArchRules.in(TestClassWithMetaTag.class);
+    static final ArchTests classWithMetaTag = ArchTests.in(TestClassWithMetaTag.class);
 
     @RulesTag
     @ArchTest
-    static final ArchRules classWithMetaTags = ArchRules.in(TestClassWithMetaTags.class);
+    static final ArchTests classWithMetaTags = ArchTests.in(TestClassWithMetaTags.class);
 
     @FieldTag
     @ArchTest

@@ -47,6 +47,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     static final String METHOD_SEGMENT_TYPE = "method";
 
     private final Class<?> testClass;
+    @SuppressWarnings("FieldMayBeFinal") // We want to change this in tests
     private ClassCache classCache;
 
     private ArchUnitTestDescriptor(ElementResolver resolver, Class<?> testClass, ClassCache classCache) {
@@ -66,7 +67,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
             LOG.warn("Class {} is not annotated with @{} and thus cannot run as a top level test. "
                             + "This warning can be ignored if {} is only used as part of a rules library included via {}.in({}.class).",
                     clazz.getName(), AnalyzeClasses.class.getSimpleName(),
-                    clazz.getSimpleName(), ArchRules.class.getSimpleName(), clazz.getSimpleName());
+                    clazz.getSimpleName(), ArchTests.class.getSimpleName(), clazz.getSimpleName());
 
             return;
         }
@@ -100,7 +101,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     private static void resolveChildren(
             TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
 
-        if (ArchRules.class.isAssignableFrom(field.getType())) {
+        if (ArchTests.class.isAssignableFrom(field.getType()) || ArchRules.class.isAssignableFrom(field.getType())) {
             resolveArchRules(parent, resolver, field, classes);
         } else {
             parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field), classes, field));
@@ -114,19 +115,19 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     private static void resolveArchRules(
             TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
 
-        DeclaredArchRules rules = getDeclaredRules(field);
+        DeclaredArchTests archTests = getDeclaredArchTests(field);
 
-        resolver.resolveClass(rules.getDefinitionLocation())
+        resolver.resolveClass(archTests.getDefinitionLocation())
                 .ifRequestedAndResolved(CreatesChildren::createChildren)
                 .ifRequestedButUnresolved((clazz, childResolver) -> {
-                    ArchUnitRulesDescriptor rulesDescriptor = new ArchUnitRulesDescriptor(childResolver, rules, classes, field);
+                    ArchUnitArchTestsDescriptor rulesDescriptor = new ArchUnitArchTestsDescriptor(childResolver, archTests, classes, field);
                     parent.addChild(rulesDescriptor);
                     rulesDescriptor.createChildren(childResolver);
                 });
     }
 
-    private static DeclaredArchRules getDeclaredRules(Field field) {
-        return new DeclaredArchRules(getValue(field));
+    private static DeclaredArchTests getDeclaredArchTests(Field field) {
+        return new DeclaredArchTests(ArchTests.from(getValue(field)));
     }
 
     @Override
@@ -193,28 +194,28 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         }
     }
 
-    private static class ArchUnitRulesDescriptor extends AbstractArchUnitTestDescriptor implements CreatesChildren {
-        private final DeclaredArchRules rules;
+    private static class ArchUnitArchTestsDescriptor extends AbstractArchUnitTestDescriptor implements CreatesChildren {
+        private final DeclaredArchTests archTests;
         private final Supplier<JavaClasses> classes;
 
-        ArchUnitRulesDescriptor(ElementResolver resolver, DeclaredArchRules rules, Supplier<JavaClasses> classes, Field field) {
+        ArchUnitArchTestsDescriptor(ElementResolver resolver, DeclaredArchTests archTests, Supplier<JavaClasses> classes, Field field) {
 
             super(resolver.getUniqueId(),
-                    rules.getDisplayName(),
-                    ClassSource.from(rules.getDefinitionLocation()),
+                    archTests.getDisplayName(),
+                    ClassSource.from(archTests.getDefinitionLocation()),
                     field,
-                    rules.getDefinitionLocation());
-            this.rules = rules;
+                    archTests.getDefinitionLocation());
+            this.archTests = archTests;
             this.classes = classes;
         }
 
         @Override
         public void createChildren(ElementResolver resolver) {
-            rules.handleFields(field ->
+            archTests.handleFields(field ->
                     resolver.resolve(FIELD_SEGMENT_TYPE, field.getName(), childResolver ->
                             resolveChildren(this, childResolver, field, classes)));
 
-            rules.handleMethods(method ->
+            archTests.handleMethods(method ->
                     resolver.resolve(METHOD_SEGMENT_TYPE, method.getName(), childResolver ->
                             addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes))));
         }
@@ -225,27 +226,27 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         }
     }
 
-    private static class DeclaredArchRules {
-        private final ArchRules rules;
+    private static class DeclaredArchTests {
+        private final ArchTests archTests;
 
-        DeclaredArchRules(ArchRules rules) {
-            this.rules = rules;
+        DeclaredArchTests(ArchTests archTests) {
+            this.archTests = archTests;
         }
 
         Class<?> getDefinitionLocation() {
-            return rules.getDefinitionLocation();
+            return archTests.getDefinitionLocation();
         }
 
         String getDisplayName() {
-            return rules.getDefinitionLocation().getSimpleName();
+            return archTests.getDefinitionLocation().getSimpleName();
         }
 
         void handleFields(Consumer<? super Field> doWithField) {
-            getAllFields(rules.getDefinitionLocation(), withAnnotation(ArchTest.class)).forEach(doWithField);
+            getAllFields(archTests.getDefinitionLocation(), withAnnotation(ArchTest.class)).forEach(doWithField);
         }
 
         void handleMethods(Consumer<? super Method> doWithMethod) {
-            getAllMethods(rules.getDefinitionLocation(), withAnnotation(ArchTest.class)).forEach(doWithMethod);
+            getAllMethods(archTests.getDefinitionLocation(), withAnnotation(ArchTest.class)).forEach(doWithMethod);
         }
     }
 

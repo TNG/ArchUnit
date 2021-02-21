@@ -19,14 +19,21 @@ import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * @deprecated Please use {@link ArchTests} instead
+ */
+@Deprecated
 public final class ArchRules {
     private final Class<?> definitionLocation;
 
-    @SuppressWarnings("unchecked")
     private ArchRules(Class<?> definitionLocation) {
         this.definitionLocation = definitionLocation;
     }
 
+    /**
+     * @deprecated Please use {@link ArchTests} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static ArchRules in(Class<?> definitionLocation) {
         return new ArchRules(definitionLocation);

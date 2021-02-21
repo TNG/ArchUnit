@@ -2,9 +2,9 @@ package com.tngtech.archunit.junit.testexamples;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchRules;
 import com.tngtech.archunit.junit.ArchTag;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.ArchTests;
 import com.tngtech.archunit.lang.ArchRule;
 
 @ArchTag("library-tag")
@@ -15,7 +15,7 @@ public class ComplexTags {
 
     @ArchTag("rules-tag")
     @ArchTest
-    static final ArchRules classWithTags = ArchRules.in(TestClassWithTags.class);
+    static final ArchTests classWithTags = ArchTests.in(TestClassWithTags.class);
 
     @ArchTag("field-tag")
     @ArchTest

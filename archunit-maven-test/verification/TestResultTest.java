@@ -261,13 +261,13 @@ public class TestResultTest {
 
     private static class JUnitSingleTestProvider implements SingleTestProvider {
         private final Class<? extends Annotation> archTestAnnotation;
-        private final Class<?> archRulesClass;
+        private final Class<?> archTestsClass;
 
         @SuppressWarnings("unchecked")
         private JUnitSingleTestProvider() {
             try {
                 this.archTestAnnotation = (Class<? extends Annotation>) Class.forName("com.tngtech.archunit.junit.ArchTest");
-                this.archRulesClass = Class.forName("com.tngtech.archunit.junit.ArchRules");
+                this.archTestsClass = Class.forName("com.tngtech.archunit.junit.ArchTests");
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -299,15 +299,15 @@ public class TestResultTest {
             if (ArchRule.class.isAssignableFrom(field.getType())) {
                 return Collections.singleton(new SingleTest(field.getDeclaringClass().getName(), field.getName()));
             }
-            if (archRulesClass.isAssignableFrom(field.getType())) {
+            if (archTestsClass.isAssignableFrom(field.getType())) {
                 return getTestsFrom(getValue(field, null));
             }
             throw new IllegalStateException("Unknown @ArchTest: " + field);
         }
 
-        private Set<SingleTest> getTestsFrom(Object archRules) {
+        private Set<SingleTest> getTestsFrom(Object archTests) {
             Set<SingleTest> result = new HashSet<>();
-            Class<?> definitionLocation = getValue("definitionLocation", archRules);
+            Class<?> definitionLocation = getValue("definitionLocation", archTests);
             result.addAll(getTestFields(asList(definitionLocation.getDeclaredFields())));
             result.addAll(getTestMethods(asList(definitionLocation.getDeclaredMethods())));
             return result;
