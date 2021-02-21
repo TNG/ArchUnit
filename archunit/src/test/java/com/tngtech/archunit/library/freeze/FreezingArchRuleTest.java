@@ -42,6 +42,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
@@ -85,7 +86,7 @@ public class FreezingArchRuleTest {
 
         rule = rule.as("new description");
 
-        assertThat(rule)
+        assertThatRule(rule)
                 .hasDescriptionContaining("new description");
     }
 
@@ -107,7 +108,7 @@ public class FreezingArchRuleTest {
         TestViolationStore violationStore = new TestViolationStore();
         ArchRule frozen = freeze(input).persistIn(violationStore);
 
-        assertThat(frozen)
+        assertThatRule(frozen)
                 .checking(importClasses(getClass()))
                 .hasNoViolation();
 
@@ -136,7 +137,7 @@ public class FreezingArchRuleTest {
         ArchRule anotherViolation = rule("some description").withViolations("first violation", "second violation").create();
         ArchRule frozenWithNewViolation = freeze(anotherViolation).persistIn(violationStore);
 
-        assertThat(frozenWithNewViolation)
+        assertThatRule(frozenWithNewViolation)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations("second violation");
     }
@@ -154,7 +155,7 @@ public class FreezingArchRuleTest {
                 new ViolatedEvent("first violation2", "second violation2")).create();
         ArchRule frozenWithNewViolation = freeze(anotherViolation).persistIn(violationStore);
 
-        assertThat(frozenWithNewViolation)
+        assertThatRule(frozenWithNewViolation)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations("third violation1");
     }
@@ -169,14 +170,14 @@ public class FreezingArchRuleTest {
         ArchRule secondViolationSolved = rule("some description").withViolations("first violation").create();
         ArchRule frozenWithLessViolation = freeze(secondViolationSolved).persistIn(violationStore);
 
-        assertThat(frozenWithLessViolation)
+        assertThatRule(frozenWithLessViolation)
                 .checking(importClasses(getClass()))
                 .hasNoViolation();
 
         ArchRule secondViolationIsBack = rule("some description").withViolations("first violation", secondViolation).create();
         ArchRule frozenWithOldViolationBack = freeze(secondViolationIsBack).persistIn(violationStore);
 
-        assertThat(frozenWithOldViolationBack)
+        assertThatRule(frozenWithOldViolationBack)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations(secondViolation);
     }
@@ -201,7 +202,7 @@ public class FreezingArchRuleTest {
                     }
                 });
 
-        assertThat(frozen)
+        assertThatRule(frozen)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations("and new");
     }
@@ -223,7 +224,7 @@ public class FreezingArchRuleTest {
                     }
                 });
 
-        assertThat(frozen)
+        assertThatRule(frozen)
                 .checking(importClasses(getClass()))
                 .hasViolations(1)
                 .hasAnyViolationOf("violation", "equivalent one");
@@ -259,11 +260,11 @@ public class FreezingArchRuleTest {
                 .withViolations("some violation");
 
         ArchRule storedRule = freeze(ruleCreator.withStringReplace("${lineSeparator}", lineSeparatorOnFreeze).create());
-        assertThat(storedRule).checking(importClasses(getClass())).hasNoViolation();
+        assertThatRule(storedRule).checking(importClasses(getClass())).hasNoViolation();
 
         ArchRule ruleToCheck = ruleCreator.withStringReplace("${lineSeparator}", lineSeparatorOnCheck)
                 .withViolations("some violation", "new").create();
-        assertThat(freeze(ruleToCheck))
+        assertThatRule(freeze(ruleToCheck))
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations("new");
     }
@@ -286,7 +287,7 @@ public class FreezingArchRuleTest {
         createFrozen(violationStore, storedRule);
 
         ArchRule ruleToCheck = ruleCreator.withStringReplace("${lineSeparator}", lineSeparatorOnCheck).create();
-        assertThat(freeze(ruleToCheck).persistIn(violationStore))
+        assertThatRule(freeze(ruleToCheck).persistIn(violationStore))
                 .checking(importClasses(getClass()))
                 .hasNoViolation();
     }
@@ -326,21 +327,21 @@ public class FreezingArchRuleTest {
         FreezingArchRule frozen = freeze(rule("some description")
                 .withViolations(frozenViolations).create());
 
-        assertThat(frozen)
+        assertThatRule(frozen)
                 .checking(importClasses(getClass()))
                 .hasNoViolation();
 
         frozen = freeze(rule("some description")
                 .withViolations(frozenViolations[0], "third violation").create());
 
-        assertThat(frozen)
+        assertThatRule(frozen)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations("third violation");
 
         frozen = freeze(rule("some description")
                 .withViolations(frozenViolations[0], frozenViolations[1], "third violation").create());
 
-        assertThat(frozen)
+        assertThatRule(frozen)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations(frozenViolations[1], "third violation");
     }
@@ -354,9 +355,9 @@ public class FreezingArchRuleTest {
 
         ArchConfiguration.get().setProperty(ALLOW_STORE_CREATION_PROPERTY_NAME, "false");
         RuleCreator second = rule("second, store exists");
-        assertThat(freeze(second.withViolations("first").create())).checking(importClasses(getClass()))
+        assertThatRule(freeze(second.withViolations("first").create())).checking(importClasses(getClass()))
                 .hasNoViolation();
-        assertThat(freeze(second.withViolations("first", "second").create())).checking(importClasses(getClass()))
+        assertThatRule(freeze(second.withViolations("first", "second").create())).checking(importClasses(getClass()))
                 .hasOnlyViolations("second");
     }
 
@@ -373,7 +374,7 @@ public class FreezingArchRuleTest {
                 .withViolations("a different but counted same", "a nother too", "b too", "c also", onlyOneDifferentLineByFirstLetter).create())
                 .persistIn(violationStore);
 
-        assertThat(frozen)
+        assertThatRule(frozen)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations(onlyOneDifferentLineByFirstLetter);
     }
@@ -408,7 +409,7 @@ public class FreezingArchRuleTest {
                 .withViolations(onlyLineNumberChanged, locationClassDoesNotMatch, descriptionDoesNotMatch, lambdaWithDifferentNumber).create())
                 .persistIn(violationStore);
 
-        assertThat(updatedViolations)
+        assertThatRule(updatedViolations)
                 .checking(importClasses(getClass()))
                 .hasOnlyViolations(locationClassDoesNotMatch, descriptionDoesNotMatch);
     }
@@ -471,7 +472,7 @@ public class FreezingArchRuleTest {
     private void createFrozen(TestViolationStore violationStore, ArchRule rule) {
         FreezingArchRule frozen = freeze(rule).persistIn(violationStore);
 
-        assertThat(frozen)
+        assertThatRule(frozen)
                 .checking(importClasses(getClass()))
                 .hasNoViolation();
     }
