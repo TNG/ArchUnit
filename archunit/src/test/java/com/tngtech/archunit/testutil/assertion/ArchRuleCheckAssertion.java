@@ -6,6 +6,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.guava.api.Assertions.assertThat;
 
@@ -27,6 +28,14 @@ public class ArchRuleCheckAssertion {
         }
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public ArchRuleCheckAssertion hasOnlyOneViolationMatching(String regex) {
+        assertThat(getOnlyElement(evaluationResult.getFailureReport().getDetails())).matches(regex);
+        assertThat(error.get().getMessage()).containsPattern(regex);
+        return this;
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ArchRuleCheckAssertion hasOnlyViolations(String... violations) {
         assertThat(evaluationResult.getFailureReport().getDetails()).containsOnly(violations);
         for (String violation : violations) {
@@ -35,6 +44,7 @@ public class ArchRuleCheckAssertion {
         return this;
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ArchRuleCheckAssertion hasAnyViolationOf(String... violations) {
         assertThat(evaluationResult.getFailureReport().getDetails()).containsAnyOf(violations);
         assertThat(error.get().getMessage()).containsPattern(Joiner.on("|").join(violations));
