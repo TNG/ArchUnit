@@ -186,14 +186,14 @@ public class PersistenceRules {
 public class ArchitectureTest {
 
     @ArchTest
-    public static final ArchRules serviceRules = ArchRules.in(ServiceRules.class);
+    static final ArchTests serviceRules = ArchTests.in(ServiceRules.class);
 
     @ArchTest
-    public static final ArchRules persistenceRules = ArchRules.in(PersistenceRules.class);
+    static final ArchTests persistenceRules = ArchTests.in(PersistenceRules.class);
 
 }
 ----
 
-The runner will evaluate all rules within `ServiceRules` and `PersistenceRules` against
-the classes declared at `ArchitectureTest`. This also allows an easy reuse of a rule library
-in different projects or modules.
+The runner will include all `@ArchTest` annotated members within `ServiceRules` and `PersistenceRules` and evaluate
+them against the classes declared within `@AnalyzeClasses` on `ArchitectureTest`.
+This also allows an easy reuse of a rule library in different projects or modules.
