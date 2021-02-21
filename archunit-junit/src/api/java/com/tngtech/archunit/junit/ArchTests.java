@@ -21,33 +21,33 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 /**
  * Includes all {@code @ArchTest} annotated members of another class into this ArchUnit test. For example
- * <pre>{@code
+ * <pre><code>
  * class MyArchRuleSuite1 {
- *     @ArchTest
+ *    {@literal @}ArchTest
  *     static final ArchRule suite1Rule1 = classes()...
  *
- *     @ArchTest
+ *    {@literal @}ArchTest
  *     static void suite1Rule2(JavaClasses classes) {
  *         // ...
  *     }
  * }
  *
  * class MyArchRuleSuite2 {
- *     @ArchTest
+ *    {@literal @}ArchTest
  *     static final ArchRule suite2Rule1 = classes()...
  * }
  *
- * @AnalyzeClasses(..)
+ *{@literal @}AnalyzeClasses(..)
  * class MyArchitectureTest {
- *     // includes all @ArchTest members from MyArchRuleSuite1
- *     @ArchTest
+ *     // includes all{@literal @}ArchTest members from MyArchRuleSuite1
+ *    {@literal @}ArchTest
  *     static final ArchTests includedRules1 = ArchTests.in(MyArchRuleSuite1.class);
  *
- *     // includes all @ArchTest members from MyArchRuleSuite2
- *     @ArchTest
+ *     // includes all{@literal @}ArchTest members from MyArchRuleSuite2
+ *    {@literal @}ArchTest
  *     static final ArchTests includedRules2 = ArchTests.in(MyArchRuleSuite2.class);
  * }
- * }</pre>
+ * </code></pre>
  */
 public final class ArchTests {
     private final Class<?> definitionLocation;
