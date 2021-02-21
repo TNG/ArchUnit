@@ -175,8 +175,12 @@ public interface CanBeAnnotated {
                 return false;
             }
 
+            if (predicate.apply(annotation)) {
+                return true;
+            }
+
             for (JavaAnnotation<?> metaAnnotation : annotation.getRawType().getAnnotations()) {
-                if (predicate.apply(metaAnnotation) || isMetaAnnotatedWith(metaAnnotation, predicate, visitedAnnotations)) {
+                if (isMetaAnnotatedWith(metaAnnotation, predicate, visitedAnnotations)) {
                     return true;
                 }
             }

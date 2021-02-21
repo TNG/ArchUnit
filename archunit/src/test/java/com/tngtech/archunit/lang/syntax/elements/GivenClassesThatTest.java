@@ -340,7 +340,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(SomeAnnotation.class))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(MetaAnnotatedClass.class, AnnotatedClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -348,7 +348,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(SomeAnnotation.class))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class);
     }
 
     @Test
@@ -356,7 +356,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(MetaAnnotatedClass.class, AnnotatedClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -364,7 +364,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class);
     }
 
     @Test
@@ -373,7 +373,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areMetaAnnotatedWith(hasNamePredicate))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(MetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(MetaAnnotatedClass.class, AnnotatedClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -382,7 +382,7 @@ public class GivenClassesThatTest {
         List<JavaClass> classes = filterResultOf(classes().that().areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class);
     }
 
     @Test

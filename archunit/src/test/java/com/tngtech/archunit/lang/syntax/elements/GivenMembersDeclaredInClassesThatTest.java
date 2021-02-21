@@ -336,7 +336,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areMetaAnnotatedWith(SomeAnnotation.class))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatMembers(members).matchInAnyOrderMembersOf(MetaAnnotatedClass.class);
+        assertThatMembers(members).matchInAnyOrderMembersOf(MetaAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -344,7 +344,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatMembers(members).matchInAnyOrderMembersOf(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatMembers(members).matchInAnyOrderMembersOf(SimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -352,7 +352,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatMembers(members).matchInAnyOrderMembersOf(MetaAnnotatedClass.class);
+        assertThatMembers(members).matchInAnyOrderMembersOf(MetaAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -360,7 +360,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNotMetaAnnotatedWith(SomeAnnotation.class.getName()))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatMembers(members).matchInAnyOrderMembersOf(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatMembers(members).matchInAnyOrderMembersOf(SimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -369,7 +369,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areMetaAnnotatedWith(hasNamePredicate))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatMembers(members).matchInAnyOrderMembersOf(MetaAnnotatedClass.class);
+        assertThatMembers(members).matchInAnyOrderMembersOf(MetaAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -378,7 +378,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areNotMetaAnnotatedWith(hasNamePredicate))
                 .on(MetaAnnotatedClass.class, AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
 
-        assertThatMembers(members).matchInAnyOrderMembersOf(AnnotatedClass.class, SimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatMembers(members).matchInAnyOrderMembersOf(SimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test

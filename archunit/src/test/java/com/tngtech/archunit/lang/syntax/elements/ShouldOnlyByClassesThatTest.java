@@ -475,8 +475,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
-                SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -488,7 +487,9 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(
+                ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -500,7 +501,9 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(
+                ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class,
+                ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -513,8 +516,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
-                SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -526,7 +528,9 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(
+                ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -538,7 +542,9 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(
+                ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class,
+                ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -552,8 +558,7 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class,
-                SimpleClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -566,7 +571,9 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(
+                ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class,
+                ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
@@ -579,7 +586,9 @@ public class ShouldOnlyByClassesThatTest {
                         SimpleClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(
+                ClassBeingAccessedByMetaAnnotatedClass.class, MetaAnnotatedClass.class, MetaAnnotatedAnnotation.class,
+                ClassBeingAccessedByAnnotatedClass.class, AnnotatedClass.class);
     }
 
     @Test
