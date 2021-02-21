@@ -84,7 +84,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new ConditionEventsAssertion(events);
     }
 
-    public static ArchRuleAssertion assertThat(ArchRule rule) {
+    public static ArchRuleAssertion assertThatRule(ArchRule rule) {
         return new ArchRuleAssertion(rule);
     }
 
