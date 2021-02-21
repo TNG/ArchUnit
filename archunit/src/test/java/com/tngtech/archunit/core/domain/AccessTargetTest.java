@@ -75,10 +75,13 @@ public class AccessTargetTest {
 
         assertThat(call.getTarget().isMetaAnnotatedWith(QueriedAnnotation.class))
                 .as("target is meta-annotated with @" + QueriedAnnotation.class.getSimpleName())
-                .isFalse();
+                .isTrue();
         assertThat(call.getTarget().isMetaAnnotatedWith(Retention.class))
                 .as("target is meta-annotated with @" + Retention.class.getSimpleName())
                 .isTrue();
+        assertThat(call.getTarget().isMetaAnnotatedWith(Deprecated.class))
+                .as("target is meta-annotated with @" + Deprecated.class.getSimpleName())
+                .isFalse();
     }
 
     @Test
@@ -88,10 +91,13 @@ public class AccessTargetTest {
 
         assertThat(call.getTarget().isMetaAnnotatedWith(QueriedAnnotation.class.getName()))
                 .as("target is meta-annotated with @" + QueriedAnnotation.class.getSimpleName())
-                .isFalse();
+                .isTrue();
         assertThat(call.getTarget().isMetaAnnotatedWith(Retention.class.getName()))
                 .as("target is meta-annotated with @" + Retention.class.getSimpleName())
                 .isTrue();
+        assertThat(call.getTarget().isMetaAnnotatedWith(Deprecated.class))
+                .as("target is meta-annotated with @" + Deprecated.class.getSimpleName())
+                .isFalse();
     }
 
     @Test

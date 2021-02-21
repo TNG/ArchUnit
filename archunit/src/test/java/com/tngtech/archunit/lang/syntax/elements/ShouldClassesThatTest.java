@@ -396,7 +396,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class);
     }
 
     @Test
@@ -406,7 +406,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -416,7 +416,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -427,7 +427,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class);
     }
 
     @Test
@@ -437,7 +437,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -447,7 +447,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -459,7 +459,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class);
     }
 
     @Test
@@ -470,7 +470,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -481,7 +481,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -1210,7 +1210,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -1220,7 +1220,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -1231,7 +1231,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class);
     }
 
     @Test
@@ -1241,7 +1241,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -1251,7 +1251,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -1262,7 +1262,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class);
     }
 
     @Test
@@ -1273,7 +1273,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class);
     }
 
     @Test
@@ -1284,7 +1284,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatTypes(classes).matchInAnyOrder(ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingSimpleClass.class, MetaAnnotatedAnnotation.class);
     }
 
     @Test
@@ -1296,7 +1296,7 @@ public class ShouldClassesThatTest {
                 .on(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class, ClassAccessingSimpleClass.class,
                         MetaAnnotatedAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(ClassAccessingMetaAnnotatedClass.class);
+        assertThatTypes(classes).matchInAnyOrder(ClassAccessingMetaAnnotatedClass.class, ClassAccessingAnnotatedClass.class);
     }
 
     @Test
