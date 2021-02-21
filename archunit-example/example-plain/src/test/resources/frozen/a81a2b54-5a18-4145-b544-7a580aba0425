@@ -24,3 +24,4 @@ Method <com.tngtech.archunit.example.layers.service.ServiceType.values()> calls 
 Method <com.tngtech.archunit.example.layers.service.ServiceType.values()> has return type <[Lcom.tngtech.archunit.example.layers.service.ServiceType;> in (ServiceType.java:0)
 Method <com.tngtech.archunit.example.layers.service.ServiceType.$values()> has return type <[Lcom.tngtech.archunit.example.layers.service.ServiceType;> in (ServiceType.java:0)
 Method <com.tngtech.archunit.example.layers.service.ServiceViolatingDaoRules.illegallyUseEntityManager()> calls method <com.tngtech.archunit.example.layers.service.ServiceViolatingDaoRules$MyEntityManager.persist(java.lang.Object)> in (ServiceViolatingDaoRules.java:27)
+Method <com.tngtech.archunit.example.layers.service.ServiceViolatingProxyRules.executeAsync()> is annotated with <com.tngtech.archunit.example.layers.service.Async> in (ServiceViolatingProxyRules.java:0)

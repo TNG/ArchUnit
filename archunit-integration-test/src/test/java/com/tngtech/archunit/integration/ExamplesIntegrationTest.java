@@ -97,12 +97,14 @@ import com.tngtech.archunit.example.layers.persistence.layerviolation.DaoCalling
 import com.tngtech.archunit.example.layers.persistence.second.dao.OtherDao;
 import com.tngtech.archunit.example.layers.persistence.second.dao.jpa.OtherJpa;
 import com.tngtech.archunit.example.layers.security.Secured;
+import com.tngtech.archunit.example.layers.service.Async;
 import com.tngtech.archunit.example.layers.service.ComplexServiceAnnotation;
 import com.tngtech.archunit.example.layers.service.ProxiedConnection;
 import com.tngtech.archunit.example.layers.service.ServiceHelper;
 import com.tngtech.archunit.example.layers.service.ServiceInterface;
 import com.tngtech.archunit.example.layers.service.ServiceViolatingDaoRules;
 import com.tngtech.archunit.example.layers.service.ServiceViolatingLayerRules;
+import com.tngtech.archunit.example.layers.service.ServiceViolatingProxyRules;
 import com.tngtech.archunit.example.layers.service.SpecialServiceHelper;
 import com.tngtech.archunit.example.layers.service.impl.ServiceImplementation;
 import com.tngtech.archunit.example.layers.service.impl.SomeInterfacePlacedInTheWrongPackage;
@@ -1126,6 +1128,25 @@ class ExamplesIntegrationTest {
                         .withReturnType(Customer.class))
                 .by(method(Order.class, "report")
                         .withParameter(Address.class))
+
+                .toDynamicTests();
+    }
+
+    @TestFactory
+    Stream<DynamicTest> ProxyRulesTest() {
+        return ExpectedTestFailures
+                .forTests(
+                        com.tngtech.archunit.exampletest.ProxyRulesTest.class,
+                        com.tngtech.archunit.exampletest.junit4.ProxyRulesTest.class,
+                        com.tngtech.archunit.exampletest.junit5.ProxyRulesTest.class)
+
+                .ofRule(String.format(
+                        "no classes should directly call other methods declared in the same class that are annotated with @%s, "
+                                + "because it bypasses the proxy mechanism", Async.class.getSimpleName()))
+
+                .by(callFromMethod(ServiceViolatingProxyRules.class, "methodBypassingAsyncProxy")
+                        .toMethod(ServiceViolatingProxyRules.class, "executeAsync")
+                        .inLine(7))
 
                 .toDynamicTests();
     }

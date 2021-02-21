@@ -12,6 +12,7 @@ import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.RuntimeRet
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
+import com.tngtech.archunit.lang.syntax.elements.testclasses.ClassWithPublicAndPrivateConstructor;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.SomeClass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -34,6 +35,7 @@ import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.contai
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.locationPattern;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.singleLineFailureReportOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
@@ -754,12 +756,13 @@ public class GivenClassShouldTest {
     @Test
     @UseDataProvider("classes_should_have_only_private_constructor_rules")
     public void classes_should_have_only_private_constructor(ArchRule rule) {
-        assertThat(rule).hasDescriptionContaining("classes should have only private constructors");
-        assertThat(rule).checking(importClasses(ClassWithPrivateConstructors.class))
+        assertThatRule(rule).hasDescriptionContaining("classes should have only private constructors");
+        assertThatRule(rule).checking(importClasses(ClassWithPrivateConstructors.class))
                 .hasNoViolation();
-        assertThat(rule).checking(importClasses(ClassWithPublicAndPrivateConstructor.class))
+        assertThatRule(rule).checking(importClasses(ClassWithPublicAndPrivateConstructor.class))
                 .hasOnlyViolations(String.format("Constructor <%s.<init>(%s)> is not private in (%s.java:%d)",
-                        ClassWithPublicAndPrivateConstructor.class.getName(), String.class.getName(), getClass().getSimpleName(), 1538));
+                        ClassWithPublicAndPrivateConstructor.class.getName(), String.class.getName(),
+                        ClassWithPublicAndPrivateConstructor.class.getSimpleName(), 5));
     }
 
     @DataProvider
@@ -1461,10 +1464,6 @@ public class GivenClassShouldTest {
         assertThat(result.hasViolation()).as("result has violation").isFalse();
     }
 
-    private static void assertViolation(EvaluationResult result) {
-        assertThat(result.hasViolation()).as("result has violation").isTrue();
-    }
-
     private static class ClassWithField {
         String field;
     }
@@ -1530,16 +1529,6 @@ public class GivenClassShouldTest {
         }
 
         private ClassWithPrivateConstructors(String foo) {
-        }
-    }
-
-    @SuppressWarnings({"unused", "WeakerAccess"})
-    private static class ClassWithPublicAndPrivateConstructor {
-        public ClassWithPublicAndPrivateConstructor(String s) {
-        }
-
-        private ClassWithPublicAndPrivateConstructor(Integer i) {
-            this(i.toString());
         }
     }
 }
