@@ -320,9 +320,11 @@ public class JavaClassTest {
         JavaClass clazz = importClassesWithContext(Parent.class, SomeAnnotation.class).get(Parent.class);
 
         assertThat(clazz.isMetaAnnotatedWith(SomeAnnotation.class))
-                .as("Parent is meta-annotated with @" + SomeAnnotation.class.getSimpleName()).isFalse();
+                .as("Parent is meta-annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
         assertThat(clazz.isMetaAnnotatedWith(Retention.class))
                 .as("Parent is meta-annotated with @" + Retention.class.getSimpleName()).isTrue();
+        assertThat(clazz.isMetaAnnotatedWith(Deprecated.class))
+                .as("Parent is meta-annotated with @" + Deprecated.class.getSimpleName()).isFalse();
     }
 
     @Test
@@ -330,9 +332,11 @@ public class JavaClassTest {
         JavaClass clazz = importClassesWithContext(Parent.class, SomeAnnotation.class).get(Parent.class);
 
         assertThat(clazz.isMetaAnnotatedWith(SomeAnnotation.class.getName()))
-                .as("Parent is meta-annotated with @" + SomeAnnotation.class.getSimpleName()).isFalse();
+                .as("Parent is meta-annotated with @" + SomeAnnotation.class.getSimpleName()).isTrue();
         assertThat(clazz.isMetaAnnotatedWith(Retention.class.getName()))
                 .as("Parent is meta-annotated with @" + Retention.class.getSimpleName()).isTrue();
+        assertThat(clazz.isMetaAnnotatedWith(Deprecated.class.getName()))
+                .as("Parent is meta-annotated with @" + Deprecated.class.getSimpleName()).isFalse();
     }
 
     @Test
