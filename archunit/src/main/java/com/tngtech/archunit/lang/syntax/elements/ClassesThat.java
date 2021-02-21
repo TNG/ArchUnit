@@ -372,6 +372,9 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes that implement a certain interface.
+     * Note that this only matches non-interface {@link JavaClass classes} that implement the supplied interface {@code type}
+     * (compare {@link JavaClass.Predicates#implement(Class)}.
+     * For general assignability see {@link #areAssignableTo(Class)}
      *
      * @param type An interface type matching classes must implement
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -391,6 +394,9 @@ public interface ClassesThat<CONJUNCTION> {
     /**
      * Matches classes that implement a certain interface with the given type name. This is equivalent to
      * {@link #implement(Class)}, but does not depend on having a certain type on the classpath.
+     * Note that this only matches non-interface {@link JavaClass classes} that implement the supplied interface {@code typeName}
+     * (compare {@link JavaClass.Predicates#implement(Class)}.
+     * For general assignability see {@link #areAssignableTo(String)}
      *
      * @param typeName Name of an interface type matching classes must implement
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -413,6 +419,9 @@ public interface ClassesThat<CONJUNCTION> {
      * Matches classes that implement a certain interface matching the given predicate. For example, a call with
      * {@link Predicates#name(String)} would be equivalent to
      * {@link #implement(String)}, but the approach is a lot more generic.
+     * Note that this only matches non-interface {@link JavaClass classes} that implement an interface matching the {@code predicate}
+     * (compare {@link JavaClass.Predicates#implement(Class)}.
+     * For general assignability see {@link #areAssignableTo(DescribedPredicate)}
      *
      * @param predicate A predicate identifying interfaces matching classes must implement
      * @return A syntax conjunction element, which can be completed to form a full rule
