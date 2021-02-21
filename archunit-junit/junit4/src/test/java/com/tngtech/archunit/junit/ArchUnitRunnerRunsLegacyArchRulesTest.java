@@ -42,7 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ArchUnitRunnerRunsRuleSetsTest {
+public class ArchUnitRunnerRunsLegacyArchRulesTest {
     @Rule
     public final MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -69,7 +69,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @InjectMocks
     private ArchUnitRunner runnerForIgnoredRuleLibrary = newRunnerFor(ArchTestWithIgnoredRuleLibrary.class);
 
-    private JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsRuleSetsTest.class);
+    private JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsLegacyArchRulesTest.class);
 
     @Before
     public void setUp() {
@@ -236,7 +236,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         static final String someOtherMethodRuleName = "someOtherMethodRule";
 
         @ArchTest
-        final ArchTests rules = ArchTests.in(ArchTestWithRuleSet.class);
+        final ArchRules rules = ArchRules.in(ArchTestWithRuleSet.class);
 
         @ArchTest
         public static void someOtherMethodRule(JavaClasses classes) {
@@ -246,20 +246,20 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithRuleSet {
         @ArchTest
-        final ArchTests rules = ArchTests.in(Rules.class);
+        final ArchRules rules = ArchRules.in(Rules.class);
     }
 
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithIgnoredRuleSet {
         @ArchTest
         @ArchIgnore
-        public static final ArchTests rules = ArchTests.in(Rules.class);
+        public static final ArchRules rules = ArchRules.in(Rules.class);
     }
 
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithIgnoredRuleLibrary {
         @ArchTest
-        public static final ArchTests rules = ArchTests.in(IgnoredRules.class);
+        public static final ArchRules rules = ArchRules.in(IgnoredRules.class);
     }
 
     public static class Rules {
@@ -288,11 +288,11 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         }
 
         @ArchTest
-        public static final ArchTests subRules = ArchTests.in(IgnoredSubRules.class);
+        public static final ArchRules subRules = ArchRules.in(IgnoredSubRules.class);
 
         @ArchTest
         @ArchIgnore
-        public static final ArchTests ignoredSubRules = ArchTests.in(Rules.class);
+        public static final ArchRules ignoredSubRules = ArchRules.in(Rules.class);
     }
 
     public static class IgnoredSubRules {
@@ -329,8 +329,8 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @AnalyzeClasses(packages = "some.pkg")
     public static class ArchTestWithRulesWithAbstractBaseClass {
         @ArchTest
-        ArchTests fieldRules = ArchTests.in(ArchUnitRunnerRunsRuleFieldsTest.ArchTestWithAbstractBaseClass.class);
+        ArchRules fieldRules = ArchRules.in(ArchUnitRunnerRunsRuleFieldsTest.ArchTestWithAbstractBaseClass.class);
         @ArchTest
-        ArchTests methodRules = ArchTests.in(ArchUnitRunnerRunsMethodsTest.ArchTestWithAbstractBaseClass.class);
+        ArchRules methodRules = ArchRules.in(ArchUnitRunnerRunsMethodsTest.ArchTestWithAbstractBaseClass.class);
     }
 }

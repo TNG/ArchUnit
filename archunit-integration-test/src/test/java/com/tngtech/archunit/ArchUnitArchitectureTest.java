@@ -16,8 +16,8 @@ import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.junit.AnalyzeClasses;
-import com.tngtech.archunit.junit.ArchRules;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.ArchTests;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
@@ -57,7 +57,7 @@ public class ArchUnitArchitectureTest {
             .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit");
 
     @ArchTest
-    public static final ArchRules importer_rules = ArchRules.in(ImporterRules.class);
+    public static final ArchTests importer_rules = ArchTests.in(ImporterRules.class);
 
     @ArchTest
     public static final ArchRule types_are_only_resolved_via_reflection_in_allowed_places =
@@ -66,7 +66,7 @@ public class ArchUnitArchitectureTest {
                     .as("no classes should illegally resolve classes via reflection");
 
     @ArchTest
-    public static final ArchRules public_API_rules = ArchRules.in(PublicAPIRules.class);
+    public static final ArchTests public_API_rules = ArchTests.in(PublicAPIRules.class);
 
     private static DescribedPredicate<JavaCall<?>> typeIsIllegallyResolvedViaReflection() {
         DescribedPredicate<JavaCall<?>> explicitlyAllowedUsage =
