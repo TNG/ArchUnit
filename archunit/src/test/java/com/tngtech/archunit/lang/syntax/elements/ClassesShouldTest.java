@@ -676,6 +676,68 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*<%s>.*annotated.*", quote(correctClass.getName())));
     }
 
+    @DataProvider
+    public static Object[][] metaAnnotated_rules() {
+        return $$(
+                $(classes().should().beMetaAnnotatedWith(SomeMetaAnnotation.class),
+                        SomeAnnotatedClass.class, String.class),
+                $(classes().should(ArchConditions.beMetaAnnotatedWith(SomeMetaAnnotation.class)),
+                        SomeAnnotatedClass.class, String.class),
+                $(classes().should().beMetaAnnotatedWith(SomeMetaAnnotation.class.getName()),
+                        SomeAnnotatedClass.class, String.class),
+                $(classes().should(ArchConditions.beMetaAnnotatedWith(SomeMetaAnnotation.class.getName())),
+                        SomeAnnotatedClass.class, String.class),
+                $(classes().should().beMetaAnnotatedWith(annotation(SomeMetaAnnotation.class)),
+                        SomeAnnotatedClass.class, String.class),
+                $(classes().should(ArchConditions.beMetaAnnotatedWith(annotation(SomeMetaAnnotation.class))),
+                        SomeAnnotatedClass.class, String.class));
+    }
+
+    @Test
+    @UseDataProvider("metaAnnotated_rules")
+    public void metaAnnotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
+        EvaluationResult result = rule.evaluate(importClasses(correctClass, wrongClass));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains(String.format("classes should be meta-annotated with @%s", SomeMetaAnnotation.class.getSimpleName()))
+                .containsPattern(String.format("Class <%s> is not meta-annotated with @%s in %s",
+                        quote(wrongClass.getName()),
+                        SomeMetaAnnotation.class.getSimpleName(),
+                        locationPattern(String.class)))
+                .doesNotMatch(String.format(".*<%s>.*meta-annotated.*", quote(correctClass.getName())));
+    }
+
+    @DataProvider
+    public static Object[][] notMetaAnnotated_rules() {
+        return $$(
+                $(classes().should().notBeMetaAnnotatedWith(SomeMetaAnnotation.class),
+                        String.class, SomeAnnotatedClass.class),
+                $(classes().should(ArchConditions.notBeMetaAnnotatedWith(SomeMetaAnnotation.class)),
+                        String.class, SomeAnnotatedClass.class),
+                $(classes().should().notBeMetaAnnotatedWith(SomeMetaAnnotation.class.getName()),
+                        String.class, SomeAnnotatedClass.class),
+                $(classes().should(ArchConditions.notBeMetaAnnotatedWith(SomeMetaAnnotation.class.getName())),
+                        String.class, SomeAnnotatedClass.class),
+                $(classes().should().notBeMetaAnnotatedWith(annotation(SomeMetaAnnotation.class)),
+                        String.class, SomeAnnotatedClass.class),
+                $(classes().should(ArchConditions.notBeMetaAnnotatedWith(annotation(SomeMetaAnnotation.class))),
+                        String.class, SomeAnnotatedClass.class));
+    }
+
+    @Test
+    @UseDataProvider("notMetaAnnotated_rules")
+    public void notMetaAnnotatedWith(ArchRule rule, Class<?> correctClass, Class<?> wrongClass) {
+        EvaluationResult result = rule.evaluate(importClasses(correctClass, wrongClass));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("classes should not be meta-annotated with @" + SomeMetaAnnotation.class.getSimpleName())
+                .containsPattern(String.format("Class <%s> is meta-annotated with @%s in %s",
+                        quote(wrongClass.getName()),
+                        SomeMetaAnnotation.class.getSimpleName(),
+                        locationPattern(getClass())))
+                .doesNotMatch(String.format(".*<%s>.*meta-annotated.*", quote(correctClass.getName())));
+    }
+
     /**
      * Compare {@link CanBeAnnotatedTest#annotatedWith_Retention_Source_is_rejected}
      */
@@ -1971,8 +2033,16 @@ public class ClassesShouldTest {
     private static class PrivateClass {
     }
 
+    @SomeAnnotation
     @RuntimeRetentionAnnotation
     private static class SomeAnnotatedClass {
+    }
+
+    @interface SomeMetaAnnotation {
+    }
+
+    @SomeMetaAnnotation
+    @interface SomeAnnotation {
     }
 
     private static class NestedClassWithSomeMoreClasses {
