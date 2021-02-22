@@ -1,11 +1,11 @@
 'use strict';
 
 import {Vector} from '../infrastructure/vectors'
-import {Circle, CircleWithFixablePosition, Rect, Shape, ZeroShape} from '../infrastructure/shapes'
+import {CircleWithFixablePosition, Rect, Shape, ZeroShape} from '../infrastructure/shapes'
 import {Node} from './node'
 
 abstract class NodeShape {
-  protected _node: any
+  protected _node: Node
   // private _listener: ShapeListener
   private readonly relativePosition: Vector
   private absoluteReferenceShape: Shape
@@ -114,7 +114,7 @@ class NodeCircle extends NodeShape {
   //   return this.absoluteFixableCircle.containsPoint(vector);
   // }
   //
-  get absoluteShape(): Shape {
+  get absoluteShape(): CircleWithFixablePosition {
     return this.absoluteFixableCircle;
   }
   //

@@ -3,53 +3,59 @@
 import {Vector} from "../infrastructure/vectors";
 import {SVG} from "../infrastructure/svg"
 import {SvgSelection} from "../infrastructure/svg-selection";
+import {NodeView} from "./node-view";
+import {NodeDescription} from "./node";
 
-const init = (transitionDuration: number, svg: SVG, document: Document) => {
-  class View {
-    private _svgElement: SvgSelection
-    private _svgElementForChildren: SvgSelection
-    private _svgSelectionForDependencies: SvgSelection
-    private _position: Vector
+interface RootViewFactory {
+  getRootView(nodeDescription: NodeDescription): RootView
+}
 
-    constructor(fullNodeName: string, onkeyupHandler: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any)) {
-      this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
+export class RootView {
+  private _svgElement: SvgSelection
+  private _svgElementForChildren: SvgSelection
+  private _svgSelectionForDependencies: SvgSelection
+  private _position: Vector
+  private _transitionDuration: number;
 
-      this._svgElementForChildren = this._svgElement.addGroup();
-      this._svgSelectionForDependencies = this._svgElement.addGroup();
+  constructor(fullNodeName: string,svg: SVG, transitionDuration: number) {
+    this._transitionDuration = transitionDuration; // eslint-disable-line no-unused-vars
+    this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
 
-      document.onkeyup = onkeyupHandler;
-    }
-
-    get position() {
-      return this._position;
-    }
-
-    get svgElement() {
-      return this._svgElement;
-    }
-
-    addChildView(childView: View) {
-      this._svgElementForChildren.addChild(childView._svgElement);
-    }
-
-    get svgSelectionForDependencies() {
-      return this._svgSelectionForDependencies;
-    }
-
-    jumpToPosition(position: Vector) {
-      this._svgElement.translate(position);
-      this._position = Vector.from(position);
-    }
-
-    moveToPosition(position: Vector) {
-      this._position = Vector.from(position);
-      return this._svgElement.createTransitionWithDuration(transitionDuration)
-        .step(svgSelection => svgSelection.translate(position))
-        .finish();
-    }
+    this._svgElementForChildren = this._svgElement.addGroup();
+    this._svgSelectionForDependencies = this._svgElement.addGroup();
   }
 
-  return View;
-};
+  get position() {
+    return this._position;
+  }
+
+  get svgElement() {
+    return this._svgElement;
+  }
+
+  addChildView(childView: NodeView) {
+    this._svgElementForChildren.addChild(childView._svgElement);
+  }
+
+  get svgSelectionForDependencies() {
+    return this._svgSelectionForDependencies;
+  }
+
+  jumpToPosition(position: Vector) {
+    this._svgElement.translate(position);
+    this._position = Vector.from(position);
+  }
+
+  moveToPosition(position: Vector) {
+    this._position = Vector.from(position);
+    return this._svgElement.createTransitionWithDuration(this._transitionDuration)
+      .step(svgSelection => svgSelection.translate(position))
+      .finish();
+  }
+}
+
+const init = (transitionDuration: number, svg: SVG): RootViewFactory => ({
+  getRootView: (nodeDescription: NodeDescription) => new RootView(nodeDescription.fullName, svg, transitionDuration)
+});
 
 module.exports = {init};

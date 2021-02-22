@@ -6,9 +6,9 @@ import {Vector} from "./vectors";
 const d3 = require('d3');
 
 class D3Element {
-  private _d3Select: Selection<SVGElement, {}, HTMLElement, any>
+  private _d3Select: Selection<SVGElement, any, HTMLElement, any>
 
-  constructor(selection: Selection<SVGElement, {}, HTMLElement, any>) {
+  constructor(selection: Selection<SVGElement, any, HTMLElement, any>) {
     this._d3Select = selection;
   }
 
@@ -60,11 +60,11 @@ class D3Element {
 }
 
 class Transition extends d3.Transition {
-  constructor(transition: d3.Transition<SVGElement, {}, HTMLElement, any>) {
+  constructor(transition: d3.Transition<SVGElement, any, HTMLElement, any>) {
     super(transition);
   }
 
-  step(doWithSelection: (transition: Transition) => Selection<SVGElement, {}, HTMLElement, any>) {
+  step(doWithSelection: (transition: Transition) => Selection<SVGElement, any, HTMLElement, any>) {
     doWithSelection(this);
     return this;
   }
@@ -75,23 +75,23 @@ class Transition extends d3.Transition {
 }
 
 class SvgSelection extends D3Element {
-  get domElement() {
+  get domElement(): SVGElement {
     return this.get().node();
   }
 
-  get width() {
+  get width(): number {
     return parseInt(this.get().attr('width'));
   }
 
-  set width(newWidth) {
+  set width(newWidth: number) {
     this.get().attr('width', newWidth)
   }
 
-  get height() {
+  get height(): number {
     return parseInt(this.get().attr('height'));
   }
 
-  set height(newHeight) {
+  set height(newHeight: number) {
     this.get().attr('height', newHeight);
   }
 
@@ -100,37 +100,37 @@ class SvgSelection extends D3Element {
     this.height = height;
   }
 
-  addGroup(attributes: Map<string, string> | null = null) {
+  addGroup(attributes: Map<string, string> | null = null): SvgSelection {
     const group = this.get().append('g');
     Object.keys(attributes || {}).forEach(key => group.attr(key, attributes.get(key)));
     return new SvgSelection(group);
   }
 
-  addRect() {
+  addRect(): SvgSelection {
     return new SvgSelection(this.get().append('rect'));
   }
 
-  addCircle() {
+  addCircle(): SvgSelection {
     return new SvgSelection(this.get().append('circle'));
   }
 
-  addText(text: string) {
+  addText(text: string): SvgSelection {
     return new SvgSelection(this.get().append('text').text(text));
   }
 
-  addTSpan(text: string) {
+  addTSpan(text: string): SvgSelection {
     return new SvgSelection(this.get().append('tspan').text(text));
   }
 
-  addLine() {
+  addLine(): SvgSelection {
     return new SvgSelection(this.get().append('line'));
   }
 
-  addChild(svgSelection: SvgSelection) {
+  addChild(svgSelection: SvgSelection): void {
     this.domElement.appendChild(svgSelection.domElement)
   }
 
-  detachFromParent() {
+  detachFromParent(): void {
     d3.select(this.domElement).remove();
   }
 
@@ -138,51 +138,51 @@ class SvgSelection extends D3Element {
     return new Transition(this.get().transition().duration(duration));
   }
 
-  // get textWidth() {
-  //   return this.domElement.getComputedTextLength();
-  // }
+  get textWidth(): number {
+    return (this.domElement as SVGTextContentElement).getComputedTextLength();
+  }
 
   set cssClasses(cssClasses: string[]) {
     this.get().attr('class', cssClasses.join(' '));
   }
 
-  addCssClass(cssClass: string) {
+  addCssClass(cssClass: string): void {
     this.domElement.classList.add(cssClass);
   }
 
-  removeCssClasses(...cssClasses: string[]) {
+  removeCssClasses(...cssClasses: string[]): void {
     this.domElement.classList.remove(...cssClasses);
   }
 
-  show() {
+  show(): void {
     this.get().style('visibility', 'inherit');
   }
 
-  hide() {
+  hide(): void {
     this.get().style('visibility', 'hidden');
   }
 
-  onClick(clickHandler: (this: GlobalEventHandlers, ev: MouseEvent) => any) {
+  onClick(clickHandler: (this: GlobalEventHandlers, ev: MouseEvent) => any): void {
     this.domElement.onclick = clickHandler;
   }
 
-  onDrag(dragHandler: (x: number, y: number) => void) {
+  onDrag(dragHandler: (x: number, y: number) => void): void {
     this.get().call(d3.drag().on('drag', () => dragHandler(d3.event.dx, d3.event.dy)));
   }
 
-  onMouseOver(mouseOverHandler: (this: GlobalEventHandlers, ev: MouseEvent) => any) {
+  onMouseOver(mouseOverHandler: (this: GlobalEventHandlers, ev: MouseEvent) => any): void {
     this.get().on('mouseover', mouseOverHandler);
   }
 
-  onMouseOut(mouseOutHandler: (this: GlobalEventHandlers, ev: MouseEvent) => any) {
+  onMouseOut(mouseOutHandler: (this: GlobalEventHandlers, ev: MouseEvent) => any): void {
     this.get().on('mouseout', mouseOutHandler);
   }
 
-  enablePointerEvents() {
+  enablePointerEvents(): void {
     this.get().style('pointer-events', 'all');
   }
 
-  disablePointerEvents() {
+  disablePointerEvents(): void {
     this.get().style('pointer-events', 'none');
   }
 
@@ -190,34 +190,34 @@ class SvgSelection extends D3Element {
     return d3.mouse(this.domElement);
   }
 
-  static fromDom(domElement: Element) {
+  static fromDom(domElement: Element): SvgSelection {
     return new SvgSelection(d3.select(domElement));
   }
 }
 
 class DivSelection extends D3Element {
 
-  get scrollLeft() {
+  get scrollLeft(): number {
     return this.get().node().scrollLeft;
   }
 
-  get scrollTop() {
+  get scrollTop(): number {
     return this.get().node().scrollTop;
   }
 
-  set scrollLeft(value) {
+  set scrollLeft(value: number) {
     this.get().node().scrollLeft = value;
   }
 
-  set scrollTop(value) {
+  set scrollTop(value: number) {
     this.get().node().scrollTop = value;
   }
 
-  static fromDom(domElement: Element) {
+  static fromDom(domElement: Element): DivSelection {
     return new DivSelection(d3.select(domElement));
   }
 }
 
-export {SvgSelection}
+export {SvgSelection, DivSelection}
 // module.exports.SvgSelection = SvgSelection;
 // module.exports.DivSelection = DivSelection;

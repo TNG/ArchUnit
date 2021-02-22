@@ -27,13 +27,16 @@ class Shape {
 }
 
 class Circle extends Shape {
-  private readonly r: number
+  private readonly _r: number
 
   constructor(centerPosition: Vector, r: number) {
     super(centerPosition);
-    this.r = r;
+    this._r = r;
   }
 
+  get r(): number {
+    return this._r;
+  }
   // containsRelativeCircle(relativeCircle, padding = 0) {
   //   return relativeCircle.centerPosition.length() + relativeCircle.r + padding <= this.r;
   // }

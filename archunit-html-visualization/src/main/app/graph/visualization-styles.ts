@@ -3,8 +3,6 @@
 const NODE_TEXT_STYLE_SELECTOR = '.node text';
 const CIRCLE_STYLE_SELECTOR = '.circle';
 
-const LINE_STYLE_PREFIX = 'line.';
-
 interface VisualizationStyles {
   getNodeFontSize: () => number,
 
@@ -19,18 +17,18 @@ interface VisualizationStyles {
 
 const DEPENDENCY_TEXT_STYLE_SELECTOR = 'text.access';
 
-const rgbToHex = (rgbString: string, defaultHex:string) => {
-  if (!rgbString) {
-    return defaultHex;
-  }
-  let numbersAsString: string[] = rgbString.split(",");
-  let numbers = numbersAsString.map(n => parseInt(n.replace(/[rgb()\s]/g, "")));
-  const numbersAsHex = numbers.map(n => {
-    const hex = n.toString(16);
-    return hex.length === 1 ? "0" + hex : hex;
-  });
-  return numbersAsHex.reduce((acc, n) => acc + n, "#");
-};
+// const rgbToHex = (rgbString: string, defaultHex:string) => {
+//   if (!rgbString) {
+//     return defaultHex;
+//   }
+//   const numbersAsString: string[] = rgbString.split(",");
+//   const numbers = numbersAsString.map(n => parseInt(n.replace(/[rgb()\s]/g, "")));
+//   const numbersAsHex = numbers.map(n => {
+//     const hex = n.toString(16);
+//     return hex.length === 1 ? "0" + hex : hex;
+//   });
+//   return numbersAsHex.reduce((acc, n) => acc + n, "#");
+// };
 
 const stylesFrom = (styleSheet: CSSStyleSheet): VisualizationStyles => {
   const unique = (elements: CSSPageRule[]): CSSPageRule => {

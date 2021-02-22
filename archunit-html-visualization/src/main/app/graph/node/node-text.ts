@@ -1,6 +1,6 @@
 'use strict';
 
-import {InnerNode, Node} from "./node";
+import {InnerNode} from "./node";
 import {VisualizationStyles} from "../visualization-styles";
 
 const init = (visualizationStyles: VisualizationStyles) => {
