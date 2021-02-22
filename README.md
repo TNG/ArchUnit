@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/TNG/ArchUnit.svg?branch=main)](https://travis-ci.org/TNG/ArchUnit)
+[![CI](https://github.com/TNG/ArchUnit/actions/workflows/build.yml/badge.svg)](https://github.com/TNG/ArchUnit/actions/workflows/build.yml?query=branch%3Amain++)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.tngtech.archunit/archunit/badge.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.tngtech.archunit%22%20)
 [![License](https://img.shields.io/github/license/TNG/ArchUnit.svg)](https://github.com/TNG/ArchUnit/blob/main/LICENSE)
 
