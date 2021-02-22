@@ -3,8 +3,7 @@ import java.time.LocalDate
 import static java.time.format.DateTimeFormatter.ofPattern
 
 def createArticleText = { dateText, version ->
-    """
-    ---
+    """    ---
     layout: splash
     title:  "New release of ArchUnit (v${version})"
     date:   ${dateText} 12:00:00
@@ -14,7 +13,7 @@ def createArticleText = { dateText, version ->
     A new release of ArchUnit (v${version}) is out. For details see [the release on GitHub](https://github.com/TNG/ArchUnit/releases/tag/v${
         version
     } "ArchUnit v${version} on GitHub").
-""".stripIndent().trim()
+""".stripIndent()
 }
 
 task createReleaseNews {
