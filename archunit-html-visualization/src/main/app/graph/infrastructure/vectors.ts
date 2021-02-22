@@ -2,7 +2,7 @@
 
 const defaultCoordinate = Math.sqrt(2) / 2;
 
-const vectors = {
+// const vectors = {
   // distance: (vector1, vector2) => Vector.between(vector1, vector2).length(),
   //
   // norm: (vector, scale) => Vector.from(vector).norm(scale),
@@ -12,7 +12,7 @@ const vectors = {
   // getOrthogonalVector: vector => new Vector(vector.y, -vector.x),
   //
   // add: (vector1, vector2) => Vector.from(vector1).add(vector2)
-};
+// };
 
 class Vector {
   private _x: number
@@ -26,17 +26,17 @@ class Vector {
     this._y = y;
   }
 
-  revert() {
-    this._x = -this._x;
-    this._y = -this._y;
-    return this;
-  }
+  // revert(): Vector {
+  //   this._x = -this._x;
+  //   this._y = -this._y;
+  //   return this;
+  // }
 
-  get x() {
+  get x(): number {
     return this._x
   }
 
-  get y() {
+  get y(): number {
     return this._y
   }
   // revertIf(condition) {
@@ -98,7 +98,7 @@ class Vector {
   //   return Vector.equal(this, otherVector);
   // }
 
-  static from(vector: Vector) {
+  static from(vector: Vector): Vector {
     return new Vector(vector._x, vector._y);
   }
   //
@@ -149,4 +149,4 @@ class FixableVector extends Vector {
 const defaultVector = new Vector(defaultCoordinate, defaultCoordinate);
 const zeroVector = new Vector(0, 0);
 
-export{Vector, FixableVector, vectors};
+export{Vector, FixableVector};

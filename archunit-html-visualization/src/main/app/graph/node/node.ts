@@ -2,8 +2,12 @@
 
 // const predicates = require('../infrastructure/predicates');
 import {NodeType} from "./node-type";
-import {NodeShape} from "./node-shapes";
+import {NodeView} from "./node-view";
+import {RootView} from "./root-view";
+import {NodeCircle, NodeShape} from "./node-shapes";
 import {VisualizationStyles} from "../visualization-styles";
+import {JsonNode} from "./json-types";
+import {Circle, CircleWithFixablePosition} from "../infrastructure/shapes";
 
 const nodeText = require('./node-text');
 // const {NodeShape, NodeCircle, RootRect} = require('./node-shapes');
@@ -11,21 +15,6 @@ const nodeText = require('./node-text');
 // const sortInOrder = require('../infrastructure/graph-algorithms').sortInOrder;
 
 // const nodeTypes = require('./node-types.json');
-
-const init = (NodeView: NodeView, RootView: RootView, /*visualizationFunctions: VisualizationFunctions,*/ visualizationStyles: VisualizationStyles) => {
-
-  const NodeText = nodeText.init(visualizationStyles);
-
-  // const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
-  // const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
-  // const calculateDefaultRadiusForNodeWithOneChild = visualizationFunctions.calculateDefaultRadiusForNodeWithOneChild;
-  // const createForceLinkSimulation = visualizationFunctions.createForceLinkSimulation;
-  // const createForceCollideSimulation = visualizationFunctions.createForceCollideSimulation;
-  // const runSimulations = visualizationFunctions.runSimulations;
-  // const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
-
-  return Root;
-};
 
 class NodeDescription {
   name: string
@@ -42,11 +31,11 @@ class NodeDescription {
 class Node {
   private _description: NodeDescription
   protected _parent: Node
-  private _layerWithinParentNode: bigint
+  private _layerWithinParentNode: number
   private _children: Node[]
   protected _nodeShape: NodeShape
 
-  constructor(jsonNode: JsonNode, layerWithinParentNode: bigint) {
+  constructor(jsonNode: JsonNode, layerWithinParentNode: number) {
     this._layerWithinParentNode = layerWithinParentNode;
     this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
     // this._folded = false;
@@ -93,12 +82,12 @@ class Node {
     // return this._folded ? [] : this._filteredChildren;
   }
 
-  _isLeaf() {
+  _isLeaf(): boolean {
     return this._children.length === 0;
     // return this._filteredChildren.length === 0;
   }
 
-  isCurrentlyLeaf() {
+  isCurrentlyLeaf(): boolean {
     return this._isLeaf(); // || this._folded;
   }
   //
@@ -130,7 +119,7 @@ class Node {
   //   throw new Error('not implemented');
   // }
 
-  getNameWidth() {
+  getNameWidth(): number {
     throw new Error('not implemented');
   }
   //
@@ -142,7 +131,7 @@ class Node {
   //   throw new Error('not implemented');
   // }
 
-  isRoot() {
+  isRoot(): boolean {
     throw new Error('not implemented');
   }
 
@@ -209,27 +198,27 @@ class Node {
    * circle around those for the current node (but the circle packing is not applied to the nodes, it is only
    * for the radius-calculation)
    */
-  _initialLayout(): Promise<NodeShape> {
-    const childrenPromises = this.getCurrentChildren().map(d => d._initialLayout());
-
-    const promises = [];
-    if (this.isCurrentlyLeaf()) {
-      promises.push(this._nodeShape.changeRadius(calculateDefaultRadius(this)));
-    } else if (this.getCurrentChildren().length === 1) {
-      const onlyChild = this.getCurrentChildren()[0];
-      promises.push(onlyChild._nodeShape.moveToPosition(0, 0));
-      promises.push(this._nodeShape.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
-        onlyChild.getRadius(), visualizationStyles.getNodeFontSize())));
-    } else {
-      const childCircles = this.getCurrentChildren().map(c => ({
-        r: c.getRadius()
-      }));
-      const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
-      const r = Math.max(circle.r, calculateDefaultRadius(this));
-      promises.push(this._nodeShape.changeRadius(r));
-    }
-    return Promise.all([...childrenPromises, ...promises]);
-  }
+  // _initialLayout(): Promise<NodeShape> {
+  //   const childrenPromises = this.getCurrentChildren().map(d => d._initialLayout());
+  //
+  //   const promises = [];
+  //   if (this.isCurrentlyLeaf()) {
+  //     promises.push(this._nodeShape.changeRadius(calculateDefaultRadius(this)));
+  //   } else if (this.getCurrentChildren().length === 1) {
+  //     const onlyChild = this.getCurrentChildren()[0];
+  //     promises.push(onlyChild._nodeShape.moveToPosition(0, 0));
+  //     promises.push(this._nodeShape.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
+  //       onlyChild.getRadius(), visualizationStyles.getNodeFontSize())));
+  //   } else {
+  //     const childCircles = this.getCurrentChildren().map(c => ({
+  //       r: c.getRadius()
+  //     }));
+  //     const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
+  //     const r = Math.max(circle.r, calculateDefaultRadius(this));
+  //     promises.push(this._nodeShape.changeRadius(r));
+  //   }
+  //   return Promise.all([...childrenPromises, ...promises]);
+  // }
 
   // _reverseDrawOrder(nodesInDrawOrder) {
   //   nodesInDrawOrder.reverse().forEach(node => {
@@ -240,7 +229,7 @@ class Node {
 }
 
 class Root extends Node {
-  constructor(jsonNode, onSizeChanged, onSizeExpanded, onJumpedToPosition) {
+  constructor(jsonNode: JsonNode) {
     super(jsonNode, 0);
 
     // this._view = new RootView(this.getFullName(), event => {
@@ -438,13 +427,13 @@ class Root extends Node {
   //   return [this];
   // }
 
-  _relayoutCompletely() {
-    // this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node._nodeShape.unfix()));
-
-    const promiseInitialLayout = this._initialLayout();
-    const promiseForceLayout = this._forceLayout();
-    return Promise.all([promiseInitialLayout, promiseForceLayout]);
-  }
+  // _relayoutCompletely() {
+  //   // this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node._nodeShape.unfix()));
+  //
+  //   const promiseInitialLayout = this._initialLayout();
+  //   const promiseForceLayout = this._forceLayout();
+  //   return Promise.all([promiseInitialLayout, promiseForceLayout]);
+  // }
 
   /**
    * We go top bottom through the tree, always applying a force-layout to all nodes so far (that means to all nodes
@@ -505,12 +494,13 @@ class Root extends Node {
     //
     // return Promise.all(promises);
   }
-};
+}
 
 class InnerNode extends Node {
   // private _nodeShape: NodeShape
+  private _view: NodeView
 
-  constructor(jsonNode, layerWithinParentNode: bigint, root: Root, parent: Node) {
+  constructor(jsonNode: JsonNode, layerWithinParentNode: number, root: Root, parent: Node) {
     super(jsonNode, layerWithinParentNode);
 
     // this._root = root;
@@ -552,11 +542,11 @@ class InnerNode extends Node {
     // this._setFilteredChildren(this._originalChildren);
   }
 
-  get absoluteFixableCircle() {
-    return this._nodeShape.absoluteFixableCircle;
+  get absoluteFixableCircle(): CircleWithFixablePosition {
+    return (this._nodeShape as NodeCircle).absoluteShape;
   }
   //
-  getRadius() {
+  getRadius(): number {
     return this.absoluteFixableCircle.r;
   }
   //
@@ -725,7 +715,7 @@ class InnerNode extends Node {
   //   this._view.hide();
   // }
 
-  getNameWidth() {
+  getNameWidth(): number {
     return this._view.getTextWidth();
   }
   //
@@ -751,7 +741,7 @@ class InnerNode extends Node {
   //   return [...predecessors, this];
   // }
 
-  isRoot() {
+  isRoot(): boolean {
     return false;
   }
 
@@ -790,4 +780,25 @@ class InnerNode extends Node {
   // }
 }
 
-export {Node, InnerNode, init};
+interface RootFactory {
+  getRoot(jsonNode: JsonNode): Root
+}
+
+const init = (NodeView: NodeView, RootView: RootView, /*visualizationFunctions: VisualizationFunctions,*/ visualizationStyles: VisualizationStyles): RootFactory => {
+
+  const NodeText = nodeText.init(visualizationStyles);
+
+  // const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
+  // const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;
+  // const calculateDefaultRadiusForNodeWithOneChild = visualizationFunctions.calculateDefaultRadiusForNodeWithOneChild;
+  // const createForceLinkSimulation = visualizationFunctions.createForceLinkSimulation;
+  // const createForceCollideSimulation = visualizationFunctions.createForceCollideSimulation;
+  // const runSimulations = visualizationFunctions.runSimulations;
+  // const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
+
+  return {
+    getRoot: (jsonNode: JsonNode) => new Root(jsonNode)
+  };
+};
+
+export {Node, NodeDescription, InnerNode, init};

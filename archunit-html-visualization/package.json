@@ -19,8 +19,9 @@
       "sourceType": "module"
     },
     "extends": [
-      "plugin:@typescript-eslint/recommended",
-      "eslint:recommended"
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended"
     ],
     "env": {
       "es6": true,
