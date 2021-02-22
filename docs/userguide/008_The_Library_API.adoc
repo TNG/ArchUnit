@@ -299,7 +299,7 @@ an arbitrary number of packages; compare the core API)
 7. Dependencies may contain direction hints (e.g. `-up\->`) or color directives (e.g. `-[#green]\->`)
 
 You can compare this
-https://github.com/TNG/ArchUnit-Examples/blob/master/example-plain/src/test/resources/com/tngtech/archunit/exampletest/shopping_example.puml[diagram of ArchUnit-Examples].
+https://github.com/TNG/ArchUnit-Examples/blob/main/example-plain/src/test/resources/com/tngtech/archunit/exampletest/shopping_example.puml[diagram of ArchUnit-Examples].
 
 
 === Freezing Arch Rules
