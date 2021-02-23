@@ -1,6 +1,6 @@
 'use strict';
 
-const {buildFilterCollection} = require('./filter');
+// const {buildFilterCollection} = require('./filter');
 
 const init = (Root, Dependencies, View, visualizationStyles) => {
 
@@ -46,10 +46,10 @@ const init = (Root, Dependencies, View, visualizationStyles) => {
     }
 
     _createFilters() {
-      this._filterCollection = buildFilterCollection()
-        .addFilterGroup(this._root.filterGroup)
-        .addFilterGroup(this._dependencies.filterGroup)
-        .build();
+      // this._filterCollection = buildFilterCollection()
+      //   .addFilterGroup(this._root.filterGroup)
+      //   .addFilterGroup(this._dependencies.filterGroup)
+      //   .build();
 
       this._root.filterGroup.getFilter('typeAndName').addDependentFilterKey('dependencies.nodeTypeAndName');
       this._root.filterGroup.getFilter('combinedFilter').addDependentFilterKey('dependencies.visibleNodes');

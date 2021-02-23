@@ -4,39 +4,36 @@
  * Some poor man's DI solution...
  */
 
-const visualizationFunctions = require('./visualization-functions');
 // const dependencyVisualizationFunctions = require('./dependency-visualization-functions');
-const node = require('./nodes/node');
+import {init as nodeInit} from './node/node';
 // const dependency = require('./dependencies/dependency');
 // const dependencies = require('./dependencies/dependencies');
-const guiElements = require('./infrastructure/gui-elements');
-const nodeView = require('./nodes/node-view');
-const rootView = require('./nodes/root-view');
+import {getEmbeddedVisualizationStyles, svg, documentInit, windowInit} from './infrastructure/gui-elements';
+import {init as nodeViewInit} from './node/node-view';
+import {init as rootViewInit} from './node/root-view';
 // const detailedDependencyView = require('./dependencies/detailed-dependency-view');
 // const dependencyView = require('./dependencies/dependency-view');
 const graphView = require('./graph-view');
-const visualizationData = require('./infrastructure/visualization-data');
+// const visualizationData = require('./infrastructure/visualization-data');
 
-const init = (getNodeView, getRootView, getDependencyView, getDetailedDependencyView, getGraphView, getVisualizationStyles, getVisualizationData) => {
+const TRANSITION_DURATION = 1000;
+// const TEXT_PADDING = 5;
 
-  const result = {
-    getVisualizationFunctions: () => visualizationFunctions.newInstance(),
+const init = (getNodeView, getRootView, getGraphView, getVisualizationStyles/*, getVisualizationData*/) => {
+
+  return {
     // getDependencyVisualizationFunctions: () => dependencyVisualizationFunctions.newInstance(),
-    getRoot: () => node.init(getNodeView(), getRootView(), result.getVisualizationFunctions(), getVisualizationStyles()),
+    getRoot: () => nodeInit(getNodeView(), getRootView(), getVisualizationStyles()),
     // getDependencyView,
     // getDetailedDependencyView,
     // getDependencyCreator: () => dependency.init(getDependencyView(), result.getDetailedDependencyView(), result.getDependencyVisualizationFunctions()),
     // getDependencies: () => dependencies.init(() => result.getDependencyCreator()),
     getVisualizationStyles,
     getGraphView,
-    getVisualizationData
+    // getVisualizationData
   };
-
-  return result;
 };
 
-const TRANSITION_DURATION = 1000;
-// const TEXT_PADDING = 5;
 
 module.exports = {
   newInstance: overrides => {
@@ -45,16 +42,16 @@ module.exports = {
     const transitionDuration = overrides.transitionDuration || TRANSITION_DURATION;
     // const textPadding = overrides.textPadding || TEXT_PADDING;
 
-    const guiElementsInstance = overrides.guiElements || guiElements;
+    // const guiElementsInstance = overrides.guiElements || guiElements;
 
-    const getVisualizationStyles = () => guiElementsInstance.getEmbeddedVisualizationStyles();
-    const getNodeView = () => overrides.NodeView || nodeView.init(transitionDuration, guiElementsInstance.svg);
-    const getRootView = () => overrides.RootView || rootView.init(transitionDuration, guiElementsInstance.svg, guiElementsInstance.document);
+    const getVisualizationStyles = () => getEmbeddedVisualizationStyles();
+    const getNodeView = () => overrides.NodeView || nodeViewInit(transitionDuration, svg);
+    const getRootView = () => overrides.RootView || rootViewInit(transitionDuration, svg/*, guiElementsInstance.document*/);
     // const getDetailedDependencyView = () => overrides.DetailedDependencyView || detailedDependencyView.init(transitionDuration, guiElementsInstance.svg, getVisualizationStyles(), textPadding);
     // const getDependencyView = () => overrides.DependencyView || dependencyView.init(transitionDuration);
-    const getGraphView = () => overrides.GraphView || graphView.init(transitionDuration, guiElementsInstance.svg, guiElementsInstance.document, guiElementsInstance.window);
-    const getVisualizationData = () => overrides.visualizationData || visualizationData;
+    const getGraphView = () => overrides.GraphView || graphView.init(transitionDuration, svg, documentInit, windowInit);
+    // const getVisualizationData = () => overrides.visualizationData || visualizationData;
 
-    return init(getNodeView, getRootView, getGraphView, getVisualizationStyles, getVisualizationData);
+    return init(getNodeView, getRootView, getGraphView, getVisualizationStyles/*, getVisualizationData*/);
   }
 };
