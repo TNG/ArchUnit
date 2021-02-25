@@ -25,28 +25,28 @@ export class RootView {
     this._svgSelectionForDependencies = this._svgElement.addGroup();
   }
 
-  get position() {
+  get position(): Vector {
     return this._position;
   }
 
-  get svgElement() {
+  get svgElement(): SvgSelection {
     return this._svgElement;
   }
 
-  addChildView(childView: NodeView) {
+  addChildView(childView: NodeView): void {
     this._svgElementForChildren.addChild(childView._svgElement);
   }
 
-  get svgSelectionForDependencies() {
+  get svgSelectionForDependencies(): SvgSelection {
     return this._svgSelectionForDependencies;
   }
 
-  jumpToPosition(position: Vector) {
+  jumpToPosition(position: Vector): void {
     this._svgElement.translate(position);
     this._position = Vector.from(position);
   }
 
-  moveToPosition(position: Vector) {
+  moveToPosition(position: Vector): Promise<void> {
     this._position = Vector.from(position);
     return this._svgElement.createTransitionWithDuration(this._transitionDuration)
       .step(svgSelection => svgSelection.translate(position))

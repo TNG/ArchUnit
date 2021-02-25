@@ -1,7 +1,5 @@
 'use strict';
 
-const defaultCoordinate = Math.sqrt(2) / 2;
-
 // const vectors = {
   // distance: (vector1, vector2) => Vector.between(vector1, vector2).length(),
   //
@@ -145,8 +143,5 @@ class FixableVector extends Vector {
   //   this._updateFixPosition();
   // }
 }
-
-const defaultVector = new Vector(defaultCoordinate, defaultCoordinate);
-const zeroVector = new Vector(0, 0);
 
 export{Vector, FixableVector};
