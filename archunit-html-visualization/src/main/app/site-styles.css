@@ -2,6 +2,10 @@ body {
     min-height: 100%;
 }
 
+html {
+    height: 100%;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;

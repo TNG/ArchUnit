@@ -6,3 +6,7 @@ export interface JsonNode {
   fullName: string
   type: NodeType
 }
+
+export interface JsonGraph {
+  root: JsonNode
+}
