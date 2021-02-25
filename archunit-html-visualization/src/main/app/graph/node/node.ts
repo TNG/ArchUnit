@@ -7,9 +7,8 @@ import {RootView} from "./root-view";
 import {NodeCircle, NodeShape} from "./node-shapes";
 import {VisualizationStyles} from "../visualization-styles";
 import {JsonNode} from "./json-types";
-import {Circle, CircleWithFixablePosition} from "../infrastructure/shapes";
+import {CircleWithFixablePosition} from "../infrastructure/shapes";
 
-const nodeText = require('./node-text');
 // const {NodeShape, NodeCircle, RootRect} = require('./node-shapes');
 // const {buildFilterGroup} = require('../filter');
 // const sortInOrder = require('../infrastructure/graph-algorithms').sortInOrder;
@@ -77,10 +76,10 @@ class Node {
   //   return this._originalChildren;
   // }
 
-  getCurrentChildren(): Node[] {
-    return this._children;
-    // return this._folded ? [] : this._filteredChildren;
-  }
+  // getCurrentChildren(): Node[] {
+  //   return this._children;
+  //   // return this._folded ? [] : this._filteredChildren;
+  // }
 
   _isLeaf(): boolean {
     return this._children.length === 0;
@@ -131,9 +130,9 @@ class Node {
   //   throw new Error('not implemented');
   // }
 
-  isRoot(): boolean {
-    throw new Error('not implemented');
-  }
+  // isRoot(): boolean {
+  //   throw new Error('not implemented');
+  // }
 
   /**
    * used for folding all nodes containing no violations
@@ -407,9 +406,9 @@ class Root extends Node {
   //   throw new Error('the given node does not exist');
   // }
 
-  isRoot() {
-    return true;
-  }
+  // isRoot() {
+  //   return true;
+  // }
   //
   // _initialFold() {
   // }
@@ -440,7 +439,7 @@ class Root extends Node {
    * at the current level and all nodes above), while the nodes not on the current level are fixed (and so only
    * influence the other nodes)
    */
-  _forceLayout() {
+  // _forceLayout() {
     // const allLinks = this.getLinks();
     //
     // const allLayoutedNodesSoFar = new Map();
@@ -493,7 +492,7 @@ class Root extends Node {
     // this._listeners.forEach(listener => promises.push(listener.onLayoutChanged()));
     //
     // return Promise.all(promises);
-  }
+  // }
 }
 
 class InnerNode extends Node {
@@ -786,7 +785,7 @@ interface RootFactory {
 
 const init = (NodeView: NodeView, RootView: RootView, /*visualizationFunctions: VisualizationFunctions,*/ visualizationStyles: VisualizationStyles): RootFactory => {
 
-  const NodeText = nodeText.init(visualizationStyles);
+  // const NodeText = nodeText.init(visualizationStyles);
 
   // const packCirclesAndReturnEnclosingCircle = visualizationFunctions.packCirclesAndReturnEnclosingCircle;
   // const calculateDefaultRadius = visualizationFunctions.calculateDefaultRadius;

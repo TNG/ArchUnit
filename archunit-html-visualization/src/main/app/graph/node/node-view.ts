@@ -2,7 +2,6 @@
 
 import {NodeDescription} from "./node";
 import {SvgSelection} from "../infrastructure/svg-selection";
-import {Vector} from "../infrastructure/vectors";
 import {SVG} from "../infrastructure/svg";
 
 
@@ -34,9 +33,9 @@ class NodeView {
     // this._onClick(clickHandler);
   }
 
-  addChildView(childView: NodeView) {
-    this._svgElementForChildren.addChild(childView._svgElement);
-  }
+  // addChildView(childView: NodeView): void {
+  //   this._svgElementForChildren.addChild(childView._svgElement);
+  // }
 
   // get svgSelectionForDependencies() {
   //   return this._svgSelectionForDependencies;
@@ -46,7 +45,7 @@ class NodeView {
   //   this._svgElement.detachFromParent();
   // }
 
-  getTextWidth() {
+  getTextWidth(): number {
     return this._text.textWidth;
   }
 
@@ -81,22 +80,22 @@ class NodeView {
   //   return Promise.all([radiusPromise, textPromise]);
   // }
 
-  setRadius(r: number, textOffset: number) {
-    this._circle.radius = r;
-    this._text.offsetY = textOffset;
-  }
-
-  startMoveToPosition(position: Vector) {
-    return this._svgElement.createTransitionWithDuration(this._transitionDuration)
-      .step(svgSelection => svgSelection.translate(position))
-      .finish();
-  }
-
-  moveToPosition(position: Vector) {
-    return this._svgElement.createTransitionWithDuration(this._transitionDuration)
-      .step(svgSelection => svgSelection.translate(position))
-      .finish();
-  }
+  // setRadius(r: number, textOffset: number): void {
+  //   this._circle.radius = r;
+  //   this._text.offsetY = textOffset;
+  // }
+  //
+  // startMoveToPosition(position: Vector): Promise<void> {
+  //   return this._svgElement.createTransitionWithDuration(this._transitionDuration)
+  //     .step(svgSelection => svgSelection.translate(position))
+  //     .finish();
+  // }
+  //
+  // moveToPosition(position: Vector): Promise<void> {
+  //   return this._svgElement.createTransitionWithDuration(this._transitionDuration)
+  //     .step(svgSelection => svgSelection.translate(position))
+  //     .finish();
+  // }
 
   // _onClick(clickHandler) {
   //   this._circle.onClick(clickHandler);

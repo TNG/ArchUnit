@@ -186,7 +186,7 @@ class SvgSelection extends D3Element {
     this.get().style('pointer-events', 'none');
   }
 
-  getMousePosition() {
+  getMousePosition(): [number, number] {
     return d3.mouse(this.domElement);
   }
 
