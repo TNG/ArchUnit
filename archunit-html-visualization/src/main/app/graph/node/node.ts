@@ -2,8 +2,8 @@
 
 // const predicates = require('../infrastructure/predicates');
 import {NodeType} from "./node-type";
-import {NodeView} from "./node-view";
-import {RootView} from "./root-view";
+import {NodeView, NodeViewFactory} from "./node-view";
+import {RootView, RootViewFactory} from "./root-view";
 import {NodeCircle, NodeShape} from "./node-shapes";
 import {VisualizationStyles} from "../visualization-styles";
 import {JsonNode} from "./json-types";
@@ -783,7 +783,7 @@ interface RootFactory {
   getRoot(jsonNode: JsonNode): Root
 }
 
-const init = (NodeView: NodeView, RootView: RootView, /*visualizationFunctions: VisualizationFunctions,*/ visualizationStyles: VisualizationStyles): RootFactory => {
+const init = (nodeViewFactory: NodeViewFactory, rootViewFactory: RootViewFactory, /*visualizationFunctions: VisualizationFunctions,*/ visualizationStyles: VisualizationStyles): RootFactory => {
 
   // const NodeText = nodeText.init(visualizationStyles);
 
@@ -800,4 +800,4 @@ const init = (NodeView: NodeView, RootView: RootView, /*visualizationFunctions: 
   };
 };
 
-export {Node, NodeDescription, InnerNode, init};
+export {Node, NodeDescription, InnerNode, init, RootFactory};

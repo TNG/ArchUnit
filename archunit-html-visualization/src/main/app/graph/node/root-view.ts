@@ -58,4 +58,4 @@ const init = (transitionDuration: number, svg: SVG): RootViewFactory => ({
   getRootView: (nodeDescription: NodeDescription) => new RootView(nodeDescription.fullName, svg, transitionDuration)
 });
 
-export {init};
+export {init, RootViewFactory};

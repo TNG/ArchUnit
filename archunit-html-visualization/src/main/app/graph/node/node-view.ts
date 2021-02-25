@@ -112,4 +112,4 @@ const init = (transitionDuration: number, svg: SVG): NodeViewFactory => ({
 });
 
 
-export {init, NodeView};
+export {init, NodeView, NodeViewFactory};
