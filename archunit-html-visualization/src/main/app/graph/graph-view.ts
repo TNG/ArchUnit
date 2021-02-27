@@ -105,4 +105,4 @@ const init = (transitionDuration: number, svg: SVG, document: ArchUnitDocument, 
   getGraphView: (svgDomElement, svgContainerElement) => new GraphView(svgDomElement, svgContainerElement, transitionDuration, svg, document, window)
 });
 
-export {init, GraphViewFactory};
+export {init, GraphViewFactory, GraphView};

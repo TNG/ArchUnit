@@ -228,14 +228,14 @@ class Node {
 }
 
 class Root extends Node {
-  constructor(jsonNode: JsonNode) {
+  private _view: RootView;
+  private _mustRelayout: boolean;
+  private _updatePromise: Promise<void>;
+
+  constructor(jsonNode: JsonNode, rootViewFactory: RootViewFactory) {
     super(jsonNode, 0);
 
-    // this._view = new RootView(this.getFullName(), event => {
-    //   if (event.key === 'Alt' || event.key === 'Control') {
-    //     this.relayoutCompletely();
-    //   }
-    // });
+    this._view = rootViewFactory.getRootView({name: jsonNode.name, fullName: jsonNode.fullName, type: jsonNode.type});
     //
     // this._parent = this;
     //
@@ -266,11 +266,14 @@ class Root extends Node {
     // this._mustRelayout = false;
   }
 
+  get view(): RootView {
+    return this._view
+  }
   // enforceCompleteRelayout() {
   //   this.scheduleAction(() => this._relayoutCompletely());
   // }
   //
-  // relayoutCompletely() {
+  // relayoutCompletely(): void {
   //   this._mustRelayout = true;
   //   this.scheduleAction(() => {
   //     if (this._mustRelayout) {
@@ -280,7 +283,7 @@ class Root extends Node {
   //   });
   // }
   //
-  // scheduleAction(func) {
+  // scheduleAction(func: () => Promise<void>) {
   //   this._updatePromise = this._updatePromise.then(func);
   // }
   //
@@ -796,8 +799,8 @@ const init = (nodeViewFactory: NodeViewFactory, rootViewFactory: RootViewFactory
   // const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
   return {
-    getRoot: (jsonNode: JsonNode) => new Root(jsonNode)
+    getRoot: (jsonNode: JsonNode) => new Root(jsonNode, rootViewFactory)
   };
 };
 
-export {Node, NodeDescription, InnerNode, init, RootFactory};
+export {Node, NodeDescription, InnerNode, init, RootFactory, Root};
