@@ -38,7 +38,7 @@ class Graph {
     // this._root.foldAllNodes();
     // this._dependencies.recreateVisible();
 
-    // this._root.relayoutCompletely();
+    this._root.relayoutCompletely();
     // this._violations = violations;
 
     // this._updateFiltersTimeout = null;
