@@ -49,7 +49,7 @@ const init = (getNodeViewFactory: () => NodeViewFactory, getRootViewFactory: () 
     // getDependencies: () => dependencies.init(() => result.getDependencyCreator()),
     visualizationStyles: getVisualizationStyles(),
     getGraphView: getGraphViewFactory,
-    visualizationData: visualizationDataInit()
+    visualizationData: getVisualizationData()
     // getVisualizationData
   };
 };

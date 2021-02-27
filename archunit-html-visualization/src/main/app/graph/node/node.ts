@@ -326,7 +326,7 @@ class Root extends Node {
   //   return this._view.svgSelectionForDependencies;
   // }
 
-  getNameWidth() {
+  getNameWidth(): number {
     return 0;
   }
   //

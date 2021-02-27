@@ -30,11 +30,11 @@ class GraphView {
     // this._svgElementForDetailedDependencies = this._svgElement.addGroup();
   }
 
-  get svgElement() {
+  get svgElement(): SvgSelection {
     return this._svgElement;
   }
 
-  get translater() {
+  get translater(): SvgSelection {
     return this._translater;
   }
   //
@@ -42,21 +42,21 @@ class GraphView {
   //   return this._svgElementForDetailedDependencies;
   // }
 
-  addRootView(rootView: RootView) {
+  addRootView(rootView: RootView): void {
     this._svgElementForNodes.addChild(rootView.svgElement);
   }
 
-  changeScrollPosition(offsetPosition: Vector) {
+  changeScrollPosition(offsetPosition: Vector): void {
     this._svgContainerDivSelection.scrollLeft += offsetPosition.x;
     this._svgContainerDivSelection.scrollTop += offsetPosition.y;
   }
 
-  render(halfWidth: number, halfHeight: number) {
+  render(halfWidth: number, halfHeight: number): void {
     this._renderSizeIfNecessary(halfWidth, halfHeight);
     this._translater.translate(this._toAbsoluteCoordinates(new Vector(halfWidth, halfHeight)));
   }
 
-  renderWithTransition(halfWidth: number, halfHeight: number) {
+  renderWithTransition(halfWidth: number, halfHeight: number): Promise<void> {
     this._renderSizeIfNecessary(halfWidth, halfHeight);
     return this._translater.createTransitionWithDuration(this._transitionDuration)
       .step(element => element.translate(this._toAbsoluteCoordinates(
@@ -64,7 +64,7 @@ class GraphView {
       .finish();
   }
 
-  _renderSizeIfNecessary(halfWidth: number, halfHeight: number) {
+  _renderSizeIfNecessary(halfWidth: number, halfHeight: number): void {
     const calcRequiredSize = (halfSize: number) => (2 * halfSize + 4);
     const calcExpandedSize = (halfSize: number) => (2 * halfSize + 4);
     const getNewSize = (windowSize: number, requiredSize: number, maxSize: number) => requiredSize < windowSize ? windowSize : maxSize;
