@@ -197,10 +197,10 @@ class Node {
    * circle around those for the current node (but the circle packing is not applied to the nodes, it is only
    * for the radius-calculation)
    */
-  // _initialLayout(): Promise<NodeShape> {
+  _initialLayout(): Promise<NodeShape[]> {
   //   const childrenPromises = this.getCurrentChildren().map(d => d._initialLayout());
   //
-  //   const promises = [];
+    const promises: Promise<NodeShape>[] = [];
   //   if (this.isCurrentlyLeaf()) {
   //     promises.push(this._nodeShape.changeRadius(calculateDefaultRadius(this)));
   //   } else if (this.getCurrentChildren().length === 1) {
@@ -216,8 +216,8 @@ class Node {
   //     const r = Math.max(circle.r, calculateDefaultRadius(this));
   //     promises.push(this._nodeShape.changeRadius(r));
   //   }
-  //   return Promise.all([...childrenPromises, ...promises]);
-  // }
+    return Promise.all([/*...childrenPromises,*/ ...promises]);
+  }
 
   // _reverseDrawOrder(nodesInDrawOrder) {
   //   nodesInDrawOrder.reverse().forEach(node => {
@@ -230,7 +230,7 @@ class Node {
 class Root extends Node {
   private _view: RootView;
   private _mustRelayout: boolean;
-  private _updatePromise: Promise<void>;
+  private _updatePromise: Promise<NodeShape[]>;
 
   constructor(jsonNode: JsonNode, rootViewFactory: RootViewFactory) {
     super(jsonNode, 0);
@@ -262,7 +262,7 @@ class Root extends Node {
     // // this._initializeFilterGroup();
     // this._initializeNodeMap();
     //
-    // this._updatePromise = Promise.resolve();
+    this._updatePromise = Promise.resolve([]);
     // this._mustRelayout = false;
   }
 
@@ -273,19 +273,19 @@ class Root extends Node {
   //   this.scheduleAction(() => this._relayoutCompletely());
   // }
   //
-  // relayoutCompletely(): void {
-  //   this._mustRelayout = true;
-  //   this.scheduleAction(() => {
-  //     if (this._mustRelayout) {
-  //       this._mustRelayout = false;
-  //       return this._relayoutCompletely();
-  //     }
-  //   });
-  // }
-  //
-  // scheduleAction(func: () => Promise<void>) {
-  //   this._updatePromise = this._updatePromise.then(func);
-  // }
+  relayoutCompletely(): void {
+    this._mustRelayout = true;
+    this.scheduleAction(() => {
+      if (this._mustRelayout) {
+        this._mustRelayout = false;
+        return this._relayoutCompletely();
+      }
+    });
+  }
+
+  scheduleAction(func: () => Promise<NodeShape[]>): void {
+    this._updatePromise = this._updatePromise.then(func);
+  }
   //
   // getByName(name) {
   //   return this._map.get(name);
@@ -429,27 +429,27 @@ class Root extends Node {
   //   return [this];
   // }
 
-  // _relayoutCompletely() {
-  //   // this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node._nodeShape.unfix()));
-  //
-  //   const promiseInitialLayout = this._initialLayout();
-  //   const promiseForceLayout = this._forceLayout();
-  //   return Promise.all([promiseInitialLayout, promiseForceLayout]);
-  // }
+  _relayoutCompletely(): Promise<NodeShape[]> {
+    // this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node._nodeShape.unfix()));
+
+    const promiseInitialLayout = this._initialLayout();
+    const promiseForceLayout = this._forceLayout();
+    return Promise.all([].concat(promiseInitialLayout).concat(promiseForceLayout));
+  }
 
   /**
    * We go top bottom through the tree, always applying a force-layout to all nodes so far (that means to all nodes
    * at the current level and all nodes above), while the nodes not on the current level are fixed (and so only
    * influence the other nodes)
    */
-  // _forceLayout() {
+  _forceLayout(): Promise<NodeShape[]> {
     // const allLinks = this.getLinks();
     //
     // const allLayoutedNodesSoFar = new Map();
     // let currentNodes = new Map();
     // currentNodes.set(this.getFullName(), this);
     //
-    // let promises = [];
+    const promises: Promise<NodeShape>[] = [];
     //
     // while (currentNodes.size > 0) {
     //
@@ -494,8 +494,8 @@ class Root extends Node {
     //
     // this._listeners.forEach(listener => promises.push(listener.onLayoutChanged()));
     //
-    // return Promise.all(promises);
-  // }
+    return Promise.all(promises);
+  }
 }
 
 class InnerNode extends Node {
