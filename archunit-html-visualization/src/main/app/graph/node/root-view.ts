@@ -17,7 +17,7 @@ export class RootView {
   private _position: Vector
   private _transitionDuration: number;
 
-  constructor(fullNodeName: string,svg: SVG, transitionDuration: number) {
+  constructor(fullNodeName: string, svg: SVG, transitionDuration: number) {
     this._transitionDuration = transitionDuration; // eslint-disable-line no-unused-vars
     this._svgElement = svg.createGroup(fullNodeName.replace(/\\$/g, '.-'));
 

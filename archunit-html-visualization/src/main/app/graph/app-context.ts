@@ -13,6 +13,7 @@ import {init as nodeViewInit, NodeViewFactory} from './node/node-view';
 import {init as rootViewInit, RootViewFactory} from './node/root-view';
 import {init as graphViewInit, GraphViewFactory} from "./graph-view";
 import {VisualizationStyles} from "./visualization-styles";
+import {init as visualizationDataInit, VisualizationData} from "./infrastructure/visualization-data";
 // const detailedDependencyView = require('./dependencies/detailed-dependency-view');
 // const dependencyView = require('./dependencies/dependency-view');
 // const graphView = require('./graph-view');
@@ -26,6 +27,7 @@ interface AppContextOverrides {
   rootViewFactory?: RootViewFactory
   graphViewFactory?: GraphViewFactory
   transitionDuration?: number
+  visualizationData?: VisualizationData
 }
 
 
@@ -33,9 +35,10 @@ interface AppContext {
   getRoot(): RootFactory,
   getGraphView(): GraphViewFactory,
   visualizationStyles: VisualizationStyles
+  visualizationData: VisualizationData
 }
 
-const init = (getNodeViewFactory: () => NodeViewFactory, getRootViewFactory: () => RootViewFactory, getGraphViewFactory: () => GraphViewFactory, getVisualizationStyles: () => VisualizationStyles/*, getVisualizationData*/): AppContext => {
+const init = (getNodeViewFactory: () => NodeViewFactory, getRootViewFactory: () => RootViewFactory, getGraphViewFactory: () => GraphViewFactory, getVisualizationStyles: () => VisualizationStyles, getVisualizationData: () => VisualizationData): AppContext => {
 
   return {
     // getDependencyVisualizationFunctions: () => dependencyVisualizationFunctions.newInstance(),
@@ -46,6 +49,7 @@ const init = (getNodeViewFactory: () => NodeViewFactory, getRootViewFactory: () 
     // getDependencies: () => dependencies.init(() => result.getDependencyCreator()),
     visualizationStyles: getVisualizationStyles(),
     getGraphView: getGraphViewFactory,
+    visualizationData: visualizationDataInit()
     // getVisualizationData
   };
 };
@@ -65,10 +69,10 @@ class AppContextFactory {
     // const getDetailedDependencyView = () => overrides.DetailedDependencyView || detailedDependencyView.init(transitionDuration, guiElementsInstance.svg, getVisualizationStyles(), textPadding);
     // const getDependencyView = () => overrides.DependencyView || dependencyView.init(transitionDuration);
     const getGraphViewFactory = () => overrides.graphViewFactory || graphViewInit(transitionDuration, svg, documentInit, windowInit);
-    // const getVisualizationData = () => overrides.visualizationData || visualizationData;
+    const getVisualizationData = () => overrides.visualizationData || visualizationDataInit();
 
-    return init(getNodeViewFactory, getRootViewFactory, getGraphViewFactory, getVisualizationStyles/*, getVisualizationData*/);
+    return init(getNodeViewFactory, getRootViewFactory, getGraphViewFactory, getVisualizationStyles, getVisualizationData);
   }
 }
 
-export {AppContextFactory}
+export {AppContext, AppContextFactory}
