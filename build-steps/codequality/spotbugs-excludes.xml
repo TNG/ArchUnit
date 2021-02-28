@@ -32,40 +32,4 @@
         <Method name="read"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
-    <Match>
-        <!-- False positive on try-with-resources statement with JDK-11?
-            Redundant nullcheck of inputStream, which is known to be non-null in com.tngtech.archunit.ArchConfiguration.readProperties(String)
-            Bug type RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE
-            In class com.tngtech.archunit.ArchConfiguration
-            In method com.tngtech.archunit.ArchConfiguration.readProperties(String)
-            Value loaded from inputStream
-            Return value of Class.getResourceAsStream(String) of type java.io.InputStream
-            Redundant null check at ArchConfiguration.java:[line 88]
-        -->
-        <Class name="com.tngtech.archunit.ArchConfiguration"/>
-        <Method name="readProperties"/>
-        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
-    </Match>
-    <Match>
-        <!-- False positive on try-with-resources statement with JDK-9 and JDK-10 (https://github.com/TNG/ArchUnit/issues/199):
-             In method com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties.loadRulesFrom(File)
-             Reference type java.io.InputStream
-             1 instances of obligation remaining
-             Obligation to clean up resource created at ViolationStoreFactory.java:[line 192] is not discharged
-        -->
-        <Class name="com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties"/>
-        <Method name="loadRulesFrom"/>
-        <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
-    </Match>
-    <Match>
-        <!-- False positive on try-with-resources statement with JDK-9 and JDK-10 (https://github.com/TNG/ArchUnit/issues/199):
-             In method com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties.syncFileSystem()
-             Reference type java.io.OutputStream
-             1 instances of obligation remaining
-             Obligation to clean up resource created at ViolationStoreFactory.java:[line 214] is not discharged
-        -->
-        <Class name="com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties"/>
-        <Method name="syncFileSystem"/>
-        <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
-    </Match>
 </FindBugsFilter>
