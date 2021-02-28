@@ -25,6 +25,7 @@ import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -33,8 +34,9 @@ import static java.util.Collections.singleton;
 public class MetricsComponent<T> extends ForwardingSet<T> {
     private final String identifier;
     private final Set<T> content;
-    private final Set<MetricsElementDependency<T>> elementDependencies;
-    private Map<String, MetricsComponentDependency<T>> componentDependenciesByTarget;
+    private final Set<MetricsElementDependency<T>> elementDependenciesFromSelf;
+    private Map<String, MetricsComponentDependency<T>> componentDependenciesFromSelfByTarget;
+    private Map<String, MetricsComponentDependency<T>> componentDependenciesToSelfByOrigin;
 
     private MetricsComponent(String identifier, Set<T> content, Function<T, Set<MetricsElementDependency<T>>> getElementDependencies) {
         this.identifier = checkNotNull(identifier);
@@ -43,10 +45,10 @@ public class MetricsComponent<T> extends ForwardingSet<T> {
         for (T element : content) {
             elementDependenciesBuilder.addAll(getElementDependencies.apply(element));
         }
-        elementDependencies = elementDependenciesBuilder.build();
+        elementDependenciesFromSelf = elementDependenciesBuilder.build();
     }
 
-    private String getIdentifier() {
+    public String getIdentifier() {
         return identifier;
     }
 
@@ -55,8 +57,20 @@ public class MetricsComponent<T> extends ForwardingSet<T> {
     }
 
     public Set<MetricsElementDependency<T>> getElementDependenciesTo(MetricsComponent<T> component) {
-        MetricsComponentDependency<T> dependency = componentDependenciesByTarget.get(component.getIdentifier());
+        MetricsComponentDependency<T> dependency = componentDependenciesFromSelfByTarget.get(component.getIdentifier());
         return dependency != null ? dependency : Collections.<MetricsElementDependency<T>>emptySet();
+    }
+
+    private Optional<MetricsComponentDependency<T>> getComponentDependencyTo(MetricsComponent<T> component) {
+        return Optional.fromNullable(componentDependenciesFromSelfByTarget.get(component.getIdentifier()));
+    }
+
+    public Set<MetricsComponentDependency<T>> getComponentDependenciesFromSelf() {
+        return ImmutableSet.copyOf(componentDependenciesFromSelfByTarget.values());
+    }
+
+    public Set<MetricsComponentDependency<T>> getComponentDependenciesToSelf() {
+        return ImmutableSet.copyOf(componentDependenciesToSelfByOrigin.values());
     }
 
     @Override
@@ -64,11 +78,11 @@ public class MetricsComponent<T> extends ForwardingSet<T> {
         return content;
     }
 
-    void finish(Set<MetricsComponent<T>> allComponents) {
+    void finishComponentDependenciesFromSelf(Set<MetricsComponent<T>> allComponents) {
         ImmutableMap.Builder<String, MetricsComponentDependency<T>> componentDependenciesBuilder = ImmutableMap.builder();
         for (MetricsComponent<T> other : Sets.difference(allComponents, singleton(this))) {
             ImmutableSet.Builder<MetricsElementDependency<T>> dependenciesToOtherBuilder = ImmutableSet.builder();
-            for (MetricsElementDependency<T> elementDependency : elementDependencies) {
+            for (MetricsElementDependency<T> elementDependency : elementDependenciesFromSelf) {
                 if (other.contains(elementDependency.getTarget())) {
                     dependenciesToOtherBuilder.add(elementDependency);
                 }
@@ -79,7 +93,18 @@ public class MetricsComponent<T> extends ForwardingSet<T> {
                 componentDependenciesBuilder.put(other.getIdentifier(), dependency);
             }
         }
-        componentDependenciesByTarget = componentDependenciesBuilder.build();
+        componentDependenciesFromSelfByTarget = componentDependenciesBuilder.build();
+    }
+
+    void finishComponentDependenciesToSelf(Set<MetricsComponent<T>> allComponents) {
+        ImmutableMap.Builder<String, MetricsComponentDependency<T>> componentDependenciesBuilder = ImmutableMap.builder();
+        for (MetricsComponent<T> other : Sets.difference(allComponents, singleton(this))) {
+            Optional<MetricsComponentDependency<T>> dependencyToSelf = other.getComponentDependencyTo(this);
+            if (dependencyToSelf.isPresent()) {
+                componentDependenciesBuilder.put(other.getIdentifier(), dependencyToSelf.get());
+            }
+        }
+        componentDependenciesToSelfByOrigin = componentDependenciesBuilder.build();
     }
 
     @Override

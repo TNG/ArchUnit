@@ -52,7 +52,10 @@ public class MetricsComponents<T> extends ForwardingSet<MetricsComponent<T>> {
     public static <T> MetricsComponents<T> of(Iterable<MetricsComponent<T>> components) {
         ImmutableSet<MetricsComponent<T>> metricsComponents = ImmutableSet.copyOf(components);
         for (MetricsComponent<T> component : metricsComponents) {
-            component.finish(metricsComponents);
+            component.finishComponentDependenciesFromSelf(metricsComponents);
+        }
+        for (MetricsComponent<T> component : metricsComponents) {
+            component.finishComponentDependenciesToSelf(metricsComponents);
         }
         return new MetricsComponents<>(metricsComponents);
     }

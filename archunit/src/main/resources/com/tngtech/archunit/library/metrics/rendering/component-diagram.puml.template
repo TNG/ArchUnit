@@ -1,0 +1,11 @@
+@startuml
+
+skinparam componentStyle uml2
+skinparam component {
+  BorderColor #grey
+  BackgroundColor #ffefc2
+}
+
+${body}
+
+@enduml
