@@ -5,6 +5,7 @@ skinparam component {
   BorderColor #grey
   BackgroundColor #ffefc2
 }
+skinparam LegendBackgroundColor #abffc1
 
 ${body}
 

@@ -28,6 +28,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
+import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -40,10 +41,12 @@ public class PlantUmlDiagram {
 
     private final Map<String, Component> components;
     private final Set<Dependency> dependencies;
+    private final Optional<Legend> legend;
 
-    private PlantUmlDiagram(Map<String, Component> components, Set<Dependency> dependencies) {
+    private PlantUmlDiagram(Map<String, Component> components, Set<Dependency> dependencies, Optional<Legend> legend) {
         this.components = components;
         this.dependencies = dependencies;
+        this.legend = legend;
     }
 
     public String render() {
@@ -54,6 +57,12 @@ public class PlantUmlDiagram {
         lines.add(lineSeparator());
         for (Dependency dependency : dependencies) {
             lines.add(dependency.render());
+        }
+        lines.add(lineSeparator());
+        if (legend.isPresent()) {
+            lines.add("legend");
+            lines.add(legend.get().text);
+            lines.add("endlegend");
         }
         return componentDiagramTemplate.replace("${body}", Joiner.on(lineSeparator()).join(lines));
     }
@@ -112,6 +121,7 @@ public class PlantUmlDiagram {
         private static final Pattern INVALID_IDENTIFIER_CHAR_PATTERN = Pattern.compile("[^" + Component.validIdentifierCharacters + "]");
         private final ImmutableMap.Builder<String, Component> componentBuilders = ImmutableMap.builder();
         private final SetMultimap<String, String> dependenciesFromSelf = HashMultimap.create();
+        private Optional<Legend> legend = Optional.absent();
 
         private Builder() {
         }
@@ -125,6 +135,10 @@ public class PlantUmlDiagram {
             dependenciesFromSelf.put(sanitize(originIdentifier), sanitize(targetIdentifier));
         }
 
+        public void addLegend(String text) {
+            legend = Optional.of(new Legend(text));
+        }
+
         private String sanitize(String identifier) {
             return INVALID_IDENTIFIER_CHAR_PATTERN.matcher(identifier).replaceAll("");
         }
@@ -135,7 +149,15 @@ public class PlantUmlDiagram {
             for (Map.Entry<String, String> dependencyEntry : dependenciesFromSelf.entries()) {
                 dependencies.add(new Dependency(components.get(dependencyEntry.getKey()), components.get(dependencyEntry.getValue())));
             }
-            return new PlantUmlDiagram(components, dependencies.build());
+            return new PlantUmlDiagram(components, dependencies.build(), legend);
+        }
+    }
+
+    private static class Legend {
+        private final String text;
+
+        private Legend(String text) {
+            this.text = text;
         }
     }
 }

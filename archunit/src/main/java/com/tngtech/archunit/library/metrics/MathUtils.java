@@ -19,4 +19,8 @@ class MathUtils {
     static double divideSafely(int dividend, int divisor) {
         return divisor != 0 ? ((double) dividend) / divisor : 0;
     }
+
+    static double divideSafely(double dividend, int divisor) {
+        return divisor != 0 ? dividend / divisor : 0;
+    }
 }

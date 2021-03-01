@@ -19,9 +19,12 @@ import java.util.Set;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaPackage;
+
+import static java.util.Collections.singleton;
 
 public class MetricsComponentFactory {
     public static MetricsComponents<JavaClass> fromPackages(Set<JavaPackage> packages) {
@@ -33,6 +36,25 @@ public class MetricsComponentFactory {
                     ImmutableSet.Builder<MetricsElementDependency<JavaClass>> dependenciesBuilder = ImmutableSet.builder();
                     for (Dependency dependency : input.getDirectDependenciesFromSelf()) {
                         dependenciesBuilder.add(MetricsElementDependency.of(dependency.getOriginClass(), dependency.getTargetClass()));
+                    }
+                    return dependenciesBuilder.build();
+                }
+            }));
+        }
+        return MetricsComponents.of(components.build());
+    }
+
+    public static MetricsComponents<JavaClass> fromClasses(Iterable<JavaClass> javaClasses, final Predicate<JavaClass> includeDependencies) {
+        ImmutableSet.Builder<MetricsComponent<JavaClass>> components = ImmutableSet.builder();
+        for (JavaClass javaClass : filterRelevant(javaClasses)) {
+            components.add(MetricsComponent.of(javaClass.getName(), singleton(javaClass), new Function<JavaClass, Set<MetricsElementDependency<JavaClass>>>() {
+                @Override
+                public Set<MetricsElementDependency<JavaClass>> apply(JavaClass input) {
+                    ImmutableSet.Builder<MetricsElementDependency<JavaClass>> dependenciesBuilder = ImmutableSet.builder();
+                    for (Dependency dependency : input.getDirectDependenciesFromSelf()) {
+                        if (includeDependencies.apply(dependency.getTargetClass())) {
+                            dependenciesBuilder.add(MetricsElementDependency.of(dependency.getOriginClass(), dependency.getTargetClass()));
+                        }
                     }
                     return dependenciesBuilder.build();
                 }
