@@ -12,23 +12,20 @@ class D3Element {
     this._d3Select = selection;
   }
 
-  get() {
+  get(): Selection<SVGElement, any, HTMLElement, any> {
     return this._d3Select
   }
 
-  translate(vector: Vector) {
+  translate(vector: Vector): Selection<SVGElement, any, HTMLElement, any> {
     return this.get().attr('transform', `translate(${vector.x}, ${vector.y})`);
   }
 
-  getTranslation() {
+  getTranslation(): Vector {
     const transform = this.get().attr('transform');
     const indexOfTranslate = transform.indexOf('translate');
     const translationsString = transform.substring(transform.indexOf('(', indexOfTranslate) + 1, transform.indexOf(')', indexOfTranslate));
     const translation = translationsString.split(',').map((s: string) => parseInt(s));
-    return {
-      x: translation[0] || 0,
-      y: translation[1] || 0
-    }
+    return new Vector(translation[0] || 0, translation[1] || 0);
   }
 
   set radius(radius: number) {
@@ -51,7 +48,7 @@ class D3Element {
     this.get().style('stroke-width', strokeWidth);
   }
 
-  setStartAndEndPosition(startPosition: Vector, endPosition: Vector) {
+  setStartAndEndPosition(startPosition: Vector, endPosition: Vector): void {
     this.get().attr('x1', startPosition.x);
     this.get().attr('y1', startPosition.y);
     this.get().attr('x2', endPosition.x);
@@ -59,17 +56,17 @@ class D3Element {
   }
 }
 
-class Transition extends d3.Transition {
-  constructor(transition: d3.Transition<SVGElement, any, HTMLElement, any>) {
+class Transition extends D3Element {
+  constructor(transition: Selection<SVGElement, any, HTMLElement, any>) {
     super(transition);
   }
 
-  step(doWithSelection: (transition: Transition) => Selection<SVGElement, any, HTMLElement, any>) {
+  step(doWithSelection: (transition: Transition) => Selection<SVGElement, any, HTMLElement, any>): Transition {
     doWithSelection(this);
     return this;
   }
 
-  finish() {
+  finish(): Promise<void> {
     return new Promise<void>(resolve => this.get().on('end', () => resolve()));
   }
 }
@@ -135,7 +132,7 @@ class SvgSelection extends D3Element {
   }
 
   createTransitionWithDuration(duration: number): Transition {
-    return new Transition(this.get().transition().duration(duration));
+    return this.get().transition().duration(duration) as unknown as Transition;
   }
 
   get textWidth(): number {

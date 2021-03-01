@@ -44,6 +44,10 @@ class Graph {
     // this._updateFiltersTimeout = null;
   }
 
+  get view(): GraphView {
+    return this._view;
+  }
+
   // _updateFilterAndRelayout(filterKey) {
   //   this._root.scheduleAction(() => this._filterCollection.updateFilter(filterKey));
   //   // the following setTimeout technique reduces the number of calls for a complete relayout to one, however, it cannot be guaranteed to have exactly one call especially on slow machines
