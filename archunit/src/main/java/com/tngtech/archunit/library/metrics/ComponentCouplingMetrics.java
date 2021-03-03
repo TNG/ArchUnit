@@ -29,7 +29,7 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.library.metrics.components.MetricsComponent;
 import com.tngtech.archunit.library.metrics.components.MetricsComponentDependency;
 import com.tngtech.archunit.library.metrics.components.MetricsComponents;
-import com.tngtech.archunit.library.metrics.rendering.PlantUmlDiagram;
+import com.tngtech.archunit.library.metrics.rendering.Diagram;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
@@ -47,8 +47,8 @@ public class ComponentCouplingMetrics {
         couplings = couplingsBuilder.build();
     }
 
-    public PlantUmlDiagram toPlantUmlDiagram() {
-        PlantUmlDiagram.Builder diagramBuilder = PlantUmlDiagram.builder();
+    public Diagram toDiagram() {
+        Diagram.Builder diagramBuilder = Diagram.builder();
         for (Map.Entry<String, ComponentCoupling> couplingEntry : couplings.entrySet()) {
             diagramBuilder.addComponent(couplingEntry.getKey(), couplingEntry.getValue().describe());
             for (MetricsComponentDependency<?> dependency : couplingEntry.getValue().getDependenciesFromSelf()) {

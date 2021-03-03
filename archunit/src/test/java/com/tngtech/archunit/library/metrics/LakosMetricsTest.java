@@ -10,6 +10,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.library.metrics.components.MetricsComponentFactory;
+import com.tngtech.archunit.library.metrics.rendering.DiagramSpec;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
@@ -25,15 +26,15 @@ public class LakosMetricsTest {
 
         LakosMetrics lakosMetrics = LakosMetrics.of(MetricsComponentFactory.fromPackages(subpackages));
 
-        Files.write(Paths.get("lakos.puml"), lakosMetrics.toPlantUmlDiagram().render().getBytes(UTF_8));
+        Files.write(Paths.get("lakos.puml"), lakosMetrics.toDiagram().render(DiagramSpec.Factory.plantUml()).getBytes(UTF_8));
     }
 
     @Test
-    public void create_PlantUml_diagram_from_classes() throws IOException {
+    public void create_DOT_diagram_from_classes() throws IOException {
         JavaClasses javaClasses = new ClassFileImporter().withImportOption(DO_NOT_INCLUDE_TESTS).importPackagesOf(PublicAPI.class);
 
         LakosMetrics lakosMetrics = LakosMetrics.of(MetricsComponentFactory.fromClasses(javaClasses, resideInAnyPackage("com.tngtech.archunit..")));
 
-        Files.write(Paths.get("lakos-classes.puml"), lakosMetrics.toPlantUmlDiagram().render().getBytes(UTF_8));
+        Files.write(Paths.get("lakos-classes.dot"), lakosMetrics.toDiagram().render(DiagramSpec.Factory.dot()).getBytes(UTF_8));
     }
 }

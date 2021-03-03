@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.library.metrics;
 
+import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,12 +26,14 @@ import com.google.common.collect.Sets;
 import com.tngtech.archunit.library.metrics.components.MetricsComponent;
 import com.tngtech.archunit.library.metrics.components.MetricsComponentDependency;
 import com.tngtech.archunit.library.metrics.components.MetricsComponents;
-import com.tngtech.archunit.library.metrics.rendering.PlantUmlDiagram;
+import com.tngtech.archunit.library.metrics.rendering.Diagram;
 
 import static com.tngtech.archunit.library.metrics.MathUtils.divideSafely;
 import static java.lang.System.lineSeparator;
 
 public class LakosMetrics {
+    private static final DecimalFormat TWO_DIGITS = new DecimalFormat("0.00");
+
     private final MetricsComponents<?> components;
     private final Map<String, DependsUpon> dependsUponByIdentifier;
     private final Map<String, UsedFrom> usedFromByIdentifier;
@@ -47,8 +50,8 @@ public class LakosMetrics {
         relativeAverageComponentDependency = new RelativeAverageComponentDependency(averageComponentDependency, components);
     }
 
-    public PlantUmlDiagram toPlantUmlDiagram() {
-        PlantUmlDiagram.Builder diagramBuilder = PlantUmlDiagram.builder();
+    public Diagram toDiagram() {
+        Diagram.Builder diagramBuilder = Diagram.builder();
         for (MetricsComponent<?> component : components) {
             diagramBuilder.addComponent(component.getIdentifier(), String.format("%s%n%s%n%s",
                     component.getName(),
@@ -60,8 +63,8 @@ public class LakosMetrics {
         }
         diagramBuilder.addLegend(Joiner.on(lineSeparator()).join(
                 "CCD: " + cumulativeComponentDependency.value,
-                "ACD: " + averageComponentDependency.value,
-                "RACD: " + relativeAverageComponentDependency.value));
+                "ACD: " + averageComponentDependency.formattedValue(),
+                "RACD: " + relativeAverageComponentDependency.formattedValue()));
         return diagramBuilder.build();
     }
 
@@ -153,6 +156,10 @@ public class LakosMetrics {
         private AverageComponentDependency(CumulativeComponentDependency ccd, MetricsComponents<?> allComponents) {
             this.value = divideSafely(ccd.value, allComponents.size());
         }
+
+        String formattedValue() {
+            return TWO_DIGITS.format(value);
+        }
     }
 
     private static class RelativeAverageComponentDependency {
@@ -160,6 +167,10 @@ public class LakosMetrics {
 
         private RelativeAverageComponentDependency(AverageComponentDependency acd, MetricsComponents<?> allComponents) {
             this.value = divideSafely(acd.value, allComponents.size());
+        }
+
+        String formattedValue() {
+            return TWO_DIGITS.format(value);
         }
     }
 }

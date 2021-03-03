@@ -33,13 +33,15 @@ import static java.util.Collections.singleton;
 
 public class MetricsComponent<T> extends ForwardingSet<T> {
     private final String identifier;
+    private final String name;
     private final Set<T> content;
     private final Set<MetricsElementDependency<T>> elementDependenciesFromSelf;
     private Map<String, MetricsComponentDependency<T>> componentDependenciesFromSelfByTarget;
     private Map<String, MetricsComponentDependency<T>> componentDependenciesToSelfByOrigin;
 
-    private MetricsComponent(String identifier, Set<T> content, Function<T, Set<MetricsElementDependency<T>>> getElementDependencies) {
+    private MetricsComponent(String identifier, String name, Set<T> content, Function<T, Set<MetricsElementDependency<T>>> getElementDependencies) {
         this.identifier = checkNotNull(identifier);
+        this.name = checkNotNull(name);
         this.content = checkNotNull(content);
         ImmutableSet.Builder<MetricsElementDependency<T>> elementDependenciesBuilder = ImmutableSet.builder();
         for (T element : content) {
@@ -53,7 +55,7 @@ public class MetricsComponent<T> extends ForwardingSet<T> {
     }
 
     public String getName() {
-        return identifier;
+        return name;
     }
 
     public Set<MetricsElementDependency<T>> getElementDependenciesTo(MetricsComponent<T> component) {
@@ -132,6 +134,10 @@ public class MetricsComponent<T> extends ForwardingSet<T> {
     }
 
     public static <T> MetricsComponent<T> of(String identifier, Set<T> content, Function<T, Set<MetricsElementDependency<T>>> getElementDependencies) {
-        return new MetricsComponent<>(identifier, content, getElementDependencies);
+        return new MetricsComponent<>(identifier, identifier, content, getElementDependencies);
+    }
+
+    public static <T> MetricsComponent<T> of(String identifier, String name, Set<T> content, Function<T, Set<MetricsElementDependency<T>>> getElementDependencies) {
+        return new MetricsComponent<>(identifier, name, content, getElementDependencies);
     }
 }
