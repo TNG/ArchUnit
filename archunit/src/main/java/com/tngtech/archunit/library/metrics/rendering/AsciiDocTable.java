@@ -16,24 +16,32 @@
 package com.tngtech.archunit.library.metrics.rendering;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Joiner;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.System.lineSeparator;
 
 public class AsciiDocTable {
+    private final List<String> intro;
     private final List<String> header;
     private final List<List<String>> body;
 
-    private AsciiDocTable(List<String> header, List<List<String>> body) {
+    private AsciiDocTable(List<String> intro, List<String> header, List<List<String>> body) {
+        this.intro = intro;
         this.header = header;
         this.body = body;
     }
 
     public String render() {
-        List<String> rows = newArrayList("|===");
+        List<String> rows = new ArrayList<>();
+        for (String line : intro) {
+            rows.add(line);
+            rows.add("");
+        }
+        rows.add("");
+        rows.add("|===");
         rows.add("| " + Joiner.on(" | ").join(header));
         rows.add("");
         for (List<String> row : body) {
@@ -43,15 +51,37 @@ public class AsciiDocTable {
         return Joiner.on(lineSeparator()).join(rows);
     }
 
+    public static IntroCreator intro() {
+        return new IntroCreator();
+    }
+
     public static RowCreator header() {
-        return new Creator().row();
+        return new Creator(Collections.<String>emptyList()).row();
+    }
+
+    public static class IntroCreator {
+        private final List<String> lines = new ArrayList<>();
+
+        private IntroCreator() {
+        }
+
+        public IntroCreator addLine(String line) {
+            lines.add(line);
+            return this;
+        }
+
+        public RowCreator header() {
+            return new Creator(lines).row();
+        }
     }
 
     public static class Creator {
+        private final List<String> intro;
         private List<String> header;
         private final List<List<String>> table = new ArrayList<>();
 
-        private Creator() {
+        private Creator(List<String> intro) {
+            this.intro = intro;
         }
 
         private Creator addRow(List<String> row) {
@@ -68,7 +98,7 @@ public class AsciiDocTable {
         }
 
         public AsciiDocTable create() {
-            return new AsciiDocTable(header, table);
+            return new AsciiDocTable(intro, header, table);
         }
     }
 

@@ -30,11 +30,11 @@ public class LakosMetricsTest {
     }
 
     @Test
-    public void create_DOT_diagram_from_classes() throws IOException {
+    public void create_table_from_classes() throws IOException {
         JavaClasses javaClasses = new ClassFileImporter().withImportOption(DO_NOT_INCLUDE_TESTS).importPackagesOf(PublicAPI.class);
 
         LakosMetrics lakosMetrics = LakosMetrics.of(MetricsComponentFactory.fromClasses(javaClasses, resideInAnyPackage("com.tngtech.archunit..")));
 
-        Files.write(Paths.get("lakos-classes.dot"), lakosMetrics.toDiagram().render(DiagramSpec.Factory.dot()).getBytes(UTF_8));
+        Files.write(Paths.get("lakos-classes.adoc"), lakosMetrics.toAsciiDocTable().render().getBytes(UTF_8));
     }
 }

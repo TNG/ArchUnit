@@ -16,16 +16,21 @@
 package com.tngtech.archunit.library.metrics;
 
 import java.text.DecimalFormat;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.library.metrics.components.MetricsComponent;
 import com.tngtech.archunit.library.metrics.components.MetricsComponentDependency;
 import com.tngtech.archunit.library.metrics.components.MetricsComponents;
+import com.tngtech.archunit.library.metrics.rendering.AsciiDocTable;
 import com.tngtech.archunit.library.metrics.rendering.Diagram;
 
 import static com.tngtech.archunit.library.metrics.MathUtils.divideSafely;
@@ -66,6 +71,37 @@ public class LakosMetrics {
                 "ACD: " + averageComponentDependency.formattedValue(),
                 "RACD: " + relativeAverageComponentDependency.formattedValue()));
         return diagramBuilder.build();
+    }
+
+    public AsciiDocTable toAsciiDocTable() {
+        AsciiDocTable.Creator tableCreator = AsciiDocTable.intro()
+                .addLine("CCD: " + cumulativeComponentDependency.value)
+                .addLine("ACD: " + averageComponentDependency.formattedValue())
+                .addLine("RACD: " + relativeAverageComponentDependency.formattedValue())
+                .header().addColumnValue("Name").addColumnValue("Depends Upon").addColumnValue("Used From").end();
+
+        for (MetricsComponent<?> component : sortByDependsUpon(components)) {
+            tableCreator.row()
+                    .addColumnValue(component.getName())
+                    .addColumnValue(dependsUponByIdentifier.get(component.getIdentifier()).render())
+                    .addColumnValue(usedFromByIdentifier.get(component.getIdentifier()).render())
+                    .end();
+        }
+        return tableCreator.create();
+    }
+
+    private List<? extends MetricsComponent<?>> sortByDependsUpon(MetricsComponents<?> components) {
+        return FluentIterable.from(components).toSortedList(new Comparator<MetricsComponent<?>>() {
+            @Override
+            public int compare(MetricsComponent<?> first, MetricsComponent<?> second) {
+                return ComparisonChain.start()
+                        .compare(
+                                dependsUponByIdentifier.get(second.getIdentifier()).value(),
+                                dependsUponByIdentifier.get(first.getIdentifier()).value())
+                        .compare(first.getName(), second.getName())
+                        .result();
+            }
+        });
     }
 
     private Map<String, DependsUpon> createDependsUpon(MetricsComponents<?> components) {
