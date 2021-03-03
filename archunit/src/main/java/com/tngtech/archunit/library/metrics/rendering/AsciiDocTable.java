@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.System.lineSeparator;
 
 public class AsciiDocTable {
@@ -79,6 +80,7 @@ public class AsciiDocTable {
         private final List<String> intro;
         private List<String> header;
         private final List<List<String>> table = new ArrayList<>();
+        private boolean rowStarted = false;
 
         private Creator(List<String> intro) {
             this.intro = intro;
@@ -90,10 +92,13 @@ public class AsciiDocTable {
             } else {
                 table.add(row);
             }
+            rowStarted = false;
             return this;
         }
 
         public RowCreator row() {
+            checkState(!rowStarted, "Last row has not been finished via .end()");
+            rowStarted = true;
             return new RowCreator(this);
         }
 
