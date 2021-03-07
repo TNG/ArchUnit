@@ -262,6 +262,31 @@ public class GivenMembersDeclaredInClassesThatTest {
 
         assertThatMembers(members).matchInAnyOrderMembersOf(AnnotatedClass.class);
     }
+    
+    @Test
+    public void containMethodsThatAreAnnotatedWith_type() {
+    	 List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().containMethodsThatAreAnnotatedWith(SomeAnnotation.class))
+                 .on(ClassWithAnnotatedMethods.class, ClassWithMethodsWithoutAnnotation.class);
+    	 
+    	 assertThatMembers(members).matchInAnyOrderMembersOf(ClassWithAnnotatedMethods.class);
+    }
+
+    @Test
+    public void containMethodsThatAreAnnotatedWith_typeName() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().containMethodsThatAreAnnotatedWith(SomeAnnotation.class.getName()))
+        		.on(ClassWithAnnotatedMethods.class, ClassWithMethodsWithoutAnnotation.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(ClassWithAnnotatedMethods.class);
+    }
+
+    @Test
+    public void containMethodsThatAreAnnotatedWith_predicate() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().containMethodsThatAreAnnotatedWith(hasNamePredicate))
+                .on(ClassWithAnnotatedMethods.class, ClassWithMethodsWithoutAnnotation.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(ClassWithAnnotatedMethods.class);
+    }
 
     /**
      * Compare {@link CanBeAnnotatedTest#annotatedWith_Retention_Source_is_rejected}
@@ -860,6 +885,22 @@ public class GivenMembersDeclaredInClassesThatTest {
 
     @MetaAnnotatedAnnotation
     private static class MetaAnnotatedClass {
+    }
+    
+    private static class ClassWithAnnotatedMethods {
+
+        @SomeAnnotation
+        public void call() {
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithMethodsWithoutAnnotation {
+
+        public void call() {
+        }
+
     }
 
     // the fields are important for the test to test anything relevant

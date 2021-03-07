@@ -407,6 +407,37 @@ public class ShouldOnlyByClassesThatTest {
 
         assertThatTypes(classes).matchInAnyOrder(SimpleClass.class, ClassAccessingSimpleClass.class);
     }
+    
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void containMethodsThatAreAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+        		classesShouldOnlyBeBy.containMethodsThatAreAnnotatedWith(SomeAnnotation.class))
+                .on(ClassWithAnnotatedMethods.class, ClassWithMethodsWithoutAnnotation.class, ClassBeingAccessedByClassWithAnnotatedMethods.class, ClassBeingAccessedByClassWithMethodsWithoutAnnotation.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassWithMethodsWithoutAnnotation.class, ClassBeingAccessedByClassWithMethodsWithoutAnnotation.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void containMethodsThatAreAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+        		classesShouldOnlyBeBy.containMethodsThatAreAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassWithAnnotatedMethods.class, ClassWithMethodsWithoutAnnotation.class, ClassBeingAccessedByClassWithAnnotatedMethods.class, ClassBeingAccessedByClassWithMethodsWithoutAnnotation.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassWithMethodsWithoutAnnotation.class, ClassBeingAccessedByClassWithMethodsWithoutAnnotation.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void containMethodsThatAreAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+        		classesShouldOnlyBeBy.containMethodsThatAreAnnotatedWith(hasNamePredicate))
+                .on(ClassWithAnnotatedMethods.class, ClassWithMethodsWithoutAnnotation.class, ClassBeingAccessedByClassWithAnnotatedMethods.class, ClassBeingAccessedByClassWithMethodsWithoutAnnotation.class);
+
+        assertThatTypes(classes).matchInAnyOrder(ClassWithMethodsWithoutAnnotation.class, ClassBeingAccessedByClassWithMethodsWithoutAnnotation.class);
+    }
 
     @Test
     @UseDataProvider("should_only_be_by_rule_starts")
@@ -1188,6 +1219,41 @@ public class ShouldOnlyByClassesThatTest {
         void call() {
             new ClassBeingAccessedByMetaAnnotatedClass();
         }
+    }
+    
+    @SuppressWarnings("unused")
+	private static class ClassWithAnnotatedMethods {
+
+        @SomeAnnotation
+        void call() {
+        	new ClassBeingAccessedByClassWithAnnotatedMethods();
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassBeingAccessedByClassWithAnnotatedMethods {
+
+        void call() {
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithMethodsWithoutAnnotation {
+
+        void call() {
+        	new ClassBeingAccessedByClassWithMethodsWithoutAnnotation();
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassBeingAccessedByClassWithMethodsWithoutAnnotation {
+
+        void call() {
+        }
+
     }
 
     interface SomeInterface {

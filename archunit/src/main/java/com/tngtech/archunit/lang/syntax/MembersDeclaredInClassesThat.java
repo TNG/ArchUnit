@@ -39,6 +39,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.NESTED_CLASS
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.TOP_LEVEL_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containMethodsThatAre;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
@@ -439,4 +440,20 @@ class MembersDeclaredInClassesThat<MEMBER extends JavaMember, CONJUNCTION extend
     private CONJUNCTION givenWith(DescribedPredicate<? super JavaClass> predicate) {
         return predicateAggregator.apply(predicate);
     }
+    
+    @Override
+    public CONJUNCTION containMethodsThatAreAnnotatedWith(Class<? extends Annotation> annotationType) {
+    	return givenWith(containMethodsThatAre(annotatedWith(annotationType)));
+    }
+    
+    @Override
+    public CONJUNCTION containMethodsThatAreAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+    	return givenWith(containMethodsThatAre(annotatedWith(predicate)));
+    }
+    
+    @Override
+    public CONJUNCTION containMethodsThatAreAnnotatedWith(String annotationTypeName) {
+    	return givenWith(containMethodsThatAre(annotatedWith(annotationTypeName)));
+    }
+    
 }

@@ -335,6 +335,37 @@ public class ShouldClassesThatTest {
 
         assertThatType(getOnlyElement(classes)).matches(ClassAccessingAnnotatedClass.class);
     }
+    
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void containMethodsThatAreAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.containMethodsThatAreAnnotatedWith(SomeAnnotation.class))
+                .on(ClassAccessingClassWithAnnotatedMethods.class, ClassAccessingClassWithMethodsWithoutAnnotation.class);
+
+        assertThatType(getOnlyElement(classes)).matches(ClassAccessingClassWithAnnotatedMethods.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void containMethodsThatAreAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.containMethodsThatAreAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassAccessingClassWithAnnotatedMethods.class, ClassAccessingClassWithMethodsWithoutAnnotation.class);
+
+        assertThatType(getOnlyElement(classes)).matches(ClassAccessingClassWithAnnotatedMethods.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void containMethodsThatAreAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
+                noClassesShouldThatRuleStart.containMethodsThatAreAnnotatedWith(hasNamePredicate))
+                .on(ClassAccessingClassWithAnnotatedMethods.class, ClassAccessingClassWithMethodsWithoutAnnotation.class);
+
+        assertThatType(getOnlyElement(classes)).matches(ClassAccessingClassWithAnnotatedMethods.class);
+    }
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
@@ -1747,7 +1778,43 @@ public class ShouldClassesThatTest {
     @MetaAnnotatedAnnotation
     private static class MetaAnnotatedClass {
     }
+    
+    private static class ClassWithAnnotatedMethods {
 
+        @SomeAnnotation
+        void call() {
+
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithMethodsWithoutAnnotation {
+
+        void call() {
+
+        }
+
+    }
+    
+    @SuppressWarnings("unused")
+    private static class ClassAccessingClassWithAnnotatedMethods {
+
+        void call() {
+        	new ClassWithAnnotatedMethods();
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassAccessingClassWithMethodsWithoutAnnotation {
+
+        void call() {
+        	new ClassWithMethodsWithoutAnnotation();
+        }
+
+    }
+    
     @SuppressWarnings("unused")
     private static class ClassAccessingNestedInnerClass {
         ClassWithInnerClasses.InnerClass.EvenMoreInnerClass evenMoreInnerClass;

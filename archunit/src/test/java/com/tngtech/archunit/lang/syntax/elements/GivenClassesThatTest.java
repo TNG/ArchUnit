@@ -267,6 +267,31 @@ public class GivenClassesThatTest {
         assertThatType(getOnlyElement(classes)).matches(AnnotatedClass.class);
     }
 
+    @Test
+    public void containMethodsThatAreAnnotatedWith_type() {
+        List<JavaClass> classes = filterResultOf(classes().that().containMethodsThatAreAnnotatedWith(SomeAnnotation.class))
+                .on(ClassWithAnnotatedMethods.class, ClassWithMethodsWithoutAnnotation.class);
+
+        assertThatType(getOnlyElement(classes)).matches(ClassWithAnnotatedMethods.class);
+    }
+
+    @Test
+    public void containMethodsThatAreAnnotatedWith_typeName() {
+        List<JavaClass> classes = filterResultOf(classes().that().containMethodsThatAreAnnotatedWith(SomeAnnotation.class.getName()))
+                .on(ClassWithAnnotatedMethods.class, ClassWithMethodsWithoutAnnotation.class);
+
+        assertThatType(getOnlyElement(classes)).matches(ClassWithAnnotatedMethods.class);
+    }
+
+    @Test
+    public void containMethodsThatAreAnnotatedWith_predicate() {
+        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
+        List<JavaClass> classes = filterResultOf(classes().that().containMethodsThatAreAnnotatedWith(hasNamePredicate))
+                .on(ClassWithAnnotatedMethods.class, ClassWithMethodsWithoutAnnotation.class);
+
+        assertThatType(getOnlyElement(classes)).matches(ClassWithAnnotatedMethods.class);
+    }
+
     /**
      * Compare {@link CanBeAnnotatedTest#annotatedWith_Retention_Source_is_rejected}
      */
@@ -871,6 +896,24 @@ public class GivenClassesThatTest {
 
     @SomeAnnotation
     private static class AnnotatedClass {
+    }
+
+    private static class ClassWithAnnotatedMethods {
+
+        @SomeAnnotation
+        public void call() {
+
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithMethodsWithoutAnnotation {
+
+        public void call() {
+
+        }
+
     }
 
     @MetaAnnotatedAnnotation

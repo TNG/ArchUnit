@@ -680,7 +680,7 @@ public interface ClassesThat<CONJUNCTION> {
      *
      * @param classes List of {@link Class} objects.
      * @return A syntax conjunction element, which can be completed to form a full rule
-     */
+     */ 
     @PublicAPI(usage = ACCESS)
     CONJUNCTION belongToAnyOf(Class<?>... classes);
 
@@ -692,4 +692,33 @@ public interface ClassesThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION doNotBelongToAnyOf(Class<?>... classes);
+    
+    /**
+     * Matches classes containing methods annotated with a certain type of annotation.
+     *
+     * @param annotationType Specific type of {@link Annotation}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containMethodsThatAreAnnotatedWith(Class<? extends Annotation> annotationType);
+
+    /**
+     * Matches classes containing methods annotated with a certain type of annotation.
+     *
+     * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containMethodsThatAreAnnotatedWith(String annotationTypeName);
+
+    /**
+     * Matches  classes containing methods annotated with a certain annotation, where matching annotations are
+     * determined by the supplied predicate.
+     *
+     * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containMethodsThatAreAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
+
 }

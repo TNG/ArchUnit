@@ -1827,6 +1827,18 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         public static DescribedPredicate<JavaClass> belongToAnyOf(Class<?>... classes) {
             return new BelongToAnyOfPredicate(classes);
         }
+        
+        /**
+         * A predicate to determine if a {@link JavaClass} contains one or more methods matching the supplied predicate.
+         *
+         * @param predicate The predicate to check against the {@link Class classes'} methods.
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} coontains at least
+         * one method matching the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> containMethodsThatAre(DescribedPredicate<? super JavaMethod> predicate) {
+            return new ContainMethodsThatArePredicate(predicate);
+        }
 
         private static class BelongToAnyOfPredicate extends DescribedPredicate<JavaClass> {
             private final Class<?>[] classes;
@@ -1957,6 +1969,28 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                 return input.isEquivalentTo(clazz);
             }
         }
+        
+        private static class ContainMethodsThatArePredicate extends DescribedPredicate<JavaClass> {
+            private final DescribedPredicate<? super JavaMethod> predicate;
+
+            ContainMethodsThatArePredicate(DescribedPredicate<? super JavaMethod> predicate) {
+                super("contain methods that are " + predicate.getDescription());
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                for (final JavaMethod method : input.getAllMethods()) {
+                    if (predicate.apply(method)) {
+                        return true;
+                    }
+                }
+            
+                return false;
+            }
+
+        }
+        
     }
 
     @ResolvesTypesViaReflection
