@@ -1,0 +1,105 @@
+{
+  "root": {
+    "name": "default",
+    "fullName": "default",
+    "type": "package",
+    "children": [
+      {
+        "name": "java",
+        "fullName": "java",
+        "type": "package",
+        "children": [
+          {
+            "name": "lang",
+            "fullName": "java.lang",
+            "type": "package",
+            "children": [
+              {
+                "name": "Object",
+                "fullName": "java.lang.Object",
+                "type": "class",
+                "children": []
+              },
+              {
+                "name": "StringBuilder",
+                "fullName": "java.lang.StringBuilder",
+                "type": "class",
+                "children": []
+              },
+              {
+                "name": "System",
+                "fullName": "java.lang.System",
+                "type": "class",
+                "children": []
+              },
+              {
+                "name": "String",
+                "fullName": "java.lang.String",
+                "type": "class",
+                "children": []
+              }
+            ]
+          },
+          {
+            "name": "io",
+            "fullName": "java.io",
+            "type": "package",
+            "children": [
+              {
+                "name": "PrintStream",
+                "fullName": "java.io.PrintStream",
+                "type": "class",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit",
+        "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit",
+        "type": "package",
+        "children": [
+          {
+            "children": [],
+            "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.SimpleInterface",
+            "name": "SimpleInterface",
+            "type": "interface"
+          },
+          {
+            "name": "sub",
+            "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub",
+            "type": "package",
+            "children": [
+              {
+                "name": "SimpleClass1",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub.SimpleClass1",
+                "type": "class",
+                "children": [
+                  {
+                    "name": "InnerClass1",
+                    "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub.SimpleClass1$InnerClass1",
+                    "type": "class",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "name": "SimpleClass2",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub.SimpleClass2",
+                "type": "class",
+                "children": []
+              },
+              {
+                "name": "SimpleClass3",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub.SimpleClass3",
+                "type": "class",
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

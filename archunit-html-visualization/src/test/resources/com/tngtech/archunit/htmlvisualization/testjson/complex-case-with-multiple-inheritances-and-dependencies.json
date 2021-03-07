@@ -1,0 +1,181 @@
+{
+  "root": {
+    "fullName": "default",
+    "name": "default",
+    "type": "package",
+    "children": [
+      {
+        "name": "com.tngtech.archunit.htmlvisualization.testjson",
+        "fullName": "com.tngtech.archunit.htmlvisualization.testjson",
+        "type": "package",
+        "children": [
+          {
+            "name": "EmptyClassInPackageRoot",
+            "fullName": "com.tngtech.archunit.htmlvisualization.testjson.EmptyClassInPackageRoot",
+            "type": "class",
+            "children": []
+          },
+          {
+            "name": "simpleinherit",
+            "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit",
+            "type": "package",
+            "children": [
+              {
+                "name": "sub",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub",
+                "type": "package",
+                "children": [
+                  {
+                    "name": "SimpleClass1",
+                    "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub.SimpleClass1",
+                    "type": "class",
+                    "children": [
+                      {
+                        "name": "InnerClass1",
+                        "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub.SimpleClass1$InnerClass1",
+                        "type": "class",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "name": "SimpleClass2",
+                    "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub.SimpleClass2",
+                    "type": "class",
+                    "children": []
+                  },
+                  {
+                    "name": "SimpleClass3",
+                    "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.sub.SimpleClass3",
+                    "type": "class",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "name": "SimpleInterface",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.simpleinherit.SimpleInterface",
+                "type": "interface",
+                "children": []
+              }
+            ]
+          },
+          {
+            "name": "complexinherit",
+            "fullName": "com.tngtech.archunit.htmlvisualization.testjson.complexinherit",
+            "type": "package",
+            "children": [
+              {
+                "name": "ComplexClass1",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.complexinherit.ComplexClass1",
+                "type": "class",
+                "children": []
+              },
+              {
+                "name": "ComplexClass2",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.complexinherit.ComplexClass2",
+                "type": "class",
+                "children": [
+                  {
+                    "name": "<<Anonymous[1]>>",
+                    "fullName": "com.tngtech.archunit.htmlvisualization.testjson.complexinherit.ComplexClass2$1",
+                    "type": "class",
+                    "children": []
+                  },
+                  {
+                    "children": [],
+                    "fullName": "com.tngtech.archunit.htmlvisualization.testjson.complexinherit.ComplexClass2$1SomeLocalClass",
+                    "name": "SomeLocalClass",
+                    "type": "class"
+                  }
+                ]
+              },
+              {
+                "name": "ComplexClass3",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.complexinherit.ComplexClass3",
+                "type": "class",
+                "children": []
+              },
+              {
+                "name": "ComplexInterface1",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.complexinherit.ComplexInterface1",
+                "type": "interface",
+                "children": []
+              },
+              {
+                "name": "ComplexInterface2",
+                "fullName": "com.tngtech.archunit.htmlvisualization.testjson.complexinherit.ComplexInterface2",
+                "type": "interface",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "fullName": "java.io.PrintStream",
+                "name": "PrintStream",
+                "type": "class"
+              }
+            ],
+            "fullName": "java.io",
+            "name": "io",
+            "type": "package"
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "fullName": "java.lang.Object",
+                "name": "Object",
+                "type": "class"
+              },
+              {
+                "children": [],
+                "fullName": "java.lang.String",
+                "name": "String",
+                "type": "class"
+              },
+              {
+                "children": [],
+                "fullName": "java.lang.StringBuilder",
+                "name": "StringBuilder",
+                "type": "class"
+              },
+              {
+                "children": [],
+                "fullName": "java.lang.System",
+                "name": "System",
+                "type": "class"
+              }
+            ],
+            "fullName": "java.lang",
+            "name": "lang",
+            "type": "package"
+          }
+        ],
+        "fullName": "java",
+        "name": "java",
+        "type": "package"
+      },
+      {
+        "children": [
+          {
+            "children": [],
+            "fullName": "some.other.ClassInDifferentPackageRoot",
+            "name": "ClassInDifferentPackageRoot",
+            "type": "class"
+          }
+        ],
+        "fullName": "some.other",
+        "name": "some.other",
+        "type": "package"
+      }
+    ]
+  }
+}

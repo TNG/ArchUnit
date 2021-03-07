@@ -1,0 +1,74 @@
+{
+  "root": {
+    "name": "default",
+    "fullName": "default",
+    "type": "package",
+    "children": [
+      {
+        "name": "java",
+        "fullName": "java",
+        "type": "package",
+        "children": [
+          {
+            "name": "io",
+            "fullName": "java.io",
+            "type": "package",
+            "children": [
+              {
+                "name": "PrintStream",
+                "fullName": "java.io.PrintStream",
+                "type": "class",
+                "children": []
+              }
+            ]
+          },
+          {
+            "name": "lang",
+            "fullName": "java.lang",
+            "type": "package",
+            "children": [
+              {
+                "name": "System",
+                "fullName": "java.lang.System",
+                "type": "class",
+                "children": []
+              },
+              {
+                "name": "Object",
+                "fullName": "java.lang.Object",
+                "type": "class",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "some.other",
+        "fullName": "some.other",
+        "type": "package",
+        "children": [
+          {
+            "name": "ClassInDifferentPackageRoot",
+            "fullName": "some.other.ClassInDifferentPackageRoot",
+            "type": "class",
+            "children": []
+          }
+        ]
+      },
+      {
+        "name": "com.tngtech.archunit.htmlvisualization.testjson",
+        "fullName": "com.tngtech.archunit.htmlvisualization.testjson",
+        "type": "package",
+        "children": [
+          {
+            "name": "EmptyClassInPackageRoot",
+            "fullName": "com.tngtech.archunit.htmlvisualization.testjson.EmptyClassInPackageRoot",
+            "type": "class",
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}
