@@ -33,6 +33,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
@@ -52,7 +53,13 @@ import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.base.Guava.toGuava;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_MEMBERS;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_METHODS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_STATIC_INITIALIZER;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.JavaType.Functions.TO_ERASURE;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
@@ -1532,6 +1539,15 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                 };
 
         @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Optional<JavaStaticInitializer>> GET_STATIC_INITIALIZER =
+                new ChainableFunction<JavaClass, Optional<JavaStaticInitializer>>() {
+                    @Override
+                    public Optional<JavaStaticInitializer> apply(JavaClass input) {
+                        return input.getStaticInitializer();
+                    }
+                };
+
+        @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaClass, Set<JavaFieldAccess>> GET_FIELD_ACCESSES_FROM_SELF =
                 new ChainableFunction<JavaClass, Set<JavaFieldAccess>>() {
                     @Override
@@ -1904,6 +1920,85 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             return new BelongToAnyOfPredicate(classes);
         }
 
+        /**
+         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaMember members} matching the supplied predicate.
+         *
+         * @param predicate The predicate to check against the {@link JavaClass classes'} members.
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} contains at least
+         * one member matching the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> containAnyMembersThat(DescribedPredicate<? super JavaMember> predicate) {
+            return new ContainAnyMembersThatPredicate<>("members", GET_MEMBERS, predicate);
+        }
+
+        /**
+         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaField fields} matching the supplied predicate.
+         *
+         * @param predicate The predicate to check against the {@link JavaClass classes'} fields.
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} contains at least
+         * one field matching the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> containAnyFieldsThat(DescribedPredicate<? super JavaField> predicate) {
+            return new ContainAnyMembersThatPredicate<>("fields", GET_FIELDS, predicate);
+        }
+
+        /**
+         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaCodeUnit code units} matching the supplied predicate.
+         *
+         * @param predicate The predicate to check against the {@link JavaClass classes'} code units.
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} contains at least
+         * one code unit matching the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
+            return new ContainAnyMembersThatPredicate<>("code units", GET_CODE_UNITS, predicate);
+        }
+
+        /**
+         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaMethod methods} matching the supplied predicate.
+         *
+         * @param predicate The predicate to check against the {@link JavaClass classes'} methods.
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} contains at least
+         * one method matching the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> containAnyMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
+            return new ContainAnyMembersThatPredicate<>("methods", GET_METHODS, predicate);
+        }
+
+        /**
+         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaConstructor constructors} matching the supplied predicate.
+         *
+         * @param predicate The predicate to check against the {@link JavaClass classes'} constructors.
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} contains at least
+         * one constructor matching the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> containAnyConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate) {
+            return new ContainAnyMembersThatPredicate<>("constructors", GET_CONSTRUCTORS, predicate);
+        }
+
+        /**
+         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaConstructor constructors} matching the supplied predicate.
+         *
+         * @param predicate The predicate to check against the {@link JavaClass classes'} constructors.
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} contains at least
+         * one constructor matching the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> containAnyStaticInitializersThat(DescribedPredicate<? super JavaStaticInitializer> predicate) {
+            return new ContainAnyMembersThatPredicate<>("static initializers", GET_STATIC_INITIALIZER.then(AS_SET), predicate);
+        }
+
+        private static final Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>> AS_SET = new Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>>() {
+            @Override
+            public Set<JavaStaticInitializer> apply(Optional<JavaStaticInitializer> input) {
+                return input.asSet();
+            }
+        };
+
         private static class BelongToAnyOfPredicate extends DescribedPredicate<JavaClass> {
             private final Class<?>[] classes;
 
@@ -2031,6 +2126,27 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             @Override
             public boolean apply(JavaClass input) {
                 return input.isEquivalentTo(clazz);
+            }
+        }
+
+        private static class ContainAnyMembersThatPredicate<T extends JavaMember> extends DescribedPredicate<JavaClass> {
+            private final Function<JavaClass, Set<T>> getMembers;
+            private final DescribedPredicate<? super T> predicate;
+
+            ContainAnyMembersThatPredicate(String memberDescription, Function<JavaClass, Set<T>> getMembers, DescribedPredicate<? super T> predicate) {
+                super("contain any " + memberDescription + " that " + predicate.getDescription());
+                this.getMembers = getMembers;
+                this.predicate = predicate;
+            }
+
+            @Override
+            public boolean apply(JavaClass input) {
+                for (T member : getMembers.apply(input)) {
+                    if (predicate.apply(member)) {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
     }

@@ -29,7 +29,9 @@ import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
+import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
@@ -39,6 +41,7 @@ import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldEvaluator.f
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldEvaluator.filterViolationCausesInFailureReport;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -1023,6 +1026,95 @@ public class ShouldOnlyByClassesThatTest {
                         ClassBeingAccessedByInnerClass.class);
 
         assertThatTypes(classes).matchInAnyOrder(ClassWithInnerClasses.InnerClass.EvenMoreInnerClass.class);
+    }
+
+    private static class Data_of_containAnyMembersThat {
+        @SuppressWarnings("unused")
+        static class OkayOrigin {
+            static {
+                System.out.println("static initializer");
+            }
+
+            Object aField;
+
+            OkayOrigin(Object aParam) {
+            }
+
+            void aMethod() {
+                new Target();
+            }
+        }
+
+        @SuppressWarnings("unused")
+        static class ViolatingOrigin {
+            String bField;
+
+            ViolatingOrigin(String bParam) {
+            }
+
+            void bMethod() {
+                new Data_of_containAnyMembersThat.Target();
+            }
+        }
+
+        static class Target {
+        }
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void containAnyMembersThat(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.containAnyMembersThat(have(name("aField"))))
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void containAnyFieldsThat(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.containAnyFieldsThat(have(name("aField"))))
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void containAnyCodeUnitsThat(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.containAnyCodeUnitsThat(have(name("aMethod"))))
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void containAnyMethodsThat(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(classesShouldOnlyBeBy.containAnyMethodsThat(have(name("aMethod"))))
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void containAnyConstructorsThat(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        ArchRule rule = classesShouldOnlyBeBy.containAnyConstructorsThat(have(fullNameMatching(".*" + quote(Object.class.getName()) + ".*")));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(rule)
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+    }
+
+    @Test
+    @UseDataProvider("should_only_be_by_rule_starts")
+    public void containAnyStaticInitializersThat(ClassesThat<ClassesShouldConjunction> classesShouldOnlyBeBy) {
+        ArchRule rule = classesShouldOnlyBeBy.containAnyStaticInitializersThat(have(fullNameMatching(quote(Data_of_containAnyMembersThat.OkayOrigin.class.getName()) + ".*")));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(rule)
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.Target.class);
     }
 
     @DataProvider

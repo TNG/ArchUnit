@@ -59,10 +59,17 @@ import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCT
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_MEMBERS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_METHODS;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_STATIC_INITIALIZER;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyCodeUnitsThat;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyConstructorsThat;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyFieldsThat;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyMembersThat;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyMethodsThat;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyStaticInitializersThat;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -79,6 +86,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importPackagesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
+import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
@@ -1030,6 +1038,7 @@ public class JavaClassTest {
         assertThat(GET_CODE_UNITS.apply(javaClass)).isEqualTo(javaClass.getCodeUnits());
         assertThat(GET_METHODS.apply(javaClass)).isEqualTo(javaClass.getMethods());
         assertThat(GET_CONSTRUCTORS.apply(javaClass)).isEqualTo(javaClass.getConstructors());
+        assertThat(GET_STATIC_INITIALIZER.apply(javaClass)).contains(javaClass.getStaticInitializer().get());
     }
 
     @Test
@@ -1300,6 +1309,125 @@ public class JavaClassTest {
                 .accepts(outerAnonymous)
                 .accepts(nestedAnonymous)
                 .rejects(classes.get(getClass()));
+    }
+
+    @Test
+    public void predicate_containAnyMembersThat() {
+        @SuppressWarnings("unused")
+        class Match {
+            String right;
+        }
+        @SuppressWarnings("unused")
+        class Mismatch {
+            String wrong;
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Match.class, Mismatch.class);
+
+        assertThat(containAnyMembersThat(name("right")))
+                .hasDescription("contain any members that name 'right'")
+                .accepts(classes.get(Match.class))
+                .rejects(classes.get(Mismatch.class));
+    }
+
+    @Test
+    public void predicate_containAnyFieldsThat() {
+        @SuppressWarnings("unused")
+        class Match {
+            String right;
+        }
+        @SuppressWarnings("unused")
+        class Mismatch {
+            String wrong;
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Match.class, Mismatch.class);
+
+        assertThat(containAnyFieldsThat(name("right")))
+                .hasDescription("contain any fields that name 'right'")
+                .accepts(classes.get(Match.class))
+                .rejects(classes.get(Mismatch.class));
+    }
+
+    @Test
+    public void predicate_containAnyCodeUnitsThat() {
+        @SuppressWarnings("unused")
+        class Match {
+            void right() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class Mismatch {
+            void wrong() {
+            }
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Match.class, Mismatch.class);
+
+        assertThat(containAnyCodeUnitsThat(name("right")))
+                .hasDescription("contain any code units that name 'right'")
+                .accepts(classes.get(Match.class))
+                .rejects(classes.get(Mismatch.class));
+    }
+
+    @Test
+    public void predicate_containAnyMethodsThat() {
+        @SuppressWarnings("unused")
+        class Match {
+            void right() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class Mismatch {
+            void wrong() {
+            }
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Match.class, Mismatch.class);
+
+        assertThat(containAnyMethodsThat(name("right")))
+                .hasDescription("contain any methods that name 'right'")
+                .accepts(classes.get(Match.class))
+                .rejects(classes.get(Mismatch.class));
+    }
+
+    @Test
+    public void predicate_containAnyConstructorsThat() {
+        @SuppressWarnings("unused")
+        class Match {
+            Match(Serializable param) {
+            }
+        }
+        @SuppressWarnings("unused")
+        class Mismatch {
+            Mismatch(String param) {
+            }
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Match.class, Mismatch.class);
+
+        String regex = ".*" + Serializable.class.getSimpleName() + ".*";
+        assertThat(containAnyConstructorsThat(fullNameMatching(regex)))
+                .hasDescription("contain any constructors that full name matching '" + regex + "'")
+                .accepts(classes.get(Match.class))
+                .rejects(classes.get(Mismatch.class));
+    }
+
+    private static class Data_of_predicate_containAnyStaticInitializersThat {
+        @SuppressWarnings("unused")
+        static class Match {
+            static {
+                System.out.println("static initializer");
+            }
+        }
+    }
+
+    @Test
+    public void predicate_containAnyStaticInitializersThat() {
+        @SuppressWarnings("unused")
+        class Mismatch {
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Data_of_predicate_containAnyStaticInitializersThat.Match.class, Mismatch.class);
+
+        assertThat(containAnyStaticInitializersThat(DescribedPredicate.<JavaMember>alwaysTrue()))
+                .hasDescription("contain any static initializers that always true")
+                .accepts(classes.get(Data_of_predicate_containAnyStaticInitializersThat.Match.class))
+                .rejects(classes.get(Mismatch.class));
     }
 
     private JavaClass getOnlyClassSettingField(JavaClasses classes, final String fieldName) {
@@ -1614,6 +1742,10 @@ public class JavaClassTest {
     static class ClassWithSeveralConstructorsFieldsAndMethods {
         String stringField;
         private int intField;
+
+        static {
+            System.out.println("static initializer");
+        }
 
         private ClassWithSeveralConstructorsFieldsAndMethods() {
         }

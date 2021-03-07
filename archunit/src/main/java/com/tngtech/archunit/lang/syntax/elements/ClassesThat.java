@@ -22,7 +22,13 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaConstructor;
+import com.tngtech.archunit.core.domain.JavaField;
+import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.properties.HasName.Predicates;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -710,4 +716,59 @@ public interface ClassesThat<CONJUNCTION> {
      */
     @PublicAPI(usage = ACCESS)
     CONJUNCTION doNotBelongToAnyOf(Class<?>... classes);
+
+    /**
+     * Matches classes that contain any {@link JavaMember member} matching the supplied predicate.
+     *
+     * @param predicate A predicate defining matching {@link JavaMember JavaMembers}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containAnyMembersThat(DescribedPredicate<? super JavaMember> predicate);
+
+    /**
+     * Matches classes that contain any {@link JavaField field} matching the supplied predicate.
+     *
+     * @param predicate A predicate defining matching {@link JavaField JavaFields}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containAnyFieldsThat(DescribedPredicate<? super JavaField> predicate);
+
+    /**
+     * Matches classes that contain any {@link JavaCodeUnit code unit} matching the supplied predicate.
+     *
+     * @param predicate A predicate defining matching {@link JavaCodeUnit JavaCodeUnits}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate);
+
+    /**
+     * Matches classes that contain any {@link JavaMethod method} matching the supplied predicate.
+     *
+     * @param predicate A predicate defining matching {@link JavaMethod JavaMethods}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containAnyMethodsThat(DescribedPredicate<? super JavaMethod> predicate);
+
+    /**
+     * Matches classes that contain any {@link JavaConstructor constructor} matching the supplied predicate.
+     *
+     * @param predicate A predicate defining matching {@link JavaConstructor JavaConstructors}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containAnyConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate);
+
+    /**
+     * Matches classes that contain a {@link JavaStaticInitializer static initializer} matching the supplied predicate.
+     *
+     * @param predicate A predicate defining matching {@link JavaStaticInitializer JavaStaticInitializers}
+     * @return A syntax conjunction element, which can be completed to form a full rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containAnyStaticInitializersThat(DescribedPredicate<? super JavaStaticInitializer> predicate);
+
 }
