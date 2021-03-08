@@ -3,6 +3,7 @@
 import {NodeDescription} from "./node";
 import {SvgSelection} from "../infrastructure/svg-selection";
 import {SVG} from "../infrastructure/svg";
+import {Vector} from "../infrastructure/vectors";
 
 
 interface NodeViewFactory {
@@ -33,9 +34,9 @@ class NodeView {
     // this._onClick(clickHandler);
   }
 
-  // addChildView(childView: NodeView): void {
-  //   this._svgElementForChildren.addChild(childView._svgElement);
-  // }
+  addChildView(childView: NodeView): void {
+    this._svgElementForChildren.addChild(childView._svgElement);
+  }
 
   // get svgSelectionForDependencies() {
   //   return this._svgSelectionForDependencies;
@@ -61,24 +62,30 @@ class NodeView {
   // hide() {
   //   this._svgElement.hide();
   // }
-  //
-  // show() {
-  //   this._svgElement.show();
-  // }
+
+  show(): void {
+    this._svgElement.show();
+  }
   //
   // jumpToPosition(position: Vector) {
   //   this._svgElement.translate(position);
   // }
 
-  // changeRadius(r: number, textOffset: number) {
-  //   const radiusPromise = this._circle.createTransitionWithDuration(transitionDuration)
-  //     .step(svgSelection => svgSelection.radius = r)
-  //     .finish();
-  //   const textPromise = this._text.createTransitionWithDuration(transitionDuration)
-  //     .step(svgSelection => svgSelection.offsetY = textOffset)
-  //     .finish();
-  //   return Promise.all([radiusPromise, textPromise]);
-  // }
+  changeRadius(r: number, textOffset: number): Promise<void> {
+    const radiusPromise = this._circle.createTransitionWithDuration(this._transitionDuration)
+      .step(svgSelection => {
+        svgSelection.radius = r;
+        return svgSelection.get().transition()
+      })
+      .finish();
+    const textPromise = this._text.createTransitionWithDuration(this._transitionDuration)
+      .step(svgSelection => {
+        svgSelection.offsetY = textOffset;
+        return svgSelection.get().transition()
+      })
+      .finish();
+    return Promise.all([radiusPromise, textPromise]).then();
+  }
 
   // setRadius(r: number, textOffset: number): void {
   //   this._circle.radius = r;
@@ -90,12 +97,12 @@ class NodeView {
   //     .step(svgSelection => svgSelection.translate(position))
   //     .finish();
   // }
-  //
-  // moveToPosition(position: Vector): Promise<void> {
-  //   return this._svgElement.createTransitionWithDuration(this._transitionDuration)
-  //     .step(svgSelection => svgSelection.translate(position))
-  //     .finish();
-  // }
+
+  moveToPosition(position: Vector): Promise<void> {
+    return this._svgElement.createTransitionWithDuration(this._transitionDuration)
+      .step(svgSelection => svgSelection.translate(position))
+      .finish();
+  }
 
   // _onClick(clickHandler) {
   //   this._circle.onClick(clickHandler);

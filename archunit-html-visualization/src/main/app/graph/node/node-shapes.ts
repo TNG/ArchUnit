@@ -1,46 +1,51 @@
 'use strict';
 
-import {Vector} from '../infrastructure/vectors'
-import {CircleWithFixablePosition, Rect, Shape, ZeroShape} from '../infrastructure/shapes'
+import {Vector, vectors} from '../infrastructure/vectors'
+import {CircleWithFixablePosition, Rect, Shape, ShapeListener, ZeroShape} from '../infrastructure/shapes'
 import {Node} from './node'
 
 abstract class NodeShape {
   protected _node: Node
-  // private _listener: ShapeListener
-  private readonly relativePosition: Vector
+  protected _listener: ShapeListener
+  private readonly _relativePosition: Vector
   private absoluteReferenceShape: Shape
 
-  constructor(node: Node, x: number, y: number, absoluteReferenceShape: Shape) {
+  protected constructor(node: Node, listener: ShapeListener, x: number, y: number, absoluteReferenceShape: Shape) {
     this._node = node;
-    // this._listener = listener;
-    this.relativePosition = new Vector(x, y);
+    this._listener = listener;
+    this._relativePosition = new Vector(x, y);
     this.absoluteReferenceShape = absoluteReferenceShape;
   }
 
   abstract get absoluteShape(): Shape
-  //
-  // _updateAbsolutePosition() {
-  //   this._absoluteShape.centerPosition.changeTo(vectors.add(this.relativePosition, this.absoluteReferenceShape.centerPosition));
-  // }
+
+  get relativePosition(): Vector {
+    return this._relativePosition;
+  }
+
+  _updateAbsolutePosition(): void {
+    this.absoluteShape.centerPosition.changeTo(vectors.add(this._relativePosition, this.absoluteReferenceShape.centerPosition));
+  }
   //
   // _updateAbsolutePositionAndDescendants() {
   //   this._updateAbsolutePosition();
   //   this._node.getCurrentChildren().forEach(child => child._nodeShape._updateAbsolutePositionAndDescendants());
   // }
   //
-  // _updateAbsolutePositionAndChildren() {
-  //   this._updateAbsolutePosition();
-  //   this._node.getCurrentChildren().forEach(child => child._nodeShape._updateAbsolutePosition());
-  // }
+  _updateAbsolutePositionAndChildren(): void {
+    this._updateAbsolutePosition();
+    this._node.getCurrentChildren().forEach(child => child.nodeShape._updateAbsolutePosition());
+  }
 
-  // moveToPosition(x, y) {
-  //   this.relativePosition.changeTo(new Vector(x, y));
-  //   return this.completeMoveToIntermediatePosition();
-  // }
-  //
-  // completeMoveToIntermediatePosition() {
-  //   throw new Error('not implemented');
-  // }
+  moveToPosition(x: number, y: number): Promise<void> {
+    this._relativePosition.changeTo(new Vector(x, y));
+    return this.completeMoveToIntermediatePosition();
+  }
+
+  abstract completeMoveToIntermediatePosition(): Promise<void>
+    // throw new Error('not implemented');
+
+  abstract changeRadius(r: number): Promise<void>
   //
   // _jumpToPosition() {
   //   throw new Error('not implemented');
@@ -54,27 +59,27 @@ abstract class NodeShape {
 class RootRect extends NodeShape {
   private absoluteRect: Rect
 
-  constructor(node: Node, halfWidth = 0, halfHeight = 0, x = 0, y = 0) {
-    super(node, x, y, new ZeroShape());
+  constructor(node: Node, listener: ShapeListener, halfWidth = 0, halfHeight = 0, x = 0, y = 0) {
+    super(node, listener, x, y, new ZeroShape());
     this.absoluteRect = new Rect(new Vector(x, y), halfWidth, halfHeight);
   }
 
   get absoluteShape(): Shape {
     return this.absoluteRect;
   }
-  //
-  // completeMoveToIntermediatePosition() {
-  //   this._updateAbsolutePositionAndChildren();
-  //   return this._listener.onMovedToPosition();
-  // }
 
-  // changeRadius(r) {
-  //   this.absoluteRect.halfWidth = r;
-  //   this.absoluteRect.halfHeight = r;
-  //   const promise = this.moveToPosition(r, r); // Shift root to the middle
-  //   const listenerPromise = this._listener.onSizeChanged();
-  //   return Promise.all([promise, listenerPromise]);
-  // }
+  completeMoveToIntermediatePosition(): Promise<void> {
+    this._updateAbsolutePositionAndChildren();
+    return this._listener.onMovedToPosition();
+  }
+
+  changeRadius(r: number): Promise<void> {
+    this.absoluteRect.halfWidth = r;
+    this.absoluteRect.halfHeight = r;
+    const promise = this.moveToPosition(r, r); // Shift root to the middle
+    const listenerPromise = this._listener.onSizeChanged();
+    return Promise.all([promise, listenerPromise]).then();
+  }
 
   // _jumpToPosition(x, y) {
   //   const oldRelativePosition = Vector.from(this.relativePosition);
@@ -101,8 +106,8 @@ class RootRect extends NodeShape {
 class NodeCircle extends NodeShape {
   private readonly absoluteFixableCircle: CircleWithFixablePosition
 
-  constructor(node: Node, x = 0, y = 0, r = 0) {
-    super(node, x, y, node.parent.nodeShape.absoluteShape);
+  constructor(node: Node, listener: ShapeListener, x = 0, y = 0, r = 0) {
+    super(node, listener, x, y, node.parent.nodeShape.absoluteShape);
     this.absoluteFixableCircle = new CircleWithFixablePosition(x, y, r, this._node.getFullName());
   }
 
@@ -117,11 +122,11 @@ class NodeCircle extends NodeShape {
   get absoluteShape(): CircleWithFixablePosition {
     return this.absoluteFixableCircle;
   }
-  //
-  // changeRadius(r) {
-  //   this.absoluteFixableCircle.r = r;
-  //   return this._listener.onRadiusChanged();
-  // }
+
+  changeRadius(r: number): Promise<void> {
+    this.absoluteFixableCircle.r = r;
+    return this._listener.onRadiusChanged();
+  }
   //
   // jumpToRelativeDisplacement(dx, dy, padding) {
   //   const directionVector = new Vector(dx, dy);
@@ -149,14 +154,14 @@ class NodeCircle extends NodeShape {
   //   return Promise.resolve();
   // }
   //
-  // completeMoveToIntermediatePosition() {
-  //   this._updateAbsolutePositionAndChildren();
-  //   if (!this.absoluteFixableCircle.fixed) {
-  //     this.absoluteFixableCircle.fix();
-  //     return this._listener.onMovedToPosition();
-  //   }
-  //   return Promise.resolve();
-  // }
+  completeMoveToIntermediatePosition(): Promise<void> {
+    this._updateAbsolutePositionAndChildren();
+    if (!this.absoluteFixableCircle.fixed) {
+      this.absoluteFixableCircle.fix();
+      return this._listener.onMovedToPosition();
+    }
+    return Promise.resolve();
+  }
   //
   // takeAbsolutePosition(circlePadding) {
   //   const newRelativePosition = this.absoluteFixableCircle.centerPosition.relativeTo(this.absoluteReferenceShape.centerPosition);

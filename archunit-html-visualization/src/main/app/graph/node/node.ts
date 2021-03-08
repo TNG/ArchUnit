@@ -4,10 +4,17 @@
 import {NodeType} from "./node-type";
 import {NodeView, NodeViewFactory} from "./node-view";
 import {RootView, RootViewFactory} from "./root-view";
-import {NodeCircle, NodeShape} from "./node-shapes";
+import {NodeCircle, NodeShape, RootRect} from "./node-shapes";
 import {VisualizationStyles} from "../visualization-styles";
 import {JsonNode} from "./json-types";
 import {CircleWithFixablePosition} from "../infrastructure/shapes";
+import {
+  calculateDefaultRadius,
+  calculateDefaultRadiusForNodeWithOneChild,
+  packCirclesAndReturnEnclosingCircle
+} from "../visualization-functions";
+import {PackCircle} from "d3-hierarchy";
+import {NodeText, init as initNodeText} from "./node-text";
 
 // const {NodeShape, NodeCircle, RootRect} = require('./node-shapes');
 // const {buildFilterGroup} = require('../filter');
@@ -31,12 +38,14 @@ class Node {
   private _description: NodeDescription
   protected _parent: Node
   private _layerWithinParentNode: number
-  private _children: Node[]
+  protected _children: InnerNode[]
   protected _nodeShape: NodeShape
+  private _visualizationStyles: VisualizationStyles
 
-  constructor(jsonNode: JsonNode, layerWithinParentNode: number) {
+  constructor(jsonNode: JsonNode, layerWithinParentNode: number, visualizationStyles: VisualizationStyles) {
     this._layerWithinParentNode = layerWithinParentNode;
     this._description = new NodeDescription(jsonNode.name, jsonNode.fullName, jsonNode.type);
+    this._visualizationStyles = visualizationStyles;
     // this._folded = false;
     // this._listeners = [];
   }
@@ -72,14 +81,18 @@ class Node {
     return this._nodeShape;
   }
 
-  // getOriginalChildren() {
-  //   return this._originalChildren;
-  // }
+  get nodeDescription(): NodeDescription {
+    return this._description;
+  }
 
-  // getCurrentChildren(): Node[] {
-  //   return this._children;
-  //   // return this._folded ? [] : this._filteredChildren;
-  // }
+  getOriginalChildren(): InnerNode[] {
+    return this._children;
+  }
+
+  getCurrentChildren(): InnerNode[] {
+    return this._children;
+    // return this._folded ? [] : this._filteredChildren;
+  }
 
   _isLeaf(): boolean {
     return this._children.length === 0;
@@ -197,26 +210,26 @@ class Node {
    * circle around those for the current node (but the circle packing is not applied to the nodes, it is only
    * for the radius-calculation)
    */
-  _initialLayout(): Promise<NodeShape[]> {
-  //   const childrenPromises = this.getCurrentChildren().map(d => d._initialLayout());
-  //
-    const promises: Promise<NodeShape>[] = [];
-  //   if (this.isCurrentlyLeaf()) {
-  //     promises.push(this._nodeShape.changeRadius(calculateDefaultRadius(this)));
-  //   } else if (this.getCurrentChildren().length === 1) {
-  //     const onlyChild = this.getCurrentChildren()[0];
-  //     promises.push(onlyChild._nodeShape.moveToPosition(0, 0));
-  //     promises.push(this._nodeShape.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
-  //       onlyChild.getRadius(), visualizationStyles.getNodeFontSize())));
-  //   } else {
-  //     const childCircles = this.getCurrentChildren().map(c => ({
-  //       r: c.getRadius()
-  //     }));
-  //     const circle = packCirclesAndReturnEnclosingCircle(childCircles, visualizationStyles.getCirclePadding());
-  //     const r = Math.max(circle.r, calculateDefaultRadius(this));
-  //     promises.push(this._nodeShape.changeRadius(r));
-  //   }
-    return Promise.all([/*...childrenPromises,*/ ...promises]);
+  _initialLayout(): Promise<void[]> {
+    const childrenPromises = this.getCurrentChildren().map(d => d._initialLayout());
+
+    const promises: Promise<void>[] = [];
+    if (this.isCurrentlyLeaf()) {
+      promises.push(this._nodeShape.changeRadius(calculateDefaultRadius(this)));
+    } else if (this.getCurrentChildren().length === 1) {
+      const onlyChild = this.getCurrentChildren()[0];
+      promises.push(onlyChild._nodeShape.moveToPosition(0, 0));
+      promises.push(this._nodeShape.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
+        onlyChild.getRadius(), this._visualizationStyles.getNodeFontSize())));
+    } else {
+      const childCircles = this.getCurrentChildren().map(c => ({
+        r: c.getRadius()
+      } as unknown as PackCircle));
+      const circle = packCirclesAndReturnEnclosingCircle(childCircles, this._visualizationStyles.getCirclePadding());
+      const r = Math.max(circle.r, calculateDefaultRadius(this));
+      promises.push(this._nodeShape.changeRadius(r));
+    }
+    return Promise.all([].concat(childrenPromises).concat(promises));
   }
 
   // _reverseDrawOrder(nodesInDrawOrder) {
@@ -230,33 +243,34 @@ class Node {
 class Root extends Node {
   private _view: RootView;
   private _mustRelayout: boolean;
-  private _updatePromise: Promise<NodeShape[]>;
+  private _updatePromise: Promise<void[]>;
 
-  constructor(jsonNode: JsonNode, rootViewFactory: RootViewFactory) {
-    super(jsonNode, 0);
+  constructor(jsonNode: JsonNode, rootViewFactory: RootViewFactory, nodeViewFactory: NodeViewFactory, visualizationStyles: VisualizationStyles) {
+    super(jsonNode, 0, visualizationStyles);
 
     this._view = rootViewFactory.getRootView({name: jsonNode.name, fullName: jsonNode.fullName, type: jsonNode.type});
     //
-    // this._parent = this;
+    this._parent = this;
     //
     // // this._onNodeFilterStringChanged = onNodeFilterStringChanged;
     // // this._nameFilterString = '';
     //
-    // this._nodeShape = new RootRect(this,
-    //   {
-    //     onJumpedToPosition: (offsetPosition) => {
-    //       this._view.jumpToPosition(this._nodeShape.relativePosition);
-    //       onJumpedToPosition(offsetPosition);
-    //     },
-    //     onSizeChanged: () => onSizeChanged(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight),
-    //     onNodeRimChanged: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
-    //     onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition),
-    //     onRimPositionChanged: () => onSizeExpanded(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight)
-    //   });
+    this._nodeShape = new RootRect(this,
+      {
+        // onJumpedToPosition: (offsetPosition) => {
+        //   this._view.jumpToPosition(this._nodeShape.relativePosition);
+        //   onJumpedToPosition(offsetPosition);
+        // },
+        onSizeChanged: () => Promise.resolve(), //onSizeChanged(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight),
+        // onNodeRimChanged: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
+        onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition),
+        // onRimPositionChanged: () => onSizeExpanded(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight)
+        onRadiusChanged: () => Promise.resolve()
+      });
     //
-    // const children = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this, this));
-    // children.forEach(child => this._view.addChildView(child._view));
-    // this._originalChildren = children;
+    const children = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, nodeViewFactory, visualizationStyles, this, this));
+    children.forEach(child => this._view.addChildView(child.view));
+    this._children = children;
     // this._setFilteredChildren(this._originalChildren);
     //
     // // this._initializeFilterGroup();
@@ -283,7 +297,7 @@ class Root extends Node {
     });
   }
 
-  scheduleAction(func: () => Promise<NodeShape[]>): void {
+  scheduleAction(func: () => Promise<void[]>): void {
     this._updatePromise = this._updatePromise.then(func);
   }
   //
@@ -429,7 +443,7 @@ class Root extends Node {
   //   return [this];
   // }
 
-  _relayoutCompletely(): Promise<NodeShape[]> {
+  _relayoutCompletely(): Promise<void[]> {
     // this.getCurrentChildren().forEach(c => c._callOnSelfThenEveryDescendant(node => node._nodeShape.unfix()));
 
     const promiseInitialLayout = this._initialLayout();
@@ -501,53 +515,55 @@ class Root extends Node {
 class InnerNode extends Node {
   // private _nodeShape: NodeShape
   private _view: NodeView
+  private _text: NodeText;
 
-  constructor(jsonNode: JsonNode, layerWithinParentNode: number, root: Root, parent: Node) {
-    super(jsonNode, layerWithinParentNode);
+  constructor(jsonNode: JsonNode, layerWithinParentNode: number, nodeViewFactory: NodeViewFactory, visualizationStyles: VisualizationStyles, root: Root, parent: Node) {
+    super(jsonNode, layerWithinParentNode, visualizationStyles);
 
     // this._root = root;
-    // this._parent = parent;
+    this._parent = parent;
     //
-    // this._text = new NodeText(this);
+    this._text = initNodeText(visualizationStyles).getNodeText(this);
     //
-    // this._view = new NodeView(
-    //   {
-    //     nodeName: this._description.name,
-    //     fullNodeName: this.getFullName(),
-    //     nodeType: this._description.type
-    //   }, {
-    //     // clickHandler: event => {
-    //     //   if (event.ctrlKey || event.altKey) {
-    //     //     this._root._addNodeToExcludeFilter(this.getFullName());
-    //     //   } else {
-    //     //     this._changeFoldIfInnerNodeAndRelayout()
-    //     //   }
-    //     //   return false;
-    //     // },
-    //     // dragHandler: (dx, dy) => this._drag(dx, dy)
-    //   });
+    this._view = nodeViewFactory.getNodeView(this.nodeDescription);
+    // , {
+        // clickHandler: event => {
+        //   if (event.ctrlKey || event.altKey) {
+        //     this._root._addNodeToExcludeFilter(this.getFullName());
+        //   } else {
+        //     this._changeFoldIfInnerNodeAndRelayout()
+        //   }
+        //   return false;
+        // },
+        // dragHandler: (dx, dy) => this._drag(dx, dy)
+      // });
     //
     // // this._matchesFilter = new Map();
-    // this._nodeShape = new NodeCircle(this,
-    //   {
+    this._nodeShape = new NodeCircle(this,
+      {
     //     onJumpedToPosition: () => this._view.jumpToPosition(this._nodeShape.relativePosition),
-    //     onRadiusChanged: () => this._view.changeRadius(this.getRadius(), this._text.getY()),
+        onRadiusChanged: () => this._view.changeRadius(this.getRadius(), this._text.getY()),
     //     onRadiusSet: () => this._view.setRadius(this.getRadius(), this._text.getY()),
     //     onNodeRimChanged: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
-    //     onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition).then(() => this._view.show()),
+        onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition).then(() => this._view.show()),
     //     onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this._nodeShape.relativePosition)
-    //   });
+        onSizeChanged: () => Promise.resolve()
+      });
     //
-    // const children = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, this._root, this));
-    // children.forEach(child => this._view.addChildView(child._view));
-    // this._originalChildren = children;
+    const children = Array.from(jsonNode.children || []).map((jsonChild, i) => new InnerNode(jsonChild, i, nodeViewFactory, visualizationStyles, root, this));
+    children.forEach(child => this._view.addChildView(child._view));
+    this._children = children;
     // this._setFilteredChildren(this._originalChildren);
   }
 
   get absoluteFixableCircle(): CircleWithFixablePosition {
     return (this._nodeShape as NodeCircle).absoluteShape;
   }
-  //
+
+  get view(): NodeView {
+    return this._view;
+  }
+
   getRadius(): number {
     return this.absoluteFixableCircle.r;
   }
@@ -799,7 +815,7 @@ const init = (nodeViewFactory: NodeViewFactory, rootViewFactory: RootViewFactory
   // const arrayDifference = (arr1, arr2) => arr1.filter(x => arr2.indexOf(x) < 0);
 
   return {
-    getRoot: (jsonNode: JsonNode) => new Root(jsonNode, rootViewFactory)
+    getRoot: (jsonNode: JsonNode) => new Root(jsonNode, rootViewFactory, nodeViewFactory, visualizationStyles)
   };
 };
 

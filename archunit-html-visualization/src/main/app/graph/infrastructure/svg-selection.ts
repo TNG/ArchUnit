@@ -1,6 +1,7 @@
 'use strict';
 
-import {Selection} from 'd3-selection'
+import {Selection} from 'd3-selection';
+import {Transition as D3Transition} from 'd3-transition';
 import {Vector} from "./vectors";
 
 const d3 = require('d3');
@@ -16,8 +17,8 @@ class D3Element {
     return this._d3Select
   }
 
-  translate(vector: Vector): Selection<SVGElement, any, HTMLElement, any> {
-    return this.get().attr('transform', `translate(${vector.x}, ${vector.y})`);
+  translate(vector: Vector): D3Transition<SVGElement, any, HTMLElement, any> {
+    return this.get().attr('transform', `translate(${vector.x}, ${vector.y})`).transition();
   }
 
   getTranslation(): Vector {
@@ -56,12 +57,12 @@ class D3Element {
   }
 }
 
-class Transition extends D3Element {
-  constructor(transition: Selection<SVGElement, any, HTMLElement, any>) {
-    super(transition);
+class Transition extends D3Element /*implements D3Transition<SVGElement, any, HTMLElement, any>*/ {
+  constructor(transition: D3Transition<SVGElement, any, HTMLElement, any>) {
+    super(transition.selection());
   }
 
-  step(doWithSelection: (transition: Transition) => Selection<SVGElement, any, HTMLElement, any>): Transition {
+  step(doWithSelection: (transition: Transition) => D3Transition<SVGElement, any, HTMLElement, any>): Transition {
     doWithSelection(this);
     return this;
   }
@@ -132,7 +133,7 @@ class SvgSelection extends D3Element {
   }
 
   createTransitionWithDuration(duration: number): Transition {
-    return this.get().transition().duration(duration) as unknown as Transition;
+    return new Transition(this.get().transition().duration(duration));
   }
 
   get textWidth(): number {
@@ -215,6 +216,4 @@ class DivSelection extends D3Element {
   }
 }
 
-export {SvgSelection, DivSelection}
-// module.exports.SvgSelection = SvgSelection;
-// module.exports.DivSelection = DivSelection;
+export {SvgSelection, DivSelection, D3Element}

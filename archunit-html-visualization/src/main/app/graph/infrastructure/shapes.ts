@@ -3,12 +3,15 @@
 import {Vector, FixableVector} from "./vectors";
 
 class Shape {
-  private centerPosition: Vector
+  protected _centerPosition: Vector
 
   constructor(centerPosition: Vector) {
-    this.centerPosition = centerPosition;
+    this._centerPosition = centerPosition;
   }
 
+  get centerPosition(): Vector {
+    return this._centerPosition;
+  }
   // /**
   //  * calculates if the given circle with a centerPosition relative to this shape is completely within this shape,
   //  * considering a minimum distance from inner circles to the outer shape border
@@ -27,7 +30,7 @@ class Shape {
 }
 
 class Circle extends Shape {
-  private readonly _r: number
+  private _r: number
 
   constructor(centerPosition: Vector, r: number) {
     super(centerPosition);
@@ -36,6 +39,9 @@ class Circle extends Shape {
 
   get r(): number {
     return this._r;
+  }
+  set r(value: number) {
+    this._r = value
   }
   // containsRelativeCircle(relativeCircle, padding = 0) {
   //   return relativeCircle.centerPosition.length() + relativeCircle.r + padding <= this.r;
@@ -58,9 +64,58 @@ class Circle extends Shape {
   // }
 }
 
+/**
+ * Hint: the getter and setter for x and y are needed by the method Root._forceLayout(), as the used d3 force simulation
+ * operates on the absoluteFixableCircle of a node's _nodeShape and needs direct set- and get-access to the x and y property
+ */
+class CircleWithFixablePosition extends Circle {
+  private id: string
+
+  constructor(x: number, y: number, r: number, id: string) {
+    super(new FixableVector(x, y), r);
+    this.id = id;
+  }
+
+  // get x() {
+  //   return this.centerPosition.x;
+  // }
+  //
+  // get y() {
+  //   return this.centerPosition.y;
+  // }
+  //
+  // set x(value) {
+  //   this.centerPosition.x = value;
+  // }
+  //
+  // set y(value) {
+  //   this.centerPosition.y = value;
+  // }
+  //
+  // get fx() {
+  //   return this.centerPosition.fx;
+  // }
+  //
+  // get fy() {
+  //   return this.centerPosition.fy;
+  // }
+
+  fix(): void {
+    (this._centerPosition as FixableVector).fix();
+  }
+
+  unfix(): void {
+    (this._centerPosition as FixableVector).unfix();
+  }
+
+  get fixed(): boolean {
+    return (this._centerPosition as FixableVector).fixed;
+  }
+}
+
 class Rect extends Shape {
-  private halfWidth: number
-  private halfHeight: number
+  halfWidth: number
+  halfHeight: number
 
   constructor(centerPosition: Vector, halfWidth: number, halfHeight: number) {
     super(centerPosition);
@@ -104,53 +159,10 @@ class ZeroShape extends Shape {
   // }
 }
 
-/**
- * Hint: the getter and setter for x and y are needed by the method Root._forceLayout(), as the used d3 force simulation
- * operates on the absoluteFixableCircle of a node's _nodeShape and needs direct set- and get-access to the x and y property
- */
-class CircleWithFixablePosition extends Circle {
-  private id: string
-
-  constructor(x: number, y: number, r: number, id: string) {
-    super(new FixableVector(x, y), r);
-    this.id = id;
-  }
-
-  // get x() {
-  //   return this.centerPosition.x;
-  // }
-  //
-  // get y() {
-  //   return this.centerPosition.y;
-  // }
-  //
-  // set x(value) {
-  //   this.centerPosition.x = value;
-  // }
-  //
-  // set y(value) {
-  //   this.centerPosition.y = value;
-  // }
-  //
-  // get fx() {
-  //   return this.centerPosition.fx;
-  // }
-  //
-  // get fy() {
-  //   return this.centerPosition.fy;
-  // }
-  //
-  // fix() {
-  //   this.centerPosition.fix();
-  // }
-  //
-  // unfix() {
-  //   this.centerPosition.unfix();
-  // }
-  //
-  // get fixed() {
-  //   return this.centerPosition.fixed;
-  // }
+interface ShapeListener {
+  onMovedToPosition: () => Promise<void>
+  onRadiusChanged: () => Promise<void>
+  onSizeChanged: () => Promise<void>
 }
 
-export {Circle, Rect, ZeroShape, CircleWithFixablePosition, Shape};
+export {Circle, Rect, ZeroShape, CircleWithFixablePosition, Shape, ShapeListener};
