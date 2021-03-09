@@ -620,6 +620,18 @@ public class GivenMembersDeclaredInClassesThatTest {
     }
 
     @Test
+    public void areRecords_predicate() {
+        // Tested in GivenMembersDeclaredInClassesThatRecordsTest, we'll satisfy the consistency test with this quick hack
+        members().that().areDeclaredInClassesThat().areRecords();
+    }
+
+    @Test
+    public void areNotRecords_predicate() {
+        // Tested in GivenMembersDeclaredInClassesThatRecordsTest, we'll satisfy the consistency test with this quick hack
+        members().that().areDeclaredInClassesThat().areNotRecords();
+    }
+
+    @Test
     public void areTopLevelClasses_predicate() {
         List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().areTopLevelClasses())
                 .on(String.class, NestedClassWithSomeMoreClasses.class, NestedClassWithSomeMoreClasses.StaticNestedClass.class,
@@ -827,7 +839,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         return GET_NAME.is(equalTo(type.getName()));
     }
 
-    private Evaluator<JavaMember> filterResultOf(GivenMembersConjunction<JavaMember> givenClasses) {
+    static Evaluator<JavaMember> filterResultOf(GivenMembersConjunction<JavaMember> givenClasses) {
         return new Evaluator<>(JavaMember.class, givenClasses);
     }
 

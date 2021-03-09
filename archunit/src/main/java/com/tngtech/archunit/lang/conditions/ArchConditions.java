@@ -940,6 +940,16 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> beRecords() {
+        return RecordsCondition.BE_RECORDS;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> notBeRecords() {
+        return not(RecordsCondition.BE_RECORDS);
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beTopLevelClasses() {
         return BE_TOP_LEVEL_CLASSES;
     }
@@ -1190,6 +1200,22 @@ public final class ArchConditions {
             String message = createMessage(javaClass,
                     (isEnum ? "is an" : "is not an") + " enum");
             events.add(new SimpleConditionEvent(javaClass, isEnum, message));
+        }
+    }
+
+    private static class RecordsCondition extends ArchCondition<JavaClass> {
+        private static final RecordsCondition BE_RECORDS = new RecordsCondition();
+
+        RecordsCondition() {
+            super("be records");
+        }
+
+        @Override
+        public void check(JavaClass javaClass, ConditionEvents events) {
+            boolean isRecord = javaClass.isRecord();
+            String message = createMessage(javaClass,
+                    (isRecord ? "is a" : "is not a") + " record");
+            events.add(new SimpleConditionEvent(javaClass, isRecord, message));
         }
     }
 

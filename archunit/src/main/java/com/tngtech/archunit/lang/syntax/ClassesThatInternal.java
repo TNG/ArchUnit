@@ -35,6 +35,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.LOCAL_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.MEMBER_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.NESTED_CLASSES;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.RECORDS;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.TOP_LEVEL_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
@@ -291,6 +292,16 @@ class ClassesThatInternal<CONJUNCTION> implements ClassesThat<CONJUNCTION> {
     @Override
     public CONJUNCTION areNotAnnotations() {
         return givenWith(are(not(ANNOTATIONS)));
+    }
+
+    @Override
+    public CONJUNCTION areRecords() {
+        return givenWith(are(RECORDS));
+    }
+
+    @Override
+    public CONJUNCTION areNotRecords() {
+        return givenWith(are(not(RECORDS)));
     }
 
     @Override

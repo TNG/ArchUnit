@@ -624,6 +624,18 @@ public class GivenClassesThatTest {
     }
 
     @Test
+    public void areRecords_predicate() {
+        // Tested in GivenClassesThatRecordsTest, we'll satisfy the consistency test with this quick hack
+        classes().that().areRecords();
+    }
+
+    @Test
+    public void areNotRecords_predicate() {
+        // Tested in GivenClassesThatRecordsTest, we'll satisfy the consistency test with this quick hack
+        classes().that().areNotRecords();
+    }
+
+    @Test
     public void areTopLevelClasses_predicate() {
         List<JavaClass> classes = filterResultOf(classes().that().areTopLevelClasses())
                 .on(List.class, Map.class, Map.Entry.class, NestedClassWithSomeMoreClasses.class,
@@ -820,7 +832,7 @@ public class GivenClassesThatTest {
         return GET_NAME.is(equalTo(type.getName()));
     }
 
-    private Evaluator<JavaClass> filterResultOf(GivenClassesConjunction givenClasses) {
+    static Evaluator<JavaClass> filterResultOf(GivenClassesConjunction givenClasses) {
         return new Evaluator<>(JavaClass.class, givenClasses);
     }
 

@@ -8,7 +8,7 @@ on:
   pull_request:
 
 env:
-  build_java_version: 11
+  build_java_version: 15
 
 jobs:
   build:
@@ -73,7 +73,7 @@ jobs:
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
-          arguments: testJre${{ matrix.test_java_version }} jdk9TestJre${{ matrix.test_java_version }} -PallTests -PmultiJdkTest -Pjava${{ matrix.test_java_version }}Home="${{ env.test_jdk_path }}"
+          arguments: testJre${{ matrix.test_java_version }} jdk9TestJre${{ matrix.test_java_version }} jdk15TestJre${{ matrix.test_java_version }} -PallTests -PmultiJdkTest -Pjava${{ matrix.test_java_version }}Home="${{ env.test_jdk_path }}"
 
   integration-test:
     strategy:

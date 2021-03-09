@@ -733,6 +733,18 @@ public class ShouldClassesThatTest {
     }
 
     @Test
+    public void areRecords_predicate() {
+        // Tested in ShouldClassesThatRecordsTest, we'll satisfy the consistency test with this quick hack
+        noClasses().should().accessClassesThat().areRecords();
+    }
+
+    @Test
+    public void areNotRecords_predicate() {
+        // Tested in ShouldClassesThatRecordsTest, we'll satisfy the consistency test with this quick hack
+        noClasses().should().accessClassesThat().areNotRecords();
+    }
+
+    @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
     public void areTopLevelClasses_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
         Set<JavaClass> classes = filterClassesAppearingInFailureReport(

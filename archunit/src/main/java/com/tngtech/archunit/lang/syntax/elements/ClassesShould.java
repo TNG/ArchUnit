@@ -1070,6 +1070,24 @@ public interface ClassesShould {
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction notBeEnums();
 
+    /**
+     * Asserts that classes are records.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     * @see JavaClass#isRecord()
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction beRecords();
+
+    /**
+     * Asserts that classes are not records.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     * @see JavaClass#isRecord()
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction notBeRecords();
+
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction beTopLevelClasses();
 

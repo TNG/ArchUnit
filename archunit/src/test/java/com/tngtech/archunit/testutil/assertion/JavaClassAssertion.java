@@ -82,6 +82,11 @@ public class JavaClassAssertion extends AbstractObjectAssert<JavaClassAssertion,
         return this;
     }
 
+    public JavaClassAssertion isRecord(boolean expectedIsRecord) {
+        assertThat(actual.isRecord()).as(describeAssertion("is record")).isEqualTo(expectedIsRecord);
+        return this;
+    }
+
     public JavaClassAssertion isFullyImported(boolean expectedIsFullyImported) {
         assertThat(actual.isFullyImported()).as(describeAssertion("is fully imported")).isEqualTo(expectedIsFullyImported);
         return this;
