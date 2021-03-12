@@ -27,20 +27,28 @@ div {
 }
 
 .container {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: center;
     height: 100vh;
-    width: 100%;
-    min-height: inherit;
-
+    width: 100vw;
+    /*max-height: 100vh;*/
+    /*max-width: 100vw;*/
     overflow: scroll;
+    margin-top: 0;
+    left: 0;
+
+    /*display: flex;*/
+    /*flex-direction: row;*/
+    /*align-items: stretch;*/
+    /*justify-content: center;*/
+    /*height: 100vh;*/
+    /*width: 100%;*/
+    /*min-height: inherit;*/
+
+    /*overflow: scroll;*/
 }
 
 #visualization {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
 }
 
 /*#menu {*/

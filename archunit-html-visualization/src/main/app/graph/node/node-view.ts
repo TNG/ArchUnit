@@ -92,11 +92,11 @@ class NodeView {
   //   this._text.offsetY = textOffset;
   // }
   //
-  // startMoveToPosition(position: Vector): Promise<void> {
-  //   return this._svgElement.createTransitionWithDuration(this._transitionDuration)
-  //     .step(svgSelection => svgSelection.translate(position))
-  //     .finish();
-  // }
+  startMoveToPosition(position: Vector): Promise<void> {
+    return this._svgElement.createTransitionWithDuration(this._transitionDuration)
+      .step(svgSelection => svgSelection.translate(position))
+      .finish();
+  }
 
   moveToPosition(position: Vector): Promise<void> {
     return this._svgElement.createTransitionWithDuration(this._transitionDuration)

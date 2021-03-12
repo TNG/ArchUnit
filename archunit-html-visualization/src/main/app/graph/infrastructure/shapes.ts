@@ -2,7 +2,7 @@
 
 import {Vector, FixableVector} from "./vectors";
 
-class Shape {
+abstract class Shape {
   protected _centerPosition: Vector
 
   constructor(centerPosition: Vector) {
@@ -16,17 +16,13 @@ class Shape {
   //  * calculates if the given circle with a centerPosition relative to this shape is completely within this shape,
   //  * considering a minimum distance from inner circles to the outer shape border
   //  */
-  // containsRelativeCircle() {
-  //   throw new Error('not implemented');
-  // }
+  abstract containsRelativeCircle(circle: Circle, padding: number): boolean
 
   // /**
   //  * Shifts the given circle it is completely within this circle,
   //  * considering a minimum distance from inner circles to the outer shape border
   //  */
-  // translateEnclosedRelativeCircleIntoThis() {
-  //   throw new Error('not implemented');
-  // }
+  abstract translateEnclosedRelativeCircleIntoThis(enclosedCircle: Circle, padding: number): void
 }
 
 class Circle extends Shape {
@@ -43,13 +39,14 @@ class Circle extends Shape {
   set r(value: number) {
     this._r = value
   }
-  // containsRelativeCircle(relativeCircle, padding = 0) {
-  //   return relativeCircle.centerPosition.length() + relativeCircle.r + padding <= this.r;
-  // }
-  //
-  // translateEnclosedRelativeCircleIntoThis(enclosedCircle, padding) {
-  //   enclosedCircle.centerPosition.norm(this.r - enclosedCircle.r - padding);
-  // }
+
+  containsRelativeCircle(relativeCircle: Circle, padding: number = 0): boolean {
+    return relativeCircle.centerPosition.length() + relativeCircle.r + padding <= this.r;
+  }
+
+  translateEnclosedRelativeCircleIntoThis(enclosedCircle: Circle, padding: number): void {
+    enclosedCircle.centerPosition.norm(this.r - enclosedCircle.r - padding);
+  }
   //
   // overlapsWith(otherCircle) {
   //   return Vector.between(this.centerPosition, otherCircle.centerPosition).length() <= (this.r + otherCircle.r);
@@ -59,9 +56,9 @@ class Circle extends Shape {
   //   return Vector.between(this.centerPosition, vector).length() <= this.r;
   // }
   //
-  // static from(vector, r) {
-  //   return new Circle(Vector.from(vector), r);
-  // }
+  static from(vector: Vector, r: number): Circle {
+    return new Circle(Vector.from(vector), r);
+  }
 }
 
 /**
@@ -123,27 +120,29 @@ class Rect extends Shape {
     this.halfHeight = halfHeight;
   }
   //
-  // containsRelativeCircle(relativeCircle, padding = 0) {
-  //   return this.relativeCircleIsWithinWidth(relativeCircle, padding)
-  //     && this.relativeCircleIsWithinHeight(relativeCircle, padding);
-  // }
-  //
-  // translateEnclosedRelativeCircleIntoThis(enclosedCircle, padding) {
-  //   if (!this.relativeCircleIsWithinWidth(enclosedCircle, padding)) {
-  //     enclosedCircle.centerPosition.x = Math.sign(enclosedCircle.centerPosition.x) * (this.halfWidth - enclosedCircle.r - padding);
-  //   }
-  //   if (!this.relativeCircleIsWithinHeight(enclosedCircle, padding)) {
-  //     enclosedCircle.centerPosition.y = Math.sign(enclosedCircle.centerPosition.y) * (this.halfHeight - enclosedCircle.r - padding);
-  //   }
-  // }
-  //
-  // relativeCircleIsWithinWidth(relativeCircle, padding = 0) {
-  //   return Math.abs(relativeCircle.centerPosition.x) + relativeCircle.r + padding <= this.halfWidth;
-  // }
-  //
-  // relativeCircleIsWithinHeight(relativeCircle, padding = 0) {
-  //   return Math.abs(relativeCircle.centerPosition.y) + relativeCircle.r + padding <= this.halfHeight;
-  // }
+  containsRelativeCircle(relativeCircle: Circle, padding: number = 0): boolean {
+    return this.relativeCircleIsWithinWidth(relativeCircle, padding)
+      && this.relativeCircleIsWithinHeight(relativeCircle, padding);
+  }
+
+  translateEnclosedRelativeCircleIntoThis(enclosedCircle: Circle, padding: number): void {
+    let x = enclosedCircle.centerPosition.x, y = enclosedCircle.centerPosition.y;
+    if (!this.relativeCircleIsWithinWidth(enclosedCircle, padding)) {
+      x = Math.sign(enclosedCircle.centerPosition.x) * (this.halfWidth - enclosedCircle.r - padding);
+    }
+    if (!this.relativeCircleIsWithinHeight(enclosedCircle, padding)) {
+      y = Math.sign(enclosedCircle.centerPosition.y) * (this.halfHeight - enclosedCircle.r - padding);
+    }
+    enclosedCircle.centerPosition.changeTo(new Vector(x, y))
+  }
+
+  private relativeCircleIsWithinWidth(relativeCircle: Circle, padding: number = 0) {
+    return Math.abs(relativeCircle.centerPosition.x) + relativeCircle.r + padding <= this.halfWidth;
+  }
+
+  private relativeCircleIsWithinHeight(relativeCircle: Circle, padding: number = 0) {
+    return Math.abs(relativeCircle.centerPosition.y) + relativeCircle.r + padding <= this.halfHeight;
+  }
 }
 
 class ZeroShape extends Shape {
@@ -151,18 +150,19 @@ class ZeroShape extends Shape {
     super(new Vector(0, 0));
   }
 
-  // containsRelativeCircle() {
-  //   return true;
-  // }
-  //
-  // translateEnclosedRelativeCircleIntoThis() {
-  // }
+  containsRelativeCircle(): boolean {
+    return true;
+  }
+
+  translateEnclosedRelativeCircleIntoThis(): void {
+  }
 }
 
 interface ShapeListener {
   onMovedToPosition: () => Promise<void>
   onRadiusChanged: () => Promise<void>
   onSizeChanged: () => Promise<void>
+  onMovedToIntermediatePosition: () => Promise<void>
 }
 
 export {Circle, Rect, ZeroShape, CircleWithFixablePosition, Shape, ShapeListener};

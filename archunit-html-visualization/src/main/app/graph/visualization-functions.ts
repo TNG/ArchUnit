@@ -1,11 +1,19 @@
 'use strict';
 
+import {Simulation} from "d3-force";
+
 const d3 = require('d3');
 import {PackCircle} from 'd3-hierarchy';
-import {Node} from './node/node';
+import {InnerNode, Node} from './node/node';
+import {Circle} from "./infrastructure/shapes";
 
 const CIRCLE_TEXT_PADDING = 5;
 const MIN_NODE_RADIUS = 40;
+
+interface ForceSetup {
+  name: string;
+  forceFunction: () => any
+}
 
 const calculateDefaultRadius = (node: Node): number => {
   const isOriginalLeaf = (node: Node) => node.getOriginalChildren().length === 0;
@@ -27,6 +35,30 @@ const packCirclesAndReturnEnclosingCircle = (circles: PackCircle[], padding: num
   circles.forEach(c => c.r -= padding);
   return enclosingCircle;
 };
+
+
+const createForceCollideSimulation = (padding: number, nodes: Node[]): Simulation<any, undefined> => {
+  return createSimulation(0.03, nodes, {
+    name: 'collide',
+    forceFunction: d3.forceCollide().radius((n: Circle) => n.r + padding).strength(1)
+  });
+};
+
+const createSimulation = (alphaDecay: number, nodes: Node[], forceSetup: ForceSetup): Simulation<any, undefined> => {
+  return d3.forceSimulation(nodes)
+    .alphaDecay(alphaDecay)
+    .force(forceSetup.name, forceSetup.forceFunction)
+    .stop();
+};
+
+const runSimulations = (simulations: Simulation<any, undefined>[], mainSimulation: Simulation<any, undefined>, iterationStart: number, onTick: CallableFunction): number => {
+  let i = iterationStart;
+  for (let n = Math.ceil(Math.log(mainSimulation.alphaMin()) / Math.log(1 - mainSimulation.alphaDecay())); i < n; ++i) {
+    simulations.forEach(s => s.tick());
+    onTick();
+  }
+  return i;
+};
 // const newInstance = () => {
 //
 // const createForceLinkSimulation = (padding, nodes, links) => {
@@ -43,25 +75,12 @@ const packCirclesAndReturnEnclosingCircle = (circles: PackCircle[], padding: num
 //   });
 // };
 //
-// const createForceCollideSimulation = (padding, nodes) => {
-//   return createSimulation(0.03, nodes, {
-//     name: 'collide',
-//     forceFunction: d3.forceCollide().radius(n => n.r + padding).strength(1)
-//   });
-// };
-//
 // /**
 //  *
 //  * @param alphaDecay controls the granularity of the simulation and hence quality vs performance: higher alphaDecay <=> higher performance
 //  * @param nodes the nodes to apply the simulation to
 //  * @param forceSetup object containing force name and function, e.g. {name: 'collide', forceFunction: () => ...}
 //  */
-// const createSimulation = (alphaDecay, nodes, forceSetup) => {
-//   return d3.forceSimulation(nodes)
-//     .alphaDecay(alphaDecay)
-//     .force(forceSetup.name, forceSetup.forceFunction)
-//     .stop();
-// };
 //
 // /**
 //  * runs the given simulations, of which mainSimulation is the simulation defining how many steps of the simulations
@@ -72,14 +91,6 @@ const packCirclesAndReturnEnclosingCircle = (circles: PackCircle[], padding: num
 //  * @param iterationStart number that defines at which number the simulations are started
 //  * @param onTick function that is invoked at every tick
 //  */
-// const runSimulations = (simulations, mainSimulation, iterationStart, onTick) => {
-//   let i = iterationStart;
-//   for (let n = Math.ceil(Math.log(mainSimulation.alphaMin()) / Math.log(1 - mainSimulation.alphaDecay())); i < n; ++i) {
-//     simulations.forEach(s => s.tick());
-//     onTick();
-//   }
-//   return i;
-// };
 //
 // return {
 //   /**
@@ -104,4 +115,4 @@ const packCirclesAndReturnEnclosingCircle = (circles: PackCircle[], padding: num
 // };
 // };
 
-export {calculateDefaultRadius, calculateDefaultRadiusForNodeWithOneChild, packCirclesAndReturnEnclosingCircle};
+export {calculateDefaultRadius, calculateDefaultRadiusForNodeWithOneChild, packCirclesAndReturnEnclosingCircle, createForceCollideSimulation, runSimulations};

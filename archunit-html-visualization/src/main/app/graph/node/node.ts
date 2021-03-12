@@ -11,7 +11,9 @@ import {CircleWithFixablePosition} from "../infrastructure/shapes";
 import {
   calculateDefaultRadius,
   calculateDefaultRadiusForNodeWithOneChild,
-  packCirclesAndReturnEnclosingCircle
+  createForceCollideSimulation,
+  packCirclesAndReturnEnclosingCircle,
+  runSimulations
 } from "../visualization-functions";
 import {PackCircle} from "d3-hierarchy";
 import {NodeText, init as initNodeText} from "./node-text";
@@ -34,13 +36,13 @@ class NodeDescription {
   }
 }
 
-class Node {
+abstract class Node {
   private _description: NodeDescription
   protected _parent: Node
   private _layerWithinParentNode: number
   protected _children: InnerNode[]
   protected _nodeShape: NodeShape
-  private _visualizationStyles: VisualizationStyles
+  protected _visualizationStyles: VisualizationStyles
 
   constructor(jsonNode: JsonNode, layerWithinParentNode: number, visualizationStyles: VisualizationStyles) {
     this._layerWithinParentNode = layerWithinParentNode;
@@ -131,9 +133,7 @@ class Node {
   //   throw new Error('not implemented');
   // }
 
-  getNameWidth(): number {
-    throw new Error('not implemented');
-  }
+  abstract getNameWidth(): number
   //
   // getSelfOrFirstPredecessorMatching() {
   //   throw new Error('not implemented');
@@ -149,8 +149,8 @@ class Node {
 
   /**
    * used for folding all nodes containing no violations
-   * @param nodes
    * @return {boolean}
+   * @param fun
    */
   // foldNodesWithMinimumDepthThatHaveNotDescendants(nodes) {
   //   const childrenWithResults = this.getCurrentChildren().map(child => ({
@@ -219,8 +219,7 @@ class Node {
     } else if (this.getCurrentChildren().length === 1) {
       const onlyChild = this.getCurrentChildren()[0];
       promises.push(onlyChild._nodeShape.moveToPosition(0, 0));
-      promises.push(this._nodeShape.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this,
-        onlyChild.getRadius(), this._visualizationStyles.getNodeFontSize())));
+      promises.push(this._nodeShape.changeRadius(calculateDefaultRadiusForNodeWithOneChild(this, onlyChild.getRadius(), this._visualizationStyles.getNodeFontSize())));
     } else {
       const childCircles = this.getCurrentChildren().map(c => ({
         r: c.getRadius()
@@ -241,7 +240,7 @@ class Node {
 }
 
 class Root extends Node {
-  private _view: RootView;
+  private readonly _view: RootView;
   private _mustRelayout: boolean;
   private _updatePromise: Promise<void[]>;
 
@@ -265,6 +264,7 @@ class Root extends Node {
         // onNodeRimChanged: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
         onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition),
         // onRimPositionChanged: () => onSizeExpanded(this._nodeShape.absoluteRect.halfWidth, this._nodeShape.absoluteRect.halfHeight)
+        onMovedToIntermediatePosition: () => Promise.resolve(),
         onRadiusChanged: () => Promise.resolve()
       });
     //
@@ -273,7 +273,7 @@ class Root extends Node {
     this._children = children;
     // this._setFilteredChildren(this._originalChildren);
     //
-    // // this._initializeFilterGroup();
+    // this._initializeFilterGroup();
     // this._initializeNodeMap();
     //
     this._updatePromise = Promise.resolve([]);
@@ -456,58 +456,60 @@ class Root extends Node {
    * at the current level and all nodes above), while the nodes not on the current level are fixed (and so only
    * influence the other nodes)
    */
-  _forceLayout(): Promise<NodeShape[]> {
+  _forceLayout(): Promise<void[]> {
     // const allLinks = this.getLinks();
-    //
-    // const allLayoutedNodesSoFar = new Map();
-    // let currentNodes = new Map();
-    // currentNodes.set(this.getFullName(), this);
-    //
-    const promises: Promise<NodeShape>[] = [];
-    //
-    // while (currentNodes.size > 0) {
-    //
-    //   const newNodesArray = [].concat.apply([], Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
-    //   const newNodes = new Map();
-    //   newNodesArray.forEach(node => newNodes.set(node.getFullName(), node));
-    //   if (newNodes.size === 0) {
-    //     break;
-    //   }
-    //
-    //   newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
-    //   //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
-    //   const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target))
-    //     && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
-    //
-    //   const padding = visualizationStyles.getCirclePadding();
-    //   const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.absoluteFixableCircle);
-    //   const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, currentLinks);
-    //
-    //   const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
-    //   const allCollisionSimulations = currentInnerNodes.map(node =>
-    //     createForceCollideSimulation(padding, node.getCurrentChildren().map(n => n.absoluteFixableCircle)));
-    //
-    //   let timeOfLastUpdate = new Date().getTime();
-    //
-    //   const onTick = () => {
-    //     newNodesArray.forEach(node => node._nodeShape.takeAbsolutePosition(padding));
-    //     const updateInterval = 100;
-    //     if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
-    //       promises = promises.concat(newNodesArray.map(node => node._nodeShape.startMoveToIntermediatePosition()));
-    //       timeOfLastUpdate = new Date().getTime();
-    //     }
-    //   };
-    //
-    //   const k = runSimulations([simulation, ...allCollisionSimulations], simulation, 0, onTick);
-    //   //run the remaining simulations of collision
-    //   runSimulations(allCollisionSimulations, allCollisionSimulations[0], k, onTick);
-    //
-    //   newNodesArray.forEach(node => promises.push(node._nodeShape.completeMoveToIntermediatePosition()));
-    //   currentNodes = newNodes;
-    // }
-    //
+
+    const allLayoutedNodesSoFar = new Map();
+    let currentNodes = new Map();
+    currentNodes.set(this.getFullName(), this);
+
+    let promises: Promise<void>[] = [];
+
+    while (currentNodes.size > 0) {
+
+      const newNodesArray: Node[] = [].concat(...Array.from(currentNodes.values()).map(node => node.getCurrentChildren()));
+      const newNodes = new Map();
+      newNodesArray.forEach(node => {
+        newNodes.set(node.getFullName(), node)
+      });
+      if (newNodes.size === 0) {
+        break;
+      }
+
+      newNodesArray.forEach(node => allLayoutedNodesSoFar.set(node.getFullName(), node));
+      //take only links having at least one new end node and having both end nodes in allLayoutedNodesSoFar
+      // const currentLinks = allLinks.filter(link => (newNodes.has(link.source) || newNodes.has(link.target))
+      //   && (allLayoutedNodesSoFar.has(link.source) && allLayoutedNodesSoFar.has(link.target)));
+
+      const padding = this._visualizationStyles.getCirclePadding();
+      // const allLayoutedNodesSoFarAbsNodes = Array.from(allLayoutedNodesSoFar.values()).map(node => node.absoluteFixableCircle);
+      // const simulation = createForceLinkSimulation(padding, allLayoutedNodesSoFarAbsNodes, []/*currentLinks*/);
+
+      const currentInnerNodes = Array.from(currentNodes.values()).filter(node => !node.isCurrentlyLeaf());
+      const allCollisionSimulations = currentInnerNodes.map(node =>
+        createForceCollideSimulation(padding, node.getCurrentChildren().map((n: InnerNode) => n.absoluteFixableCircle)));
+
+      let timeOfLastUpdate = new Date().getTime();
+
+      const onTick = () => {
+        newNodesArray.forEach(node => (node.nodeShape as NodeCircle).takeAbsolutePosition(padding));
+        const updateInterval = 100;
+        if ((new Date().getTime() - timeOfLastUpdate > updateInterval)) {
+          promises = promises.concat(newNodesArray.map(node => (node.nodeShape as NodeCircle).startMoveToIntermediatePosition()));
+          timeOfLastUpdate = new Date().getTime();
+        }
+      };
+
+      // const k = runSimulations([simulation, ...allCollisionSimulations], simulation, 0, onTick);
+      //run the remaining simulations of collision
+      runSimulations(allCollisionSimulations, allCollisionSimulations[0], 0, onTick);
+
+      newNodesArray.forEach(node => promises.push(node.nodeShape.completeMoveToIntermediatePosition()));
+      currentNodes = newNodes;
+    }
+
     // this._listeners.forEach(listener => promises.push(listener.onLayoutChanged()));
-    //
+
     return Promise.all(promises);
   }
 }
@@ -546,7 +548,7 @@ class InnerNode extends Node {
     //     onRadiusSet: () => this._view.setRadius(this.getRadius(), this._text.getY()),
     //     onNodeRimChanged: () => this._listeners.forEach(listener => listener.onNodeRimChanged(this)),
         onMovedToPosition: () => this._view.moveToPosition(this._nodeShape.relativePosition).then(() => this._view.show()),
-    //     onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this._nodeShape.relativePosition)
+        onMovedToIntermediatePosition: () => this._view.startMoveToPosition(this._nodeShape.relativePosition),
         onSizeChanged: () => Promise.resolve()
       });
     //
@@ -758,10 +760,10 @@ class InnerNode extends Node {
   //   const predecessors = this._parent.getSelfAndPredecessorsUntilExclusively(predecessor);
   //   return [...predecessors, this];
   // }
-
-  isRoot(): boolean {
-    return false;
-  }
+  //
+  // isRoot(): boolean {
+  //   return false;
+  // }
 
   // _initialFold() {
   //   this._setFoldedIfInnerNode(true);

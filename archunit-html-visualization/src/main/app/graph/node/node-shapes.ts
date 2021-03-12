@@ -1,14 +1,14 @@
 'use strict';
 
 import {Vector, vectors} from '../infrastructure/vectors'
-import {CircleWithFixablePosition, Rect, Shape, ShapeListener, ZeroShape} from '../infrastructure/shapes'
+import {Circle, CircleWithFixablePosition, Rect, Shape, ShapeListener, ZeroShape} from '../infrastructure/shapes'
 import {Node} from './node'
 
 abstract class NodeShape {
   protected _node: Node
   protected _listener: ShapeListener
   private readonly _relativePosition: Vector
-  private absoluteReferenceShape: Shape
+  protected absoluteReferenceShape: Shape
 
   protected constructor(node: Node, listener: ShapeListener, x: number, y: number, absoluteReferenceShape: Shape) {
     this._node = node;
@@ -147,13 +147,13 @@ class NodeCircle extends NodeShape {
   //   this._listener.onJumpedToPosition();
   // }
   //
-  // startMoveToIntermediatePosition() {
-  //   if (!this.absoluteFixableCircle.fixed) {
-  //     return this._listener.onMovedToIntermediatePosition();
-  //   }
-  //   return Promise.resolve();
-  // }
-  //
+  startMoveToIntermediatePosition(): Promise<void> {
+    if (!this.absoluteFixableCircle.fixed) {
+      return this._listener.onMovedToIntermediatePosition();
+    }
+    return Promise.resolve();
+  }
+
   completeMoveToIntermediatePosition(): Promise<void> {
     this._updateAbsolutePositionAndChildren();
     if (!this.absoluteFixableCircle.fixed) {
@@ -162,16 +162,16 @@ class NodeCircle extends NodeShape {
     }
     return Promise.resolve();
   }
-  //
-  // takeAbsolutePosition(circlePadding) {
-  //   const newRelativePosition = this.absoluteFixableCircle.centerPosition.relativeTo(this.absoluteReferenceShape.centerPosition);
-  //   const newRelativeCircle = Circle.from(newRelativePosition, this.absoluteFixableCircle.r);
-  //   if (!this.absoluteReferenceShape.containsRelativeCircle(newRelativeCircle, circlePadding)) {
-  //     this.absoluteReferenceShape.translateEnclosedRelativeCircleIntoThis(newRelativeCircle, circlePadding);
-  //   }
-  //   this.relativePosition.changeTo(newRelativeCircle.centerPosition);
-  //   this.absoluteFixableCircle.centerPosition.changeTo(vectors.add(this.relativePosition, this.absoluteReferenceShape.centerPosition));
-  // }
+
+  takeAbsolutePosition(circlePadding: number): void {
+    const newRelativePosition = this.absoluteFixableCircle.centerPosition.relativeTo(this.absoluteReferenceShape.centerPosition);
+    const newRelativeCircle = Circle.from(newRelativePosition, this.absoluteFixableCircle.r);
+    if (!this.absoluteReferenceShape.containsRelativeCircle(newRelativeCircle, circlePadding)) {
+      this.absoluteReferenceShape.translateEnclosedRelativeCircleIntoThis(newRelativeCircle, circlePadding);
+    }
+    this.relativePosition.changeTo(newRelativeCircle.centerPosition);
+    this.absoluteFixableCircle.centerPosition.changeTo(vectors.add(this.relativePosition, this.absoluteReferenceShape.centerPosition));
+  }
   //
   // _expand(relativeCircle, padding) {
   //   const r = relativeCircle.centerPosition.length() + relativeCircle.r;

@@ -41,17 +41,17 @@ class Vector {
   //   return condition ? this.revert() : this;
   // }
 
-  // relativeTo(position: Vector) {
-  //   return Vector.from(this).subtract(position);
-  // }
+  relativeTo(position: Vector): Vector {
+    return Vector.from(this).subtract(position);
+  }
   //
   // isWithinCircle(vector: Vector, radius: number) {
   //   return Vector.between(this, vector).length() <= radius;
   // }
   //
-  // length() {
-  //   return Math.sqrt(this.x * this.x + this.y * this.y);
-  // }
+  length(): number {
+    return Math.sqrt(this._x * this._x + this._y * this._y);
+  }
   //
   // makeDefaultIfNull() {
   //   if (this.length() === 0) {
@@ -74,23 +74,23 @@ class Vector {
     this._y += vector.y;
     return this;
   }
-  //
-  // scale(factor) {
-  //   this.x *= factor;
-  //   this.y *= factor;
-  //   return this;
-  // }
-  //
-  // norm(scale) {
-  //   const length = this.length() || 1;
-  //   return this.scale(scale / length);
-  // }
-  //
-  // subtract(vector = zeroVector) {
-  //   this.x -= vector.x;
-  //   this.y -= vector.y;
-  //   return this;
-  // }
+
+  private scale(factor: number): Vector {
+    this._x *= factor;
+    this._y *= factor;
+    return this;
+  }
+
+  norm(scale: number): Vector {
+    const length = this.length() || 1;
+    return this.scale(scale / length);
+  }
+
+  subtract(vector: Vector = zeroVector): Vector {
+    this._x -= vector.x;
+    this._y -= vector.y;
+    return this;
+  }
   //
   // equals(otherVector) {
   //   return Vector.equal(this, otherVector);
@@ -147,5 +147,7 @@ class FixableVector extends Vector {
     return updatedPosition;
   }
 }
+
+const zeroVector = new Vector(0, 0);
 
 export{Vector, FixableVector, vectors};
