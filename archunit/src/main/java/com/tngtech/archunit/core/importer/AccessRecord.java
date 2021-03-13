@@ -461,7 +461,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
                 private Node(JavaClass child) {
                     this.child = child;
-                    for (JavaClass i : child.getInterfaces()) {
+                    for (JavaClass i : child.getRawInterfaces()) {
                         parents.add(new Node(i));
                     }
                 }

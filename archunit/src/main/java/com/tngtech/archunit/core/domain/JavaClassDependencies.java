@@ -73,7 +73,7 @@ class JavaClassDependencies {
 
     private Set<Dependency> inheritanceDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaClass supertype : FluentIterable.from(javaClass.getInterfaces()).append(javaClass.getRawSuperclass().asSet())) {
+        for (JavaClass supertype : FluentIterable.from(javaClass.getRawInterfaces()).append(javaClass.getRawSuperclass().asSet())) {
             result.add(Dependency.fromInheritance(javaClass, supertype));
         }
         result.addAll(genericSuperclassTypeArgumentDependencies());
