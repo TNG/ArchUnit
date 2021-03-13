@@ -50,6 +50,7 @@ class ClassFileImportRecord {
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
     private final Map<String, TypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
     private final Map<String, JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilderByOwner = new HashMap<>();
+    private final Map<String, Set<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaMethodBuilder> methodBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
@@ -79,6 +80,10 @@ class ClassFileImportRecord {
 
     void addGenericSuperclass(String ownerName, JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
         genericSuperclassBuilderByOwner.put(ownerName, genericSuperclassBuilder);
+    }
+
+    public void addGenericInterfaces(String ownerName, Set<JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
+        genericInterfaceBuildersByOwner.put(ownerName, genericInterfaceBuilders);
     }
 
     void addField(String ownerName, DomainBuilders.JavaFieldBuilder fieldBuilder) {
@@ -133,6 +138,10 @@ class ClassFileImportRecord {
 
     Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclassFor(JavaClass owner) {
         return Optional.fromNullable(genericSuperclassBuilderByOwner.get(owner.getName()));
+    }
+
+    Optional<Set<JavaParameterizedTypeBuilder<JavaClass>>> getGenericInterfacesFor(JavaClass owner) {
+        return Optional.fromNullable(genericInterfaceBuildersByOwner.get(owner.getName()));
     }
 
     Set<String> getMemberSignatureTypeNames() {

@@ -343,6 +343,11 @@ public class ImportTestUtils {
         }
 
         @Override
+        public Optional<Set<JavaType>> createGenericInterfaces(JavaClass owner) {
+            return Optional.absent();
+        }
+
+        @Override
         public Set<JavaClass> createInterfaces(JavaClass owner) {
             return Collections.emptySet();
         }

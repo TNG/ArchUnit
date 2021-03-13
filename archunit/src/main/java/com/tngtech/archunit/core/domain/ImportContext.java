@@ -28,6 +28,8 @@ public interface ImportContext {
 
     Optional<JavaType> createGenericSuperclass(JavaClass owner);
 
+    Optional<Set<JavaType>> createGenericInterfaces(JavaClass owner);
+
     Set<JavaClass> createInterfaces(JavaClass owner);
 
     List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner);
