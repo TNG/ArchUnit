@@ -1,7 +1,6 @@
 package com.tngtech.archunit.core.domain;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
@@ -279,19 +278,41 @@ public class DependencyTest {
         class Base<A> {
         }
         @SuppressWarnings("unused")
-        class ClassWithTypeParameters extends Base<String> {
+        class ClassWithGenericSuperclass extends Base<String> {
         }
 
-        JavaClass javaClass = importClassesWithContext(ClassWithTypeParameters.class, String.class, Serializable.class).get(ClassWithTypeParameters.class);
+        JavaClass javaClass = importClassesWithContext(ClassWithGenericSuperclass.class, String.class).get(ClassWithGenericSuperclass.class);
         JavaParameterizedType genericSuperClass = (JavaParameterizedType) javaClass.getSuperclass().get();
 
         Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericSuperclassTypeArguments(javaClass, genericSuperClass, (JavaClass) genericSuperClass.getActualTypeArguments().get(0)));
 
-        assertThatType(dependency.getOriginClass()).matches(ClassWithTypeParameters.class);
+        assertThatType(dependency.getOriginClass()).matches(ClassWithGenericSuperclass.class);
         assertThatType(dependency.getTargetClass()).matches(String.class);
         assertThat(dependency.getDescription()).as("description").contains(String.format(
                 "Class <%s> has generic superclass <%s> with type argument depending on <%s> in (%s.java:0)",
-                ClassWithTypeParameters.class.getName(), Base.class.getName(), String.class.getName(), getClass().getSimpleName()));
+                ClassWithGenericSuperclass.class.getName(), Base.class.getName(), String.class.getName(), getClass().getSimpleName()));
+    }
+
+    @SuppressWarnings("unused")
+    private interface InterfaceWithTypeParameter<T> {
+    }
+
+    @Test
+    public void Dependency_from_generic_interface_type_arguments() {
+        @SuppressWarnings("unused")
+        class ClassWithGenericInterface implements InterfaceWithTypeParameter<String> {
+        }
+
+        JavaClass javaClass = importClassesWithContext(ClassWithGenericInterface.class, InterfaceWithTypeParameter.class, String.class).get(ClassWithGenericInterface.class);
+        JavaParameterizedType genericInterface = (JavaParameterizedType) getOnlyElement(javaClass.getInterfaces());
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericInterfaceTypeArgument(javaClass, genericInterface, (JavaClass) genericInterface.getActualTypeArguments().get(0)));
+
+        assertThatType(dependency.getOriginClass()).matches(ClassWithGenericInterface.class);
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "Class <%s> has generic interface <%s> with type argument depending on <%s> in (%s.java:0)",
+                ClassWithGenericInterface.class.getName(), InterfaceWithTypeParameter.class.getName(), String.class.getName(), getClass().getSimpleName()));
     }
 
     @Test

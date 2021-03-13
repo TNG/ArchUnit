@@ -175,6 +175,7 @@ import static com.tngtech.archunit.testutils.ExpectedAccess.callFromStaticInitia
 import static com.tngtech.archunit.testutils.ExpectedDependency.annotatedClass;
 import static com.tngtech.archunit.testutils.ExpectedDependency.constructor;
 import static com.tngtech.archunit.testutils.ExpectedDependency.field;
+import static com.tngtech.archunit.testutils.ExpectedDependency.genericInterface;
 import static com.tngtech.archunit.testutils.ExpectedDependency.genericSuperclass;
 import static com.tngtech.archunit.testutils.ExpectedDependency.inheritanceFrom;
 import static com.tngtech.archunit.testutils.ExpectedDependency.method;
@@ -781,6 +782,7 @@ class ExamplesIntegrationTest {
                 .by(typeParameter(ServiceHelper.class, "ANOTHER_TYPE_PARAMETER_VIOLATING_LAYER_RULE").dependingOn(SomeEnum.class))
                 .by(genericSuperclass(SpecialServiceHelper.class, ServiceHelper.class).dependingOn(SomeUtility.class))
                 .by(genericSuperclass(SpecialServiceHelper.class, ServiceHelper.class).dependingOn(SomeEnum.class))
+                .by(genericInterface(SpecialServiceHelper.class, List.class).dependingOn(SomeUtility.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withParameter(UseCaseTwoController.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withReturnType(SomeGuiController.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentOnComponentTypeMethod).withParameter(UseCaseTwoController[].class))
@@ -842,6 +844,7 @@ class ExamplesIntegrationTest {
                 .by(typeParameter(ServiceHelper.class, "ANOTHER_TYPE_PARAMETER_VIOLATING_LAYER_RULE").dependingOn(SomeEnum.class))
                 .by(genericSuperclass(SpecialServiceHelper.class, ServiceHelper.class).dependingOn(SomeUtility.class))
                 .by(genericSuperclass(SpecialServiceHelper.class, ServiceHelper.class).dependingOn(SomeEnum.class))
+                .by(genericInterface(SpecialServiceHelper.class, List.class).dependingOn(SomeUtility.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withParameter(UseCaseTwoController.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withReturnType(SomeGuiController.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentOnComponentTypeMethod).withParameter(UseCaseTwoController[].class))
@@ -913,6 +916,7 @@ class ExamplesIntegrationTest {
                                 .by(typeParameter(ServiceHelper.class, "ANOTHER_TYPE_PARAMETER_VIOLATING_LAYER_RULE").dependingOn(SomeEnum.class))
                                 .by(genericSuperclass(SpecialServiceHelper.class, ServiceHelper.class).dependingOn(SomeUtility.class))
                                 .by(genericSuperclass(SpecialServiceHelper.class, ServiceHelper.class).dependingOn(SomeEnum.class))
+                                .by(genericInterface(SpecialServiceHelper.class, List.class).dependingOn(SomeUtility.class))
                                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withParameter(UseCaseTwoController.class))
                                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withReturnType(SomeGuiController.class))
                                 .by(method(ServiceViolatingLayerRules.class, dependentOnComponentTypeMethod)
