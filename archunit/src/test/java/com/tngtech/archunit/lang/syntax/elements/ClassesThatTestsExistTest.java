@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ClassesThatTestsExistTest {
     private static final Set<Class<?>> CLASSES_SHOULD_THAT_CONTEXT = ImmutableSet.of(
-            GivenClassesThatTest.class, ShouldClassesThatTest.class, ShouldOnlyByClassesThatTest.class
+            GivenClassesThatTest.class, ShouldClassesThatTest.class, ShouldOnlyByClassesThatTest.class, GivenMembersDeclaredInClassesThatTest.class
     );
 
     @Test

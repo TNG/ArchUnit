@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -30,9 +31,12 @@ import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
+import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldEvaluator.filterClassesAppearingInFailureReport;
@@ -40,6 +44,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static java.util.regex.Pattern.quote;
 
 @RunWith(DataProviderRunner.class)
 public class ShouldClassesThatTest {
@@ -47,11 +52,14 @@ public class ShouldClassesThatTest {
     @Rule
     public final MockitoRule rule = MockitoJUnit.rule();
 
+    private static final List<ClassesThat<?>> noClassesShouldThatRuleStarts = ImmutableList.<ClassesThat<?>>of(
+            noClasses().should().accessClassesThat(),
+            noClasses().should().dependOnClassesThat()
+    );
+
     @DataProvider
     public static Object[][] no_classes_should_that_rule_starts() {
-        return testForEach(
-                noClasses().should().accessClassesThat(),
-                noClasses().should().dependOnClassesThat());
+        return testForEach(noClassesShouldThatRuleStarts);
     }
 
     @DataProvider
@@ -335,36 +343,110 @@ public class ShouldClassesThatTest {
 
         assertThatType(getOnlyElement(classes)).matches(ClassAccessingAnnotatedClass.class);
     }
-    
-    @Test
-    @UseDataProvider("no_classes_should_that_rule_starts")
-    public void containMethodsThatAreAnnotatedWith_type(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.containMethodsThatAreAnnotatedWith(SomeAnnotation.class))
-                .on(ClassAccessingClassWithAnnotatedMethods.class, ClassAccessingClassWithMethodsWithoutAnnotation.class);
 
-        assertThatType(getOnlyElement(classes)).matches(ClassAccessingClassWithAnnotatedMethods.class);
+    private static class Data_of_containAnyMembersThat {
+        @SuppressWarnings("unused")
+        static class ViolatingOrigin {
+            void call() {
+                new ViolatingTarget("").aMethod();
+            }
+        }
+
+        @SuppressWarnings("unused")
+        static class ViolatingTarget {
+            static {
+                System.out.println("static initializer");
+            }
+
+            Object aField;
+
+            ViolatingTarget(Object aParam) {
+            }
+
+            void aMethod() {
+            }
+        }
+
+        @SuppressWarnings("unused")
+        static class OkayOrigin {
+            void call() {
+                new Data_of_containAnyMembersThat.OkayTarget("").bMethod();
+            }
+        }
+
+        @SuppressWarnings("unused")
+        static class OkayTarget {
+            String bField;
+
+            OkayTarget(String bParam) {
+            }
+
+            void bMethod() {
+            }
+        }
     }
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
-    public void containMethodsThatAreAnnotatedWith_typeName(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.containMethodsThatAreAnnotatedWith(SomeAnnotation.class.getName()))
-                .on(ClassAccessingClassWithAnnotatedMethods.class, ClassAccessingClassWithMethodsWithoutAnnotation.class);
+    public void containAnyMembersThat(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.containAnyMembersThat(have(name("aField"))))
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class,
+                        Data_of_containAnyMembersThat.OkayTarget.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
 
-        assertThatType(getOnlyElement(classes)).matches(ClassAccessingClassWithAnnotatedMethods.class);
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
     }
 
     @Test
     @UseDataProvider("no_classes_should_that_rule_starts")
-    public void containMethodsThatAreAnnotatedWith_predicate(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
-        DescribedPredicate<HasType> hasNamePredicate = GET_RAW_TYPE.then(GET_NAME).is(equalTo(SomeAnnotation.class.getName()));
-        Set<JavaClass> classes = filterClassesAppearingInFailureReport(
-                noClassesShouldThatRuleStart.containMethodsThatAreAnnotatedWith(hasNamePredicate))
-                .on(ClassAccessingClassWithAnnotatedMethods.class, ClassAccessingClassWithMethodsWithoutAnnotation.class);
+    public void containAnyFieldsThat(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.containAnyFieldsThat(have(name("aField"))))
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class,
+                        Data_of_containAnyMembersThat.OkayTarget.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
 
-        assertThatType(getOnlyElement(classes)).matches(ClassAccessingClassWithAnnotatedMethods.class);
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void containAnyCodeUnitsThat(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.containAnyCodeUnitsThat(have(name("aMethod"))))
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class,
+                        Data_of_containAnyMembersThat.OkayTarget.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void containAnyMethodsThat(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(noClassesShouldThatRuleStart.containAnyMethodsThat(have(name("aMethod"))))
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class,
+                        Data_of_containAnyMembersThat.OkayTarget.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void containAnyConstructorsThat(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        ArchRule rule = noClassesShouldThatRuleStart.containAnyConstructorsThat(have(fullNameMatching(".*" + quote(Object.class.getName()) + ".*")));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(rule)
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class,
+                        Data_of_containAnyMembersThat.OkayTarget.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
+    }
+
+    @Test
+    @UseDataProvider("no_classes_should_that_rule_starts")
+    public void containAnyStaticInitializersThat(ClassesThat<ClassesShouldConjunction> noClassesShouldThatRuleStart) {
+        ArchRule rule = noClassesShouldThatRuleStart.containAnyStaticInitializersThat(
+                have(fullNameMatching(quote(Data_of_containAnyMembersThat.ViolatingTarget.class.getName()) + ".*")));
+        Set<JavaClass> classes = filterClassesAppearingInFailureReport(rule)
+                .on(Data_of_containAnyMembersThat.OkayOrigin.class, Data_of_containAnyMembersThat.ViolatingOrigin.class,
+                        Data_of_containAnyMembersThat.OkayTarget.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
+
+        assertThatTypes(classes).matchInAnyOrder(Data_of_containAnyMembersThat.ViolatingOrigin.class, Data_of_containAnyMembersThat.ViolatingTarget.class);
     }
 
     @Test
@@ -1778,7 +1860,7 @@ public class ShouldClassesThatTest {
     @MetaAnnotatedAnnotation
     private static class MetaAnnotatedClass {
     }
-    
+
     private static class ClassWithAnnotatedMethods {
 
         @SomeAnnotation
@@ -1796,7 +1878,7 @@ public class ShouldClassesThatTest {
         }
 
     }
-    
+
     @SuppressWarnings("unused")
     private static class ClassAccessingClassWithAnnotatedMethods {
 
@@ -1814,7 +1896,7 @@ public class ShouldClassesThatTest {
         }
 
     }
-    
+
     @SuppressWarnings("unused")
     private static class ClassAccessingNestedInnerClass {
         ClassWithInnerClasses.InnerClass.EvenMoreInnerClass evenMoreInnerClass;
