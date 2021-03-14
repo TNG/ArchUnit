@@ -24,6 +24,20 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBu
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.emptySet;
 
+/**
+ * Represents the static initialization block of a class, e.g. a block like
+ * <br><br>
+ * <pre><code>
+ * class Example {
+ *     private static final String someStaticField;
+ *
+ *     static {
+ *         // this is the static initializer, it can for example initialize static fields
+ *         someStaticField = readSomeConfig();
+ *     }
+ * }
+ * </code></pre>
+ */
 public class JavaStaticInitializer extends JavaCodeUnit {
     @PublicAPI(usage = ACCESS)
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
