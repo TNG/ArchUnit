@@ -28,6 +28,24 @@ public class ArchRuleCheckAssertion {
         }
     }
 
+    public ArchRuleCheckAssertion hasViolationMatching(String regex) {
+        for (String detail : evaluationResult.getFailureReport().getDetails()) {
+            if (detail.matches(regex)) {
+                return this;
+            }
+        }
+        throw new AssertionError(String.format("No violation matches '%s'", regex));
+    }
+
+    public ArchRuleCheckAssertion hasNoViolationMatching(String regex) {
+        for (String detail : evaluationResult.getFailureReport().getDetails()) {
+            if (detail.matches(regex)) {
+                throw new AssertionError(String.format("Violation matches '%s'", regex));
+            }
+        }
+        return this;
+    }
+
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ArchRuleCheckAssertion hasOnlyOneViolationMatching(String regex) {
         assertThat(getOnlyElement(evaluationResult.getFailureReport().getDetails())).matches(regex);

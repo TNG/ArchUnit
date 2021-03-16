@@ -71,6 +71,8 @@ ext {
 
                 testClassesDirs = testTask.testClassesDirs
                 classpath = testTask.classpath
+                jvmArgs = testTask.jvmArgs
+                excludes = testTask.excludes
             }
             additionalTestTask.enabled = jdk.javaVersion >= taskMinimumJdkVersion
 

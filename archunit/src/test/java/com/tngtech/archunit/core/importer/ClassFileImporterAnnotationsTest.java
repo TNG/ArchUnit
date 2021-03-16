@@ -66,7 +66,8 @@ public class ClassFileImporterAnnotationsTest {
                 .hasInterfacesMatchingInAnyOrder(Annotation.class)
                 .isInterface(true)
                 .isEnum(false)
-                .isAnnotation(true);
+                .isAnnotation(true)
+                .isRecord(false);
         assertThat(getAnnotationDefaultValue(javaClass, "someStringMethod", String.class)).isEqualTo("DEFAULT");
         assertThatType(getAnnotationDefaultValue(javaClass, "someTypeMethod", JavaClass.class)).matches(List.class);
         assertThat(getAnnotationDefaultValue(javaClass, "someEnumMethod", JavaEnumConstant.class)).isEquivalentTo(EnumToImport.SECOND);
