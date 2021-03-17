@@ -22,20 +22,96 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.library.dependencies.Slices;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+/**
+ * DependencyRules provides a set of general {@link ArchCondition ArchConditions}
+ * and {@link ArchRule ArchRules} for checking dependencies between classes.
+ *
+ * <p>
+ * For checking dependencies between classes that belong to different
+ * architectural concepts, see also {@link Architectures} and {@link Slices}.
+ * </p>
+ */
 @PublicAPI(usage = ACCESS)
 public final class DependencyRules {
     private DependencyRules() {
     }
 
+    /**
+     * A rule that checks that none of the given classes directly depends on
+     * classes from upper packages. For an description what "directly depends"
+     * means, see {@link JavaClass#getDirectDependenciesFromSelf()}.
+     *
+     * <p>
+     * This rule is good practice, because otherwise that might prevent
+     * packages on that level from being split into separate artifacts
+     * in a clean way in the future.
+     * </p>
+     *
+     * <p>
+     * Example that satisfies the rule:
+     * <pre>{@code
+     * mycomponent
+     *   |-- api
+     *   |       |-- interface MyPublicInterface
+     *   |-- subComponentOne
+     *   |       |-- class MyPublicInterfaceImplOne implements MyPublicInterface
+     *   |-- subComponentTwo
+     *           |-- class MyPublicInterfaceImplTwo implements MyPublicInterface
+     * }</pre>
+     * </p>
+     *
+     * <p>
+     * Example that violates the rule:
+     * <pre>{@code
+     * mycomponent
+     *   |-- interface MyPublicInterface
+     *   |-- subComponentOne
+     *   |       |-- class MyPublicInterfaceImplOne implements MyPublicInterface // violation
+     *   |-- subComponentTwo
+     *           |-- class MyPublicInterfaceImplTwo implements MyPublicInterface // violation
+     * }</pre>
+     * </p>
+     */
     @PublicAPI(usage = ACCESS)
     public static final ArchRule NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES =
             noClasses().should(dependOnUpperPackages())
                     .because("that might prevent packages on that level from being split into separate artifacts in a clean way");
 
+    /**
+     * Returns a condition that matches classes that directly depend on classes
+     * from upper packages. For an description what "directly depend" means,
+     * see {@link JavaClass#getDirectDependenciesFromSelf()}.
+     *
+     * <p>
+     * Example that satisfies the rule:
+     * <pre>{@code
+     * mycomponent
+     *   |-- api
+     *   |       |-- interface MyPublicInterface
+     *   |-- subComponentOne
+     *   |       |-- class MyPublicInterfaceImplOne implements MyPublicInterface
+     *   |-- subComponentTwo
+     *           |-- class MyPublicInterfaceImplTwo implements MyPublicInterface
+     * }</pre>
+     * </p>
+     *
+     * <p>
+     * Example that violates the rule:
+     * <pre>{@code
+     * mycomponent
+     *   |-- interface MyPublicInterface
+     *   |-- subComponentOne
+     *   |       |-- class MyPublicInterfaceImplOne implements MyPublicInterface // violation
+     *   |-- subComponentTwo
+     *           |-- class MyPublicInterfaceImplTwo implements MyPublicInterface // violation
+     * }</pre>
+     * </p>
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> dependOnUpperPackages() {
         return new DependOnUpperPackagesCondition();
