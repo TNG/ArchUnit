@@ -140,6 +140,11 @@ public abstract class Optional<T> {
         public boolean equals(Object obj) {
             return obj instanceof Absent;
         }
+
+        @Override
+        public String toString() {
+            return Optional.class.getSimpleName() + ".absent()";
+        }
     }
 
     private static class Present<T> extends Optional<T> {
@@ -209,6 +214,11 @@ public abstract class Optional<T> {
             }
             final Present<?> other = (Present<?>) obj;
             return Objects.equals(this.object, other.object);
+        }
+
+        @Override
+        public String toString() {
+            return Optional.class.getSimpleName() + ".of(" + object + ")";
         }
     }
 }

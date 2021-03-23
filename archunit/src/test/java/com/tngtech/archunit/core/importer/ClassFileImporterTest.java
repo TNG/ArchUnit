@@ -421,15 +421,15 @@ public class ClassFileImporterTest {
         JavaClass someCollection = classes.get(SomeCollection.class);
         JavaClass collectionInterface = classes.get(CollectionInterface.class);
 
-        assertThat(baseClass.getInterfaces()).containsOnly(otherInterface);
-        assertThat(baseClass.getAllInterfaces()).containsOnly(otherInterface, grandParentInterface);
-        assertThat(subclass.getInterfaces()).containsOnly(subinterface);
-        assertThat(subclass.getAllInterfaces()).containsOnly(
+        assertThat(baseClass.getRawInterfaces()).containsOnly(otherInterface);
+        assertThat(baseClass.getAllRawInterfaces()).containsOnly(otherInterface, grandParentInterface);
+        assertThat(subclass.getRawInterfaces()).containsOnly(subinterface);
+        assertThat(subclass.getAllRawInterfaces()).containsOnly(
                 subinterface, otherInterface, parentInterface, grandParentInterface);
-        assertThat(otherSubclass.getInterfaces()).containsOnly(parentInterface);
-        assertThat(otherSubclass.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface, otherInterface);
-        assertThat(someCollection.getInterfaces()).containsOnly(collectionInterface, otherInterface, subinterface);
-        assertThat(someCollection.getAllInterfaces()).extractingResultOf("reflect").containsOnly(
+        assertThat(otherSubclass.getRawInterfaces()).containsOnly(parentInterface);
+        assertThat(otherSubclass.getAllRawInterfaces()).containsOnly(parentInterface, grandParentInterface, otherInterface);
+        assertThat(someCollection.getRawInterfaces()).containsOnly(collectionInterface, otherInterface, subinterface);
+        assertThat(someCollection.getAllRawInterfaces()).extractingResultOf("reflect").containsOnly(
                 CollectionInterface.class, OtherInterface.class, Subinterface.class, ParentInterface.class,
                 GrandParentInterface.class, Collection.class, Iterable.class);
     }
@@ -442,12 +442,12 @@ public class ClassFileImporterTest {
         JavaClass grandParentInterface = classes.get(GrandParentInterface.class);
         JavaClass collectionInterface = classes.get(CollectionInterface.class);
 
-        assertThat(grandParentInterface.getAllInterfaces()).isEmpty();
-        assertThat(parentInterface.getInterfaces()).containsOnly(grandParentInterface);
-        assertThat(parentInterface.getAllInterfaces()).containsOnly(grandParentInterface);
-        assertThat(subinterface.getInterfaces()).containsOnly(parentInterface);
-        assertThat(subinterface.getAllInterfaces()).containsOnly(parentInterface, grandParentInterface);
-        assertThat(collectionInterface.getInterfaces()).extractingResultOf("reflect").containsOnly(Collection.class);
+        assertThat(grandParentInterface.getAllRawInterfaces()).isEmpty();
+        assertThat(parentInterface.getRawInterfaces()).containsOnly(grandParentInterface);
+        assertThat(parentInterface.getAllRawInterfaces()).containsOnly(grandParentInterface);
+        assertThat(subinterface.getRawInterfaces()).containsOnly(parentInterface);
+        assertThat(subinterface.getAllRawInterfaces()).containsOnly(parentInterface, grandParentInterface);
+        assertThat(collectionInterface.getRawInterfaces()).extractingResultOf("reflect").containsOnly(Collection.class);
     }
 
     @Test
@@ -474,7 +474,7 @@ public class ClassFileImporterTest {
         assertThat(parentInterface.getSubclasses()).containsOnly(subinterface, otherSubclass);
         assertThat(parentInterface.getAllSubclasses()).containsOnly(
                 subinterface, subclass, subSubclass, subSubSubclass, subSubSubSubclass, someCollection, otherSubclass);
-        JavaClass collection = getOnlyElement(collectionInterface.getInterfaces());
+        JavaClass collection = getOnlyElement(collectionInterface.getRawInterfaces());
         assertThat(collection.getAllSubclasses()).containsOnly(collectionInterface, someCollection);
     }
 
@@ -490,7 +490,7 @@ public class ClassFileImporterTest {
                         BaseClass.class.getName(),
                         Object.class.getName());
 
-        assertThat(javaClass.getAllInterfaces()).extracting("name")
+        assertThat(javaClass.getAllRawInterfaces()).extracting("name")
                 .containsOnly(
                         Subinterface.class.getName(),
                         YetAnotherInterface.class.getName(),

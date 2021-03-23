@@ -25,6 +25,7 @@ import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaAnnotation.DefaultParameterVisitor;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 
+import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.Iterables.concat;
 import static java.util.Collections.emptySet;
@@ -73,10 +74,11 @@ class JavaClassDependencies {
 
     private Set<Dependency> inheritanceDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaClass supertype : FluentIterable.from(javaClass.getInterfaces()).append(javaClass.getRawSuperclass().asSet())) {
+        for (JavaClass supertype : FluentIterable.from(javaClass.getRawInterfaces()).append(javaClass.getRawSuperclass().asSet())) {
             result.add(Dependency.fromInheritance(javaClass, supertype));
         }
         result.addAll(genericSuperclassTypeArgumentDependencies());
+        result.addAll(genericInterfaceTypeArgumentDependencies());
         return result.build();
     }
 
@@ -92,6 +94,23 @@ class JavaClassDependencies {
             result.addAll(Dependency.tryCreateFromGenericSuperclassTypeArguments(javaClass, genericSuperclass, superclassTypeArgumentDependency));
         }
         return result.build();
+    }
+
+    private Set<Dependency> genericInterfaceTypeArgumentDependencies() {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaParameterizedType genericInterface : getGenericInterfacesOf(javaClass)) {
+            List<JavaType> actualTypeArguments = genericInterface.getActualTypeArguments();
+            for (JavaClass interfaceTypeArgumentDependency : dependenciesOfTypes(actualTypeArguments)) {
+                result.addAll(Dependency.tryCreateFromGenericInterfaceTypeArgument(javaClass, genericInterface, interfaceTypeArgumentDependency));
+            }
+        }
+        return result.build();
+    }
+
+    // the cast is safe since we are explicitly filtering instanceOf(..)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Iterable<JavaParameterizedType> getGenericInterfacesOf(JavaClass javaClass) {
+        return (Iterable) FluentIterable.from(javaClass.getInterfaces()).filter(instanceOf(JavaParameterizedType.class));
     }
 
     private Set<Dependency> fieldDependenciesFromSelf() {

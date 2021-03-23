@@ -57,6 +57,7 @@ import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeAnnotations;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeClassHierarchy;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeEnclosingClass;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeGenericInterfaces;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeGenericSuperclass;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeMembers;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeParameters;
@@ -144,6 +145,7 @@ class ClassGraphCreator implements ImportContext {
             completeEnclosingClass(javaClass, this);
             completeTypeParameters(javaClass, this);
             completeGenericSuperclass(javaClass, this);
+            completeGenericInterfaces(javaClass, this);
             completeMembers(javaClass, this);
             completeAnnotations(javaClass, this);
         }
@@ -245,6 +247,20 @@ class ClassGraphCreator implements ImportContext {
         return genericSuperclassBuilder.isPresent()
                 ? Optional.of(genericSuperclassBuilder.get().build(owner, getTypeParametersInContextOf(owner), classes.byTypeName()))
                 : Optional.<JavaType>absent();
+    }
+
+    @Override
+    public Optional<Set<JavaType>> createGenericInterfaces(JavaClass owner) {
+        Optional<Set<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuilders = importRecord.getGenericInterfacesFor(owner);
+        if (!genericInterfaceBuilders.isPresent()) {
+            return Optional.absent();
+        }
+
+        ImmutableSet.Builder<JavaType> result = ImmutableSet.builder();
+        for (JavaParameterizedTypeBuilder<JavaClass> builder : genericInterfaceBuilders.get()) {
+            result.add(builder.build(owner, getTypeParametersInContextOf(owner), classes.byTypeName()));
+        }
+        return Optional.<Set<JavaType>>of(result.build());
     }
 
     private static Iterable<JavaTypeVariable<?>> getTypeParametersInContextOf(JavaClass javaClass) {

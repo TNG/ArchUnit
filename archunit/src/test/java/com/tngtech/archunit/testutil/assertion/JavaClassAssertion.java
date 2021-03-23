@@ -53,17 +53,17 @@ public class JavaClassAssertion extends AbstractObjectAssert<JavaClassAssertion,
     }
 
     public JavaClassAssertion hasNoInterfaces() {
-        assertThat(actual.getInterfaces()).as(describeAssertion("interfaces")).isEmpty();
+        assertThat(actual.getRawInterfaces()).as(describeAssertion("interfaces")).isEmpty();
         return this;
     }
 
     public JavaClassAssertion hasInterfacesMatchingInAnyOrder(Class<?>... expectedInterfaces) {
-        assertThatTypes(actual.getInterfaces()).as(describeAssertion("interfaces")).matchInAnyOrder(expectedInterfaces);
+        assertThatTypes(actual.getRawInterfaces()).as(describeAssertion("interfaces")).matchInAnyOrder(expectedInterfaces);
         return this;
     }
 
     public JavaClassAssertion hasAllInterfacesMatchingInAnyOrder(Class<?>... expectedAllInterfaces) {
-        assertThatTypes(actual.getAllInterfaces()).as(describeAssertion("all interfaces")).matchInAnyOrder(expectedAllInterfaces);
+        assertThatTypes(actual.getAllRawInterfaces()).as(describeAssertion("all interfaces")).matchInAnyOrder(expectedAllInterfaces);
         return this;
     }
 

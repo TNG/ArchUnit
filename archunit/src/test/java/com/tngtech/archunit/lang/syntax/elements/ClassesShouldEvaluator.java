@@ -18,11 +18,11 @@ import com.tngtech.archunit.lang.FailureReport;
 import static java.util.regex.Pattern.quote;
 
 class ClassesShouldEvaluator {
-    private static String OPTIONAL_ARGS_REGEX = "(?:\\([^)]*\\))?";
-    private static String METHOD_OR_FIELD_REGEX = "\\.[\\w<>]+" + OPTIONAL_ARGS_REGEX;
-    private static String MEMBER_REFERENCE_REGEX = "<(.*)" + METHOD_OR_FIELD_REGEX + ">";
-    private static String SAME_CLASS_BACK_REFERENCE_REGEX = "<\\1" + METHOD_OR_FIELD_REGEX + ">";
-    private static String SELF_REFERENCE_REGEX = MEMBER_REFERENCE_REGEX + ".*" + SAME_CLASS_BACK_REFERENCE_REGEX;
+    private static final String OPTIONAL_ARGS_REGEX = "(?:\\([^)]*\\))?";
+    private static final String METHOD_OR_FIELD_REGEX = "\\.[\\w<>]+" + OPTIONAL_ARGS_REGEX;
+    private static final String MEMBER_REFERENCE_REGEX = "<(.*)" + METHOD_OR_FIELD_REGEX + ">";
+    private static final String SAME_CLASS_BACK_REFERENCE_REGEX = "<\\1" + METHOD_OR_FIELD_REGEX + ">";
+    private static final String SELF_REFERENCE_REGEX = MEMBER_REFERENCE_REGEX + ".*" + SAME_CLASS_BACK_REFERENCE_REGEX;
 
     private final ArchRule rule;
     private final ClassInReportLineMatcher reportLineMatcher;

@@ -29,8 +29,12 @@ public class ExpectedDependency implements ExpectedRelation {
         return new TypeParameterCreator(clazz, typeParameterName);
     }
 
-    public static GenericSuperclassTypeArgumentCreator genericSuperclass(Class<?> clazz, Class<?> genericSuperclassErasure) {
-        return new GenericSuperclassTypeArgumentCreator(clazz, genericSuperclassErasure);
+    public static GenericSupertypeTypeArgumentCreator genericSuperclass(Class<?> clazz, Class<?> genericSuperclassErasure) {
+        return new GenericSupertypeTypeArgumentCreator(clazz, "superclass", genericSuperclassErasure);
+    }
+
+    public static GenericSupertypeTypeArgumentCreator genericInterface(Class<?> clazz, Class<?> genericInterfaceErasure) {
+        return new GenericSupertypeTypeArgumentCreator(clazz, "interface", genericInterfaceErasure);
     }
 
     public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {
@@ -108,19 +112,21 @@ public class ExpectedDependency implements ExpectedRelation {
         }
     }
 
-    public static class GenericSuperclassTypeArgumentCreator {
+    public static class GenericSupertypeTypeArgumentCreator {
         private final Class<?> childClass;
-        private final Class<?> genericSuperclassErasure;
+        private final Class<?> genericSupertypeErasure;
+        private final String genericTypeDescription;
 
-        private GenericSuperclassTypeArgumentCreator(Class<?> childClass, Class<?> genericSuperclassErasure) {
+        private GenericSupertypeTypeArgumentCreator(Class<?> childClass, String genericTypeDescription, Class<?> genericSupertypeErasure) {
             this.childClass = childClass;
-            this.genericSuperclassErasure = genericSuperclassErasure;
+            this.genericSupertypeErasure = genericSupertypeErasure;
+            this.genericTypeDescription = genericTypeDescription;
         }
 
         public ExpectedDependency dependingOn(Class<?> superclassTypeArgumentDependency) {
             return new ExpectedDependency(childClass, superclassTypeArgumentDependency,
                     getDependencyPattern(childClass.getName(),
-                            "has generic superclass <" + genericSuperclassErasure.getName() + "> with type argument depending on",
+                            "has generic " + genericTypeDescription + " <" + genericSupertypeErasure.getName() + "> with type argument depending on",
                             superclassTypeArgumentDependency.getName(),
                             0));
         }

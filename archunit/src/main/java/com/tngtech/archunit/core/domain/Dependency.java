@@ -145,7 +145,15 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     }
 
     static Set<Dependency> tryCreateFromGenericSuperclassTypeArguments(JavaClass originClass, JavaType superclass, JavaClass typeArgumentDependency) {
-        String dependencyType = "has generic superclass " + bracketFormat(superclass.getName()) + " with type argument depending on";
+        return createGenericDependency(originClass, "superclass", superclass, typeArgumentDependency);
+    }
+
+    static Set<Dependency> tryCreateFromGenericInterfaceTypeArgument(JavaClass originClass, JavaType genericInterface, JavaClass typeArgumentDependency) {
+        return createGenericDependency(originClass, "interface", genericInterface, typeArgumentDependency);
+    }
+
+    private static Set<Dependency> createGenericDependency(JavaClass originClass, String genericTypeDescription, JavaType genericSuperType, JavaClass typeArgumentDependency) {
+        String dependencyType = "has generic " + genericTypeDescription + " " + bracketFormat(genericSuperType.getName()) + " with type argument depending on";
         return tryCreateDependency(originClass, originClass.getDescription(), dependencyType, typeArgumentDependency, originClass.getSourceCodeLocation());
     }
 

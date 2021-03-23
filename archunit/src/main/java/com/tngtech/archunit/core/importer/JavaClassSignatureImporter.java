@@ -16,7 +16,9 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -60,11 +62,14 @@ class JavaClassSignatureImporter {
         if (genericSuperclass.isPresent()) {
             declarationHandler.onGenericSuperclass(genericSuperclass.get());
         }
+
+        declarationHandler.onGenericInterfaces(signatureProcessor.getGenericInterfaces());
     }
 
     private static class SignatureProcessor extends SignatureVisitor {
         private final BoundProcessor boundProcessor = new BoundProcessor();
         private final GenericSuperclassProcessor superclassProcessor = new GenericSuperclassProcessor();
+        private final GenericInterfacesProcessor interfacesProcessor = new GenericInterfacesProcessor();
 
         SignatureProcessor() {
             super(ASM_API_VERSION);
@@ -74,8 +79,12 @@ class JavaClassSignatureImporter {
             return boundProcessor.typeParameterBuilders;
         }
 
-        public Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclass() {
+        Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclass() {
             return Optional.fromNullable(superclassProcessor.superclass);
+        }
+
+        Set<JavaParameterizedTypeBuilder<JavaClass>> getGenericInterfaces() {
+            return interfacesProcessor.interfaces;
         }
 
         @Override
@@ -87,6 +96,11 @@ class JavaClassSignatureImporter {
         @Override
         public SignatureVisitor visitSuperclass() {
             return superclassProcessor;
+        }
+
+        @Override
+        public SignatureVisitor visitInterface() {
+            return interfacesProcessor;
         }
 
         @Override
@@ -161,6 +175,26 @@ class JavaClassSignatureImporter {
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
                 return TypeArgumentProcessor.create(wildcard, superclass);
+            }
+        }
+
+        private static class GenericInterfacesProcessor extends SignatureVisitor {
+            private final Set<JavaParameterizedTypeBuilder<JavaClass>> interfaces = new HashSet<>();
+            private JavaParameterizedTypeBuilder<JavaClass> currentInterface;
+
+            GenericInterfacesProcessor() {
+                super(ASM_API_VERSION);
+            }
+
+            @Override
+            public void visitClassType(String internalObjectName) {
+                currentInterface = new JavaParameterizedTypeBuilder<>(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
+                interfaces.add(currentInterface);
+            }
+
+            @Override
+            public SignatureVisitor visitTypeArgument(char wildcard) {
+                return TypeArgumentProcessor.create(wildcard, currentInterface);
             }
         }
     }

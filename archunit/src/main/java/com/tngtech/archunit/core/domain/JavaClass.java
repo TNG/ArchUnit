@@ -26,6 +26,7 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
@@ -50,6 +51,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.JavaType.Functions.TO_ERASURE;
@@ -87,16 +89,16 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             return result.build();
         }
     });
-    private final Set<JavaClass> interfaces = new HashSet<>();
-    private final Supplier<Set<JavaClass>> allInterfaces = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
+    private Interfaces interfaces = Interfaces.EMPTY;
+    private final Supplier<Set<JavaClass>> allRawInterfaces = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
         @Override
         public Set<JavaClass> get() {
             ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
-            for (JavaClass i : interfaces) {
+            for (JavaClass i : interfaces.getRaw()) {
                 result.add(i);
-                result.addAll(i.getAllInterfaces());
+                result.addAll(i.getAllRawInterfaces());
             }
-            result.addAll(superclass.getAllInterfaces());
+            result.addAll(superclass.getAllRawInterfaces());
             return result.build();
         }
     });
@@ -708,13 +710,18 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     @PublicAPI(usage = ACCESS)
-    public Set<JavaClass> getInterfaces() {
-        return interfaces;
+    public Set<JavaType> getInterfaces() {
+        return interfaces.get();
     }
 
     @PublicAPI(usage = ACCESS)
-    public Set<JavaClass> getAllInterfaces() {
-        return allInterfaces.get();
+    public Set<JavaClass> getRawInterfaces() {
+        return interfaces.getRaw();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaClass> getAllRawInterfaces() {
+        return allRawInterfaces.get();
     }
 
     /**
@@ -730,7 +737,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         return ImmutableSet.<JavaClass>builder()
                 .add(this)
                 .addAll(getAllRawSuperclasses())
-                .addAll(getAllInterfaces())
+                .addAll(getAllRawInterfaces())
                 .build();
     }
 
@@ -1191,7 +1198,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     @PublicAPI(usage = ACCESS)
     public boolean isAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
         List<JavaClass> possibleTargets = ImmutableList.<JavaClass>builder()
-                .addAll(getClassHierarchy()).addAll(getAllInterfaces()).build();
+                .addAll(getClassHierarchy()).addAll(getAllRawInterfaces()).build();
 
         return anyMatches(possibleTargets, predicate);
     }
@@ -1233,10 +1240,11 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     private void completeInterfacesFrom(ImportContext context) {
-        interfaces.addAll(context.createInterfaces(this));
-        for (JavaClass i : interfaces) {
+        Set<JavaClass> rawInterfaces = context.createInterfaces(this);
+        for (JavaClass i : rawInterfaces) {
             i.subclasses.add(this);
         }
+        this.interfaces = this.interfaces.withRawTypes(rawInterfaces);
     }
 
     void completeEnclosingClassFrom(ImportContext context) {
@@ -1255,6 +1263,14 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             superclass = superclass.withGenericType(genericSuperclass.get());
         }
         completionProcess.markGenericSuperclassComplete();
+    }
+
+    void completeGenericInterfacesFrom(ImportContext context) {
+        Optional<Set<JavaType>> genericInterfaces = context.createGenericInterfaces(this);
+        if (genericInterfaces.isPresent()) {
+            interfaces = interfaces.withGenericTypes(genericInterfaces.get());
+        }
+        completionProcess.markGenericInterfacesComplete();
     }
 
     void completeMembers(final ImportContext context) {
@@ -1341,8 +1357,8 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             return type.or(rawType);
         }
 
-        Set<JavaClass> getAllInterfaces() {
-            return rawType.isPresent() ? rawType.get().getAllInterfaces() : Collections.<JavaClass>emptySet();
+        Set<JavaClass> getAllRawInterfaces() {
+            return rawType.isPresent() ? rawType.get().getAllRawInterfaces() : Collections.<JavaClass>emptySet();
         }
 
         Superclass withRawType(JavaClass newRawType) {
@@ -1354,11 +1370,42 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         }
     }
 
+    private static class Interfaces {
+        static final Interfaces EMPTY = new Interfaces(Collections.<JavaType>emptySet());
+
+        private final Set<JavaClass> rawTypes;
+        private final Set<JavaType> types;
+
+        private Interfaces(Set<JavaType> types) {
+            this.rawTypes = FluentIterable.from(types).transform(toGuava(TO_ERASURE)).toSet();
+            this.types = ImmutableSet.copyOf(types);
+        }
+
+        Set<JavaClass> getRaw() {
+            return rawTypes;
+        }
+
+        Set<JavaType> get() {
+            return types;
+        }
+
+        // Set is covariant, so the cast is safe
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        Interfaces withRawTypes(Set<JavaClass> rawTypes) {
+            return new Interfaces((Set) rawTypes);
+        }
+
+        Interfaces withGenericTypes(Set<JavaType> genericTypes) {
+            return new Interfaces(genericTypes);
+        }
+    }
+
     private static class CompletionProcess {
         private boolean classHierarchyComplete = false;
         private boolean enclosingClassComplete = false;
         private boolean typeParametersComplete = false;
         private boolean genericSuperclassComplete = false;
+        private boolean genericInterfacesComplete = false;
         private boolean membersComplete = false;
         private boolean annotationsComplete = false;
         private boolean dependenciesComplete = false;
@@ -1371,6 +1418,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                     && enclosingClassComplete
                     && typeParametersComplete
                     && genericSuperclassComplete
+                    && genericInterfacesComplete
                     && membersComplete
                     && annotationsComplete
                     && dependenciesComplete;
@@ -1390,6 +1438,10 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
         public void markGenericSuperclassComplete() {
             this.genericSuperclassComplete = true;
+        }
+
+        public void markGenericInterfacesComplete() {
+            this.genericInterfacesComplete = true;
         }
 
         public void markMembersComplete() {

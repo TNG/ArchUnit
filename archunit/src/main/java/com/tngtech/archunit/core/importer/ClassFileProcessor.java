@@ -96,6 +96,11 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void onGenericInterfaces(Set<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
+            importRecord.addGenericInterfaces(ownerName, genericInterfaceBuilders);
+        }
+
+        @Override
         public void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder) {
             importRecord.addField(ownerName, fieldBuilder);
         }
