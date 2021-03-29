@@ -23,16 +23,20 @@ import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.SourceRete
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.syntax.elements.GivenClassesThatTest.Evaluator;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.expectInvalidSyntaxUsageForRetentionSource;
+import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
@@ -40,7 +44,9 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatMembers;
+import static java.util.regex.Pattern.quote;
 
+@RunWith(DataProviderRunner.class)
 public class GivenMembersDeclaredInClassesThatTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -261,6 +267,84 @@ public class GivenMembersDeclaredInClassesThatTest {
                 .on(AnnotatedClass.class, SimpleClass.class);
 
         assertThatMembers(members).matchInAnyOrderMembersOf(AnnotatedClass.class);
+    }
+
+    private static class Data_of_containAnyMembersThat {
+        @SuppressWarnings("unused")
+        static class Matching {
+            static {
+                System.out.println("static initializer");
+            }
+
+            Object aField;
+
+            Matching(Object aParam) {
+            }
+
+            void aMethod() {
+            }
+        }
+
+        @SuppressWarnings("unused")
+        static class NonMatching {
+            String bField;
+
+            NonMatching(String bParam) {
+            }
+
+            void bMethod() {
+            }
+        }
+    }
+
+    @Test
+    public void containAnyMembersThat() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().containAnyMembersThat(have(name("aField"))))
+                .on(Data_of_containAnyMembersThat.Matching.class, Data_of_containAnyMembersThat.NonMatching.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(Data_of_containAnyMembersThat.Matching.class);
+    }
+
+    @Test
+    public void containAnyFieldsThat() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().containAnyFieldsThat(have(name("aField"))))
+                .on(Data_of_containAnyMembersThat.Matching.class, Data_of_containAnyMembersThat.NonMatching.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(Data_of_containAnyMembersThat.Matching.class);
+    }
+
+    @Test
+    public void containAnyCodeUnitsThat() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().containAnyCodeUnitsThat(have(name("aMethod"))))
+                .on(Data_of_containAnyMembersThat.Matching.class, Data_of_containAnyMembersThat.NonMatching.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(Data_of_containAnyMembersThat.Matching.class);
+    }
+
+    @Test
+    public void containAnyMethodsThat() {
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().containAnyMethodsThat(have(name("aMethod"))))
+                .on(Data_of_containAnyMembersThat.Matching.class, Data_of_containAnyMembersThat.NonMatching.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(Data_of_containAnyMembersThat.Matching.class);
+    }
+
+    @Test
+    public void containAnyConstructorsThat() {
+        DescribedPredicate<HasName.AndFullName> haveMatchingFullName = have(fullNameMatching(".*" + quote(Object.class.getName()) + ".*"));
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().containAnyConstructorsThat(haveMatchingFullName))
+                .on(Data_of_containAnyMembersThat.Matching.class, Data_of_containAnyMembersThat.NonMatching.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(Data_of_containAnyMembersThat.Matching.class);
+    }
+
+    @Test
+    public void containAnyStaticInitializersThat() {
+        DescribedPredicate<HasName.AndFullName> haveMatchingFullName = have(fullNameMatching(quote(Data_of_containAnyMembersThat.Matching.class.getName()) + ".*"));
+        List<JavaMember> members = filterResultOf(members().that().areDeclaredInClassesThat().containAnyStaticInitializersThat(haveMatchingFullName))
+                .on(Data_of_containAnyMembersThat.Matching.class, Data_of_containAnyMembersThat.NonMatching.class);
+
+        assertThatMembers(members).matchInAnyOrderMembersOf(Data_of_containAnyMembersThat.Matching.class);
     }
 
     /**

@@ -21,8 +21,13 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaConstructor;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersConjunction;
 
@@ -445,6 +450,36 @@ class MembersDeclaredInClassesThat<MEMBER extends JavaMember, CONJUNCTION extend
     @Override
     public CONJUNCTION doNotBelongToAnyOf(Class<?>... classes) {
         return givenWith(doNot(JavaClass.Predicates.belongToAnyOf(classes)));
+    }
+
+    @Override
+    public CONJUNCTION containAnyMembersThat(DescribedPredicate<? super JavaMember> predicate) {
+        return givenWith(JavaClass.Predicates.containAnyMembersThat(predicate));
+    }
+
+    @Override
+    public CONJUNCTION containAnyFieldsThat(DescribedPredicate<? super JavaField> predicate) {
+        return givenWith(JavaClass.Predicates.containAnyFieldsThat(predicate));
+    }
+
+    @Override
+    public CONJUNCTION containAnyCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
+        return givenWith(JavaClass.Predicates.containAnyCodeUnitsThat(predicate));
+    }
+
+    @Override
+    public CONJUNCTION containAnyMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
+        return givenWith(JavaClass.Predicates.containAnyMethodsThat(predicate));
+    }
+
+    @Override
+    public CONJUNCTION containAnyConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate) {
+        return givenWith(JavaClass.Predicates.containAnyConstructorsThat(predicate));
+    }
+
+    @Override
+    public CONJUNCTION containAnyStaticInitializersThat(DescribedPredicate<? super JavaStaticInitializer> predicate) {
+        return givenWith(JavaClass.Predicates.containAnyStaticInitializersThat(predicate));
     }
 
     private CONJUNCTION givenWith(DescribedPredicate<? super JavaClass> predicate) {
