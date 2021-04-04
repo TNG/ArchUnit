@@ -27,10 +27,13 @@ import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.base.Function;
 
 class MetricsComponentDependencyGraph<T> {
-    private final SetMultimap<MetricsComponent<T>, MetricsComponent<T>> componentDependencies;
+    private final SetMultimap<MetricsComponent<T>, MetricsComponent<T>> outgoingComponentDependencies;
+    private final SetMultimap<MetricsComponent<T>, MetricsComponent<T>> incomingComponentDependencies;
 
     private MetricsComponentDependencyGraph(Iterable<MetricsComponent<T>> components, Function<T, Collection<T>> getDependencies) {
-        this.componentDependencies = createComponentDependencies(components, getDependencies);
+        ImmutableSetMultimap<MetricsComponent<T>, MetricsComponent<T>> componentDependencies = createComponentDependencies(components, getDependencies);
+        this.outgoingComponentDependencies = componentDependencies;
+        this.incomingComponentDependencies = componentDependencies.inverse();
     }
 
     private ImmutableSetMultimap<MetricsComponent<T>, MetricsComponent<T>> createComponentDependencies(Iterable<MetricsComponent<T>> components, Function<T, Collection<T>> getDependencies) {
@@ -65,8 +68,12 @@ class MetricsComponentDependencyGraph<T> {
         return builder.build();
     }
 
-    Set<MetricsComponent<T>> getDirectDependenciesOf(MetricsComponent<T> origin) {
-        return componentDependencies.get(origin);
+    Set<MetricsComponent<T>> getDirectDependenciesFrom(MetricsComponent<T> origin) {
+        return outgoingComponentDependencies.get(origin);
+    }
+
+    Set<MetricsComponent<T>> getDirectDependenciesTo(MetricsComponent<T> target) {
+        return incomingComponentDependencies.get(target);
     }
 
     Set<MetricsComponent<T>> getTransitiveDependenciesOf(MetricsComponent<T> origin) {
@@ -79,7 +86,7 @@ class MetricsComponentDependencyGraph<T> {
     private void addTransitiveDependenciesFrom(MetricsComponent<T> component, ImmutableSet.Builder<MetricsComponent<T>> transitiveDependencies, Set<MetricsComponent<T>> analyzedComponents) {
         analyzedComponents.add(component);  // currently being analyzed
         Set<MetricsComponent<T>> dependencyTargetsToRecurse = new HashSet<>();
-        for (MetricsComponent<T> dependency : getDirectDependenciesOf(component)) {
+        for (MetricsComponent<T> dependency : getDirectDependenciesFrom(component)) {
             transitiveDependencies.add(dependency);
             dependencyTargetsToRecurse.add(dependency);
         }

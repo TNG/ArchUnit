@@ -25,7 +25,9 @@ public class MetricsComponentDependencyGraphTest {
 
         MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(ImmutableSet.of(component1, component2), GET_DEPENDENCIES);
 
-        assertThat(graph.getDirectDependenciesOf(component1)).containsOnly(component2);
+        assertThat(graph.getDirectDependenciesFrom(component1)).containsOnly(component2);
+        assertThat(graph.getDirectDependenciesTo(component1)).isEmpty();
+        assertThat(graph.getDirectDependenciesTo(component2)).containsOnly(component1);
     }
 
     @Test
@@ -42,7 +44,9 @@ public class MetricsComponentDependencyGraphTest {
 
         MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(ImmutableSet.of(component1, component2), GET_DEPENDENCIES);
 
-        assertThat(graph.getDirectDependenciesOf(component1)).containsOnly(component2);
+        assertThat(graph.getDirectDependenciesFrom(component1)).containsOnly(component2);
+        assertThat(graph.getDirectDependenciesTo(component1)).isEmpty();
+        assertThat(graph.getDirectDependenciesTo(component2)).containsOnly(component1);
     }
 
     @Test
@@ -55,7 +59,7 @@ public class MetricsComponentDependencyGraphTest {
         MetricsComponent<TestElement> component = MetricsComponent.of("component", elementInsideOfComponent);
         MetricsComponentDependencyGraph<TestElement> graph = MetricsComponentDependencyGraph.of(singleton(component), GET_DEPENDENCIES);
 
-        assertThat(graph.getDirectDependenciesOf(component)).as("dependencies of component").isEmpty();
+        assertThat(graph.getDirectDependenciesFrom(component)).as("dependencies of component").isEmpty();
     }
 
     @Test

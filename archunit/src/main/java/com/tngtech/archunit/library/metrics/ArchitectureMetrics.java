@@ -56,6 +56,17 @@ public final class ArchitectureMetrics {
         return new LakosMetrics(components, getDependencies);
     }
 
+    /**
+     * Calculates system component dependency metrics as defined by Robert C. Martin.
+     *
+     * @param components The components to calculate the metrics for
+     * @return The calculated {@link ComponentDependencyMetrics}
+     */
+    @PublicAPI(usage = ACCESS)
+    public static ComponentDependencyMetrics componentDependencyMetrics(MetricsComponents<JavaClass> components) {
+        return new ComponentDependencyMetrics(components, GET_JAVA_CLASS_DEPENDENCIES);
+    }
+
     private static final Function<JavaClass, Collection<JavaClass>> GET_JAVA_CLASS_DEPENDENCIES = new Function<JavaClass, Collection<JavaClass>>() {
         @Override
         public Collection<JavaClass> apply(JavaClass javaClass) {
