@@ -7,7 +7,20 @@ import java.util.Set;
 import com.tngtech.archunit.base.Function;
 
 class TestElement {
-    final Set<TestElement> dependencies = new HashSet<>();
+    private final String name;
+    private final Set<TestElement> dependencies = new HashSet<>();
+
+    TestElement() {
+        this("irrelevant");
+    }
+
+    TestElement(String name) {
+        this.name = name;
+    }
+
+    String getName() {
+        return name;
+    }
 
     void addDependency(TestElement element) {
         dependencies.add(element);
