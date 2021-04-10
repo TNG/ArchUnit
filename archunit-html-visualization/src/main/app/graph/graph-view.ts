@@ -1,17 +1,17 @@
 'use strict';
 
 import {SVG} from "./infrastructure/svg";
-import {DivSelection, SvgSelection} from "./infrastructure/svg-selection";
+const {DivSelection, SvgSelection} = require('./infrastructure/svg-selection');
 import {RootView} from "./node/root-view";
 import {Vector} from "./infrastructure/vectors";
 import {ArchUnitDocument} from "./infrastructure/document";
 import {ArchUnitWindow} from "./infrastructure/window";
 
 class GraphView {
-  private _svgContainerDivSelection: DivSelection;
-  private _svgElement: SvgSelection;
-  private _translater: SvgSelection;
-  private _svgElementForNodes: SvgSelection;
+  private _svgContainerDivSelection: typeof DivSelection;
+  private _svgElement: typeof SvgSelection;
+  private _translater: typeof SvgSelection;
+  private _svgElementForNodes: typeof SvgSelection;
   // private _svgElementForDetailedDependencies: SvgSelection;
   private _transitionDuration: number;
   private _document: ArchUnitDocument;
@@ -30,11 +30,11 @@ class GraphView {
     // this._svgElementForDetailedDependencies = this._svgElement.addGroup();
   }
 
-  get svgElement(): SvgSelection {
+  get svgElement(): typeof SvgSelection {
     return this._svgElement;
   }
 
-  get translater(): SvgSelection {
+  get translater(): typeof SvgSelection {
     return this._translater;
   }
   //
@@ -59,7 +59,7 @@ class GraphView {
   renderWithTransition(halfWidth: number, halfHeight: number): Promise<void> {
     this._renderSizeIfNecessary(halfWidth, halfHeight);
     return this._translater.createTransitionWithDuration(this._transitionDuration)
-      .step(element => element.translate(this._toAbsoluteCoordinates(
+      .step((element: typeof SvgSelection) => element.translate(this._toAbsoluteCoordinates(
         new Vector(halfWidth, halfHeight))))
       .finish();
   }

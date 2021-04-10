@@ -1,8 +1,8 @@
-import {SvgSelection} from './svg-selection'
+const {SvgSelection} = require("./svg-selection");
 
 export interface SVG {
-  select: (domElement: Element) => SvgSelection
-  createGroup: (elementId: string) => SvgSelection
+  select: (domElement: Element) => typeof SvgSelection
+  createGroup: (elementId: string) => typeof SvgSelection
 }
 
 module.exports = {

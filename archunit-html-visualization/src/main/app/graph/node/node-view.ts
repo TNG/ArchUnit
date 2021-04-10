@@ -1,20 +1,19 @@
 'use strict';
 
 import {NodeDescription} from "./node";
-import {SvgSelection} from "../infrastructure/svg-selection";
+const {SvgSelection} = require("../infrastructure/svg-selection");
 import {SVG} from "../infrastructure/svg";
 import {Vector} from "../infrastructure/vectors";
-
 
 interface NodeViewFactory {
   getNodeView(nodeDescription: NodeDescription): NodeView
 }
 
 class NodeView {
-  _svgElement: SvgSelection
-  private _svgElementForChildren: SvgSelection;
-  private _text: SvgSelection;
-  private _circle: SvgSelection;
+  _svgElement: typeof SvgSelection
+  private _svgElementForChildren: typeof SvgSelection;
+  private _text: typeof SvgSelection;
+  private _circle: typeof SvgSelection;
   private _transitionDuration: number;
 
   constructor(nodeDescription: NodeDescription, svg: SVG, transitionDuration: number) {
@@ -73,13 +72,13 @@ class NodeView {
 
   changeRadius(r: number, textOffset: number): Promise<void> {
     const radiusPromise = this._circle.createTransitionWithDuration(this._transitionDuration)
-      .step(svgSelection => {
+      .step((svgSelection: typeof SvgSelection) => {
         svgSelection.radius = r;
         return svgSelection.get().transition()
       })
       .finish();
     const textPromise = this._text.createTransitionWithDuration(this._transitionDuration)
-      .step(svgSelection => {
+      .step((svgSelection: typeof SvgSelection) => {
         svgSelection.offsetY = textOffset;
         return svgSelection.get().transition()
       })
@@ -94,13 +93,13 @@ class NodeView {
   //
   startMoveToPosition(position: Vector): Promise<void> {
     return this._svgElement.createTransitionWithDuration(this._transitionDuration)
-      .step(svgSelection => svgSelection.translate(position))
+      .step((svgSelection: typeof SvgSelection) => svgSelection.translate(position))
       .finish();
   }
 
   moveToPosition(position: Vector): Promise<void> {
     return this._svgElement.createTransitionWithDuration(this._transitionDuration)
-      .step(svgSelection => svgSelection.translate(position))
+      .step((svgSelection: typeof SvgSelection) => svgSelection.translate(position))
       .finish();
   }
 

@@ -1,9 +1,9 @@
 'use strict';
 
-import {DivSelection} from './svg-selection';
+const {DivSelection} = require('./svg-selection');
 
 interface ArchUnitDocument {
-  selectDiv: (domElement: Element) => DivSelection
+  selectDiv: (domElement: Element) => typeof DivSelection
   // onKeyUp: (keyupHandler) => document.onkeyup = keyupHandler,
   getClientWidth: () => number,
   getClientHeight: () => number

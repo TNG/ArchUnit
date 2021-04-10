@@ -8,13 +8,13 @@ import {NodeCircle, NodeShape, RootRect} from "./node-shapes";
 import {VisualizationStyles} from "../visualization-styles";
 import {JsonNode} from "./json-types";
 import {CircleWithFixablePosition} from "../infrastructure/shapes";
-import {
+const {
   calculateDefaultRadius,
   calculateDefaultRadiusForNodeWithOneChild,
   createForceCollideSimulation,
   packCirclesAndReturnEnclosingCircle,
   runSimulations
-} from "../visualization-functions";
+} = require('../visualization-functions').newInstance();
 import {PackCircle} from "d3-hierarchy";
 import {NodeText, init as initNodeText} from "./node-text";
 
