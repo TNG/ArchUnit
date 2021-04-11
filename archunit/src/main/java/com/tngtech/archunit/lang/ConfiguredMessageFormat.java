@@ -20,11 +20,12 @@ import com.tngtech.archunit.base.HasDescription;
 
 import static java.lang.System.lineSeparator;
 
-class ConfiguredMessageFormat {
+class ConfiguredMessageFormat implements MessageFormat {
 
-    String formatFailure(HasDescription rule, FailureMessages failureMessages, Priority priority) {
+    @Override
+    public String formatFailure(HasDescription rule, FailureMessages failureMessages, Priority priority) {
         String violationTexts = Joiner.on(lineSeparator()).join(failureMessages);
         return String.format("Architecture Violation [Priority: %s] - Rule '%s' was violated (%s):%n%s",
-                priority.asString(), rule.getDescription(), failureMessages.getInformationAboutNumberOfViolations(), violationTexts);
+                             priority.asString(), rule.getDescription(), failureMessages.getInformationAboutNumberOfViolations(), violationTexts);
     }
 }

@@ -17,9 +17,9 @@ package com.tngtech.archunit.lang;
 
 class MessageFormatFactory {
 
-    private static final ConfiguredMessageFormat instance = new ConfiguredMessageFormat();
+    private static final MessageFormat instance = new ConfiguredMessageFormat();
 
-    static ConfiguredMessageFormat create() {
+    static MessageFormat create() {
         return instance;
     }
 }
