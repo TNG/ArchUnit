@@ -47,7 +47,7 @@ public final class FailureReport {
 
     @Override
     public String toString() {
-        return ConfiguredMessageFormat.get().formatFailure(rule, failureMessages, priority);
+        return MessageFormatFactory.create().formatFailure(rule, failureMessages, priority);
     }
 
     FailureReport filter(Predicate<String> predicate) {
