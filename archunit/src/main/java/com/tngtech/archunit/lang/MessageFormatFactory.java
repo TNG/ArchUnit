@@ -16,15 +16,32 @@
 package com.tngtech.archunit.lang;
 
 import com.google.common.base.Joiner;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 
+import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
 import static java.lang.System.lineSeparator;
 
 class MessageFormatFactory {
+    private static final String MESSAGE_FORMAT_PROPERTY = "messageFormat";
+    private static final MessageFormat DEFAULT_MESSAGE_FORMAT = new DefaultMessageFormat();
 
-    private static final MessageFormat instance = new DefaultMessageFormat();
     static MessageFormat create() {
-        return instance;
+        return ArchConfiguration.get().containsProperty(MESSAGE_FORMAT_PROPERTY)
+                ? createInstance(ArchConfiguration.get().getProperty(MESSAGE_FORMAT_PROPERTY))
+                : DEFAULT_MESSAGE_FORMAT;
+    }
+
+    @MayResolveTypesViaReflection(reason = "This is not part of the import process")
+    private static MessageFormat createInstance(String messageFormatClassName) {
+        try {
+            return (MessageFormat) newInstanceOf(Class.forName(messageFormatClassName));
+        } catch (Exception e) {
+            String message = String.format("Could not instantiate %s of configured type '%s=%s'",
+                    MessageFormat.class.getSimpleName(), MESSAGE_FORMAT_PROPERTY, messageFormatClassName);
+            throw new MessageFormatInitializationFailedException(message, e);
+        }
     }
 
     private static class DefaultMessageFormat implements MessageFormat {
@@ -32,7 +49,7 @@ class MessageFormatFactory {
         public String formatFailure(HasDescription rule, FailureMessages failureMessages, Priority priority) {
             String violationTexts = Joiner.on(lineSeparator()).join(failureMessages);
             return String.format("Architecture Violation [Priority: %s] - Rule '%s' was violated (%s):%n%s",
-                                 priority.asString(), rule.getDescription(), failureMessages.getInformationAboutNumberOfViolations(), violationTexts);
+                    priority.asString(), rule.getDescription(), failureMessages.getInformationAboutNumberOfViolations(), violationTexts);
         }
     }
 }

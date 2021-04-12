@@ -97,3 +97,22 @@ If this feature is enabled, the MD5 sum can be queried as
 ----
 javaClass.getSource().get().getMd5sum()
 ----
+
+=== Custom Error Messages
+
+You can configure a custom error message format.
+
+First Supply a custom implementation of
+
+[source,java,options="nowrap"]
+----
+com.tngtech.archunit.lang.MessageFormat
+----
+
+Then configure it
+
+[source,options="nowrap"]
+.archunit.properties
+----
+messageFormat=some.pkg.MyCustomMessageFormat
+----
