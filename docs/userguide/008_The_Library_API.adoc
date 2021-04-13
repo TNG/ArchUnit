@@ -204,11 +204,33 @@ Those can be found within
 
 [source,java,options="nowrap"]
 ----
-com.tngtech.archunit.library.GeneralCodingRules
+com.tngtech.archunit.library
 ----
 
-These for example contain rules not to use `java.util.logging`, not to write to `System.out`
-(but use logging instead) or not to throw generic exceptions.
+==== GeneralCodingRules
+
+The class `GeneralCodingRules` contains a set of very general rules and conditions for coding.
+For example:
+
+* To check that classes do not access `System.out` or `System.err`, but use logging instead.
+* To check that classes do not throw generic exceptions, but use specific exceptions instead.
+* To check that classes do not use `java.util.logging`, but use other libraries like Log4j, Logback, or SLF4J instead
+* To check that classes do not use JodaTime, but use `java.time` instead.
+* To check that classes do not use field injection, but constructor injection instead.
+
+==== DependencyRules
+
+The class `DependencyRules` contains a set of rules and conditions for checking dependencies between classes.
+For example:
+
+* To check that classes do not depend on classes from upper packages.
+
+==== ProxyRules
+
+The class `ProxyRules` contains a set of rules and conditions for checking the usage of proxy objects.
+For example:
+
+* To check that methods that matches a predicate are not called directly from within the same class.
 
 === PlantUML Component Diagrams as rules
 

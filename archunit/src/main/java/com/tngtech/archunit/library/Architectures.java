@@ -60,7 +60,11 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 
 /**
- * Offers convenience to assert typical architectures, like a {@link #layeredArchitecture()}.
+ * Offers convenience to assert typical architectures:
+ * <ul>
+ * <li>{@link #layeredArchitecture()}</li>
+ * <li>{@link #onionArchitecture()}</li>
+ * </ul>
  */
 public final class Architectures {
     private Architectures() {
