@@ -277,7 +277,7 @@ the same call from `D.callTargetMethod()` to `C.targetMethod()`.
 ArchUnit tries to offer a lot of information from the bytecode. For example, a `JavaClass`
 provides details like if it is an enum or an interface, modifiers like `public` or `abstract`,
 but also the source, where this class was imported from (namely the URI mentioned in the first
-section). However, if information if missing, and the classpath is correct, ArchUnit offers
+section). However, if information is missing, and the classpath is correct, ArchUnit offers
 some convenience to rely on the reflection API for extended details. For this reason, most
 `Java*` objects offer a method `reflect()`, which will in fact try to resolve the respective
 object from the Reflection API. For example:
