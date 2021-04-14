@@ -449,7 +449,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 0.17.0</span>
+<span id="revnumber">version 0.18.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -517,6 +517,7 @@ h4 {
 <li><a href="#_general_coding_rules">8.3. General Coding Rules</a></li>
 <li><a href="#_plantuml_component_diagrams_as_rules">8.4. PlantUML Component Diagrams as rules</a></li>
 <li><a href="#_freezing_arch_rules">8.5. Freezing Arch Rules</a></li>
+<li><a href="#_software_architecture_metrics">8.6. Software Architecture Metrics</a></li>
 </ul>
 </li>
 <li><a href="#_junit_support">9. JUnit Support</a>
@@ -614,7 +615,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;0.17.0&lt;/version&gt;
+    &lt;version&gt;0.18.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -623,7 +624,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:0.17.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:0.18.0'
 }</code></pre>
 </div>
 </div>
@@ -644,7 +645,7 @@ from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;0.17.0&lt;/version&gt;
+    &lt;version&gt;0.18.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -653,7 +654,7 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:0.17.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:0.18.0'
 }</code></pre>
 </div>
 </div>
@@ -670,7 +671,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.17.0&lt;/version&gt;
+    &lt;version&gt;0.18.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -679,7 +680,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:0.17.0'
+   testImplementation 'com.tngtech.archunit:archunit:0.18.0'
 }</code></pre>
 </div>
 </div>
@@ -1247,7 +1248,7 @@ the same call from <code>D.callTargetMethod()</code> to <code>C.targetMethod()</
 <p>ArchUnit tries to offer a lot of information from the bytecode. For example, a <code>JavaClass</code>
 provides details like if it is an enum or an interface, modifiers like <code>public</code> or <code>abstract</code>,
 but also the source, where this class was imported from (namely the URI mentioned in the first
-section). However, if information if missing, and the classpath is correct, ArchUnit offers
+section). However, if information is missing, and the classpath is correct, ArchUnit offers
 some convenience to rely on the reflection API for extended details. For this reason, most
 <code>Java*</code> objects offer a method <code>reflect()</code>, which will in fact try to resolve the respective
 object from the Reflection API. For example:</p>
@@ -1880,12 +1881,62 @@ Those can be found within</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">com.tngtech.archunit.library.GeneralCodingRules</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">com.tngtech.archunit.library</code></pre>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_generalcodingrules"><a class="anchor" href="#_generalcodingrules"></a>8.3.1. GeneralCodingRules</h4>
 <div class="paragraph">
-<p>These for example contain rules not to use <code>java.util.logging</code>, not to write to <code>System.out</code>
-(but use logging instead) or not to throw generic exceptions.</p>
+<p>The class <code>GeneralCodingRules</code> contains a set of very general rules and conditions for coding.
+For example:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>To check that classes do not access <code>System.out</code> or <code>System.err</code>, but use logging instead.</p>
+</li>
+<li>
+<p>To check that classes do not throw generic exceptions, but use specific exceptions instead.</p>
+</li>
+<li>
+<p>To check that classes do not use <code>java.util.logging</code>, but use other libraries like Log4j, Logback, or SLF4J instead</p>
+</li>
+<li>
+<p>To check that classes do not use JodaTime, but use <code>java.time</code> instead.</p>
+</li>
+<li>
+<p>To check that classes do not use field injection, but constructor injection instead.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_dependencyrules"><a class="anchor" href="#_dependencyrules"></a>8.3.2. DependencyRules</h4>
+<div class="paragraph">
+<p>The class <code>DependencyRules</code> contains a set of rules and conditions for checking dependencies between classes.
+For example:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>To check that classes do not depend on classes from upper packages.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_proxyrules"><a class="anchor" href="#_proxyrules"></a>8.3.3. ProxyRules</h4>
+<div class="paragraph">
+<p>The class <code>ProxyRules</code> contains a set of rules and conditions for checking the usage of proxy objects.
+For example:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>To check that methods that matches a predicate are not called directly from within the same class.</p>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -1999,7 +2050,7 @@ an arbitrary number of packages; compare the core API)</p>
 </div>
 <div class="paragraph">
 <p>You can compare this
-<a href="https://github.com/TNG/ArchUnit-Examples/blob/master/example-plain/src/test/resources/com/tngtech/archunit/exampletest/shopping_example.puml">diagram of ArchUnit-Examples</a>.</p>
+<a href="https://github.com/TNG/ArchUnit-Examples/blob/main/example-plain/src/test/resources/com/tngtech/archunit/exampletest/shopping_example.puml">diagram of ArchUnit-Examples</a>.</p>
 </div>
 </div>
 </div>
@@ -2144,6 +2195,240 @@ A custom <code>ViolationLineMatcher</code> can again either be defined programma
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">freeze.lineMatcher=fully.qualified.name.of.MyCustomLineMatcher</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_software_architecture_metrics"><a class="anchor" href="#_software_architecture_metrics"></a>8.6. Software Architecture Metrics</h3>
+<div class="paragraph">
+<p>Similar to code quality metrics, like cyclomatic complexity or method length,
+software architecture metrics strive to measure the structure and design of software.
+ArchUnit can be used to calculate some well-known software architecture metrics.
+The foundation of these metrics is generally some form of componentization, i.e.
+we partition the classes/methods/fields of a Java application into related units
+and provide measurements for these units. In ArchUnit this concept is expressed by
+<code>com.tngtech.archunit.library.metrics.MetricsComponent</code>. For some metrics, like the
+Cumulative Dependency Metrics by John Lakos, we also need to know the dependencies
+between those components, which are naturally derived from the dependencies between
+the elements (e.g. classes) within these components.</p>
+</div>
+<div class="paragraph">
+<p>A very simple concrete example would be to consider some Java packages as
+components and the classes within these packages as the contained elements. From
+the dependencies between the classes we can derive which package depends on which
+other package.</p>
+</div>
+<div class="paragraph">
+<p>The following will give a quick overview of the metrics that ArchUnit can calculate.
+However, for further background information it is recommended to rely on
+some dedicated literature that explains these metrics in full detail.</p>
+</div>
+<div class="sect3">
+<h4 id="_cumulative_dependency_metrics_by_john_lakos"><a class="anchor" href="#_cumulative_dependency_metrics_by_john_lakos"></a>8.6.1. Cumulative Dependency Metrics by John Lakos</h4>
+<div class="paragraph">
+<p>These are software architecture metrics as defined by John Lakos in his book
+"Large-Scale C++ Software Design". The basic idea is to calculate the <code>DependsOn</code>
+value for each component, which is the sum of all components that can be
+transitively reached from some component including the component itself.</p>
+</div>
+<div class="paragraph">
+<p>From these values we can derive</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Cumulative Component Dependency (<strong>CCD</strong>):
+The sum of all <code>DependsOn</code> values of all components</p>
+</li>
+<li>
+<p>Average Component Dependency (<strong>ACD</strong>):
+The <code>CCD</code> divided by the number of all components</p>
+</li>
+<li>
+<p>Relative Average Component Dependency (<strong>RACD</strong>):
+The <code>ACD</code> divided by the number of all components</p>
+</li>
+<li>
+<p>Normalized Cumulative Component Dependency (<strong>NCCD</strong>):
+The <code>CCD</code> of the system divided by the <code>CCD</code> of a balanced binary tree with the same number of components</p>
+</li>
+</ul>
+</div>
+<div class="sect4">
+<h5 id="_example"><a class="anchor" href="#_example"></a>Example</h5>
+<div class="imageblock">
+<div class="content">
+<img src="lakos-example.png" alt="lakos example" width="470" height="553">
+</div>
+</div>
+<div class="paragraph">
+<p>Thus these metrics provide some insights into the complexity of the dependency graph of a system.
+Note that in a cycle all elements have the same <code>DependsOn</code> value which will lead to an increased
+CCD. In fact for any non-trivial (<code>n &gt;= 5</code>) acyclic graph of components the RACD is bound by <code>0.6</code>.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_how_to_use_the_api"><a class="anchor" href="#_how_to_use_the_api"></a>How to use the API</h5>
+<div class="paragraph">
+<p>The values described for these metrics can be calculated in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">import com.tngtech.archunit.library.metrics.ArchitectureMetrics;
+// ...
+
+JavaClasses classes = // ...
+Set&lt;JavaPackage&gt; packages = classes.getPackage("com.example").getSubpackages();
+
+// These components can also be created in a package agnostic way, compare MetricsComponents.from(..)
+MetricsComponents&lt;JavaClass&gt; components = MetricsComponents.fromPackages(packages);
+
+LakosMetrics metrics = ArchitectureMetrics.lakosMetrics(components);
+
+System.out.println("CCD: " + metrics.getCumulativeComponentDependency());
+System.out.println("ACD: " + metrics.getAverageComponentDependency());
+System.out.println("RACD: " + metrics.getRelativeAverageComponentDependency());
+System.out.println("NCCD: " + metrics.getNormalizedCumulativeComponentDependency());</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_component_dependency_metrics_by_robert_c_martin"><a class="anchor" href="#_component_dependency_metrics_by_robert_c_martin"></a>8.6.2. Component Dependency Metrics by Robert C. Martin</h4>
+<div class="paragraph">
+<p>These software architecture metrics were defined by Robert C. Martin in various sources,
+for example in his book "Clean architecture : a craftsman&#8217;s guide to software structure and design".</p>
+</div>
+<div class="paragraph">
+<p>The foundation are again components, that must in this case contain classes as their elements
+(i.e. these are purely object-oriented metrics that need a concept of abstract classes).</p>
+</div>
+<div class="paragraph">
+<p>The metrics are based on the following definitions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Efferent Coupling (<strong>Ce</strong>): The number of outgoing dependencies to any other component</p>
+</li>
+<li>
+<p>Afferent Coupling (<strong>Ca</strong>): The number of incoming dependencies from any other component</p>
+</li>
+<li>
+<p>Instability (<strong>I</strong>): <code>Ce / (Ca + Ce)</code>, i.e. the relationship of outgoing dependencies
+to all dependencies</p>
+</li>
+<li>
+<p>Abstractness (<strong>A</strong>): <code>num(abstract_classes) / num(all_classes)</code> in the component</p>
+</li>
+<li>
+<p>Distance from Main Sequence (<strong>D</strong>): <code>| A + I - 1 |</code>, i.e. the normalized distance from
+the ideal line between <code>(A=1, I=0)</code> and <code>(A=0, I=1)</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that ArchUnit slightly differs from the original definition. In ArchUnit
+the Abstractness value is only based on public classes, i.e.
+classes that are visible from the outside. The reason is that <strong>Ce</strong>, <strong>Ca</strong> and <strong>I</strong> all
+are metrics with respect to coupling of components. But only classes that are visible
+to the outside can affect coupling between components,
+so it makes sense to only consider those classes to calculate the <strong>A</strong> value.</p>
+</div>
+<div class="sect4">
+<h5 id="_example_2"><a class="anchor" href="#_example_2"></a>Example</h5>
+<div class="paragraph">
+<p>The following provides some example where the <code>A</code> values assume some random factor
+of abstract classes within the respective component.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="martin-example.png" alt="martin example" width="470" height="711">
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_how_to_use_the_api_2"><a class="anchor" href="#_how_to_use_the_api_2"></a>How to use the API</h5>
+<div class="paragraph">
+<p>The values described for these metrics can be calculated in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">import com.tngtech.archunit.library.metrics.ArchitectureMetrics;
+// ...
+
+JavaClasses classes = // ...
+Set&lt;JavaPackage&gt; packages = classes.getPackage("com.example").getSubpackages();
+
+// These components can also be created in a package agnostic way, compare MetricsComponents.from(..)
+MetricsComponents&lt;JavaClass&gt; components = MetricsComponents.fromPackages(packages);
+
+ComponentDependencyMetrics metrics = ArchitectureMetrics.componentDependencyMetrics(components);
+
+System.out.println("Ce: " + metrics.getEfferentCoupling("com.example.component"));
+System.out.println("Ca: " + metrics.getAfferentCoupling("com.example.component"));
+System.out.println("I: " + metrics.getInstability("com.example.component"));
+System.out.println("A: " + metrics.getAbstractness("com.example.component"));
+System.out.println("D: " + metrics.getNormalizedDistanceFromMainSequence("com.example.component"));</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_visibility_metrics_by_herbert_dowalil"><a class="anchor" href="#_visibility_metrics_by_herbert_dowalil"></a>8.6.3. Visibility Metrics by Herbert Dowalil</h4>
+<div class="paragraph">
+<p>These software architecture metrics were defined by Herbert Dowalil in his book
+"Modulare Softwarearchitektur: Nachhaltiger Entwurf durch Microservices, Modulithen und SOA 2.0".
+They provide a measure for the Information Hiding Principle, i.e. the relation of visible to hidden
+elements within a component.</p>
+</div>
+<div class="paragraph">
+<p>The metrics are composed from the following definitions:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Relative Visibility (<strong>RV</strong>): <code>num(visible_elements) / num(all_elements)</code> for each component</p>
+</li>
+<li>
+<p>Average Relative Visibility (<strong>ARV</strong>): The average of all <code>RV</code> values</p>
+</li>
+<li>
+<p>Global Relative Visibility (<strong>GRV</strong>): <code>num(visible_elements) / num(all_elements)</code> over all components</p>
+</li>
+</ul>
+</div>
+<div class="sect4">
+<h5 id="_example_3"><a class="anchor" href="#_example_3"></a>Example</h5>
+<div class="imageblock">
+<div class="content">
+<img src="dowalil-example.png" alt="dowalil example" width="712" height="318">
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_how_to_use_the_api_3"><a class="anchor" href="#_how_to_use_the_api_3"></a>How to use the API</h5>
+<div class="paragraph">
+<p>The values described for these metrics can be calculated in the following way:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">import com.tngtech.archunit.library.metrics.ArchitectureMetrics;
+// ...
+
+JavaClasses classes = // ...
+Set&lt;JavaPackage&gt; packages = classes.getPackage("com.example").getSubpackages();
+
+// These components can also be created in a package agnostic way, compare MetricsComponents.from(..)
+MetricsComponents&lt;JavaClass&gt; components = MetricsComponents.fromPackages(packages);
+
+VisibilityMetrics metrics = ArchitectureMetrics.visibilityMetrics(components);
+
+System.out.println("RV : " + metrics.getRelativeVisibility("com.example.component"));
+System.out.println("ARV: " + metrics.getAverageRelativeVisibility());
+System.out.println("GRV: " + metrics.getGlobalRelativeVisibility());</code></pre>
 </div>
 </div>
 </div>

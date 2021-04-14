@@ -95,7 +95,7 @@ ext {
 
 allprojects {
     group = 'com.tngtech.archunit'
-    version = '0.18.0-SNAPSHOT'
+    version = '0.18.0'
 
     repositories {
         mavenCentral()
