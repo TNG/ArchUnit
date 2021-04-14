@@ -22,16 +22,20 @@ import static java.util.Arrays.sort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion, JavaType[]> {
+    @SuppressWarnings("ResultOfMethodCallIgnored") // the call modifies the object, even without using the result
     public JavaTypesAssertion(JavaType[] actual) {
         super(actual, JavaTypesAssertion.class);
+        as("types");
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored") // the call modifies the object, even without using the result
     public JavaTypesAssertion(Iterable<? extends JavaType> actual) {
         super(toArray(actual, JavaType.class), JavaTypesAssertion.class);
+        as("types");
     }
 
     public void matchInAnyOrder(Iterable<Class<?>> classes) {
-        assertThat(TestUtils.namesOf(actual)).as("classes").containsOnlyElementsOf(namesOf(classes));
+        assertThat(TestUtils.namesOf(actual)).as(descriptionText()).containsOnlyElementsOf(namesOf(classes));
 
         JavaType[] actualSorted = sortedJavaTypes(actual);
         Class<?>[] expectedSorted = sortedClasses(classes);
@@ -57,7 +61,7 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
     }
 
     public void matchExactly(Class<?>... classes) {
-        assertThat(TestUtils.namesOf(actual)).as("classes").containsExactlyElementsOf(namesOf(classes));
+        assertThat(TestUtils.namesOf(actual)).as(descriptionText()).containsExactlyElementsOf(namesOf(classes));
         matchInAnyOrder(classes);
     }
 
@@ -72,7 +76,7 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
 
     public void contain(Iterable<Class<?>> classes) {
         List<String> expectedNames = JavaClass.namesOf(Lists.newArrayList(classes));
-        assertThat(actualNames()).as("actual classes").containsAll(expectedNames);
+        assertThat(actualNames()).as(descriptionText()).containsAll(expectedNames);
     }
 
     private Set<String> actualNames() {
