@@ -82,6 +82,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELD_ACCESSES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_METHOD_CALLS_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE_NAME;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_TRANSITIVE_DEPENDENCIES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -294,6 +295,14 @@ public final class ArchConditions {
                 "depend on classes that " + predicate.getDescription(),
                 GET_TARGET_CLASS.is(predicate),
                 GET_DIRECT_DEPENDENCIES_FROM_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaClass> transitivelyDependOnClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
+        return new AnyDependencyCondition(
+                "transitively depend on classes that " + predicate.getDescription(),
+                GET_TARGET_CLASS.is(predicate),
+                GET_TRANSITIVE_DEPENDENCIES_FROM_SELF);
     }
 
     @PublicAPI(usage = ACCESS)
