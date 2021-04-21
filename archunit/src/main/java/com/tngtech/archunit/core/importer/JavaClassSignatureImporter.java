@@ -319,6 +319,11 @@ class JavaClassSignatureImporter {
         }
 
         @Override
+        public void visitBaseType(char descriptor) {
+            visitClassType(String.valueOf(descriptor));
+        }
+
+        @Override
         public void visitTypeArgument() {
             log.trace("Encountered wildcard for {}", currentTypeArgument.getTypeName());
             currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>()));

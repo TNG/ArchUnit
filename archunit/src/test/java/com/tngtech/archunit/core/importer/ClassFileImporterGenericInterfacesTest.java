@@ -61,6 +61,34 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @Test
+    public void imports_generic_interface_with_array_type_argument() {
+        class Child implements InterfaceWithOneTypeParameter<String[]> {
+        }
+
+        JavaType genericInterface = getOnlyElement(
+                new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class, String.class)
+                        .get(Child.class).getInterfaces());
+
+        assertThatType(genericInterface).as("generic interface")
+                .hasErasure(InterfaceWithOneTypeParameter.class)
+                .hasActualTypeArguments(String[].class);
+    }
+
+    @Test
+    public void imports_generic_interface_with_primitive_array_type_argument() {
+        class Child implements InterfaceWithOneTypeParameter<int[]> {
+        }
+
+        JavaType genericInterface = getOnlyElement(
+                new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class, int.class)
+                        .get(Child.class).getInterfaces());
+
+        assertThatType(genericInterface).as("generic interface")
+                .hasErasure(InterfaceWithOneTypeParameter.class)
+                .hasActualTypeArguments(int[].class);
+    }
+
+    @Test
     public void imports_generic_interface_with_multiple_type_arguments() {
         @SuppressWarnings("unused")
         class Child implements InterfaceWithThreeTypeParameters<String, Serializable, File> {
