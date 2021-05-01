@@ -49,10 +49,12 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
+import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependenciesWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsWhere;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.lang.System.lineSeparator;
@@ -224,16 +226,34 @@ public final class Architectures {
         }
 
         private EvaluationResult evaluateDependenciesShouldBeSatisfied(JavaClasses classes, LayerDependencySpecification specification) {
-
+            ArchCondition<JavaClass> satisfyLayerDependenciesCondition =
+                    onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedAccessors));
+            if (!specification.allowedTargets.isEmpty()) {
+                satisfyLayerDependenciesCondition = satisfyLayerDependenciesCondition
+                        .and(onlyHaveDependenciesWhere(targetMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedTargets)));
+            }
             return classes().that(layerDefinitions.containsPredicateFor(specification.layerName))
-                    .should(onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedAccessors)))
+                    .should(satisfyLayerDependenciesCondition)
                     .evaluate(classes);
         }
 
         private DescribedPredicate<Dependency> originMatchesIfDependencyIsRelevant(String ownLayer, Set<String> allowedAccessors) {
             DescribedPredicate<Dependency> originPackageMatches =
-                    dependencyOrigin(layerDefinitions.containsPredicateFor(allowedAccessors)).or(dependencyOrigin(layerDefinitions.containsPredicateFor(ownLayer)));
+                    dependencyOrigin(layerDefinitions.containsPredicateFor(allowedAccessors))
+                            .or(dependencyOrigin(layerDefinitions.containsPredicateFor(ownLayer)));
 
+            return ifDependencyIsRelevant(originPackageMatches);
+        }
+
+        private DescribedPredicate<Dependency> targetMatchesIfDependencyIsRelevant(String ownLayer, Set<String> allowedTargets) {
+            DescribedPredicate<Dependency> targetPackageMatches =
+                    dependencyTarget(layerDefinitions.containsPredicateFor(allowedTargets))
+                            .or(dependencyTarget(layerDefinitions.containsPredicateFor(ownLayer)));
+
+            return ifDependencyIsRelevant(targetPackageMatches);
+        }
+
+        private DescribedPredicate<Dependency> ifDependencyIsRelevant(DescribedPredicate<Dependency> originPackageMatches) {
             return irrelevantDependenciesPredicate.isPresent() ?
                     originPackageMatches.or(irrelevantDependenciesPredicate.get()) :
                     originPackageMatches;
@@ -393,6 +413,7 @@ public final class Architectures {
         public final class LayerDependencySpecification {
             private final String layerName;
             private final Set<String> allowedAccessors = new LinkedHashSet<>();
+            private final Set<String> allowedTargets = new LinkedHashSet<>();
             private String descriptionSuffix;
 
             private LayerDependencySpecification(String layerName) {
@@ -411,6 +432,16 @@ public final class Architectures {
                 allowedAccessors.addAll(asList(layerNames));
                 descriptionSuffix = String.format("may only be accessed by layers ['%s']",
                         Joiner.on("', '").join(allowedAccessors));
+                return LayeredArchitecture.this.addDependencySpecification(this);
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture mayOnlyAccessLayers(String... layerNames) {
+                checkArgument(layerNames.length > 0, "At least 1 layer name should be provided.");
+                checkLayerNamesExist(layerNames);
+                allowedTargets.addAll(asList(layerNames));
+                descriptionSuffix = String.format("may only access layers ['%s']",
+                        Joiner.on("', '").join(allowedTargets));
                 return LayeredArchitecture.this.addDependencySpecification(this);
             }
 

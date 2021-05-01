@@ -16,6 +16,8 @@ import com.tngtech.archunit.library.Architectures.LayeredArchitecture;
 import com.tngtech.archunit.library.Architectures.OnionArchitecture;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
 import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
+import com.tngtech.archunit.library.testclasses.mayonlyaccesslayers.forbidden.MayOnlyAccessLayersForbiddenClass;
+import com.tngtech.archunit.library.testclasses.mayonlyaccesslayers.origin.MayOnlyAccessLayersOriginClass;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.cli.CliAdapterLayerClass;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.persistence.PersistenceAdapterLayerClass;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.rest.RestAdapterLayerClass;
@@ -38,6 +40,7 @@ import org.junit.runner.RunWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.library.Architectures.onionArchitecture;
@@ -262,6 +265,65 @@ public class ArchitecturesTest {
         assertThat(layeredArchitecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
     }
 
+    @DataProvider
+    public static Object[][] layeredArchitectureMayOnlyAccessLayersDefinitions() {
+        return testForEach(
+                layeredArchitecture()
+                        .layer("Allowed").definedBy("..library.testclasses.mayonlyaccesslayers.allowed..")
+                        .layer("Forbidden").definedBy("..library.testclasses.mayonlyaccesslayers.forbidden..")
+                        .layer("Origin").definedBy("..library.testclasses.mayonlyaccesslayers.origin..")
+                        .whereLayer("Origin").mayOnlyAccessLayers("Allowed"),
+                layeredArchitecture()
+                        .layer("Allowed").definedBy(
+                        resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.allowed..")
+                                .as("'..library.testclasses.mayonlyaccesslayers.allowed..'"))
+                        .layer("Forbidden").definedBy(
+                        resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.forbidden..")
+                                .as("'..library.testclasses.mayonlyaccesslayers.forbidden..'"))
+                        .layer("Origin").definedBy(
+                        resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.origin..")
+                                .as("'..library.testclasses.mayonlyaccesslayers.origin..'"))
+                        .whereLayer("Origin").mayOnlyAccessLayers("Allowed"));
+    }
+
+    @Test
+    @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
+    public void layered_architecture_may_only_access_layers_description(LayeredArchitecture architecture) {
+        assertThat(architecture.getDescription()).isEqualTo(
+                "Layered architecture consisting of" + lineSeparator() +
+                        "layer 'Allowed' ('..library.testclasses.mayonlyaccesslayers.allowed..')" + lineSeparator() +
+                        "layer 'Forbidden' ('..library.testclasses.mayonlyaccesslayers.forbidden..')" + lineSeparator() +
+                        "layer 'Origin' ('..library.testclasses.mayonlyaccesslayers.origin..')" + lineSeparator() +
+                        "where layer 'Origin' may only access layers ['Allowed']");
+    }
+
+    @Test
+    @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
+    public void layered_architecture_gathers_may_only_access_layers_violations(LayeredArchitecture architecture) {
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
+
+        EvaluationResult result = architecture.evaluate(classes);
+
+        assertPatternMatches(result.getFailureReport().getDetails(),
+                ImmutableSet.of(
+                        expectedAccessViolationPattern(
+                                MayOnlyAccessLayersOriginClass.class, "call", MayOnlyAccessLayersForbiddenClass.class, "callMe"),
+                        expectedAccessViolationPattern(MayOnlyAccessLayersOriginClass.class, CONSTRUCTOR_NAME, Object.class, CONSTRUCTOR_NAME),
+                        expectedInheritancePattern(MayOnlyAccessLayersOriginClass.class, Object.class),
+                        expectedFieldTypePattern(MayOnlyAccessLayersOriginClass.class, "illegalTarget", MayOnlyAccessLayersForbiddenClass.class)));
+    }
+
+    @Test
+    @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
+    public void layered_architecture_can_ignore_may_only_access_layers_violations(LayeredArchitecture architecture) {
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
+
+        architecture = architecture.ignoreDependency(MayOnlyAccessLayersOriginClass.class, MayOnlyAccessLayersForbiddenClass.class)
+                .ignoreDependency(MayOnlyAccessLayersOriginClass.class, Object.class);
+
+        assertThat(architecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
+    }
+
     @Test
     public void onion_architecture_description() {
         OnionArchitecture architecture = onionArchitecture()
@@ -449,6 +511,11 @@ public class ArchitecturesTest {
 
     private static String expectedFieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {
         return String.format("Field .*%s\\.%s.* has type .*<%s>.*", owner.getSimpleName(), fieldName, fieldType.getName());
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static String expectedInheritancePattern(Class<?> child, Class<?> parent) {
+        return String.format("Class .*%s.* extends class .*.%s.*", child.getSimpleName(), parent.getSimpleName());
     }
 
     private static String[] absolute(String... pkgSuffix) {
