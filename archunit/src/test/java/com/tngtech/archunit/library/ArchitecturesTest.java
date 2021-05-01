@@ -177,7 +177,7 @@ public class ArchitecturesTest {
     private void assertFailureLayeredArchitectureWithEmptyLayers(EvaluationResult result) {
         assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isTrue();
         assertPatternMatches(result.getFailureReport().getDetails(),
-                ImmutableSet.of(expectedEmptyLayer("Some"), expectedEmptyLayer("Other")));
+                ImmutableSet.of(expectedEmptyLayerPattern("Some"), expectedEmptyLayerPattern("Other")));
     }
 
     @Test
@@ -204,9 +204,9 @@ public class ArchitecturesTest {
                         expectedAccessViolationPattern(FirstAnyPkgClass.class, "call", SomePkgSubclass.class, "callMe"),
                         expectedAccessViolationPattern(SecondThreeAnyClass.class, "call", SomePkgClass.class, "callMe"),
                         expectedAccessViolationPattern(FirstThreeAnyClass.class, "call", FirstAnyPkgClass.class, "callMe"),
-                        fieldTypePattern(FirstAnyPkgClass.class, "illegalTarget", SomePkgSubclass.class),
-                        fieldTypePattern(FirstThreeAnyClass.class, "illegalTarget", FirstAnyPkgClass.class),
-                        fieldTypePattern(SecondThreeAnyClass.class, "illegalTarget", SomePkgClass.class)));
+                        expectedFieldTypePattern(FirstAnyPkgClass.class, "illegalTarget", SomePkgSubclass.class),
+                        expectedFieldTypePattern(FirstThreeAnyClass.class, "illegalTarget", FirstAnyPkgClass.class),
+                        expectedFieldTypePattern(SecondThreeAnyClass.class, "illegalTarget", SomePkgClass.class)));
     }
 
     @DataProvider
@@ -410,8 +410,8 @@ public class ArchitecturesTest {
     private void assertFailureOnionArchitectureWithEmptyLayers(EvaluationResult result) {
         assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isTrue();
         assertPatternMatches(result.getFailureReport().getDetails(), ImmutableSet.of(
-                expectedEmptyLayer("adapter"), expectedEmptyLayer("application service"),
-                expectedEmptyLayer("domain model"), expectedEmptyLayer("domain service")
+                expectedEmptyLayerPattern("adapter"), expectedEmptyLayerPattern("application service"),
+                expectedEmptyLayerPattern("domain model"), expectedEmptyLayerPattern("domain service")
         ));
     }
 
@@ -443,11 +443,11 @@ public class ArchitecturesTest {
         return String.format(".*%s.%s().*%s.%s().*", quote(from.getName()), fromMethod, quote(to.getName()), toMethod);
     }
 
-    private static String expectedEmptyLayer(String layerName) {
+    private static String expectedEmptyLayerPattern(String layerName) {
         return String.format("Layer '%s' is empty", layerName);
     }
 
-    private static String fieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {
+    private static String expectedFieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {
         return String.format("Field .*%s\\.%s.* has type .*<%s>.*", owner.getSimpleName(), fieldName, fieldType.getName());
     }
 
@@ -539,7 +539,7 @@ public class ArchitecturesTest {
             ImmutableSet.Builder<String> result = ImmutableSet.builder();
             for (Class<?> to : tos) {
                 result.add(expectedAccessViolationPattern(from, "call", to, "callMe"))
-                        .add(fieldTypePattern(from, decapitalize(to.getSimpleName()), to));
+                        .add(expectedFieldTypePattern(from, decapitalize(to.getSimpleName()), to));
             }
             return result.build();
         }
