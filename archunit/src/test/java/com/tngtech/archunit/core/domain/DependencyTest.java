@@ -282,9 +282,9 @@ public class DependencyTest {
         }
 
         JavaClass javaClass = importClassesWithContext(ClassWithGenericSuperclass.class, String.class).get(ClassWithGenericSuperclass.class);
-        JavaParameterizedType genericSuperClass = (JavaParameterizedType) javaClass.getSuperclass().get();
+        JavaParameterizedType genericSuperclass = (JavaParameterizedType) javaClass.getSuperclass().get();
 
-        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericSuperclassTypeArguments(javaClass, genericSuperClass, (JavaClass) genericSuperClass.getActualTypeArguments().get(0)));
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericSuperclassTypeArguments(javaClass, genericSuperclass, (JavaClass) genericSuperclass.getActualTypeArguments().get(0)));
 
         assertThatType(dependency.getOriginClass()).matches(ClassWithGenericSuperclass.class);
         assertThatType(dependency.getTargetClass()).matches(String.class);
