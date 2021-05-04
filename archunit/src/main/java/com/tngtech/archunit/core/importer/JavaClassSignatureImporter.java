@@ -24,7 +24,6 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess.JavaTypeFinisher;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
@@ -140,7 +139,7 @@ class JavaClassSignatureImporter {
             @Override
             public void visitTypeVariable(String name) {
                 log.trace("Encountered upper bound for {}: Type variable {}", currentType.getName(), name);
-                currentType.addBound(new ReferenceCreationProcess<JavaClass>(name, JavaTypeFinisher.IDENTITY));
+                currentType.addBound(new ReferenceCreationProcess<JavaClass>(name));
             }
 
             @Override

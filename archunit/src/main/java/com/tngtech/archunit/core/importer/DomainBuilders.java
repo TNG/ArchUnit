@@ -67,6 +67,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createInstanceofCheck;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createReferencedClassObject;
@@ -196,26 +197,36 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaFieldBuilder extends JavaMemberBuilder<JavaField, JavaFieldBuilder> {
-        private JavaClassDescriptor type;
+        private Optional<JavaTypeCreationProcess<JavaField>> genericType;
+        private JavaClassDescriptor rawType;
+        private ClassesByTypeName importedClasses;
 
         JavaFieldBuilder() {
         }
 
-        JavaFieldBuilder withType(JavaClassDescriptor type) {
-            this.type = type;
+        JavaFieldBuilder withType(Optional<JavaTypeCreationProcess<JavaField>> genericTypeBuilder, JavaClassDescriptor rawType) {
+            this.genericType = checkNotNull(genericTypeBuilder);
+            this.rawType = checkNotNull(rawType);
             return self();
         }
 
         String getTypeName() {
-            return type.getFullyQualifiedClassName();
+            return rawType.getFullyQualifiedClassName();
         }
 
-        public JavaClass getType() {
-            return get(type.getFullyQualifiedClassName());
+        public JavaType getType(JavaField field) {
+            return genericType.isPresent()
+                    ? genericType.get().finish(field, allTypeParametersInContextOf(field.getOwner()), importedClasses)
+                    : importedClasses.get(rawType.getFullyQualifiedClassName());
+        }
+
+        private static Set<JavaTypeVariable<?>> allTypeParametersInContextOf(JavaClass javaClass) {
+            return union(ImmutableSet.copyOf(javaClass.getTypeParameters()), allTypeParametersInEnclosingClassesOf(javaClass));
         }
 
         @Override
         JavaField construct(JavaFieldBuilder builder, ClassesByTypeName importedClasses) {
+            this.importedClasses = importedClasses;
             return DomainObjectCreationContext.createJavaField(builder);
         }
     }
@@ -544,7 +555,7 @@ public final class DomainBuilders {
         JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes);
 
         abstract class JavaTypeFinisher {
-            JavaTypeFinisher() {
+            private JavaTypeFinisher() {
             }
 
             abstract JavaType finish(JavaType input, ClassesByTypeName classes);
@@ -574,6 +585,24 @@ public final class DomainBuilders {
                 @Override
                 String getFinishedName(String name) {
                     return name;
+                }
+            };
+
+            static final JavaTypeFinisher ARRAY_CREATOR = new JavaTypeFinisher() {
+                @Override
+                public JavaType finish(JavaType componentType, ClassesByTypeName classes) {
+                    JavaClassDescriptor erasureType = JavaClassDescriptor.From.javaClass(componentType.toErasure()).toArrayDescriptor();
+                    if (componentType instanceof JavaClass) {
+                        return classes.get(erasureType.getFullyQualifiedClassName());
+                    }
+
+                    JavaClass erasure = classes.get(erasureType.getFullyQualifiedClassName());
+                    return createGenericArrayType(componentType, erasure);
+                }
+
+                @Override
+                String getFinishedName(String name) {
+                    return name + "[]";
                 }
             };
         }
@@ -626,22 +655,22 @@ public final class DomainBuilders {
             for (JavaTypeParameterBuilder<JavaClass> builder : typeParameterBuilders) {
                 typeArgumentsToBuilders.put(builder.build(owner, classesByTypeName), builder);
             }
-            Set<JavaTypeVariable<JavaClass>> allGenericParametersInContext = union(allTypeParametersInEnclosingClassesOf(owner), typeArgumentsToBuilders.keySet());
+            Set<JavaTypeVariable<?>> allGenericParametersInContext = union(allTypeParametersInEnclosingClassesOf(owner), typeArgumentsToBuilders.keySet());
             for (Map.Entry<JavaTypeVariable<JavaClass>, JavaTypeParameterBuilder<JavaClass>> typeParameterToBuilder : typeArgumentsToBuilders.entrySet()) {
                 List<JavaType> upperBounds = typeParameterToBuilder.getValue().getUpperBounds(allGenericParametersInContext);
                 completeTypeVariable(typeParameterToBuilder.getKey(), upperBounds);
             }
             return ImmutableList.copyOf(typeArgumentsToBuilders.keySet());
         }
+    }
 
-        private Set<JavaTypeVariable<JavaClass>> allTypeParametersInEnclosingClassesOf(JavaClass javaClass) {
-            Set<JavaTypeVariable<JavaClass>> result = new HashSet<>();
-            while (javaClass.getEnclosingClass().isPresent()) {
-                result.addAll(javaClass.getEnclosingClass().get().getTypeParameters());
-                javaClass = javaClass.getEnclosingClass().get();
-            }
-            return result;
+    private static Set<JavaTypeVariable<?>> allTypeParametersInEnclosingClassesOf(JavaClass javaClass) {
+        Set<JavaTypeVariable<?>> result = new HashSet<>();
+        while (javaClass.getEnclosingClass().isPresent()) {
+            result.addAll(javaClass.getEnclosingClass().get().getTypeParameters());
+            javaClass = javaClass.getEnclosingClass().get();
         }
+        return result;
     }
 
     interface JavaTypeBuilder<OWNER extends HasDescription> {

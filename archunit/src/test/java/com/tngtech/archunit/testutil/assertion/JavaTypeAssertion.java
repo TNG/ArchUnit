@@ -59,6 +59,10 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
         }
     }
 
+    public void matches(ExpectedConcreteType type) {
+        type.assertMatchWith(actual, new DescriptionContext(actual.getName()));
+    }
+
     private String describeAssertion(String partialAssertionDescription) {
         return isNullOrEmpty(descriptionText())
                 ? partialAssertionDescription

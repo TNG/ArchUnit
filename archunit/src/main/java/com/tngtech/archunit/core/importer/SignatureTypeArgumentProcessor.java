@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.importer;
 
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -30,39 +29,21 @@ import org.objectweb.asm.signature.SignatureVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
+import static com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess.JavaTypeFinisher.ARRAY_CREATOR;
 
-class SignatureTypeArgumentProcessor extends SignatureVisitor {
+class SignatureTypeArgumentProcessor<TYPE extends HasDescription> extends SignatureVisitor {
     private static final Logger log = LoggerFactory.getLogger(SignatureTypeArgumentProcessor.class);
 
-    private static final JavaTypeFinisher ARRAY_CREATOR = new JavaTypeFinisher() {
-        @Override
-        public JavaType finish(JavaType componentType, ClassesByTypeName classes) {
-            JavaClassDescriptor erasureType = JavaClassDescriptor.From.javaClass(componentType.toErasure()).toArrayDescriptor();
-            if (componentType instanceof JavaClass) {
-                return classes.get(erasureType.getFullyQualifiedClassName());
-            }
-
-            JavaClass erasure = classes.get(erasureType.getFullyQualifiedClassName());
-            return createGenericArrayType(componentType, erasure);
-        }
-
-        @Override
-        String getFinishedName(String name) {
-            return name + "[]";
-        }
-    };
-
     private final TypeArgumentType typeArgumentType;
-    private final JavaParameterizedTypeBuilder<JavaClass> parameterizedType;
+    private final JavaParameterizedTypeBuilder<TYPE> parameterizedType;
     private final JavaTypeFinisher typeFinisher;
 
-    private JavaParameterizedTypeBuilder<JavaClass> currentTypeArgument;
+    private JavaParameterizedTypeBuilder<TYPE> currentTypeArgument;
 
     SignatureTypeArgumentProcessor(
             TypeArgumentType typeArgumentType,
-            JavaParameterizedTypeBuilder<JavaClass> parameterizedType,
+            JavaParameterizedTypeBuilder<TYPE> parameterizedType,
             JavaTypeFinisher typeFinisher) {
         super(ASM_API_VERSION);
         this.typeArgumentType = typeArgumentType;
@@ -86,7 +67,7 @@ class SignatureTypeArgumentProcessor extends SignatureVisitor {
     @Override
     public void visitTypeArgument() {
         log.trace("Encountered wildcard for {}", currentTypeArgument.getTypeName());
-        currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>(), JavaTypeFinisher.IDENTITY));
+        currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<TYPE>(), JavaTypeFinisher.IDENTITY));
     }
 
     @Override
@@ -94,7 +75,7 @@ class SignatureTypeArgumentProcessor extends SignatureVisitor {
         if (log.isTraceEnabled()) {
             log.trace("Encountered {} for {}: Type variable {}", typeArgumentType.description, parameterizedType.getTypeName(), typeFinisher.getFinishedName(name));
         }
-        typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess<JavaClass>(name, typeFinisher));
+        typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess<TYPE>(name, typeFinisher));
     }
 
     @Override
@@ -104,25 +85,25 @@ class SignatureTypeArgumentProcessor extends SignatureVisitor {
 
     @Override
     public SignatureVisitor visitArrayType() {
-        return new SignatureTypeArgumentProcessor(typeArgumentType, parameterizedType, typeFinisher.after(ARRAY_CREATOR));
+        return new SignatureTypeArgumentProcessor<>(typeArgumentType, parameterizedType, typeFinisher.after(ARRAY_CREATOR));
     }
 
-    static SignatureTypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder<JavaClass> parameterizedType) {
+    static <TYPE extends HasDescription> SignatureTypeArgumentProcessor<TYPE> create(char identifier, JavaParameterizedTypeBuilder<TYPE> parameterizedType) {
         return create(identifier, parameterizedType, JavaTypeFinisher.IDENTITY);
     }
 
-    static SignatureTypeArgumentProcessor create(
+    static <TYPE extends HasDescription> SignatureTypeArgumentProcessor<TYPE> create(
             char identifier,
-            JavaParameterizedTypeBuilder<JavaClass> parameterizedType,
+            JavaParameterizedTypeBuilder<TYPE> parameterizedType,
             JavaTypeFinisher typeFinisher) {
 
         switch (identifier) {
             case INSTANCEOF:
-                return new SignatureTypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType, typeFinisher);
+                return new SignatureTypeArgumentProcessor<>(PARAMETERIZED_TYPE, parameterizedType, typeFinisher);
             case EXTENDS:
-                return new SignatureTypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeFinisher);
+                return new SignatureTypeArgumentProcessor<>(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeFinisher);
             case SUPER:
-                return new SignatureTypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeFinisher);
+                return new SignatureTypeArgumentProcessor<>(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeFinisher);
             default:
                 throw new IllegalStateException(String.format("Cannot handle asm type argument identifier '%s'", identifier));
         }
@@ -135,27 +116,34 @@ class SignatureTypeArgumentProcessor extends SignatureVisitor {
             this.description = description;
         }
 
-        abstract void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder<JavaClass> parameterizedType, JavaTypeCreationProcess<JavaClass> creationProcess);
+        abstract <TYPE extends HasDescription> void addTypeArgumentToBuilder(
+                JavaParameterizedTypeBuilder<TYPE> parameterizedType, JavaTypeCreationProcess<TYPE> creationProcess);
     }
 
     private static final TypeArgumentType PARAMETERIZED_TYPE = new TypeArgumentType("type argument") {
         @Override
-        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder<JavaClass> parameterizedType, JavaTypeCreationProcess<JavaClass> typeCreationProcess) {
+        <T extends HasDescription> void addTypeArgumentToBuilder(
+                JavaParameterizedTypeBuilder<T> parameterizedType, JavaTypeCreationProcess<T> typeCreationProcess) {
+
             parameterizedType.addTypeArgument(typeCreationProcess);
         }
     };
 
     private static final TypeArgumentType WILDCARD_WITH_UPPER_BOUND = new TypeArgumentType("wildcard with upper bound") {
         @Override
-        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder<JavaClass> parameterizedType, JavaTypeCreationProcess<JavaClass> typeCreationProcess) {
-            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>().addUpperBound(typeCreationProcess)));
+        <T extends HasDescription> void addTypeArgumentToBuilder(
+                JavaParameterizedTypeBuilder<T> parameterizedType, JavaTypeCreationProcess<T> typeCreationProcess) {
+
+            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<T>().addUpperBound(typeCreationProcess)));
         }
     };
 
     private static final TypeArgumentType WILDCARD_WITH_LOWER_BOUND = new TypeArgumentType("wildcard with lower bound") {
         @Override
-        void addTypeArgumentToBuilder(JavaParameterizedTypeBuilder<JavaClass> parameterizedType, JavaTypeCreationProcess<JavaClass> typeCreationProcess) {
-            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>().addLowerBound(typeCreationProcess)));
+        <T extends HasDescription> void addTypeArgumentToBuilder(
+                JavaParameterizedTypeBuilder<T> parameterizedType, JavaTypeCreationProcess<T> typeCreationProcess) {
+
+            parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<T>().addLowerBound(typeCreationProcess)));
         }
     };
 
@@ -183,6 +171,10 @@ class SignatureTypeArgumentProcessor extends SignatureVisitor {
         private final String typeVariableName;
         private final JavaTypeFinisher finisher;
 
+        ReferenceCreationProcess(String typeVariableName) {
+            this(typeVariableName, JavaTypeFinisher.IDENTITY);
+        }
+
         ReferenceCreationProcess(String typeVariableName, JavaTypeFinisher finisher) {
             this.typeVariableName = typeVariableName;
             this.finisher = finisher;
@@ -193,7 +185,7 @@ class SignatureTypeArgumentProcessor extends SignatureVisitor {
             return finisher.finish(createTypeVariable(owner, allTypeParametersInContext, classes), classes);
         }
 
-        private JavaType createTypeVariable(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+        private JavaType createTypeVariable(OWNER owner, Iterable<? extends JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
             for (JavaTypeVariable<?> existingTypeVariable : allTypeParametersInContext) {
                 if (existingTypeVariable.getName().equals(typeVariableName)) {
                     return existingTypeVariable;

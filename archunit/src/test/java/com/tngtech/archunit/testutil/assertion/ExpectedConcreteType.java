@@ -245,7 +245,7 @@ public interface ExpectedConcreteType {
         public void assertMatchWith(JavaType actual, DescriptionContext context) {
             assertThat(actual).as(context.step("JavaType").toString()).isInstanceOf(JavaGenericArrayType.class);
             JavaGenericArrayType actualArrayType = (JavaGenericArrayType) actual;
-            assertThat(actualArrayType.getName()).as(context.step("type variable name").toString()).isEqualTo(name);
+            assertThat(actualArrayType.getName()).as(context.step("array type name").toString()).isEqualTo(name);
 
             if (componentType != null) {
                 DescriptionContext newContext = context.describe(actual.getName()).step("component type").metaInfo();

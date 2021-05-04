@@ -41,8 +41,10 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
+import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -220,9 +222,11 @@ class JavaClassProcessor extends ClassVisitor {
             return super.visitField(access, name, desc, signature, value);
         }
 
+        JavaClassDescriptor rawType = JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc);
+        Optional<JavaTypeCreationProcess<JavaField>> genericType = JavaFieldTypeSignatureImporter.parseAsmFieldTypeSignature(signature);
         DomainBuilders.JavaFieldBuilder fieldBuilder = new DomainBuilders.JavaFieldBuilder()
                 .withName(name)
-                .withType(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc))
+                .withType(genericType, rawType)
                 .withModifiers(JavaModifier.getModifiersForField(access))
                 .withDescriptor(desc);
         declarationHandler.onDeclaredField(fieldBuilder);
