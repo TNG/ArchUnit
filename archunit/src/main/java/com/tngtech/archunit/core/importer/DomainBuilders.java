@@ -469,10 +469,6 @@ public final class DomainBuilders {
             return this;
         }
 
-        JavaClassDescriptor getTypeDescriptor() {
-            return type;
-        }
-
         String getFullyQualifiedClassName() {
             return type.getFullyQualifiedClassName();
         }
