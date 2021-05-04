@@ -149,7 +149,7 @@ class JavaClassSignatureImporter {
 
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
-                return TypeArgumentProcessor.create(wildcard, currentBound);
+                return SignatureTypeArgumentProcessor.create(wildcard, currentBound);
             }
         }
 
@@ -172,7 +172,7 @@ class JavaClassSignatureImporter {
 
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
-                return TypeArgumentProcessor.create(wildcard, superclass);
+                return SignatureTypeArgumentProcessor.create(wildcard, superclass);
             }
         }
 
@@ -192,7 +192,7 @@ class JavaClassSignatureImporter {
 
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
-                return TypeArgumentProcessor.create(wildcard, currentInterface);
+                return SignatureTypeArgumentProcessor.create(wildcard, currentInterface);
             }
         }
     }
@@ -242,7 +242,7 @@ class JavaClassSignatureImporter {
         }
     }
 
-    private static class TypeArgumentProcessor extends SignatureVisitor {
+    private static class SignatureTypeArgumentProcessor extends SignatureVisitor {
         private static final JavaTypeFinisher ARRAY_CREATOR = new JavaTypeFinisher() {
             @Override
             public JavaType finish(JavaType componentType, ClassesByTypeName classes) {
@@ -267,7 +267,7 @@ class JavaClassSignatureImporter {
 
         private JavaParameterizedTypeBuilder<JavaClass> currentTypeArgument;
 
-        TypeArgumentProcessor(
+        SignatureTypeArgumentProcessor(
                 TypeArgumentType typeArgumentType,
                 JavaParameterizedTypeBuilder<JavaClass> parameterizedType,
                 JavaTypeFinisher typeFinisher) {
@@ -306,30 +306,30 @@ class JavaClassSignatureImporter {
 
         @Override
         public SignatureVisitor visitTypeArgument(char wildcard) {
-            return TypeArgumentProcessor.create(wildcard, currentTypeArgument, JavaTypeFinisher.IDENTITY);
+            return SignatureTypeArgumentProcessor.create(wildcard, currentTypeArgument, JavaTypeFinisher.IDENTITY);
         }
 
         @Override
         public SignatureVisitor visitArrayType() {
-            return new TypeArgumentProcessor(typeArgumentType, parameterizedType, typeFinisher.after(ARRAY_CREATOR));
+            return new SignatureTypeArgumentProcessor(typeArgumentType, parameterizedType, typeFinisher.after(ARRAY_CREATOR));
         }
 
-        static TypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder<JavaClass> parameterizedType) {
+        static SignatureTypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder<JavaClass> parameterizedType) {
             return create(identifier, parameterizedType, JavaTypeFinisher.IDENTITY);
         }
 
-        static TypeArgumentProcessor create(
+        static SignatureTypeArgumentProcessor create(
                 char identifier,
                 JavaParameterizedTypeBuilder<JavaClass> parameterizedType,
                 JavaTypeFinisher typeFinisher) {
 
             switch (identifier) {
                 case INSTANCEOF:
-                    return new TypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType, typeFinisher);
+                    return new SignatureTypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType, typeFinisher);
                 case EXTENDS:
-                    return new TypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeFinisher);
+                    return new SignatureTypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeFinisher);
                 case SUPER:
-                    return new TypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeFinisher);
+                    return new SignatureTypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeFinisher);
                 default:
                     throw new IllegalStateException(String.format("Cannot handle asm type argument identifier '%s'", identifier));
             }

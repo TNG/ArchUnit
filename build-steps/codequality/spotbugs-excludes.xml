@@ -34,7 +34,7 @@
     </Match>
     <Match>
         <!-- Null is not used as a value (return or input) in any method, so we don't need @Nullable and co. -->
-        <Class name="com.tngtech.archunit.core.importer.JavaClassSignatureImporter$TypeArgumentProcessor"/>
+        <Class name="com.tngtech.archunit.core.importer.JavaClassSignatureImporter$SignatureTypeArgumentProcessor"/>
         <Method name="visitClassType"/>
         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
     </Match>
