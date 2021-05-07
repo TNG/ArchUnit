@@ -563,14 +563,41 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_from_self_by_field_declarations() {
+        @SuppressWarnings("unused")
+        class SomeGenericType<FIRST, SECOND> {
+        }
+        @SuppressWarnings("unused")
+        class SomeClass<FIRST, SECOND> {
+            SomeGenericType<Comparable<SomeGenericType<FIRST, SECOND>>,
+                    Map<
+                            Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                            Map<? extends BufferedInputStream[][],
+                                    Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>>>>> field;
+        }
+
+        JavaClass javaClass = importClassWithContext(SomeClass.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(from(SomeClass.class).to(SomeGenericType.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Field <%s.field> has type <%s>", SomeClass.class.getName(), SomeGenericType.class.getName())
+
+                        .from(SomeClass.class)
+                        .withExpectedDescriptionPatternTemplate(
+                                ".*has generic type <" + quote(SomeGenericType.class.getName()) +
+                                        ".+> with type argument depending on <#target>.*")
+                        .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+
+                        .from(SomeClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
     public void direct_dependencies_from_self_by_member_declarations() {
         JavaClass javaClass = importClasses(AhavingMembersOfTypeB.class, B.class).get(AhavingMembersOfTypeB.class);
 
         assertThat(javaClass.getDirectDependenciesFromSelf())
-                .areAtLeastOne(fieldTypeDependency()
-                        .from(AhavingMembersOfTypeB.class)
-                        .to(B.class)
-                        .inLineNumber(0))
                 .areAtLeastOne(methodReturnTypeDependency()
                         .from(AhavingMembersOfTypeB.class)
                         .to(B.class)
@@ -833,6 +860,46 @@ public class JavaClassTest {
 
         assertThatDependencies(javaClasses.get(BufferedInputStream.class).getDirectDependenciesToSelf())
                 .contain(from(FirstChild.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_generic_field_type_parameters() {
+        @SuppressWarnings("unused")
+        class FirstGenericType<X, Y> {
+        }
+        @SuppressWarnings("unused")
+        class FirstClass {
+            FirstGenericType<
+                    Comparable<FirstClass>,
+                    Map<
+                            Map.Entry<?, Map.Entry<String, ?>>,
+                            Map<? extends BufferedInputStream[][],
+                                    Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<?, ? extends File>>>>>>>>> field;
+        }
+        @SuppressWarnings("unused")
+        class SecondGenericType<T> {
+        }
+        @SuppressWarnings("unused")
+        class SecondChild {
+            SecondGenericType<Map<?, ? super File>> field;
+        }
+
+        JavaClasses javaClasses = importClassesWithContext(FirstClass.class, SecondChild.class, BufferedInputStream.class, File.class);
+
+        assertThatDependencies(javaClasses.get(File.class).getDirectDependenciesToSelf())
+                .contain(from(FirstClass.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionMatching("Field <%s.field> has generic type <%s.+> with type argument depending on <%s>.*",
+                                FirstClass.class.getName(), FirstGenericType.class.getName(), File.class.getName())
+
+                        .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionMatching("Field <%s.field> has generic type <%s.+> with type argument depending on <%s>.*",
+                                SecondChild.class.getName(), SecondGenericType.class.getName(), File.class.getName())
+                );
+
+        assertThatDependencies(javaClasses.get(BufferedInputStream.class).getDirectDependenciesToSelf())
+                .contain(from(FirstClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
                         .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
                 );
     }

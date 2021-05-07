@@ -47,6 +47,10 @@ public class ExpectedDependency implements ExpectedRelation {
         return new GenericSupertypeTypeArgumentCreator(clazz, "interface", getOnlyElement(interfaces));
     }
 
+    public static GenericFieldTypeArgumentCreator genericFieldType(Class<?> clazz, String fieldName) {
+        return new GenericFieldTypeArgumentCreator(clazz, fieldName);
+    }
+
     public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {
         return new AnnotationDependencyCreator(clazz);
     }
@@ -138,6 +142,30 @@ public class ExpectedDependency implements ExpectedRelation {
                     getDependencyPattern(childClass.getName(),
                             "has generic " + genericTypeDescription + " <" + quote(genericSupertype.getTypeName()) + "> with type argument depending on",
                             superclassTypeArgumentDependency.getName(),
+                            0));
+        }
+    }
+
+    public static class GenericFieldTypeArgumentCreator {
+        private final Class<?> owner;
+        private final String fieldName;
+        private final Type genericFieldType;
+
+        private GenericFieldTypeArgumentCreator(Class<?> owner, String fieldName) {
+            this.owner = owner;
+            this.fieldName = fieldName;
+            try {
+                this.genericFieldType = owner.getDeclaredField(fieldName).getGenericType();
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public ExpectedDependency dependingOn(Class<?> fieldTypeArgumentDependency) {
+            return new ExpectedDependency(owner, fieldTypeArgumentDependency,
+                    getDependencyPattern(owner.getName() + "." + fieldName,
+                            "has generic type <" + quote(genericFieldType.getTypeName()) + "> with type argument depending on",
+                            fieldTypeArgumentDependency.getName(),
                             0));
         }
     }

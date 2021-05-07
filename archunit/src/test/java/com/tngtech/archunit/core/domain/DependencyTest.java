@@ -322,6 +322,32 @@ public class DependencyTest {
     }
 
     @Test
+    public void Dependency_from_generic_field_type_arguments() {
+        @SuppressWarnings("unused")
+        class SomeGenericType<T> {
+        }
+        @SuppressWarnings("unused")
+        class SomeClass {
+            SomeGenericType<String> field;
+        }
+
+        JavaField field = importClassesWithContext(SomeClass.class, SomeGenericType.class, String.class)
+                .get(SomeClass.class).getField("field");
+        JavaClass typeArgumentDependency = (JavaClass) ((JavaParameterizedType) field.getType()).getActualTypeArguments().get(0);
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericFieldTypeArgument(field, typeArgumentDependency));
+
+        assertThatType(dependency.getOriginClass()).matches(SomeClass.class);
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "Field <%s> has generic type <%s<%s>> with type argument depending on <%s> in (%s.java:0)",
+                field.getFullName(),
+                SomeGenericType.class.getName(), String.class.getName(),
+                String.class.getName(),
+                getClass().getSimpleName()));
+    }
+
+    @Test
     public void Dependency_from_referenced_class_object() {
         JavaMethod origin = new ClassFileImporter()
                 .importClass(DependenciesOnClassObjects.class)
