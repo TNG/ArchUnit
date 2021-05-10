@@ -6,7 +6,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 dependencies {
     api dependency.junitPlatformEngine
     implementation project(path: ':archunit')
-    implementation dependency.guava
+    dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
     implementation dependency.slf4j
 
     testImplementation project(path: ':archunit-junit5-api')
