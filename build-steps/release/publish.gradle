@@ -33,12 +33,6 @@ releaseProjects*.with {
     tasks.withType(AbstractPublishToMaven) {
         it.dependsOn(build)
     }
-    tasks.withType(PublishToMavenRepository) {
-        it.doFirst {
-            assert !gradle.startParameter.isParallelProjectExecutionEnabled():
-                    'uploading archives with parallel execution seems to lead to broken uploads in Sonatype Nexus'
-        }
-    }
 
     publishing {
         publications {
