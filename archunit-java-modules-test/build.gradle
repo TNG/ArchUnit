@@ -1,5 +1,5 @@
 plugins {
-    id 'org.javamodularity.moduleplugin' version '1.7.0'
+    id 'org.javamodularity.moduleplugin' version '1.8.3'
 }
 
 ext.moduleName = 'com.tngtech.archunit.javamodulestest'
