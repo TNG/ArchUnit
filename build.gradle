@@ -2,7 +2,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '6.1.0' apply false
     id 'com.github.spotbugs' version '4.7.1' apply false
     id "de.marcphilipp.nexus-publish" version "0.4.0" apply false
-    id "com.diffplug.spotless" version "5.12.1" apply false
+    id "com.diffplug.spotless" version "5.12.4" apply false
 }
 
 def appAndSourceUrl = 'https://github.com/TNG/ArchUnit'
