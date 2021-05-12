@@ -5,7 +5,7 @@ dependencies {
     api project(path: ':archunit-junit', configuration: 'archJunitApi')
     api dependency.junit4
     implementation project(path: ':archunit-junit', configuration: 'shadow')
-    implementation dependency.guava
+    dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
     implementation dependency.slf4j
 
     testImplementation dependency.log4j_api

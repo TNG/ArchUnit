@@ -31,7 +31,7 @@ artifacts {
 
 dependencies {
     archJunitApi project(path: ':archunit', configuration: 'shadow')
-    implementation dependency.guava
+    dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
     implementation dependency.slf4j
 
     testImplementation dependency.log4j_api

@@ -5,7 +5,7 @@ ext.moduleName = 'com.tngtech.archunit'
 dependencies {
     api dependency.slf4j
     implementation dependency.asm
-    implementation dependency.guava
+    dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
 
     testImplementation dependency.log4j_api
     testImplementation dependency.log4j_core
