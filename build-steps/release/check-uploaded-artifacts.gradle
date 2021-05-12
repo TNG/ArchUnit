@@ -103,6 +103,18 @@ def checkJavadocExists = { String artifactId ->
     assert getUploadedFile(artifactId, 'jar', 'javadoc') != null
 }
 
+def checkArtifactContent = { Project project, JarFile jarFile ->
+    checkManifest(project.name, jarFile.manifest)
+    if (project.repackagesAsm) {
+        println "Artifact ${project.name} is configured to repackage 3rd party libs -> checking existence of 3rd party package..."
+        checkThirdParty(jarFile)
+    } else {
+        println "Artifact ${project.name} is configured to not repackage 3rd party libs -> checking absense of 3rd party package..."
+        checkNoThirdParty(jarFile)
+    }
+    checkNoIllegalJarEntries(jarFile)
+}
+
 task checkUploadedArtifacts {
     doLast {
         releaseProjects.each { Project project ->
@@ -111,15 +123,17 @@ task checkUploadedArtifacts {
             checkJavadocExists(project.name)
 
             JarFile jarFile = new JarFile(getUploadedFile(project.name, 'jar', ''))
-            checkManifest(project.name, jarFile.manifest)
-            if (project.repackagesAsm) {
-                println "Artifact ${project.name} is configured to repackage 3rd party libs -> checking existence of 3rd party package..."
-                checkThirdParty(jarFile)
-            } else {
-                println "Artifact ${project.name} is configured to not repackage 3rd party libs -> checking absense of 3rd party package..."
-                checkNoThirdParty(jarFile)
-            }
-            checkNoIllegalJarEntries(jarFile)
+            checkArtifactContent(project, jarFile)
         }
     }
+}
+
+releaseProjects.each { Project project ->
+    def task = project.task(['dependsOn': project.build],'checkArtifact') {
+        doLast {
+            def jarFile = new JarFile(project.jar.archiveFile.get().getAsFile())
+            checkArtifactContent(project, jarFile)
+        }
+    }
+    project.build.finalizedBy(task)
 }
