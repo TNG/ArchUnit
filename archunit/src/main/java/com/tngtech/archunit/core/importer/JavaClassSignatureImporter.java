@@ -319,6 +319,11 @@ class JavaClassSignatureImporter {
         }
 
         @Override
+        public void visitBaseType(char descriptor) {
+            visitClassType(String.valueOf(descriptor));
+        }
+
+        @Override
         public void visitTypeArgument() {
             log.trace("Encountered wildcard for {}", currentTypeArgument.getTypeName());
             currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>()));
@@ -353,11 +358,11 @@ class JavaClassSignatureImporter {
                 ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher) {
 
             switch (identifier) {
-                case '=':
+                case INSTANCEOF:
                     return new TypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType, typeMapping, typeVariableFinisher);
-                case '+':
+                case EXTENDS:
                     return new TypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeMapping, typeVariableFinisher);
-                case '-':
+                case SUPER:
                     return new TypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeMapping, typeVariableFinisher);
                 default:
                     throw new IllegalStateException(String.format("Cannot handle asm type argument identifier '%s'", identifier));

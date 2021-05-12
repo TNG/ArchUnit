@@ -54,6 +54,38 @@ public class ClassFileImporterGenericSuperclassTest {
     }
 
     @Test
+    public void imports_generic_superclass_with_array_type_argument() {
+        @SuppressWarnings("unused")
+        class BaseClass<T> {
+        }
+        class Child extends BaseClass<String[]> {
+        }
+
+        JavaType genericSuperClass = new ClassFileImporter().importClasses(Child.class, String.class)
+                .get(Child.class).getSuperclass().get();
+
+        assertThatType(genericSuperClass).as("generic superclass")
+                .hasErasure(BaseClass.class)
+                .hasActualTypeArguments(String[].class);
+    }
+
+    @Test
+    public void imports_generic_superclass_with_primitive_array_type_argument() {
+        @SuppressWarnings("unused")
+        class BaseClass<T> {
+        }
+        class Child extends BaseClass<int[]> {
+        }
+
+        JavaType genericSuperClass = new ClassFileImporter().importClasses(Child.class, int.class)
+                .get(Child.class).getSuperclass().get();
+
+        assertThatType(genericSuperClass).as("generic superclass")
+                .hasErasure(BaseClass.class)
+                .hasActualTypeArguments(int[].class);
+    }
+
+    @Test
     public void imports_generic_superclass_with_multiple_type_arguments() {
         @SuppressWarnings("unused")
         class BaseClass<A, B, C> {

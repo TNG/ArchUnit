@@ -159,6 +159,36 @@ public class ClassFileImporterGenericClassesTest {
     }
 
     @Test
+    public void imports_single_class_bound_with_single_type_parameter_assigned_to_array_type_argument() {
+        @SuppressWarnings("unused")
+        class ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType<T extends ClassParameterWithSingleTypeParameter<String[]>> {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType.class,
+                ClassParameterWithSingleTypeParameter.class, String.class);
+
+        JavaClass javaClass = classes.get(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType.class);
+
+        assertThatType(javaClass).hasOnlyTypeParameter("T")
+                .withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(String[].class));
+    }
+
+    @Test
+    public void imports_single_class_bound_with_single_type_parameter_assigned_to_primitive_array_type_argument() {
+        @SuppressWarnings("unused")
+        class ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType<T extends ClassParameterWithSingleTypeParameter<int[]>> {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType.class,
+                ClassParameterWithSingleTypeParameter.class, String.class);
+
+        JavaClass javaClass = classes.get(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType.class);
+
+        assertThatType(javaClass).hasOnlyTypeParameter("T")
+                .withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(int[].class));
+    }
+
+    @Test
     public void imports_multiple_class_bounds_with_single_type_parameters_assigned_to_concrete_types() {
         @SuppressWarnings("unused")
         class ClassWithMultipleTypeParametersWithGenericClassOrInterfaceBoundsAssignedToConcreteTypes<
