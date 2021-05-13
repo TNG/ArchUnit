@@ -593,7 +593,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     /**
      * @param type A given annotation type to match {@link JavaAnnotation JavaAnnotations} against
      * @return An {@link Annotation} of the given annotation type
-     * @throws IllegalArgumentException if the class is note annotated with the given type
+     * @throws IllegalArgumentException if the class is not annotated with the given type
      * @see #isAnnotatedWith(Class)
      * @see #tryGetAnnotationOfType(Class)
      */
