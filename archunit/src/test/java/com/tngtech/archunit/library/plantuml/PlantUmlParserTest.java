@@ -23,11 +23,13 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.GET_COMPONENT_NAME;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
 public class PlantUmlParserTest {
-    private static PlantUmlParser parser = new PlantUmlParser();
+    private static final PlantUmlParser parser = new PlantUmlParser();
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -55,6 +57,18 @@ public class PlantUmlParserTest {
         assertThat(getOnlyElement(origin.getStereotypes())).as("Stereotype")
                 .isEqualTo(new Stereotype("..origin.."));
         assertThat(origin.getAlias().isPresent()).as("alias is present").isFalse();
+    }
+
+    @Test
+    public void parses_a_complex_component() {
+        PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
+                .component("SomeOrigin").withAlias("origin").withColor("Blue").withStereoTypes("..origin..")
+                .write());
+
+        PlantUmlComponent origin = getComponentWithName("SomeOrigin", diagram);
+        assertThat(origin.getAlias()).as("Alias").contains(new Alias("origin"));
+        assertThat(getOnlyElement(origin.getStereotypes())).as("Stereotype")
+                .isEqualTo(new Stereotype("..origin.."));
     }
 
     @DataProvider
@@ -138,6 +152,34 @@ public class PlantUmlParserTest {
                 .isEqualTo(new ComponentName("SomeTarget"));
     }
 
+    @DataProvider
+    public static Object[][] color_testcases() {
+        return $$(
+                $("Chartreuse"),
+                $("dodgerblue"),
+                $("483D8b"),
+                $("F0808080"),
+                $("123"),
+                $("transparent"),
+                $("red|green"),
+                $("red/green"),
+                $("red\\green"),
+                $("red-green")
+        );
+    }
+
+    @Test
+    @UseDataProvider("color_testcases")
+    public void parses_various_colored_components(String color) {
+        final File diagramFile = TestDiagram.in(temporaryFolder)
+                .component("SomeComponent").withColor(color).withStereoTypes("..stereotype..")
+                .write();
+
+        PlantUmlComponent component = getComponentWithName("SomeComponent", createDiagram(diagramFile));
+
+        assertThat(component.getStereotypes()).containsOnly(new Stereotype("..stereotype.."));
+    }
+
     @Test
     public void does_not_include_commented_out_lines() {
         PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
@@ -217,17 +259,15 @@ public class PlantUmlParserTest {
     }
 
     @Test
-    public void parses_a_tricky_alias() {
+    public void parses_component_name_that_clashes_with_alias_definition() {
         PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
-                .component("tricky").withAlias("because it's quoted").withStereoTypes("..tricky..")
-                .component("tricky as hell cause of as keyword").withAlias("other").withStereoTypes("..other..")
+                .component("tricky as hell cause of as keyword").withAlias("alias").withStereoTypes("..any..")
                 .write());
 
         PlantUmlComponent trickyAsHell = getComponentWithName("tricky as hell cause of as keyword", diagram);
-        PlantUmlComponent tricky = getComponentWithName("tricky", diagram);
 
-        assertThat(trickyAsHell.getAlias().get()).isEqualTo(new Alias("other"));
-        assertThat(tricky.getAlias().get()).isEqualTo(new Alias("because it's quoted"));
+        assertThat(trickyAsHell.getComponentName()).isEqualTo(new ComponentName("tricky as hell cause of as keyword"));
+        assertThat(trickyAsHell.getAlias().get()).isEqualTo(new Alias("alias"));
     }
 
     @Test
