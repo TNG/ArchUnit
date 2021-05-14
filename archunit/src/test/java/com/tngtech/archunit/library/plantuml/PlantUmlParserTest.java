@@ -23,6 +23,8 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.GET_COMPONENT_NAME;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
@@ -149,6 +151,34 @@ public class PlantUmlParserTest {
         assertThat(target.getComponentName())
                 .as("dependency component name")
                 .isEqualTo(new ComponentName("SomeTarget"));
+    }
+
+    @DataProvider
+    public static Object[][] color_testcases() {
+        return $$(
+                $("Chartreuse"),
+                $("dodgerblue"),
+                $("483D8b"),
+                $("F0808080"),
+                $("123"),
+                $("transparent"),
+                $("red|green"),
+                $("red/green"),
+                $("red\\green"),
+                $("red-green")
+        );
+    }
+
+    @Test
+    @UseDataProvider("color_testcases")
+    public void parses_various_colored_components(String color) {
+        PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
+                .component("SomeOrigin").withColor(color).withStereoTypes("..origin..")
+                .write());
+
+
+        PlantUmlComponent origin = getComponentWithName("SomeOrigin", diagram);
+        assertThat(origin.getColor()).as("Color").contains(new Color(color));
     }
 
     @Test
