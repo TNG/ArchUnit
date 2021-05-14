@@ -41,6 +41,9 @@ class TestDiagram {
         if (creator.alias != null) {
             line += " as " + creator.alias;
         }
+        if (creator.color != null) {
+            line += " #" + creator.color;
+        }
         lines.add(line);
         return this;
     }
@@ -90,6 +93,7 @@ class TestDiagram {
         private final List<String> stereotypes = new ArrayList<>();
 
         private String alias;
+        private String color;
 
         private ComponentCreator(String componentName) {
             this.componentName = componentName;
@@ -97,6 +101,11 @@ class TestDiagram {
 
         ComponentCreator withAlias(String alias) {
             this.alias = alias;
+            return this;
+        }
+
+        public ComponentCreator withColor(String color) {
+            this.color = color;
             return this;
         }
 

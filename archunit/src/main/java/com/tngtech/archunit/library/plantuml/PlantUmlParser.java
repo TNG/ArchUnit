@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Function;
@@ -98,11 +99,13 @@ class PlantUmlParser {
         ComponentName componentName = new ComponentName(matcher.matchComponentName());
         ImmutableSet<Stereotype> immutableStereotypes = identifyStereotypes(matcher, componentName);
         Optional<Alias> alias = Optional.fromNullable(matcher.matchAlias().transform(TO_ALIAS).orNull());
+        Optional<Color> color = Optional.fromNullable(matcher.matchColor().transform(TO_COLOR).orNull());
 
         return new PlantUmlComponent.Builder()
                 .withComponentName(componentName)
                 .withStereotypes(immutableStereotypes)
                 .withAlias(alias)
+                .withColor(color)
                 .build();
     }
 
@@ -131,7 +134,14 @@ class PlantUmlParser {
     private static final Function<String, Alias> TO_ALIAS = new Function<String, Alias>() {
         @Override
         public Alias apply(String value) {
-            return new Alias(value);
+            return new Alias(Objects.requireNonNull(value).trim());
+        }
+    };
+
+    private static final Function<String, Color> TO_COLOR = new Function<String, Color>() {
+        @Override
+        public Color apply(String value) {
+            return new Color(Objects.requireNonNull(value).trim());
         }
     };
 }

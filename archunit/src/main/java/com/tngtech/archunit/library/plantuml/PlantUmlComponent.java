@@ -34,12 +34,14 @@ class PlantUmlComponent {
     private final ComponentName componentName;
     private final Set<Stereotype> stereotypes;
     private final Optional<Alias> alias;
+    private final Optional<Color> color;
     private List<PlantUmlComponentDependency> dependencies = emptyList();
 
     private PlantUmlComponent(Builder builder) {
         this.componentName = checkNotNull(builder.componentName);
         this.stereotypes = checkNotNull(builder.stereotypes);
         this.alias = checkNotNull(builder.alias);
+        this.color = checkNotNull(builder.color);
     }
 
     List<PlantUmlComponent> getDependencies() {
@@ -58,6 +60,10 @@ class PlantUmlComponent {
         return alias;
     }
 
+    Optional<Color> getColor() {
+        return color;
+    }
+
     void finish(List<PlantUmlComponentDependency> dependencies) {
         this.dependencies = ImmutableList.copyOf(dependencies);
     }
@@ -70,7 +76,7 @@ class PlantUmlComponent {
 
     @Override
     public int hashCode() {
-        return Objects.hash(componentName, stereotypes, alias);
+        return Objects.hash(componentName, stereotypes, alias, color);
     }
 
     @Override
@@ -84,7 +90,8 @@ class PlantUmlComponent {
         final PlantUmlComponent other = (PlantUmlComponent) obj;
         return Objects.equals(this.componentName, other.componentName)
                 && Objects.equals(this.stereotypes, other.stereotypes)
-                && Objects.equals(this.alias, other.alias);
+                && Objects.equals(this.alias, other.alias)
+                && Objects.equals(this.color, other.color);
     }
 
     @Override
@@ -93,6 +100,7 @@ class PlantUmlComponent {
                 "componentName=" + componentName +
                 ", stereotypes=" + stereotypes +
                 ", alias=" + alias +
+                ", color=" + color +
                 ", dependencies=" + dependencies +
                 '}';
     }
@@ -120,6 +128,7 @@ class PlantUmlComponent {
         private ComponentName componentName;
         private Set<Stereotype> stereotypes;
         private Optional<Alias> alias;
+        private Optional<Color> color;
 
         Builder withComponentName(ComponentName componentName) {
             this.componentName = componentName;
@@ -133,6 +142,11 @@ class PlantUmlComponent {
 
         Builder withAlias(Optional<Alias> alias) {
             this.alias = alias;
+            return this;
+        }
+
+        Builder withColor(Optional<Color> color) {
+            this.color = color;
             return this;
         }
 

@@ -80,6 +80,7 @@ import static java.util.Collections.singleton;
  *     <li>Components must have a name</li>
  *     <li>Components must have at least one stereotype. Each stereotype in the diagram must be unique</li>
  *     <li>Components may have an optional alias</li>
+ *     <li>Components may have an optional color</li>
  *     <li>Components must be defined before declaring dependencies</li>
  *     <li>Dependencies must use arrows only consisting of dashes, pointing right, e.g. <code>--&gt;</code></li>
  * </ol>

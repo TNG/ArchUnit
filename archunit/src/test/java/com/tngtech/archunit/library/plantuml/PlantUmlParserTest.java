@@ -57,6 +57,19 @@ public class PlantUmlParserTest {
         assertThat(origin.getAlias().isPresent()).as("alias is present").isFalse();
     }
 
+    @Test
+    public void parses_a_complex_component() {
+        PlantUmlDiagram diagram = createDiagram(TestDiagram.in(temporaryFolder)
+                .component("SomeOrigin").withAlias("origin").withColor("Blue").withStereoTypes("..origin..")
+                .write());
+
+        PlantUmlComponent origin = getComponentWithName("SomeOrigin", diagram);
+        assertThat(origin.getAlias()).as("Alias").contains(new Alias("origin"));
+        assertThat(origin.getColor()).as("Color").contains(new Color("Blue"));
+        assertThat(getOnlyElement(origin.getStereotypes())).as("Stereotype")
+                .isEqualTo(new Stereotype("..origin.."));
+    }
+
     @DataProvider
     public static Object[][] simple_diagrams() {
         return testForEach(
