@@ -289,8 +289,11 @@ public class DependencyTest {
         assertThatType(dependency.getOriginClass()).matches(ClassWithGenericSuperclass.class);
         assertThatType(dependency.getTargetClass()).matches(String.class);
         assertThat(dependency.getDescription()).as("description").contains(String.format(
-                "Class <%s> has generic superclass <%s> with type argument depending on <%s> in (%s.java:0)",
-                ClassWithGenericSuperclass.class.getName(), Base.class.getName(), String.class.getName(), getClass().getSimpleName()));
+                "Class <%s> has generic superclass <%s<%s>> with type argument depending on <%s> in (%s.java:0)",
+                ClassWithGenericSuperclass.class.getName(),
+                Base.class.getName(), String.class.getName(),
+                String.class.getName(),
+                getClass().getSimpleName()));
     }
 
     @SuppressWarnings("unused")
@@ -311,8 +314,11 @@ public class DependencyTest {
         assertThatType(dependency.getOriginClass()).matches(ClassWithGenericInterface.class);
         assertThatType(dependency.getTargetClass()).matches(String.class);
         assertThat(dependency.getDescription()).as("description").contains(String.format(
-                "Class <%s> has generic interface <%s> with type argument depending on <%s> in (%s.java:0)",
-                ClassWithGenericInterface.class.getName(), InterfaceWithTypeParameter.class.getName(), String.class.getName(), getClass().getSimpleName()));
+                "Class <%s> has generic interface <%s<%s>> with type argument depending on <%s> in (%s.java:0)",
+                ClassWithGenericInterface.class.getName(),
+                InterfaceWithTypeParameter.class.getName(), String.class.getName(),
+                String.class.getName(),
+                getClass().getSimpleName()));
     }
 
     @Test

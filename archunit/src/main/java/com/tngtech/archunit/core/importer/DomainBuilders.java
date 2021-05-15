@@ -74,6 +74,7 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.creat
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTypeVariable;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createWildcardType;
+import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 @Internal
@@ -958,7 +959,7 @@ public final class DomainBuilders {
 
         @Override
         public String getName() {
-            return type.getName();
+            return type.getName() + formatTypeArguments();
         }
 
         @Override
@@ -973,11 +974,15 @@ public final class DomainBuilders {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{" + type.getName() + formatTypeArguments() + '}';
+            return getClass().getSimpleName() + "{" + getName() + '}';
         }
 
         private String formatTypeArguments() {
-            return "<" + Joiner.on(", ").join(typeArguments) + ">";
+            List<String> formatted = new ArrayList<>();
+            for (JavaType typeArgument : typeArguments) {
+                formatted.add(ensureCanonicalArrayTypeName(typeArgument.getName()));
+            }
+            return "<" + Joiner.on(", ").join(formatted) + ">";
         }
     }
 }

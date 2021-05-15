@@ -104,6 +104,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(DataProviderRunner.class)
+@SuppressWarnings("SameParameterValue")
 public class JavaClassTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -524,7 +525,9 @@ public class JavaClassTest {
                         .withDescriptionContaining("extends")
 
                         .from(Child.class)
-                        .withExpectedDescriptionTemplate("has generic superclass <" + Base.class.getName() + "> with type argument depending on <#target>")
+                        .withExpectedDescriptionPatternTemplate(
+                                ".*has generic superclass <" + quote(Base.class.getName()) +
+                                        ".+> with type argument depending on <#target>.*")
                         .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
 
                         .from(Child.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
@@ -549,7 +552,9 @@ public class JavaClassTest {
                         .withDescriptionContaining("implements")
 
                         .from(Child.class)
-                        .withExpectedDescriptionTemplate("has generic interface <" + InterfaceWithTwoTypeParameters.class.getName() + "> with type argument depending on <#target>")
+                        .withExpectedDescriptionPatternTemplate(
+                                ".*has generic interface <" + quote(InterfaceWithTwoTypeParameters.class.getName()) +
+                                        ".+> with type argument depending on <#target>.*")
                         .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
 
                         .from(Child.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
@@ -788,11 +793,11 @@ public class JavaClassTest {
 
         assertThatDependencies(javaClasses.get(File.class).getDirectDependenciesToSelf())
                 .contain(from(FirstChild.class).to(File.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("Class <%s> has generic superclass <%s> with type argument depending on <%s>",
+                        .withDescriptionMatching("Class <%s> has generic superclass <%s.+> with type argument depending on <%s>.*",
                                 FirstChild.class.getName(), FirstBase.class.getName(), File.class.getName())
 
                         .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("Class <%s> has generic superclass <%s> with type argument depending on <%s>",
+                        .withDescriptionMatching("Class <%s> has generic superclass <%s.+> with type argument depending on <%s>.*",
                                 SecondChild.class.getName(), SecondBase.class.getName(), File.class.getName())
                 );
 
@@ -818,11 +823,11 @@ public class JavaClassTest {
 
         assertThatDependencies(javaClasses.get(File.class).getDirectDependenciesToSelf())
                 .contain(from(FirstChild.class).to(File.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("Class <%s> has generic interface <%s> with type argument depending on <%s>",
+                        .withDescriptionMatching("Class <%s> has generic interface <%s.+> with type argument depending on <%s>.*",
                                 FirstChild.class.getName(), InterfaceWithTwoTypeParameters.class.getName(), File.class.getName())
 
                         .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
-                        .withDescriptionContaining("Class <%s> has generic interface <%s> with type argument depending on <%s>",
+                        .withDescriptionMatching("Class <%s> has generic interface <%s.+> with type argument depending on <%s>.*",
                                 SecondChild.class.getName(), InterfaceWithTypeParameter.class.getName(), File.class.getName())
                 );
 

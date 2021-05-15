@@ -1,7 +1,13 @@
 package com.tngtech.archunit.testutils;
 
+import java.lang.reflect.Type;
+import java.util.Collection;
+
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.Dependency;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static java.util.regex.Pattern.quote;
 
@@ -29,12 +35,16 @@ public class ExpectedDependency implements ExpectedRelation {
         return new TypeParameterCreator(clazz, typeParameterName);
     }
 
-    public static GenericSupertypeTypeArgumentCreator genericSuperclass(Class<?> clazz, Class<?> genericSuperclassErasure) {
-        return new GenericSupertypeTypeArgumentCreator(clazz, "superclass", genericSuperclassErasure);
+    public static GenericSupertypeTypeArgumentCreator genericSuperclassOf(Class<?> clazz) {
+        return new GenericSupertypeTypeArgumentCreator(clazz, "superclass", clazz.getGenericSuperclass());
     }
 
-    public static GenericSupertypeTypeArgumentCreator genericInterface(Class<?> clazz, Class<?> genericInterfaceErasure) {
-        return new GenericSupertypeTypeArgumentCreator(clazz, "interface", genericInterfaceErasure);
+    public static GenericSupertypeTypeArgumentCreator genericInterfaceOf(Class<?> clazz) {
+        Collection<Type> interfaces = ImmutableList.copyOf(clazz.getGenericInterfaces());
+        checkArgument(interfaces.size() == 1,
+                "Currently only exactly one generic interface is supported, but %s has the following generic interfaces: %s. "
+                        + "Feel free to extend this method to cover multiple interfaces.", clazz.getName(), interfaces);
+        return new GenericSupertypeTypeArgumentCreator(clazz, "interface", getOnlyElement(interfaces));
     }
 
     public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {
@@ -114,19 +124,19 @@ public class ExpectedDependency implements ExpectedRelation {
 
     public static class GenericSupertypeTypeArgumentCreator {
         private final Class<?> childClass;
-        private final Class<?> genericSupertypeErasure;
+        private final Type genericSupertype;
         private final String genericTypeDescription;
 
-        private GenericSupertypeTypeArgumentCreator(Class<?> childClass, String genericTypeDescription, Class<?> genericSupertypeErasure) {
+        private GenericSupertypeTypeArgumentCreator(Class<?> childClass, String genericTypeDescription, Type genericSupertype) {
             this.childClass = childClass;
-            this.genericSupertypeErasure = genericSupertypeErasure;
+            this.genericSupertype = genericSupertype;
             this.genericTypeDescription = genericTypeDescription;
         }
 
         public ExpectedDependency dependingOn(Class<?> superclassTypeArgumentDependency) {
             return new ExpectedDependency(childClass, superclassTypeArgumentDependency,
                     getDependencyPattern(childClass.getName(),
-                            "has generic " + genericTypeDescription + " <" + genericSupertypeErasure.getName() + "> with type argument depending on",
+                            "has generic " + genericTypeDescription + " <" + quote(genericSupertype.getTypeName()) + "> with type argument depending on",
                             superclassTypeArgumentDependency.getName(),
                             0));
         }
