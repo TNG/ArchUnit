@@ -135,7 +135,7 @@ public interface ExpectedConcreteType {
 
             assertThat(actual).as(context.toString()).isInstanceOf(JavaWildcardType.class);
             JavaWildcardType wildcardType = (JavaWildcardType) actual;
-            assertThat(wildcardType.getName()).as(context.toString()).isEqualTo("?");
+            assertThat(wildcardType.getName()).as(context.toString()).startsWith("?");
 
             assertUpperBoundsMatch(wildcardType, context);
             assertLowerBoundMatch(wildcardType, context);
