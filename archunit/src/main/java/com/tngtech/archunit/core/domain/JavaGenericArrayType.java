@@ -25,8 +25,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * E.g. for {@code MyClass<A, T extends List<A[]>>} the upper bound {@code List<A[]>}
  * would have one {@link JavaGenericArrayType} {@code A[]} as its type parameter.<br>
  * Like its concrete counterpart a {@link JavaGenericArrayType} can be queried for its
- * {@link #getComponentType() component type}, which will by definition be a
- * {@link JavaTypeVariable} or a {@link JavaGenericArrayType} corresponding to a lower dimensional array.
+ * {@link #getComponentType() component type}, which can be a {@link JavaParameterizedType},
+ * a {@link JavaTypeVariable} or a {@link JavaGenericArrayType} corresponding to a lower dimensional array.
  */
 @PublicAPI(usage = ACCESS)
 public final class JavaGenericArrayType implements JavaType {

@@ -17,9 +17,11 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.genericArray;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.parameterizedTypeArrayName;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.typeVariableArrayName;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
-import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariableArray.typeVariableArray;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteWildcardType.wildcardType;
 
 @RunWith(DataProviderRunner.class)
@@ -508,6 +510,30 @@ public class ClassFileImporterGenericSuperclassTest {
     }
 
     @Test
+    public void imports_type_of_generic_superclass_with_parameterized_array_bounds() {
+        @SuppressWarnings("unused")
+        class BaseClass<A, B, C> {
+        }
+
+        class Child extends BaseClass<List<String>[], List<String[]>[][], List<String[][]>[][][]> {
+        }
+
+        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, List.class, String.class)
+                .get(Child.class).getSuperclass().get();
+
+        assertThatType(genericSuperclass).hasActualTypeArguments(
+                genericArray(parameterizedTypeArrayName(List.class, String.class, 1)).withComponentType(
+                        parameterizedType(List.class).withTypeArguments(String.class)),
+                genericArray(parameterizedTypeArrayName(List.class, String[].class, 2)).withComponentType(
+                        genericArray(parameterizedTypeArrayName(List.class, String[].class, 1)).withComponentType(
+                                parameterizedType(List.class).withTypeArguments(String[].class))),
+                genericArray(parameterizedTypeArrayName(List.class, String[][].class, 3)).withComponentType(
+                        genericArray(parameterizedTypeArrayName(List.class, String[][].class, 2)).withComponentType(
+                                genericArray(parameterizedTypeArrayName(List.class, String[][].class, 1)).withComponentType(
+                                        parameterizedType(List.class).withTypeArguments(String[][].class)))));
+    }
+
+    @Test
     public void imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_superclass_with_generic_array_bounds() {
         @SuppressWarnings("unused")
         class BaseClass<A, B, C> {
@@ -528,25 +554,26 @@ public class ClassFileImporterGenericSuperclassTest {
 
         assertThatType(genericSuperclass).hasActualTypeArguments(
                 parameterizedType(List.class).withTypeArguments(
-                        typeVariableArray("X[]").withComponentType(typeVariable("X").withUpperBounds(Serializable.class))),
+                        genericArray(typeVariableArrayName("X", 1)).withComponentType(
+                                typeVariable("X").withUpperBounds(Serializable.class))),
                 parameterizedType(List.class).withWildcardTypeParameterWithUpperBound(
-                        typeVariableArray("X[][]").withComponentType(
-                                typeVariableArray("X[]").withComponentType(
+                        genericArray(typeVariableArrayName("X", 2)).withComponentType(
+                                genericArray(typeVariableArrayName("X", 1)).withComponentType(
                                         typeVariable("X").withUpperBounds(Serializable.class)))),
                 parameterizedType(Map.class).withTypeArguments(
                         wildcardType().withLowerBound(
-                                typeVariableArray("Y[]").withComponentType(
+                                genericArray(typeVariableArrayName("Y", 1)).withComponentType(
                                         typeVariable("Y").withUpperBounds(String.class))),
                         parameterizedType(Map.class).withTypeArguments(
                                 parameterizedType(Map.class).withTypeArguments(
                                         wildcardType().withLowerBound(
-                                                typeVariableArray("Y[][][]").withComponentType(
-                                                        typeVariableArray("Y[][]").withComponentType(
-                                                                typeVariableArray("Y[]").withComponentType(
+                                                genericArray(typeVariableArrayName("Y", 3)).withComponentType(
+                                                        genericArray(typeVariableArrayName("Y", 2)).withComponentType(
+                                                                genericArray(typeVariableArrayName("Y", 1)).withComponentType(
                                                                         typeVariable("Y").withUpperBounds(String.class))))),
                                         wildcardType()),
-                                typeVariableArray("X[][]").withComponentType(
-                                        typeVariableArray("X[]").withComponentType(
+                                genericArray(typeVariableArrayName("X", 2)).withComponentType(
+                                        genericArray(typeVariableArrayName("X", 1)).withComponentType(
                                                 typeVariable("X").withUpperBounds(Serializable.class)))))
         );
     }

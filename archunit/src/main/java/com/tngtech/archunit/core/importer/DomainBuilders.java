@@ -542,6 +542,41 @@ public final class DomainBuilders {
 
     interface JavaTypeCreationProcess<OWNER> {
         JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes);
+
+        abstract class JavaTypeFinisher {
+            JavaTypeFinisher() {
+            }
+
+            abstract JavaType finish(JavaType input, ClassesByTypeName classes);
+
+            abstract String getFinishedName(String name);
+
+            JavaTypeFinisher after(final JavaTypeFinisher other) {
+                return new JavaTypeFinisher() {
+                    @Override
+                    JavaType finish(JavaType input, ClassesByTypeName classes) {
+                        return JavaTypeFinisher.this.finish(other.finish(input, classes), classes);
+                    }
+
+                    @Override
+                    String getFinishedName(String name) {
+                        return JavaTypeFinisher.this.getFinishedName(other.getFinishedName(name));
+                    }
+                };
+            }
+
+            static JavaTypeFinisher IDENTITY = new JavaTypeFinisher() {
+                @Override
+                JavaType finish(JavaType input, ClassesByTypeName classes) {
+                    return input;
+                }
+
+                @Override
+                String getFinishedName(String name) {
+                    return name;
+                }
+            };
+        }
     }
 
     @Internal

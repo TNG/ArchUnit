@@ -22,9 +22,11 @@ import org.junit.runner.RunWith;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.genericArray;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.parameterizedTypeArrayName;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.typeVariableArrayName;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
-import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariableArray.typeVariableArray;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteWildcardType.wildcardType;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -594,6 +596,37 @@ public class ClassFileImporterGenericClassesTest {
     }
 
     @Test
+    public void imports_type_with_parameterized_array_bounds() {
+        @SuppressWarnings("unused")
+        class ClassWithThreeTypeParameters<A, B, C> {
+        }
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameterWithParameterizedArrayBounds<
+                T extends ClassWithThreeTypeParameters<List<String>[], List<String[]>[][], List<String[][]>[][][]>
+                > {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithTypeParameterWithParameterizedArrayBounds.class,
+                ClassWithThreeTypeParameters.class, List.class, String.class);
+
+        JavaClass javaClass = classes.get(ClassWithTypeParameterWithParameterizedArrayBounds.class);
+
+        assertThatType(javaClass)
+                .hasTypeParameter("T")
+                .withBoundsMatching(
+                        parameterizedType(ClassWithThreeTypeParameters.class).withTypeArguments(
+                                genericArray(parameterizedTypeArrayName(List.class, String.class, 1)).withComponentType(
+                                        parameterizedType(List.class).withTypeArguments(String.class)),
+                                genericArray(parameterizedTypeArrayName(List.class, String[].class, 2)).withComponentType(
+                                        genericArray(parameterizedTypeArrayName(List.class, String[].class, 1)).withComponentType(
+                                                parameterizedType(List.class).withTypeArguments(String[].class))),
+                                genericArray(parameterizedTypeArrayName(List.class, String[][].class, 3)).withComponentType(
+                                        genericArray(parameterizedTypeArrayName(List.class, String[][].class, 2)).withComponentType(
+                                                genericArray(parameterizedTypeArrayName(List.class, String[][].class, 1)).withComponentType(
+                                                        parameterizedType(List.class).withTypeArguments(String[][].class))))));
+    }
+
+    @Test
     public void imports_complex_type_with_multiple_nested_parameters_with_generic_array_bounds() {
         @SuppressWarnings("unused")
         class ClassWithComplexTypeParametersWithGenericArrayBounds<
@@ -614,29 +647,29 @@ public class ClassFileImporterGenericClassesTest {
                 .hasTypeParameter("A")
                 .withBoundsMatching(
                         parameterizedType(List.class).withTypeArguments(
-                                typeVariableArray("X[]").withComponentType(typeVariable("X").withUpperBounds(Serializable.class))))
+                                genericArray(typeVariableArrayName("X", 1)).withComponentType(typeVariable("X").withUpperBounds(Serializable.class))))
                 .hasTypeParameter("B")
                 .withBoundsMatching(
                         parameterizedType(List.class).withWildcardTypeParameterWithUpperBound(
-                                typeVariableArray("X[][]").withComponentType(
-                                        typeVariableArray("X[]").withComponentType(
+                                genericArray(typeVariableArrayName("X", 2)).withComponentType(
+                                        genericArray(typeVariableArrayName("X", 1)).withComponentType(
                                                 typeVariable("X").withUpperBounds(Serializable.class)))))
                 .hasTypeParameter("C")
                 .withBoundsMatching(
                         parameterizedType(Map.class).withTypeArguments(
                                 wildcardType().withLowerBound(
-                                        typeVariableArray("Y[]").withComponentType(
+                                        genericArray(typeVariableArrayName("Y", 1)).withComponentType(
                                                 typeVariable("Y").withUpperBounds(String.class))),
                                 parameterizedType(Map.class).withTypeArguments(
                                         parameterizedType(Map.class).withTypeArguments(
                                                 wildcardType().withLowerBound(
-                                                        typeVariableArray("Y[][][]").withComponentType(
-                                                                typeVariableArray("Y[][]").withComponentType(
-                                                                        typeVariableArray("Y[]").withComponentType(
+                                                        genericArray(typeVariableArrayName("Y", 3)).withComponentType(
+                                                                genericArray(typeVariableArrayName("Y", 2)).withComponentType(
+                                                                        genericArray(typeVariableArrayName("Y", 1)).withComponentType(
                                                                                 typeVariable("Y").withUpperBounds(String.class))))),
                                                 wildcardType()),
-                                        typeVariableArray("X[][]").withComponentType(
-                                                typeVariableArray("X[]").withComponentType(
+                                        genericArray(typeVariableArrayName("X", 2)).withComponentType(
+                                                genericArray(typeVariableArrayName("X", 1)).withComponentType(
                                                         typeVariable("X").withUpperBounds(Serializable.class)))))
                 );
     }

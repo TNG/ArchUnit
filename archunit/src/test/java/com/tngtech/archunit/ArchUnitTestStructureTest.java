@@ -21,7 +21,7 @@ public class ArchUnitTestStructureTest {
                 .should(onlyBeAccessedByClassesThat(
                         have(nameMatching(TestUtils.class.getName() + ".*"))
                                 .or(have(nameMatching(ImportTestUtils.class.getName() + ".*")))))
-                .because("we wan't one central TestUtils for all tests")
+                .because("we want one central TestUtils for all tests")
                 .check(archUnitClasses);
     }
 
@@ -29,7 +29,7 @@ public class ArchUnitTestStructureTest {
     public void ImportTestUtils_doesnt_access_TestUtils() {
         noClasses().that().haveNameMatching(ImportTestUtils.class.getName() + ".*")
                 .should().accessClassesThat().haveNameMatching(TestUtils.class.getName() + ".*")
-                .because("we wan't one central TestUtils for all tests")
+                .because("we want one central TestUtils for all tests")
                 .check(archUnitClasses);
     }
 }

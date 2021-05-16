@@ -20,8 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -31,6 +29,7 @@ import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess.JavaTypeFinisher;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
@@ -40,7 +39,6 @@ import org.objectweb.asm.signature.SignatureVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Functions.compose;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
 
@@ -146,7 +144,7 @@ class JavaClassSignatureImporter {
             @Override
             public void visitTypeVariable(String name) {
                 log.trace("Encountered upper bound for {}: Type variable {}", currentType.getName(), name);
-                currentType.addBound(new ReferenceCreationProcess<JavaClass>(name, ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY));
+                currentType.addBound(new ReferenceCreationProcess<JavaClass>(name, JavaTypeFinisher.IDENTITY));
             }
 
             @Override
@@ -201,22 +199,29 @@ class JavaClassSignatureImporter {
 
     private static class NewJavaTypeCreationProcess<OWNER extends HasDescription> implements JavaTypeCreationProcess<OWNER> {
         private final JavaTypeBuilder<OWNER> builder;
+        private final JavaTypeFinisher typeFinisher;
 
         NewJavaTypeCreationProcess(JavaTypeBuilder<OWNER> builder) {
+            this(builder, JavaTypeFinisher.IDENTITY);
+        }
+
+        NewJavaTypeCreationProcess(JavaTypeBuilder<OWNER> builder, JavaTypeFinisher typeFinisher) {
             this.builder = builder;
+            this.typeFinisher = typeFinisher;
         }
 
         @Override
         public JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
-            return builder.build(owner, allTypeParametersInContext, classes);
+            JavaType type = builder.build(owner, allTypeParametersInContext, classes);
+            return typeFinisher.finish(type, classes);
         }
     }
 
     private static class ReferenceCreationProcess<OWNER extends HasDescription> implements JavaTypeCreationProcess<OWNER> {
         private final String typeVariableName;
-        private final JavaTypeVariableFinisher finisher;
+        private final JavaTypeFinisher finisher;
 
-        ReferenceCreationProcess(String typeVariableName, JavaTypeVariableFinisher finisher) {
+        ReferenceCreationProcess(String typeVariableName, JavaTypeFinisher finisher) {
             this.typeVariableName = typeVariableName;
             this.finisher = finisher;
         }
@@ -235,52 +240,17 @@ class JavaClassSignatureImporter {
             // type variables can be missing from the import context -> create a simple unbound type variable since we have no more information
             return new JavaTypeParameterBuilder<>(typeVariableName).build(owner, classes);
         }
-
-        abstract static class JavaTypeVariableFinisher {
-            abstract JavaType finish(JavaType input, ClassesByTypeName classes);
-
-            abstract String getFinishedName(String name);
-
-            JavaTypeVariableFinisher after(final JavaTypeVariableFinisher other) {
-                return new JavaTypeVariableFinisher() {
-                    @Override
-                    JavaType finish(JavaType input, ClassesByTypeName classes) {
-                        return JavaTypeVariableFinisher.this.finish(other.finish(input, classes), classes);
-                    }
-
-                    @Override
-                    String getFinishedName(String name) {
-                        return JavaTypeVariableFinisher.this.getFinishedName(other.getFinishedName(name));
-                    }
-                };
-            }
-
-            static JavaTypeVariableFinisher IDENTITY = new JavaTypeVariableFinisher() {
-                @Override
-                JavaType finish(JavaType input, ClassesByTypeName classes) {
-                    return input;
-                }
-
-                @Override
-                String getFinishedName(String name) {
-                    return name;
-                }
-            };
-        }
     }
 
     private static class TypeArgumentProcessor extends SignatureVisitor {
-        private static final Function<JavaClassDescriptor, JavaClassDescriptor> TO_ARRAY_TYPE = new Function<JavaClassDescriptor, JavaClassDescriptor>() {
-            @Override
-            @SuppressWarnings("ConstantConditions") // we never return null by convention
-            public JavaClassDescriptor apply(JavaClassDescriptor input) {
-                return input.toArrayDescriptor();
-            }
-        };
-        private static final ReferenceCreationProcess.JavaTypeVariableFinisher GENERIC_ARRAY_CREATOR = new ReferenceCreationProcess.JavaTypeVariableFinisher() {
+        private static final JavaTypeFinisher ARRAY_CREATOR = new JavaTypeFinisher() {
             @Override
             public JavaType finish(JavaType componentType, ClassesByTypeName classes) {
                 JavaClassDescriptor erasureType = JavaClassDescriptor.From.javaClass(componentType.toErasure()).toArrayDescriptor();
+                if (componentType instanceof JavaClass) {
+                    return classes.get(erasureType.getFullyQualifiedClassName());
+                }
+
                 JavaClass erasure = classes.get(erasureType.getFullyQualifiedClassName());
                 return createGenericArrayType(componentType, erasure);
             }
@@ -293,29 +263,26 @@ class JavaClassSignatureImporter {
 
         private final TypeArgumentType typeArgumentType;
         private final JavaParameterizedTypeBuilder<JavaClass> parameterizedType;
-        private final Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping;
-        private final ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher;
+        private final JavaTypeFinisher typeFinisher;
 
         private JavaParameterizedTypeBuilder<JavaClass> currentTypeArgument;
 
         TypeArgumentProcessor(
                 TypeArgumentType typeArgumentType,
                 JavaParameterizedTypeBuilder<JavaClass> parameterizedType,
-                Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping,
-                ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher) {
+                JavaTypeFinisher typeFinisher) {
             super(ASM_API_VERSION);
             this.typeArgumentType = typeArgumentType;
             this.parameterizedType = parameterizedType;
-            this.typeMapping = typeMapping;
-            this.typeVariableFinisher = typeVariableFinisher;
+            this.typeFinisher = typeFinisher;
         }
 
         @Override
         public void visitClassType(String internalObjectName) {
-            JavaClassDescriptor type = typeMapping.apply(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName));
+            JavaClassDescriptor type = JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName);
             log.trace("Encountered {} for {}: Class type {}", typeArgumentType.description, parameterizedType.getTypeName(), type.getFullyQualifiedClassName());
             currentTypeArgument = new JavaParameterizedTypeBuilder<>(type);
-            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new NewJavaTypeCreationProcess<>(this.currentTypeArgument));
+            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new NewJavaTypeCreationProcess<>(this.currentTypeArgument, typeFinisher));
         }
 
         @Override
@@ -326,44 +293,43 @@ class JavaClassSignatureImporter {
         @Override
         public void visitTypeArgument() {
             log.trace("Encountered wildcard for {}", currentTypeArgument.getTypeName());
-            currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>()));
+            currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>(), JavaTypeFinisher.IDENTITY));
         }
 
         @Override
         public void visitTypeVariable(String name) {
             if (log.isTraceEnabled()) {
-                log.trace("Encountered {} for {}: Type variable {}", typeArgumentType.description, parameterizedType.getTypeName(), typeVariableFinisher.getFinishedName(name));
+                log.trace("Encountered {} for {}: Type variable {}", typeArgumentType.description, parameterizedType.getTypeName(), typeFinisher.getFinishedName(name));
             }
-            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess<JavaClass>(name, typeVariableFinisher));
+            typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess<JavaClass>(name, typeFinisher));
         }
 
         @Override
         public SignatureVisitor visitTypeArgument(char wildcard) {
-            return TypeArgumentProcessor.create(wildcard, currentTypeArgument, typeMapping, typeVariableFinisher);
+            return TypeArgumentProcessor.create(wildcard, currentTypeArgument, JavaTypeFinisher.IDENTITY);
         }
 
         @Override
         public SignatureVisitor visitArrayType() {
-            return new TypeArgumentProcessor(typeArgumentType, parameterizedType, compose(typeMapping, TO_ARRAY_TYPE), typeVariableFinisher.after(GENERIC_ARRAY_CREATOR));
+            return new TypeArgumentProcessor(typeArgumentType, parameterizedType, typeFinisher.after(ARRAY_CREATOR));
         }
 
         static TypeArgumentProcessor create(char identifier, JavaParameterizedTypeBuilder<JavaClass> parameterizedType) {
-            return create(identifier, parameterizedType, Functions.<JavaClassDescriptor>identity(), ReferenceCreationProcess.JavaTypeVariableFinisher.IDENTITY);
+            return create(identifier, parameterizedType, JavaTypeFinisher.IDENTITY);
         }
 
         static TypeArgumentProcessor create(
                 char identifier,
                 JavaParameterizedTypeBuilder<JavaClass> parameterizedType,
-                Function<JavaClassDescriptor, JavaClassDescriptor> typeMapping,
-                ReferenceCreationProcess.JavaTypeVariableFinisher typeVariableFinisher) {
+                JavaTypeFinisher typeFinisher) {
 
             switch (identifier) {
                 case INSTANCEOF:
-                    return new TypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType, typeMapping, typeVariableFinisher);
+                    return new TypeArgumentProcessor(PARAMETERIZED_TYPE, parameterizedType, typeFinisher);
                 case EXTENDS:
-                    return new TypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeMapping, typeVariableFinisher);
+                    return new TypeArgumentProcessor(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeFinisher);
                 case SUPER:
-                    return new TypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeMapping, typeVariableFinisher);
+                    return new TypeArgumentProcessor(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeFinisher);
                 default:
                     throw new IllegalStateException(String.format("Cannot handle asm type argument identifier '%s'", identifier));
             }
