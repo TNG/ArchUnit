@@ -63,6 +63,7 @@ import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
@@ -948,6 +949,9 @@ public final class DomainBuilders {
         private final List<JavaType> typeArguments;
 
         ImportedParameterizedType(JavaType type, List<JavaType> typeArguments) {
+            checkArgument(typeArguments.size() > 0,
+                    "Parameterized type cannot be created without type arguments. This is likely a bug.");
+
             this.type = type;
             this.typeArguments = typeArguments;
         }
@@ -973,7 +977,7 @@ public final class DomainBuilders {
         }
 
         private String formatTypeArguments() {
-            return typeArguments.isEmpty() ? "" : "<" + Joiner.on(", ").join(typeArguments) + ">";
+            return "<" + Joiner.on(", ").join(typeArguments) + ">";
         }
     }
 }
