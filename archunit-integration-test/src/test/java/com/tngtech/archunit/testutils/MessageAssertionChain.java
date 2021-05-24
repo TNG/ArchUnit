@@ -12,7 +12,6 @@ import com.google.common.collect.Iterables;
 import com.tngtech.archunit.Internal;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.tngtech.archunit.testutils.MessageAssertionChain.Link.Result.difference;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.singletonList;
 
@@ -47,7 +46,9 @@ public class MessageAssertionChain {
             public Result filterMatching(List<String> lines) {
                 for (String line : lines) {
                     if (p.matcher(line).matches()) {
-                        return Result.success(difference(lines, line));
+                        List<String> result = new ArrayList<>(lines);
+                        result.remove(line);
+                        return Result.success(result);
                     }
                 }
                 return Result.failure(lines);
