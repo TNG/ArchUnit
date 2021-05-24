@@ -19,12 +19,16 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaType;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 
 public interface HasReturnType {
+
+    @PublicAPI(usage = ACCESS)
+    JavaType getReturnType();
 
     @PublicAPI(usage = ACCESS)
     JavaClass getRawReturnType();
@@ -53,6 +57,14 @@ public interface HasReturnType {
     final class Functions {
         private Functions() {
         }
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<HasReturnType, JavaType> GET_RETURN_TYPE = new ChainableFunction<HasReturnType, JavaType>() {
+            @Override
+            public JavaType apply(HasReturnType input) {
+                return input.getReturnType();
+            }
+        };
 
         @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<HasReturnType, JavaClass> GET_RAW_RETURN_TYPE = new ChainableFunction<HasReturnType, JavaClass>() {

@@ -18,13 +18,16 @@ package com.tngtech.archunit.core.importer;
 import java.util.Collections;
 import java.util.List;
 
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
 
 class JavaCodeUnitSignatureImporter {
@@ -44,6 +47,7 @@ class JavaCodeUnitSignatureImporter {
 
     private static class SignatureProcessor extends SignatureVisitor {
         private final SignatureTypeParameterProcessor<JavaCodeUnit> typeParameterProcessor = new SignatureTypeParameterProcessor<>();
+        private final GenericMemberTypeProcessor<JavaCodeUnit> genericMethodReturnTypeProcessor = new GenericMemberTypeProcessor<>();
 
         SignatureProcessor() {
             super(ASM_API_VERSION);
@@ -65,22 +69,41 @@ class JavaCodeUnitSignatureImporter {
             return typeParameterProcessor;
         }
 
+        @Override
+        public SignatureVisitor visitReturnType() {
+            return genericMethodReturnTypeProcessor;
+        }
+
         public JavaCodeUnitSignature getParsedSignature() {
-            return new JavaCodeUnitSignature(typeParameterProcessor.getTypeParameterBuilders());
+            return new JavaCodeUnitSignature(
+                    typeParameterProcessor.getTypeParameterBuilders(),
+                    Optional.fromNullable(genericMethodReturnTypeProcessor.getType()));
         }
     }
 
     static class JavaCodeUnitSignature {
-        static final JavaCodeUnitSignature ABSENT = new JavaCodeUnitSignature(Collections.<JavaTypeParameterBuilder<JavaCodeUnit>>emptyList());
+        static final JavaCodeUnitSignature ABSENT = new JavaCodeUnitSignature(
+                Collections.<JavaTypeParameterBuilder<JavaCodeUnit>>emptyList(),
+                Optional.<JavaTypeCreationProcess<JavaCodeUnit>>absent()
+        );
 
         private final List<JavaTypeParameterBuilder<JavaCodeUnit>> typeParameterBuilders;
+        private final Optional<JavaTypeCreationProcess<JavaCodeUnit>> returnType;
 
-        private JavaCodeUnitSignature(List<JavaTypeParameterBuilder<JavaCodeUnit>> typeParameterBuilders) {
-            this.typeParameterBuilders = typeParameterBuilders;
+        private JavaCodeUnitSignature(
+                List<JavaTypeParameterBuilder<JavaCodeUnit>> typeParameterBuilders,
+                Optional<JavaTypeCreationProcess<JavaCodeUnit>> returnType
+        ) {
+            this.typeParameterBuilders = checkNotNull(typeParameterBuilders);
+            this.returnType = checkNotNull(returnType);
         }
 
         List<JavaTypeParameterBuilder<JavaCodeUnit>> getTypeParameterBuilders() {
             return typeParameterBuilders;
+        }
+
+        Optional<JavaTypeCreationProcess<JavaCodeUnit>> getReturnType() {
+            return returnType;
         }
     }
 }
