@@ -10,33 +10,35 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MessageFormatFactoryTest {
+public class FailureDisplayFormatFactoryTest {
 
     @Rule
     public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
 
     @Test
-    public void message_format_property_is_read() {
-        ArchConfiguration.get().setProperty("messageFormat", "com.tngtech.archunit.lang.MessageFormatFactoryTest$TestMessageFormat");
+    public void configured_failure_display_format_is_used() {
+        ArchConfiguration.get()
+                .setProperty("failureDisplayFormat", TestFailureDisplayFormat.class.getName());
 
-        MessageFormat messageFormat = MessageFormatFactory.create();
+        FailureDisplayFormat failureDisplayFormat = FailureDisplayFormatFactory.create();
 
-        assertThat(messageFormat).isInstanceOfAny(TestMessageFormat.class);
+        assertThat(failureDisplayFormat).isInstanceOf(TestFailureDisplayFormat.class);
 
-        String message = messageFormat.formatFailure(hasDescription("some-rule"),
+        String message = failureDisplayFormat.formatFailure(hasDescription("some-rule"),
                 new FailureMessages(ImmutableList.of("some-failure"), Optional.<String>absent()),
                 Priority.LOW);
 
         assertThat(message).isEqualTo("test-format: some-rule has [some-failure] with priority LOW");
     }
 
-    static class TestMessageFormat implements MessageFormat {
+    static class TestFailureDisplayFormat implements FailureDisplayFormat {
         @Override
         public String formatFailure(HasDescription rule, FailureMessages failureMessages, Priority priority) {
             return "test-format: " + rule.getDescription() + " has " + failureMessages + " with priority " + priority;
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private HasDescription hasDescription(final String description) {
         return new HasDescription() {
             @Override

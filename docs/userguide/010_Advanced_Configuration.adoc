@@ -100,13 +100,13 @@ javaClass.getSource().get().getMd5sum()
 
 === Custom Error Messages
 
-You can configure a custom error message format.
+You can configure a custom format to display the failures of a rule.
 
 First Supply a custom implementation of
 
 [source,java,options="nowrap"]
 ----
-com.tngtech.archunit.lang.MessageFormat
+com.tngtech.archunit.lang.FailureDisplayFormat
 ----
 
 Then configure it
@@ -114,5 +114,28 @@ Then configure it
 [source,options="nowrap"]
 .archunit.properties
 ----
-messageFormat=some.pkg.MyCustomMessageFormat
+failureDisplayFormat=some.pkg.MyCustomFailureDisplayFormat
 ----
+
+One example would be to shorten the fully qualified class names in failure messages:
+
+[source,java,options="nowrap"]
+----
+private static class SimpleClassNameFailureFormat implements FailureDisplayFormat {
+    @Override
+    public String formatFailure(HasDescription rule, FailureMessages failureMessages, Priority priority) {
+        String failureDetails = failureMessages.stream()
+                .map(message -> message.replaceAll("<(?:\\w+\\.)+([A-Z][^>]*)>", "<$1>"))
+                .collect(joining(lineSeparator()));
+
+        return String.format("Architecture Violation [Priority: %s] - Rule '%s' was violated (%s):%n%s",
+                priority.asString(), rule.getDescription(), failureMessages.getInformationAboutNumberOfViolations(), failureDetails);
+    }
+}
+----
+
+Note that due to the free format how violation texts can be composed,
+in particular by custom predicates and conditions,
+there is at the moment no more sophisticated way than plain text parsing.
+Users can tailor this to their specific environments where they know
+which sorts of failure formats can appear in practice.

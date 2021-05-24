@@ -24,7 +24,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  * Allows to customize violation messages and rule text of {@link ArchRule ArchRules}.
  */
 @PublicAPI(usage = INHERITANCE)
-public interface MessageFormat {
+public interface FailureDisplayFormat {
 
     /**
      * Formats the failure of an {@link ArchRule}, i.e. constructs the text to display

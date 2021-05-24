@@ -23,28 +23,28 @@ import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
 import static java.lang.System.lineSeparator;
 
-class MessageFormatFactory {
-    private static final String MESSAGE_FORMAT_PROPERTY = "messageFormat";
-    private static final MessageFormat DEFAULT_MESSAGE_FORMAT = new DefaultMessageFormat();
+class FailureDisplayFormatFactory {
+    private static final String FAILURE_DISPLAY_FORMAT_PROPERTY = "failureDisplayFormat";
+    private static final FailureDisplayFormat DEFAULT_FAILURE_DISPLAY_FORMAT = new DefaultFailureDisplayFormat();
 
-    static MessageFormat create() {
-        return ArchConfiguration.get().containsProperty(MESSAGE_FORMAT_PROPERTY)
-                ? createInstance(ArchConfiguration.get().getProperty(MESSAGE_FORMAT_PROPERTY))
-                : DEFAULT_MESSAGE_FORMAT;
+    static FailureDisplayFormat create() {
+        return ArchConfiguration.get().containsProperty(FAILURE_DISPLAY_FORMAT_PROPERTY)
+                ? createInstance(ArchConfiguration.get().getProperty(FAILURE_DISPLAY_FORMAT_PROPERTY))
+                : DEFAULT_FAILURE_DISPLAY_FORMAT;
     }
 
     @MayResolveTypesViaReflection(reason = "This is not part of the import process")
-    private static MessageFormat createInstance(String messageFormatClassName) {
+    private static FailureDisplayFormat createInstance(String failureDisplayFormatClassName) {
         try {
-            return (MessageFormat) newInstanceOf(Class.forName(messageFormatClassName));
+            return (FailureDisplayFormat) newInstanceOf(Class.forName(failureDisplayFormatClassName));
         } catch (Exception e) {
             String message = String.format("Could not instantiate %s of configured type '%s=%s'",
-                    MessageFormat.class.getSimpleName(), MESSAGE_FORMAT_PROPERTY, messageFormatClassName);
-            throw new MessageFormatInitializationFailedException(message, e);
+                    FailureDisplayFormat.class.getSimpleName(), FAILURE_DISPLAY_FORMAT_PROPERTY, failureDisplayFormatClassName);
+            throw new FailureDisplayFormatInitializationFailedException(message, e);
         }
     }
 
-    private static class DefaultMessageFormat implements MessageFormat {
+    private static class DefaultFailureDisplayFormat implements FailureDisplayFormat {
         @Override
         public String formatFailure(HasDescription rule, FailureMessages failureMessages, Priority priority) {
             String violationTexts = Joiner.on(lineSeparator()).join(failureMessages);

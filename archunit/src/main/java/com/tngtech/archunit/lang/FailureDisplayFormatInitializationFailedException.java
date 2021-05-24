@@ -15,8 +15,8 @@
  */
 package com.tngtech.archunit.lang;
 
-class MessageFormatInitializationFailedException extends RuntimeException {
-    MessageFormatInitializationFailedException(String message, Throwable cause) {
+class FailureDisplayFormatInitializationFailedException extends RuntimeException {
+    FailureDisplayFormatInitializationFailedException(String message, Throwable cause) {
         super(message, cause);
     }
 }
