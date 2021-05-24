@@ -32,8 +32,4 @@ class ConfiguredMessageFormat {
         return String.format("Architecture Violation [Priority: %s] - Rule '%s' was violated (%s):%n%s",
                 priority.asString(), rule.getDescription(), failureMessages.getInformationAboutNumberOfViolations(), violationTexts);
     }
-
-    <T> String formatRuleText(HasDescription itemsUnderTest, ArchCondition<T> condition) {
-        return String.format("%s should %s", itemsUnderTest.getDescription(), condition.getDescription());
-    }
 }
