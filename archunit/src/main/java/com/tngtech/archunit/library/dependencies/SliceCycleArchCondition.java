@@ -26,6 +26,7 @@ import java.util.SortedSet;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -45,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.collect.MultimapBuilder.hashKeys;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
+import static java.lang.System.lineSeparator;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static final Logger log = LoggerFactory.getLogger(SliceCycleArchCondition.class);
@@ -167,7 +169,8 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     }
 
     private static class EventRecorder {
-        private static final String MESSAGE_TEMPLATE = "Cycle detected: %s%n%s";
+        private static final String CYCLE_DETECTED_SECTION_INTRO = "Cycle detected: ";
+        private static final String DEPENDENCY_DETAILS_INDENT = Strings.repeat(" ", 4);
         private static final Function<Edge<Slice, Dependency>, String> GET_FROM_NODE_DESCRIPTION = new Function<Edge<Slice, Dependency>, String>() {
             @Override
             public String apply(Edge<Slice, Dependency> input) {
@@ -189,11 +192,11 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
         private ConditionEvent newEvent(Cycle<Slice, Dependency> cycle) {
             Map<String, Edge<Slice, Dependency>> descriptionsToEdges = sortEdgesByDescription(cycle);
-            String description = createDescription(descriptionsToEdges.keySet());
+            String description = createDescription(descriptionsToEdges.keySet(), CYCLE_DETECTED_SECTION_INTRO.length());
             String details = createDetails(descriptionsToEdges);
             return new SimpleConditionEvent(cycle,
                     false,
-                    String.format(MESSAGE_TEMPLATE, description, details));
+                    CYCLE_DETECTED_SECTION_INTRO + description + lineSeparator() + details);
         }
 
         private Map<String, Edge<Slice, Dependency>> sortEdgesByDescription(Cycle<Slice, Dependency> cycle) {
@@ -209,19 +212,21 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             return descriptionToEdge;
         }
 
-        private String createDescription(Collection<String> edgeDescriptions) {
+        private String createDescription(Collection<String> edgeDescriptions, int indent) {
             List<String> descriptions = new ArrayList<>(edgeDescriptions);
             descriptions.add(descriptions.get(0));
-            return Joiner.on(" -> ").join(descriptions);
+            return Joiner.on(" -> " + lineSeparator() + Strings.repeat(" ", indent)).join(descriptions);
         }
 
         private String createDetails(Map<String, Edge<Slice, Dependency>> descriptionsToEdges) {
             List<String> details = new ArrayList<>();
+            int sliceIndex = 0;
             for (Map.Entry<String, Edge<Slice, Dependency>> edgeWithDescription : descriptionsToEdges.entrySet()) {
-                details.add("Dependencies of " + edgeWithDescription.getKey());
+                ++sliceIndex;
+                details.add(String.format("  %d. Dependencies of %s", sliceIndex, edgeWithDescription.getKey()));
                 details.addAll(dependenciesDescription(edgeWithDescription.getValue()));
             }
-            return Joiner.on(System.lineSeparator()).join(details);
+            return Joiner.on(lineSeparator()).join(details);
         }
 
         private List<String> dependenciesDescription(Edge<Slice, Dependency> edge) {
@@ -231,10 +236,10 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
             boolean tooManyDependenciesToDisplay = allDependencies.size() > maxDependencies;
             List<Dependency> dependenciesToDisplay = tooManyDependenciesToDisplay ? allDependencies.subList(0, maxDependencies) : allDependencies;
             for (Dependency dependency : dependenciesToDisplay) {
-                result.add(dependency.getDescription());
+                result.add(DEPENDENCY_DETAILS_INDENT + "- " + dependency.getDescription());
             }
             if (tooManyDependenciesToDisplay) {
-                result.add(String.format("(%d further dependencies have been omitted...)",
+                result.add(DEPENDENCY_DETAILS_INDENT + String.format("(%d further dependencies have been omitted...)",
                         allDependencies.size() - dependenciesToDisplay.size()));
             }
             return result;
