@@ -992,6 +992,37 @@ public interface ClassesShould {
     ClassesShouldConjunction onlyDependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
 
     /**
+     * Asserts that all classes selected by this rule transitively depend on certain classes.<br>
+     * NOTE: This usually makes more sense the negated way, e.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #transitivelyDependOnClassesThat()}.{@link ClassesThat#haveFullyQualifiedName(String) haveFullyQualifiedName(String)}
+     * </code></pre>
+     *
+     * NOTE: 'dependOn' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
+     *
+     * @return A syntax element that allows choosing to which classes a transitive dependency should exist
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesThat<ClassesShouldConjunction> transitivelyDependOnClassesThat();
+
+    /**
+     * Asserts that all classes selected by this rule transitively depend on certain classes.<br>
+     * NOTE: This usually makes more sense the negated way, e.g.
+     * <p>
+     * <pre><code>
+     * {@link ArchRuleDefinition#noClasses() noClasses()}.{@link GivenClasses#should() should()}.{@link #transitivelyDependOnClassesThat(DescribedPredicate) transitivelyDependOnClassesThat(myPredicate)}
+     * </code></pre>
+     *
+     * NOTE: 'dependOn' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
+     *
+     * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency target
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    ClassesShouldConjunction transitivelyDependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
+
+    /**
      * Asserts that only certain classes access the classes selected by this rule.<br>
      * <br>E.g.
      * <pre><code>

@@ -1602,6 +1602,15 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                 };
 
         @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<Dependency>> GET_TRANSITIVE_DEPENDENCIES_FROM_SELF =
+                new ChainableFunction<JavaClass, Set<Dependency>>() {
+                    @Override
+                    public Set<Dependency> apply(JavaClass input) {
+                        return input.getTransitiveDependenciesFromSelf();
+                    }
+                };
+
+        @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaClass, Set<JavaAccess<?>>> GET_ACCESSES_TO_SELF =
                 new ChainableFunction<JavaClass, Set<JavaAccess<?>>>() {
                     @Override
