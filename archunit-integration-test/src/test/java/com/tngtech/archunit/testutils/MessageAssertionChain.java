@@ -78,6 +78,43 @@ public class MessageAssertionChain {
         };
     }
 
+    static Link containsText(String text, Object... args) {
+        String expectedText = String.format(text, args);
+        final List<String> expectedLines = Splitter.on(lineSeparator()).splitToList(expectedText);
+        return new Link() {
+            @Override
+            public Result filterMatching(List<String> lines) {
+                List<String> result = new ArrayList<>(lines);
+                List<Integer> matchingIndexes = findElementIndexes(result, expectedLines.get(0));
+                boolean matches = false;
+                for (int index : matchingIndexes) {
+                    List<String> candidate = result.subList(index, index + expectedLines.size());
+                    if (candidate.equals(expectedLines)) {
+                        matches = true;
+                        candidate.clear();
+                        break;
+                    }
+                }
+                return new Result(matches, result, describeLines(lines));
+            }
+
+            private <T> List<Integer> findElementIndexes(List<T> list, T element) {
+                List<Integer> result = new ArrayList<>();
+                for (int i = 0; i < list.size(); i++) {
+                    if (element.equals(list.get(i))) {
+                        result.add(i);
+                    }
+                }
+                return result;
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Message contains text '%s'", expectedText);
+            }
+        };
+    }
+
     private static String describeLines(List<String> lines) {
         return "Lines were >>>>>>>>" + lineSeparator() + Joiner.on(lineSeparator()).join(lines) + lineSeparator() + "<<<<<<<<";
     }
@@ -204,6 +241,11 @@ public class MessageAssertionChain {
 
                 Builder containsLine(String line) {
                     subLinks.add(MessageAssertionChain.containsLine(line));
+                    return this;
+                }
+
+                Builder containsText(String text) {
+                    subLinks.add(MessageAssertionChain.containsText(text));
                     return this;
                 }
 
