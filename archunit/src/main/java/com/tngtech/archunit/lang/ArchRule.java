@@ -219,7 +219,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             public String getDescription() {
                 return overriddenDescription.isPresent() ?
                         overriddenDescription.get() :
-                        ConfiguredMessageFormat.get().formatRuleText(classesTransformer, condition);
+                        classesTransformer.getDescription() + " should " + condition.getDescription();
             }
 
             @Override
