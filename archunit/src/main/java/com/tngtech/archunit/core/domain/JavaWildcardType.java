@@ -16,17 +16,16 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.WildcardType;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasUpperBounds;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.base.Guava.toGuava;
-import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
 
 /**
  * Represents a wildcard type in a type signature (compare the JLS).
@@ -53,12 +52,14 @@ public class JavaWildcardType implements JavaType, HasUpperBounds {
     }
 
     /**
-     * @return The name of this {@link JavaWildcardType}, which is always "?"
+     * @return The name of this {@link JavaWildcardType}, which is always "{@code ?}",
+     *         followed by the respective bounds if any are present
+     *         (e.g. "{@code ? extends java.lang.String}")
      */
     @Override
     @PublicAPI(usage = ACCESS)
     public String getName() {
-        return WILDCARD_TYPE_NAME;
+        return WILDCARD_TYPE_NAME + boundsToString();
     }
 
     /**
@@ -96,8 +97,7 @@ public class JavaWildcardType implements JavaType, HasUpperBounds {
 
     @Override
     public String toString() {
-        String bounds = boundsToString();
-        return getClass().getSimpleName() + '{' + getName() + bounds + '}';
+        return getClass().getSimpleName() + '{' + getName() + '}';
     }
 
     private String boundsToString() {
@@ -107,6 +107,10 @@ public class JavaWildcardType implements JavaType, HasUpperBounds {
     }
 
     private String joinTypeNames(List<JavaType> types) {
-        return FluentIterable.from(types).transform(toGuava(GET_NAME)).join(Joiner.on(" & "));
+        List<String> formatted = new ArrayList<>();
+        for (JavaType type : types) {
+            formatted.add(ensureCanonicalArrayTypeName(type.getName()));
+        }
+        return Joiner.on(" & ").join(formatted);
     }
 }

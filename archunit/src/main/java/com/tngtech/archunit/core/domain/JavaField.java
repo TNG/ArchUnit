@@ -31,12 +31,12 @@ import com.tngtech.archunit.core.importer.DomainBuilders;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public class JavaField extends JavaMember implements HasType {
-    private final JavaClass type;
+    private final JavaType type;
     private final Supplier<Field> fieldSupplier;
 
     JavaField(DomainBuilders.JavaFieldBuilder builder) {
         super(builder);
-        type = builder.getType();
+        type = builder.getType(this);
         fieldSupplier = Suppliers.memoize(new ReflectFieldSupplier());
     }
 
@@ -62,7 +62,7 @@ public class JavaField extends JavaMember implements HasType {
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass getRawType() {
-        return type;
+        return type.toErasure();
     }
 
     @Override

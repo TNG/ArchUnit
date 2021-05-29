@@ -322,15 +322,15 @@ public class ClassFileImporterAccessesTest {
     @Test
     public void imports_shadowed_and_superclass_field_access() {
         JavaClasses classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/hierarchicalfieldaccess"));
-        JavaClass classThatAccessesFieldOfSuperClass = classes.get(AccessToSuperAndSubclassField.class);
-        JavaClass superClassWithAccessedField = classes.get(SuperclassWithAccessedField.class);
+        JavaClass classThatAccessesFieldOfSuperclass = classes.get(AccessToSuperAndSubclassField.class);
+        JavaClass superclassWithAccessedField = classes.get(SuperclassWithAccessedField.class);
         JavaClass subClassWithAccessedField = classes.get(SubclassWithAccessedField.class);
 
-        Set<JavaFieldAccess> accesses = classThatAccessesFieldOfSuperClass.getFieldAccessesFromSelf();
+        Set<JavaFieldAccess> accesses = classThatAccessesFieldOfSuperclass.getFieldAccessesFromSelf();
 
         assertThat(accesses).hasSize(2);
-        JavaField field = superClassWithAccessedField.getField("field");
-        AccessTarget.FieldAccessTarget expectedSuperClassFieldAccess = new DomainBuilders.FieldAccessTargetBuilder()
+        JavaField field = superclassWithAccessedField.getField("field");
+        AccessTarget.FieldAccessTarget expectedSuperclassFieldAccess = new DomainBuilders.FieldAccessTargetBuilder()
                 .withOwner(subClassWithAccessedField)
                 .withName(field.getName())
                 .withType(field.getRawType())
@@ -338,7 +338,7 @@ public class ClassFileImporterAccessesTest {
                 .build();
         assertThatAccess(getOnly(accesses, "field", GET))
                 .isFrom("accessSuperclassField")
-                .isTo(expectedSuperClassFieldAccess)
+                .isTo(expectedSuperclassFieldAccess)
                 .inLineNumber(5);
         assertThatAccess(getOnly(accesses, "maskedField", GET))
                 .isFrom("accessSubclassField")
@@ -368,30 +368,30 @@ public class ClassFileImporterAccessesTest {
     @Test
     public void imports_shadowed_and_superclass_method_calls() {
         JavaClasses classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/hierarchicalmethodcall"));
-        JavaClass classThatCallsMethodOfSuperClass = classes.get(CallOfSuperAndSubclassMethod.class);
-        JavaClass superClassWithCalledMethod = classes.get(SuperclassWithCalledMethod.class);
+        JavaClass classThatCallsMethodOfSuperclass = classes.get(CallOfSuperAndSubclassMethod.class);
+        JavaClass superclassWithCalledMethod = classes.get(SuperclassWithCalledMethod.class);
         JavaClass subClassWithCalledMethod = classes.get(SubclassWithCalledMethod.class);
 
-        Set<JavaMethodCall> calls = classThatCallsMethodOfSuperClass.getMethodCallsFromSelf();
+        Set<JavaMethodCall> calls = classThatCallsMethodOfSuperclass.getMethodCallsFromSelf();
 
         assertThat(calls).hasSize(2);
 
-        JavaCodeUnit callSuperclassMethod = classThatCallsMethodOfSuperClass
+        JavaCodeUnit callSuperclassMethod = classThatCallsMethodOfSuperclass
                 .getCodeUnitWithParameterTypes(CallOfSuperAndSubclassMethod.callSuperclassMethod);
-        JavaMethod expectedSuperClassMethod = superClassWithCalledMethod.getMethod(SuperclassWithCalledMethod.method);
-        AccessTarget.MethodCallTarget expectedSuperClassCall = new DomainBuilders.MethodCallTargetBuilder()
+        JavaMethod expectedSuperclassMethod = superclassWithCalledMethod.getMethod(SuperclassWithCalledMethod.method);
+        AccessTarget.MethodCallTarget expectedSuperclassCall = new DomainBuilders.MethodCallTargetBuilder()
                 .withOwner(subClassWithCalledMethod)
-                .withName(expectedSuperClassMethod.getName())
-                .withParameters(expectedSuperClassMethod.getRawParameterTypes())
-                .withReturnType(expectedSuperClassMethod.getRawReturnType())
-                .withMethods(Suppliers.ofInstance(Collections.singleton(expectedSuperClassMethod)))
+                .withName(expectedSuperclassMethod.getName())
+                .withParameters(expectedSuperclassMethod.getRawParameterTypes())
+                .withReturnType(expectedSuperclassMethod.getRawReturnType())
+                .withMethods(Suppliers.ofInstance(Collections.singleton(expectedSuperclassMethod)))
                 .build();
         assertThatCall(getOnlyByCaller(calls, callSuperclassMethod))
                 .isFrom(callSuperclassMethod)
-                .isTo(expectedSuperClassCall)
+                .isTo(expectedSuperclassCall)
                 .inLineNumber(CallOfSuperAndSubclassMethod.callSuperclassLineNumber);
 
-        JavaCodeUnit callSubclassMethod = classThatCallsMethodOfSuperClass
+        JavaCodeUnit callSubclassMethod = classThatCallsMethodOfSuperclass
                 .getCodeUnitWithParameterTypes(CallOfSuperAndSubclassMethod.callSubclassMethod);
         assertThatCall(getOnlyByCaller(calls, callSubclassMethod))
                 .isFrom(callSubclassMethod)

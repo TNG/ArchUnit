@@ -117,6 +117,21 @@ class JavaClassDependencies {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaField field : javaClass.getFields()) {
             result.addAll(Dependency.tryCreateFromField(field));
+            result.addAll(genericFieldTypeArgumentDependencies(field));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> genericFieldTypeArgumentDependencies(JavaField field) {
+        if (!(field.getType() instanceof JavaParameterizedType)) {
+            return emptySet();
+        }
+        JavaParameterizedType fieldType = (JavaParameterizedType) field.getType();
+
+        List<JavaType> actualTypeArguments = fieldType.getActualTypeArguments();
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaClass fieldTypeArgumentDependency : dependenciesOfTypes(actualTypeArguments)) {
+            result.addAll(Dependency.tryCreateFromGenericFieldTypeArgument(field, fieldTypeArgumentDependency));
         }
         return result.build();
     }

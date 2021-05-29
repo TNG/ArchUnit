@@ -282,15 +282,18 @@ public class DependencyTest {
         }
 
         JavaClass javaClass = importClassesWithContext(ClassWithGenericSuperclass.class, String.class).get(ClassWithGenericSuperclass.class);
-        JavaParameterizedType genericSuperClass = (JavaParameterizedType) javaClass.getSuperclass().get();
+        JavaParameterizedType genericSuperclass = (JavaParameterizedType) javaClass.getSuperclass().get();
 
-        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericSuperclassTypeArguments(javaClass, genericSuperClass, (JavaClass) genericSuperClass.getActualTypeArguments().get(0)));
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericSuperclassTypeArguments(javaClass, genericSuperclass, (JavaClass) genericSuperclass.getActualTypeArguments().get(0)));
 
         assertThatType(dependency.getOriginClass()).matches(ClassWithGenericSuperclass.class);
         assertThatType(dependency.getTargetClass()).matches(String.class);
         assertThat(dependency.getDescription()).as("description").contains(String.format(
-                "Class <%s> has generic superclass <%s> with type argument depending on <%s> in (%s.java:0)",
-                ClassWithGenericSuperclass.class.getName(), Base.class.getName(), String.class.getName(), getClass().getSimpleName()));
+                "Class <%s> has generic superclass <%s<%s>> with type argument depending on <%s> in (%s.java:0)",
+                ClassWithGenericSuperclass.class.getName(),
+                Base.class.getName(), String.class.getName(),
+                String.class.getName(),
+                getClass().getSimpleName()));
     }
 
     @SuppressWarnings("unused")
@@ -311,8 +314,37 @@ public class DependencyTest {
         assertThatType(dependency.getOriginClass()).matches(ClassWithGenericInterface.class);
         assertThatType(dependency.getTargetClass()).matches(String.class);
         assertThat(dependency.getDescription()).as("description").contains(String.format(
-                "Class <%s> has generic interface <%s> with type argument depending on <%s> in (%s.java:0)",
-                ClassWithGenericInterface.class.getName(), InterfaceWithTypeParameter.class.getName(), String.class.getName(), getClass().getSimpleName()));
+                "Class <%s> has generic interface <%s<%s>> with type argument depending on <%s> in (%s.java:0)",
+                ClassWithGenericInterface.class.getName(),
+                InterfaceWithTypeParameter.class.getName(), String.class.getName(),
+                String.class.getName(),
+                getClass().getSimpleName()));
+    }
+
+    @Test
+    public void Dependency_from_generic_field_type_arguments() {
+        @SuppressWarnings("unused")
+        class SomeGenericType<T> {
+        }
+        @SuppressWarnings("unused")
+        class SomeClass {
+            SomeGenericType<String> field;
+        }
+
+        JavaField field = importClassesWithContext(SomeClass.class, SomeGenericType.class, String.class)
+                .get(SomeClass.class).getField("field");
+        JavaClass typeArgumentDependency = (JavaClass) ((JavaParameterizedType) field.getType()).getActualTypeArguments().get(0);
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericFieldTypeArgument(field, typeArgumentDependency));
+
+        assertThatType(dependency.getOriginClass()).matches(SomeClass.class);
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "Field <%s> has generic type <%s<%s>> with type argument depending on <%s> in (%s.java:0)",
+                field.getFullName(),
+                SomeGenericType.class.getName(), String.class.getName(),
+                String.class.getName(),
+                getClass().getSimpleName()));
     }
 
     @Test

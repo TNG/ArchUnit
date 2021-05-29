@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
+import static com.google.common.base.Strings.repeat;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class Formatters {
@@ -122,4 +123,32 @@ public final class Formatters {
         return "";
     }
 
+    /**
+     * Returns the canonical array type name of any array type name passed in. Otherwise
+     * returns the passed type name as is. For example {@code [Ljava.lang.String;} will
+     * be reformatted to {@code java.lang.String[]} or {@code [I} will be reformatted
+     * to {@code int[]}, while {@code java.lang.String} would simply be returned as is.
+     * @param typeName A Java type name
+     * @return the passed type name, but for array type names the canonical array type name
+     */
+    @PublicAPI(usage = ACCESS)
+    public static String ensureCanonicalArrayTypeName(String typeName) {
+        if (isNoArrayClassName(typeName)) {
+            return typeName;
+        }
+
+        JavaClassDescriptor descriptor = JavaClassDescriptor.From.name(typeName);
+        int dimensions = 0;
+        while (descriptor.tryGetComponentType().isPresent()) {
+            descriptor = descriptor.tryGetComponentType().get();
+            dimensions++;
+        }
+        return descriptor.getFullyQualifiedClassName() + repeat("[]", dimensions);
+    }
+
+    // we only consider (non-canonical) array class names. Those all have the form `[xxx`
+    // where xxx is a type name. E.g. String[].class.getName() -> `[Ljava.lang.String;
+    private static boolean isNoArrayClassName(String typeName) {
+        return !typeName.startsWith("[");
+    }
 }

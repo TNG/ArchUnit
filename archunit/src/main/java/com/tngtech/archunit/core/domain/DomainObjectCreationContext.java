@@ -171,8 +171,13 @@ public class DomainObjectCreationContext {
     }
 
     public static JavaGenericArrayType createGenericArrayType(JavaType componentType, JavaClass erasure) {
-        checkArgument(componentType instanceof JavaTypeVariable || componentType instanceof JavaGenericArrayType,
-                "Component type of a generic array type can only be a type variable or a generic array type. This is most likely a bug.");
+        checkArgument(
+                componentType instanceof JavaTypeVariable
+                        || componentType instanceof JavaGenericArrayType
+                        || componentType instanceof JavaParameterizedType,
+                "Component type of a generic array type can only be a type variable, a generic array type or a parameterized type, but was %s. "
+                        + "This is most likely a bug.", componentType);
+
         return new JavaGenericArrayType(componentType.getName() + "[]", componentType, erasure);
     }
 

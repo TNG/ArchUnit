@@ -3,8 +3,10 @@ package com.tngtech.archunit.testutil.assertion;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaGenericArrayType;
@@ -14,6 +16,7 @@ import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
 import org.junit.Assert;
 
+import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
@@ -135,7 +138,7 @@ public interface ExpectedConcreteType {
 
             assertThat(actual).as(context.toString()).isInstanceOf(JavaWildcardType.class);
             JavaWildcardType wildcardType = (JavaWildcardType) actual;
-            assertThat(wildcardType.getName()).as(context.toString()).isEqualTo("?");
+            assertThat(wildcardType.getName()).as(context.toString()).startsWith("?");
 
             assertUpperBoundsMatch(wildcardType, context);
             assertLowerBoundMatch(wildcardType, context);
@@ -223,15 +226,17 @@ public interface ExpectedConcreteType {
         }
     }
 
-    class ExpectedConcreteTypeVariableArray implements ExpectedConcreteType {
+    class ExpectedConcreteGenericArray implements ExpectedConcreteType {
+        private static final Pattern ARRAY_PATTERN = Pattern.compile("(\\[+)(.*)");
+
         private final String name;
         private ExpectedConcreteType componentType;
 
-        private ExpectedConcreteTypeVariableArray(String name) {
+        private ExpectedConcreteGenericArray(String name) {
             this.name = name;
         }
 
-        public ExpectedConcreteTypeVariableArray withComponentType(ExpectedConcreteType componentType) {
+        public ExpectedConcreteGenericArray withComponentType(ExpectedConcreteType componentType) {
             this.componentType = componentType;
             return this;
         }
@@ -240,7 +245,7 @@ public interface ExpectedConcreteType {
         public void assertMatchWith(JavaType actual, DescriptionContext context) {
             assertThat(actual).as(context.step("JavaType").toString()).isInstanceOf(JavaGenericArrayType.class);
             JavaGenericArrayType actualArrayType = (JavaGenericArrayType) actual;
-            assertThat(actualArrayType.getName()).as(context.step("type variable name").toString()).isEqualTo(name);
+            assertThat(actualArrayType.getName()).as(context.step("array type name").toString()).isEqualTo(name);
 
             if (componentType != null) {
                 DescriptionContext newContext = context.describe(actual.getName()).step("component type").metaInfo();
@@ -248,8 +253,16 @@ public interface ExpectedConcreteType {
             }
         }
 
-        public static ExpectedConcreteTypeVariableArray typeVariableArray(String typeVariableArrayString) {
-            return new ExpectedConcreteTypeVariableArray(typeVariableArrayString);
+        public static ExpectedConcreteGenericArray genericArray(String genericArrayName) {
+            return new ExpectedConcreteGenericArray(genericArrayName);
+        }
+
+        public static String parameterizedTypeArrayName(Class<?> rawType, Class<?> typeParameter, int dimensions) {
+            return rawType.getName() + "<" + ensureCanonicalArrayTypeName(typeParameter.getName()) + ">" + Strings.repeat("[]", dimensions);
+        }
+
+        public static String typeVariableArrayName(String typeVariableName, int dimensions) {
+            return typeVariableName + Strings.repeat("[]", dimensions);
         }
     }
 }

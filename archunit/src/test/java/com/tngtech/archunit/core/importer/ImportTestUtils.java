@@ -41,6 +41,7 @@ import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -66,7 +67,7 @@ public class ImportTestUtils {
                     .withName(field.getName())
                     .withDescriptor(Type.getDescriptor(field.getType()))
                     .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
-                    .withType(JavaClassDescriptor.From.name(field.getType().getName())));
+                    .withType(Optional.<JavaTypeCreationProcess<JavaField>>absent(), JavaClassDescriptor.From.name(field.getType().getName())));
         }
         return fieldBuilders;
     }

@@ -13,7 +13,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 public class JavaWildcardTypeTest {
 
     @Test
-    public void wildcard_name() {
+    public void wildcard_name_unbounded() {
         @SuppressWarnings("unused")
         class ClassWithUnboundTypeParameter<T extends List<?>> {
         }
@@ -21,6 +21,50 @@ public class JavaWildcardTypeTest {
         JavaWildcardType type = importWildcardTypeOf(ClassWithUnboundTypeParameter.class);
 
         assertThat(type.getName()).isEqualTo("?");
+    }
+
+    @Test
+    public void wildcard_name_upper_bounded() {
+        @SuppressWarnings("unused")
+        class UpperBounded<T extends List<? extends String>> {
+        }
+
+        JavaWildcardType wildcardType = importWildcardTypeOf(UpperBounded.class);
+
+        assertThat(wildcardType.getName()).isEqualTo("? extends java.lang.String");
+    }
+
+    @Test
+    public void wildcard_name_upper_bounded_by_array() {
+        @SuppressWarnings("unused")
+        class UpperBounded<T extends List<? extends String[][]>> {
+        }
+
+        JavaWildcardType wildcardType = importWildcardTypeOf(UpperBounded.class);
+
+        assertThat(wildcardType.getName()).isEqualTo("? extends java.lang.String[][]");
+    }
+
+    @Test
+    public void wildcard_name_lower_bounded() {
+        @SuppressWarnings("unused")
+        class LowerBounded<T extends List<? super String>> {
+        }
+
+        JavaWildcardType wildcardType = importWildcardTypeOf(LowerBounded.class);
+
+        assertThat(wildcardType.getName()).isEqualTo("? super java.lang.String");
+    }
+
+    @Test
+    public void wildcard_name_lower_bounded_by_array() {
+        @SuppressWarnings("unused")
+        class LowerBounded<T extends List<? super String[][]>> {
+        }
+
+        JavaWildcardType wildcardType = importWildcardTypeOf(LowerBounded.class);
+
+        assertThat(wildcardType.getName()).isEqualTo("? super java.lang.String[][]");
     }
 
     @Test

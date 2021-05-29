@@ -24,6 +24,9 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.genericArray;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.parameterizedTypeArrayName;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.typeVariableArrayName;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteTypeVariable.typeVariable;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteWildcardType.wildcardType;
@@ -58,6 +61,19 @@ public class ClassFileImporterGenericInterfacesTest {
         assertThatType(genericInterface).as("generic interface")
                 .hasErasure(InterfaceWithOneTypeParameter.class)
                 .hasActualTypeArguments(String.class);
+    }
+
+    @Test
+    public void imports_raw_generic_superclass_as_JavaClass_instead_of_JavaParameterizedType() {
+        @SuppressWarnings("rawtypes")
+        class Child implements InterfaceWithOneTypeParameter {
+        }
+
+        JavaType rawGenericInterface = getOnlyElement(
+                new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class)
+                        .get(Child.class).getInterfaces());
+
+        assertThatType(rawGenericInterface).as("raw generic interface").matches(InterfaceWithOneTypeParameter.class);
     }
 
     @Test
@@ -204,6 +220,17 @@ public class ClassFileImporterGenericInterfacesTest {
                         .withTypeArguments(parameterizedType(Reference.class)
                                 .withWildcardTypeParameterWithLowerBound(String.class))
         );
+    }
+
+    @Test
+    public void imports_generic_interface_parameterized_with_type_variable() {
+        class Child<SUB> implements InterfaceWithOneTypeParameter<SUB> {
+        }
+
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class)
+                .get(Child.class).getInterfaces());
+
+        assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(typeVariable("SUB"));
     }
 
     @Test
@@ -441,6 +468,137 @@ public class ClassFileImporterGenericInterfacesTest {
                     typeVariable("FIRST").withUpperBounds(String.class, Serializable.class),
                     typeVariable("SECOND").withUpperBounds(Serializable.class, Cloneable.class))));
         // @formatter:on
+    }
+
+    private static class Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds {
+        static class ClassChild implements InterfaceWithThreeTypeParameters<
+                List<Serializable[]>,
+                List<? extends Serializable[][]>,
+                Map<? super String[], Map<Map<? super String[][][], ?>, Serializable[][]>>> {
+        }
+
+        interface InterfaceChild extends InterfaceWithThreeTypeParameters<
+                List<Serializable[]>,
+                List<? extends Serializable[][]>,
+                Map<? super String[], Map<Map<? super String[][][], ?>, Serializable[][]>>> {
+        }
+    }
+
+    @DataProvider
+    public static Object[][] data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds() {
+        return testForEach(
+                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds.ClassChild.class,
+                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds.InterfaceChild.class
+        );
+    }
+
+    @Test
+    @UseDataProvider("data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds")
+    public void imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds(Class<?> testInput) {
+        JavaType genericInterface = getOnlyElement(
+                new ClassFileImporter().importClasses(testInput, List.class, Serializable.class, Map.class, String.class)
+                        .get(testInput).getInterfaces());
+
+        assertThatType(genericInterface).hasActualTypeArguments(
+                parameterizedType(List.class).withTypeArguments(Serializable[].class),
+                parameterizedType(List.class).withWildcardTypeParameterWithUpperBound(Serializable[][].class),
+                parameterizedType(Map.class).withTypeArguments(
+                        wildcardType().withLowerBound(String[].class),
+                        parameterizedType(Map.class).withTypeArguments(
+                                parameterizedType(Map.class).withTypeArguments(
+                                        wildcardType().withLowerBound(String[][][].class),
+                                        wildcardType()),
+                                concreteClass(Serializable[][].class))));
+    }
+
+    private static class Data_of_imports_type_of_generic_interface_with_parameterized_array_bounds {
+        static class ClassChild implements InterfaceWithThreeTypeParameters<List<String>[], List<String[]>[][], List<String[][]>[][][]> {
+        }
+
+        interface InterfaceChild extends InterfaceWithThreeTypeParameters<List<String>[], List<String[]>[][], List<String[][]>[][][]> {
+        }
+    }
+
+    @DataProvider
+    public static Object[][] data_of_imports_type_of_generic_interface_with_parameterized_array_bounds() {
+        return testForEach(
+                Data_of_imports_type_of_generic_interface_with_parameterized_array_bounds.ClassChild.class,
+                Data_of_imports_type_of_generic_interface_with_parameterized_array_bounds.InterfaceChild.class
+        );
+    }
+
+    @Test
+    @UseDataProvider("data_of_imports_type_of_generic_interface_with_parameterized_array_bounds")
+    public void imports_type_of_generic_interface_with_parameterized_array_bounds(Class<?> testInput) {
+        JavaType genericInterface = getOnlyElement(
+                new ClassFileImporter().importClasses(testInput, InterfaceWithThreeTypeParameters.class, List.class, String.class)
+                        .get(testInput).getInterfaces());
+
+        assertThatType(genericInterface).hasActualTypeArguments(
+                genericArray(parameterizedTypeArrayName(List.class, String.class, 1)).withComponentType(
+                        parameterizedType(List.class).withTypeArguments(String.class)),
+                genericArray(parameterizedTypeArrayName(List.class, String[].class, 2)).withComponentType(
+                        genericArray(parameterizedTypeArrayName(List.class, String[].class, 1)).withComponentType(
+                                parameterizedType(List.class).withTypeArguments(String[].class))),
+                genericArray(parameterizedTypeArrayName(List.class, String[][].class, 3)).withComponentType(
+                        genericArray(parameterizedTypeArrayName(List.class, String[][].class, 2)).withComponentType(
+                                genericArray(parameterizedTypeArrayName(List.class, String[][].class, 1)).withComponentType(
+                                        parameterizedType(List.class).withTypeArguments(String[][].class)))));
+    }
+
+    private static class Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds {
+        static class ClassChild<X extends Serializable, Y extends String> implements InterfaceWithThreeTypeParameters<
+                List<X[]>,
+                List<? extends X[][]>,
+                Map<? super Y[], Map<Map<? super Y[][][], ?>, X[][]>>> {
+        }
+
+        interface InterfaceChild<X extends Serializable, Y extends String> extends InterfaceWithThreeTypeParameters<
+                List<X[]>,
+                List<? extends X[][]>,
+                Map<? super Y[], Map<Map<? super Y[][][], ?>, X[][]>>> {
+        }
+    }
+
+    @DataProvider
+    public static Object[][] data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds() {
+        return testForEach(
+                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds.ClassChild.class,
+                Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds.InterfaceChild.class
+        );
+    }
+
+    @Test
+    @UseDataProvider("data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds")
+    public void imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds(Class<?> testInput) {
+        JavaType genericInterface = getOnlyElement(
+                new ClassFileImporter().importClasses(testInput, List.class, Serializable.class, Map.class, String.class)
+                        .get(testInput).getInterfaces());
+
+        assertThatType(genericInterface).hasActualTypeArguments(
+                parameterizedType(List.class).withTypeArguments(
+                        genericArray(typeVariableArrayName("X", 1)).withComponentType(
+                                typeVariable("X").withUpperBounds(Serializable.class))),
+                parameterizedType(List.class).withWildcardTypeParameterWithUpperBound(
+                        genericArray(typeVariableArrayName("X", 2)).withComponentType(
+                                genericArray(typeVariableArrayName("X", 1)).withComponentType(
+                                        typeVariable("X").withUpperBounds(Serializable.class)))),
+                parameterizedType(Map.class).withTypeArguments(
+                        wildcardType().withLowerBound(
+                                genericArray(typeVariableArrayName("Y", 1)).withComponentType(
+                                        typeVariable("Y").withUpperBounds(String.class))),
+                        parameterizedType(Map.class).withTypeArguments(
+                                parameterizedType(Map.class).withTypeArguments(
+                                        wildcardType().withLowerBound(
+                                                genericArray(typeVariableArrayName("Y", 3)).withComponentType(
+                                                        genericArray(typeVariableArrayName("Y", 2)).withComponentType(
+                                                                genericArray(typeVariableArrayName("Y", 1)).withComponentType(
+                                                                        typeVariable("Y").withUpperBounds(String.class))))),
+                                        wildcardType()),
+                                genericArray(typeVariableArrayName("X", 2)).withComponentType(
+                                        genericArray(typeVariableArrayName("X", 1)).withComponentType(
+                                                typeVariable("X").withUpperBounds(Serializable.class)))))
+        );
     }
 
     private static class Data_of_imports_multiple_generic_interfaces {
