@@ -230,6 +230,20 @@ public class ClassFileImporterGenericSuperclassTest {
     }
 
     @Test
+    public void imports_generic_superclass_parameterized_with_type_variable() {
+        @SuppressWarnings("unused")
+        class BaseClass<SUPER> {
+        }
+        class Child<SUB> extends BaseClass<SUB> {
+        }
+
+        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, BaseClass.class)
+                .get(Child.class).getSuperclass().get();
+
+        assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(typeVariable("SUB"));
+    }
+
+    @Test
     public void imports_generic_superclass_with_actual_type_argument_parameterized_with_type_variable() {
         @SuppressWarnings("unused")
         class BaseClass<SUPER> {

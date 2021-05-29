@@ -221,6 +221,17 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @Test
+    public void imports_generic_interface_parameterized_with_type_variable() {
+        class Child<SUB> implements InterfaceWithOneTypeParameter<SUB> {
+        }
+
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class)
+                .get(Child.class).getInterfaces());
+
+        assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(typeVariable("SUB"));
+    }
+
+    @Test
     public void imports_generic_interface_with_actual_type_argument_parameterized_with_type_variable() {
         class Child<SUB> implements InterfaceWithOneTypeParameter<ClassParameterWithSingleTypeParameter<SUB>> {
         }
