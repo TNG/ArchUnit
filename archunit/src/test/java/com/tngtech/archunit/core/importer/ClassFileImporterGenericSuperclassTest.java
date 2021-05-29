@@ -56,6 +56,21 @@ public class ClassFileImporterGenericSuperclassTest {
     }
 
     @Test
+    public void imports_raw_generic_superclass_as_JavaClass_instead_of_JavaParameterizedType() {
+        @SuppressWarnings("unused")
+        class BaseClass<T> {
+        }
+        @SuppressWarnings("rawtypes")
+        class Child extends BaseClass {
+        }
+
+        JavaType rawGenericSuperclass = new ClassFileImporter().importClasses(Child.class, BaseClass.class)
+                .get(Child.class).getSuperclass().get();
+
+        assertThatType(rawGenericSuperclass).as("raw generic superclass").matches(BaseClass.class);
+    }
+
+    @Test
     public void imports_generic_superclass_with_array_type_argument() {
         @SuppressWarnings("unused")
         class BaseClass<T> {

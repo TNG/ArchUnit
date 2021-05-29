@@ -62,6 +62,19 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @Test
+    public void imports_raw_generic_superclass_as_JavaClass_instead_of_JavaParameterizedType() {
+        @SuppressWarnings("rawtypes")
+        class Child implements InterfaceWithOneTypeParameter {
+        }
+
+        JavaType rawGenericInterface = getOnlyElement(
+                new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class)
+                        .get(Child.class).getInterfaces());
+
+        assertThatType(rawGenericInterface).as("raw generic interface").matches(InterfaceWithOneTypeParameter.class);
+    }
+
+    @Test
     public void imports_generic_interface_with_array_type_argument() {
         class Child implements InterfaceWithOneTypeParameter<String[]> {
         }
