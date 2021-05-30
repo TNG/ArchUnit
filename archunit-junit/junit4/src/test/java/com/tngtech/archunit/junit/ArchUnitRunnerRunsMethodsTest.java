@@ -59,7 +59,6 @@ public class ArchUnitRunnerRunsMethodsTest {
     private JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsMethodsTest.class);
 
     @Before
-    @SuppressWarnings("unchecked")
     public void setUp() {
         when(cache.get()).thenReturn(classCache);
         when(classCache.getClassesToAnalyzeFor(any(Class.class), any(ClassAnalysisRequest.class))).thenReturn(cachedClasses);
@@ -126,6 +125,17 @@ public class ArchUnitRunnerRunsMethodsTest {
         runner.runChild(ArchUnitRunnerTestUtils.getRule(AbstractBaseClass.INSTANCE_METHOD_NAME, runner), runNotifier);
 
         verifyTestFinishedSuccessfully(AbstractBaseClass.INSTANCE_METHOD_NAME);
+    }
+
+    @Test
+    public void should_pass_annotations_of_test_method() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithMethodWithAdditionalAnnotation.class, cache);
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(ArchTestWithMethodWithAdditionalAnnotation.TEST_METHOD_NAME, runner), runNotifier);
+
+        verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
+        Description description = descriptionCaptor.getValue();
+        assertThat(description.getAnnotation(Deprecated.class)).as("expected annotation").isNotNull();
     }
 
     private ArchUnitRunner newRunner(Class<ArchTestWithIllegalTestMethods> testClass) {
@@ -200,6 +210,16 @@ public class ArchUnitRunnerRunsMethodsTest {
         @ArchIgnore
         @ArchTest
         public static void toBeIgnored(JavaClasses classes) {
+        }
+    }
+
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class ArchTestWithMethodWithAdditionalAnnotation {
+        static final String TEST_METHOD_NAME = "annotatedTestMethod";
+
+        @Deprecated
+        @ArchTest
+        public static void annotatedTestMethod(JavaClasses classes) {
         }
     }
 
