@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Rule;
@@ -266,6 +267,21 @@ public class ClassFileImporterGenericFieldTypesTest {
                         .withTypeArguments(parameterizedType(Reference.class)
                                 .withWildcardTypeParameterWithLowerBound(String.class))
         );
+    }
+
+    @Test
+    public void imports_type_variable_as_generic_field_type() {
+        @SuppressWarnings("unused")
+        class SomeClass<T extends String> {
+            T field;
+        }
+
+        JavaType genericFieldType = new ClassFileImporter().importClasses(SomeClass.class, String.class)
+                .get(SomeClass.class).getField("field").getType();
+
+        assertThatType(genericFieldType).as("generic field type")
+                .isInstanceOf(JavaTypeVariable.class)
+                .hasErasure(String.class);
     }
 
     @Test
