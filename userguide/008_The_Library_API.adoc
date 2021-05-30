@@ -386,6 +386,13 @@ For example to allow the creation of the violation store in a specific environme
 -Darchunit.freeze.store.default.allowStoreCreation=true
 ----
 
+It is also possible to allow all violations to be "refrozen", i.e. the store will just be updated
+with the current state, and the reported result will be success. Thus, it is effectively the same behavior
+as if all rules would never have been frozen.
+This can e.g. make sense, because current violations are consciously accepted and should be added to the store,
+or because the format of some violations has changed. The respective property to allow refreezing
+all current violations is `freeze.refreeze=true`, where the default is `false`.
+
 ==== Extension
 
 `FreezingArchRule` provides two extension points to adjust the behavior to custom needs.

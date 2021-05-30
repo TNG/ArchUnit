@@ -78,7 +78,7 @@ You can specify packages to import as strings:
 
 [source,java,options="nowrap"]
 ----
-@AnalyzeClasses(packages = {"com.myapp.subone", "com.myapp.subone"})
+@AnalyzeClasses(packages = {"com.myapp.subone", "com.myapp.subtwo"})
 ----
 
 To better support refactorings, packages can also be declared relative to classes, i.e. the
