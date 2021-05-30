@@ -74,6 +74,8 @@ import static com.tngtech.archunit.library.freeze.ViolationStoreFactory.FREEZE_S
 public final class FreezingArchRule implements ArchRule {
     private static final Logger log = LoggerFactory.getLogger(FreezingArchRule.class);
 
+    private static final String FREEZE_REFREEZE_PROPERTY_NAME = "freeze.refreeze";
+
     private final ArchRule delegate;
     private final ViolationStoreLineBreakAdapter store;
     private final ViolationLineMatcher matcher;
@@ -112,11 +114,16 @@ public final class FreezingArchRule implements ArchRule {
         store.initialize(ArchConfiguration.get().getSubProperties(FREEZE_STORE_PROPERTY_NAME));
 
         EvaluationResultLineBreakAdapter result = new EvaluationResultLineBreakAdapter(delegate.evaluate(classes));
-        if (!store.contains(delegate)) {
+        if (!store.contains(delegate) || refreezeViolations()) {
             return storeViolationsAndReturnSuccess(result);
         } else {
             return removeObsoleteViolationsFromStoreAndReturnNewViolations(result);
         }
+    }
+
+    private boolean refreezeViolations() {
+        String configuredRefreeze = ArchConfiguration.get().getPropertyOrDefault(FREEZE_REFREEZE_PROPERTY_NAME, Boolean.FALSE.toString());
+        return Boolean.parseBoolean(configuredRefreeze);
     }
 
     private EvaluationResult storeViolationsAndReturnSuccess(EvaluationResultLineBreakAdapter result) {

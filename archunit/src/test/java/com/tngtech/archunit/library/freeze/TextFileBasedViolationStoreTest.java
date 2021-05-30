@@ -70,6 +70,17 @@ public class TextFileBasedViolationStoreTest {
     }
 
     @Test
+    public void updates_stored_violations_of_single_rule() throws IOException {
+        store.save(defaultRule(), ImmutableList.of("first violation", "second violation"));
+        store.save(defaultRule(), ImmutableList.of("first overwritten violation", "second overwritten violation"));
+
+        Properties properties = readProperties(new File(configuredFolder, "stored.rules"));
+        String ruleViolationsFile = properties.getProperty(defaultRule().getDescription());
+        List<String> violationLines = Files.readLines(new File(configuredFolder, ruleViolationsFile), UTF_8);
+        assertThat(violationLines).containsOnly("first overwritten violation", "second overwritten violation");
+    }
+
+    @Test
     public void reads_violations_of_single_rule_from_configured_folder() {
         store.save(defaultRule(), ImmutableList.of("first violation", "second violation"));
 
