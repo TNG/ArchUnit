@@ -449,7 +449,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 0.18.0</span>
+<span id="revnumber">version 0.19.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -530,6 +530,7 @@ h4 {
 <li><a href="#_overriding_configuration">10.1. Overriding configuration</a></li>
 <li><a href="#_configuring_the_resolution_behavior">10.2. Configuring the Resolution Behavior</a></li>
 <li><a href="#_md5_sums_of_classes">10.3. MD5 Sums of Classes</a></li>
+<li><a href="#_custom_error_messages">10.4. Custom Error Messages</a></li>
 </ul>
 </li>
 </ul>
@@ -615,7 +616,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;0.18.0&lt;/version&gt;
+    &lt;version&gt;0.19.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -624,7 +625,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:0.18.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:0.19.0'
 }</code></pre>
 </div>
 </div>
@@ -645,7 +646,7 @@ from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;0.18.0&lt;/version&gt;
+    &lt;version&gt;0.19.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -654,7 +655,7 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:0.18.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:0.19.0'
 }</code></pre>
 </div>
 </div>
@@ -671,7 +672,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.18.0&lt;/version&gt;
+    &lt;version&gt;0.19.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -680,7 +681,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:0.18.0'
+   testImplementation 'com.tngtech.archunit:archunit:0.19.0'
 }</code></pre>
 </div>
 </div>
@@ -2125,6 +2126,14 @@ For example to allow the creation of the violation store in a specific environme
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">-Darchunit.freeze.store.default.allowStoreCreation=true</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>It is also possible to allow all violations to be "refrozen", i.e. the store will just be updated
+with the current state, and the reported result will be success. Thus, it is effectively the same behavior
+as if all rules would never have been frozen.
+This can e.g. make sense, because current violations are consciously accepted and should be added to the store,
+or because the format of some violations has changed. The respective property to allow refreezing
+all current violations is <code>freeze.refreeze=true</code>, where the default is <code>false</code>.</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_extension"><a class="anchor" href="#_extension"></a>8.5.3. Extension</h4>
@@ -2525,7 +2534,7 @@ You can specify packages to import as strings:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@AnalyzeClasses(packages = {"com.myapp.subone", "com.myapp.subone"})</code></pre>
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">@AnalyzeClasses(packages = {"com.myapp.subone", "com.myapp.subtwo"})</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2780,6 +2789,54 @@ but it can be activated the following way:</p>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">javaClass.getSource().get().getMd5sum()</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_custom_error_messages"><a class="anchor" href="#_custom_error_messages"></a>10.4. Custom Error Messages</h3>
+<div class="paragraph">
+<p>You can configure a custom format to display the failures of a rule.</p>
+</div>
+<div class="paragraph">
+<p>First Supply a custom implementation of</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">com.tngtech.archunit.lang.FailureDisplayFormat</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then configure it</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">failureDisplayFormat=some.pkg.MyCustomFailureDisplayFormat</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>One example would be to shorten the fully qualified class names in failure messages:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">private static class SimpleClassNameFailureFormat implements FailureDisplayFormat {
+    @Override
+    public String formatFailure(HasDescription rule, FailureMessages failureMessages, Priority priority) {
+        String failureDetails = failureMessages.stream()
+                .map(message -&gt; message.replaceAll("&lt;(?:\\w+\\.)+([A-Z][^&gt;]*)&gt;", "&lt;$1&gt;"))
+                .collect(joining(lineSeparator()));
+
+        return String.format("Architecture Violation [Priority: %s] - Rule '%s' was violated (%s):%n%s",
+                priority.asString(), rule.getDescription(), failureMessages.getInformationAboutNumberOfViolations(), failureDetails);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that due to the free format how violation texts can be composed,
+in particular by custom predicates and conditions,
+there is at the moment no more sophisticated way than plain text parsing.
+Users can tailor this to their specific environments where they know
+which sorts of failure formats can appear in practice.</p>
 </div>
 </div>
 </div>
