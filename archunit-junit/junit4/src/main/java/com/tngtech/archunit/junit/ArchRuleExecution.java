@@ -47,7 +47,7 @@ class ArchRuleExecution extends ArchTestExecution {
 
     @Override
     Description describeSelf() {
-        return Description.createTestDescription(testClass, ruleField.getName());
+        return Description.createTestDescription(testClass, ruleField.getName(), ruleField.getAnnotations());
     }
 
     @Override

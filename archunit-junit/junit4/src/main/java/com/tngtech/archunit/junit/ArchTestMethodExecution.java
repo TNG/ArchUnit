@@ -52,7 +52,7 @@ class ArchTestMethodExecution extends ArchTestExecution {
 
     @Override
     Description describeSelf() {
-        return Description.createTestDescription(testClass, testMethod.getName());
+        return Description.createTestDescription(testClass, testMethod.getName(), testMethod.getAnnotations());
     }
 
     @Override

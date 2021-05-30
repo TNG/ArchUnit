@@ -63,7 +63,6 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     private JavaClasses cachedClasses = importClassesWithContext(Object.class);
 
     @Before
-    @SuppressWarnings("unchecked")
     public void setUp() {
         when(cache.get()).thenReturn(classCache);
         when(classCache.getClassesToAnalyzeFor(any(Class.class), any(ClassAnalysisRequest.class))).thenReturn(cachedClasses);
@@ -157,6 +156,17 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
                 .contains(RULE_ONE_IN_IGNORED_TEST, RULE_TWO_IN_IGNORED_TEST);
     }
 
+    @Test
+    public void should_pass_annotations_of_rule_field() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithFieldWithAdditionalAnnotation.class, cache);
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(ArchTestWithFieldWithAdditionalAnnotation.TEST_FIELD_NAME, runner), runNotifier);
+
+        verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
+        Description description = descriptionCaptor.getValue();
+        assertThat(description.getAnnotation(Deprecated.class)).as("expected annotation").isNotNull();
+    }
+
     private ArchTestExecution getRule(String name) {
         return ArchUnitRunnerTestUtils.getRule(name, runner);
     }
@@ -230,5 +240,14 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         @ArchTest
         public static final ArchRule someRuleTwo = classes().should(NEVER_BE_SATISFIED);
+    }
+
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class ArchTestWithFieldWithAdditionalAnnotation {
+        static final String TEST_FIELD_NAME = "annotatedTestField";
+
+        @Deprecated
+        @ArchTest
+        public static final ArchRule annotatedTestField = classes().should(NEVER_BE_SATISFIED);
     }
 }
