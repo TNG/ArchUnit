@@ -143,6 +143,35 @@ public class FreezingArchRuleTest {
     }
 
     @Test
+    public void allows_to_overwrite_frozen_violations_if_configured() {
+        TestViolationStore violationStore = new TestViolationStore();
+
+        createFrozen(violationStore, rule("some description").withViolations("first violation").create());
+
+        ArchRule anotherViolation = rule("some description").withViolations("first violation", "second violation").create();
+        ArchRule frozenWithNewViolation = freeze(anotherViolation).persistIn(violationStore);
+
+        ArchConfiguration.get().setProperty("freeze.refreeze", Boolean.TRUE.toString());
+
+        assertThatRule(frozenWithNewViolation)
+                .checking(importClasses(getClass()))
+                .hasNoViolation();
+
+        ArchConfiguration.get().setProperty("freeze.refreeze", Boolean.FALSE.toString());
+
+        assertThatRule(frozenWithNewViolation)
+                .checking(importClasses(getClass()))
+                .hasNoViolation();
+
+        ArchRule yetAnotherViolation = rule("some description").withViolations("first violation", "second violation", "third violation").create();
+        ArchRule frozenWithYetAnotherViolation = freeze(yetAnotherViolation).persistIn(violationStore);
+
+        assertThatRule(frozenWithYetAnotherViolation)
+                .checking(importClasses(getClass()))
+                .hasOnlyViolations("third violation");
+    }
+
+    @Test
     public void only_reports_relevant_lines_of_multi_line_events() {
         TestViolationStore violationStore = new TestViolationStore();
 
@@ -231,7 +260,6 @@ public class FreezingArchRuleTest {
     }
 
     @DataProvider
-    @SuppressWarnings("unchecked")
     public static List<List<String>> different_line_separators_to_store_and_read() {
         String windowsLineSeparator = "\r\n";
         String unixLineSeparator = "\n";
