@@ -391,6 +391,34 @@ public class DependencyTest {
     }
 
     @Test
+    public void Dependency_from_generic_method_return_type_arguments() {
+        @SuppressWarnings("unused")
+        class SomeGenericType<T> {
+        }
+        @SuppressWarnings("unused")
+        class SomeClass {
+            SomeGenericType<String> method(String anyParam) {
+                return null;
+            }
+        }
+
+        JavaMethod method = importClassesWithContext(SomeClass.class, SomeGenericType.class, String.class)
+                .get(SomeClass.class).getMethod("method", String.class);
+        JavaClass typeArgumentDependency = (JavaClass) ((JavaParameterizedType) method.getReturnType()).getActualTypeArguments().get(0);
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericMethodReturnTypeArgument(method, typeArgumentDependency));
+
+        assertThatType(dependency.getOriginClass()).matches(SomeClass.class);
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "Method <%s> has generic return type <%s<%s>> with type argument depending on <%s> in (%s.java:0)",
+                method.getFullName(),
+                SomeGenericType.class.getName(), String.class.getName(),
+                String.class.getName(),
+                getClass().getSimpleName()));
+    }
+
+    @Test
     public void Dependency_from_referenced_class_object() {
         JavaMethod origin = new ClassFileImporter()
                 .importClass(DependenciesOnClassObjects.class)

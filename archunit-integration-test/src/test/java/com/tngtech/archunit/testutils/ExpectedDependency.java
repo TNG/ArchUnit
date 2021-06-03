@@ -1,5 +1,7 @@
 package com.tngtech.archunit.testutils;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
@@ -47,8 +49,20 @@ public class ExpectedDependency implements ExpectedRelation {
         return new GenericSupertypeTypeArgumentCreator(clazz, "interface", getOnlyElement(interfaces));
     }
 
-    public static GenericFieldTypeArgumentCreator genericFieldType(Class<?> clazz, String fieldName) {
-        return new GenericFieldTypeArgumentCreator(clazz, fieldName);
+    public static GenericMemberTypeArgumentCreator genericFieldType(Class<?> clazz, String fieldName) {
+        return new GenericMemberTypeArgumentCreator(
+                clazz,
+                fieldName,
+                "type",
+                getField(clazz, fieldName).getGenericType());
+    }
+
+    public static GenericMemberTypeArgumentCreator genericMethodReturnType(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+        return new GenericMemberTypeArgumentCreator(
+                clazz,
+                methodName,
+                "return type",
+                getMethod(clazz, methodName, parameterTypes).getGenericReturnType());
     }
 
     public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {
@@ -152,27 +166,42 @@ public class ExpectedDependency implements ExpectedRelation {
         }
     }
 
-    public static class GenericFieldTypeArgumentCreator {
+    public static class GenericMemberTypeArgumentCreator {
         private final Class<?> owner;
-        private final String fieldName;
-        private final Type genericFieldType;
+        private final String memberName;
+        private final String genericTypeDescription;
+        private final Type genericType;
 
-        private GenericFieldTypeArgumentCreator(Class<?> owner, String fieldName) {
+        private GenericMemberTypeArgumentCreator(Class<?> owner, String memberName, String genericTypeDescription, Type genericType) {
             this.owner = owner;
-            this.fieldName = fieldName;
-            try {
-                this.genericFieldType = owner.getDeclaredField(fieldName).getGenericType();
-            } catch (NoSuchFieldException e) {
-                throw new RuntimeException(e);
-            }
+            this.memberName = memberName;
+            this.genericTypeDescription = genericTypeDescription;
+            this.genericType = genericType;
         }
 
-        public ExpectedDependency dependingOn(Class<?> fieldTypeArgumentDependency) {
-            return new ExpectedDependency(owner, fieldTypeArgumentDependency,
-                    getDependencyPattern(owner.getName() + "." + fieldName,
-                            "has generic type <" + quote(genericFieldType.getTypeName()) + "> with type argument depending on",
-                            fieldTypeArgumentDependency.getName(),
+        public ExpectedDependency dependingOn(Class<?> typeArgumentDependency) {
+            return new ExpectedDependency(owner, typeArgumentDependency,
+                    getDependencyPattern(owner.getName() + "." + memberName,
+                            "has generic " + genericTypeDescription +
+                                    " <" + quote(genericType.getTypeName()) + "> with type argument depending on",
+                            typeArgumentDependency.getName(),
                             0));
+        }
+    }
+
+    private static Field getField(Class<?> owner, String fieldName) {
+        try {
+            return owner.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Method getMethod(Class<?> owner, String methodName, Class<?>... parameterTypes) {
+        try {
+            return owner.getDeclaredMethod(methodName, parameterTypes);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
         }
     }
 

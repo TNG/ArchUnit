@@ -140,6 +140,21 @@ class JavaClassDependencies {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (JavaMethod method : javaClass.getMethods()) {
             result.addAll(Dependency.tryCreateFromReturnType(method));
+            result.addAll(genericReturnTypeArgumentDependencies(method));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> genericReturnTypeArgumentDependencies(JavaMethod method) {
+        if (!(method.getReturnType() instanceof JavaParameterizedType)) {
+            return emptySet();
+        }
+        JavaParameterizedType returnType = (JavaParameterizedType) method.getReturnType();
+
+        List<JavaType> actualTypeArguments = returnType.getActualTypeArguments();
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaClass returnTypeArgumentDependency : dependenciesOfTypes(actualTypeArguments)) {
+            result.addAll(Dependency.tryCreateFromGenericMethodReturnTypeArgument(method, returnTypeArgumentDependency));
         }
         return result.build();
     }

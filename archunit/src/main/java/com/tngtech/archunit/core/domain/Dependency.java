@@ -156,6 +156,10 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         return tryCreateDependency(origin, genericDependencyType("type", origin.getType()), typeArgumentDependency);
     }
 
+    static Set<Dependency> tryCreateFromGenericMethodReturnTypeArgument(JavaMethod origin, JavaClass typeArgumentDependency) {
+        return tryCreateDependency(origin, genericDependencyType("return type", origin.getReturnType()), typeArgumentDependency);
+    }
+
     private static String genericDependencyType(String genericTypeDescription, JavaType genericType) {
         return "has generic " + genericTypeDescription + " " + bracketFormat(genericType.getName()) + " with type argument depending on";
     }
