@@ -72,7 +72,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType field;
         }
 
-        JavaType rawGenericFieldType = new ClassFileImporter().importClasses(SomeClass.class, String.class)
+        JavaType rawGenericFieldType = new ClassFileImporter().importClasses(SomeClass.class)
                 .get(SomeClass.class).getField("field").getType();
 
         assertThatType(rawGenericFieldType).as("raw generic field type").matches(GenericFieldType.class);
