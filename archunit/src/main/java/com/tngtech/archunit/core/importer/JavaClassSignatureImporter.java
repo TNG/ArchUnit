@@ -60,7 +60,7 @@ class JavaClassSignatureImporter {
     }
 
     private static class SignatureProcessor extends SignatureVisitor {
-        private final BoundProcessor boundProcessor = new BoundProcessor();
+        private final SignatureTypeParameterProcessor typeParameterProcessor = new SignatureTypeParameterProcessor();
         private final GenericSuperclassProcessor superclassProcessor = new GenericSuperclassProcessor();
         private final GenericInterfacesProcessor interfacesProcessor = new GenericInterfacesProcessor();
 
@@ -69,7 +69,7 @@ class JavaClassSignatureImporter {
         }
 
         List<JavaTypeParameterBuilder<JavaClass>> getTypeParameterBuilders() {
-            return boundProcessor.typeParameterBuilders;
+            return typeParameterProcessor.typeParameterBuilders;
         }
 
         Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclass() {
@@ -83,7 +83,7 @@ class JavaClassSignatureImporter {
         @Override
         public void visitFormalTypeParameter(String name) {
             log.trace("Encountered type parameter {}", name);
-            boundProcessor.addTypeParameter(name);
+            typeParameterProcessor.addTypeParameter(name);
         }
 
         @Override
@@ -98,21 +98,21 @@ class JavaClassSignatureImporter {
 
         @Override
         public SignatureVisitor visitClassBound() {
-            return boundProcessor;
+            return typeParameterProcessor;
         }
 
         @Override
         public SignatureVisitor visitInterfaceBound() {
-            return boundProcessor;
+            return typeParameterProcessor;
         }
 
-        private static class BoundProcessor extends SignatureVisitor {
+        private static class SignatureTypeParameterProcessor extends SignatureVisitor {
             private final List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders = new ArrayList<>();
 
             private JavaTypeParameterBuilder<JavaClass> currentType;
             private JavaParameterizedTypeBuilder<JavaClass> currentBound;
 
-            BoundProcessor() {
+            SignatureTypeParameterProcessor() {
                 super(ASM_API_VERSION);
             }
 
