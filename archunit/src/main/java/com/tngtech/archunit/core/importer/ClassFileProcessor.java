@@ -36,12 +36,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
-import static org.objectweb.asm.Opcodes.ASM8;
+import static org.objectweb.asm.Opcodes.ASM9;
 
 class ClassFileProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileProcessor.class);
 
-    static final int ASM_API_VERSION = ASM8;
+    static final int ASM_API_VERSION = ASM9;
 
     private final boolean md5InClassSourcesEnabled = ArchConfiguration.get().md5InClassSourcesEnabled();
     private final ClassResolver.Factory classResolverFactory = new ClassResolver.Factory();
