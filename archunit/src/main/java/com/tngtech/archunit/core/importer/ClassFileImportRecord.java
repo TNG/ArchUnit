@@ -36,6 +36,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 class ClassFileImportRecord {
@@ -283,28 +284,14 @@ class ClassFileImportRecord {
         return declaringClassName + "|" + methodName + "|" + descriptor;
     }
 
-    // NOTE: ASM calls visitInnerClass and visitOuterClass several times, sometimes when the outer class is imported
-    //       and sometimes again when the inner class is imported. To make it easier, we'll just deal with duplicate
-    //       registrations, as there is no harm, as long as no conflicting information is recorded.
     private static class EnclosingClassesByInnerClasses {
         private final Map<String, String> innerToOuter = new HashMap<>();
 
         void register(String innerName, String outerName) {
-            if (registeringAllowed(innerName, outerName)) {
-                innerToOuter.put(innerName, outerName);
-            }
-        }
+            checkArgument(!innerToOuter.containsKey(innerName),
+                    "Can't register multiple enclosing classes, this is likely a bug!");
 
-        private boolean registeringAllowed(String innerName, String outerName) {
-            boolean registeringAllowed = !innerToOuter.containsKey(innerName) ||
-                    innerToOuter.get(innerName).equals(outerName);
-
-            if (!registeringAllowed) {
-                LOG.warn("Skipping registering outer class {} for inner class {}, since already outer class {} was registered",
-                        outerName, innerName, innerToOuter.get(innerName));
-            }
-
-            return registeringAllowed;
+            innerToOuter.put(innerName, outerName);
         }
 
         public Optional<String> get(String ownerName) {
