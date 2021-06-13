@@ -202,6 +202,13 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         declarationHandler.registerEnclosingClass(className, createTypeName(owner));
+
+        if (name != null && desc != null) {
+            JavaClassDescriptor ownerType = JavaClassDescriptorImporter.createFromAsmObjectTypeName(owner);
+            List<JavaClassDescriptor> parameterTypes = JavaClassDescriptorImporter.importAsmMethodArgumentTypes(desc);
+            CodeUnit codeUnit = new CodeUnit(name, namesOf(parameterTypes), ownerType.getFullyQualifiedClassName());
+            declarationHandler.registerEnclosingCodeUnit(className, codeUnit);
+        }
     }
 
     private ImmutableSet<String> createInterfaceNames(String[] interfaces) {
@@ -475,6 +482,8 @@ class JavaClassProcessor extends ClassVisitor {
         void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, ValueBuilder valueBuilder);
 
         void registerEnclosingClass(String ownerName, String enclosingClassName);
+
+        void registerEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit);
     }
 
     interface AccessHandler {

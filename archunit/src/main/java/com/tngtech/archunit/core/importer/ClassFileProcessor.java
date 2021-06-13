@@ -139,6 +139,11 @@ class ClassFileProcessor {
         public void registerEnclosingClass(String ownerName, String enclosingClassName) {
             importRecord.setEnclosingClass(ownerName, enclosingClassName);
         }
+
+        @Override
+        public void registerEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit) {
+            importRecord.setEnclosingCodeUnit(ownerName, enclosingCodeUnit);
+        }
     }
 
     private static class RecordAccessHandler implements AccessHandler {

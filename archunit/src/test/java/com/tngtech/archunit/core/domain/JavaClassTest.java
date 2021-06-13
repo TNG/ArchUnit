@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +99,7 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -414,7 +416,7 @@ public class JavaClassTest {
     }
 
     @Test
-    public void getCodeUnitWithName() {
+    public void getCodeUnitWithParameterTypes() {
         final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
 
         assertIllegalArgumentException("childMethod", new Runnable() {
@@ -444,6 +446,25 @@ public class JavaClassTest {
                 .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
         assertThat(clazz.getCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Object.class.getName()))
                 .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+    }
+
+    @Test
+    public void tryGetCodeUnitWithParameterTypes() {
+        final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
+
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>singletonList(String.class)).get())
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", singletonList(String.class.getName())).get())
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>singletonList(Object.class)).get())
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, singletonList(Object.class.getName())).get())
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>emptyList())).isAbsent();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isAbsent();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isAbsent();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isAbsent();
     }
 
     private Condition<JavaCodeUnit> equivalentCodeUnit(final Class<?> owner, final String methodName, final Class<?> paramType) {
