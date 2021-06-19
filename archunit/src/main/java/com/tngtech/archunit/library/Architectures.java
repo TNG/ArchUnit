@@ -479,11 +479,13 @@ public final class Architectures {
                 String[] domainServicePackageIdentifiers,
                 String[] applicationPackageIdentifiers,
                 Map<String, String[]> adapterPackageIdentifiers,
+                List<IgnoredDependency> ignoredDependencies,
                 Optional<String> overriddenDescription) {
             this.domainModelPackageIdentifiers = domainModelPackageIdentifiers;
             this.domainServicePackageIdentifiers = domainServicePackageIdentifiers;
             this.applicationPackageIdentifiers = applicationPackageIdentifiers;
             this.adapterPackageIdentifiers = adapterPackageIdentifiers;
+            this.ignoredDependencies = ignoredDependencies;
             this.overriddenDescription = overriddenDescription;
         }
 
@@ -581,7 +583,8 @@ public final class Architectures {
         @Override
         public OnionArchitecture as(String newDescription) {
             return new OnionArchitecture(domainModelPackageIdentifiers, domainServicePackageIdentifiers,
-                    applicationPackageIdentifiers, adapterPackageIdentifiers, Optional.of(newDescription));
+                    applicationPackageIdentifiers, adapterPackageIdentifiers, ignoredDependencies,
+                    Optional.of(newDescription));
         }
 
         @Override

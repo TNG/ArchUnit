@@ -8,6 +8,8 @@ import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
@@ -37,6 +39,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
@@ -397,6 +400,20 @@ public class ArchitecturesTest {
                 .ignoreDependency(ApplicationLayerClass.class, CliAdapterLayerClass.class)
                 .ignoreDependency(ApplicationLayerClass.class.getName(), PersistenceAdapterLayerClass.class.getName())
                 .ignoreDependency(simpleNameStartingWith("ApplicationLayerCl"), simpleNameContaining("estAdapterLayerCl"));
+        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
+
+        EvaluationResult result = onionIgnoringOriginApplicationLayerClass.evaluate(classes);
+
+        ExpectedOnionViolations expectedViolations = getExpectedOnionViolations().withoutViolationsWithOrigin(ApplicationLayerClass.class);
+        assertPatternMatches(result.getFailureReport().getDetails(), expectedViolations.toPatterns());
+    }
+
+    @Test
+    public void onion_architecture_with_overwritten_description_retains_ignored_dependencies() {
+        ArchRule onionIgnoringOriginApplicationLayerClass = getTestOnionArchitecture()
+                .ignoreDependency(equivalentTo(ApplicationLayerClass.class), DescribedPredicate.<JavaClass>alwaysTrue())
+                .because("some reason causing description to be overwritten");
+
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
 
         EvaluationResult result = onionIgnoringOriginApplicationLayerClass.evaluate(classes);
