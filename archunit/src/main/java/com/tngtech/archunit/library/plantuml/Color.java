@@ -20,7 +20,7 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 class Color {
-    private String value;
+    private final String value;
 
     Color(String value) {
         this.value = checkNotNull(value);
