@@ -390,6 +390,29 @@ public class ClassFileImporterGenericFieldTypesTest {
     }
 
     @Test
+    public void considers_hierarchy_of_methods_and_classes_for_type_parameter_context() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class Level1<T1 extends String> {
+            <T2 extends T1> void level2() {
+                class Level3<T3 extends T2> {
+                    T3 field;
+                }
+            }
+        }
+
+        Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3");
+        JavaType genericFieldType = new ClassFileImporter()
+                .importClasses(innermostClass, Level1.class, String.class)
+                .get(innermostClass).getField("field").getType();
+
+        assertThatType(genericFieldType).as("generic field type")
+                .matches(
+                        typeVariable("T3").withUpperBounds(
+                                typeVariable("T2").withUpperBounds(
+                                        typeVariable("T1").withUpperBounds(String.class))));
+    }
+
+    @Test
     public void imports_wildcards_of_generic_field_type_bound_by_type_variables() {
         @SuppressWarnings("unused")
         class GenericFieldType<A, B> {

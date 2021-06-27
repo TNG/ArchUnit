@@ -18,7 +18,7 @@ package com.tngtech.archunit.core.importer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
@@ -31,19 +31,19 @@ import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
 
-class SignatureTypeParameterProcessor extends SignatureVisitor {
+class SignatureTypeParameterProcessor<OWNER extends HasDescription> extends SignatureVisitor {
     private static final Logger log = LoggerFactory.getLogger(SignatureTypeParameterProcessor.class);
 
-    private final List<JavaTypeParameterBuilder<JavaClass>> typeParameterBuilders = new ArrayList<>();
+    private final List<JavaTypeParameterBuilder<OWNER>> typeParameterBuilders = new ArrayList<>();
 
-    private JavaTypeParameterBuilder<JavaClass> currentType;
-    private JavaParameterizedTypeBuilder<JavaClass> currentBound;
+    private JavaTypeParameterBuilder<OWNER> currentType;
+    private JavaParameterizedTypeBuilder<OWNER> currentBound;
 
     SignatureTypeParameterProcessor() {
         super(ASM_API_VERSION);
     }
 
-    List<JavaTypeParameterBuilder<JavaClass>> getTypeParameterBuilders() {
+    List<JavaTypeParameterBuilder<OWNER>> getTypeParameterBuilders() {
         return typeParameterBuilders;
     }
 
@@ -64,13 +64,13 @@ class SignatureTypeParameterProcessor extends SignatureVisitor {
     @Override
     public void visitTypeArgument() {
         log.trace("Encountered wildcard for {}", currentBound.getTypeName());
-        currentBound.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaClass>()));
+        currentBound.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<OWNER>()));
     }
 
     @Override
     public void visitTypeVariable(String name) {
         log.trace("Encountered upper bound for {}: Type variable {}", currentType.getName(), name);
-        currentType.addBound(new ReferenceCreationProcess<JavaClass>(name));
+        currentType.addBound(new ReferenceCreationProcess<OWNER>(name));
     }
 
     @Override

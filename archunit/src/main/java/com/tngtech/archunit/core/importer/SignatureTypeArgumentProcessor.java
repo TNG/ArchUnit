@@ -185,7 +185,7 @@ class SignatureTypeArgumentProcessor<TYPE extends HasDescription> extends Signat
             return finisher.finish(createTypeVariable(owner, allTypeParametersInContext, classes), classes);
         }
 
-        private JavaType createTypeVariable(OWNER owner, Iterable<? extends JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+        private JavaType createTypeVariable(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
             for (JavaTypeVariable<?> existingTypeVariable : allTypeParametersInContext) {
                 if (existingTypeVariable.getName().equals(typeVariableName)) {
                     return existingTypeVariable;

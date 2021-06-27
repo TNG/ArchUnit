@@ -43,6 +43,7 @@ import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
+import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -68,7 +69,9 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
-public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
+public class JavaClass
+        implements JavaType, HasName.AndFullName, HasTypeParameters<JavaClass>, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
+
     private final Optional<Source> source;
     private final SourceCodeLocation sourceCodeLocation;
     private final JavaClassDescriptor descriptor;
@@ -641,6 +644,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         return Optional.fromNullable(annotations.get(typeName));
     }
 
+    @Override
     @PublicAPI(usage = ACCESS)
     public List<JavaTypeVariable<JavaClass>> getTypeParameters() {
         return typeParameters;

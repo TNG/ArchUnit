@@ -30,23 +30,23 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 class ClassFileImportRecord {
-    private static final TypeParametersBuilder NO_TYPE_PARAMETERS =
-            new TypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptyList());
+    private static final JavaClassTypeParametersBuilder NO_TYPE_PARAMETERS =
+            new JavaClassTypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptyList());
 
     private final Map<String, JavaClass> classes = new HashMap<>();
 
     private final Map<String, String> superclassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
-    private final Map<String, TypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
+    private final Map<String, JavaClassTypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
     private final Map<String, JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilderByOwner = new HashMap<>();
     private final Map<String, Set<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
@@ -72,7 +72,7 @@ class ClassFileImportRecord {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
     }
 
-    void addTypeParameters(String ownerName, TypeParametersBuilder builder) {
+    void addTypeParameters(String ownerName, JavaClassTypeParametersBuilder builder) {
         typeParametersBuilderByOwner.put(ownerName, builder);
     }
 
@@ -131,7 +131,7 @@ class ClassFileImportRecord {
         return interfaceNamesByOwner.get(ownerName);
     }
 
-    TypeParametersBuilder getTypeParameterBuildersFor(String ownerName) {
+    JavaClassTypeParametersBuilder getTypeParameterBuildersFor(String ownerName) {
         if (!typeParametersBuilderByOwner.containsKey(ownerName)) {
             return NO_TYPE_PARAMETERS;
         }

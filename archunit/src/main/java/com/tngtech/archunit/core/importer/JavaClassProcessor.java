@@ -45,6 +45,7 @@ import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
+import com.tngtech.archunit.core.importer.JavaCodeUnitSignatureImporter.JavaCodeUnitSignature;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
@@ -251,9 +252,11 @@ class JavaClassProcessor extends ClassVisitor {
         accessHandler.setContext(new CodeUnit(name, namesOf(parameters), className));
 
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
+        JavaCodeUnitSignature codeUnitSignature = JavaCodeUnitSignatureImporter.parseAsmMethodSignature(signature);
         codeUnitBuilder
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
+                .withTypeParameters(codeUnitSignature.getTypeParameterBuilders())
                 .withParameters(parameters)
                 .withReturnType(JavaClassDescriptorImporter.importAsmMethodReturnType(desc))
                 .withDescriptor(desc)
@@ -461,7 +464,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         void onNewClass(String className, Optional<String> superclassName, Set<String> interfaceNames);
 
-        void onDeclaredTypeParameters(DomainBuilders.TypeParametersBuilder typeParametersBuilder);
+        void onDeclaredTypeParameters(DomainBuilders.JavaClassTypeParametersBuilder typeParametersBuilder);
 
         void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder);
 

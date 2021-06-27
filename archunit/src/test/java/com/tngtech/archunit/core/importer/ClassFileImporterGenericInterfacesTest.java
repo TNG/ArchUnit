@@ -311,6 +311,29 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @Test
+    public void considers_hierarchy_of_methods_and_classes_for_type_parameter_context() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class Level1<T1 extends String> {
+            <T2 extends T1> void level2() {
+                class Level3<T3 extends T2> implements InterfaceWithOneTypeParameter<T3> {
+                }
+            }
+        }
+
+        Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3");
+        JavaType genericInterface = getOnlyElement(
+                new ClassFileImporter()
+                        .importClasses(innermostClass, Level1.class, String.class)
+                        .get(innermostClass).getInterfaces());
+
+        assertThatType(genericInterface).as("generic interface")
+                .hasActualTypeArguments(
+                        typeVariable("T3").withUpperBounds(
+                                typeVariable("T2").withUpperBounds(
+                                        typeVariable("T1").withUpperBounds(String.class))));
+    }
+
+    @Test
     public void imports_wildcards_of_generic_interface_bound_by_type_variables() {
         class Child<FIRST extends String, SECOND extends Serializable> implements InterfaceWithTwoTypeParameters<
                 ClassParameterWithSingleTypeParameter<? extends FIRST>,

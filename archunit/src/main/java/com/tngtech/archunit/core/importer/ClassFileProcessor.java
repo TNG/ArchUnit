@@ -24,7 +24,7 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
@@ -86,7 +86,7 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onDeclaredTypeParameters(TypeParametersBuilder typeParametersBuilder) {
+        public void onDeclaredTypeParameters(JavaClassTypeParametersBuilder typeParametersBuilder) {
             importRecord.addTypeParameters(ownerName, typeParametersBuilder);
         }
 

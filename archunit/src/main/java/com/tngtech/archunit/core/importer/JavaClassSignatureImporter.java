@@ -21,9 +21,9 @@ import java.util.Set;
 
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
@@ -44,7 +44,7 @@ class JavaClassSignatureImporter {
 
         SignatureProcessor signatureProcessor = new SignatureProcessor();
         new SignatureReader(signature).accept(signatureProcessor);
-        declarationHandler.onDeclaredTypeParameters(new TypeParametersBuilder(signatureProcessor.getTypeParameterBuilders()));
+        declarationHandler.onDeclaredTypeParameters(new JavaClassTypeParametersBuilder(signatureProcessor.getTypeParameterBuilders()));
 
         Optional<JavaParameterizedTypeBuilder<JavaClass>> genericSuperclass = signatureProcessor.getGenericSuperclass();
         if (genericSuperclass.isPresent()) {
@@ -55,7 +55,7 @@ class JavaClassSignatureImporter {
     }
 
     private static class SignatureProcessor extends SignatureVisitor {
-        private final SignatureTypeParameterProcessor typeParameterProcessor = new SignatureTypeParameterProcessor();
+        private final SignatureTypeParameterProcessor<JavaClass> typeParameterProcessor = new SignatureTypeParameterProcessor<>();
         private final GenericSuperclassProcessor superclassProcessor = new GenericSuperclassProcessor();
         private final GenericInterfacesProcessor interfacesProcessor = new GenericInterfacesProcessor();
 

@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
+import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -46,10 +47,14 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
  * in particular every place, where Java code with behavior, like calling other methods or accessing fields, can
  * be defined.
  */
-public abstract class JavaCodeUnit extends JavaMember implements HasParameterTypes, HasReturnType, HasThrowsClause<JavaCodeUnit> {
+public abstract class JavaCodeUnit
+        extends JavaMember
+        implements HasParameterTypes, HasReturnType, HasTypeParameters<JavaCodeUnit>, HasThrowsClause<JavaCodeUnit> {
+
     private final JavaClass returnType;
     private final JavaClassList parameters;
     private final String fullName;
+    private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
     private final Set<ReferencedClassObject> referencedClassObjects;
     private final Set<InstanceofCheck> instanceofChecks;
 
@@ -59,6 +64,7 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
 
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
+        typeParameters = builder.getTypeParameters(this);
         this.returnType = builder.getReturnType();
         this.parameters = builder.getParameters();
         fullName = formatMethod(getOwner().getName(), getName(), getRawParameterTypes());
@@ -161,6 +167,11 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     @SuppressWarnings("unchecked") // we know the 'owning' member is this code unit
     public Optional<? extends JavaAnnotation<? extends JavaCodeUnit>> tryGetAnnotationOfType(String typeName) {
         return (Optional<? extends JavaAnnotation<? extends JavaCodeUnit>>) super.tryGetAnnotationOfType(typeName);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public List<? extends JavaTypeVariable<? extends JavaCodeUnit>> getTypeParameters() {
+        return typeParameters;
     }
 
     void completeAccessesFrom(ImportContext context) {
