@@ -197,3 +197,34 @@ public class ArchitectureTest {
 The runner will include all `@ArchTest` annotated members within `ServiceRules` and `PersistenceRules` and evaluate
 them against the classes declared within `@AnalyzeClasses` on `ArchitectureTest`.
 This also allows an easy reuse of a rule library in different projects or modules.
+
+==== Generating Display Names
+
+ArchUnit offers the possibility to generate more readable names in the test report by replacing underscores in the
+original rule names by spaces. For example, if a method or field is named
+
+[source,options="nowrap"]
+----
+some_Field_or_Method_rule
+----
+
+this will appear as
+
+[source,options="nowrap"]
+----
+some Field or Method rule
+----
+
+in the test report.
+
+This is similar to JUnit 5's `@DisplayNameGeneration` annotation, but because this display name generation does not
+fit well with ArchUnit's rule execution and because we'd like to offer this feature for JUnit 4 as well, you can enable
+display name generation in ArchUnit with a configuration property (see <<Advanced Configuration>>):
+
+[source,options="nowrap"]
+.archunit.properties
+----
+junit.displayName.replaceUnderscoresBySpaces=true
+----
+
+If you omit the property (or set it to `false`) the original rule names are used as display names.

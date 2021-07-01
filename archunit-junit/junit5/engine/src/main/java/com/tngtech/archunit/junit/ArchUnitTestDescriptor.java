@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Suppliers.memoize;
 import static com.tngtech.archunit.junit.ArchTestInitializationException.WRAP_CAUSE;
+import static com.tngtech.archunit.junit.DisplayNameResolver.determineDisplayName;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
 import static com.tngtech.archunit.junit.ReflectionUtils.getValueOrThrowException;
@@ -145,7 +146,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final Supplier<JavaClasses> classes;
 
         ArchUnitRuleDescriptor(UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, Field field) {
-            super(uniqueId, field.getName(), FieldSource.from(field), field);
+            super(uniqueId, determineDisplayName(field.getName()), FieldSource.from(field), field);
             this.rule = rule;
             this.classes = classes;
         }
@@ -167,7 +168,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final Supplier<JavaClasses> classes;
 
         ArchUnitMethodDescriptor(UniqueId uniqueId, Method method, Supplier<JavaClasses> classes) {
-            super(uniqueId.append("method", method.getName()), method.getName(), MethodSource.from(method), method);
+            super(uniqueId.append("method", method.getName()),
+                    determineDisplayName(method.getName()), MethodSource.from(method), method);
             validate(method);
 
             this.method = method;
