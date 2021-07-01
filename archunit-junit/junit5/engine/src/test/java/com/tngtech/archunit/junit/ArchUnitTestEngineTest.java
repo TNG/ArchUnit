@@ -33,6 +33,9 @@ import com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTag;
 import com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTags;
 import com.tngtech.archunit.junit.testexamples.TestMethodWithTags;
 import com.tngtech.archunit.junit.testexamples.UnwantedClass;
+import com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationForField;
+import com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationForMethod;
+import com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationIgnoredStrategy;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredClass;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredField;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredLibrary;
@@ -78,6 +81,9 @@ import static com.tngtech.archunit.junit.testexamples.TestFieldWithTags.FIELD_WI
 import static com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTag.METHOD_WITH_META_TAG_NAME;
 import static com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTags.METHOD_WITH_META_TAGS_NAME;
 import static com.tngtech.archunit.junit.testexamples.TestMethodWithTags.METHOD_WITH_TAG_NAME;
+import static com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationForField.EXPECTED_FIELD_TEST_NAME;
+import static com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationForMethod.EXPECTED_METHOD_TEST_NAME;
+import static com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationIgnoredStrategy.EXPECTED_ORIGINAL_TEST_NAME;
 import static com.tngtech.archunit.junit.testexamples.subone.SimpleRuleField.SIMPLE_RULE_FIELD_NAME;
 import static com.tngtech.archunit.junit.testexamples.subone.SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
@@ -730,6 +736,39 @@ class ArchUnitTestEngineTest {
             assertThat(toUniqueIds(rootDescriptor)).containsOnly(
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
                     simpleRulesId(engineId));
+        }
+
+        @Test
+        void generated_display_name_for_field() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(DisplayNameGenerationForField.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo(EXPECTED_FIELD_TEST_NAME);
+        }
+
+        @Test
+        void generated_display_name_for_method() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(DisplayNameGenerationForMethod.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo(EXPECTED_METHOD_TEST_NAME);
+        }
+
+        @Test
+        void generated_display_name_ignored_for_strategies_other_than_replace_underscores() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(DisplayNameGenerationIgnoredStrategy.class);
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo(EXPECTED_ORIGINAL_TEST_NAME);
         }
 
         private Set<TestTag> getTagsForIdEndingIn(String suffix, Map<UniqueId, Set<TestTag>> tagsById) {
