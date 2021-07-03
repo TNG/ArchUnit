@@ -567,7 +567,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithComplexTypeParametersWithConcreteArrayBounds<
                 A extends List<Serializable[]>,
                 B extends List<? extends Serializable[][]>,
-                C extends Map<? super String[], Map<Map<? super String[][][], ?>, Serializable[][]>>
+                C extends Map<? super String[], Map<Map<? super String[][][], ?>, int[][]>>
                 > {
         }
 
@@ -591,7 +591,7 @@ public class ClassFileImporterGenericClassesTest {
                                         parameterizedType(Map.class).withTypeArguments(
                                                 wildcardType().withLowerBound(String[][][].class),
                                                 wildcardType()),
-                                        concreteClass(Serializable[][].class)))
+                                        concreteClass(int[][].class)))
                 );
     }
 
