@@ -504,7 +504,7 @@ public class ClassFileImporterGenericClassesTest {
 
     @Test
     public void imports_complex_type_with_multiple_nested_parameters_with_various_bounds_and_recursive_type_definitions() {
-        @SuppressWarnings("unused")
+        @SuppressWarnings({"unused", "rawtypes"})
         class ClassWithComplexTypeParameters<
                 A extends List<?> & Serializable & Comparable<A>,
                 B extends A,
@@ -512,8 +512,9 @@ public class ClassFileImporterGenericClassesTest {
                         Map.Entry<A, Map.Entry<String, B>>,
                         Map<? extends String,
                                 Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<B, ?>>>>>>>>,
-                SELF extends ClassWithComplexTypeParameters<A, B, C, SELF, D>,
-                D> {
+                SELF extends ClassWithComplexTypeParameters<A, B, C, SELF, D, RAW>,
+                D,
+                RAW extends List> {
         }
 
         JavaClasses classes = new ClassFileImporter().importClasses(ClassWithComplexTypeParameters.class,
@@ -556,9 +557,11 @@ public class ClassFileImporterGenericClassesTest {
                                 typeVariable("B"),
                                 typeVariable("C"),
                                 typeVariable("SELF"),
-                                typeVariable("D")
+                                typeVariable("D"),
+                                typeVariable("RAW")
                         ))
-                .hasTypeParameter("D").withBoundsMatching(Object.class);
+                .hasTypeParameter("D").withBoundsMatching(Object.class)
+                .hasTypeParameter("RAW").withBoundsMatching(List.class);
     }
 
     @Test
