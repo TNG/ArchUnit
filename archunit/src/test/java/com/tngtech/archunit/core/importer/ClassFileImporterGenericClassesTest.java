@@ -335,20 +335,6 @@ public class ClassFileImporterGenericClassesTest {
     }
 
     @Test
-    public void imports_type_variable_bound_by_other_type_variable() {
-        @SuppressWarnings("unused")
-        class ClassWithTypeParameterWithTypeVariableBound<U extends T, T extends String, V extends T> {
-        }
-
-        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithTypeParameterWithTypeVariableBound.class);
-
-        JavaClass javaClass = classes.get(ClassWithTypeParameterWithTypeVariableBound.class);
-
-        assertThatType(javaClass)
-                .hasTypeParameter("U").withBoundsMatching(typeVariable("T"));
-    }
-
-    @Test
     public void references_type_variable_bound() {
         @SuppressWarnings("unused")
         class ClassWithTypeParameterWithTypeVariableBound<U extends T, T extends String, V extends T> {
