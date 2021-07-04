@@ -12,6 +12,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.JavaClass;
 import org.assertj.core.api.AbstractIterableAssert;
 
 import static com.google.common.base.Predicates.not;
@@ -106,6 +107,10 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         return String.format("Dependency [%s -> %s]", origin.getName(), target.getName());
     }
 
+    public static ExpectedDependenciesCreator from(JavaClass origin) {
+        return from(origin.reflect());
+    }
+
     public static ExpectedDependenciesCreator from(Class<?> origin) {
         return new ExpectedDependenciesCreator(new ExpectedDependencies(), origin);
     }
@@ -130,6 +135,14 @@ public class DependenciesAssertion extends AbstractIterableAssert<
             return this;
         }
 
+        public ExpectedDependencies to(JavaClass... targets) {
+            List<Class<?>> reflectedTargets = new ArrayList<>();
+            for (JavaClass target : targets) {
+                reflectedTargets.add(target.reflect());
+            }
+            return to(reflectedTargets.toArray(new Class[0]));
+        }
+
         public ExpectedDependencies to(Class<?>... targets) {
             for (Class<?> target : targets) {
                 expectedDependencies.add(origin, target, descriptionTemplate);
@@ -147,6 +160,10 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         @Override
         public Iterator<ExpectedDependency> iterator() {
             return expectedDependencies.iterator();
+        }
+
+        public ExpectedDependenciesCreator from(JavaClass origin) {
+            return from(origin.reflect());
         }
 
         public ExpectedDependenciesCreator from(Class<?> origin) {

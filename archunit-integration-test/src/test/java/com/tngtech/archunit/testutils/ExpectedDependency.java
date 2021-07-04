@@ -114,15 +114,21 @@ public class ExpectedDependency implements ExpectedRelation {
     public static class TypeParameterCreator {
         private final Class<?> clazz;
         private final String typeParameterName;
+        private final String originName;
 
         private TypeParameterCreator(Class<?> clazz, String typeParameterName) {
+            this(clazz, clazz.getName(), typeParameterName);
+        }
+
+        private TypeParameterCreator(Class<?> clazz, String originName, String typeParameterName) {
             this.clazz = clazz;
             this.typeParameterName = typeParameterName;
+            this.originName = originName;
         }
 
         public ExpectedDependency dependingOn(Class<?> typeParameterDependency) {
             return new ExpectedDependency(clazz, typeParameterDependency,
-                    getDependencyPattern(clazz.getName(), "has type parameter '" + typeParameterName + "' depending on", typeParameterDependency.getName(), 0));
+                    getDependencyPattern(originName, "has type parameter '" + typeParameterName + "' depending on", typeParameterDependency.getName(), 0));
         }
     }
 
@@ -222,6 +228,10 @@ public class ExpectedDependency implements ExpectedRelation {
         public ExpectedDependency withReturnType(Class<?> returnType) {
             String dependencyPattern = getDependencyPattern(getOriginName(), "return type", returnType.getName(), 0);
             return new ExpectedDependency(owner, returnType, dependencyPattern);
+        }
+
+        public TypeParameterCreator withTypeParameter(String typeParameterName) {
+            return new TypeParameterCreator(owner, getOriginName(), typeParameterName);
         }
 
         public ExpectedDependency dependingOnComponentType(Class<?> componentType) {
