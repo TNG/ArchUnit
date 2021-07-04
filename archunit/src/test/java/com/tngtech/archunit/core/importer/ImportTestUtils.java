@@ -394,6 +394,11 @@ public class ImportTestUtils {
         }
 
         @Override
+        public Optional<JavaCodeUnit> createEnclosingCodeUnit(JavaClass owner) {
+            return Optional.absent();
+        }
+
+        @Override
         public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }

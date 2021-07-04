@@ -2,8 +2,6 @@ package com.tngtech.archunit.testutil.assertion;
 
 import java.util.List;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
@@ -14,15 +12,13 @@ import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
-import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypeVariable;
 import static com.tngtech.archunit.testutil.TestUtils.namesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.runtimePropertiesOf;
+import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.getTypeVariableWithName;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.guava.api.Assertions.assertThat;
 
 public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, JavaType> {
 
@@ -74,14 +70,9 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
         return this;
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent") // checked via AssertJ
     public JavaTypeVariableOfClassAssertion hasTypeParameter(String name) {
-        List<JavaTypeVariable<JavaClass>> typeVariables = actualClass().getTypeParameters();
-
-        Optional<JavaTypeVariable<JavaClass>> variable = FluentIterable.from(typeVariables).firstMatch(toGuava(name(name)));
-        assertThat(variable).as("Type variable with name '%s'", name).isPresent();
-
-        return new JavaTypeVariableOfClassAssertion(variable.get());
+        JavaTypeVariable<JavaClass> typeVariable = getTypeVariableWithName(name, actualClass().getTypeParameters());
+        return new JavaTypeVariableOfClassAssertion(typeVariable);
     }
 
     public JavaTypeVariableOfClassAssertion hasOnlyTypeParameter(String name) {

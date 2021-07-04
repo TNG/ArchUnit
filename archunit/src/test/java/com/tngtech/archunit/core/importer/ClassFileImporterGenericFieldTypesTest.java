@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Rule;
@@ -72,7 +73,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType field;
         }
 
-        JavaType rawGenericFieldType = new ClassFileImporter().importClasses(SomeClass.class, String.class)
+        JavaType rawGenericFieldType = new ClassFileImporter().importClasses(SomeClass.class)
                 .get(SomeClass.class).getField("field").getType();
 
         assertThatType(rawGenericFieldType).as("raw generic field type").matches(GenericFieldType.class);
@@ -269,29 +270,44 @@ public class ClassFileImporterGenericFieldTypesTest {
     }
 
     @Test
+    public void imports_type_variable_as_generic_field_type() {
+        @SuppressWarnings("unused")
+        class SomeClass<T extends String> {
+            T field;
+        }
+
+        JavaType genericFieldType = new ClassFileImporter().importClasses(SomeClass.class, String.class)
+                .get(SomeClass.class).getField("field").getType();
+
+        assertThatType(genericFieldType).as("generic field type")
+                .isInstanceOf(JavaTypeVariable.class)
+                .hasErasure(String.class);
+    }
+
+    @Test
     public void imports_generic_field_type_parameterized_with_type_variable() {
         @SuppressWarnings("unused")
-        class GenericFieldType<SUPER> {
+        class GenericFieldType<T> {
         }
         @SuppressWarnings("unused")
-        class SomeClass<SUB> {
-            GenericFieldType<SUB> field;
+        class SomeClass<OF_CLASS> {
+            GenericFieldType<OF_CLASS> field;
         }
 
         JavaType genericFieldType = new ClassFileImporter().importClasses(SomeClass.class, ClassParameterWithSingleTypeParameter.class)
                 .get(SomeClass.class).getField("field").getType();
 
-        assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(typeVariable("SUB"));
+        assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(typeVariable("OF_CLASS"));
     }
 
     @Test
     public void imports_generic_field_type_with_actual_type_argument_parameterized_with_type_variable() {
         @SuppressWarnings("unused")
-        class GenericFieldType<SUPER> {
+        class GenericFieldType<T> {
         }
         @SuppressWarnings("unused")
-        class SomeClass<SUB> {
-            GenericFieldType<ClassParameterWithSingleTypeParameter<SUB>> field;
+        class SomeClass<OF_CLASS> {
+            GenericFieldType<ClassParameterWithSingleTypeParameter<OF_CLASS>> field;
         }
 
         JavaType genericFieldType = new ClassFileImporter().importClasses(SomeClass.class, ClassParameterWithSingleTypeParameter.class)
@@ -299,18 +315,18 @@ public class ClassFileImporterGenericFieldTypesTest {
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
-                        .withTypeArguments(typeVariable("SUB"))
+                        .withTypeArguments(typeVariable("OF_CLASS"))
         );
     }
 
     @Test
     public void references_type_variable_assigned_to_actual_type_argument_of_generic_field_type() {
         @SuppressWarnings("unused")
-        class GenericFieldType<SUPER> {
+        class GenericFieldType<T> {
         }
         @SuppressWarnings("unused")
-        class SomeClass<SUB extends String> {
-            GenericFieldType<ClassParameterWithSingleTypeParameter<SUB>> field;
+        class SomeClass<OF_CLASS extends String> {
+            GenericFieldType<ClassParameterWithSingleTypeParameter<OF_CLASS>> field;
         }
 
         JavaType genericFieldType = new ClassFileImporter().importClasses(SomeClass.class, ClassParameterWithSingleTypeParameter.class, String.class)
@@ -318,7 +334,7 @@ public class ClassFileImporterGenericFieldTypesTest {
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
-                        .withTypeArguments(typeVariable("SUB").withUpperBounds(String.class))
+                        .withTypeArguments(typeVariable("OF_CLASS").withUpperBounds(String.class))
         );
     }
 
@@ -371,6 +387,29 @@ public class ClassFileImporterGenericFieldTypesTest {
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 typeVariable("OUTER").withoutUpperBounds()
         );
+    }
+
+    @Test
+    public void considers_hierarchy_of_methods_and_classes_for_type_parameter_context() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class Level1<T1 extends String> {
+            <T2 extends T1> void level2() {
+                class Level3<T3 extends T2> {
+                    T3 field;
+                }
+            }
+        }
+
+        Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3");
+        JavaType genericFieldType = new ClassFileImporter()
+                .importClasses(innermostClass, Level1.class, String.class)
+                .get(innermostClass).getField("field").getType();
+
+        assertThatType(genericFieldType).as("generic field type")
+                .matches(
+                        typeVariable("T3").withUpperBounds(
+                                typeVariable("T2").withUpperBounds(
+                                        typeVariable("T1").withUpperBounds(String.class))));
     }
 
     @Test

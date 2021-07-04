@@ -255,7 +255,7 @@ public class DependencyTest {
     }
 
     @Test
-    public void Dependency_from_type_parameter() {
+    public void Dependency_from_class_type_parameter() {
         @SuppressWarnings("unused")
         class ClassWithTypeParameters<T extends String> {
         }
@@ -270,6 +270,49 @@ public class DependencyTest {
         assertThat(dependency.getDescription()).as("description").contains(String.format(
                 "Class <%s> has type parameter '%s' depending on <%s> in (%s.java:0)",
                 ClassWithTypeParameters.class.getName(), typeParameter.getName(), String.class.getName(), getClass().getSimpleName()));
+    }
+
+    @Test
+    public void Dependency_from_constructor_type_parameter() {
+        @SuppressWarnings("unused")
+        class ConstructorWithTypeParameters {
+            <T extends String> ConstructorWithTypeParameters() {
+            }
+        }
+
+        JavaClass javaClass = importClassesWithContext(ConstructorWithTypeParameters.class, String.class).get(ConstructorWithTypeParameters.class);
+        JavaConstructor origin = javaClass.getConstructor(getClass());
+        JavaTypeVariable<?> typeParameter = origin.getTypeParameters().get(0);
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromTypeParameter(typeParameter, typeParameter.getUpperBounds().get(0).toErasure()));
+
+        assertThatType(dependency.getOriginClass()).matches(ConstructorWithTypeParameters.class);
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "Constructor <%s> has type parameter '%s' depending on <%s> in (%s.java:0)",
+                origin.getFullName(), typeParameter.getName(), String.class.getName(), getClass().getSimpleName()));
+    }
+
+    @Test
+    public void Dependency_from_method_type_parameter() {
+        @SuppressWarnings("unused")
+        class MethodWithTypeParameters {
+            <T extends String> T methodWithTypeParameters() {
+                return null;
+            }
+        }
+
+        JavaClass javaClass = importClassesWithContext(MethodWithTypeParameters.class, String.class).get(MethodWithTypeParameters.class);
+        JavaMethod origin = javaClass.getMethod("methodWithTypeParameters");
+        JavaTypeVariable<?> typeParameter = origin.getTypeParameters().get(0);
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromTypeParameter(typeParameter, typeParameter.getUpperBounds().get(0).toErasure()));
+
+        assertThatType(dependency.getOriginClass()).matches(MethodWithTypeParameters.class);
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "Method <%s> has type parameter '%s' depending on <%s> in (%s.java:0)",
+                origin.getFullName(), typeParameter.getName(), String.class.getName(), getClass().getSimpleName()));
     }
 
     @Test
