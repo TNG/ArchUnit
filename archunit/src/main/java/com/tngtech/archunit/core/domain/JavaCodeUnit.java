@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
+import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -46,10 +47,14 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
  * in particular every place, where Java code with behavior, like calling other methods or accessing fields, can
  * be defined.
  */
-public abstract class JavaCodeUnit extends JavaMember implements HasParameterTypes, HasReturnType, HasThrowsClause<JavaCodeUnit> {
-    private final JavaClass returnType;
+public abstract class JavaCodeUnit
+        extends JavaMember
+        implements HasParameterTypes, HasReturnType, HasTypeParameters<JavaCodeUnit>, HasThrowsClause<JavaCodeUnit> {
+
+    private final JavaType returnType;
     private final JavaClassList parameters;
     private final String fullName;
+    private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
     private final Set<ReferencedClassObject> referencedClassObjects;
     private final Set<InstanceofCheck> instanceofChecks;
 
@@ -59,8 +64,9 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
 
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
-        this.returnType = builder.getReturnType();
-        this.parameters = builder.getParameters();
+        typeParameters = builder.getTypeParameters(this);
+        returnType = builder.getReturnType(this);
+        parameters = builder.getParameters();
         fullName = formatMethod(getOwner().getName(), getName(), getRawParameterTypes());
         referencedClassObjects = ImmutableSet.copyOf(builder.getReferencedClassObjects(this));
         instanceofChecks = ImmutableSet.copyOf(builder.getInstanceofChecks(this));
@@ -95,8 +101,14 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaClass getRawReturnType() {
+    public JavaType getReturnType() {
         return returnType;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public JavaClass getRawReturnType() {
+        return returnType.toErasure();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -161,6 +173,11 @@ public abstract class JavaCodeUnit extends JavaMember implements HasParameterTyp
     @SuppressWarnings("unchecked") // we know the 'owning' member is this code unit
     public Optional<? extends JavaAnnotation<? extends JavaCodeUnit>> tryGetAnnotationOfType(String typeName) {
         return (Optional<? extends JavaAnnotation<? extends JavaCodeUnit>>) super.tryGetAnnotationOfType(typeName);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public List<? extends JavaTypeVariable<? extends JavaCodeUnit>> getTypeParameters() {
+        return typeParameters;
     }
 
     void completeAccessesFrom(ImportContext context) {

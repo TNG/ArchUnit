@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Constructor;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
@@ -41,6 +42,12 @@ public final class JavaConstructor extends JavaCodeUnit {
         super(builder);
         throwsClause = builder.getThrowsClause(this);
         constructorSupplier = Suppliers.memoize(new ReflectConstructorSupplier());
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // Cast is safe, because OWNER always refers to this object
+    public List<JavaTypeVariable<JavaConstructor>> getTypeParameters() {
+        return (List<JavaTypeVariable<JavaConstructor>>) super.getTypeParameters();
     }
 
     @Override

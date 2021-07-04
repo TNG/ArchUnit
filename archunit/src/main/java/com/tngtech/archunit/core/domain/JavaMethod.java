@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
@@ -41,6 +42,12 @@ public class JavaMethod extends JavaCodeUnit {
         throwsClause = builder.getThrowsClause(this);
         methodSupplier = Suppliers.memoize(new ReflectMethodSupplier());
         annotationDefaultValue = createAnnotationDefaultValue.apply(this);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // Cast is safe, because OWNER always refers to this object
+    public List<JavaTypeVariable<JavaMethod>> getTypeParameters() {
+        return (List<JavaTypeVariable<JavaMethod>>) super.getTypeParameters();
     }
 
     @Override

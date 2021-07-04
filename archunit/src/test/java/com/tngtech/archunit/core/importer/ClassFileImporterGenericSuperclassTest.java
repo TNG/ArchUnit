@@ -330,6 +330,30 @@ public class ClassFileImporterGenericSuperclassTest {
     }
 
     @Test
+    public void considers_hierarchy_of_methods_and_classes_for_type_parameter_context() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class Level1<T1 extends String> {
+            <T2 extends T1> void level2() {
+                class BaseClass<T> {
+                }
+                class Level3<T3 extends T2> extends BaseClass<T3> {
+                }
+            }
+        }
+
+        Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3");
+        JavaType genericSuperclass = new ClassFileImporter()
+                .importClasses(innermostClass, Level1.class, String.class)
+                .get(innermostClass).getSuperclass().get();
+
+        assertThatType(genericSuperclass).as("generic superclass")
+                .hasActualTypeArguments(
+                        typeVariable("T3").withUpperBounds(
+                                typeVariable("T2").withUpperBounds(
+                                        typeVariable("T1").withUpperBounds(String.class))));
+    }
+
+    @Test
     public void imports_wildcards_of_generic_superclass_bound_by_type_variables() {
         @SuppressWarnings("unused")
         class BaseClass<A, B> {

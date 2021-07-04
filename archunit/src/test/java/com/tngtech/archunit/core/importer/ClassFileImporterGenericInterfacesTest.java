@@ -311,6 +311,29 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @Test
+    public void considers_hierarchy_of_methods_and_classes_for_type_parameter_context() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class Level1<T1 extends String> {
+            <T2 extends T1> void level2() {
+                class Level3<T3 extends T2> implements InterfaceWithOneTypeParameter<T3> {
+                }
+            }
+        }
+
+        Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3");
+        JavaType genericInterface = getOnlyElement(
+                new ClassFileImporter()
+                        .importClasses(innermostClass, Level1.class, String.class)
+                        .get(innermostClass).getInterfaces());
+
+        assertThatType(genericInterface).as("generic interface")
+                .hasActualTypeArguments(
+                        typeVariable("T3").withUpperBounds(
+                                typeVariable("T2").withUpperBounds(
+                                        typeVariable("T1").withUpperBounds(String.class))));
+    }
+
+    @Test
     public void imports_wildcards_of_generic_interface_bound_by_type_variables() {
         class Child<FIRST extends String, SECOND extends Serializable> implements InterfaceWithTwoTypeParameters<
                 ClassParameterWithSingleTypeParameter<? extends FIRST>,
@@ -419,7 +442,7 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @DataProvider
-    public static Object[][] data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions() {
+    public static Object[][] data_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions() {
         return testForEach(
                 Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions.ClassChild.class,
                 Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions.InterfaceChild.class
@@ -427,8 +450,8 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @Test
-    @UseDataProvider("data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions")
-    public void imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions(Class<?> testInput) {
+    @UseDataProvider
+    public void test_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions(Class<?> testInput) {
         JavaType genericInterface = getOnlyElement(
                 new ClassFileImporter()
                         .importClasses(testInput, String.class, Serializable.class, Cloneable.class,
@@ -485,7 +508,7 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @DataProvider
-    public static Object[][] data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds() {
+    public static Object[][] data_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds() {
         return testForEach(
                 Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds.ClassChild.class,
                 Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds.InterfaceChild.class
@@ -493,8 +516,8 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @Test
-    @UseDataProvider("data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds")
-    public void imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds(Class<?> testInput) {
+    @UseDataProvider
+    public void test_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds(Class<?> testInput) {
         JavaType genericInterface = getOnlyElement(
                 new ClassFileImporter().importClasses(testInput, List.class, Serializable.class, Map.class, String.class)
                         .get(testInput).getInterfaces());
@@ -520,7 +543,7 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @DataProvider
-    public static Object[][] data_of_imports_type_of_generic_interface_with_parameterized_array_bounds() {
+    public static Object[][] data_imports_type_of_generic_interface_with_parameterized_array_bounds() {
         return testForEach(
                 Data_of_imports_type_of_generic_interface_with_parameterized_array_bounds.ClassChild.class,
                 Data_of_imports_type_of_generic_interface_with_parameterized_array_bounds.InterfaceChild.class
@@ -528,8 +551,8 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @Test
-    @UseDataProvider("data_of_imports_type_of_generic_interface_with_parameterized_array_bounds")
-    public void imports_type_of_generic_interface_with_parameterized_array_bounds(Class<?> testInput) {
+    @UseDataProvider
+    public void test_imports_type_of_generic_interface_with_parameterized_array_bounds(Class<?> testInput) {
         JavaType genericInterface = getOnlyElement(
                 new ClassFileImporter().importClasses(testInput, InterfaceWithThreeTypeParameters.class, List.class, String.class)
                         .get(testInput).getInterfaces());
@@ -561,7 +584,7 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @DataProvider
-    public static Object[][] data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds() {
+    public static Object[][] data_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds() {
         return testForEach(
                 Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds.ClassChild.class,
                 Data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds.InterfaceChild.class
@@ -569,8 +592,8 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @Test
-    @UseDataProvider("data_of_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds")
-    public void imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds(Class<?> testInput) {
+    @UseDataProvider
+    public void test_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds(Class<?> testInput) {
         JavaType genericInterface = getOnlyElement(
                 new ClassFileImporter().importClasses(testInput, List.class, Serializable.class, Map.class, String.class)
                         .get(testInput).getInterfaces());
@@ -617,15 +640,15 @@ public class ClassFileImporterGenericInterfacesTest {
     }
 
     @DataProvider
-    public static Object[][] data_of_imports_multiple_generic_interfaces() {
+    public static Object[][] data_imports_multiple_generic_interfaces() {
         return testForEach(
                 Data_of_imports_multiple_generic_interfaces.ClassChild.class,
                 Data_of_imports_multiple_generic_interfaces.InterfaceChild.class);
     }
 
     @Test
-    @UseDataProvider("data_of_imports_multiple_generic_interfaces")
-    public void imports_multiple_generic_interfaces(Class<?> testInput) {
+    @UseDataProvider
+    public void test_imports_multiple_generic_interfaces(Class<?> testInput) {
         JavaClass child = new ClassFileImporter()
                 .importClasses(testInput,
                         InterfaceWithOneTypeParameter.class, InterfaceWithTwoTypeParameters.class, InterfaceWithThreeTypeParameters.class,

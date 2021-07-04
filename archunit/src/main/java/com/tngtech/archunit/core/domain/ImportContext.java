@@ -48,6 +48,8 @@ public interface ImportContext {
 
     Optional<JavaClass> createEnclosingClass(JavaClass owner);
 
+    Optional<JavaCodeUnit> createEnclosingCodeUnit(JavaClass owner);
+
     Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit);
 
     Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit);

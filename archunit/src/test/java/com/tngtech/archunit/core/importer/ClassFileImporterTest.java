@@ -3,6 +3,7 @@ package com.tngtech.archunit.core.importer;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -520,6 +521,104 @@ public class ClassFileImporterTest {
 
         call = getOnlyElement(localClass.getCodeUnitWithParameterTypes("call").getMethodCallsFromSelf());
         assertThatCall(call).isFrom("call").isTo(calledTarget).inLineNumber(21);
+    }
+
+    @Test
+    public void imports_enclosing_method_of_local_class() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class ClassCreatingLocalClassInMethod {
+            void someMethod() {
+                class SomeLocalClass {
+                }
+            }
+        }
+        String localClassName = ClassCreatingLocalClassInMethod.class.getName() + "$1SomeLocalClass";
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                ClassCreatingLocalClassInMethod.class, Class.forName(localClassName)
+        );
+        JavaClass enclosingClass = classes.get(ClassCreatingLocalClassInMethod.class);
+        JavaClass localClass = classes.get(localClassName);
+
+        assertThat(localClass.getEnclosingCodeUnit()).contains(enclosingClass.getMethod("someMethod"));
+        assertThat(localClass.getEnclosingClass()).contains(enclosingClass);
+    }
+
+    @Test
+    public void imports_enclosing_constructor_of_local_class() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class ClassCreatingLocalClassInConstructor {
+            ClassCreatingLocalClassInConstructor() {
+                class SomeLocalClass {
+                }
+            }
+        }
+        String localClassName = ClassCreatingLocalClassInConstructor.class.getName() + "$1SomeLocalClass";
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                ClassCreatingLocalClassInConstructor.class, Class.forName(localClassName)
+        );
+        JavaClass enclosingClass = classes.get(ClassCreatingLocalClassInConstructor.class);
+        JavaClass localClass = classes.get(localClassName);
+
+        assertThat(localClass.getEnclosingCodeUnit()).contains(enclosingClass.getConstructor(getClass()));
+        assertThat(localClass.getEnclosingClass()).contains(enclosingClass);
+    }
+
+    @Test
+    public void imports_enclosing_method_of_anonymous_class() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class ClassCreatingAnonymousClassInMethod {
+            void someMethod() {
+                new Serializable() {
+                };
+            }
+        }
+        String anonymousClassName = ClassCreatingAnonymousClassInMethod.class.getName() + "$1";
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                ClassCreatingAnonymousClassInMethod.class, Class.forName(anonymousClassName)
+        );
+        JavaClass enclosingClass = classes.get(ClassCreatingAnonymousClassInMethod.class);
+        JavaClass anonymousClass = classes.get(anonymousClassName);
+
+        assertThat(anonymousClass.getEnclosingCodeUnit()).contains(enclosingClass.getMethod("someMethod"));
+        assertThat(anonymousClass.getEnclosingClass()).contains(enclosingClass);
+    }
+
+    @Test
+    public void imports_enclosing_constructor_of_anonymous_class() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class ClassCreatingAnonymousClassInConstructor {
+            ClassCreatingAnonymousClassInConstructor() {
+                new Serializable() {
+                };
+            }
+        }
+        String anonymousClassName = ClassCreatingAnonymousClassInConstructor.class.getName() + "$1";
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                ClassCreatingAnonymousClassInConstructor.class, Class.forName(anonymousClassName)
+        );
+        JavaClass enclosingClass = classes.get(ClassCreatingAnonymousClassInConstructor.class);
+        JavaClass anonymousClass = classes.get(anonymousClassName);
+
+        assertThat(anonymousClass.getEnclosingCodeUnit()).contains(enclosingClass.getConstructor(getClass()));
+        assertThat(anonymousClass.getEnclosingClass()).contains(enclosingClass);
+    }
+
+    @Test
+    public void imports_no_enclosing_code_unit_of_anonymous_class_defined_outside_of_method() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class ClassCreatingAnonymousClassInConstructor {
+            final Serializable field = new Serializable() {
+            };
+        }
+        String anonymousClassName = ClassCreatingAnonymousClassInConstructor.class.getName() + "$1";
+        JavaClasses classes = new ClassFileImporter().importClasses(
+                ClassCreatingAnonymousClassInConstructor.class, Class.forName(anonymousClassName)
+        );
+        JavaClass enclosingClass = classes.get(ClassCreatingAnonymousClassInConstructor.class);
+        JavaClass anonymousClass = classes.get(anonymousClassName);
+
+        assertThat(anonymousClass.getEnclosingClass()).contains(enclosingClass);
+        assertThat(anonymousClass.getEnclosingCodeUnit()).isAbsent();
     }
 
     @Test

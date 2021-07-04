@@ -140,6 +140,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new JavaMembersAssertion(members);
     }
 
+    public static JavaCodeUnitAssertion<JavaCodeUnit, ?> assertThatCodeUnit(JavaCodeUnit codeUnit) {
+        return new JavaCodeUnitAssertion<>(codeUnit, JavaCodeUnitAssertion.class);
+    }
+
     public static JavaMethodsAssertion assertThatMethods(Iterable<JavaMethod> methods) {
         return new JavaMethodsAssertion(methods);
     }

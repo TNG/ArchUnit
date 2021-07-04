@@ -30,25 +30,23 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.TypeParametersBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 class ClassFileImportRecord {
-    private static final Logger LOG = LoggerFactory.getLogger(ClassFileImportRecord.class);
-
-    private static final TypeParametersBuilder NO_TYPE_PARAMETERS =
-            new TypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptyList());
+    private static final JavaClassTypeParametersBuilder NO_TYPE_PARAMETERS =
+            new JavaClassTypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptyList());
 
     private final Map<String, JavaClass> classes = new HashMap<>();
 
     private final Map<String, String> superclassNamesByOwner = new HashMap<>();
     private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
-    private final Map<String, TypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
+    private final Map<String, JavaClassTypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
     private final Map<String, JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilderByOwner = new HashMap<>();
     private final Map<String, Set<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
@@ -57,7 +55,7 @@ class ClassFileImportRecord {
     private final Map<String, DomainBuilders.JavaStaticInitializerBuilder> staticInitializerBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
     private final Map<String, DomainBuilders.JavaAnnotationBuilder.ValueBuilder> annotationDefaultValuesByOwner = new HashMap<>();
-    private final EnclosingClassesByInnerClasses enclosingClassNamesByOwner = new EnclosingClassesByInnerClasses();
+    private final EnclosingDeclarationsByInnerClasses enclosingDeclarationsByOwner = new EnclosingDeclarationsByInnerClasses();
 
     private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
@@ -74,7 +72,7 @@ class ClassFileImportRecord {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
     }
 
-    void addTypeParameters(String ownerName, TypeParametersBuilder builder) {
+    void addTypeParameters(String ownerName, JavaClassTypeParametersBuilder builder) {
         typeParametersBuilderByOwner.put(ownerName, builder);
     }
 
@@ -118,7 +116,11 @@ class ClassFileImportRecord {
     }
 
     void setEnclosingClass(String ownerName, String enclosingClassName) {
-        enclosingClassNamesByOwner.register(ownerName, enclosingClassName);
+        enclosingDeclarationsByOwner.registerEnclosingClass(ownerName, enclosingClassName);
+    }
+
+    void setEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit) {
+        enclosingDeclarationsByOwner.registerEnclosingCodeUnit(ownerName, enclosingCodeUnit);
     }
 
     Optional<String> getSuperclassFor(String name) {
@@ -129,7 +131,7 @@ class ClassFileImportRecord {
         return interfaceNamesByOwner.get(ownerName);
     }
 
-    TypeParametersBuilder getTypeParameterBuildersFor(String ownerName) {
+    JavaClassTypeParametersBuilder getTypeParameterBuildersFor(String ownerName) {
         if (!typeParametersBuilderByOwner.containsKey(ownerName)) {
             return NO_TYPE_PARAMETERS;
         }
@@ -222,7 +224,11 @@ class ClassFileImportRecord {
     }
 
     Optional<String> getEnclosingClassFor(String ownerName) {
-        return enclosingClassNamesByOwner.get(ownerName);
+        return enclosingDeclarationsByOwner.getEnclosingClassName(ownerName);
+    }
+
+    Optional<CodeUnit> getEnclosingCodeUnitFor(String ownerName) {
+        return enclosingDeclarationsByOwner.getEnclosingCodeUnit(ownerName);
     }
 
     void registerFieldAccess(RawAccessRecord.ForField record) {
@@ -283,32 +289,30 @@ class ClassFileImportRecord {
         return declaringClassName + "|" + methodName + "|" + descriptor;
     }
 
-    // NOTE: ASM calls visitInnerClass and visitOuterClass several times, sometimes when the outer class is imported
-    //       and sometimes again when the inner class is imported. To make it easier, we'll just deal with duplicate
-    //       registrations, as there is no harm, as long as no conflicting information is recorded.
-    private static class EnclosingClassesByInnerClasses {
-        private final Map<String, String> innerToOuter = new HashMap<>();
+    private static class EnclosingDeclarationsByInnerClasses {
+        private final Map<String, String> innerClassNameToEnclosingClassName = new HashMap<>();
+        private final Map<String, CodeUnit> innerClassNameToEnclosingCodeUnit = new HashMap<>();
 
-        void register(String innerName, String outerName) {
-            if (registeringAllowed(innerName, outerName)) {
-                innerToOuter.put(innerName, outerName);
-            }
+        void registerEnclosingClass(String innerName, String outerName) {
+            checkArgument(!innerClassNameToEnclosingClassName.containsKey(innerName),
+                    "Can't register multiple enclosing classes, this is likely a bug!");
+
+            innerClassNameToEnclosingClassName.put(innerName, outerName);
         }
 
-        private boolean registeringAllowed(String innerName, String outerName) {
-            boolean registeringAllowed = !innerToOuter.containsKey(innerName) ||
-                    innerToOuter.get(innerName).equals(outerName);
+        void registerEnclosingCodeUnit(String innerName, CodeUnit codeUnit) {
+            checkArgument(!innerClassNameToEnclosingCodeUnit.containsKey(innerName),
+                    "Can't register multiple enclosing code units, this is likely a bug!");
 
-            if (!registeringAllowed) {
-                LOG.warn("Skipping registering outer class {} for inner class {}, since already outer class {} was registered",
-                        outerName, innerName, innerToOuter.get(innerName));
-            }
-
-            return registeringAllowed;
+            innerClassNameToEnclosingCodeUnit.put(innerName, codeUnit);
         }
 
-        public Optional<String> get(String ownerName) {
-            return Optional.fromNullable(innerToOuter.get(ownerName));
+        Optional<String> getEnclosingClassName(String ownerName) {
+            return Optional.fromNullable(innerClassNameToEnclosingClassName.get(ownerName));
+        }
+
+        Optional<CodeUnit> getEnclosingCodeUnit(String ownerName) {
+            return Optional.fromNullable(innerClassNameToEnclosingCodeUnit.get(ownerName));
         }
     }
 }

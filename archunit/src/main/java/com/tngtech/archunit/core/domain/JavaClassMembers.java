@@ -138,6 +138,10 @@ class JavaClassMembers {
         return findMatchingCodeUnit(codeUnits, name, parameters);
     }
 
+    Optional<JavaCodeUnit> tryGetCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
+        return tryFindMatchingCodeUnit(codeUnits, name, parameters);
+    }
+
     JavaMethod getMethod(String name, List<String> parameterTypeNames) {
         return findMatchingCodeUnit(methods, name, ImmutableList.copyOf(parameterTypeNames));
     }

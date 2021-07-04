@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Member;
+import java.util.List;
 import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
@@ -44,6 +45,12 @@ public class JavaStaticInitializer extends JavaCodeUnit {
 
     JavaStaticInitializer(JavaStaticInitializerBuilder builder) {
         super(builder);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // Cast is safe, because OWNER always refers to this object
+    public List<JavaTypeVariable<JavaStaticInitializer>> getTypeParameters() {
+        return (List<JavaTypeVariable<JavaStaticInitializer>>) super.getTypeParameters();
     }
 
     @Override

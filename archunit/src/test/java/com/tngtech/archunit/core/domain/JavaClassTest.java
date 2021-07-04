@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -96,8 +97,11 @@ import static com.tngtech.archunit.testutil.Conditions.codeUnitWithSignature;
 import static com.tngtech.archunit.testutil.Conditions.containing;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
 import static com.tngtech.archunit.testutil.assertion.DependenciesAssertion.from;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -414,7 +418,7 @@ public class JavaClassTest {
     }
 
     @Test
-    public void getCodeUnitWithName() {
+    public void getCodeUnitWithParameterTypes() {
         final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
 
         assertIllegalArgumentException("childMethod", new Runnable() {
@@ -444,6 +448,25 @@ public class JavaClassTest {
                 .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
         assertThat(clazz.getCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Object.class.getName()))
                 .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+    }
+
+    @Test
+    public void tryGetCodeUnitWithParameterTypes() {
+        final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
+
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>singletonList(String.class)).get())
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", singletonList(String.class.getName())).get())
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>singletonList(Object.class)).get())
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, singletonList(Object.class.getName())).get())
+                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>emptyList())).isAbsent();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isAbsent();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isAbsent();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isAbsent();
     }
 
     private Condition<JavaCodeUnit> equivalentCodeUnit(final Class<?> owner, final String methodName, final Class<?> paramType) {
@@ -569,11 +592,21 @@ public class JavaClassTest {
         }
         @SuppressWarnings("unused")
         class SomeClass<FIRST, SECOND> {
-            SomeGenericType<Comparable<SomeGenericType<FIRST, SECOND>>,
-                    Map<
-                            Map.Entry<FIRST, Map.Entry<String, FIRST>>,
-                            Map<? extends BufferedInputStream[][],
-                                    Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>>>>> field;
+            // @formatter:off
+            SomeGenericType<
+              Comparable<SomeGenericType<FIRST, SECOND>>,
+              Map<
+                Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                Map<
+                  ? extends BufferedInputStream[][],
+                  Map<
+                    ? extends Serializable,
+                    List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>
+                  >
+                >
+              >
+            > field;
+            // @formatter:on
         }
 
         JavaClass javaClass = importClassWithContext(SomeClass.class);
@@ -585,6 +618,49 @@ public class JavaClassTest {
                         .from(SomeClass.class)
                         .withExpectedDescriptionPatternTemplate(
                                 ".*has generic type <" + quote(SomeGenericType.class.getName()) +
+                                        ".+> with type argument depending on <#target>.*")
+                        .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+
+                        .from(SomeClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
+    public void direct_dependencies_from_self_by_method_return_type_declarations() {
+        @SuppressWarnings("unused")
+        class SomeGenericType<FIRST, SECOND> {
+        }
+        @SuppressWarnings("unused")
+        class SomeClass<FIRST, SECOND> {
+            // @formatter:off
+            SomeGenericType<
+              Comparable<SomeGenericType<FIRST, SECOND>>,
+              Map<
+                Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                Map<
+                  ? extends BufferedInputStream[][],
+                  Map<
+                    ? extends Serializable,
+                    List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>
+                  >
+                >
+              >
+            > method() {
+              return null;
+            }
+            // @formatter:on
+        }
+
+        JavaClass javaClass = importClassWithContext(SomeClass.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(from(SomeClass.class).to(SomeGenericType.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Method <%s.method()> has return type <%s>", SomeClass.class.getName(), SomeGenericType.class.getName())
+
+                        .from(SomeClass.class)
+                        .withExpectedDescriptionPatternTemplate(
+                                ".*has generic return type <" + quote(SomeGenericType.class.getName()) +
                                         ".+> with type argument depending on <#target>.*")
                         .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
 
@@ -685,7 +761,7 @@ public class JavaClassTest {
     }
 
     @Test
-    public void direct_dependencies_from_self_by_type_parameter() {
+    public void direct_dependencies_from_self_by_class_type_parameters() {
         @SuppressWarnings("unused")
         class ClassWithTypeParameters<
                 FIRST extends List<?> & Serializable & Comparable<FIRST>,
@@ -710,6 +786,57 @@ public class JavaClassTest {
                         .inLocation(getClass(), 0)
 
                         .from(ClassWithTypeParameters.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @DataProvider
+    public static Object[][] data_direct_dependencies_from_self_by_code_unit_type_parameters() {
+        @SuppressWarnings("unused")
+        class TypeParametersOnConstructor {
+            <
+                    FIRST extends List<?> & Serializable & Comparable<FIRST>,
+                    SECOND extends Map<
+                            Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                            Map<? extends BufferedInputStream[][],
+                                    Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>>>>,
+                    SELF extends TypeParametersOnConstructor
+                    > TypeParametersOnConstructor() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class TypeParametersOnMethod {
+            <
+                    FIRST extends List<?> & Serializable & Comparable<FIRST>,
+                    SECOND extends Map<
+                            Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                            Map<? extends BufferedInputStream[][],
+                                    Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>>>>,
+                    SELF extends TypeParametersOnMethod
+                    > void typeParametersOnMethod() {
+            }
+        }
+        return testForEach(
+                importClasses(TypeParametersOnConstructor.class).get(TypeParametersOnConstructor.class),
+                importClasses(TypeParametersOnMethod.class).get(TypeParametersOnMethod.class)
+        );
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_direct_dependencies_from_self_by_code_unit_type_parameters(JavaClass javaClass) {
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(from(javaClass)
+                        .withExpectedDescriptionTemplate("type parameter 'FIRST' depending on")
+                        .to(List.class, Serializable.class, Comparable.class)
+                        .inLocation(getClass(), 0)
+
+                        .from(javaClass)
+                        .withExpectedDescriptionTemplate("type parameter 'SECOND' depending on")
+                        .to(Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+                        .inLocation(getClass(), 0)
+
+                        .from(javaClass).to(BufferedInputStream.class).inLocation(getClass(), 0)
                         .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
                 );
     }
@@ -871,12 +998,21 @@ public class JavaClassTest {
         }
         @SuppressWarnings("unused")
         class FirstClass {
+            // @formatter:off
             FirstGenericType<
-                    Comparable<FirstClass>,
-                    Map<
-                            Map.Entry<?, Map.Entry<String, ?>>,
-                            Map<? extends BufferedInputStream[][],
-                                    Map<? extends Serializable, List<List<? extends Set<? super Iterable<? super Map<?, ? extends File>>>>>>>>> field;
+              Comparable<FirstClass>,
+              Map<
+                Map.Entry<?, Map.Entry<String, ?>>,
+                Map<
+                  ? extends BufferedInputStream[][],
+                  Map<
+                    ? extends Serializable,
+                    List<List<? extends Set<? super Iterable<? super Map<?, ? extends File>>>>>
+                  >
+                >
+              >
+            > field;
+            // @formatter:on
         }
         @SuppressWarnings("unused")
         class SecondGenericType<T> {
@@ -895,6 +1031,59 @@ public class JavaClassTest {
 
                         .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
                         .withDescriptionMatching("Field <%s.field> has generic type <%s.+> with type argument depending on <%s>.*",
+                                SecondChild.class.getName(), SecondGenericType.class.getName(), File.class.getName())
+                );
+
+        assertThatDependencies(javaClasses.get(BufferedInputStream.class).getDirectDependenciesToSelf())
+                .contain(from(FirstClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_generic_method_return_type_parameters() {
+        @SuppressWarnings("unused")
+        class FirstGenericType<X, Y> {
+        }
+        @SuppressWarnings("unused")
+        class FirstClass {
+            // @formatter:off
+            FirstGenericType<
+              Comparable<FirstClass>,
+              Map<
+                Map.Entry<?, Map.Entry<String, ?>>,
+                Map<
+                  ? extends BufferedInputStream[][],
+                  Map<
+                    ? extends Serializable,
+                    List<List<? extends Set<? super Iterable<? super Map<?, ? extends File>>>>>
+                  >
+                >
+              >
+            > method() {
+              return null;
+            }
+            // @formatter:on
+        }
+        @SuppressWarnings("unused")
+        class SecondGenericType<T> {
+        }
+        @SuppressWarnings("unused")
+        class SecondChild {
+            SecondGenericType<Map<?, ? super File>> method() {
+                return null;
+            }
+        }
+
+        JavaClasses javaClasses = importClassesWithContext(FirstClass.class, SecondChild.class, BufferedInputStream.class, File.class);
+
+        assertThatDependencies(javaClasses.get(File.class).getDirectDependenciesToSelf())
+                .contain(from(FirstClass.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionMatching("Method <%s.method\\(\\)> has generic return type <%s.+> with type argument depending on <%s>.*",
+                                FirstClass.class.getName(), FirstGenericType.class.getName(), File.class.getName())
+
+                        .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionMatching("Method <%s.method\\(\\)> has generic return type <%s.+> with type argument depending on <%s>.*",
                                 SecondChild.class.getName(), SecondGenericType.class.getName(), File.class.getName())
                 );
 
@@ -1015,7 +1204,7 @@ public class JavaClassTest {
     }
 
     @Test
-    public void direct_dependencies_to_self_by_type_parameter() {
+    public void direct_dependencies_to_self_by_class_type_parameters() {
         class ClassOtherTypeSignaturesDependOn {
         }
         @SuppressWarnings("unused")
@@ -1038,6 +1227,79 @@ public class JavaClassTest {
                         .withDescriptionContaining("type parameter 'U' depending on")
 
                         .from(SecondDependingOnOtherThroughTypeParameter.class).to(ClassOtherTypeSignaturesDependOn.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'V' depending on")
+                );
+    }
+
+    @DataProvider
+    public static Object[][] data_direct_dependencies_to_self_by_code_unit_type_parameters() {
+        class ClassOtherConstructorTypeSignaturesDependOn {
+        }
+        @SuppressWarnings("unused")
+        class FirstDependingOnOtherThroughConstructorTypeParameter {
+            <T extends ClassOtherConstructorTypeSignaturesDependOn> FirstDependingOnOtherThroughConstructorTypeParameter() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class SecondDependingOnOtherThroughConstructorTypeParameter {
+            <
+                    U extends Map<?, List<? super Set<? extends ClassOtherConstructorTypeSignaturesDependOn>>>,
+                    V extends Map<ClassOtherConstructorTypeSignaturesDependOn, ClassOtherConstructorTypeSignaturesDependOn>
+                    > SecondDependingOnOtherThroughConstructorTypeParameter() {
+            }
+        }
+
+        class ClassOtherMethodTypeSignaturesDependOn {
+        }
+        @SuppressWarnings("unused")
+        class FirstDependingOnOtherThroughMethodTypeParameter {
+            <T extends ClassOtherMethodTypeSignaturesDependOn> void firstDependingOnOtherThroughMethodTypeParameter() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class SecondDependingOnOtherThroughMethodTypeParameter {
+            <
+                    U extends Map<?, List<? super Set<? extends ClassOtherMethodTypeSignaturesDependOn>>>,
+                    V extends Map<ClassOtherMethodTypeSignaturesDependOn, ClassOtherMethodTypeSignaturesDependOn>
+                    > void secondDependingOnOtherThroughMethodTypeParameter() {
+            }
+        }
+
+        JavaClasses dependenciesThroughConstructorTypeParameters = importClasses(
+                ClassOtherConstructorTypeSignaturesDependOn.class,
+                FirstDependingOnOtherThroughConstructorTypeParameter.class,
+                SecondDependingOnOtherThroughConstructorTypeParameter.class
+        );
+        JavaClasses dependenciesThroughMethodTypeParameters = importClasses(
+                ClassOtherMethodTypeSignaturesDependOn.class,
+                FirstDependingOnOtherThroughMethodTypeParameter.class,
+                SecondDependingOnOtherThroughMethodTypeParameter.class
+        );
+        return $$(
+                $(
+                        dependenciesThroughConstructorTypeParameters.get(FirstDependingOnOtherThroughConstructorTypeParameter.class),
+                        dependenciesThroughConstructorTypeParameters.get(SecondDependingOnOtherThroughConstructorTypeParameter.class),
+                        dependenciesThroughConstructorTypeParameters.get(ClassOtherConstructorTypeSignaturesDependOn.class)
+                ),
+                $(
+                        dependenciesThroughMethodTypeParameters.get(FirstDependingOnOtherThroughMethodTypeParameter.class),
+                        dependenciesThroughMethodTypeParameters.get(SecondDependingOnOtherThroughMethodTypeParameter.class),
+                        dependenciesThroughMethodTypeParameters.get(ClassOtherMethodTypeSignaturesDependOn.class)
+                )
+        );
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_direct_dependencies_to_self_by_code_unit_type_parameters(JavaClass firstOrigin, JavaClass secondOrigin, JavaClass expectedTarget) {
+        assertThatDependencies(expectedTarget.getDirectDependenciesToSelf())
+                .contain(from(firstOrigin).to(expectedTarget).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'T' depending on")
+
+                        .from(secondOrigin).to(expectedTarget).inLocation(getClass(), 0)
+                        .withDescriptionContaining("type parameter 'U' depending on")
+
+                        .from(secondOrigin).to(expectedTarget).inLocation(getClass(), 0)
                         .withDescriptionContaining("type parameter 'V' depending on")
                 );
     }

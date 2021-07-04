@@ -43,6 +43,7 @@ import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
+import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -68,7 +69,9 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
-public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
+public class JavaClass
+        implements JavaType, HasName.AndFullName, HasTypeParameters<JavaClass>, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
+
     private final Optional<Source> source;
     private final SourceCodeLocation sourceCodeLocation;
     private final JavaClassDescriptor descriptor;
@@ -130,7 +133,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             return result;
         }
     });
-    private Optional<JavaClass> enclosingClass = Optional.absent();
+    private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
     private Optional<JavaClass> componentType = Optional.absent();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
@@ -383,7 +386,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
      */
     @PublicAPI(usage = ACCESS)
     public boolean isNestedClass() {
-        return enclosingClass.isPresent();
+        return enclosingDeclaration.isPresent();
     }
 
     /**
@@ -641,6 +644,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         return Optional.fromNullable(annotations.get(typeName));
     }
 
+    @Override
     @PublicAPI(usage = ACCESS)
     public List<JavaTypeVariable<JavaClass>> getTypeParameters() {
         return typeParameters;
@@ -748,9 +752,53 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
                 .build();
     }
 
+    /**
+     * Returns the enclosing class if this class is nested within another class.
+     * Otherwise {@link Optional#absent()}.<br><br>
+     * Take for example
+     * <pre><code>
+     * class OuterClass {
+     *     class InnerClass{
+     *     }
+     * }
+     * </code></pre>
+     * Then {@code InnerClass.}{@link #getEnclosingClass()} would return {@code Optional.of(OuterClass)}.
+     * While {@code OuterClass.}{@link #getEnclosingClass()} would return {@link Optional#absent()}.
+     */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getEnclosingClass() {
-        return enclosingClass;
+        return enclosingDeclaration.getEnclosingClass();
+    }
+
+    /**
+     * Returns the enclosing {@link JavaCodeUnit} if this class is declared within the context of a {@link JavaCodeUnit},
+     * e.g. a method or a constructor. Otherwise {@link Optional#absent()}.<br><br>
+     * Take for example
+     * <pre><code>
+     * class OuterClass {
+     *     OuterClass() {
+     *         // creates a new anonymous class within the scope of the constructor
+     *         new Serializable() {};
+     *     }
+     *
+     *     void someMethod() {
+     *         // creates a new local class within the scope of the method
+     *         class LocalClass {}
+     *     }
+     *
+     *     class InnerClass {}
+     * }
+     * </code></pre>
+     * Then {@code anonymousSerializable.}{@link #getEnclosingCodeUnit()} would return the {@link JavaConstructor}
+     * {@code OuterClass()} and {@code LocalClass.}{@link #getEnclosingCodeUnit()} would return the {@link JavaMethod}
+     * {@code void someMethod()}.<br>
+     * On the other hand {@code OuterClass.}{@link #getEnclosingCodeUnit()} or
+     * {@code InnerClass.}{@link #getEnclosingCodeUnit()} would return {@link Optional#absent()}, since they are
+     * not defined within the context of a {@link JavaCodeUnit}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaCodeUnit> getEnclosingCodeUnit() {
+        return enclosingDeclaration.getEnclosingCodeUnit();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -838,11 +886,29 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
     }
 
     /**
+     * Same as {@link #getCodeUnitWithParameterTypes(String, List)}, but will return {@link Optional#absent()}
+     * if there is no such {@link JavaCodeUnit}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaCodeUnit> tryGetCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
+        return tryGetCodeUnitWithParameterTypeNames(name, namesOf(parameters));
+    }
+
+    /**
      * @see #getCodeUnitWithParameterTypeNames(String, String...)
      */
     @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
         return members.getCodeUnitWithParameterTypeNames(name, parameters);
+    }
+
+    /**
+     * Same as {@link #getCodeUnitWithParameterTypeNames(String, List)}, but will return {@link Optional#absent()}
+     * if there is no such {@link JavaCodeUnit}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public Optional<JavaCodeUnit> tryGetCodeUnitWithParameterTypeNames(String name, List<String> parameters) {
+        return members.tryGetCodeUnitWithParameterTypeNames(name, parameters);
     }
 
     /**
@@ -1254,9 +1320,16 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         this.interfaces = this.interfaces.withRawTypes(rawInterfaces);
     }
 
-    void completeEnclosingClassFrom(ImportContext context) {
-        enclosingClass = context.createEnclosingClass(this);
-        completionProcess.markEnclosingClassComplete();
+    void completeEnclosingDeclarationFrom(ImportContext context) {
+        enclosingDeclaration = createEnclosingDeclaration(context);
+        completionProcess.markEnclosingDeclarationComplete();
+    }
+
+    private EnclosingDeclaration createEnclosingDeclaration(ImportContext context) {
+        Optional<JavaCodeUnit> enclosingCodeUnit = context.createEnclosingCodeUnit(this);
+        return enclosingCodeUnit.isPresent()
+                ? EnclosingDeclaration.ofCodeUnit(enclosingCodeUnit.get())
+                : EnclosingDeclaration.ofClass(context.createEnclosingClass(this));
     }
 
     void completeTypeParametersFrom(ImportContext context) {
@@ -1407,9 +1480,41 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
         }
     }
 
+    private static class EnclosingDeclaration {
+        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.<JavaCodeUnit>absent(), Optional.<JavaClass>absent());
+
+        private final Optional<JavaCodeUnit> enclosingCodeUnit;
+        private final Optional<JavaClass> enclosingClass;
+
+        private EnclosingDeclaration(Optional<JavaCodeUnit> enclosingCodeUnit, Optional<JavaClass> enclosingClass) {
+            this.enclosingCodeUnit = checkNotNull(enclosingCodeUnit);
+            this.enclosingClass = checkNotNull(enclosingClass);
+        }
+
+        boolean isPresent() {
+            return enclosingClass.isPresent();
+        }
+
+        Optional<JavaClass> getEnclosingClass() {
+            return enclosingClass;
+        }
+
+        Optional<JavaCodeUnit> getEnclosingCodeUnit() {
+            return enclosingCodeUnit;
+        }
+
+        static EnclosingDeclaration ofCodeUnit(JavaCodeUnit codeUnit) {
+            return new EnclosingDeclaration(Optional.of(codeUnit), Optional.of(codeUnit.getOwner()));
+        }
+
+        static EnclosingDeclaration ofClass(Optional<JavaClass> clazz) {
+            return new EnclosingDeclaration(Optional.<JavaCodeUnit>absent(), clazz);
+        }
+    }
+
     private static class CompletionProcess {
         private boolean classHierarchyComplete = false;
-        private boolean enclosingClassComplete = false;
+        private boolean enclosingDeclarationComplete = false;
         private boolean typeParametersComplete = false;
         private boolean genericSuperclassComplete = false;
         private boolean genericInterfacesComplete = false;
@@ -1422,7 +1527,7 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
 
         boolean hasFinished() {
             return classHierarchyComplete
-                    && enclosingClassComplete
+                    && enclosingDeclarationComplete
                     && typeParametersComplete
                     && genericSuperclassComplete
                     && genericInterfacesComplete
@@ -1435,8 +1540,8 @@ public class JavaClass implements JavaType, HasName.AndFullName, HasAnnotations<
             this.classHierarchyComplete = true;
         }
 
-        public void markEnclosingClassComplete() {
-            this.enclosingClassComplete = true;
+        public void markEnclosingDeclarationComplete() {
+            this.enclosingDeclarationComplete = true;
         }
 
         public void markTypeParametersComplete() {

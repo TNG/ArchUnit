@@ -25,4 +25,11 @@ public class ServiceHelper<
     @Secured
     public ServiceHelper(String properlySecured) {
     }
+
+    static <
+            METHOD_TYPE_PARAMETER_VIOLATING_LAYER_RULE extends SomeUtility,
+            ANOTHER_METHOD_TYPE_PARAMETER_VIOLATING_LAYER_RULE extends Map<?, Set<? super SomeEnum>>>
+    ServiceHelper<METHOD_TYPE_PARAMETER_VIOLATING_LAYER_RULE, ANOTHER_METHOD_TYPE_PARAMETER_VIOLATING_LAYER_RULE> violatingLayerRuleByMethodTypeParameters() {
+        return new ServiceHelper<>();
+    }
 }
