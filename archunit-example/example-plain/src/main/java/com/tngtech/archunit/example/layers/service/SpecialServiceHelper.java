@@ -11,4 +11,8 @@ import com.tngtech.archunit.example.layers.controller.one.SomeEnum;
 @SuppressWarnings("unused")
 public abstract class SpecialServiceHelper extends ServiceHelper<SomeUtility, HashMap<?, Set<? super SomeEnum>>> implements List<Set<? super SomeUtility>> {
     Map<?, Map<SomeEnum, ? extends SomeUtility>> fieldWithGenericTypeViolatingLayerRule;
+
+    Map<?, Map<SomeEnum, ? extends SomeUtility>> methodWithGenericReturnTypeViolatingLayerRule() {
+        return null;
+    }
 }

@@ -201,7 +201,6 @@ public final class DomainBuilders {
     public static final class JavaFieldBuilder extends JavaMemberBuilder<JavaField, JavaFieldBuilder> {
         private Optional<JavaTypeCreationProcess<JavaField>> genericType;
         private JavaClassDescriptor rawType;
-        private ClassesByTypeName importedClasses;
 
         JavaFieldBuilder() {
         }
@@ -228,14 +227,14 @@ public final class DomainBuilders {
 
         @Override
         JavaField construct(JavaFieldBuilder builder, ClassesByTypeName importedClasses) {
-            this.importedClasses = importedClasses;
             return DomainObjectCreationContext.createJavaField(builder);
         }
     }
 
     @Internal
     public abstract static class JavaCodeUnitBuilder<OUTPUT, SELF extends JavaCodeUnitBuilder<OUTPUT, SELF>> extends JavaMemberBuilder<OUTPUT, SELF> {
-        private JavaClassDescriptor returnType;
+        private Optional<JavaTypeCreationProcess<JavaCodeUnit>> genericReturnType;
+        private JavaClassDescriptor rawReturnType;
         private List<JavaClassDescriptor> parameters;
         private JavaCodeUnitTypeParametersBuilder typeParametersBuilder;
         private List<JavaClassDescriptor> throwsDeclarations;
@@ -245,8 +244,9 @@ public final class DomainBuilders {
         private JavaCodeUnitBuilder() {
         }
 
-        SELF withReturnType(JavaClassDescriptor type) {
-            returnType = type;
+        SELF withReturnType(Optional<JavaTypeCreationProcess<JavaCodeUnit>> genericReturnType, JavaClassDescriptor rawReturnType) {
+            this.genericReturnType = genericReturnType;
+            this.rawReturnType = rawReturnType;
             return self();
         }
 
@@ -284,15 +284,21 @@ public final class DomainBuilders {
         }
 
         String getReturnTypeName() {
-            return returnType.getFullyQualifiedClassName();
+            return rawReturnType.getFullyQualifiedClassName();
         }
 
         boolean hasNoParameters() {
             return parameters.isEmpty();
         }
 
-        public JavaClass getReturnType() {
-            return get(returnType.getFullyQualifiedClassName());
+        public JavaType getReturnType(JavaCodeUnit codeUnit) {
+            return genericReturnType.isPresent()
+                    ? genericReturnType.get().finish(codeUnit, allTypeParametersInContextOf(codeUnit), importedClasses)
+                    : get(rawReturnType.getFullyQualifiedClassName());
+        }
+
+        private Iterable<JavaTypeVariable<?>> allTypeParametersInContextOf(JavaCodeUnit codeUnit) {
+            return FluentIterable.from(getTypeParametersOf(codeUnit)).append(allTypeParametersInEnclosingContextOf(codeUnit));
         }
 
         public JavaClassList getParameters() {
@@ -549,7 +555,7 @@ public final class DomainBuilders {
     @Internal
     public static final class JavaStaticInitializerBuilder extends JavaCodeUnitBuilder<JavaStaticInitializer, JavaStaticInitializerBuilder> {
         JavaStaticInitializerBuilder() {
-            withReturnType(JavaClassDescriptor.From.name(void.class.getName()));
+            withReturnType(Optional.<JavaTypeCreationProcess<JavaCodeUnit>>absent(), JavaClassDescriptor.From.name(void.class.getName()));
             withParameters(Collections.<JavaClassDescriptor>emptyList());
             withName(JavaStaticInitializer.STATIC_INITIALIZER_NAME);
             withDescriptor("()V");

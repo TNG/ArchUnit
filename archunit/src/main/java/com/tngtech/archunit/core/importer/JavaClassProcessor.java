@@ -253,12 +253,13 @@ class JavaClassProcessor extends ClassVisitor {
 
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
         JavaCodeUnitSignature codeUnitSignature = JavaCodeUnitSignatureImporter.parseAsmMethodSignature(signature);
+        JavaClassDescriptor rawReturnType = JavaClassDescriptorImporter.importAsmMethodReturnType(desc);
         codeUnitBuilder
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
                 .withTypeParameters(codeUnitSignature.getTypeParameterBuilders())
                 .withParameters(parameters)
-                .withReturnType(JavaClassDescriptorImporter.importAsmMethodReturnType(desc))
+                .withReturnType(codeUnitSignature.getReturnType(), rawReturnType)
                 .withDescriptor(desc)
                 .withThrowsClause(typesFrom(exceptions));
 

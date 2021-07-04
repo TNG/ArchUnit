@@ -76,7 +76,9 @@ public class ImportTestUtils {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
         for (Method method : inputClass.getDeclaredMethods()) {
             methodBuilders.add(new DomainBuilders.JavaMethodBuilder()
-                    .withReturnType(JavaClassDescriptor.From.name(method.getReturnType().getName()))
+                    .withReturnType(
+                            Optional.<JavaTypeCreationProcess<JavaCodeUnit>>absent(),
+                            JavaClassDescriptor.From.name(method.getReturnType().getName()))
                     .withParameters(typesFrom(method.getParameterTypes()))
                     .withName(method.getName())
                     .withDescriptor(Type.getMethodDescriptor(method))
@@ -90,7 +92,9 @@ public class ImportTestUtils {
         final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
         for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
             constructorBuilders.add(new DomainBuilders.JavaConstructorBuilder()
-                    .withReturnType(JavaClassDescriptor.From.name(void.class.getName()))
+                    .withReturnType(
+                            Optional.<JavaTypeCreationProcess<JavaCodeUnit>>absent(),
+                            JavaClassDescriptor.From.name(void.class.getName()))
                     .withParameters(typesFrom(constructor.getParameterTypes()))
                     .withName(CONSTRUCTOR_NAME)
                     .withDescriptor(Type.getConstructorDescriptor(constructor))

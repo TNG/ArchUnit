@@ -17,19 +17,13 @@ package com.tngtech.archunit.core.importer;
 
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaField;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess.JavaTypeFinisher;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
-import com.tngtech.archunit.core.importer.SignatureTypeArgumentProcessor.NewJavaTypeCreationProcess;
-import com.tngtech.archunit.core.importer.SignatureTypeArgumentProcessor.ReferenceCreationProcess;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
-import static com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess.JavaTypeFinisher.ARRAY_CREATOR;
 
 class JavaFieldTypeSignatureImporter {
     private static final Logger log = LoggerFactory.getLogger(JavaFieldTypeSignatureImporter.class);
@@ -47,7 +41,7 @@ class JavaFieldTypeSignatureImporter {
     }
 
     private static class SignatureProcessor extends SignatureVisitor {
-        private final GenericFieldTypeProcessor genericFieldTypeProcessor = new GenericFieldTypeProcessor();
+        private final GenericMemberTypeProcessor<JavaField> genericFieldTypeProcessor = new GenericMemberTypeProcessor<>();
 
         SignatureProcessor() {
             super(ASM_API_VERSION);
@@ -59,57 +53,7 @@ class JavaFieldTypeSignatureImporter {
         }
 
         JavaTypeCreationProcess<JavaField> getFieldType() {
-            return genericFieldTypeProcessor.getFieldType();
-        }
-    }
-
-    private static class GenericFieldTypeProcessor extends SignatureVisitor {
-        private JavaParameterizedTypeBuilder<JavaField> parameterizedFieldType;
-        private JavaTypeCreationProcess<JavaField> fieldTypeCreationProcess;
-        private JavaTypeFinisher typeFinisher = JavaTypeFinisher.IDENTITY;
-
-        GenericFieldTypeProcessor() {
-            super(ASM_API_VERSION);
-        }
-
-        JavaTypeCreationProcess<JavaField> getFieldType() {
-            return fieldTypeCreationProcess;
-        }
-
-        @Override
-        public void visitClassType(String internalObjectName) {
-            updateFieldType(new JavaParameterizedTypeBuilder<JavaField>(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName)));
-        }
-
-        @Override
-        public void visitInnerClassType(String name) {
-            updateFieldType(parameterizedFieldType.forInnerClass(name));
-        }
-
-        @Override
-        public void visitTypeArgument() {
-            parameterizedFieldType.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<JavaField>()));
-        }
-
-        @Override
-        public SignatureVisitor visitTypeArgument(char wildcard) {
-            return SignatureTypeArgumentProcessor.create(wildcard, parameterizedFieldType, JavaTypeFinisher.IDENTITY);
-        }
-
-        @Override
-        public SignatureVisitor visitArrayType() {
-            typeFinisher = typeFinisher.after(ARRAY_CREATOR);
-            return this;
-        }
-
-        @Override
-        public void visitTypeVariable(String name) {
-            fieldTypeCreationProcess = new ReferenceCreationProcess<>(name);
-        }
-
-        private void updateFieldType(JavaParameterizedTypeBuilder<JavaField> fieldType) {
-            this.parameterizedFieldType = fieldType;
-            fieldTypeCreationProcess = new NewJavaTypeCreationProcess<>(this.parameterizedFieldType, typeFinisher);
+            return genericFieldTypeProcessor.getType();
         }
     }
 }

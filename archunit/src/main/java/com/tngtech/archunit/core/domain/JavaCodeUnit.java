@@ -51,7 +51,7 @@ public abstract class JavaCodeUnit
         extends JavaMember
         implements HasParameterTypes, HasReturnType, HasTypeParameters<JavaCodeUnit>, HasThrowsClause<JavaCodeUnit> {
 
-    private final JavaClass returnType;
+    private final JavaType returnType;
     private final JavaClassList parameters;
     private final String fullName;
     private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
@@ -65,8 +65,8 @@ public abstract class JavaCodeUnit
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
         typeParameters = builder.getTypeParameters(this);
-        this.returnType = builder.getReturnType();
-        this.parameters = builder.getParameters();
+        returnType = builder.getReturnType(this);
+        parameters = builder.getParameters();
         fullName = formatMethod(getOwner().getName(), getName(), getRawParameterTypes());
         referencedClassObjects = ImmutableSet.copyOf(builder.getReferencedClassObjects(this));
         instanceofChecks = ImmutableSet.copyOf(builder.getInstanceofChecks(this));
@@ -101,8 +101,14 @@ public abstract class JavaCodeUnit
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaClass getRawReturnType() {
+    public JavaType getReturnType() {
         return returnType;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public JavaClass getRawReturnType() {
+        return returnType.toErasure();
     }
 
     @PublicAPI(usage = ACCESS)
