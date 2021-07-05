@@ -90,21 +90,21 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
     private void resolveField(ElementResolver resolver, Supplier<JavaClasses> classes, Field field) {
         resolver.resolveField(field)
-                .ifUnresolved(childResolver -> resolveChildren(this, childResolver, field, classes, testClass));
+                .ifUnresolved(childResolver -> resolveChildren(this, childResolver, field, classes));
     }
 
     private void resolveMethod(ElementResolver resolver, Supplier<JavaClasses> classes, Method method) {
         resolver.resolveMethod(method)
-                .ifUnresolved(childResolver -> addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes, testClass)));
+                .ifUnresolved(childResolver -> addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes)));
     }
 
     private static void resolveChildren(
-            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes, Class<?> testClass) {
+            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
 
         if (ArchTests.class.isAssignableFrom(field.getType()) || ArchRules.class.isAssignableFrom(field.getType())) {
-            resolveArchRules(parent, resolver, field, classes, testClass);
+            resolveArchRules(parent, resolver, field, classes);
         } else {
-            parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field), classes, field, testClass));
+            parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field), classes, field));
         }
     }
 
@@ -113,14 +113,14 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static void resolveArchRules(
-            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes, Class<?> testClass) {
+            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
 
         DeclaredArchTests archTests = getDeclaredArchTests(field);
 
         resolver.resolveClass(archTests.getDefinitionLocation())
                 .ifRequestedAndResolved(CreatesChildren::createChildren)
                 .ifRequestedButUnresolved((clazz, childResolver) -> {
-                    ArchUnitArchTestsDescriptor rulesDescriptor = new ArchUnitArchTestsDescriptor(childResolver, archTests, classes, field, testClass);
+                    ArchUnitArchTestsDescriptor rulesDescriptor = new ArchUnitArchTestsDescriptor(childResolver, archTests, classes, field);
                     parent.addChild(rulesDescriptor);
                     rulesDescriptor.createChildren(childResolver);
                 });
@@ -144,8 +144,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final ArchRule rule;
         private final Supplier<JavaClasses> classes;
 
-        ArchUnitRuleDescriptor(UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, Field field, Class<?> testClass) {
-            super(uniqueId, DisplayNameResolver.determineDisplayName(field.getName(), testClass), FieldSource.from(field), field);
+        ArchUnitRuleDescriptor(UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, Field field) {
+            super(uniqueId, DisplayNameResolver.determineDisplayName(field.getName()), FieldSource.from(field), field);
             this.rule = rule;
             this.classes = classes;
         }
@@ -166,9 +166,9 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final Method method;
         private final Supplier<JavaClasses> classes;
 
-        ArchUnitMethodDescriptor(UniqueId uniqueId, Method method, Supplier<JavaClasses> classes, Class<?> testClass) {
+        ArchUnitMethodDescriptor(UniqueId uniqueId, Method method, Supplier<JavaClasses> classes) {
             super(uniqueId.append("method", method.getName()),
-                    DisplayNameResolver.determineDisplayName(method.getName(), testClass), MethodSource.from(method), method);
+                    DisplayNameResolver.determineDisplayName(method.getName()), MethodSource.from(method), method);
             validate(method);
 
             this.method = method;
@@ -198,9 +198,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     private static class ArchUnitArchTestsDescriptor extends AbstractArchUnitTestDescriptor implements CreatesChildren {
         private final DeclaredArchTests archTests;
         private final Supplier<JavaClasses> classes;
-        private final Class<?> testClass;
 
-        ArchUnitArchTestsDescriptor(ElementResolver resolver, DeclaredArchTests archTests, Supplier<JavaClasses> classes, Field field, Class<?> testClass) {
+        ArchUnitArchTestsDescriptor(ElementResolver resolver, DeclaredArchTests archTests, Supplier<JavaClasses> classes, Field field) {
 
             super(resolver.getUniqueId(),
                     archTests.getDisplayName(),
@@ -209,18 +208,17 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
                     archTests.getDefinitionLocation());
             this.archTests = archTests;
             this.classes = classes;
-            this.testClass = testClass;
         }
 
         @Override
         public void createChildren(ElementResolver resolver) {
             archTests.handleFields(field ->
                     resolver.resolve(FIELD_SEGMENT_TYPE, field.getName(), childResolver ->
-                            resolveChildren(this, childResolver, field, classes, testClass)));
+                            resolveChildren(this, childResolver, field, classes)));
 
             archTests.handleMethods(method ->
                     resolver.resolve(METHOD_SEGMENT_TYPE, method.getName(), childResolver ->
-                            addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes, testClass))));
+                            addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes))));
         }
 
         @Override

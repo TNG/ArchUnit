@@ -15,56 +15,26 @@
  */
 package com.tngtech.archunit.junit;
 
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
+import com.tngtech.archunit.ArchConfiguration;
 
-import java.util.Optional;
-
-import static org.junit.platform.commons.util.AnnotationUtils.findAnnotation;
-
-/**
- * JUnit's DisplayNameGenerator API isn't really suited for the way ArchUnit discovers tests (especially on fields),
- * so we just reuse the annotations, but provide our own implementation here (similar to JUnit's DisplayNameUtils).
- * <p>
- * For the time being, we just evaluate DisplayNameGenerator.ReplaceUnderscores and return the original name in
- * all other cases.
- */
 final class DisplayNameResolver {
 
-    static String determineDisplayName(String elementName, Class<?> testClass) {
+    static final String DISPLAYNAME_REPLACE_UNDERSCORES_PROPERTY_NAME = "displayName.replaceUnderscores";
 
-        Optional<Class<? extends DisplayNameGenerator>> displayNameGenerator = displayNameGenerator(testClass);
-
-        if (displayNameGenerator.isPresent()
-                && (displayNameGenerator.get() == DisplayNameGenerator.ReplaceUnderscores.class)) {
+    static String determineDisplayName(String elementName) {
+        if (replaceUnderscores()) {
             return underscoresReplacedBySpaces(elementName);
+        } else {
+            return elementName;
         }
-
-        return elementName;
     }
 
     private static String underscoresReplacedBySpaces(String elementName) {
         return elementName.replace('_', ' ');
     }
 
-    private static Optional<Class<? extends DisplayNameGenerator>> displayNameGenerator(Class<?> testClass) {
-        return getDisplayNameGeneration(testClass)
-                .map(DisplayNameGeneration::value);
-    }
-
-    /**
-     * Copied from org.junit.jupiter.engine.descriptor.DisplayNameUtils to get exactly the same semantics.
-     * Maybe a more general variant of this method should become part of JUnit's AnnotationUtils?
-     */
-    private static Optional<DisplayNameGeneration> getDisplayNameGeneration(Class<?> testClass) {
-        Class<?> candidate = testClass;
-        do {
-            Optional<DisplayNameGeneration> generation = findAnnotation(candidate, DisplayNameGeneration.class);
-            if (generation.isPresent()) {
-                return generation;
-            }
-            candidate = candidate.getEnclosingClass();
-        } while (candidate != null);
-        return Optional.empty();
+    private static boolean replaceUnderscores() {
+        String replaceUnderscores = ArchConfiguration.get().getPropertyOrDefault(DISPLAYNAME_REPLACE_UNDERSCORES_PROPERTY_NAME, Boolean.FALSE.toString());
+        return Boolean.parseBoolean(replaceUnderscores);
     }
 }

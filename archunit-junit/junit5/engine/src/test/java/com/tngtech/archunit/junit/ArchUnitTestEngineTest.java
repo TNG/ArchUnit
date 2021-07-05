@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitTestEngine.SharedCache;
 import com.tngtech.archunit.junit.testexamples.ClassWithPrivateTests;
@@ -33,9 +34,6 @@ import com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTag;
 import com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTags;
 import com.tngtech.archunit.junit.testexamples.TestMethodWithTags;
 import com.tngtech.archunit.junit.testexamples.UnwantedClass;
-import com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationForField;
-import com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationForMethod;
-import com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationIgnoredStrategy;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredClass;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredField;
 import com.tngtech.archunit.junit.testexamples.ignores.IgnoredLibrary;
@@ -81,9 +79,6 @@ import static com.tngtech.archunit.junit.testexamples.TestFieldWithTags.FIELD_WI
 import static com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTag.METHOD_WITH_META_TAG_NAME;
 import static com.tngtech.archunit.junit.testexamples.TestMethodWithMetaTags.METHOD_WITH_META_TAGS_NAME;
 import static com.tngtech.archunit.junit.testexamples.TestMethodWithTags.METHOD_WITH_TAG_NAME;
-import static com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationForField.EXPECTED_FIELD_TEST_NAME;
-import static com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationForMethod.EXPECTED_METHOD_TEST_NAME;
-import static com.tngtech.archunit.junit.testexamples.displayname.DisplayNameGenerationIgnoredStrategy.EXPECTED_ORIGINAL_TEST_NAME;
 import static com.tngtech.archunit.junit.testexamples.subone.SimpleRuleField.SIMPLE_RULE_FIELD_NAME;
 import static com.tngtech.archunit.junit.testexamples.subone.SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
@@ -738,39 +733,6 @@ class ArchUnitTestEngineTest {
                     simpleRulesId(engineId));
         }
 
-        @Test
-        void generated_display_name_for_field() {
-            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(DisplayNameGenerationForField.class);
-
-            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
-
-            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
-
-            assertThat(ruleDescriptor.getDisplayName()).isEqualTo(EXPECTED_FIELD_TEST_NAME);
-        }
-
-        @Test
-        void generated_display_name_for_method() {
-            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(DisplayNameGenerationForMethod.class);
-
-            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
-
-            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
-
-            assertThat(ruleDescriptor.getDisplayName()).isEqualTo(EXPECTED_METHOD_TEST_NAME);
-        }
-
-        @Test
-        void generated_display_name_ignored_for_strategies_other_than_replace_underscores() {
-            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(DisplayNameGenerationIgnoredStrategy.class);
-
-            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
-
-            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
-
-            assertThat(ruleDescriptor.getDisplayName()).isEqualTo(EXPECTED_ORIGINAL_TEST_NAME);
-        }
-
         private Set<TestTag> getTagsForIdEndingIn(String suffix, Map<UniqueId, Set<TestTag>> tagsById) {
             UniqueId matchingId = tagsById.keySet().stream()
                     .filter(id -> getLast(id.getSegments()).getValue().endsWith(suffix))
@@ -786,13 +748,6 @@ class ArchUnitTestEngineTest {
             return getArchRulesDescriptorsOfOnlyChild(descriptor)
                     .filter(d -> d.getUniqueId().toString().contains(idPart))
                     .collect(onlyElement());
-        }
-
-        private TestDescriptor getOnlyTest(TestDescriptor descriptor) {
-            TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
-            TestDescriptor ruleDescriptor = getOnlyElement(testClass.getChildren());
-            assertThat(ruleDescriptor.getType()).isEqualTo(TEST);
-            return ruleDescriptor;
         }
 
         private Stream<TestDescriptor> getArchRulesDescriptorsOfOnlyChild(TestDescriptor descriptor) {
@@ -1161,6 +1116,61 @@ class ArchUnitTestEngineTest {
         }
     }
 
+    @Nested
+    class GeneratesDisplayName {
+        @Test
+        void for_field_by_replacing_underscores_with_blanks_if_property_is_set_to_true() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            ArchConfiguration.get().setProperty(DisplayNameResolver.DISPLAYNAME_REPLACE_UNDERSCORES_PROPERTY_NAME, "true");
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple rule");
+        }
+
+        @Test
+        void for_method_by_replacing_underscores_with_blanks_if_property_is_set_to_true() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleMethod.class);
+
+            ArchConfiguration.get().setProperty(DisplayNameResolver.DISPLAYNAME_REPLACE_UNDERSCORES_PROPERTY_NAME, "true");
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple rule");
+        }
+
+        @Test
+        void by_returning_original_name_if_property_is_set_to_false() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            ArchConfiguration.get().setProperty(DisplayNameResolver.DISPLAYNAME_REPLACE_UNDERSCORES_PROPERTY_NAME, "false");
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple_rule");
+        }
+
+        @Test
+        void by_returning_original_name_if_property_is_unset() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            ArchConfiguration.get().reset();
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple_rule");
+        }
+    }
+
     private UniqueId createEngineId() {
         return UniqueId.forEngine(ArchUnitTestEngine.UNIQUE_ID);
     }
@@ -1257,6 +1267,13 @@ class ArchUnitTestEngineTest {
 
     private Set<UniqueId> getAllLeafUniqueIds(TestDescriptor rootDescriptor) {
         return getAllLeafs(rootDescriptor).stream().map(TestDescriptor::getUniqueId).collect(toSet());
+    }
+
+    private TestDescriptor getOnlyTest(TestDescriptor descriptor) {
+        TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+        TestDescriptor ruleDescriptor = getOnlyElement(testClass.getChildren());
+        assertThat(ruleDescriptor.getType()).isEqualTo(TEST);
+        return ruleDescriptor;
     }
 
     private Set<? extends TestDescriptor> getAllLeafs(TestDescriptor descriptor) {
