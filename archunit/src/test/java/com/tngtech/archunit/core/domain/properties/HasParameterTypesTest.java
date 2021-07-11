@@ -3,12 +3,12 @@ package com.tngtech.archunit.core.domain.properties;
 import java.io.Serializable;
 import java.util.List;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClassList;
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.domain.TestUtils.javaClassList;
+import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
@@ -52,8 +52,8 @@ public class HasParameterTypesTest {
         return new HasParameterTypes() {
 
             @Override
-            public JavaClassList getRawParameterTypes() {
-                return javaClassList(parameters);
+            public List<JavaClass> getRawParameterTypes() {
+                return ImmutableList.copyOf(importClassesWithContext(parameters));
             }
         };
     }

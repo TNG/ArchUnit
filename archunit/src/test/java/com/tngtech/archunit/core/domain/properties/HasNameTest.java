@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core.domain.properties;
 
+import com.google.common.collect.ImmutableList;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.junit.Test;
 
@@ -60,6 +61,12 @@ public class HasNameTest {
         HasName.AndFullName test = newHasNameAndFullName("simple", "full");
         assertThat(GET_NAME.apply(test)).isEqualTo("simple");
         assertThat(GET_FULL_NAME.apply(test)).isEqualTo("full");
+    }
+
+    @Test
+    public void Utils_namesOf() {
+        assertThat(HasName.Utils.namesOf(newHasName("One"), newHasName("Two"))).containsExactly("One", "Two");
+        assertThat(HasName.Utils.namesOf(ImmutableList.of(newHasName("One"), newHasName("Two")))).containsExactly("One", "Two");
     }
 
     private AbstractBooleanAssert<?> assertNameMatches(String input, String regex) {

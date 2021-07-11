@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 public class JavaMethod extends JavaCodeUnit {
     private final Supplier<Method> methodSupplier;
@@ -121,7 +122,7 @@ public class JavaMethod extends JavaCodeUnit {
                 return reflectedOwner.getDeclaredMethod(getName(), reflect(getRawParameterTypes()));
             } catch (NoSuchMethodException e) {
                 throw new InconsistentClassPathException(
-                        "Can't resolve method " + formatMethod(reflectedOwner.getName(), getName(), getRawParameterTypes()), e);
+                        "Can't resolve method " + formatMethod(reflectedOwner.getName(), getName(), namesOf(getRawParameterTypes())), e);
             }
         }
     }

@@ -258,7 +258,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
                 .withTypeParameters(codeUnitSignature.getTypeParameterBuilders())
-                .withParameters(parameters)
+                .withParameterTypes(parameters)
                 .withReturnType(codeUnitSignature.getReturnType(), rawReturnType)
                 .withDescriptor(desc)
                 .withThrowsClause(typesFrom(exceptions));
