@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +53,7 @@ import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.base.Guava.toGuava;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
@@ -882,7 +882,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
-        return getCodeUnitWithParameterTypeNames(name, namesOf(parameters));
+        return getCodeUnitWithParameterTypeNames(name, formatNamesOf(parameters));
     }
 
     /**
@@ -891,7 +891,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaCodeUnit> tryGetCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
-        return tryGetCodeUnitWithParameterTypeNames(name, namesOf(parameters));
+        return tryGetCodeUnitWithParameterTypeNames(name, formatNamesOf(parameters));
     }
 
     /**
@@ -926,7 +926,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name, Class<?>... parameters) {
-        return members.getMethod(name, namesOf(parameters));
+        return members.getMethod(name, formatNamesOf(parameters));
     }
 
     /**
@@ -952,7 +952,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name, Class<?>... parameters) {
-        return members.tryGetMethod(name, namesOf(parameters));
+        return members.tryGetMethod(name, formatNamesOf(parameters));
     }
 
     /**
@@ -988,7 +988,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor(Class<?>... parameters) {
-        return members.getConstructor(namesOf(parameters));
+        return members.getConstructor(formatNamesOf(parameters));
     }
 
     /**
@@ -1014,7 +1014,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaConstructor> tryGetConstructor(Class<?>... parameters) {
-        return members.tryGetConstructor(namesOf(parameters));
+        return members.tryGetConstructor(formatNamesOf(parameters));
     }
 
     /**
@@ -1391,18 +1391,22 @@ public class JavaClass
         return "JavaClass{name='" + descriptor.getFullyQualifiedClassName() + "'}";
     }
 
+    /**
+     * @deprecated use {@link Formatters#formatNamesOf(Class[])} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static List<String> namesOf(Class<?>... paramTypes) {
-        return namesOf(ImmutableList.copyOf(paramTypes));
+        return formatNamesOf(paramTypes);
     }
 
+    /**
+     * @deprecated use {@link Formatters#formatNamesOf(Iterable)} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static List<String> namesOf(Iterable<Class<?>> paramTypes) {
-        ArrayList<String> result = new ArrayList<>();
-        for (Class<?> paramType : paramTypes) {
-            result.add(paramType.getName());
-        }
-        return result;
+        return formatNamesOf(paramTypes);
     }
 
     /**
@@ -2117,7 +2121,7 @@ public class JavaClass
             private final Class<?>[] classes;
 
             BelongToAnyOfPredicate(Class<?>... classes) {
-                super("belong to any of " + JavaClass.namesOf(classes));
+                super("belong to any of " + formatNamesOf(classes));
                 this.classes = classes;
             }
 

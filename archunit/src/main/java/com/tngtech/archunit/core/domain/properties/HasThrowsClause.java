@@ -27,8 +27,8 @@ import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.Formatters.formatThrowsDeclarationTypeNames;
-import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAMES;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
@@ -44,7 +44,7 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
         @PublicAPI(usage = ACCESS)
         @SafeVarargs
         public static DescribedPredicate<HasThrowsClause<?>> throwsClauseWithTypes(final Class<? extends Throwable>... types) {
-            return throwsClauseWithTypes(namesOf(types));
+            return throwsClauseWithTypes(formatNamesOf(types));
         }
 
         @PublicAPI(usage = ACCESS)

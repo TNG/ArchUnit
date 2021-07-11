@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import static com.google.common.collect.ImmutableList.of;
 import static com.google.common.collect.Sets.union;
 import static com.google.common.primitives.Primitives.allPrimitiveTypes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -27,6 +29,19 @@ import static java.util.Collections.singleton;
 public class FormattersTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void formatNamesOf() {
+        assertThat(Formatters.formatNamesOf()).isEmpty();
+
+        assertThat(Formatters.formatNamesOf(List.class, Iterable.class, String.class))
+                .containsExactly(List.class.getName(), Iterable.class.getName(), String.class.getName());
+
+        assertThat(Formatters.formatNamesOf(Collections.<Class<?>>emptyList())).isEmpty();
+
+        assertThat(Formatters.formatNamesOf(of(List.class, Iterable.class, String.class)))
+                .containsExactly(List.class.getName(), Iterable.class.getName(), String.class.getName());
+    }
 
     @Test
     @SuppressWarnings("ConstantConditions")

@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.Strings.repeat;
+import static com.google.common.collect.ImmutableList.copyOf;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class Formatters {
@@ -75,6 +77,27 @@ public final class Formatters {
     @PublicAPI(usage = ACCESS)
     public static String formatThrowsDeclarationTypeNames(List<String> typeNames) {
         return Joiner.on(", ").join(typeNames);
+    }
+
+    /**
+     * @see #formatNamesOf(Iterable)
+     */
+    @PublicAPI(usage = ACCESS)
+    public static List<String> formatNamesOf(Class<?>... paramTypes) {
+        return formatNamesOf(copyOf(paramTypes));
+    }
+
+    /**
+     * @param paramTypes an iterable of {@link Class} objects
+     * @return A {@link List} of fully qualified class names of the passed {@link Class} objects
+     */
+    @PublicAPI(usage = ACCESS)
+    public static List<String> formatNamesOf(Iterable<Class<?>> paramTypes) {
+        ImmutableList.Builder<String> result = ImmutableList.builder();
+        for (Class<?> paramType : paramTypes) {
+            result.add(paramType.getName());
+        }
+        return result.build();
     }
 
     // Excluding the '$' character might be incorrect, but since '$' is a valid character of a class name

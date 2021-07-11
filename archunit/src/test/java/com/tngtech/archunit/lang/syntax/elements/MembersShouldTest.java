@@ -27,8 +27,8 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
-import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.PRIVATE;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
@@ -663,7 +663,7 @@ public class MembersShouldTest {
 
     static Set<String> parseMembers(List<Class<?>> possibleOwners, List<String> details) {
         List<String> classNamePatterns = new ArrayList<>();
-        for (String className : namesOf(possibleOwners)) {
+        for (String className : formatNamesOf(possibleOwners)) {
             classNamePatterns.add(quote(className));
         }
         String classesWithMembersRegex = String.format("(?:%s)", Joiner.on("|").join(classNamePatterns));
