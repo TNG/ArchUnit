@@ -38,7 +38,7 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
 
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer,
             Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
-        this(priority, classesTransformer, prepareCondition, new PredicateAggregator<JavaClass>(), Optional.<String>absent());
+        this(priority, classesTransformer, prepareCondition, new PredicateAggregator<JavaClass>(), Optional.<String>empty());
     }
 
     private GivenClassesInternal(

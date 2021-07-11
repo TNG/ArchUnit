@@ -134,7 +134,7 @@ public class JavaClass
         }
     });
     private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
-    private Optional<JavaClass> componentType = Optional.absent();
+    private Optional<JavaClass> componentType = Optional.empty();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
@@ -250,7 +250,7 @@ public class JavaClass
     public Optional<JavaEnumConstant> tryGetEnumConstant(String name) {
         Optional<JavaField> field = tryGetField(name);
         if (!field.isPresent() || !field.get().getModifiers().contains(ENUM)) {
-            return Optional.absent();
+            return Optional.empty();
         }
         return Optional.of(new JavaEnumConstant(this, field.get().getName()));
     }
@@ -632,7 +632,7 @@ public class JavaClass
     @Override
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).transform(toAnnotationOfType(type));
+        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
     }
 
     /**
@@ -641,7 +641,7 @@ public class JavaClass
     @Override
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation<JavaClass>> tryGetAnnotationOfType(String typeName) {
-        return Optional.fromNullable(annotations.get(typeName));
+        return Optional.ofNullable(annotations.get(typeName));
     }
 
     @Override
@@ -1419,7 +1419,7 @@ public class JavaClass
     }
 
     private static class Superclass {
-        private static final Superclass ABSENT = new Superclass(Optional.<JavaType>absent());
+        private static final Superclass ABSENT = new Superclass(Optional.<JavaType>empty());
 
         private final Optional<JavaClass> rawType;
         private final Optional<JavaType> type;
@@ -1429,7 +1429,7 @@ public class JavaClass
         }
 
         private Superclass(Optional<JavaType> type) {
-            this.rawType = type.transform(TO_ERASURE);
+            this.rawType = type.map(TO_ERASURE);
             this.type = type;
         }
 
@@ -1485,7 +1485,7 @@ public class JavaClass
     }
 
     private static class EnclosingDeclaration {
-        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.<JavaCodeUnit>absent(), Optional.<JavaClass>absent());
+        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.<JavaCodeUnit>empty(), Optional.<JavaClass>empty());
 
         private final Optional<JavaCodeUnit> enclosingCodeUnit;
         private final Optional<JavaClass> enclosingClass;
@@ -1512,7 +1512,7 @@ public class JavaClass
         }
 
         static EnclosingDeclaration ofClass(Optional<JavaClass> clazz) {
-            return new EnclosingDeclaration(Optional.<JavaCodeUnit>absent(), clazz);
+            return new EnclosingDeclaration(Optional.<JavaCodeUnit>empty(), clazz);
         }
     }
 

@@ -185,7 +185,7 @@ public interface JavaClassDescriptor {
 
             @Override
             public Optional<JavaClassDescriptor> tryGetComponentType() {
-                return Optional.absent();
+                return Optional.empty();
             }
 
             @Override

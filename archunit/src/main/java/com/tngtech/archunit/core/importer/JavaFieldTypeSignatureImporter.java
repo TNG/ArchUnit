@@ -30,7 +30,7 @@ class JavaFieldTypeSignatureImporter {
 
     static Optional<JavaTypeCreationProcess<JavaField>> parseAsmFieldTypeSignature(String signature) {
         if (signature == null) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         log.trace("Analyzing field signature: {}", signature);

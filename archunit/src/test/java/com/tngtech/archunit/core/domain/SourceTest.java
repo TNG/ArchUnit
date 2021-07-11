@@ -42,7 +42,7 @@ public class SourceTest {
         Source source = new Source(urlOf(Object.class).toURI(), Optional.of("SomeClass.java"), false);
         assertThat(source.getFileName()).as("source file name").contains("SomeClass.java");
 
-        source = new Source(urlOf(Object.class).toURI(), Optional.<String>absent(), false);
+        source = new Source(urlOf(Object.class).toURI(), Optional.<String>empty(), false);
         assertThat(source.getFileName()).as("source file name").isAbsent();
     }
 
@@ -162,7 +162,7 @@ public class SourceTest {
     }
 
     private Source newSource(URI uri) {
-        return new Source(uri, Optional.<String>absent(), true);
+        return new Source(uri, Optional.<String>empty(), true);
     }
 
     private static Md5sum md5sumOf(String data) {

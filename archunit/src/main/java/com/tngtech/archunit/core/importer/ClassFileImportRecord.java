@@ -124,7 +124,7 @@ class ClassFileImportRecord {
     }
 
     Optional<String> getSuperclassFor(String name) {
-        return Optional.fromNullable(superclassNamesByOwner.get(name));
+        return Optional.ofNullable(superclassNamesByOwner.get(name));
     }
 
     Set<String> getInterfaceNamesFor(String ownerName) {
@@ -139,11 +139,11 @@ class ClassFileImportRecord {
     }
 
     Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclassFor(JavaClass owner) {
-        return Optional.fromNullable(genericSuperclassBuilderByOwner.get(owner.getName()));
+        return Optional.ofNullable(genericSuperclassBuilderByOwner.get(owner.getName()));
     }
 
     Optional<Set<JavaParameterizedTypeBuilder<JavaClass>>> getGenericInterfacesFor(JavaClass owner) {
-        return Optional.fromNullable(genericInterfaceBuildersByOwner.get(owner.getName()));
+        return Optional.ofNullable(genericInterfaceBuildersByOwner.get(owner.getName()));
     }
 
     Set<String> getMemberSignatureTypeNames() {
@@ -178,7 +178,7 @@ class ClassFileImportRecord {
     }
 
     Optional<DomainBuilders.JavaStaticInitializerBuilder> getStaticInitializerBuilderFor(String ownerName) {
-        return Optional.fromNullable(staticInitializerBuildersByOwner.get(ownerName));
+        return Optional.ofNullable(staticInitializerBuildersByOwner.get(ownerName));
     }
 
     Set<String> getAnnotationTypeNamesFor(JavaClass owner) {
@@ -220,7 +220,7 @@ class ClassFileImportRecord {
     }
 
     Optional<DomainBuilders.JavaAnnotationBuilder.ValueBuilder> getAnnotationDefaultValueBuilderFor(JavaMethod method) {
-        return Optional.fromNullable(annotationDefaultValuesByOwner.get(getMemberKey(method)));
+        return Optional.ofNullable(annotationDefaultValuesByOwner.get(getMemberKey(method)));
     }
 
     Optional<String> getEnclosingClassFor(String ownerName) {
@@ -310,11 +310,11 @@ class ClassFileImportRecord {
         }
 
         Optional<String> getEnclosingClassName(String ownerName) {
-            return Optional.fromNullable(innerClassNameToEnclosingClassName.get(ownerName));
+            return Optional.ofNullable(innerClassNameToEnclosingClassName.get(ownerName));
         }
 
         Optional<CodeUnit> getEnclosingCodeUnit(String ownerName) {
-            return Optional.fromNullable(innerClassNameToEnclosingCodeUnit.get(ownerName));
+            return Optional.ofNullable(innerClassNameToEnclosingCodeUnit.get(ownerName));
         }
     }
 }

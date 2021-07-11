@@ -174,7 +174,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         }
 
         private Transformer(SliceAssignment sliceAssignment, String description, SlicesPredicateAggregator predicate) {
-            this(sliceAssignment, description, Optional.<String>absent(), predicate);
+            this(sliceAssignment, description, Optional.<String>empty(), predicate);
         }
 
         private Transformer(SliceAssignment sliceAssignment,
@@ -331,8 +331,8 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         @Override
         public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
             PackageMatcher matcher = PackageMatcher.of(packageIdentifier);
-            Optional<List<String>> result = matcher.match(javaClass.getPackageName()).transform(TO_GROUPS);
-            List<String> parts = result.or(Collections.<String>emptyList());
+            Optional<List<String>> result = matcher.match(javaClass.getPackageName()).map(TO_GROUPS);
+            List<String> parts = result.orElse(Collections.<String>emptyList());
             return parts.isEmpty() ? SliceIdentifier.ignore() : SliceIdentifier.of(parts);
         }
 

@@ -33,7 +33,7 @@ class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsIntern
     GivenObjectsInternal(Priority priority,
             ClassesTransformer<T> classesTransformer,
             Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
-        this(priority, classesTransformer, prepareCondition, new PredicateAggregator<T>(), Optional.<String>absent());
+        this(priority, classesTransformer, prepareCondition, new PredicateAggregator<T>(), Optional.<String>empty());
     }
 
     private GivenObjectsInternal(

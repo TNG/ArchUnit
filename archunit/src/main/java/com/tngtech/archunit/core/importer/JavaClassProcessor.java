@@ -89,7 +89,7 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     Optional<JavaClass> createJavaClass() {
-        return javaClassBuilder != null ? Optional.of(javaClassBuilder.build()) : Optional.<JavaClass>absent();
+        return javaClassBuilder != null ? Optional.of(javaClassBuilder.build()) : Optional.<JavaClass>empty();
     }
 
     @Override
@@ -106,7 +106,7 @@ class JavaClassProcessor extends ClassVisitor {
         boolean opCodeForEnumIsPresent = (access & Opcodes.ACC_ENUM) != 0;
         boolean opCodeForAnnotationIsPresent = (access & Opcodes.ACC_ANNOTATION) != 0;
         Optional<String> superclassName = getSuperclassName(superName, opCodeForInterfaceIsPresent);
-        LOG.trace("Found superclass {} on class '{}'", superclassName.orNull(), name);
+        LOG.trace("Found superclass {} on class '{}'", superclassName.orElse(null), name);
 
         javaClassBuilder = new DomainBuilders.JavaClassBuilder()
                 .withSourceDescriptor(sourceDescriptor)
@@ -130,7 +130,7 @@ class JavaClassProcessor extends ClassVisitor {
     private Optional<String> getSuperclassName(String superName, boolean isInterface) {
         return superName != null && !isInterface ?
                 Optional.of(createTypeName(superName)) :
-                Optional.<String>absent();
+                Optional.<String>empty();
     }
 
     private boolean importAborted() {
@@ -677,7 +677,7 @@ class JavaClassProcessor extends ClassVisitor {
             public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
                 Optional<Class<?>> componentType = determineComponentType(importContext);
                 if (!componentType.isPresent()) {
-                    return Optional.absent();
+                    return Optional.empty();
                 }
 
                 return Optional.of(toArray(componentType.get(), buildValues(owner, importContext)));
@@ -724,7 +724,7 @@ class JavaClassProcessor extends ClassVisitor {
 
                 return returnType.isPresent() ?
                         determineComponentTypeFromReturnValue(returnType.get()) :
-                        Optional.<Class<?>>absent();
+                        Optional.<Class<?>>empty();
             }
 
             private Optional<Class<?>> determineComponentTypeFromReturnValue(JavaClass returnType) {

@@ -67,7 +67,7 @@ public class ImportTestUtils {
                     .withName(field.getName())
                     .withDescriptor(Type.getDescriptor(field.getType()))
                     .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
-                    .withType(Optional.<JavaTypeCreationProcess<JavaField>>absent(), JavaClassDescriptor.From.name(field.getType().getName())));
+                    .withType(Optional.<JavaTypeCreationProcess<JavaField>>empty(), JavaClassDescriptor.From.name(field.getType().getName())));
         }
         return fieldBuilders;
     }
@@ -77,7 +77,7 @@ public class ImportTestUtils {
         for (Method method : inputClass.getDeclaredMethods()) {
             methodBuilders.add(new DomainBuilders.JavaMethodBuilder()
                     .withReturnType(
-                            Optional.<JavaTypeCreationProcess<JavaCodeUnit>>absent(),
+                            Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty(),
                             JavaClassDescriptor.From.name(method.getReturnType().getName()))
                     .withParameterTypes(typesFrom(method.getParameterTypes()))
                     .withName(method.getName())
@@ -93,7 +93,7 @@ public class ImportTestUtils {
         for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
             constructorBuilders.add(new DomainBuilders.JavaConstructorBuilder()
                     .withReturnType(
-                            Optional.<JavaTypeCreationProcess<JavaCodeUnit>>absent(),
+                            Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty(),
                             JavaClassDescriptor.From.name(void.class.getName()))
                     .withParameterTypes(typesFrom(constructor.getParameterTypes()))
                     .withName(CONSTRUCTOR_NAME)
@@ -339,17 +339,17 @@ public class ImportTestUtils {
 
         @Override
         public Optional<JavaClass> createSuperclass(JavaClass owner) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         @Override
         public Optional<JavaType> createGenericSuperclass(JavaClass owner) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         @Override
         public Optional<Set<JavaType>> createGenericInterfaces(JavaClass owner) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         @Override
@@ -379,7 +379,7 @@ public class ImportTestUtils {
 
         @Override
         public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         @Override
@@ -394,12 +394,12 @@ public class ImportTestUtils {
 
         @Override
         public Optional<JavaClass> createEnclosingClass(JavaClass owner) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         @Override
         public Optional<JavaCodeUnit> createEnclosingCodeUnit(JavaClass owner) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         @Override
@@ -424,7 +424,7 @@ public class ImportTestUtils {
 
         @Override
         public Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 }

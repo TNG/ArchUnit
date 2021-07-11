@@ -59,7 +59,7 @@ public final class MetricsComponents<T> extends ForwardingCollection<MetricsComp
      */
     @PublicAPI(usage = ACCESS)
     public Optional<MetricsComponent<T>> tryGetComponent(String identifier) {
-        return Optional.fromNullable(componentsByIdentifier.get(identifier));
+        return Optional.ofNullable(componentsByIdentifier.get(identifier));
     }
 
     @Override

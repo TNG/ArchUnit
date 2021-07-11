@@ -128,7 +128,7 @@ class JavaClassMembers {
                 return Optional.of(field);
             }
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 
     Set<JavaCodeUnit> getCodeUnits() {
@@ -261,7 +261,7 @@ class JavaClassMembers {
                 return Optional.of(codeUnit);
             }
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 
     void completeAnnotations(ImportContext context) {
@@ -288,7 +288,7 @@ class JavaClassMembers {
                 Collections.<JavaField>emptySet(),
                 Collections.<JavaMethod>emptySet(),
                 Collections.<JavaConstructor>emptySet(),
-                Optional.<JavaStaticInitializer>absent());
+                Optional.<JavaStaticInitializer>empty());
     }
 
     static JavaClassMembers create(JavaClass owner, ImportContext context) {

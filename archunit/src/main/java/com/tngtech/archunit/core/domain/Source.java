@@ -180,7 +180,7 @@ public class Source {
             try (InputStream in = uri.toURL().openStream()) {
                 return Optional.of(ByteStreams.toByteArray(in));
             } catch (IOException | RuntimeException e) {
-                return Optional.absent();
+                return Optional.empty();
             }
         }
     }

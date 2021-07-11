@@ -239,7 +239,7 @@ class ClassGraphCreator implements ImportContext {
         Optional<String> superclassName = importRecord.getSuperclassFor(owner.getName());
         return superclassName.isPresent() ?
                 Optional.of(classes.getOrResolve(superclassName.get())) :
-                Optional.<JavaClass>absent();
+                Optional.<JavaClass>empty();
     }
 
     @Override
@@ -247,14 +247,14 @@ class ClassGraphCreator implements ImportContext {
         Optional<JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilder = importRecord.getGenericSuperclassFor(owner);
         return genericSuperclassBuilder.isPresent()
                 ? Optional.of(genericSuperclassBuilder.get().build(owner, getTypeParametersInContextOf(owner), classes.byTypeName()))
-                : Optional.<JavaType>absent();
+                : Optional.<JavaType>empty();
     }
 
     @Override
     public Optional<Set<JavaType>> createGenericInterfaces(JavaClass owner) {
         Optional<Set<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuilders = importRecord.getGenericInterfacesFor(owner);
         if (!genericInterfaceBuilders.isPresent()) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         ImmutableSet.Builder<JavaType> result = ImmutableSet.builder();
@@ -302,7 +302,7 @@ class ClassGraphCreator implements ImportContext {
                     @Override
                     public Optional<Object> apply(JavaMethod method) {
                         Optional<ValueBuilder> defaultValueBuilder = importRecord.getAnnotationDefaultValueBuilderFor(method);
-                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, ClassGraphCreator.this) : Optional.absent();
+                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, ClassGraphCreator.this) : Optional.empty();
                     }
                 });
             }
@@ -319,7 +319,7 @@ class ClassGraphCreator implements ImportContext {
     public Optional<JavaStaticInitializer> createStaticInitializer(JavaClass owner) {
         Optional<DomainBuilders.JavaStaticInitializerBuilder> builder = importRecord.getStaticInitializerBuilderFor(owner.getName());
         if (!builder.isPresent()) {
-            return Optional.absent();
+            return Optional.empty();
         }
         JavaStaticInitializer staticInitializer = builder.get().build(owner, classes.byTypeName());
         return Optional.of(staticInitializer);
@@ -344,14 +344,14 @@ class ClassGraphCreator implements ImportContext {
         Optional<String> enclosingClassName = importRecord.getEnclosingClassFor(owner.getName());
         return enclosingClassName.isPresent() ?
                 Optional.of(classes.getOrResolve(enclosingClassName.get())) :
-                Optional.<JavaClass>absent();
+                Optional.<JavaClass>empty();
     }
 
     @Override
     public Optional<JavaCodeUnit> createEnclosingCodeUnit(JavaClass owner) {
         Optional<CodeUnit> enclosingCodeUnit = importRecord.getEnclosingCodeUnitFor(owner.getName());
         if (!enclosingCodeUnit.isPresent()) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         CodeUnit codeUnit = enclosingCodeUnit.get();
@@ -371,6 +371,6 @@ class ClassGraphCreator implements ImportContext {
                 return Optional.of(classes.getOrResolve(methodBuilder.getReturnTypeName()));
             }
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 }
