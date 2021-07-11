@@ -100,7 +100,7 @@ class AnnotationProxy {
                 return handlersByMethod.get(key).handle(proxy, method, args);
             }
 
-            Object result = toProxy.get(method.getName()).or(method.getDefaultValue());
+            Object result = toProxy.get(method.getName()).orElse(method.getDefaultValue());
             return conversions.convertIfNecessary(result, method.getReturnType());
         }
     }
@@ -315,7 +315,7 @@ class AnnotationProxy {
             if (returnType.isInstance(result)) {
                 return result;
             }
-            return tryFindConversionFor(returnType).or(new NoOpConversion<>()).convert(result, returnType);
+            return tryFindConversionFor(returnType).orElse(new NoOpConversion<>()).convert(result, returnType);
         }
 
         private static class NoOpConversion<T> implements Conversion<T> {
@@ -337,7 +337,7 @@ class AnnotationProxy {
                     return Optional.of((Conversion<F>) conversion);
                 }
             }
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 

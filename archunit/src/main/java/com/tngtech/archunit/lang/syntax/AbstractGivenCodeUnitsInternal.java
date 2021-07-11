@@ -72,7 +72,7 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
                     classesTransformer,
                     prepareCondition,
                     new PredicateAggregator<JavaCodeUnit>(),
-                    Optional.<String>absent());
+                    Optional.<String>empty());
         }
 
         private GivenCodeUnitsInternal(

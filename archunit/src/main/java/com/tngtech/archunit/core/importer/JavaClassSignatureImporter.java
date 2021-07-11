@@ -68,7 +68,7 @@ class JavaClassSignatureImporter {
         }
 
         Optional<JavaParameterizedTypeBuilder<JavaClass>> getGenericSuperclass() {
-            return Optional.fromNullable(superclassProcessor.superclass);
+            return Optional.ofNullable(superclassProcessor.superclass);
         }
 
         Set<JavaParameterizedTypeBuilder<JavaClass>> getGenericInterfaces() {

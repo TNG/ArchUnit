@@ -147,7 +147,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                             return Optional.of(constructor);
                         }
                     }
-                    return Optional.absent();
+                    return Optional.empty();
                 }
             }
         }
@@ -334,7 +334,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
         };
 
         private static <T> Optional<T> uniqueTargetIn(Collection<T> collection) {
-            return collection.size() == 1 ? Optional.of(getOnlyElement(collection)) : Optional.<T>absent();
+            return collection.size() == 1 ? Optional.of(getOnlyElement(collection)) : Optional.<T>empty();
         }
 
         private static List<JavaClass> getArgumentTypesFrom(String descriptor, ImportedClasses classes) {
@@ -359,7 +359,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                         return Optional.of(subclass);
                     }
                 }
-                return Optional.absent();
+                return Optional.empty();
             }
 
             private List<JavaClass> createPath(JavaClass parent, JavaClass child) {

@@ -43,7 +43,7 @@ class GivenMethodsInternal
                 classesTransformer,
                 prepareCondition,
                 new PredicateAggregator<JavaMethod>(),
-                Optional.<String>absent());
+                Optional.<String>empty());
     }
 
     private GivenMethodsInternal(

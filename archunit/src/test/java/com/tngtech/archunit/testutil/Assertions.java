@@ -88,7 +88,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
     }
 
     public static <T> org.assertj.guava.api.OptionalAssert<T> assertThat(Optional<T> optional) {
-        return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
+        return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orElse(null)));
     }
 
     public static <T> DescribedPredicateAssertion<T> assertThat(DescribedPredicate<T> predicate) {

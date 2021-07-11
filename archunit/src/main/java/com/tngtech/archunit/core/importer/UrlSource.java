@@ -119,10 +119,10 @@ interface UrlSource extends Iterable<URL> {
 
         private static Optional<Path> findParentPathOf(URI uri) {
             try {
-                return Optional.fromNullable(Paths.get(ensureFileUrl(uri).toURI()).getParent());
+                return Optional.ofNullable(Paths.get(ensureFileUrl(uri).toURI()).getParent());
             } catch (Exception e) {
                 LOG.warn("Could not find parent folder for " + uri, e);
-                return Optional.absent();
+                return Optional.empty();
             }
         }
 
@@ -156,7 +156,7 @@ interface UrlSource extends Iterable<URL> {
                 return Optional.of(convertToJarUrlIfNecessary(parent.toUri().resolve(URI.create(classpathUrlEntry).getRawSchemeSpecificPart())));
             } catch (Exception e) {
                 LOG.warn("Cannot parse URL classpath entry " + classpathUrlEntry, e);
-                return Optional.absent();
+                return Optional.empty();
             }
         }
 
@@ -169,7 +169,7 @@ interface UrlSource extends Iterable<URL> {
                 return Optional.of(convertToJarUrlIfNecessary(path.toUri()));
             } catch (Exception e) {
                 LOG.warn("Cannot parse file path classpath entry " + classpathFilePathEntry, e);
-                return Optional.absent();
+                return Optional.empty();
             }
         }
 
@@ -200,7 +200,7 @@ interface UrlSource extends Iterable<URL> {
                 return Optional.of(Paths.get(path).toUri().toURL());
             } catch (MalformedURLException e) {
                 LOG.warn("Cannot parse URL from path " + path, e);
-                return Optional.absent();
+                return Optional.empty();
             } catch (InvalidPathException e) {
                 Optional<URL> fallback = tryResolvePathFromUrl(path);
                 if (!fallback.isPresent()) {
@@ -220,7 +220,7 @@ interface UrlSource extends Iterable<URL> {
             try {
                 return Optional.of(Paths.get(new URL("file:" + path).toURI()).toUri().toURL());
             } catch (MalformedURLException | URISyntaxException | InvalidPathException e) {
-                return Optional.absent();
+                return Optional.empty();
             }
         }
 
@@ -228,10 +228,10 @@ interface UrlSource extends Iterable<URL> {
             Optional<URL> fileUri = newFileUri(path);
 
             try {
-                return fileUri.isPresent() ? Optional.of(new URL("jar:" + fileUri.get() + "!/")) : Optional.<URL>absent();
+                return fileUri.isPresent() ? Optional.of(new URL("jar:" + fileUri.get() + "!/")) : Optional.<URL>empty();
             } catch (MalformedURLException e) {
                 LOG.warn("Cannot parse URL from path " + path, e);
-                return Optional.absent();
+                return Optional.empty();
             }
         }
 

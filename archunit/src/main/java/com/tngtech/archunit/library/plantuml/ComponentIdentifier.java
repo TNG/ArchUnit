@@ -24,7 +24,7 @@ class ComponentIdentifier {
     private final Optional<Alias> alias;
 
     ComponentIdentifier(ComponentName componentName) {
-        this(componentName, Optional.<Alias>absent());
+        this(componentName, Optional.<Alias>empty());
     }
 
     ComponentIdentifier(ComponentName componentName, Alias alias) {

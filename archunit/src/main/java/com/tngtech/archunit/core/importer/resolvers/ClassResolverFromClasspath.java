@@ -48,13 +48,13 @@ public final class ClassResolverFromClasspath implements ClassResolver {
 
         Optional<URI> uri = tryGetUriOf(typeFile);
 
-        return uri.isPresent() ? classUriImporter.tryImport(uri.get()) : Optional.<JavaClass>absent();
+        return uri.isPresent() ? classUriImporter.tryImport(uri.get()) : Optional.<JavaClass>empty();
     }
 
     private Optional<URI> tryGetUriOf(String typeFile) {
         URL resource = getCurrentClassLoader(getClass()).getResource(typeFile);
         if (resource == null) {
-            return Optional.absent();
+            return Optional.empty();
         }
         try {
             return Optional.of(resource.toURI());

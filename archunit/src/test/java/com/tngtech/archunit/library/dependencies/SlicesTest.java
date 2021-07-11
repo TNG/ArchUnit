@@ -119,7 +119,7 @@ public class SlicesTest {
                 }
             }
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 
     private SliceAssignment assignmentOfJavaLangAndUtil(final String description) {

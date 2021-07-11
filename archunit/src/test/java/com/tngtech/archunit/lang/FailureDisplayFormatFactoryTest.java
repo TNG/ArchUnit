@@ -25,7 +25,7 @@ public class FailureDisplayFormatFactoryTest {
         assertThat(failureDisplayFormat).isInstanceOf(TestFailureDisplayFormat.class);
 
         String message = failureDisplayFormat.formatFailure(hasDescription("some-rule"),
-                new FailureMessages(ImmutableList.of("some-failure"), Optional.<String>absent()),
+                new FailureMessages(ImmutableList.of("some-failure"), Optional.<String>empty()),
                 Priority.LOW);
 
         assertThat(message).isEqualTo("test-format: some-rule has [some-failure] with priority LOW");

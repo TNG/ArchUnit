@@ -76,7 +76,7 @@ public class TestUtils {
         File file = newTemporaryFile();
         try {
             Files.write(bytes, file);
-            return new Source(file.toURI(), Optional.<String>absent(), true).getMd5sum();
+            return new Source(file.toURI(), Optional.<String>empty(), true).getMd5sum();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

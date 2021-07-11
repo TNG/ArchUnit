@@ -41,7 +41,7 @@ public class FailureMessages extends ForwardingList<String> {
      */
     @PublicAPI(usage = ACCESS)
     public String getInformationAboutNumberOfViolations() {
-        return informationAboutNumberOfViolations.or(failures.size() + " times");
+        return informationAboutNumberOfViolations.orElse(failures.size() + " times");
     }
 
     FailureMessages filter(Predicate<String> predicate) {
