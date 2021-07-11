@@ -9,7 +9,7 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodParameterTypeNames;
-import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.testutil.assertion.JavaMembersAssertion.assertEquivalent;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,6 +54,6 @@ public class JavaMemberAssertion<T extends JavaMember, SELF extends JavaMemberAs
     }
 
     private static String expectedParametersOf(Class<?>[] parameterTypes) {
-        return String.format("(%s)", formatMethodParameterTypeNames(namesOf(parameterTypes)));
+        return String.format("(%s)", formatMethodParameterTypeNames(formatNamesOf(parameterTypes)));
     }
 }

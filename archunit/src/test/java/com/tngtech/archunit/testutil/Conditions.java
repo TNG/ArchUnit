@@ -4,7 +4,7 @@ import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.api.Condition;
 
-import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 
 public final class Conditions {
     private Conditions() {
@@ -27,8 +27,8 @@ public final class Conditions {
         return new Condition<JavaCodeUnit>() {
             @Override
             public boolean matches(JavaCodeUnit value) {
-                return name.equals(value.getName()) && namesOf(parameters).equals(HasName.Utils.namesOf(value.getRawParameterTypes()));
+                return name.equals(value.getName()) && formatNamesOf(parameters).equals(HasName.Utils.namesOf(value.getRawParameterTypes()));
             }
-        }.as("matches signature <" + name + ", " + namesOf(parameters) + ">");
+        }.as("matches signature <" + name + ", " + formatNamesOf(parameters) + ">");
     }
 }
