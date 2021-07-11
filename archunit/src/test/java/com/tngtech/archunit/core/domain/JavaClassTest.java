@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -89,8 +88,8 @@ import static com.tngtech.archunit.core.domain.TestUtils.importPackagesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatCodeUnit;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
@@ -441,44 +440,33 @@ public class JavaClassTest {
             }
         });
 
-        assertThat(clazz.getCodeUnitWithParameterTypes("childMethod", String.class))
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
-        assertThat(clazz.getCodeUnitWithParameterTypeNames("childMethod", String.class.getName()))
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
-        assertThat(clazz.getCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Object.class))
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
-        assertThat(clazz.getCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Object.class.getName()))
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+        assertThatCodeUnit(clazz.getCodeUnitWithParameterTypes("childMethod", String.class))
+                .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
+        assertThatCodeUnit(clazz.getCodeUnitWithParameterTypeNames("childMethod", String.class.getName()))
+                .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
+        assertThatCodeUnit(clazz.getCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Object.class))
+                .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
+        assertThatCodeUnit(clazz.getCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Object.class.getName()))
+                .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
     }
 
     @Test
     public void tryGetCodeUnitWithParameterTypes() {
         final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
 
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>singletonList(String.class)).get())
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", singletonList(String.class.getName())).get())
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>singletonList(Object.class)).get())
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, singletonList(Object.class.getName())).get())
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>singletonList(String.class)).get())
+                .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", singletonList(String.class.getName())).get())
+                .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>singletonList(Object.class)).get())
+                .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, singletonList(Object.class.getName())).get())
+                .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
 
         assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>emptyList())).isAbsent();
         assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isAbsent();
         assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isAbsent();
         assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isAbsent();
-    }
-
-    private Condition<JavaCodeUnit> equivalentCodeUnit(final Class<?> owner, final String methodName, final Class<?> paramType) {
-        return new Condition<JavaCodeUnit>() {
-            @Override
-            public boolean matches(JavaCodeUnit value) {
-                return value.getOwner().isEquivalentTo(owner) &&
-                        value.getName().equals(methodName) &&
-                        namesOf(value.getRawParameterTypes()).equals(ImmutableList.of(paramType.getName()));
-            }
-        };
     }
 
     @Test

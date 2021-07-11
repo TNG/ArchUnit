@@ -830,6 +830,33 @@ public class ClassFileImporterAccessesTest {
         assertThatType(returnTypeOf(calls, "objectTwoDimArrayReturnType")).matches(String[][].class);
     }
 
+    @Test
+    public void imports_parameter_types_of_generic_call_target_as_raw_types() {
+        // We cannot determine generic types of a call target from the bytecode, so the only options are to resolve the target
+        // and check for generic types or to treat call target parameters always as raw, same as they are in the bytecode.
+        // For now I have decided for the the latter.
+
+        class Target {
+            @SuppressWarnings({"unused", "SameParameterValue"})
+            <T> void genericMethod(T param) {
+            }
+        }
+        class Origin {
+            @SuppressWarnings("unused")
+            void call(Target target) {
+                target.genericMethod(null);
+            }
+        }
+
+        JavaMethodCall call = getOnlyElement(new ClassFileImporter()
+                .importClasses(Origin.class, Target.class)
+                .get(Origin.class)
+                .getMethodCallsFromSelf());
+
+        assertThat(call.getTarget().getParameterTypes())
+                .isEqualTo(call.getTarget().getRawParameterTypes());
+    }
+
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {
         Set<Dependency> result = new HashSet<>();
         for (Dependency dependency : dependencies) {

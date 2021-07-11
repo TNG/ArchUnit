@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaTypeVariable;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
@@ -30,6 +32,30 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 
 public interface HasParameterTypes {
 
+    /**
+     * @return the raw parameter types of this object, e.g.<br>
+     *         for a method
+     *         <pre><code>void someMethod(String first, int second) {..}</code></pre>
+     *         this would be the {@link JavaClass JavaClasses} equivalent to {@code [String.class, int.class]},<br>
+     *         for a method
+     *         <pre><code>&lt;T&gt; void someMethod(T generic) {..}</code></pre>
+     *         this would be the {@link JavaTypeVariable JavaTypeVariable} {@code T}.<br>
+     *         Note that for non-generic cases this returns the same as {@link #getRawParameterTypes()}.
+     */
+    @PublicAPI(usage = ACCESS)
+    List<JavaType> getParameterTypes();
+
+    /**
+     * @return the raw parameter types of this object, e.g.<br>
+     *         for a method
+     *         <pre><code>void someMethod(String first, int second) {..}</code></pre>
+     *         this would be the {@link JavaClass JavaClasses} equivalent to {@code [String.class, int.class]},<br>
+     *         for a method
+     *         <pre><code>&lt;T&gt; void someMethod(T generic) {..}</code></pre>
+     *         this would be the erasure of the generic type variable {@code T},
+     *         i.e. the {@link JavaClass} equivalent to {@code Object.class}.<br>
+     *         Note that for non-generic cases this returns the same as {@link #getParameterTypes()}.
+     */
     @PublicAPI(usage = ACCESS)
     List<JavaClass> getRawParameterTypes();
 

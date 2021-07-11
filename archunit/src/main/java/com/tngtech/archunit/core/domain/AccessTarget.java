@@ -318,6 +318,12 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
 
         @Override
+        @SuppressWarnings({"unchecked", "rawtypes"}) // cast is okay, since this list can only be used in a covariant way (immutable)
+        public List<JavaType> getParameterTypes() {
+            return (List) parameters;
+        }
+
+        @Override
         @PublicAPI(usage = ACCESS)
         public List<JavaClass> getRawParameterTypes() {
             return parameters;

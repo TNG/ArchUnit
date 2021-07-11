@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.importer;
 
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess.JavaTypeFinisher;
@@ -35,8 +36,8 @@ class GenericMemberTypeProcessor<T extends HasDescription> extends SignatureVisi
         super(ASM_API_VERSION);
     }
 
-    JavaTypeCreationProcess<T> getType() {
-        return typeCreationProcess;
+    Optional<JavaTypeCreationProcess<T>> getType() {
+        return Optional.ofNullable(typeCreationProcess);
     }
 
     @Override

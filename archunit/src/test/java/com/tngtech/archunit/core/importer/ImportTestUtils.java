@@ -79,7 +79,7 @@ public class ImportTestUtils {
                     .withReturnType(
                             Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty(),
                             JavaClassDescriptor.From.name(method.getReturnType().getName()))
-                    .withParameterTypes(typesFrom(method.getParameterTypes()))
+                    .withParameterTypes(Collections.<JavaTypeCreationProcess<JavaCodeUnit>>emptyList(), typesFrom(method.getParameterTypes()))
                     .withName(method.getName())
                     .withDescriptor(Type.getMethodDescriptor(method))
                     .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers()))
@@ -95,7 +95,7 @@ public class ImportTestUtils {
                     .withReturnType(
                             Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty(),
                             JavaClassDescriptor.From.name(void.class.getName()))
-                    .withParameterTypes(typesFrom(constructor.getParameterTypes()))
+                    .withParameterTypes(Collections.<JavaTypeCreationProcess<JavaCodeUnit>>emptyList(), typesFrom(constructor.getParameterTypes()))
                     .withName(CONSTRUCTOR_NAME)
                     .withDescriptor(Type.getConstructorDescriptor(constructor))
                     .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers()))
