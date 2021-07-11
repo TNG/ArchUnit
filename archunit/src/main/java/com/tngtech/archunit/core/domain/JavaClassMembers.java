@@ -28,6 +28,7 @@ import com.tngtech.archunit.base.Optional;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 class JavaClassMembers {
     private final JavaClass owner;
@@ -256,7 +257,7 @@ class JavaClassMembers {
 
     private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
         for (T codeUnit : codeUnits) {
-            if (name.equals(codeUnit.getName()) && parameters.equals(codeUnit.getRawParameterTypes().getNames())) {
+            if (name.equals(codeUnit.getName()) && parameters.equals(namesOf(codeUnit.getRawParameterTypes()))) {
                 return Optional.of(codeUnit);
             }
         }

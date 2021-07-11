@@ -21,18 +21,17 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClassList;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodParameterTypeNames;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
-import static com.tngtech.archunit.core.domain.JavaClassList.GET_NAMES;
+import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAMES;
 
 public interface HasParameterTypes {
 
     @PublicAPI(usage = ACCESS)
-    JavaClassList getRawParameterTypes();
+    List<JavaClass> getRawParameterTypes();
 
     final class Predicates {
         private Predicates() {
@@ -60,9 +59,9 @@ public interface HasParameterTypes {
         }
 
         private static class RawParameterTypesPredicate extends DescribedPredicate<HasParameterTypes> {
-            private final DescribedPredicate<? super JavaClassList> predicate;
+            private final DescribedPredicate<? super List<JavaClass>> predicate;
 
-            RawParameterTypesPredicate(DescribedPredicate<? super JavaClassList> predicate) {
+            RawParameterTypesPredicate(DescribedPredicate<? super List<JavaClass>> predicate) {
                 super("raw parameter types " + predicate.getDescription());
                 this.predicate = predicate;
             }
