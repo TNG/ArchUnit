@@ -40,10 +40,13 @@ class PlantUmlPatterns {
     private static final Pattern STEREOTYPE_PATTERN = Pattern.compile(STEREOTYPE_FORMAT);
 
     private static final String ALIAS_GROUP_NAME = "alias";
-    private static final String ALIAS_FORMAT = "\\s*(?:as \"?" + capture("[^\"]+", ALIAS_GROUP_NAME) + "\"?)?";
+    private static final String ALIAS_FORMAT = "\\s*(?:as \"?" + capture(anythingBut("\"#"), ALIAS_GROUP_NAME) + "\"?)?";
+
+    private static final String COLOR_GROUP_NAME = "color";
+    private static final String COLOR_FORMAT = "\\s*(?:#" + capture(anythingBut("\\s"), COLOR_GROUP_NAME) + ")?";
 
     private static final Pattern PLANTUML_COMPONENT_PATTERN = Pattern.compile(
-            "^\\s*" + COMPONENT_NAME_FORMAT + "\\s*" + STEREOTYPE_FORMAT + "*" + ALIAS_FORMAT + "\\s*");
+            "^\\s*" + COMPONENT_NAME_FORMAT + "\\s*" + STEREOTYPE_FORMAT + "*" + ALIAS_FORMAT + COLOR_FORMAT + "\\s*");
 
     private static String capture(String pattern) {
         return "(" + pattern + ")";
@@ -109,6 +112,10 @@ class PlantUmlPatterns {
 
         Optional<String> matchAlias() {
             return Optional.fromNullable(componentMatcher.group(ALIAS_GROUP_NAME));
+        }
+
+        public Optional<String> matchColor() {
+            return Optional.fromNullable(componentMatcher.group(COLOR_GROUP_NAME));
         }
     }
 

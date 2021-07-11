@@ -8,9 +8,9 @@ skinparam component {
 
 [Address] <<..address..>>
 [Customer] <<..customer..>>
-[Order] <<..order..>>
-[Products] <<..product..>>
-[Product Catalog] <<..catalog..>> as catalog
+[Order] <<..order..>> #white/PowderBlue
+[Products] <<..product..>> #white/PowderBlue
+[Product Catalog] <<..catalog..>> as catalog #PowderBlue
 [Product Import] <<..importer..>> as import
 
 ' Could be some random comment
