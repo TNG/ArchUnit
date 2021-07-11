@@ -208,7 +208,7 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
         Optional<JavaMethod> method = type.tryGetMethod(property);
         return method.isPresent()
                 ? method.get().getDefaultValue()
-                : Optional.absent();
+                : Optional.empty();
     }
 
     /**
@@ -259,7 +259,7 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
      */
     @PublicAPI(usage = ACCESS)
     public Optional<Object> tryGetExplicitlyDeclaredProperty(String propertyName) {
-        return Optional.fromNullable(values.get(propertyName));
+        return Optional.ofNullable(values.get(propertyName));
     }
 
     /**

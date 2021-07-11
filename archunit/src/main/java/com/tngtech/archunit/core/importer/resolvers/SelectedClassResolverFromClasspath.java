@@ -55,6 +55,6 @@ public final class SelectedClassResolverFromClasspath implements ClassResolver {
                 return classResolverFromClasspath.tryResolve(typeName);
             }
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 }

@@ -36,6 +36,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 /**
  * Represents a unit of code containing accesses to other units of code. A unit of code can be
@@ -52,7 +53,7 @@ public abstract class JavaCodeUnit
         implements HasParameterTypes, HasReturnType, HasTypeParameters<JavaCodeUnit>, HasThrowsClause<JavaCodeUnit> {
 
     private final JavaType returnType;
-    private final JavaClassList parameters;
+    private final List<JavaClass> rawParameterTypes;
     private final String fullName;
     private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
     private final Set<ReferencedClassObject> referencedClassObjects;
@@ -66,8 +67,8 @@ public abstract class JavaCodeUnit
         super(builder);
         typeParameters = builder.getTypeParameters(this);
         returnType = builder.getReturnType(this);
-        parameters = builder.getParameters();
-        fullName = formatMethod(getOwner().getName(), getName(), getRawParameterTypes());
+        rawParameterTypes = builder.getRawParameterTypes();
+        fullName = formatMethod(getOwner().getName(), getName(), namesOf(getRawParameterTypes()));
         referencedClassObjects = ImmutableSet.copyOf(builder.getReferencedClassObjects(this));
         instanceofChecks = ImmutableSet.copyOf(builder.getInstanceofChecks(this));
     }
@@ -83,8 +84,8 @@ public abstract class JavaCodeUnit
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public JavaClassList getRawParameterTypes() {
-        return parameters;
+    public List<JavaClass> getRawParameterTypes() {
+        return rawParameterTypes;
     }
 
     @Override
@@ -95,7 +96,7 @@ public abstract class JavaCodeUnit
      * @return The types thrown by this method, similar to {@link Method#getExceptionTypes()}
      */
     @PublicAPI(usage = ACCESS)
-    public JavaClassList getExceptionTypes() {
+    public List<JavaClass> getExceptionTypes() {
         return getThrowsClause().getTypes();
     }
 
@@ -188,7 +189,7 @@ public abstract class JavaCodeUnit
 
     @ResolvesTypesViaReflection
     @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
-    static Class<?>[] reflect(JavaClassList parameters) {
+    static Class<?>[] reflect(List<JavaClass> parameters) {
         List<Class<?>> result = new ArrayList<>();
         for (JavaClass parameter : parameters) {
             result.add(parameter.reflect());

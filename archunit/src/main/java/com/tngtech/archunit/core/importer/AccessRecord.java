@@ -36,7 +36,6 @@ import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
-import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
@@ -50,7 +49,6 @@ import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
 import static java.util.Collections.singletonList;
 
 interface AccessRecord<TARGET extends AccessTarget> {
@@ -118,7 +116,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             @Override
             public ConstructorCallTarget getTarget() {
                 Supplier<Optional<JavaConstructor>> constructorSupplier = new ConstructorTargetSupplier(targetOwner, record.target);
-                JavaClassList paramTypes = getArgumentTypesFrom(record.target.desc, classes);
+                List<JavaClass> paramTypes = getArgumentTypesFrom(record.target.desc, classes);
                 JavaClass returnType = classes.getOrResolve(void.class.getName());
                 return new ConstructorCallTargetBuilder()
                         .withOwner(targetOwner)
@@ -149,7 +147,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                             return Optional.of(constructor);
                         }
                     }
-                    return Optional.absent();
+                    return Optional.empty();
                 }
             }
         }
@@ -175,7 +173,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             @Override
             public MethodCallTarget getTarget() {
                 Supplier<Set<JavaMethod>> methodsSupplier = new MethodTargetSupplier(targetOwner.getAllMethods(), record.target);
-                JavaClassList parameters = getArgumentTypesFrom(record.target.desc, classes);
+                List<JavaClass> parameters = getArgumentTypesFrom(record.target.desc, classes);
                 JavaClass returnType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmMethodReturnType(record.target.desc).getFullyQualifiedClassName());
                 return new MethodCallTargetBuilder()
                         .withOwner(targetOwner)
@@ -336,15 +334,15 @@ interface AccessRecord<TARGET extends AccessTarget> {
         };
 
         private static <T> Optional<T> uniqueTargetIn(Collection<T> collection) {
-            return collection.size() == 1 ? Optional.of(getOnlyElement(collection)) : Optional.<T>absent();
+            return collection.size() == 1 ? Optional.of(getOnlyElement(collection)) : Optional.<T>empty();
         }
 
-        private static JavaClassList getArgumentTypesFrom(String descriptor, ImportedClasses classes) {
-            List<JavaClass> paramTypes = new ArrayList<>();
+        private static List<JavaClass> getArgumentTypesFrom(String descriptor, ImportedClasses classes) {
+            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
             for (JavaClassDescriptor type : JavaClassDescriptorImporter.importAsmMethodArgumentTypes(descriptor)) {
-                paramTypes.add(classes.getOrResolve(type.getFullyQualifiedClassName()));
+                result.add(classes.getOrResolve(type.getFullyQualifiedClassName()));
             }
-            return createJavaClassList(paramTypes);
+            return result.build();
         }
 
         private static class ClassHierarchyPath implements Iterable<JavaClass> {
@@ -361,7 +359,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                         return Optional.of(subclass);
                     }
                 }
-                return Optional.absent();
+                return Optional.empty();
             }
 
             private List<JavaClass> createPath(JavaClass parent, JavaClass child) {

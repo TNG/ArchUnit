@@ -51,7 +51,7 @@ public class MethodChoiceStrategy {
     Optional<Method> choose(PropagatedType type, boolean tryToTerminate) {
         List<Method> methods = getPossibleMethodCandidates(type.getRawType());
         if (methods.isEmpty()) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         return tryToTerminate
@@ -65,7 +65,7 @@ public class MethodChoiceStrategy {
                 return Optional.of(method);
             }
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 
     private List<Method> getPossibleMethodCandidates(Class<?> clazz) {

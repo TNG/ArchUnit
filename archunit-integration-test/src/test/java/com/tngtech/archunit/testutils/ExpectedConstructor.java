@@ -2,10 +2,9 @@ package com.tngtech.archunit.testutils;
 
 import java.lang.annotation.Annotation;
 
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaConstructor;
-
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
+import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 public class ExpectedConstructor {
     public static ExpectedConstructor.Creator of(Class<?> owner, Class<?>... params) {
@@ -29,7 +28,7 @@ public class ExpectedConstructor {
 
         public ExpectedMessage beingAnnotatedWith(Class<? extends Annotation> annotationType) {
             return new ExpectedMessage(String.format("Constructor <%s> is annotated with @%s in (%s.java:%d)",
-                    formatMethod(clazz.getName(), JavaConstructor.CONSTRUCTOR_NAME, JavaClass.namesOf(params)),
+                    formatMethod(clazz.getName(), CONSTRUCTOR_NAME, formatNamesOf(params)),
                     annotationType.getSimpleName(),
                     clazz.getSimpleName(), lineNumber));
         }

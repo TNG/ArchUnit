@@ -25,7 +25,7 @@ public final class PredicateAggregator<T> {
     private final Optional<DescribedPredicate<T>> predicate;
 
     public PredicateAggregator() {
-        this(AddMode.<T>and(), Optional.<DescribedPredicate<T>>absent());
+        this(AddMode.<T>and(), Optional.<DescribedPredicate<T>>empty());
     }
 
     private PredicateAggregator(AddMode<T> addMode, Optional<DescribedPredicate<T>> predicate) {

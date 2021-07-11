@@ -15,6 +15,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.TestUtils.withinImportedClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 
 public class AccessTargetTest {
     @Test
@@ -202,7 +203,7 @@ public class AccessTargetTest {
 
     private void assertDeclarations(CodeUnitCallTarget target, Class<?>... exceptionTypes) {
         ThrowsClause<CodeUnitCallTarget> throwsClause = target.getThrowsClause();
-        assertThat(throwsClause.getTypes()).matches(exceptionTypes);
+        assertThatTypes(throwsClause.getTypes()).matchExactly(exceptionTypes);
         for (ThrowsDeclaration<CodeUnitCallTarget> throwsDeclaration : throwsClause) {
             assertThatType(throwsDeclaration.getDeclaringClass()).isEqualTo(target.getOwner());
             assertThat(throwsDeclaration.getOwner()).isEqualTo(target.getThrowsClause());

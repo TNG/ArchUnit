@@ -220,7 +220,7 @@ class ClassFileProcessor {
                 return classProcessor.createJavaClass();
             } catch (Exception e) {
                 LOG.warn(String.format("Error during import from %s, falling back to simple import", uri), e);
-                return Optional.absent();
+                return Optional.empty();
             }
         }
     }

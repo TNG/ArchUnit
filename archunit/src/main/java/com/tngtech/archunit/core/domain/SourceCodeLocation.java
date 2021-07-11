@@ -54,7 +54,7 @@ public final class SourceCodeLocation {
     private static String formatLocation(JavaClass sourceClass, int lineNumber) {
         Optional<String> recordedSourceFileName = sourceClass.getSource().isPresent()
                 ? sourceClass.getSource().get().getFileName()
-                : Optional.<String>absent();
+                : Optional.<String>empty();
         String sourceFileName = recordedSourceFileName.isPresent() ? recordedSourceFileName.get() : guessSourceFileName(sourceClass);
         return "(" + sourceFileName + ":" + lineNumber + ")";
     }

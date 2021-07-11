@@ -19,7 +19,6 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.ClassRetentionAnnotation;
@@ -47,6 +46,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.greaterThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.lessThan;
 import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -1889,7 +1889,7 @@ public class ClassesShouldTest {
     }
 
     private Pattern callRegex(Class<?> origin, Class<?> targetClass, String targetType, String methodName, Class<?>... paramTypes) {
-        String params = Joiner.on(", ").join(JavaClass.namesOf(paramTypes));
+        String params = Joiner.on(", ").join(formatNamesOf(paramTypes));
         String originCalls = String.format("%s[^%s]* calls", quote(origin.getName()), FAILURE_REPORT_NEWLINE_MARKER);
         String target = String.format("[^%s]*%s\\.%s\\(%s\\)",
                 FAILURE_REPORT_NEWLINE_MARKER, quote(targetClass.getName()), methodName, quote(params));

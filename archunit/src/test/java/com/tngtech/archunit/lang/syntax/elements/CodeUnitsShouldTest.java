@@ -31,6 +31,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
@@ -280,7 +281,7 @@ public class CodeUnitsShouldTest {
         return new DescribedPredicate<JavaCodeUnit>("do not have parameters of type " + type.getSimpleName()) {
             @Override
             public boolean apply(JavaCodeUnit codeUnit) {
-                return !codeUnit.getRawParameterTypes().getNames().contains(type.getName());
+                return !namesOf(codeUnit.getRawParameterTypes()).contains(type.getName());
             }
         };
     }

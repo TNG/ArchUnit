@@ -15,13 +15,16 @@
  */
 package com.tngtech.archunit.core.domain.properties;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 public interface HasName {
     @PublicAPI(usage = ACCESS)
@@ -209,5 +212,32 @@ public interface HasName {
                 return input.getName();
             }
         };
+
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<List<? extends HasName>, List<String>> GET_NAMES = new ChainableFunction<List<? extends HasName>, List<String>>() {
+            @Override
+            public List<String> apply(List<? extends HasName> input) {
+                return namesOf(input);
+            }
+        };
+    }
+
+    final class Utils {
+        private Utils() {
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static List<String> namesOf(HasName... hasNames) {
+            return namesOf(ImmutableList.copyOf(hasNames));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public static List<String> namesOf(Iterable<? extends HasName> hasNames) {
+            ImmutableList.Builder<String> result = ImmutableList.builder();
+            for (HasName paramType : hasNames) {
+                result.add(paramType.getName());
+            }
+            return result.build();
+        }
     }
 }

@@ -57,7 +57,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     private final Set<JavaClass> classes;
     private final Optional<JavaClass> packageInfo;
     private final Map<String, JavaPackage> subpackages;
-    private Optional<JavaPackage> parent = Optional.absent();
+    private Optional<JavaPackage> parent = Optional.empty();
 
     private JavaPackage(String name, Set<JavaClass> classes, Map<String, JavaPackage> subpackages) {
         this.name = checkNotNull(name);
@@ -129,16 +129,16 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         if (packageInfo.isPresent()) {
             return packageInfo.get().tryGetAnnotationOfType(type);
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation<JavaPackage>> tryGetAnnotationOfType(String typeName) {
         if (packageInfo.isPresent()) {
-            return packageInfo.get().tryGetAnnotationOfType(typeName).transform(withSelfAsOwner);
+            return packageInfo.get().tryGetAnnotationOfType(typeName).map(withSelfAsOwner);
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 
     @Override
@@ -360,7 +360,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     private Optional<JavaClass> tryGetClassWith(DescribedPredicate<? super JavaClass> predicate) {
         Set<JavaClass> matching = getClassesWith(predicate);
-        return matching.size() == 1 ? Optional.of(getOnlyElement(matching)) : Optional.<JavaClass>absent();
+        return matching.size() == 1 ? Optional.of(getOnlyElement(matching)) : Optional.<JavaClass>empty();
     }
 
     private Set<JavaClass> getClassesWith(Predicate<? super JavaClass> predicate) {
@@ -405,7 +405,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
         String next = packageParts.poll();
         if (!subpackages.containsKey(next)) {
-            return Optional.absent();
+            return Optional.empty();
         }
         JavaPackage child = subpackages.get(next);
         return child.tryGetPackage(child, packageParts);

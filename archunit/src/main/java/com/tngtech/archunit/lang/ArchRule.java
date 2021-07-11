@@ -163,7 +163,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
     @Internal
     class Factory {
         public static <T> ArchRule create(final ClassesTransformer<T> classesTransformer, final ArchCondition<T> condition, final Priority priority) {
-            return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.<String>absent());
+            return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.<String>empty());
         }
 
         public static ArchRule withBecause(ArchRule rule, String reason) {

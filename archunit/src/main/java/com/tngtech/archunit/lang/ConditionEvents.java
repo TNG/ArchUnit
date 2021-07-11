@@ -40,7 +40,7 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     }
 
     private final Multimap<Type, ConditionEvent> eventsByViolation = ArrayListMultimap.create();
-    private Optional<String> informationAboutNumberOfViolations = Optional.absent();
+    private Optional<String> informationAboutNumberOfViolations = Optional.empty();
 
     @PublicAPI(usage = ACCESS)
     public void add(ConditionEvent event) {

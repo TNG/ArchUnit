@@ -142,7 +142,7 @@ public class ClassResolverFactoryTest {
 
         @Override
         public Optional<JavaClass> tryResolve(String typeName) {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 
@@ -157,7 +157,7 @@ public class ClassResolverFactoryTest {
 
         @Override
         public Optional<JavaClass> tryResolve(String typeName) {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 
@@ -171,7 +171,7 @@ public class ClassResolverFactoryTest {
 
         @Override
         public Optional<JavaClass> tryResolve(String typeName) {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 
@@ -185,7 +185,7 @@ public class ClassResolverFactoryTest {
 
         @Override
         public Optional<JavaClass> tryResolve(String typeName) {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 }

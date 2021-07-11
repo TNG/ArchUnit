@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,7 +19,6 @@ import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
@@ -89,6 +89,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
@@ -819,12 +820,12 @@ public class ClassFileImporterAccessesTest {
         JavaClasses classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/specialtargets"));
         Set<JavaMethodCall> calls = classes.get(ClassCallingSpecialTarget.class).getMethodCallsFromSelf();
 
-        assertThat(targetParametersOf(calls, "primitiveArgs")).matches(byte.class, long.class);
+        assertThatTypes(targetParametersOf(calls, "primitiveArgs")).matchExactly(byte.class, long.class);
         assertThatType(returnTypeOf(calls, "primitiveReturnType")).matches(byte.class);
-        assertThat(targetParametersOf(calls, "arrayArgs")).matches(byte[].class, Object[].class);
+        assertThatTypes(targetParametersOf(calls, "arrayArgs")).matchExactly(byte[].class, Object[].class);
         assertThatType(returnTypeOf(calls, "primitiveArrayReturnType")).matches(short[].class);
         assertThatType(returnTypeOf(calls, "objectArrayReturnType")).matches(String[].class);
-        assertThat(targetParametersOf(calls, "twoDimArrayArgs")).matches(float[][].class, Object[][].class);
+        assertThatTypes(targetParametersOf(calls, "twoDimArrayArgs")).matchExactly(float[][].class, Object[][].class);
         assertThatType(returnTypeOf(calls, "primitiveTwoDimArrayReturnType")).matches(double[][].class);
         assertThatType(returnTypeOf(calls, "objectTwoDimArrayReturnType")).matches(String[][].class);
     }
@@ -863,7 +864,7 @@ public class ClassFileImporterAccessesTest {
         }
     }
 
-    private JavaClassList targetParametersOf(Set<JavaMethodCall> calls, String name) {
+    private List<JavaClass> targetParametersOf(Set<JavaMethodCall> calls, String name) {
         return findAnyByName(calls, name).getTarget().getRawParameterTypes();
     }
 

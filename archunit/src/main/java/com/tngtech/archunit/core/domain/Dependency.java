@@ -221,7 +221,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
 
     private static Optional<Dependency> tryCreateDependency(JavaClass originClass, JavaClass targetClass, String description, int lineNumber) {
         if (originClass.equals(targetClass) || targetClass.isPrimitive()) {
-            return Optional.absent();
+            return Optional.empty();
         }
         return Optional.of(new Dependency(originClass, targetClass, lineNumber, description));
     }
