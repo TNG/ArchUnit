@@ -29,7 +29,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.Formatters.formatThrowsDeclarationTypeNames;
 import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
-import static com.tngtech.archunit.core.domain.JavaClassList.GET_NAMES;
+import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAMES;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 

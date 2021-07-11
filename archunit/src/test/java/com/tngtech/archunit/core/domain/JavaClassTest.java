@@ -89,6 +89,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importPackagesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
@@ -475,7 +476,7 @@ public class JavaClassTest {
             public boolean matches(JavaCodeUnit value) {
                 return value.getOwner().isEquivalentTo(owner) &&
                         value.getName().equals(methodName) &&
-                        value.getRawParameterTypes().getNames().equals(ImmutableList.of(paramType.getName()));
+                        namesOf(value.getRawParameterTypes()).equals(ImmutableList.of(paramType.getName()));
             }
         };
     }

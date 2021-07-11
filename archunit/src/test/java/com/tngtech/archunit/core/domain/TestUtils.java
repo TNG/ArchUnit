@@ -25,6 +25,7 @@ import com.tngtech.archunit.core.importer.ImportTestUtils;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newFieldAccess;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newMethodCall;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
@@ -34,14 +35,6 @@ import static org.mockito.Mockito.when;
 
 public class TestUtils {
     public static final Md5sum MD5_SUM_DISABLED = Md5sum.DISABLED;
-
-    public static JavaClassList javaClassList(Class<?>... types) {
-        List<JavaClass> classes = new ArrayList<>();
-        for (Class<?> type : types) {
-            classes.add(importClassWithContext(type));
-        }
-        return new JavaClassList(classes);
-    }
 
     @SafeVarargs
     public static ThrowsClause<?> throwsClause(Class<? extends Throwable>... types) {
@@ -251,7 +244,7 @@ public class TestUtils {
             for (T call : callsFromSelf) {
                 if (call.getTargetOwner().isEquivalentTo(targetOwner) &&
                         call.getTarget().getName().equals(methodName) &&
-                        call.getTarget().getRawParameterTypes().getNames().equals(paramNames)) {
+                        namesOf(call.getTarget().getRawParameterTypes()).equals(paramNames)) {
                     return call;
                 }
             }

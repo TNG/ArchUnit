@@ -7,10 +7,11 @@ import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import org.assertj.core.api.AbstractObjectAssert;
 
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypeVariable;
-import static com.tngtech.archunit.testutil.TestUtils.namesOf;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.getTypeVariableWithName;
 
 public class JavaCodeUnitAssertion<T extends JavaCodeUnit, SELF extends JavaCodeUnitAssertion<T, SELF>>
@@ -22,13 +23,13 @@ public class JavaCodeUnitAssertion<T extends JavaCodeUnit, SELF extends JavaCode
 
     public void isEquivalentTo(Method method) {
         super.isEquivalentTo(method);
-        assertThat(actual.getRawParameterTypes()).matches(method.getParameterTypes());
+        assertThatTypes(actual.getRawParameterTypes()).matchExactly(method.getParameterTypes());
         assertThatType(actual.getRawReturnType()).matches(method.getReturnType());
     }
 
     public void isEquivalentTo(Constructor<?> constructor) {
         super.isEquivalentTo(constructor);
-        assertThat(actual.getRawParameterTypes()).matches(constructor.getParameterTypes());
+        assertThatTypes(actual.getRawParameterTypes()).matchExactly(constructor.getParameterTypes());
         assertThatType(actual.getRawReturnType()).matches(void.class);
     }
 

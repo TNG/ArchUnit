@@ -58,6 +58,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.domain.JavaModifier.VOLATILE;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.findAnyByName;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getCodeUnits;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getFields;
@@ -67,7 +68,6 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClass
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
-import static com.tngtech.archunit.testutil.TestUtils.namesOf;
 import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
 
 public class ClassFileImporterMembersTest {
@@ -176,7 +176,7 @@ public class ClassFileImporterMembersTest {
         assertThat(method.getThrowsClause())
                 .as("Throws types of method 'throwsExceptions'")
                 .matches(FirstCheckedException.class, SecondCheckedException.class);
-        assertThat(method.getExceptionTypes()).matches(FirstCheckedException.class, SecondCheckedException.class);
+        assertThatTypes(method.getExceptionTypes()).matchExactly(FirstCheckedException.class, SecondCheckedException.class);
     }
 
     @Test
@@ -251,7 +251,7 @@ public class ClassFileImporterMembersTest {
         JavaConstructor constructor = getOnlyElement(clazz.getConstructors());
         assertThat(constructor.getThrowsClause()).as("Throws types of sole constructor")
                 .matches(FirstCheckedException.class, SecondCheckedException.class);
-        assertThat(constructor.getExceptionTypes()).matches(FirstCheckedException.class, SecondCheckedException.class);
+        assertThatTypes(constructor.getExceptionTypes()).matchExactly(FirstCheckedException.class, SecondCheckedException.class);
     }
 
     @Test

@@ -16,6 +16,7 @@ import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -67,7 +68,7 @@ abstract class ExpectedMember {
 
     private List<String> getParameters(Object member) {
         return member instanceof HasParameterTypes ?
-                ((HasParameterTypes) member).getRawParameterTypes().getNames() :
+                namesOf(((HasParameterTypes) member).getRawParameterTypes()) :
                 emptyList();
     }
 
@@ -81,7 +82,7 @@ abstract class ExpectedMember {
 
         @Override
         String getExpectedDescription() {
-            return memberDescription + " <" + toString() + ">";
+            return memberDescription + " <" + this + ">";
         }
 
         @Override
@@ -112,7 +113,7 @@ abstract class ExpectedMember {
 
         @Override
         String getExpectedDescription() {
-            return accesses + String.format(" field <%s>", toString());
+            return accesses + String.format(" field <%s>", this);
         }
     }
 
@@ -123,7 +124,7 @@ abstract class ExpectedMember {
 
         @Override
         String getExpectedDescription() {
-            return String.format("calls method <%s>", toString());
+            return String.format("calls method <%s>", this);
         }
 
         @Override
@@ -139,7 +140,7 @@ abstract class ExpectedMember {
 
         @Override
         String getExpectedDescription() {
-            return String.format("calls constructor <%s>", toString());
+            return String.format("calls constructor <%s>", this);
         }
 
         @Override

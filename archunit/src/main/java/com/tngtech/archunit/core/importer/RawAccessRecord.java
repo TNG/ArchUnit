@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 class RawAccessRecord {
     final CodeUnit caller;
@@ -119,7 +120,7 @@ class RawAccessRecord {
 
         public boolean is(JavaCodeUnit method) {
             return getName().equals(method.getName())
-                    && getParameters().equals(method.getRawParameterTypes().getNames())
+                    && getParameters().equals(namesOf(method.getRawParameterTypes()))
                     && getDeclaringClassName().equals(method.getOwner().getName());
         }
     }

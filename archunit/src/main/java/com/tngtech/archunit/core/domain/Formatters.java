@@ -20,24 +20,12 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.google.common.base.Strings.repeat;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class Formatters {
     private Formatters() {
-    }
-
-    /**
-     * @param ownerName  Class name where the method is declared
-     * @param methodName Name of the method
-     * @param parameters Parameters of the method
-     * @return Arguments formatted as "ownerName.methodName(fqn.param1, fqn.param2, ...)"
-     */
-    @PublicAPI(usage = ACCESS)
-    public static String formatMethod(String ownerName, String methodName, JavaClassList parameters) {
-        return format(ownerName, methodName, formatMethodParameters(parameters));
     }
 
     private static String format(String ownerName, String methodName, String parameters) {
@@ -69,14 +57,6 @@ public final class Formatters {
     @PublicAPI(usage = ACCESS)
     public static String formatMethod(String ownerName, String methodName, List<String> parameters) {
         return format(ownerName, methodName, formatMethodParameterTypeNames(parameters));
-    }
-
-    private static String formatMethodParameters(List<? extends HasName> parameters) {
-        List<String> names = new ArrayList<>();
-        for (HasName type : parameters) {
-            names.add(type.getName());
-        }
-        return formatMethodParameterTypeNames(names);
     }
 
     /**

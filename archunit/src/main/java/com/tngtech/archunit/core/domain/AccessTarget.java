@@ -319,8 +319,8 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
         @Override
         @PublicAPI(usage = ACCESS)
-        public JavaClassList getRawParameterTypes() {
-            return DomainObjectCreationContext.createJavaClassList(parameters);
+        public List<JavaClass> getRawParameterTypes() {
+            return parameters;
         }
 
         @Override

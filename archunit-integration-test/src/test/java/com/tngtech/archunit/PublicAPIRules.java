@@ -39,6 +39,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
@@ -185,7 +186,7 @@ public class PublicAPIRules {
 
             private boolean equivalentMethod(JavaMethod method, String name, Class<?>... paramTypes) {
                 return method.getName().equals(name) &&
-                        method.getRawParameterTypes().getNames().equals(JavaClass.namesOf(paramTypes));
+                        namesOf(method.getRawParameterTypes()).equals(JavaClass.namesOf(paramTypes));
             }
 
             private boolean enumMethod(JavaMethod methodToCheck, String name, Class<?>... paramTypes) {
