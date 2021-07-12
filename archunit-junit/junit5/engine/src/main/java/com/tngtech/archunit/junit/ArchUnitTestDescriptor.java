@@ -145,7 +145,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final Supplier<JavaClasses> classes;
 
         ArchUnitRuleDescriptor(UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, Field field) {
-            super(uniqueId, field.getName(), FieldSource.from(field), field);
+            super(uniqueId, DisplayNameResolver.determineDisplayName(field.getName()), FieldSource.from(field), field);
             this.rule = rule;
             this.classes = classes;
         }
@@ -167,7 +167,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final Supplier<JavaClasses> classes;
 
         ArchUnitMethodDescriptor(UniqueId uniqueId, Method method, Supplier<JavaClasses> classes) {
-            super(uniqueId.append("method", method.getName()), method.getName(), MethodSource.from(method), method);
+            super(uniqueId.append("method", method.getName()),
+                    DisplayNameResolver.determineDisplayName(method.getName()), MethodSource.from(method), method);
             validate(method);
 
             this.method = method;
