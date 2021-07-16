@@ -114,7 +114,7 @@ public final class Architectures {
             this(new LayerDefinitions(),
                     new LinkedHashSet<LayerDependencySpecification>(),
                     new PredicateAggregator<Dependency>().thatORs(),
-                    Optional.<String>absent(),
+                    Optional.<String>empty(),
                     false);
         }
 
@@ -472,7 +472,7 @@ public final class Architectures {
         private List<IgnoredDependency> ignoredDependencies = new ArrayList<>();
 
         private OnionArchitecture() {
-            overriddenDescription = Optional.absent();
+            overriddenDescription = Optional.empty();
         }
 
         private OnionArchitecture(String[] domainModelPackageIdentifiers,

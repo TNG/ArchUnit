@@ -342,7 +342,7 @@ public final class DomainBuilders {
         private static final Function<JavaMethod, Optional<Object>> NO_ANNOTATION_DEFAULT_VALUE = new Function<JavaMethod, Optional<Object>>() {
             @Override
             public Optional<Object> apply(JavaMethod input) {
-                return Optional.absent();
+                return Optional.empty();
             }
         };
         private Function<JavaMethod, Optional<Object>> createAnnotationDefaultValue = NO_ANNOTATION_DEFAULT_VALUE;
@@ -373,8 +373,8 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaClassBuilder {
-        private Optional<SourceDescriptor> sourceDescriptor = Optional.absent();
-        private Optional<String> sourceFileName = Optional.absent();
+        private Optional<SourceDescriptor> sourceDescriptor = Optional.empty();
+        private Optional<String> sourceFileName = Optional.empty();
         private JavaClassDescriptor descriptor;
         private boolean isInterface;
         private boolean isEnum;
@@ -449,7 +449,7 @@ public final class DomainBuilders {
         public Optional<Source> getSource() {
             return sourceDescriptor.isPresent()
                     ? Optional.of(createSource(sourceDescriptor.get().getUri(), sourceFileName, sourceDescriptor.get().isMd5InClassSourcesEnabled()))
-                    : Optional.<Source>absent();
+                    : Optional.<Source>empty();
         }
 
         public JavaClassDescriptor getDescriptor() {
@@ -554,7 +554,7 @@ public final class DomainBuilders {
     @Internal
     public static final class JavaStaticInitializerBuilder extends JavaCodeUnitBuilder<JavaStaticInitializer, JavaStaticInitializerBuilder> {
         JavaStaticInitializerBuilder() {
-            withReturnType(Optional.<JavaTypeCreationProcess<JavaCodeUnit>>absent(), JavaClassDescriptor.From.name(void.class.getName()));
+            withReturnType(Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty(), JavaClassDescriptor.From.name(void.class.getName()));
             withParameterTypes(Collections.<JavaClassDescriptor>emptyList());
             withName(JavaStaticInitializer.STATIC_INITIALIZER_NAME);
             withDescriptor("()V");

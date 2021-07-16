@@ -10,8 +10,8 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
-import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.throwsClause;
 import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predicates.throwsClauseContainingType;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -82,7 +82,7 @@ public class HasThrowsClauseTest {
 
             @Override
             public String toString() {
-                return HasThrowsClause.class.getSimpleName() + "{ throws " + namesOf(throwsDeclarations) + "}";
+                return HasThrowsClause.class.getSimpleName() + "{ throws " + formatNamesOf(throwsDeclarations) + "}";
             }
         };
     }

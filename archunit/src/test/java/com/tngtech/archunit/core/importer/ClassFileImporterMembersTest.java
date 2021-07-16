@@ -131,7 +131,7 @@ public class ClassFileImporterMembersTest {
     @Test
     public void imports_simple_methods_with_correct_parameters() throws Exception {
         Set<JavaMethod> methods = getMethods(new ClassFileImporter().importUrl(getClass().getResource("testexamples/methodimport")));
-        assertThat(methods).extractingResultOf("getDefaultValue").containsOnly(Optional.absent());
+        assertThat(methods).extractingResultOf("getDefaultValue").containsOnly(Optional.empty());
 
         assertThat(findAnyByName(methods, "createString")).isEquivalentTo(
                 ClassWithStringStringMethod.class.getDeclaredMethod("createString", String.class));

@@ -24,6 +24,7 @@ import com.tngtech.archunit.core.importer.ImportTestUtils;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newFieldAccess;
@@ -75,7 +76,7 @@ public class TestUtils {
         File file = newTemporaryFile();
         try {
             Files.write(bytes, file);
-            return new Source(file.toURI(), Optional.<String>absent(), true).getMd5sum();
+            return new Source(file.toURI(), Optional.<String>empty(), true).getMd5sum();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -87,7 +88,7 @@ public class TestUtils {
 
     public static JavaClasses importClassesWithContext(Class<?>... classes) {
         JavaClasses importedHierarchy = importHierarchies(classes);
-        final List<String> classNames = JavaClass.namesOf(classes);
+        final List<String> classNames = formatNamesOf(classes);
         return importedHierarchy.that(new DescribedPredicate<JavaClass>("") {
             @Override
             public boolean apply(JavaClass input) {
@@ -240,7 +241,7 @@ public class TestUtils {
                 String methodName,
                 Class<?>[] paramTypes) {
 
-            List<String> paramNames = JavaClass.namesOf(paramTypes);
+            List<String> paramNames = formatNamesOf(paramTypes);
             for (T call : callsFromSelf) {
                 if (call.getTargetOwner().isEquivalentTo(targetOwner) &&
                         call.getTarget().getName().equals(methodName) &&

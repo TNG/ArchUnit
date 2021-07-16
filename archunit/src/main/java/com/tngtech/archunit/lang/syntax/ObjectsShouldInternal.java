@@ -112,7 +112,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
         private final AddMode<T> addMode;
 
         ConditionAggregator() {
-            this(Optional.<ArchCondition<T>>absent(), AddMode.<T>and());
+            this(Optional.<ArchCondition<T>>empty(), AddMode.<T>and());
         }
 
         ConditionAggregator(ArchCondition<T> condition) {

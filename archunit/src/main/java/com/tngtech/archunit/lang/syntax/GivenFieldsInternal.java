@@ -43,7 +43,7 @@ class GivenFieldsInternal
                 classesTransformer,
                 prepareCondition,
                 new PredicateAggregator<JavaField>(),
-                Optional.<String>absent());
+                Optional.<String>empty());
     }
 
     private GivenFieldsInternal(

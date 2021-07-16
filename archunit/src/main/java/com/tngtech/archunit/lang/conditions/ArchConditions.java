@@ -71,6 +71,7 @@ import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_C
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_TO_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CALLS_FROM_SELF;
@@ -91,7 +92,6 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameCo
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
-import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
@@ -185,7 +185,7 @@ public final class ArchConditions {
                 .and(JavaCall.Predicates.target(name(methodName)))
                 .and(JavaCall.Predicates.target(rawParameterTypes(parameterTypes))))
                 .as("call method %s", Formatters.formatMethodSimple(
-                        owner.getSimpleName(), methodName, namesOf(parameterTypes)));
+                        owner.getSimpleName(), methodName, formatNamesOf(parameterTypes)));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -218,7 +218,7 @@ public final class ArchConditions {
                 .and(JavaCall.Predicates.target(name(CONSTRUCTOR_NAME)))
                 .and(JavaCall.Predicates.target(rawParameterTypes(parameterTypes))))
                 .as("call constructor %s", Formatters.formatMethodSimple(
-                        owner.getSimpleName(), CONSTRUCTOR_NAME, namesOf(parameterTypes)));
+                        owner.getSimpleName(), CONSTRUCTOR_NAME, formatNamesOf(parameterTypes)));
     }
 
     @PublicAPI(usage = ACCESS)

@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +53,7 @@ import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.base.Guava.toGuava;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
@@ -134,7 +134,7 @@ public class JavaClass
         }
     });
     private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
-    private Optional<JavaClass> componentType = Optional.absent();
+    private Optional<JavaClass> componentType = Optional.empty();
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
@@ -250,7 +250,7 @@ public class JavaClass
     public Optional<JavaEnumConstant> tryGetEnumConstant(String name) {
         Optional<JavaField> field = tryGetField(name);
         if (!field.isPresent() || !field.get().getModifiers().contains(ENUM)) {
-            return Optional.absent();
+            return Optional.empty();
         }
         return Optional.of(new JavaEnumConstant(this, field.get().getName()));
     }
@@ -632,7 +632,7 @@ public class JavaClass
     @Override
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).transform(toAnnotationOfType(type));
+        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
     }
 
     /**
@@ -641,7 +641,7 @@ public class JavaClass
     @Override
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation<JavaClass>> tryGetAnnotationOfType(String typeName) {
-        return Optional.fromNullable(annotations.get(typeName));
+        return Optional.ofNullable(annotations.get(typeName));
     }
 
     @Override
@@ -882,7 +882,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaCodeUnit getCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
-        return getCodeUnitWithParameterTypeNames(name, namesOf(parameters));
+        return getCodeUnitWithParameterTypeNames(name, formatNamesOf(parameters));
     }
 
     /**
@@ -891,7 +891,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaCodeUnit> tryGetCodeUnitWithParameterTypes(String name, List<Class<?>> parameters) {
-        return tryGetCodeUnitWithParameterTypeNames(name, namesOf(parameters));
+        return tryGetCodeUnitWithParameterTypeNames(name, formatNamesOf(parameters));
     }
 
     /**
@@ -926,7 +926,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name, Class<?>... parameters) {
-        return members.getMethod(name, namesOf(parameters));
+        return members.getMethod(name, formatNamesOf(parameters));
     }
 
     /**
@@ -952,7 +952,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name, Class<?>... parameters) {
-        return members.tryGetMethod(name, namesOf(parameters));
+        return members.tryGetMethod(name, formatNamesOf(parameters));
     }
 
     /**
@@ -988,7 +988,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor(Class<?>... parameters) {
-        return members.getConstructor(namesOf(parameters));
+        return members.getConstructor(formatNamesOf(parameters));
     }
 
     /**
@@ -1014,7 +1014,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaConstructor> tryGetConstructor(Class<?>... parameters) {
-        return members.tryGetConstructor(namesOf(parameters));
+        return members.tryGetConstructor(formatNamesOf(parameters));
     }
 
     /**
@@ -1391,18 +1391,22 @@ public class JavaClass
         return "JavaClass{name='" + descriptor.getFullyQualifiedClassName() + "'}";
     }
 
+    /**
+     * @deprecated use {@link Formatters#formatNamesOf(Class[])} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static List<String> namesOf(Class<?>... paramTypes) {
-        return namesOf(ImmutableList.copyOf(paramTypes));
+        return formatNamesOf(paramTypes);
     }
 
+    /**
+     * @deprecated use {@link Formatters#formatNamesOf(Iterable)} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static List<String> namesOf(Iterable<Class<?>> paramTypes) {
-        ArrayList<String> result = new ArrayList<>();
-        for (Class<?> paramType : paramTypes) {
-            result.add(paramType.getName());
-        }
-        return result;
+        return formatNamesOf(paramTypes);
     }
 
     /**
@@ -1415,7 +1419,7 @@ public class JavaClass
     }
 
     private static class Superclass {
-        private static final Superclass ABSENT = new Superclass(Optional.<JavaType>absent());
+        private static final Superclass ABSENT = new Superclass(Optional.<JavaType>empty());
 
         private final Optional<JavaClass> rawType;
         private final Optional<JavaType> type;
@@ -1425,7 +1429,7 @@ public class JavaClass
         }
 
         private Superclass(Optional<JavaType> type) {
-            this.rawType = type.transform(TO_ERASURE);
+            this.rawType = type.map(TO_ERASURE);
             this.type = type;
         }
 
@@ -1481,7 +1485,7 @@ public class JavaClass
     }
 
     private static class EnclosingDeclaration {
-        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.<JavaCodeUnit>absent(), Optional.<JavaClass>absent());
+        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.<JavaCodeUnit>empty(), Optional.<JavaClass>empty());
 
         private final Optional<JavaCodeUnit> enclosingCodeUnit;
         private final Optional<JavaClass> enclosingClass;
@@ -1508,7 +1512,7 @@ public class JavaClass
         }
 
         static EnclosingDeclaration ofClass(Optional<JavaClass> clazz) {
-            return new EnclosingDeclaration(Optional.<JavaCodeUnit>absent(), clazz);
+            return new EnclosingDeclaration(Optional.<JavaCodeUnit>empty(), clazz);
         }
     }
 
@@ -2117,7 +2121,7 @@ public class JavaClass
             private final Class<?>[] classes;
 
             BelongToAnyOfPredicate(Class<?>... classes) {
-                super("belong to any of " + JavaClass.namesOf(classes));
+                super("belong to any of " + formatNamesOf(classes));
                 this.classes = classes;
             }
 

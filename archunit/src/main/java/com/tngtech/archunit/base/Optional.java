@@ -36,14 +36,32 @@ public abstract class Optional<T> {
         return new Present<>(object);
     }
 
+    /**
+     * @deprecated use {@link #ofNullable(Object)} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public static <T> Optional<T> fromNullable(T object) {
-        return object == null ? new Absent<T>() : new Present<>(object);
+        return ofNullable(object);
     }
 
     @PublicAPI(usage = ACCESS)
+    public static <T> Optional<T> ofNullable(T object) {
+        return object == null ? Optional.<T>empty() : new Present<>(object);
+    }
+
+    /**
+     * @deprecated use {@link #empty()} instead
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
     public static <T> Optional<T> absent() {
-        return Absent.getInstance();
+        return empty();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <T> Optional<T> empty() {
+        return Empty.getInstance();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -59,30 +77,69 @@ public abstract class Optional<T> {
     @PublicAPI(usage = ACCESS)
     public abstract T getOrThrow(RuntimeException e);
 
+    /**
+     * @deprecated Use {@link #orElseThrow(Supplier)} instead
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
-    public abstract T getOrThrow(Supplier<? extends RuntimeException> exceptionSupplier);
+    public T getOrThrow(Supplier<? extends RuntimeException> exceptionSupplier) {
+        return orElseThrow(exceptionSupplier);
+    }
 
     @PublicAPI(usage = ACCESS)
-    public abstract <U> Optional<U> transform(Function<? super T, U> function);
+    public abstract <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X;
+
+    /**
+     * @deprecated Use {@link #map(Function)} instead.
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    public <U> Optional<U> transform(Function<? super T, U> function) {
+        return map(function);
+    }
 
     @PublicAPI(usage = ACCESS)
-    public abstract T orNull();
+    public abstract <U> Optional<U> map(Function<? super T, ? extends U> mapper);
+
+    /**
+     * @deprecated Use {@link #orElse(Object) orElse(null)} instead.
+     */
+    @PublicAPI(usage = ACCESS)
+    public T orNull() {
+        return orElse(null);
+    }
+
+    /**
+     * @deprecated Use {@link #orElse(Object)} instead.
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    public T or(T value) {
+        return orElse(value);
+    }
 
     @PublicAPI(usage = ACCESS)
-    public abstract T or(T value);
+    public abstract T orElse(T other);
 
+    @PublicAPI(usage = ACCESS)
+    public abstract T orElseGet(Supplier<? extends T> supplier);
+
+    /**
+     * @deprecated This method will be removed in the future, use {@link #orElseGet(Supplier)} instead.
+     */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public abstract Optional<T> or(Optional<? extends T> value);
 
     @PublicAPI(usage = ACCESS)
     public abstract Set<T> asSet();
 
-    private static class Absent<T> extends Optional<T> {
-        private static final Absent<Object> INSTANCE = new Absent<>();
+    private static class Empty<T> extends Optional<T> {
+        private static final Empty<Object> INSTANCE = new Empty<>();
 
         @SuppressWarnings("unchecked")
-        private static <T> Absent<T> getInstance() {
-            return (Absent<T>) INSTANCE;
+        private static <T> Empty<T> getInstance() {
+            return (Empty<T>) INSTANCE;
         }
 
         @Override
@@ -96,13 +153,13 @@ public abstract class Optional<T> {
         }
 
         @Override
-        public T orNull() {
-            return null;
+        public T orElse(T value) {
+            return value;
         }
 
         @Override
-        public T or(T value) {
-            return value;
+        public T orElseGet(Supplier<? extends T> supplier) {
+            return supplier.get();
         }
 
         @Override
@@ -122,13 +179,13 @@ public abstract class Optional<T> {
         }
 
         @Override
-        public T getOrThrow(Supplier<? extends RuntimeException> exceptionSupplier) {
+        public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
             throw exceptionSupplier.get();
         }
 
         @Override
-        public <U> Optional<U> transform(Function<? super T, U> function) {
-            return absent();
+        public <U> Optional<U> map(Function<? super T, ? extends U> mapper) {
+            return empty();
         }
 
         @Override
@@ -138,12 +195,12 @@ public abstract class Optional<T> {
 
         @Override
         public boolean equals(Object obj) {
-            return obj instanceof Absent;
+            return obj instanceof Optional.Empty;
         }
 
         @Override
         public String toString() {
-            return Optional.class.getSimpleName() + ".absent()";
+            return Optional.class.getSimpleName() + ".empty()";
         }
     }
 
@@ -165,12 +222,12 @@ public abstract class Optional<T> {
         }
 
         @Override
-        public T orNull() {
+        public T orElse(T value) {
             return object;
         }
 
         @Override
-        public T or(T value) {
+        public T orElseGet(Supplier<? extends T> supplier) {
             return object;
         }
 
@@ -190,13 +247,13 @@ public abstract class Optional<T> {
         }
 
         @Override
-        public T getOrThrow(Supplier<? extends RuntimeException> exceptionSupplier) {
+        public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) {
             return object;
         }
 
         @Override
-        public <U> Optional<U> transform(Function<? super T, U> function) {
-            return Optional.of(function.apply(object));
+        public <U> Optional<U> map(Function<? super T, ? extends U> mapper) {
+            return Optional.of(mapper.apply(object));
         }
 
         @Override

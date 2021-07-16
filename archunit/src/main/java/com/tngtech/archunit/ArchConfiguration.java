@@ -122,7 +122,7 @@ public final class ArchConfiguration {
 
     @PublicAPI(usage = ACCESS)
     public Optional<String> getClassResolver() {
-        return Optional.fromNullable(properties.getProperty(CLASS_RESOLVER));
+        return Optional.ofNullable(properties.getProperty(CLASS_RESOLVER));
     }
 
     @PublicAPI(usage = ACCESS)

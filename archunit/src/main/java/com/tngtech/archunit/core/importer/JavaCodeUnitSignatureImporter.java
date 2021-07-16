@@ -77,14 +77,14 @@ class JavaCodeUnitSignatureImporter {
         public JavaCodeUnitSignature getParsedSignature() {
             return new JavaCodeUnitSignature(
                     typeParameterProcessor.getTypeParameterBuilders(),
-                    Optional.fromNullable(genericMethodReturnTypeProcessor.getType()));
+                    Optional.ofNullable(genericMethodReturnTypeProcessor.getType()));
         }
     }
 
     static class JavaCodeUnitSignature {
         static final JavaCodeUnitSignature ABSENT = new JavaCodeUnitSignature(
                 Collections.<JavaTypeParameterBuilder<JavaCodeUnit>>emptyList(),
-                Optional.<JavaTypeCreationProcess<JavaCodeUnit>>absent()
+                Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty()
         );
 
         private final List<JavaTypeParameterBuilder<JavaCodeUnit>> typeParameterBuilders;

@@ -4,7 +4,7 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import org.assertj.core.api.AbstractIterableAssert;
 
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
-import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 
 public class JavaMethodsAssertion
@@ -22,7 +22,7 @@ public class JavaMethodsAssertion
     public JavaMethodsAssertion contain(Class<?> owner, String name, Class<?>... parameterTypes) {
         if (!contains(owner, name, parameterTypes)) {
             throw new AssertionError(String.format("There is no method %s contained in %s",
-                    formatMethod(owner.getName(), name, namesOf(parameterTypes)), actual));
+                    formatMethod(owner.getName(), name, formatNamesOf(parameterTypes)), actual));
         }
         return this;
     }

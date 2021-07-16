@@ -2,10 +2,9 @@ package com.tngtech.archunit.testutils;
 
 import java.lang.annotation.Annotation;
 
-import com.tngtech.archunit.core.domain.JavaClass;
-
-import static java.lang.String.format;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
+import static java.lang.String.format;
 
 public class ExpectedMethod {
     public static ExpectedMethod.Creator of(Class<?> owner, String methodName, Class<?>... params) {
@@ -42,7 +41,7 @@ public class ExpectedMethod {
         }
 
         private ExpectedMessage method(String message) {
-            String methodDescription = format("Method <%s>", formatMethod(clazz.getName(), methodName, JavaClass.namesOf(params)));
+            String methodDescription = format("Method <%s>", formatMethod(clazz.getName(), methodName, formatNamesOf(params)));
             String sourceCodeLocation = format("(%s.java:%d)", clazz.getSimpleName(), lineNumber);
             return new ExpectedMessage(format("%s %s in %s", methodDescription, message, sourceCodeLocation));
         }

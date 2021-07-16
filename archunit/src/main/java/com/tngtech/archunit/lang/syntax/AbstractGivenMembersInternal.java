@@ -74,7 +74,7 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
                     classesTransformer,
                     prepareCondition,
                     new PredicateAggregator<JavaMember>(),
-                    Optional.<String>absent());
+                    Optional.<String>empty());
         }
 
         private GivenMembersInternal(

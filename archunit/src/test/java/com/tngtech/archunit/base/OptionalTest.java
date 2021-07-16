@@ -1,10 +1,12 @@
 package com.tngtech.archunit.base;
 
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class OptionalTest {
     @Rule
@@ -13,6 +15,7 @@ public class OptionalTest {
     @Test
     public void isPresent_works() {
         assertThat(Optional.of(4).isPresent()).isTrue();
+        assertThat(Optional.empty().isPresent()).isFalse();
         assertThat(Optional.absent().isPresent()).isFalse();
     }
 
@@ -20,8 +23,19 @@ public class OptionalTest {
     public void get_works() {
         assertThat(Optional.of("test").get()).isEqualTo("test");
 
-        thrown.expect(NullPointerException.class);
-        Optional.absent().get();
+        assertThatThrownBy(new ThrowingCallable() {
+            @Override
+            public void call() {
+                Optional.empty().get();
+            }
+        }).isInstanceOf(NullPointerException.class);
+
+        assertThatThrownBy(new ThrowingCallable() {
+            @Override
+            public void call() {
+                Optional.absent().get();
+            }
+        }).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -30,12 +44,12 @@ public class OptionalTest {
 
         thrown.expect(IllegalStateException.class);
         thrown.expectMessage("Bummer");
-        Optional.absent().getOrThrow(new IllegalStateException("Bummer"));
+        Optional.empty().getOrThrow(new IllegalStateException("Bummer"));
     }
 
     @Test
     public void getOrThrow_supplier_works() {
-        assertThat(Optional.of("test").getOrThrow(new Supplier<IllegalStateException>() {
+        assertThat(Optional.of("test").orElseThrow(new Supplier<IllegalStateException>() {
             @Override
             public IllegalStateException get() {
                 return new IllegalStateException("SupplierBummer");
@@ -44,7 +58,7 @@ public class OptionalTest {
 
         thrown.expect(IllegalStateException.class);
         thrown.expectMessage("SupplierBummer");
-        Optional.absent().getOrThrow(new Supplier<IllegalStateException>() {
+        Optional.empty().orElseThrow(new Supplier<IllegalStateException>() {
             @Override
             public IllegalStateException get() {
                 return new IllegalStateException("SupplierBummer");
@@ -53,10 +67,12 @@ public class OptionalTest {
     }
 
     @Test
-    public void transform_works() {
+    public void map_works() {
         assertThat(Optional.of(5).transform(TO_STRING)).isEqualTo(Optional.of("5"));
+        assertThat(Optional.of(5).map(TO_STRING)).isEqualTo(Optional.of("5"));
 
-        assertThat(Optional.absent().transform(TO_STRING)).isEqualTo(Optional.absent());
+        assertThat(Optional.empty().transform(TO_STRING)).isEqualTo(Optional.empty());
+        assertThat(Optional.empty().map(TO_STRING)).isEqualTo(Optional.empty());
     }
 
     @Test
@@ -66,11 +82,35 @@ public class OptionalTest {
     }
 
     @Test
-    public void or_works() {
-        assertThat(Optional.of("test").or("other")).isEqualTo("test");
-        assertThat(Optional.absent().or("other")).isEqualTo("other");
+    public void orElse_works() {
+        assertThat(Optional.of("test").orElse("other")).isEqualTo("test");
+        assertThat(Optional.empty().orElse("other")).isEqualTo("other");
+        assertThat(Optional.empty().orElse(null)).isNull();
+
         assertThat(Optional.of("test").or(Optional.of("other"))).isEqualTo(Optional.of("test"));
-        assertThat(Optional.absent().or(Optional.of("other"))).isEqualTo(Optional.of("other"));
+        assertThat(Optional.empty().or(Optional.of("other"))).isEqualTo(Optional.of("other"));
+    }
+
+    @Test
+    public void orElseGet_works() {
+        assertThat(Optional.of("test").orElseGet(new Supplier<String>() {
+            @Override
+            public String get() {
+                return "other";
+            }
+        })).isEqualTo("test");
+        assertThat(Optional.empty().orElseGet(new Supplier<String>() {
+            @Override
+            public String get() {
+                return "other";
+            }
+        })).isEqualTo("other");
+        assertThat(Optional.empty().orElseGet(new Supplier<String>() {
+            @Override
+            public String get() {
+                return null;
+            }
+        })).isNull();
     }
 
     @Test
@@ -79,8 +119,8 @@ public class OptionalTest {
         assertThat(Optional.of(5).hashCode()).as("HashCode").isEqualTo(Optional.of(5).hashCode());
         assertThat(Optional.of(5)).isNotEqualTo(Optional.of(4));
 
-        assertThat(Optional.absent()).isEqualTo(Optional.absent());
-        assertThat(Optional.absent().hashCode()).as("HashCode").isEqualTo(Optional.absent().hashCode());
+        assertThat(Optional.empty()).isEqualTo(Optional.empty());
+        assertThat(Optional.empty().hashCode()).as("HashCode").isEqualTo(Optional.empty().hashCode());
 
     }
 

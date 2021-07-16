@@ -97,7 +97,7 @@ class PlantUmlParser {
 
         ComponentName componentName = new ComponentName(matcher.matchComponentName());
         ImmutableSet<Stereotype> immutableStereotypes = identifyStereotypes(matcher, componentName);
-        Optional<Alias> alias = Optional.fromNullable(matcher.matchAlias().transform(TO_ALIAS).orNull());
+        Optional<Alias> alias = Optional.ofNullable(matcher.matchAlias().transform(TO_ALIAS).orNull());
 
         return new PlantUmlComponent.Builder()
                 .withComponentName(componentName)

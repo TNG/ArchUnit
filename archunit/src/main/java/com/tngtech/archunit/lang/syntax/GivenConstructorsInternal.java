@@ -42,7 +42,7 @@ class GivenConstructorsInternal extends AbstractGivenCodeUnitsInternal<JavaConst
                 classesTransformer,
                 prepareCondition,
                 new PredicateAggregator<JavaConstructor>(),
-                Optional.<String>absent());
+                Optional.<String>empty());
     }
 
     private GivenConstructorsInternal(

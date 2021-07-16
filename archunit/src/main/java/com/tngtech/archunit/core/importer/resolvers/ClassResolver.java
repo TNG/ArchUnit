@@ -103,7 +103,7 @@ public interface ClassResolver {
         private Optional<ClassResolver> getExplicitlyConfiguredClassResolver() {
             Optional<String> resolverClassName = ArchConfiguration.get().getClassResolver();
             if (!resolverClassName.isPresent()) {
-                return Optional.absent();
+                return Optional.empty();
             }
 
             Class<?> resolverClass = classForName(resolverClassName);
@@ -152,7 +152,7 @@ public interface ClassResolver {
             try {
                 return Optional.<Constructor<?>>of(resolverClass.getConstructor(List.class));
             } catch (NoSuchMethodException e) {
-                return Optional.absent();
+                return Optional.empty();
             }
         }
 
@@ -179,7 +179,7 @@ public interface ClassResolver {
 
             @Override
             public Optional<JavaClass> tryResolve(String typeName) {
-                return Optional.absent();
+                return Optional.empty();
             }
         }
 

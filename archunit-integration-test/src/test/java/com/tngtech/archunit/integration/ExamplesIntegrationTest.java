@@ -156,7 +156,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.collect.Collections2.filter;
-import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.example.layers.OtherClassViolatingSessionBeanRules.init;
 import static com.tngtech.archunit.example.layers.SomeMediator.violateLayerRulesIndirectly;
 import static com.tngtech.archunit.example.layers.controller.one.UseCaseOneTwoController.doSomethingOne;
@@ -1210,7 +1210,7 @@ class ExamplesIntegrationTest {
     }
 
     private static MessageAssertionChain.Link classesContaining(final Class<?>... classes) {
-        final String expectedLine = String.format("there is/are %d element(s) in classes %s", classes.length, namesOf(classes));
+        final String expectedLine = String.format("there is/are %d element(s) in classes %s", classes.length, formatNamesOf(classes));
         return new MessageAssertionChain.Link() {
             @Override
             public Result filterMatching(List<String> lines) {
@@ -1226,7 +1226,7 @@ class ExamplesIntegrationTest {
 
             @Override
             public String getDescription() {
-                return "classes containing " + namesOf(classes);
+                return "classes containing " + formatNamesOf(classes);
             }
         };
     }

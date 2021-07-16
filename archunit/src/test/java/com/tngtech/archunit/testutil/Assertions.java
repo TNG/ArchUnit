@@ -69,7 +69,7 @@ import org.assertj.core.api.ObjectAssertFactory;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodSimple;
-import static com.tngtech.archunit.core.domain.JavaClass.namesOf;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
@@ -88,7 +88,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
     }
 
     public static <T> org.assertj.guava.api.OptionalAssert<T> assertThat(Optional<T> optional) {
-        return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orNull()));
+        return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orElse(null)));
     }
 
     public static <T> DescribedPredicateAssertion<T> assertThat(DescribedPredicate<T> predicate) {
@@ -246,7 +246,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
             }
 
             public Condition<JavaAccess<?>> toConstructor(final Class<?> targetClass, final Class<?>... paramTypes) {
-                final List<String> paramTypeNames = namesOf(paramTypes);
+                final List<String> paramTypeNames = formatNamesOf(paramTypes);
                 return new Condition<JavaAccess<?>>(
                         String.format("%s from %s.%s to %s",
                                 JavaAccess.class.getSimpleName(),
@@ -452,11 +452,11 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
 
         public MethodCallAssertion isTo(final String methodName, final Class<?>... parameterTypes) {
-            return isTo(new Condition<MethodCallTarget>("method " + methodName + "(" + namesOf(parameterTypes) + ")") {
+            return isTo(new Condition<MethodCallTarget>("method " + methodName + "(" + formatNamesOf(parameterTypes) + ")") {
                 @Override
                 public boolean matches(MethodCallTarget methodCallTarget) {
                     return methodCallTarget.getName().equals(methodName)
-                            && HasName.Utils.namesOf(methodCallTarget.getRawParameterTypes()).equals(namesOf(parameterTypes));
+                            && HasName.Utils.namesOf(methodCallTarget.getRawParameterTypes()).equals(formatNamesOf(parameterTypes));
                 }
             });
         }

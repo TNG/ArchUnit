@@ -30,6 +30,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.doNot;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.ANONYMOUS_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -186,7 +187,7 @@ public class PublicAPIRules {
 
             private boolean equivalentMethod(JavaMethod method, String name, Class<?>... paramTypes) {
                 return method.getName().equals(name) &&
-                        namesOf(method.getRawParameterTypes()).equals(JavaClass.namesOf(paramTypes));
+                        namesOf(method.getRawParameterTypes()).equals(formatNamesOf(paramTypes));
             }
 
             private boolean enumMethod(JavaMethod methodToCheck, String name, Class<?>... paramTypes) {
