@@ -294,14 +294,16 @@ class ClassFileImportRecord {
         private final Map<String, CodeUnit> innerClassNameToEnclosingCodeUnit = new HashMap<>();
 
         void registerEnclosingClass(String innerName, String outerName) {
-            checkArgument(!innerClassNameToEnclosingClassName.containsKey(innerName),
+            checkArgument(!innerClassNameToEnclosingClassName.containsKey(innerName)
+                            || innerClassNameToEnclosingClassName.get(innerName).equals(outerName),
                     "Can't register multiple enclosing classes, this is likely a bug!");
 
             innerClassNameToEnclosingClassName.put(innerName, outerName);
         }
 
         void registerEnclosingCodeUnit(String innerName, CodeUnit codeUnit) {
-            checkArgument(!innerClassNameToEnclosingCodeUnit.containsKey(innerName),
+            checkArgument(!innerClassNameToEnclosingCodeUnit.containsKey(innerName)
+                            || innerClassNameToEnclosingCodeUnit.get(innerName).equals(codeUnit),
                     "Can't register multiple enclosing code units, this is likely a bug!");
 
             innerClassNameToEnclosingCodeUnit.put(innerName, codeUnit);
