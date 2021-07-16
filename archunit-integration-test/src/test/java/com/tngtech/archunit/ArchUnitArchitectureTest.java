@@ -15,6 +15,7 @@ import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.Location;
+import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchTests;
@@ -54,7 +55,13 @@ public class ArchUnitArchitectureTest {
             .whereLayer("Library").mayOnlyBeAccessedByLayers("JUnit")
             .whereLayer("Lang").mayOnlyBeAccessedByLayers("Library", "JUnit")
             .whereLayer("Core").mayOnlyBeAccessedByLayers("Lang", "Library", "JUnit")
-            .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit");
+            .whereLayer("Base").mayOnlyBeAccessedByLayers("Root", "Core", "Lang", "Library", "JUnit")
+
+            // This is a conscious exception, to allow a more concise API. Otherwise the configuration of the
+            // ClassResolver would need to be moved to `importer` making it harder to use,
+            // or we would need to remove the bound from Class<? extends ClassResolver>, which also makes the
+            // API harder to use
+            .ignoreDependency(ArchConfiguration.class, ClassResolver.class);
 
     @ArchTest
     public static final ArchTests importer_rules = ArchTests.in(ImporterRules.class);
