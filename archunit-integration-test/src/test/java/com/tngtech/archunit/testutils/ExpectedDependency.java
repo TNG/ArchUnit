@@ -3,6 +3,7 @@ package com.tngtech.archunit.testutils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Collection;
 
 import com.google.common.collect.ImmutableList;
@@ -63,6 +64,18 @@ public class ExpectedDependency implements ExpectedRelation {
                 methodName,
                 "return type",
                 getMethod(clazz, methodName, parameterTypes).getGenericReturnType());
+    }
+
+    public static GenericMemberTypeArgumentCreator genericMethodParameterType(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+        Type[] genericParameterTypes = getMethod(clazz, methodName, parameterTypes).getGenericParameterTypes();
+        checkArgument(genericParameterTypes.length == 1,
+                "Currently only exactly one generic method parameter type is supported, but %s.%s(..) has the following generic parameter types: %s. "
+                        + "Feel free to extend this method to cover multiple parameter types.", clazz.getName(), methodName, Arrays.toString(genericParameterTypes));
+        return new GenericMemberTypeArgumentCreator(
+                clazz,
+                methodName,
+                "parameter type",
+                genericParameterTypes[0]);
     }
 
     public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {

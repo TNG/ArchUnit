@@ -48,9 +48,8 @@ class JavaClassDependencies {
                 result.addAll(inheritanceDependenciesFromSelf());
                 result.addAll(fieldDependenciesFromSelf());
                 result.addAll(returnTypeDependenciesFromSelf());
-                result.addAll(methodParameterDependenciesFromSelf());
+                result.addAll(codeUnitParameterDependenciesFromSelf());
                 result.addAll(throwsDeclarationDependenciesFromSelf());
-                result.addAll(constructorParameterDependenciesFromSelf());
                 result.addAll(annotationDependenciesFromSelf());
                 result.addAll(instanceofCheckDependenciesFromSelf());
                 result.addAll(referencedClassObjectDependenciesFromSelf());
@@ -159,11 +158,25 @@ class JavaClassDependencies {
         return result.build();
     }
 
-    private Set<Dependency> methodParameterDependenciesFromSelf() {
+    private Set<Dependency> codeUnitParameterDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaMethod method : javaClass.getMethods()) {
-            for (JavaClass parameter : method.getRawParameterTypes()) {
-                result.addAll(Dependency.tryCreateFromParameter(method, parameter));
+        for (JavaCodeUnit codeUnit : javaClass.getCodeUnits()) {
+            for (JavaClass parameter : codeUnit.getRawParameterTypes()) {
+                result.addAll(Dependency.tryCreateFromParameter(codeUnit, parameter));
+            }
+            result.addAll(genericParameterTypeArgumentDependencies(codeUnit));
+        }
+        return result.build();
+    }
+
+    private Set<Dependency> genericParameterTypeArgumentDependencies(JavaCodeUnit codeUnit) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaType parameterType : codeUnit.getParameterTypes()) {
+            if (!(parameterType instanceof JavaParameterizedType)) {
+                continue;
+            }
+            for (JavaClass parameterTypeDependency : dependenciesOfParameterizedType((JavaParameterizedType) parameterType)) {
+                result.addAll(Dependency.tryCreateFromGenericCodeUnitParameterTypeArgument(codeUnit, parameterType, parameterTypeDependency));
             }
         }
         return result.build();
@@ -174,16 +187,6 @@ class JavaClassDependencies {
         for (JavaCodeUnit codeUnit : javaClass.getCodeUnits()) {
             for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : codeUnit.getThrowsClause()) {
                 result.addAll(Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration));
-            }
-        }
-        return result.build();
-    }
-
-    private Set<Dependency> constructorParameterDependenciesFromSelf() {
-        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaConstructor constructor : javaClass.getConstructors()) {
-            for (JavaClass parameter : constructor.getRawParameterTypes()) {
-                result.addAll(Dependency.tryCreateFromParameter(constructor, parameter));
             }
         }
         return result.build();

@@ -659,6 +659,61 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_from_self_by_method_parameter_type_declarations() {
+        @SuppressWarnings("unused")
+        class SomeGenericType<FIRST, SECOND> {
+        }
+        @SuppressWarnings("unused")
+        class SomeClass<FIRST, SECOND> {
+            // @formatter:off
+            void method(
+              SomeGenericType<
+                Comparable<SomeGenericType<FIRST, SECOND>>,
+                Map<
+                  Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                  Map<
+                    ? extends BufferedInputStream[][],
+                    Map<
+                      ? extends Serializable,
+                      List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>
+                    >
+                  >
+                >
+              > firstParam,
+              List<? extends FileSystem> secondParam) {
+            }
+            // @formatter:on
+        }
+
+        JavaClass javaClass = importClassWithContext(SomeClass.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(from(SomeClass.class).to(SomeGenericType.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Method <%s.method(%s, %s)> has parameter of type <%s>",
+                                SomeClass.class.getName(), SomeGenericType.class.getName(), List.class.getName(), SomeGenericType.class.getName())
+
+                        .from(SomeClass.class).to(List.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Method <%s.method(%s, %s)> has parameter of type <%s>",
+                                SomeClass.class.getName(), SomeGenericType.class.getName(), List.class.getName(), List.class.getName())
+
+                        .from(SomeClass.class)
+                        .withExpectedDescriptionPatternTemplate(
+                                ".*has generic parameter type <" + quote(SomeGenericType.class.getName()) +
+                                        ".+> with type argument depending on <#target>.*")
+                        .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+
+                        .from(SomeClass.class)
+                        .withExpectedDescriptionPatternTemplate(
+                                ".*has generic parameter type <" + quote(List.class.getName()) +
+                                        ".+> with type argument depending on <#target>.*")
+                        .to(FileSystem.class)
+
+                        .from(SomeClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
     public void direct_dependencies_from_self_by_member_declarations() {
         JavaClass javaClass = importClasses(AhavingMembersOfTypeB.class, B.class).get(AhavingMembersOfTypeB.class);
 
@@ -1073,6 +1128,58 @@ public class JavaClassTest {
 
                         .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
                         .withDescriptionMatching("Method <%s.method\\(\\)> has generic return type <%s.+> with type argument depending on <%s>.*",
+                                SecondChild.class.getName(), SecondGenericType.class.getName(), File.class.getName())
+                );
+
+        assertThatDependencies(javaClasses.get(BufferedInputStream.class).getDirectDependenciesToSelf())
+                .contain(from(FirstClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_generic_method_parameter_type_parameters() {
+        @SuppressWarnings("unused")
+        class FirstGenericType<X, Y> {
+        }
+        @SuppressWarnings("unused")
+        class FirstClass {
+            // @formatter:off
+            void method(
+              FirstGenericType<
+                Comparable<FirstClass>,
+                Map<
+                  Map.Entry<?, Map.Entry<String, ?>>,
+                  Map<
+                    ? extends BufferedInputStream[][],
+                    Map<
+                      ? extends Serializable,
+                      List<List<? extends Set<? super Iterable<? super Map<?, ? extends File>>>>>
+                    >
+                  >
+                >
+              > param) {
+            }
+            // @formatter:on
+        }
+        @SuppressWarnings("unused")
+        class SecondGenericType<T> {
+        }
+        @SuppressWarnings("unused")
+        class SecondChild {
+            void method(List<String> irrelevant, SecondGenericType<Map<?, ? super File>> param) {
+            }
+        }
+
+        JavaClasses javaClasses = importClassesWithContext(FirstClass.class, SecondChild.class, BufferedInputStream.class, File.class);
+
+        assertThatDependencies(javaClasses.get(File.class).getDirectDependenciesToSelf())
+                .contain(from(FirstClass.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionMatching("Method <%s.method\\([^)]+\\)> has generic parameter type <%s.+> with type argument depending on <%s>.*",
+                                FirstClass.class.getName(), FirstGenericType.class.getName(), File.class.getName())
+
+                        .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionMatching("Method <%s.method\\([^)]+\\)> has generic parameter type <%s.+> with type argument depending on <%s>.*",
                                 SecondChild.class.getName(), SecondGenericType.class.getName(), File.class.getName())
                 );
 
