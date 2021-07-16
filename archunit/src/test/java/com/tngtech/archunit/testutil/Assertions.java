@@ -20,7 +20,6 @@ import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
-import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
@@ -36,6 +35,7 @@ import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -62,7 +62,6 @@ import com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypesAssertion;
 import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion;
 import org.assertj.core.api.AbstractIterableAssert;
-import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ObjectAssert;
@@ -158,10 +157,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaClassAssertion assertThat(JavaClass javaClass) {
         return new JavaClassAssertion(javaClass);
-    }
-
-    public static JavaClassListAssertion assertThat(JavaClassList javaClasses) {
-        return new JavaClassListAssertion(javaClasses);
     }
 
     public static JavaFieldAssertion assertThat(FieldAccessTarget target) {
@@ -260,7 +255,12 @@ public class Assertions extends org.assertj.core.api.Assertions {
                     @Override
                     public boolean matches(JavaAccess<?> access) {
                         return to(targetClass, CONSTRUCTOR_NAME).matches(access) &&
-                                ((ConstructorCallTarget) access.getTarget()).getRawParameterTypes().getNames().equals(paramTypeNames);
+                                rawParameterTypeNamesOf(access).equals(paramTypeNames);
+                    }
+
+                    private List<String> rawParameterTypeNamesOf(JavaAccess<?> access) {
+                        ConstructorCallTarget target = (ConstructorCallTarget) access.getTarget();
+                        return HasName.Utils.namesOf(target.getRawParameterTypes());
                     }
                 };
             }
@@ -277,25 +277,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static ConstructorCallAssertion assertThatCall(JavaConstructorCall call) {
         return new ConstructorCallAssertion(call);
-    }
-
-    public static class JavaClassListAssertion
-            extends AbstractListAssert<JavaClassListAssertion, List<? extends JavaClass>, JavaClass, ObjectAssert<JavaClass>> {
-        private JavaClassListAssertion(JavaClassList javaClasses) {
-            super(javaClasses, JavaClassListAssertion.class);
-        }
-
-        public void matches(Class<?>... classes) {
-            assertThat(actual).as("JavaClasses").hasSize(classes.length);
-            for (int i = 0; i < actual.size(); i++) {
-                assertThatType(actual.get(i)).as("Element %d", i).matches(classes[i]);
-            }
-        }
-
-        @Override
-        protected ObjectAssert<JavaClass> toAssert(JavaClass value, String description) {
-            return new ObjectAssertFactory<JavaClass>().createAssert(value).as(description);
-        }
     }
 
     public static class JavaEnumConstantAssertion extends AbstractObjectAssert<JavaEnumConstantAssertion, JavaEnumConstant> {
@@ -475,7 +456,7 @@ public class Assertions extends org.assertj.core.api.Assertions {
                 @Override
                 public boolean matches(MethodCallTarget methodCallTarget) {
                     return methodCallTarget.getName().equals(methodName)
-                            && TestUtils.namesOf(methodCallTarget.getRawParameterTypes()).equals(namesOf(parameterTypes));
+                            && HasName.Utils.namesOf(methodCallTarget.getRawParameterTypes()).equals(namesOf(parameterTypes));
                 }
             });
         }

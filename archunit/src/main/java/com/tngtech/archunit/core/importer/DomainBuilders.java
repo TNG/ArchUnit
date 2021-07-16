@@ -44,7 +44,6 @@ import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
-import com.tngtech.archunit.core.domain.JavaClassList;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
@@ -71,7 +70,6 @@ import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createInstanceofCheck;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createJavaClassList;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createReferencedClassObject;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
@@ -79,6 +77,7 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.creat
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createWildcardType;
 import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 @Internal
 public final class DomainBuilders {
@@ -250,7 +249,7 @@ public final class DomainBuilders {
             return self();
         }
 
-        SELF withParameters(List<JavaClassDescriptor> parameters) {
+        SELF withParameterTypes(List<JavaClassDescriptor> parameters) {
             this.parameters = parameters;
             return self();
         }
@@ -301,8 +300,8 @@ public final class DomainBuilders {
             return FluentIterable.from(getTypeParametersOf(codeUnit)).append(allTypeParametersInEnclosingContextOf(codeUnit));
         }
 
-        public JavaClassList getParameters() {
-            return createJavaClassList(asJavaClasses(parameters));
+        public List<JavaClass> getRawParameterTypes() {
+            return asJavaClasses(parameters);
         }
 
         public List<JavaTypeVariable<JavaCodeUnit>> getTypeParameters(JavaCodeUnit owner) {
@@ -556,7 +555,7 @@ public final class DomainBuilders {
     public static final class JavaStaticInitializerBuilder extends JavaCodeUnitBuilder<JavaStaticInitializer, JavaStaticInitializerBuilder> {
         JavaStaticInitializerBuilder() {
             withReturnType(Optional.<JavaTypeCreationProcess<JavaCodeUnit>>absent(), JavaClassDescriptor.From.name(void.class.getName()));
-            withParameters(Collections.<JavaClassDescriptor>emptyList());
+            withParameterTypes(Collections.<JavaClassDescriptor>emptyList());
             withName(JavaStaticInitializer.STATIC_INITIALIZER_NAME);
             withDescriptor("()V");
             withModifiers(Collections.<JavaModifier>emptySet());
@@ -997,13 +996,13 @@ public final class DomainBuilders {
     @Internal
     public abstract static class CodeUnitCallTargetBuilder<SELF extends CodeUnitCallTargetBuilder<SELF>>
             extends AccessTargetBuilder<SELF> {
-        private JavaClassList parameters;
+        private List<JavaClass> parameters;
         private JavaClass returnType;
 
         private CodeUnitCallTargetBuilder() {
         }
 
-        SELF withParameters(final JavaClassList parameters) {
+        SELF withParameters(final List<JavaClass> parameters) {
             this.parameters = parameters;
             return self();
         }
@@ -1013,7 +1012,7 @@ public final class DomainBuilders {
             return self();
         }
 
-        public JavaClassList getParameters() {
+        public List<JavaClass> getParameters() {
             return parameters;
         }
 
@@ -1022,7 +1021,7 @@ public final class DomainBuilders {
         }
 
         public String getFullName() {
-            return Formatters.formatMethod(getOwner().getName(), getName(), parameters);
+            return Formatters.formatMethod(getOwner().getName(), getName(), namesOf(parameters));
         }
     }
 

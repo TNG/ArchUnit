@@ -74,8 +74,8 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
     }
 
     @PublicAPI(usage = ACCESS)
-    public JavaClassList getTypes() {
-        return new JavaClassList(FluentIterable.from(throwsDeclarations).transform(toGuava(GET_RAW_TYPE)).toList());
+    public List<JavaClass> getTypes() {
+        return FluentIterable.from(throwsDeclarations).transform(toGuava(GET_RAW_TYPE)).toList();
     }
 
     @Override
@@ -138,9 +138,9 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
         }
 
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<ThrowsClause<?>, JavaClassList> GET_TYPES = new ChainableFunction<ThrowsClause<?>, JavaClassList>() {
+        public static final ChainableFunction<ThrowsClause<?>, List<JavaClass>> GET_TYPES = new ChainableFunction<ThrowsClause<?>, List<JavaClass>>() {
             @Override
-            public JavaClassList apply(ThrowsClause<?> input) {
+            public List<JavaClass> apply(ThrowsClause<?> input) {
                 return input.getTypes();
             }
         };

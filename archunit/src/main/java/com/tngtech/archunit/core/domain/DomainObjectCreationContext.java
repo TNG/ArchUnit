@@ -98,10 +98,6 @@ public class DomainObjectCreationContext {
         return new JavaAnnotation<>(owner, builder);
     }
 
-    public static JavaClassList createJavaClassList(List<JavaClass> elements) {
-        return new JavaClassList(elements);
-    }
-
     public static JavaField createJavaField(JavaFieldBuilder builder) {
         return new JavaField(builder);
     }

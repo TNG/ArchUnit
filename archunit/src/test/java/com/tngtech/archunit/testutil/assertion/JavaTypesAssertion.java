@@ -9,9 +9,8 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.archunit.testutil.TestUtils;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.google.common.collect.Iterables.toArray;
@@ -35,7 +34,7 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
     }
 
     public void matchInAnyOrder(Iterable<Class<?>> classes) {
-        assertThat(TestUtils.namesOf(actual)).as(descriptionText()).containsOnlyElementsOf(namesOf(classes));
+        assertThat(HasName.Utils.namesOf(actual)).as(descriptionText()).containsOnlyElementsOf(namesOf(classes));
 
         JavaType[] actualSorted = sortedJavaTypes(actual);
         Class<?>[] expectedSorted = sortedClasses(classes);
@@ -45,7 +44,7 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
     }
 
     public void matchInAnyOrder(Class<?>... classes) {
-        matchInAnyOrder(ImmutableSet.copyOf(classes));
+        matchInAnyOrder(ImmutableList.copyOf(classes));
     }
 
     public void matchExactly(ExpectedConcreteType[] expected, DescriptionContext context) {
@@ -61,7 +60,7 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
     }
 
     public void matchExactly(Class<?>... classes) {
-        assertThat(TestUtils.namesOf(actual)).as(descriptionText()).containsExactlyElementsOf(namesOf(classes));
+        assertThat(HasName.Utils.namesOf(actual)).as(descriptionText()).containsExactlyElementsOf(namesOf(classes));
         matchInAnyOrder(classes);
     }
 
@@ -71,11 +70,11 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
     }
 
     public void doNotContain(Class<?>... classes) {
-        assertThat(actualNames()).doesNotContainAnyElementsOf(JavaClass.namesOf(classes));
+        assertThat(actualNames()).doesNotContainAnyElementsOf(namesOf(classes));
     }
 
     public void contain(Iterable<Class<?>> classes) {
-        List<String> expectedNames = JavaClass.namesOf(Lists.newArrayList(classes));
+        List<String> expectedNames = namesOf(Lists.newArrayList(classes));
         assertThat(actualNames()).as(descriptionText()).containsAll(expectedNames);
     }
 

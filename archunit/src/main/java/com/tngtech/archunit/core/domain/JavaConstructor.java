@@ -30,6 +30,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
+import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 public final class JavaConstructor extends JavaCodeUnit {
     private final Supplier<Constructor<?>> constructorSupplier;
@@ -115,7 +116,7 @@ public final class JavaConstructor extends JavaCodeUnit {
                 return reflectedOwner.getDeclaredConstructor(reflect(getRawParameterTypes()));
             } catch (NoSuchMethodException e) {
                 throw new InconsistentClassPathException(
-                        "Can't resolve constructor " + formatMethod(reflectedOwner.getName(), getName(), getRawParameterTypes()), e);
+                        "Can't resolve constructor " + formatMethod(reflectedOwner.getName(), getName(), namesOf(getRawParameterTypes())), e);
             }
         }
     }

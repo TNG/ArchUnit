@@ -2,14 +2,11 @@ package com.tngtech.archunit.testutil;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.util.Files;
 
@@ -54,18 +51,6 @@ public class TestUtils {
         Properties result = new Properties();
         for (int i = 0; i < keyValues.length; i += 2) {
             result.setProperty(keyValues[i], keyValues[i + 1]);
-        }
-        return result;
-    }
-
-    public static List<String> namesOf(HasName[] thingsWithNames) {
-        return namesOf(ImmutableList.copyOf(thingsWithNames));
-    }
-
-    public static List<String> namesOf(Iterable<? extends HasName> thingsWithNames) {
-        List<String> result = new ArrayList<>();
-        for (HasName hasName : thingsWithNames) {
-            result.add(hasName.getName());
         }
         return result;
     }
