@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 import com.tngtech.archunit.ArchConfiguration;
@@ -77,7 +78,7 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onNewClass(String className, Optional<String> superclassName, Set<String> interfaceNames) {
+        public void onNewClass(String className, Optional<String> superclassName, List<String> interfaceNames) {
             ownerName = className;
             if (superclassName.isPresent()) {
                 importRecord.setSuperclass(ownerName, superclassName.get());
@@ -96,7 +97,7 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onGenericInterfaces(Set<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
+        public void onGenericInterfaces(List<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
             importRecord.addGenericInterfaces(ownerName, genericInterfaceBuilders);
         }
 

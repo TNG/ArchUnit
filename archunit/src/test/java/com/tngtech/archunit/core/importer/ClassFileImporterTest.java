@@ -50,6 +50,16 @@ import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.Subi
 import com.tngtech.archunit.core.importer.testexamples.classhierarchyimport.YetAnotherInterface;
 import com.tngtech.archunit.core.importer.testexamples.innerclassimport.CalledClass;
 import com.tngtech.archunit.core.importer.testexamples.innerclassimport.ClassWithInnerClass;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.Five;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.FiveGeneric;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.Four;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.FourGeneric;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.One;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.OneGeneric;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.Three;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.ThreeGeneric;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.Two;
+import com.tngtech.archunit.core.importer.testexamples.interfaceorder.TwoGeneric;
 import com.tngtech.archunit.core.importer.testexamples.nestedimport.ClassWithNestedClass;
 import com.tngtech.archunit.core.importer.testexamples.pathone.Class11;
 import com.tngtech.archunit.core.importer.testexamples.pathone.Class12;
@@ -100,6 +110,7 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.uriOf;
 import static com.tngtech.archunit.testutil.TestUtils.urlOf;
+import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
@@ -274,6 +285,46 @@ public class ClassFileImporterTest {
                 .isInterface(true)
                 .isEnum(false)
                 .isRecord(false);
+    }
+
+    @Test
+    public void imports_raw_interfaces_in_correct_order() {
+        class Ascending implements One, Two, Three, Four, Five {
+        }
+        class Descending implements Five, Four, Three, Two, One {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(Ascending.class, Descending.class);
+
+        assertThatTypes(classes.get(Ascending.class).getRawInterfaces())
+                .matchExactly(One.class, Two.class, Three.class, Four.class, Five.class);
+        assertThatTypes(classes.get(Descending.class).getRawInterfaces())
+                .matchExactly(Five.class, Four.class, Three.class, Two.class, One.class);
+    }
+
+    @Test
+    public void imports_generic_interfaces_in_correct_order() {
+        class Ascending implements OneGeneric<String>, TwoGeneric<String>, ThreeGeneric<String>, FourGeneric<String>, FiveGeneric<String> {
+        }
+        class Descending implements FiveGeneric<String>, FourGeneric<String>, ThreeGeneric<String>, TwoGeneric<String>, OneGeneric<String> {
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(Ascending.class, Descending.class);
+
+        assertThatTypes(classes.get(Ascending.class).getInterfaces())
+                .matchExactly(
+                        parameterizedType(OneGeneric.class).withTypeArguments(String.class),
+                        parameterizedType(TwoGeneric.class).withTypeArguments(String.class),
+                        parameterizedType(ThreeGeneric.class).withTypeArguments(String.class),
+                        parameterizedType(FourGeneric.class).withTypeArguments(String.class),
+                        parameterizedType(FiveGeneric.class).withTypeArguments(String.class));
+        assertThatTypes(classes.get(Descending.class).getInterfaces())
+                .matchExactly(
+                        parameterizedType(FiveGeneric.class).withTypeArguments(String.class),
+                        parameterizedType(FourGeneric.class).withTypeArguments(String.class),
+                        parameterizedType(ThreeGeneric.class).withTypeArguments(String.class),
+                        parameterizedType(TwoGeneric.class).withTypeArguments(String.class),
+                        parameterizedType(OneGeneric.class).withTypeArguments(String.class));
     }
 
     @Test

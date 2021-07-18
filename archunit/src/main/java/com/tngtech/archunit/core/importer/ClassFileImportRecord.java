@@ -19,12 +19,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -47,10 +50,10 @@ class ClassFileImportRecord {
     private final Map<String, JavaClass> classes = new HashMap<>();
 
     private final Map<String, String> superclassNamesByOwner = new HashMap<>();
-    private final SetMultimap<String, String> interfaceNamesByOwner = HashMultimap.create();
+    private final ListMultimap<String, String> interfaceNamesByOwner = ArrayListMultimap.create();
     private final Map<String, JavaClassTypeParametersBuilder> typeParametersBuilderByOwner = new HashMap<>();
     private final Map<String, JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilderByOwner = new HashMap<>();
-    private final Map<String, Set<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuildersByOwner = new HashMap<>();
+    private final Map<String, List<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuildersByOwner = new HashMap<>();
     private final SetMultimap<String, DomainBuilders.JavaFieldBuilder> fieldBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaMethodBuilder> methodBuildersByOwner = HashMultimap.create();
     private final SetMultimap<String, DomainBuilders.JavaConstructorBuilder> constructorBuildersByOwner = HashMultimap.create();
@@ -70,7 +73,7 @@ class ClassFileImportRecord {
         superclassNamesByOwner.put(ownerName, superclassName);
     }
 
-    void addInterfaces(String ownerName, Set<String> interfaceNames) {
+    void addInterfaces(String ownerName, List<String> interfaceNames) {
         interfaceNamesByOwner.putAll(ownerName, interfaceNames);
     }
 
@@ -82,7 +85,7 @@ class ClassFileImportRecord {
         genericSuperclassBuilderByOwner.put(ownerName, genericSuperclassBuilder);
     }
 
-    public void addGenericInterfaces(String ownerName, Set<JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
+    public void addGenericInterfaces(String ownerName, List<JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
         genericInterfaceBuildersByOwner.put(ownerName, genericInterfaceBuilders);
     }
 
@@ -129,7 +132,7 @@ class ClassFileImportRecord {
         return Optional.ofNullable(superclassNamesByOwner.get(name));
     }
 
-    Set<String> getInterfaceNamesFor(String ownerName) {
+    List<String> getInterfaceNamesFor(String ownerName) {
         return interfaceNamesByOwner.get(ownerName);
     }
 
@@ -144,7 +147,7 @@ class ClassFileImportRecord {
         return Optional.ofNullable(genericSuperclassBuilderByOwner.get(owner.getName()));
     }
 
-    Optional<Set<JavaParameterizedTypeBuilder<JavaClass>>> getGenericInterfacesFor(JavaClass owner) {
+    Optional<List<JavaParameterizedTypeBuilder<JavaClass>>> getGenericInterfacesFor(JavaClass owner) {
         return Optional.ofNullable(genericInterfaceBuildersByOwner.get(owner.getName()));
     }
 

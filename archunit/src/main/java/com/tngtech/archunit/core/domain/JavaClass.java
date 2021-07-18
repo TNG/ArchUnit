@@ -1316,7 +1316,7 @@ public class JavaClass
     }
 
     private void completeInterfacesFrom(ImportContext context) {
-        Set<JavaClass> rawInterfaces = context.createInterfaces(this);
+        List<JavaClass> rawInterfaces = context.createInterfaces(this);
         for (JavaClass i : rawInterfaces) {
             i.subclasses.add(this);
         }
@@ -1349,7 +1349,7 @@ public class JavaClass
     }
 
     void completeGenericInterfacesFrom(ImportContext context) {
-        Optional<Set<JavaType>> genericInterfaces = context.createGenericInterfaces(this);
+        Optional<List<JavaType>> genericInterfaces = context.createGenericInterfaces(this);
         if (genericInterfaces.isPresent()) {
             interfaces = interfaces.withGenericTypes(genericInterfaces.get());
         }
@@ -1481,11 +1481,11 @@ public class JavaClass
             return (ImmutableSet) getRaw();
         }
 
-        Interfaces withRawTypes(Set<JavaClass> rawTypes) {
+        Interfaces withRawTypes(List<JavaClass> rawTypes) {
             return new Interfaces(ImmutableSet.copyOf(rawTypes), types);
         }
 
-        Interfaces withGenericTypes(Set<JavaType> genericTypes) {
+        Interfaces withGenericTypes(List<JavaType> genericTypes) {
             return new Interfaces(rawTypes, ImmutableSet.copyOf(genericTypes));
         }
     }

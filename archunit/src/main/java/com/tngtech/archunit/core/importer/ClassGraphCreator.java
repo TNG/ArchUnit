@@ -15,11 +15,13 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
@@ -75,8 +77,8 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
-    private final Function<JavaClass, Set<String>> superclassStrategy;
-    private final Function<JavaClass, Set<String>> interfaceStrategy;
+    private final Function<JavaClass, ? extends Collection<String>> superclassStrategy;
+    private final Function<JavaClass, ? extends Collection<String>> interfaceStrategy;
 
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
@@ -99,10 +101,10 @@ class ClassGraphCreator implements ImportContext {
         };
     }
 
-    private Function<JavaClass, Set<String>> createInterfaceStrategy() {
-        return new Function<JavaClass, Set<String>>() {
+    private Function<JavaClass, List<String>> createInterfaceStrategy() {
+        return new Function<JavaClass, List<String>>() {
             @Override
-            public Set<String> apply(JavaClass input) {
+            public List<String> apply(JavaClass input) {
                 return importRecord.getInterfaceNamesFor(input.getName());
             }
         };
@@ -140,7 +142,7 @@ class ClassGraphCreator implements ImportContext {
         }
     }
 
-    private void resolveInheritance(String currentTypeName, Function<JavaClass, Set<String>> inheritanceStrategy) {
+    private void resolveInheritance(String currentTypeName, Function<JavaClass, ? extends Collection<String>> inheritanceStrategy) {
         for (String parent : inheritanceStrategy.apply(classes.getOrResolve(currentTypeName))) {
             resolveInheritance(parent, inheritanceStrategy);
         }
@@ -258,17 +260,17 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Optional<Set<JavaType>> createGenericInterfaces(JavaClass owner) {
-        Optional<Set<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuilders = importRecord.getGenericInterfacesFor(owner);
+    public Optional<List<JavaType>> createGenericInterfaces(JavaClass owner) {
+        Optional<List<JavaParameterizedTypeBuilder<JavaClass>>> genericInterfaceBuilders = importRecord.getGenericInterfacesFor(owner);
         if (!genericInterfaceBuilders.isPresent()) {
             return Optional.empty();
         }
 
-        ImmutableSet.Builder<JavaType> result = ImmutableSet.builder();
+        ImmutableList.Builder<JavaType> result = ImmutableList.builder();
         for (JavaParameterizedTypeBuilder<JavaClass> builder : genericInterfaceBuilders.get()) {
             result.add(builder.build(owner, getTypeParametersInContextOf(owner), classes));
         }
-        return Optional.<Set<JavaType>>of(result.build());
+        return Optional.<List<JavaType>>of(result.build());
     }
 
     private static Iterable<JavaTypeVariable<?>> getTypeParametersInContextOf(JavaClass javaClass) {
@@ -281,8 +283,8 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaClass> createInterfaces(JavaClass owner) {
-        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+    public List<JavaClass> createInterfaces(JavaClass owner) {
+        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
         for (String interfaceName : importRecord.getInterfaceNamesFor(owner.getName())) {
             result.add(classes.getOrResolve(interfaceName));
         }

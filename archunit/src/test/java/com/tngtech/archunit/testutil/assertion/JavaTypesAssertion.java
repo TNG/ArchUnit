@@ -59,6 +59,10 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
         }
     }
 
+    public void matchExactly(ExpectedConcreteType... expected) {
+        matchExactly(ImmutableList.copyOf(expected), new DescriptionContext(""));
+    }
+
     public void matchExactly(Class<?>... classes) {
         assertThat(HasName.Utils.namesOf(actual)).as(descriptionText()).containsExactlyElementsOf(formatNamesOf(classes));
         matchInAnyOrder(classes);

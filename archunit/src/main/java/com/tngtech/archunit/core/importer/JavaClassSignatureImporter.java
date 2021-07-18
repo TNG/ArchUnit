@@ -15,9 +15,8 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -71,7 +70,7 @@ class JavaClassSignatureImporter {
             return Optional.ofNullable(superclassProcessor.superclass);
         }
 
-        Set<JavaParameterizedTypeBuilder<JavaClass>> getGenericInterfaces() {
+        List<JavaParameterizedTypeBuilder<JavaClass>> getGenericInterfaces() {
             return interfacesProcessor.interfaces;
         }
 
@@ -125,7 +124,7 @@ class JavaClassSignatureImporter {
         }
 
         private static class GenericInterfacesProcessor extends SignatureVisitor {
-            private final Set<JavaParameterizedTypeBuilder<JavaClass>> interfaces = new HashSet<>();
+            private final List<JavaParameterizedTypeBuilder<JavaClass>> interfaces = new ArrayList<>();
             private JavaParameterizedTypeBuilder<JavaClass> currentInterface;
 
             GenericInterfacesProcessor() {

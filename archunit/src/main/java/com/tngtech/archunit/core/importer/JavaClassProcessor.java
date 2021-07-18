@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.google.common.primitives.Booleans;
@@ -100,7 +101,7 @@ class JavaClassProcessor extends ClassVisitor {
             return;
         }
 
-        ImmutableSet<String> interfaceNames = createInterfaceNames(interfaces);
+        List<String> interfaceNames = createInterfaceNames(interfaces);
         LOG.trace("Found interfaces {} on class '{}'", interfaceNames, name);
         boolean opCodeForInterfaceIsPresent = (access & Opcodes.ACC_INTERFACE) != 0;
         boolean opCodeForEnumIsPresent = (access & Opcodes.ACC_ENUM) != 0;
@@ -211,8 +212,8 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-    private ImmutableSet<String> createInterfaceNames(String[] interfaces) {
-        ImmutableSet.Builder<String> result = ImmutableSet.builder();
+    private List<String> createInterfaceNames(String[] interfaces) {
+        ImmutableList.Builder<String> result = ImmutableList.builder();
         for (String i : interfaces) {
             result.add(createTypeName(i));
         }
@@ -461,13 +462,13 @@ class JavaClassProcessor extends ClassVisitor {
     interface DeclarationHandler {
         boolean isNew(String className);
 
-        void onNewClass(String className, Optional<String> superclassName, Set<String> interfaceNames);
+        void onNewClass(String className, Optional<String> superclassName, List<String> interfaceNames);
 
         void onDeclaredTypeParameters(DomainBuilders.JavaClassTypeParametersBuilder typeParametersBuilder);
 
         void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder);
 
-        void onGenericInterfaces(Set<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders);
+        void onGenericInterfaces(List<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders);
 
         void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder);
 
