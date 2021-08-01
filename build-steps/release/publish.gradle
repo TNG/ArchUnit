@@ -88,10 +88,12 @@ releaseProjects*.with {
     }
 
     signing {
-        // requires gradle.properties, see http://www.gradle.org/docs/current/userguide/signing_plugin.html
         required {
             isReleaseVersion && gradle.taskGraph.hasTask('publish') && project.hasProperty('sonatypeUsername')
         }
+        def signingKey = findProperty("signingKey")
+        def signingPassword = findProperty("signingPassword")
+        useInMemoryPgpKeys(signingKey, signingPassword)
         sign publishing.publications.mavenJava
     }
 }
