@@ -92,3 +92,6 @@ releaseProjects*.with {
         sign publishing.publications.mavenJava
     }
 }
+
+task publishArchUnit(dependsOn: [closeSonatypeStagingRepository, releaseSonatypeStagingRepository])
+releaseProjects.each { publishArchUnit.dependsOn("${it.name}:publishToSonatype") }
