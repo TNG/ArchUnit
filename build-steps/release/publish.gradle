@@ -1,16 +1,20 @@
 ext.isReleaseVersion = !project.version.endsWith("-SNAPSHOT")
 
-if (!hasProperty("sonatypeUsername")) {
-    ext.sonatypeUsername = ""
-}
-if (!hasProperty("sonatypePassword")) {
-    ext.sonatypePassword = ""
+apply plugin: "io.github.gradle-nexus.publish-plugin"
+
+nexusPublishing {
+    packageGroup = 'com.tngtech'
+    repositories {
+        sonatype {
+            username = findProperty("sonatypeUsername")
+            password = findProperty("sonatypePassword")
+        }
+    }
 }
 
 releaseProjects*.with {
     apply plugin: "maven-publish"
     apply plugin: "signing"
-    apply plugin: "de.marcphilipp.nexus-publish"
 
     tasks.withType(GenerateModuleMetadata) {
         enabled = false // the meta-data does not match the way the Maven artifacts are composed and thus is broken
@@ -76,20 +80,11 @@ releaseProjects*.with {
                 }
             }
         }
-
-        // respective username and password can be configured in ~/.gradle/gradle.properties
-        if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePassword')) {
-            nexusPublishing {
-                repositories {
-                    sonatype()
-                }
-            }
-        }
     }
 
     signing {
         required {
-            isReleaseVersion && gradle.taskGraph.hasTask('publish') && project.hasProperty('sonatypeUsername')
+            isReleaseVersion && gradle.taskGraph.hasTask('publish')
         }
         def signingKey = findProperty("signingKey")
         def signingPassword = findProperty("signingPassword")
