@@ -25,19 +25,23 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.importer.DomainBuilders;
-import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorReferenceBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaEnumConstantBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodReferenceBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
 
@@ -119,8 +123,16 @@ public class DomainObjectCreationContext {
         return new JavaConstructorCall(builder);
     }
 
-    public static ConstructorCallTarget createConstructorCallTarget(CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget> builder) {
+    public static JavaConstructorReference createJavaConstructorReference(JavaConstructorReferenceBuilder builder) {
+        return new JavaConstructorReference(builder);
+    }
+
+    public static ConstructorCallTarget createConstructorCallTarget(CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget> builder) {
         return new ConstructorCallTarget(builder);
+    }
+
+    public static ConstructorReferenceTarget createConstructorReferenceTarget(CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget> builder) {
+        return new ConstructorReferenceTarget(builder);
     }
 
     public static JavaMethod createJavaMethod(JavaMethodBuilder builder, Function<JavaMethod, Optional<Object>> createAnnotationDefaultValue) {
@@ -131,8 +143,16 @@ public class DomainObjectCreationContext {
         return new JavaMethodCall(builder);
     }
 
-    public static MethodCallTarget createMethodCallTarget(CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget> builder) {
+    public static JavaMethodReference createJavaMethodReference(JavaMethodReferenceBuilder builder) {
+        return new JavaMethodReference(builder);
+    }
+
+    public static MethodCallTarget createMethodCallTarget(CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget> builder) {
         return new MethodCallTarget(builder);
+    }
+
+    public static MethodReferenceTarget createMethodReferenceTarget(CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget> builder) {
+        return new MethodReferenceTarget(builder);
     }
 
     public static JavaStaticInitializer createJavaStaticInitializer(JavaStaticInitializerBuilder builder) {

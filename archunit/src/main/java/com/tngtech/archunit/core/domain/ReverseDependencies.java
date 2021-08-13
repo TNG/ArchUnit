@@ -34,7 +34,9 @@ final class ReverseDependencies {
 
     private final LoadingCache<JavaField, Set<JavaFieldAccess>> accessToFieldCache;
     private final LoadingCache<JavaMethod, Set<JavaMethodCall>> callToMethodCache;
+    private final LoadingCache<JavaMethod, Set<JavaMethodReference>> referenceToMethodCache;
     private final LoadingCache<JavaConstructor, Set<JavaConstructorCall>> callToConstructorCache;
+    private final LoadingCache<JavaConstructor, Set<JavaConstructorReference>> referenceToConstructorCache;
     private final SetMultimap<JavaClass, JavaField> fieldTypeDependencies;
     private final SetMultimap<JavaClass, JavaMethod> methodParameterTypeDependencies;
     private final SetMultimap<JavaClass, JavaMethod> methodReturnTypeDependencies;
@@ -49,7 +51,9 @@ final class ReverseDependencies {
     private ReverseDependencies(ReverseDependencies.Creation creation) {
         accessToFieldCache = CacheBuilder.newBuilder().build(new ResolvingAccessLoader<>(creation.fieldAccessDependencies.build()));
         callToMethodCache = CacheBuilder.newBuilder().build(new ResolvingAccessLoader<>(creation.methodCallDependencies.build()));
-        callToConstructorCache = CacheBuilder.newBuilder().build(new ConstructorCallLoader(creation.constructorCallDependencies.build()));
+        referenceToMethodCache = CacheBuilder.newBuilder().build(new ResolvingAccessLoader<>(creation.methodReferenceDependencies.build()));
+        callToConstructorCache = CacheBuilder.newBuilder().build(new ConstructorAccessLoader<>(creation.constructorCallDependencies.build()));
+        referenceToConstructorCache = CacheBuilder.newBuilder().build(new ConstructorAccessLoader<>(creation.constructorReferenceDependencies.build()));
         this.fieldTypeDependencies = creation.fieldTypeDependencies.build();
         this.methodParameterTypeDependencies = creation.methodParameterTypeDependencies.build();
         this.methodReturnTypeDependencies = creation.methodReturnTypeDependencies.build();
@@ -85,8 +89,16 @@ final class ReverseDependencies {
         return callToMethodCache.getUnchecked(method);
     }
 
+    Set<JavaMethodReference> getReferencesTo(JavaMethod method) {
+        return referenceToMethodCache.getUnchecked(method);
+    }
+
     Set<JavaConstructorCall> getCallsTo(JavaConstructor constructor) {
         return callToConstructorCache.getUnchecked(constructor);
+    }
+
+    Set<JavaConstructorReference> getReferencesTo(JavaConstructor constructor) {
+        return referenceToConstructorCache.getUnchecked(constructor);
     }
 
     Set<JavaField> getFieldsWithTypeOf(JavaClass clazz) {
@@ -134,7 +146,9 @@ final class ReverseDependencies {
     static class Creation {
         private final ImmutableSetMultimap.Builder<JavaClass, JavaFieldAccess> fieldAccessDependencies = ImmutableSetMultimap.builder();
         private final ImmutableSetMultimap.Builder<JavaClass, JavaMethodCall> methodCallDependencies = ImmutableSetMultimap.builder();
+        private final ImmutableSetMultimap.Builder<JavaClass, JavaMethodReference> methodReferenceDependencies = ImmutableSetMultimap.builder();
         private final ImmutableSetMultimap.Builder<String, JavaConstructorCall> constructorCallDependencies = ImmutableSetMultimap.builder();
+        private final ImmutableSetMultimap.Builder<String, JavaConstructorReference> constructorReferenceDependencies = ImmutableSetMultimap.builder();
         private final ImmutableSetMultimap.Builder<JavaClass, JavaField> fieldTypeDependencies = ImmutableSetMultimap.builder();
         private final ImmutableSetMultimap.Builder<JavaClass, JavaMethod> methodParameterTypeDependencies = ImmutableSetMultimap.builder();
         private final ImmutableSetMultimap.Builder<JavaClass, JavaMethod> methodReturnTypeDependencies = ImmutableSetMultimap.builder();
@@ -163,8 +177,14 @@ final class ReverseDependencies {
             for (JavaMethodCall call : clazz.getMethodCallsFromSelf()) {
                 methodCallDependencies.put(call.getTargetOwner(), call);
             }
+            for (JavaMethodReference reference : clazz.getMethodReferencesFromSelf()) {
+                methodReferenceDependencies.put(reference.getTargetOwner(), reference);
+            }
             for (JavaConstructorCall call : clazz.getConstructorCallsFromSelf()) {
                 constructorCallDependencies.put(call.getTarget().getFullName(), call);
+            }
+            for (JavaConstructorReference reference : clazz.getConstructorReferencesFromSelf()) {
+                constructorReferenceDependencies.put(reference.getTarget().getFullName(), reference);
             }
         }
 
@@ -279,16 +299,16 @@ final class ReverseDependencies {
         }
     }
 
-    private static class ConstructorCallLoader extends CacheLoader<JavaConstructor, Set<JavaConstructorCall>> {
-        private final SetMultimap<String, JavaConstructorCall> accessesToSelf;
+    private static class ConstructorAccessLoader<ACCESS extends JavaCodeUnitAccess<?>> extends CacheLoader<JavaConstructor, Set<ACCESS>> {
+        private final SetMultimap<String, ACCESS> accessesToSelf;
 
-        private ConstructorCallLoader(SetMultimap<String, JavaConstructorCall> accessesToSelf) {
+        private ConstructorAccessLoader(SetMultimap<String, ACCESS> accessesToSelf) {
             this.accessesToSelf = accessesToSelf;
         }
 
         @Override
-        public Set<JavaConstructorCall> load(JavaConstructor member) {
-            ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
+        public Set<ACCESS> load(JavaConstructor member) {
+            ImmutableSet.Builder<ACCESS> result = ImmutableSet.builder();
             result.addAll(accessesToSelf.get(member.getFullName()));
             return result.build();
         }

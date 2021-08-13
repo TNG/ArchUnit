@@ -27,10 +27,12 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
-import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
@@ -38,14 +40,16 @@ import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.importer.DomainBuilders.newConstructorCallTargetBuilder;
+import static com.tngtech.archunit.core.importer.DomainBuilders.newConstructorReferenceTargetBuilder;
 import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
+import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodReferenceTargetBuilder;
 
 interface AccessRecord<TARGET extends AccessTarget> {
     JavaCodeUnit getOrigin();
@@ -73,11 +77,29 @@ interface AccessRecord<TARGET extends AccessTarget> {
             };
         }
 
+        static Factory<RawAccessRecord, AccessRecord<ConstructorReferenceTarget>> forConstructorReferenceRecord() {
+            return new Factory<RawAccessRecord, AccessRecord<ConstructorReferenceTarget>>() {
+                @Override
+                AccessRecord<ConstructorReferenceTarget> create(RawAccessRecord record, ImportedClasses classes) {
+                    return new RawAccessRecordProcessed<>(record, classes, CONSTRUCTOR_REFERENCE_TARGET_FACTORY);
+                }
+            };
+        }
+
         static Factory<RawAccessRecord, AccessRecord<MethodCallTarget>> forMethodCallRecord() {
             return new Factory<RawAccessRecord, AccessRecord<MethodCallTarget>>() {
                 @Override
                 AccessRecord<MethodCallTarget> create(RawAccessRecord record, ImportedClasses classes) {
                     return new RawAccessRecordProcessed<>(record, classes, METHOD_CALL_TARGET_FACTORY);
+                }
+            };
+        }
+
+        static Factory<RawAccessRecord, AccessRecord<MethodReferenceTarget>> forMethodReferenceRecord() {
+            return new Factory<RawAccessRecord, AccessRecord<MethodReferenceTarget>>() {
+                @Override
+                AccessRecord<MethodReferenceTarget> create(RawAccessRecord record, ImportedClasses classes) {
+                    return new RawAccessRecordProcessed<>(record, classes, METHOD_REFERENCE_TARGET_FACTORY);
                 }
             };
         }
@@ -91,34 +113,52 @@ interface AccessRecord<TARGET extends AccessTarget> {
             };
         }
 
-        private static final Supplier<CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget>> CONSTRUCTOR_CALL_TARGET_BUILDER_SUPPLIER =
-                new Supplier<CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget>>() {
+        private static final Supplier<CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget>> CONSTRUCTOR_CALL_TARGET_BUILDER_SUPPLIER =
+                new Supplier<CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget>>() {
                     @Override
-                    public CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget> get() {
+                    public CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget> get() {
                         return newConstructorCallTargetBuilder();
                     }
                 };
 
-        private static final Supplier<CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget>> METHOD_CALL_TARGET_BUILDER_SUPPLIER =
-                new Supplier<CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget>>() {
+        private static final Supplier<CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget>> CONSTRUCTOR_REFERENCE_TARGET_BUILDER_SUPPLIER =
+                new Supplier<CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget>>() {
                     @Override
-                    public CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget> get() {
+                    public CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget> get() {
+                        return newConstructorReferenceTargetBuilder();
+                    }
+                };
+
+        private static final Supplier<CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget>> METHOD_CALL_TARGET_BUILDER_SUPPLIER =
+                new Supplier<CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget>>() {
+                    @Override
+                    public CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget> get() {
                         return newMethodCallTargetBuilder();
                     }
                 };
 
+        private static final Supplier<CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget>> METHOD_REFERENCE_TARGET_BUILDER_SUPPLIER =
+                new Supplier<CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget>>() {
+                    @Override
+                    public CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget> get() {
+                        return newMethodReferenceTargetBuilder();
+                    }
+                };
+
         private static final AccessTargetFactory<ConstructorCallTarget> CONSTRUCTOR_CALL_TARGET_FACTORY = new ConstructorAccessTargetFactory<>(CONSTRUCTOR_CALL_TARGET_BUILDER_SUPPLIER);
+        private static final AccessTargetFactory<ConstructorReferenceTarget> CONSTRUCTOR_REFERENCE_TARGET_FACTORY = new ConstructorAccessTargetFactory<>(CONSTRUCTOR_REFERENCE_TARGET_BUILDER_SUPPLIER);
         private static final AccessTargetFactory<MethodCallTarget> METHOD_CALL_TARGET_FACTORY = new MethodAccessTargetFactory<>(METHOD_CALL_TARGET_BUILDER_SUPPLIER);
+        private static final AccessTargetFactory<MethodReferenceTarget> METHOD_REFERENCE_TARGET_FACTORY = new MethodAccessTargetFactory<>(METHOD_REFERENCE_TARGET_BUILDER_SUPPLIER);
         private static final AccessTargetFactory<FieldAccessTarget> FIELD_ACCESS_TARGET_FACTORY = new FieldAccessTargetFactory();
 
         private interface AccessTargetFactory<TARGET extends AccessTarget> {
             TARGET create(JavaClass targetOwner, TargetInfo targetInfo, ImportedClasses classes);
         }
 
-        private static class ConstructorAccessTargetFactory<TARGET extends CodeUnitCallTarget> implements AccessTargetFactory<TARGET> {
-            private final Supplier<CodeUnitCallTargetBuilder<JavaConstructor, TARGET>> targetBuilderSupplier;
+        private static class ConstructorAccessTargetFactory<TARGET extends CodeUnitAccessTarget> implements AccessTargetFactory<TARGET> {
+            private final Supplier<CodeUnitAccessTargetBuilder<JavaConstructor, TARGET>> targetBuilderSupplier;
 
-            private ConstructorAccessTargetFactory(Supplier<CodeUnitCallTargetBuilder<JavaConstructor, TARGET>> targetBuilderSupplier) {
+            private ConstructorAccessTargetFactory(Supplier<CodeUnitAccessTargetBuilder<JavaConstructor, TARGET>> targetBuilderSupplier) {
                 this.targetBuilderSupplier = targetBuilderSupplier;
             }
 
@@ -156,10 +196,10 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
         }
 
-        private static class MethodAccessTargetFactory<TARGET extends CodeUnitCallTarget> implements AccessTargetFactory<TARGET> {
-            private final Supplier<CodeUnitCallTargetBuilder<JavaMethod, TARGET>> targetBuilderSupplier;
+        private static class MethodAccessTargetFactory<TARGET extends CodeUnitAccessTarget> implements AccessTargetFactory<TARGET> {
+            private final Supplier<CodeUnitAccessTargetBuilder<JavaMethod, TARGET>> targetBuilderSupplier;
 
-            private MethodAccessTargetFactory(Supplier<CodeUnitCallTargetBuilder<JavaMethod, TARGET>> targetBuilderSupplier) {
+            private MethodAccessTargetFactory(Supplier<CodeUnitAccessTargetBuilder<JavaMethod, TARGET>> targetBuilderSupplier) {
                 this.targetBuilderSupplier = targetBuilderSupplier;
             }
 

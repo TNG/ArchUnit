@@ -189,6 +189,17 @@ class ClassFileProcessor {
             }
         }
 
+        @Override
+        public void handleMethodReferenceInstruction(String owner, String name, String desc) {
+            LOG.trace("Found method reference {}.{}:{} in line {}", owner, name, desc, lineNumber);
+            TargetInfo targetInfo = new TargetInfo(owner, name, desc);
+            if (CONSTRUCTOR_NAME.equals(name)) {
+                importRecord.registerConstructorReference(filled(new RawAccessRecord.Builder(), targetInfo).build());
+            } else {
+                importRecord.registerMethodReference(filled(new RawAccessRecord.Builder(), targetInfo).build());
+            }
+        }
+
         private <BUILDER extends RawAccessRecord.BaseBuilder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
             return builder
                     .withCaller(codeUnit)

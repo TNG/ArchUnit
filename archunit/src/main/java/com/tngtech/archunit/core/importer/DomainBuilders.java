@@ -35,9 +35,12 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.InstanceofCheck;
@@ -47,6 +50,7 @@ import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaConstructorReference;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
@@ -54,6 +58,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.JavaMethodReference;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
@@ -971,12 +976,32 @@ public final class DomainBuilders {
     }
 
     @Internal
+    public static final class JavaMethodReferenceBuilder extends JavaAccessBuilder<MethodReferenceTarget, JavaMethodReferenceBuilder> {
+        JavaMethodReferenceBuilder() {
+        }
+
+        JavaMethodReference build() {
+            return DomainObjectCreationContext.createJavaMethodReference(this);
+        }
+    }
+
+    @Internal
     public static class JavaConstructorCallBuilder extends JavaAccessBuilder<ConstructorCallTarget, JavaConstructorCallBuilder> {
         JavaConstructorCallBuilder() {
         }
 
         JavaConstructorCall build() {
             return DomainObjectCreationContext.createJavaConstructorCall(this);
+        }
+    }
+
+    @Internal
+    public static class JavaConstructorReferenceBuilder extends JavaAccessBuilder<ConstructorReferenceTarget, JavaConstructorReferenceBuilder> {
+        JavaConstructorReferenceBuilder() {
+        }
+
+        JavaConstructorReference build() {
+            return DomainObjectCreationContext.createJavaConstructorReference(this);
         }
     }
 
@@ -1062,21 +1087,21 @@ public final class DomainBuilders {
     }
 
     @Internal
-    public static class CodeUnitCallTargetBuilder<CODE_UNIT extends JavaCodeUnit, ACCESS_TARGET extends AccessTarget.CodeUnitCallTarget>
-            extends AccessTargetBuilder<CODE_UNIT, ACCESS_TARGET, CodeUnitCallTargetBuilder<CODE_UNIT, ACCESS_TARGET>> {
+    public static class CodeUnitAccessTargetBuilder<CODE_UNIT extends JavaCodeUnit, ACCESS_TARGET extends CodeUnitAccessTarget>
+            extends AccessTargetBuilder<CODE_UNIT, ACCESS_TARGET, CodeUnitAccessTargetBuilder<CODE_UNIT, ACCESS_TARGET>> {
         private List<JavaClass> parameters;
         private JavaClass returnType;
 
-        private CodeUnitCallTargetBuilder(Function<CodeUnitCallTargetBuilder<CODE_UNIT, ACCESS_TARGET>, ACCESS_TARGET> createTarget) {
+        private CodeUnitAccessTargetBuilder(Function<CodeUnitAccessTargetBuilder<CODE_UNIT, ACCESS_TARGET>, ACCESS_TARGET> createTarget) {
             super(createTarget);
         }
 
-        CodeUnitCallTargetBuilder<CODE_UNIT, ACCESS_TARGET> withParameters(final List<JavaClass> parameters) {
+        CodeUnitAccessTargetBuilder<CODE_UNIT, ACCESS_TARGET> withParameters(final List<JavaClass> parameters) {
             this.parameters = parameters;
             return self();
         }
 
-        CodeUnitCallTargetBuilder<CODE_UNIT, ACCESS_TARGET> withReturnType(final JavaClass returnType) {
+        CodeUnitAccessTargetBuilder<CODE_UNIT, ACCESS_TARGET> withReturnType(final JavaClass returnType) {
             this.returnType = returnType;
             return self();
         }
@@ -1094,27 +1119,51 @@ public final class DomainBuilders {
         }
     }
 
-    public static CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget> newConstructorCallTargetBuilder() {
-        return new CodeUnitCallTargetBuilder<>(CREATE_CONSTRUCTOR_CALL_TARGET).withName(CONSTRUCTOR_NAME);
+    public static CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget> newConstructorCallTargetBuilder() {
+        return new CodeUnitAccessTargetBuilder<>(CREATE_CONSTRUCTOR_CALL_TARGET).withName(CONSTRUCTOR_NAME);
     }
 
-    public static CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget> newMethodCallTargetBuilder() {
-        return new CodeUnitCallTargetBuilder<>(CREATE_METHOD_CALL_TARGET);
+    public static CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget> newConstructorReferenceTargetBuilder() {
+        return new CodeUnitAccessTargetBuilder<>(CREATE_CONSTRUCTOR_REFERENCE_TARGET).withName(CONSTRUCTOR_NAME);
     }
 
-    private static final Function<CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget>, ConstructorCallTarget> CREATE_CONSTRUCTOR_CALL_TARGET =
-            new Function<CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget>, ConstructorCallTarget>() {
+    public static CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget> newMethodCallTargetBuilder() {
+        return new CodeUnitAccessTargetBuilder<>(CREATE_METHOD_CALL_TARGET);
+    }
+
+    public static CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget> newMethodReferenceTargetBuilder() {
+        return new CodeUnitAccessTargetBuilder<>(CREATE_METHOD_REFERENCE_TARGET);
+    }
+
+    private static final Function<CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget>, ConstructorCallTarget> CREATE_CONSTRUCTOR_CALL_TARGET =
+            new Function<CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget>, ConstructorCallTarget>() {
                 @Override
-                public ConstructorCallTarget apply(CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget> targetBuilder) {
+                public ConstructorCallTarget apply(CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget> targetBuilder) {
                     return DomainObjectCreationContext.createConstructorCallTarget(targetBuilder);
                 }
             };
 
-    private static final Function<CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget>, MethodCallTarget> CREATE_METHOD_CALL_TARGET =
-            new Function<CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget>, MethodCallTarget>() {
+    private static final Function<CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget>, ConstructorReferenceTarget> CREATE_CONSTRUCTOR_REFERENCE_TARGET =
+            new Function<CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget>, ConstructorReferenceTarget>() {
                 @Override
-                public MethodCallTarget apply(CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget> targetBuilder) {
+                public ConstructorReferenceTarget apply(CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget> targetBuilder) {
+                    return DomainObjectCreationContext.createConstructorReferenceTarget(targetBuilder);
+                }
+            };
+
+    private static final Function<CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget>, MethodCallTarget> CREATE_METHOD_CALL_TARGET =
+            new Function<CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget>, MethodCallTarget>() {
+                @Override
+                public MethodCallTarget apply(CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget> targetBuilder) {
                     return DomainObjectCreationContext.createMethodCallTarget(targetBuilder);
+                }
+            };
+
+    private static final Function<CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget>, MethodReferenceTarget> CREATE_METHOD_REFERENCE_TARGET =
+            new Function<CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget>, MethodReferenceTarget>() {
+                @Override
+                public MethodReferenceTarget apply(CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget> targetBuilder) {
+                    return DomainObjectCreationContext.createMethodReferenceTarget(targetBuilder);
                 }
             };
 

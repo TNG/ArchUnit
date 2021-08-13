@@ -5,13 +5,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitCallTarget;
-import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
-import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
-import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
@@ -142,7 +137,7 @@ public class AccessTargetTest {
     public void no_throws_clause_is_resolved() {
         CodeUnitCallTarget target = getTarget("withoutThrowsDeclaration");
 
-        ThrowsClause<CodeUnitCallTarget> throwsClause = target.getThrowsClause();
+        ThrowsClause<? extends CodeUnitCallTarget> throwsClause = target.getThrowsClause();
         assertThatThrowsClause(throwsClause).as("throws clause").isEmpty();
         assertThat(throwsClause.getTypes()).isEmpty();
         assertThat(throwsClause.getOwner()).isEqualTo(target);
@@ -168,68 +163,6 @@ public class AccessTargetTest {
         CodeUnitCallTarget target = getTarget("diamondMethod");
 
         assertDeclarations(target, FirstCheckedException.class, SecondCheckedException.class, ThirdCheckedException.class);
-    }
-
-    private static class Data_function_resolve_member {
-        static class Target {
-            String field;
-
-            void method() {
-            }
-        }
-    }
-
-    @Test
-    public void function_resolve_member() {
-        class Origin {
-            String access() {
-                Data_function_resolve_member.Target target = new Data_function_resolve_member.Target();
-                target.method();
-                return target.field;
-            }
-        }
-        JavaClass targetClass = new ClassFileImporter().importClasses(Origin.class, Data_function_resolve_member.Target.class).get(Data_function_resolve_member.Target.class);
-        MethodCallTarget methodCallTarget = findTargetWithType(targetClass.getAccessesToSelf(), MethodCallTarget.class);
-
-        assertThat(AccessTarget.Functions.RESOLVE_MEMBER.apply(methodCallTarget))
-                .contains(methodCallTarget.resolveMember().get());
-        assertThat(AccessTarget.Functions.RESOLVE.apply(methodCallTarget))
-                .isEqualTo(ImmutableSet.of(methodCallTarget.resolveMember().get()));
-
-        assertThat(CodeUnitCallTarget.Functions.RESOLVE_MEMBER.apply(methodCallTarget))
-                .contains(methodCallTarget.resolveMember().get());
-        assertThat(CodeUnitCallTarget.Functions.RESOLVE.apply(methodCallTarget))
-                .isEqualTo(ImmutableSet.of(methodCallTarget.resolveMember().get()));
-
-        assertThat(MethodCallTarget.Functions.RESOLVE_MEMBER.apply(methodCallTarget))
-                .contains(methodCallTarget.resolveMember().get());
-        assertThat(MethodCallTarget.Functions.RESOLVE.apply(methodCallTarget))
-                .isEqualTo(ImmutableSet.of(methodCallTarget.resolveMember().get()));
-
-        ConstructorCallTarget constructorCallTarget = findTargetWithType(targetClass.getAccessesToSelf(), ConstructorCallTarget.class);
-
-        assertThat(ConstructorCallTarget.Functions.RESOLVE_MEMBER.apply(constructorCallTarget))
-                .contains(constructorCallTarget.resolveMember().get());
-        assertThat(ConstructorCallTarget.Functions.RESOLVE.apply(constructorCallTarget))
-                .isEqualTo(ImmutableSet.of(constructorCallTarget.resolveMember().get()));
-
-        FieldAccessTarget fieldAccessTarget = findTargetWithType(targetClass.getAccessesToSelf(), FieldAccessTarget.class);
-
-        assertThat(FieldAccessTarget.Functions.RESOLVE_MEMBER.apply(fieldAccessTarget))
-                .contains(fieldAccessTarget.resolveMember().get());
-        assertThat(FieldAccessTarget.Functions.RESOLVE.apply(fieldAccessTarget))
-                .isEqualTo(ImmutableSet.of(fieldAccessTarget.resolveMember().get()));
-
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends AccessTarget> T findTargetWithType(Set<JavaAccess<?>> set, Class<T> type) {
-        for (JavaAccess<?> access : set) {
-            if (type.isInstance(access.getTarget())) {
-                return (T) access.getTarget();
-            }
-        }
-        throw new AssertionError(String.format("Set %s does not contain element of type %s", set, type.getName()));
     }
 
     @Test
@@ -275,9 +208,9 @@ public class AccessTargetTest {
         Method reflectedMethod = publicMethod(target.getOwner().reflect(), target.getName());
         assertThat(reflectedMethod.getExceptionTypes()).containsOnly(exceptionTypes);
 
-        ThrowsClause<CodeUnitCallTarget> throwsClause = target.getThrowsClause();
+        ThrowsClause<? extends CodeUnitCallTarget> throwsClause = target.getThrowsClause();
         assertThatTypes(throwsClause.getTypes()).matchExactly(exceptionTypes);
-        for (ThrowsDeclaration<CodeUnitCallTarget> throwsDeclaration : throwsClause) {
+        for (ThrowsDeclaration<? extends CodeUnitCallTarget> throwsDeclaration : throwsClause) {
             assertThatType(throwsDeclaration.getDeclaringClass()).isEqualTo(target.getOwner());
             assertThatThrowsClause(throwsDeclaration.getOwner()).isEqualTo(target.getThrowsClause());
             assertThat(throwsDeclaration.getLocation()).isEqualTo(target);

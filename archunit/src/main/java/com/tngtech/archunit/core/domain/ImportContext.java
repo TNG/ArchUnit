@@ -56,5 +56,9 @@ public interface ImportContext {
 
     Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit);
 
+    Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit);
+
+    Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit);
+
     JavaClass resolveClass(String fullyQualifiedClassName);
 }

@@ -31,7 +31,9 @@ import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -39,11 +41,13 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
+import com.tngtech.archunit.core.domain.JavaConstructorReference;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.JavaMethodReference;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -51,8 +55,10 @@ import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorReferenceBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodReferenceBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.ImportedClasses.MethodReturnTypeGetter;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
@@ -77,6 +83,8 @@ class ClassGraphCreator implements ImportContext {
     private final SetMultimap<JavaCodeUnit, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit, AccessRecord<MethodReferenceTarget>> processedMethodReferenceRecords = HashMultimap.create();
+    private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorReferenceTarget>> processedConstructorReferenceRecords = HashMultimap.create();
     private final Function<JavaClass, ? extends Collection<String>> superclassStrategy;
     private final Function<JavaClass, ? extends Collection<String>> interfaceStrategy;
 
@@ -168,7 +176,16 @@ class ClassGraphCreator implements ImportContext {
             tryProcess(methodCallRecord, AccessRecord.Factory.forMethodCallRecord(), processedMethodCallRecords);
         }
         for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
-            tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords);
+            tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(),
+                    processedConstructorCallRecords);
+        }
+        for (RawAccessRecord methodReferenceCallRecord : importRecord.getRawMethodReferenceRecords()) {
+            tryProcess(methodReferenceCallRecord, AccessRecord.Factory.forMethodReferenceRecord(),
+                    processedMethodReferenceRecords);
+        }
+        for (RawAccessRecord constructorReferenceCallRecord : importRecord.getRawConstructorReferenceRecords()) {
+            tryProcess(constructorReferenceCallRecord, AccessRecord.Factory.forConstructorReferenceRecord(),
+                    processedConstructorReferenceRecords);
         }
     }
 
@@ -203,7 +220,7 @@ class ClassGraphCreator implements ImportContext {
             Multimap<JavaCodeUnit, T> processedAccessRecords) {
 
         T processed = factory.create(rawRecord, classes);
-        processedAccessRecords.put(processed.getCaller(), processed);
+        processedAccessRecords.put(processed.getOrigin(), processed);
     }
 
     @Override
@@ -235,10 +252,28 @@ class ClassGraphCreator implements ImportContext {
         return result.build();
     }
 
+    @Override
+    public Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit) {
+        ImmutableSet.Builder<JavaMethodReference> result = ImmutableSet.builder();
+        for (AccessRecord<MethodReferenceTarget> record : processedMethodReferenceRecords.get(codeUnit)) {
+            result.add(accessBuilderFrom(new JavaMethodReferenceBuilder(), record).build());
+        }
+        return result.build();
+    }
+
+    @Override
+    public Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit) {
+        ImmutableSet.Builder<JavaConstructorReference> result = ImmutableSet.builder();
+        for (AccessRecord<ConstructorReferenceTarget> record : processedConstructorReferenceRecords.get(codeUnit)) {
+            result.add(accessBuilderFrom(new JavaConstructorReferenceBuilder(), record).build());
+        }
+        return result.build();
+    }
+
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
     B accessBuilderFrom(B builder, AccessRecord<T> record) {
         return builder
-                .withOrigin(record.getCaller())
+                .withOrigin(record.getOrigin())
                 .withTarget(record.getTarget())
                 .withLineNumber(record.getLineNumber());
     }

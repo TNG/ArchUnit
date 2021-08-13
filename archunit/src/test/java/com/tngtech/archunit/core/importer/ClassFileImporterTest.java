@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitAccessTarget;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
@@ -976,10 +976,10 @@ public class ClassFileImporterTest {
         };
     }
 
-    private Condition<MethodCallTarget> targetWithFullName(final String name) {
-        return new Condition<MethodCallTarget>(String.format("target with name '%s'", name)) {
+    private Condition<CodeUnitAccessTarget> targetWithFullName(final String name) {
+        return new Condition<CodeUnitAccessTarget>(String.format("target with name '%s'", name)) {
             @Override
-            public boolean matches(MethodCallTarget value) {
+            public boolean matches(CodeUnitAccessTarget value) {
                 return value.getFullName().equals(name);
             }
         };
