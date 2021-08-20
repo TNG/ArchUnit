@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -177,6 +178,7 @@ import static com.tngtech.archunit.testutils.ExpectedDependency.constructor;
 import static com.tngtech.archunit.testutils.ExpectedDependency.field;
 import static com.tngtech.archunit.testutils.ExpectedDependency.genericFieldType;
 import static com.tngtech.archunit.testutils.ExpectedDependency.genericInterfaceOf;
+import static com.tngtech.archunit.testutils.ExpectedDependency.genericMethodParameterType;
 import static com.tngtech.archunit.testutils.ExpectedDependency.genericMethodReturnType;
 import static com.tngtech.archunit.testutils.ExpectedDependency.genericSuperclassOf;
 import static com.tngtech.archunit.testutils.ExpectedDependency.inheritanceFrom;
@@ -799,6 +801,10 @@ class ExamplesIntegrationTest {
                         .dependingOn(SomeEnum.class))
                 .by(genericMethodReturnType(SpecialServiceHelper.class, "methodWithGenericReturnTypeViolatingLayerRule")
                         .dependingOn(SomeUtility.class))
+                .by(genericMethodParameterType(SpecialServiceHelper.class, "methodWithGenericParameterTypeViolatingLayerRule", Map.class)
+                        .dependingOn(SomeEnum.class))
+                .by(genericMethodParameterType(SpecialServiceHelper.class, "methodWithGenericParameterTypeViolatingLayerRule", Map.class)
+                        .dependingOn(SomeUtility.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withParameter(UseCaseTwoController.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withReturnType(SomeGuiController.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentOnComponentTypeMethod).withParameter(UseCaseTwoController[].class))
@@ -870,6 +876,10 @@ class ExamplesIntegrationTest {
                 .by(genericMethodReturnType(SpecialServiceHelper.class, "methodWithGenericReturnTypeViolatingLayerRule")
                         .dependingOn(SomeEnum.class))
                 .by(genericMethodReturnType(SpecialServiceHelper.class, "methodWithGenericReturnTypeViolatingLayerRule")
+                        .dependingOn(SomeUtility.class))
+                .by(genericMethodParameterType(SpecialServiceHelper.class, "methodWithGenericParameterTypeViolatingLayerRule", Map.class)
+                        .dependingOn(SomeEnum.class))
+                .by(genericMethodParameterType(SpecialServiceHelper.class, "methodWithGenericParameterTypeViolatingLayerRule", Map.class)
                         .dependingOn(SomeUtility.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withParameter(UseCaseTwoController.class))
                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withReturnType(SomeGuiController.class))
@@ -952,6 +962,10 @@ class ExamplesIntegrationTest {
                                 .by(genericMethodReturnType(SpecialServiceHelper.class, "methodWithGenericReturnTypeViolatingLayerRule")
                                         .dependingOn(SomeEnum.class))
                                 .by(genericMethodReturnType(SpecialServiceHelper.class, "methodWithGenericReturnTypeViolatingLayerRule")
+                                        .dependingOn(SomeUtility.class))
+                                .by(genericMethodParameterType(SpecialServiceHelper.class, "methodWithGenericParameterTypeViolatingLayerRule", Map.class)
+                                        .dependingOn(SomeEnum.class))
+                                .by(genericMethodParameterType(SpecialServiceHelper.class, "methodWithGenericParameterTypeViolatingLayerRule", Map.class)
                                         .dependingOn(SomeUtility.class))
                                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withParameter(UseCaseTwoController.class))
                                 .by(method(ServiceViolatingLayerRules.class, dependentMethod).withReturnType(SomeGuiController.class))

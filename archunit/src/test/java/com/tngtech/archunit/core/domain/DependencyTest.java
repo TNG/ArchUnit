@@ -418,6 +418,51 @@ public class DependencyTest {
                 getClass().getSimpleName()));
     }
 
+    @DataProvider
+    public static Object[][] data_Dependency_from_generic_code_unit_parameter_type_arguments() {
+        @SuppressWarnings("unused")
+        class SomeGenericType<T> {
+        }
+        @SuppressWarnings("unused")
+        class GenericTypeOnConstructor {
+            GenericTypeOnConstructor(SomeGenericType<String> param) {
+            }
+        }
+        @SuppressWarnings("unused")
+        class GenericTypeOnMethod {
+            void genericTypeOnMethod(SomeGenericType<String> param) {
+            }
+        }
+
+        JavaConstructor constructor = importClassesWithContext(GenericTypeOnConstructor.class, SomeGenericType.class, String.class)
+                .get(GenericTypeOnConstructor.class).getConstructor(SomeGenericType.class);
+        JavaMethod method = importClassesWithContext(GenericTypeOnMethod.class, SomeGenericType.class, String.class)
+                .get(GenericTypeOnMethod.class).getMethod("genericTypeOnMethod", SomeGenericType.class);
+        String expectedGenericParameterTypeName = SomeGenericType.class.getName() + "<" + String.class.getName() + ">";
+        return $$(
+                $(constructor, expectedGenericParameterTypeName),
+                $(method, expectedGenericParameterTypeName));
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_Dependency_from_generic_code_unit_parameter_type_arguments(JavaCodeUnit codeUnit, String expectedGenericParameterTypeName) {
+        JavaType parameterType = getOnlyElement(codeUnit.getParameterTypes());
+        JavaClass typeArgumentDependency = (JavaClass) ((JavaParameterizedType) parameterType).getActualTypeArguments().get(0);
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromGenericCodeUnitParameterTypeArgument(
+                codeUnit, parameterType, typeArgumentDependency));
+
+        assertThatType(dependency.getOriginClass()).matches(codeUnit.getOwner().reflect());
+        assertThatType(dependency.getTargetClass()).matches(String.class);
+        assertThat(dependency.getDescription()).as("description").contains(String.format(
+                "%s has generic parameter type <%s> with type argument depending on <%s> in (%s.java:0)",
+                codeUnit.getDescription(),
+                expectedGenericParameterTypeName,
+                String.class.getName(),
+                getClass().getSimpleName()));
+    }
+
     @Test
     public void Dependency_from_referenced_class_object() {
         JavaMethod origin = new ClassFileImporter()

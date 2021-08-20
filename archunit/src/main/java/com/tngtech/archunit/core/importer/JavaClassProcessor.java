@@ -248,8 +248,8 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         LOG.trace("Analyzing method {}.{}:{}", className, name, desc);
-        List<JavaClassDescriptor> parameters = JavaClassDescriptorImporter.importAsmMethodArgumentTypes(desc);
-        accessHandler.setContext(new CodeUnit(name, namesOf(parameters), className));
+        List<JavaClassDescriptor> rawParameterTypes = JavaClassDescriptorImporter.importAsmMethodArgumentTypes(desc);
+        accessHandler.setContext(new CodeUnit(name, namesOf(rawParameterTypes), className));
 
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
         JavaCodeUnitSignature codeUnitSignature = JavaCodeUnitSignatureImporter.parseAsmMethodSignature(signature);
@@ -258,7 +258,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
                 .withTypeParameters(codeUnitSignature.getTypeParameterBuilders())
-                .withParameterTypes(parameters)
+                .withParameterTypes(codeUnitSignature.getParameterTypes(), rawParameterTypes)
                 .withReturnType(codeUnitSignature.getReturnType(), rawReturnType)
                 .withDescriptor(desc)
                 .withThrowsClause(typesFrom(exceptions));

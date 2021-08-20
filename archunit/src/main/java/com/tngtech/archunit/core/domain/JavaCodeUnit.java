@@ -54,6 +54,7 @@ public abstract class JavaCodeUnit
 
     private final JavaType returnType;
     private final List<JavaClass> rawParameterTypes;
+    private final List<JavaType> parameterTypes;
     private final String fullName;
     private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
     private final Set<ReferencedClassObject> referencedClassObjects;
@@ -68,9 +69,16 @@ public abstract class JavaCodeUnit
         typeParameters = builder.getTypeParameters(this);
         returnType = builder.getReturnType(this);
         rawParameterTypes = builder.getRawParameterTypes();
+        parameterTypes = getParameterTypes(builder);
         fullName = formatMethod(getOwner().getName(), getName(), namesOf(getRawParameterTypes()));
         referencedClassObjects = ImmutableSet.copyOf(builder.getReferencedClassObjects(this));
         instanceofChecks = ImmutableSet.copyOf(builder.getInstanceofChecks(this));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"}) // the cast is safe because the list is immutable, thus used in a covariant way
+    private List<JavaType> getParameterTypes(JavaCodeUnitBuilder<?, ?> builder) {
+        List<JavaType> genericParameterTypes = builder.getGenericParameterTypes(this);
+        return genericParameterTypes.isEmpty() ? (List) rawParameterTypes : genericParameterTypes;
     }
 
     /**
@@ -86,6 +94,12 @@ public abstract class JavaCodeUnit
     @PublicAPI(usage = ACCESS)
     public List<JavaClass> getRawParameterTypes() {
         return rawParameterTypes;
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public List<JavaType> getParameterTypes() {
+        return parameterTypes;
     }
 
     @Override

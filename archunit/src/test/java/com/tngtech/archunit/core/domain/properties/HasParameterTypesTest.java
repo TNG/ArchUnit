@@ -6,6 +6,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaType;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
@@ -50,6 +51,12 @@ public class HasParameterTypesTest {
 
     private HasParameterTypes newHasParameterTypes(final Class<?>... parameters) {
         return new HasParameterTypes() {
+
+            @Override
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            public List<JavaType> getParameterTypes() {
+                return (List) getRawParameterTypes();
+            }
 
             @Override
             public List<JavaClass> getRawParameterTypes() {

@@ -12,6 +12,8 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypeVariable;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.getTypeVariableWithName;
 
 public class JavaCodeUnitAssertion<T extends JavaCodeUnit, SELF extends JavaCodeUnitAssertion<T, SELF>>
@@ -46,6 +48,14 @@ public class JavaCodeUnitAssertion<T extends JavaCodeUnit, SELF extends JavaCode
     public JavaTypeVariableOfCodeUnitAssertion hasOnlyTypeParameter(String name) {
         assertThat(actual.getTypeParameters()).as("Type parameters").hasSize(1);
         return hasTypeParameter(name);
+    }
+
+    public void matchesConstructor(Class<?> owner, Class<?>... parameterTypes) {
+        isEquivalentTo(constructor(owner, parameterTypes));
+    }
+
+    public void matchesMethod(Class<?> owner, String methodName, Class<?>... parameterTypes) {
+        isEquivalentTo(method(owner, methodName, parameterTypes));
     }
 
     public class JavaTypeVariableOfCodeUnitAssertion extends AbstractObjectAssert<JavaTypeVariableOfCodeUnitAssertion, JavaTypeVariable<JavaCodeUnit>> {

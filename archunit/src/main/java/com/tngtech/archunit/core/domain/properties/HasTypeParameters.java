@@ -25,6 +25,13 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
 public interface HasTypeParameters<OWNER extends HasDescription> {
+    /**
+     * @return the type parameters of this object, e.g. for any generic method
+     *         <pre><code>&lt;A, B&gt; B someMethod(A a) {..}</code></pre> this would return
+     *         the {@link JavaTypeVariable JavaTypeVariables} {@code [A, B]}.<br>
+     *         If this object is non-generic, e.g. a method <pre><code>void someMethod() {..}</code></pre>
+     *         an empty list will be returned.
+     */
     @PublicAPI(usage = ACCESS)
     List<? extends JavaTypeVariable<? extends OWNER>> getTypeParameters();
 }

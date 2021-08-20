@@ -37,7 +37,7 @@ class JavaFieldTypeSignatureImporter {
 
         SignatureProcessor signatureProcessor = new SignatureProcessor();
         new SignatureReader(signature).accept(signatureProcessor);
-        return Optional.of(signatureProcessor.getFieldType());
+        return signatureProcessor.getFieldType();
     }
 
     private static class SignatureProcessor extends SignatureVisitor {
@@ -52,7 +52,7 @@ class JavaFieldTypeSignatureImporter {
             return genericFieldTypeProcessor;
         }
 
-        JavaTypeCreationProcess<JavaField> getFieldType() {
+        Optional<JavaTypeCreationProcess<JavaField>> getFieldType() {
             return genericFieldTypeProcessor.getType();
         }
     }

@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -89,8 +88,8 @@ import static com.tngtech.archunit.core.domain.TestUtils.importPackagesOf;
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Predicates.fullNameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
-import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatCodeUnit;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
@@ -441,44 +440,33 @@ public class JavaClassTest {
             }
         });
 
-        assertThat(clazz.getCodeUnitWithParameterTypes("childMethod", String.class))
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
-        assertThat(clazz.getCodeUnitWithParameterTypeNames("childMethod", String.class.getName()))
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
-        assertThat(clazz.getCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Object.class))
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
-        assertThat(clazz.getCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Object.class.getName()))
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+        assertThatCodeUnit(clazz.getCodeUnitWithParameterTypes("childMethod", String.class))
+                .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
+        assertThatCodeUnit(clazz.getCodeUnitWithParameterTypeNames("childMethod", String.class.getName()))
+                .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
+        assertThatCodeUnit(clazz.getCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Object.class))
+                .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
+        assertThatCodeUnit(clazz.getCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Object.class.getName()))
+                .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
     }
 
     @Test
     public void tryGetCodeUnitWithParameterTypes() {
         final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
 
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>singletonList(String.class)).get())
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", singletonList(String.class.getName())).get())
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, "childMethod", String.class));
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>singletonList(Object.class)).get())
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, singletonList(Object.class.getName())).get())
-                .is(equivalentCodeUnit(ChildWithFieldAndMethod.class, CONSTRUCTOR_NAME, Object.class));
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>singletonList(String.class)).get())
+                .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", singletonList(String.class.getName())).get())
+                .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>singletonList(Object.class)).get())
+                .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, singletonList(Object.class.getName())).get())
+                .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
 
         assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>emptyList())).isAbsent();
         assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isAbsent();
         assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isAbsent();
         assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isAbsent();
-    }
-
-    private Condition<JavaCodeUnit> equivalentCodeUnit(final Class<?> owner, final String methodName, final Class<?> paramType) {
-        return new Condition<JavaCodeUnit>() {
-            @Override
-            public boolean matches(JavaCodeUnit value) {
-                return value.getOwner().isEquivalentTo(owner) &&
-                        value.getName().equals(methodName) &&
-                        namesOf(value.getRawParameterTypes()).equals(ImmutableList.of(paramType.getName()));
-            }
-        };
     }
 
     @Test
@@ -664,6 +652,61 @@ public class JavaClassTest {
                                 ".*has generic return type <" + quote(SomeGenericType.class.getName()) +
                                         ".+> with type argument depending on <#target>.*")
                         .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+
+                        .from(SomeClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
+    public void direct_dependencies_from_self_by_method_parameter_type_declarations() {
+        @SuppressWarnings("unused")
+        class SomeGenericType<FIRST, SECOND> {
+        }
+        @SuppressWarnings("unused")
+        class SomeClass<FIRST, SECOND> {
+            // @formatter:off
+            void method(
+              SomeGenericType<
+                Comparable<SomeGenericType<FIRST, SECOND>>,
+                Map<
+                  Map.Entry<FIRST, Map.Entry<String, FIRST>>,
+                  Map<
+                    ? extends BufferedInputStream[][],
+                    Map<
+                      ? extends Serializable,
+                      List<List<? extends Set<? super Iterable<? super Map<FIRST, ? extends File>>>>>
+                    >
+                  >
+                >
+              > firstParam,
+              List<? extends FileSystem> secondParam) {
+            }
+            // @formatter:on
+        }
+
+        JavaClass javaClass = importClassWithContext(SomeClass.class);
+
+        assertThatDependencies(javaClass.getDirectDependenciesFromSelf())
+                .contain(from(SomeClass.class).to(SomeGenericType.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Method <%s.method(%s, %s)> has parameter of type <%s>",
+                                SomeClass.class.getName(), SomeGenericType.class.getName(), List.class.getName(), SomeGenericType.class.getName())
+
+                        .from(SomeClass.class).to(List.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("Method <%s.method(%s, %s)> has parameter of type <%s>",
+                                SomeClass.class.getName(), SomeGenericType.class.getName(), List.class.getName(), List.class.getName())
+
+                        .from(SomeClass.class)
+                        .withExpectedDescriptionPatternTemplate(
+                                ".*has generic parameter type <" + quote(SomeGenericType.class.getName()) +
+                                        ".+> with type argument depending on <#target>.*")
+                        .to(Comparable.class, Map.class, Map.Entry.class, String.class, BufferedInputStream[][].class, Serializable.class, List.class, Set.class, Iterable.class, File.class)
+
+                        .from(SomeClass.class)
+                        .withExpectedDescriptionPatternTemplate(
+                                ".*has generic parameter type <" + quote(List.class.getName()) +
+                                        ".+> with type argument depending on <#target>.*")
+                        .to(FileSystem.class)
 
                         .from(SomeClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
                         .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
@@ -1085,6 +1128,58 @@ public class JavaClassTest {
 
                         .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
                         .withDescriptionMatching("Method <%s.method\\(\\)> has generic return type <%s.+> with type argument depending on <%s>.*",
+                                SecondChild.class.getName(), SecondGenericType.class.getName(), File.class.getName())
+                );
+
+        assertThatDependencies(javaClasses.get(BufferedInputStream.class).getDirectDependenciesToSelf())
+                .contain(from(FirstClass.class).to(BufferedInputStream.class).inLocation(getClass(), 0)
+                        .withDescriptionContaining("depends on component type <%s>", BufferedInputStream.class.getName())
+                );
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_generic_method_parameter_type_parameters() {
+        @SuppressWarnings("unused")
+        class FirstGenericType<X, Y> {
+        }
+        @SuppressWarnings("unused")
+        class FirstClass {
+            // @formatter:off
+            void method(
+              FirstGenericType<
+                Comparable<FirstClass>,
+                Map<
+                  Map.Entry<?, Map.Entry<String, ?>>,
+                  Map<
+                    ? extends BufferedInputStream[][],
+                    Map<
+                      ? extends Serializable,
+                      List<List<? extends Set<? super Iterable<? super Map<?, ? extends File>>>>>
+                    >
+                  >
+                >
+              > param) {
+            }
+            // @formatter:on
+        }
+        @SuppressWarnings("unused")
+        class SecondGenericType<T> {
+        }
+        @SuppressWarnings("unused")
+        class SecondChild {
+            void method(List<String> irrelevant, SecondGenericType<Map<?, ? super File>> param) {
+            }
+        }
+
+        JavaClasses javaClasses = importClassesWithContext(FirstClass.class, SecondChild.class, BufferedInputStream.class, File.class);
+
+        assertThatDependencies(javaClasses.get(File.class).getDirectDependenciesToSelf())
+                .contain(from(FirstClass.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionMatching("Method <%s.method\\([^)]+\\)> has generic parameter type <%s.+> with type argument depending on <%s>.*",
+                                FirstClass.class.getName(), FirstGenericType.class.getName(), File.class.getName())
+
+                        .from(SecondChild.class).to(File.class).inLocation(getClass(), 0)
+                        .withDescriptionMatching("Method <%s.method\\([^)]+\\)> has generic parameter type <%s.+> with type argument depending on <%s>.*",
                                 SecondChild.class.getName(), SecondGenericType.class.getName(), File.class.getName())
                 );
 

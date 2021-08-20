@@ -234,7 +234,8 @@ public final class DomainBuilders {
     public abstract static class JavaCodeUnitBuilder<OUTPUT, SELF extends JavaCodeUnitBuilder<OUTPUT, SELF>> extends JavaMemberBuilder<OUTPUT, SELF> {
         private Optional<JavaTypeCreationProcess<JavaCodeUnit>> genericReturnType;
         private JavaClassDescriptor rawReturnType;
-        private List<JavaClassDescriptor> parameters;
+        private List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypes;
+        private List<JavaClassDescriptor> rawParameterTypes;
         private JavaCodeUnitTypeParametersBuilder typeParametersBuilder;
         private List<JavaClassDescriptor> throwsDeclarations;
         private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
@@ -249,8 +250,9 @@ public final class DomainBuilders {
             return self();
         }
 
-        SELF withParameterTypes(List<JavaClassDescriptor> parameters) {
-            this.parameters = parameters;
+        SELF withParameterTypes(List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypes, List<JavaClassDescriptor> rawParameterTypes) {
+            this.genericParameterTypes = genericParameterTypes;
+            this.rawParameterTypes = rawParameterTypes;
             return self();
         }
 
@@ -276,7 +278,7 @@ public final class DomainBuilders {
 
         List<String> getParameterTypeNames() {
             ImmutableList.Builder<String> result = ImmutableList.builder();
-            for (JavaClassDescriptor parameter : parameters) {
+            for (JavaClassDescriptor parameter : rawParameterTypes) {
                 result.add(parameter.getFullyQualifiedClassName());
             }
             return result.build();
@@ -287,7 +289,7 @@ public final class DomainBuilders {
         }
 
         boolean hasNoParameters() {
-            return parameters.isEmpty();
+            return rawParameterTypes.isEmpty();
         }
 
         public JavaType getReturnType(JavaCodeUnit codeUnit) {
@@ -301,7 +303,19 @@ public final class DomainBuilders {
         }
 
         public List<JavaClass> getRawParameterTypes() {
-            return asJavaClasses(parameters);
+            return asJavaClasses(rawParameterTypes);
+        }
+
+        public List<JavaType> getGenericParameterTypes(JavaCodeUnit codeUnit) {
+            return build(genericParameterTypes, codeUnit);
+        }
+
+        private List<JavaType> build(List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypeBuilders, JavaCodeUnit codeUnit) {
+            ImmutableList.Builder<JavaType> result = ImmutableList.builder();
+            for (JavaTypeCreationProcess<JavaCodeUnit> parameterTypeBuilder : genericParameterTypeBuilders) {
+                result.add(parameterTypeBuilder.finish(codeUnit, allTypeParametersInContextOf(codeUnit), importedClasses));
+            }
+            return result.build();
         }
 
         public List<JavaTypeVariable<JavaCodeUnit>> getTypeParameters(JavaCodeUnit owner) {
@@ -555,7 +569,7 @@ public final class DomainBuilders {
     public static final class JavaStaticInitializerBuilder extends JavaCodeUnitBuilder<JavaStaticInitializer, JavaStaticInitializerBuilder> {
         JavaStaticInitializerBuilder() {
             withReturnType(Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty(), JavaClassDescriptor.From.name(void.class.getName()));
-            withParameterTypes(Collections.<JavaClassDescriptor>emptyList());
+            withParameterTypes(Collections.<JavaTypeCreationProcess<JavaCodeUnit>>emptyList(), Collections.<JavaClassDescriptor>emptyList());
             withName(JavaStaticInitializer.STATIC_INITIALIZER_NAME);
             withDescriptor("()V");
             withModifiers(Collections.<JavaModifier>emptySet());

@@ -15,4 +15,7 @@ public abstract class SpecialServiceHelper extends ServiceHelper<SomeUtility, Ha
     Map<?, Map<SomeEnum, ? extends SomeUtility>> methodWithGenericReturnTypeViolatingLayerRule() {
         return null;
     }
+
+    void methodWithGenericParameterTypeViolatingLayerRule(Map<?, Map<SomeEnum, ? extends SomeUtility>> param) {
+    }
 }
