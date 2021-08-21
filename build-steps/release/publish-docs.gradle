@@ -7,13 +7,13 @@ ext.gitCheckOut = { String url, File targetDir, String branch = null ->
 
 File scriptRoot = currentScriptRootOf this
 def relativePath = { new File(scriptRoot, it) }
-apply from: relativePath('update-docs.gradle')
+apply from: relativePath('update-website.gradle')
 apply from: relativePath('update-examples.gradle')
 
-task releaseArchUnit(dependsOn: [updateArchUnitDocs, updateArchUnitExample]) {
+task publishDocs(dependsOn: [updateArchUnitWebsite, updateArchUnitExample]) {
     doLast {
         println """Check the following updated Git repos and push, if everything seems okay:
-    - ${updateArchUnitDocs.checkoutDir.absolutePath}
+    - ${updateArchUnitWebsite.checkoutDir.absolutePath}
     - ${updateArchUnitExample.checkoutDir.absolutePath}"""
     }
 }
