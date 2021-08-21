@@ -40,10 +40,12 @@ class PlantUmlPatterns {
     private static final Pattern STEREOTYPE_PATTERN = Pattern.compile(STEREOTYPE_FORMAT);
 
     private static final String ALIAS_GROUP_NAME = "alias";
-    private static final String ALIAS_FORMAT = "\\s*(?:as \"?" + capture("[^\"]+", ALIAS_GROUP_NAME) + "\"?)?";
+    private static final String ALIAS_FORMAT = "\\s*(?:as \"?" + capture("[^\" ]+", ALIAS_GROUP_NAME) + "\"?)?";
+
+    private static final String COLOR_FORMAT = "\\s*(?:#" + anyOf("\\w|/\\\\-") + "+)?";
 
     private static final Pattern PLANTUML_COMPONENT_PATTERN = Pattern.compile(
-            "^\\s*" + COMPONENT_NAME_FORMAT + "\\s*" + STEREOTYPE_FORMAT + "*" + ALIAS_FORMAT + "\\s*");
+            "^\\s*" + COMPONENT_NAME_FORMAT + "\\s*" + STEREOTYPE_FORMAT + "*" + ALIAS_FORMAT + COLOR_FORMAT + "\\s*");
 
     private static String capture(String pattern) {
         return "(" + pattern + ")";
@@ -51,6 +53,11 @@ class PlantUmlPatterns {
 
     private static String capture(String pattern, String name) {
         return "(?<" + name + ">" + pattern + ")";
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static String anyOf(String charsJoined) {
+        return "[" + charsJoined + "]+";
     }
 
     private static String anythingBut(String charsJoined) {
