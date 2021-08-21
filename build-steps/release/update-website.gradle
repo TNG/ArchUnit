@@ -3,13 +3,13 @@ import java.nio.file.Files
 final String archunitGitRepo = 'git@github.com:TNG/ArchUnit.git'
 final File checkoutDir = new File(project.buildDir, 'docs-update')
 
-task checkoutArchUnitDocs {
+task checkoutArchUnitWebsite {
     doLast {
         gitCheckOut(archunitGitRepo, checkoutDir, 'gh-pages')
     }
 }
 
-task copyArchUnitDocs(dependsOn: checkoutArchUnitDocs) {
+task copyArchUnitWebsite(dependsOn: checkoutArchUnitWebsite) {
     doLast {
         def cName = new File(checkoutDir, 'CNAME').toPath()
         def tempCName = Files.copy(cName, new File(File.createTempDir(), 'CNAME').toPath())
@@ -23,6 +23,6 @@ task copyArchUnitDocs(dependsOn: checkoutArchUnitDocs) {
     }
 }
 
-task updateArchUnitDocs(dependsOn: [checkoutArchUnitDocs, copyArchUnitDocs]) {
+task updateArchUnitWebsite(dependsOn: [checkoutArchUnitWebsite, copyArchUnitWebsite]) {
     ext.checkoutDir = checkoutDir
 }

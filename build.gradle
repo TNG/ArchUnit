@@ -100,6 +100,7 @@ ext {
     createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
     currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
+    scriptRelativePath = { context, fileName -> new File(currentScriptRootOf(context), fileName) }
 }
 
 allprojects {

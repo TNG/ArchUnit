@@ -2,7 +2,8 @@ import groovy.io.FileType
 
 import java.util.regex.Pattern
 
-final String archunitExamplesGitRepo = 'git@github.com:TNG/ArchUnit-Examples.git'
+apply from: scriptRelativePath(this, 'archunit-examples-utils.gradle')
+
 final File checkoutDir = new File(project.buildDir, 'example-update')
 final List<String> exampleFolders = ['example-plain', 'example-junit4', 'example-junit5']
 
@@ -63,18 +64,15 @@ task removeArchUnitExampleCategory(dependsOn: copyArchUnitExampleSrc) {
     }
 }
 
-task updateArchUnitExampleVersion(dependsOn: checkoutArchUnitExample) {
+task adjustArchUnitExampleVersion(dependsOn: checkoutArchUnitExample) {
     doLast {
-        exampleFolders.each { exampleFolder ->
-            def buildFile = new File(new File(checkoutDir, exampleFolder), 'build.gradle')
-            buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit[^:]*:)[\d.]*/, "\$1${version}")
-        }
+        updateArchUnitExampleVersion(checkoutDir)
     }
 }
 
 task updateArchUnitExample(dependsOn: [
         checkoutArchUnitExample,
-        updateArchUnitExampleVersion,
+        adjustArchUnitExampleVersion,
         copyArchUnitExampleSrc,
         removeArchUnitExampleCategory]) {
 

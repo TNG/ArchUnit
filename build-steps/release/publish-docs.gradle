@@ -1,0 +1,11 @@
+apply from: scriptRelativePath(this, 'vcs-utils.gradle')
+apply from: scriptRelativePath(this, 'update-website.gradle')
+apply from: scriptRelativePath(this, 'update-examples.gradle')
+
+task publishDocs(dependsOn: [updateArchUnitWebsite, updateArchUnitExample]) {
+    doLast {
+        println """Check the following updated Git repos and push, if everything seems okay:
+    - ${updateArchUnitWebsite.checkoutDir.absolutePath}
+    - ${updateArchUnitExample.checkoutDir.absolutePath}"""
+    }
+}
