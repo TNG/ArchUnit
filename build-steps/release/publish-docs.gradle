@@ -1,14 +1,6 @@
-ext.gitCheckOut = { String url, File targetDir, String branch = null ->
-    def branchSuffix = branch ? " --branch ${branch}" : ''
-    targetDir.deleteDir()
-    targetDir.mkdirs()
-    ['sh', '-c', "git clone ${url}${branchSuffix} ${targetDir.absolutePath}"].execute().waitFor()
-}
-
-File scriptRoot = currentScriptRootOf this
-def relativePath = { new File(scriptRoot, it) }
-apply from: relativePath('update-website.gradle')
-apply from: relativePath('update-examples.gradle')
+apply from: scriptRelativePath(this, 'vcs-utils.gradle')
+apply from: scriptRelativePath(this, 'update-website.gradle')
+apply from: scriptRelativePath(this, 'update-examples.gradle')
 
 task publishDocs(dependsOn: [updateArchUnitWebsite, updateArchUnitExample]) {
     doLast {

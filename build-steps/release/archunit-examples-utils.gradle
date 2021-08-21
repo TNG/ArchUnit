@@ -1,0 +1,8 @@
+ext.archunitExamplesGitRepo = 'git@github.com:TNG/ArchUnit-Examples.git'
+ext.updateArchUnitExampleVersion = { File archUnitExampleDir ->
+    fileTree(archUnitExampleDir) {
+        include '**/build.gradle'
+    }.each {File buildFile ->
+        buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit[^:]*:)[\d.]*/, "\$1${version}")
+    }
+}
