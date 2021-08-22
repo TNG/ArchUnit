@@ -140,19 +140,20 @@ def executeCommand = { String command ->
 
 task prepareRelease() {
     doFirst {
-        updateVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.$oldMinor.$oldPatch" }
+        String releaseVersion = withCurrentVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.$oldMinor.$oldPatch" }
 
-        String currentVersion = getCurrentVersion()
-        def releaseBranch = "release-$currentVersion"
+        def releaseBranch = "release-$releaseVersion"
         executeCommand("git checkout -b $releaseBranch")
         String currentBranch = executeCommand('git rev-parse --abbrev-ref HEAD')
         assert currentBranch == releaseBranch: "Mismatch: Should be on branch $releaseBranch but current branch is $currentBranch"
 
+        updateVersion { major, minor, patch, suffix -> releaseVersion }
+
         String lastReleaseVersion = getLastReleaseVersion()
         ['README.md', 'docs/_data/navigation.yml', 'docs/_pages/getting-started.md'].each {
             new File(project.rootDir, it).with { file ->
-                println "Replacing last release version $lastReleaseVersion by $currentVersion in file ${file.absolutePath}"
-                file.text = file.text.replaceAll(lastReleaseVersion, currentVersion)
+                println "Replacing last release version $lastReleaseVersion by $releaseVersion in file ${file.absolutePath}"
+                file.text = file.text.replaceAll(lastReleaseVersion, releaseVersion)
             }
         }
     }
