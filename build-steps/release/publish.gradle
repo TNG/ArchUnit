@@ -1,19 +1,20 @@
-apply from: scriptRelativePath(this, 'vcs-utils.gradle')
-apply from: scriptRelativePath(this, 'archunit-examples-utils.gradle')
-
 ext.isReleaseVersion = !project.version.endsWith("-SNAPSHOT")
 
-if (!hasProperty("sonatypeUsername")) {
-    ext.sonatypeUsername = ""
-}
-if (!hasProperty("sonatypePassword")) {
-    ext.sonatypePassword = ""
+apply plugin: "io.github.gradle-nexus.publish-plugin"
+
+nexusPublishing {
+    packageGroup = 'com.tngtech'
+    repositories {
+        sonatype {
+            username = findProperty("sonatypeUsername")
+            password = findProperty("sonatypePassword")
+        }
+    }
 }
 
 releaseProjects*.with {
     apply plugin: "maven-publish"
     apply plugin: "signing"
-    apply plugin: "de.marcphilipp.nexus-publish"
 
     tasks.withType(GenerateModuleMetadata) {
         enabled = false // the meta-data does not match the way the Maven artifacts are composed and thus is broken
@@ -79,73 +80,80 @@ releaseProjects*.with {
                 }
             }
         }
-
-        // respective username and password can be configured in ~/.gradle/gradle.properties
-        if (project.hasProperty('sonatypeUsername') && project.hasProperty('sonatypePassword')) {
-            nexusPublishing {
-                repositories {
-                    sonatype()
-                }
-            }
-        }
     }
 
     signing {
-        // requires gradle.properties, see http://www.gradle.org/docs/current/userguide/signing_plugin.html
         required {
-            isReleaseVersion && gradle.taskGraph.hasTask('publish') && project.hasProperty('sonatypeUsername')
+            isReleaseVersion && gradle.taskGraph.hasTask('publish')
         }
+        def signingKey = findProperty("signingKey")
+        def signingPassword = findProperty("signingPassword")
+        useInMemoryPgpKeys(signingKey, signingPassword)
         sign publishing.publications.mavenJava
     }
 }
 
-task testRelease() {
-    File testReleaseDir = new File(project.buildDir, 'test-release')
+task publishArchUnit(dependsOn: [closeSonatypeStagingRepository, releaseSonatypeStagingRepository])
+releaseProjects.each { publishArchUnit.dependsOn("${it.name}:publishToSonatype") }
 
-    def configureStagingRepository = {
-        new File(testReleaseDir, 'build.gradle').with {
-            text = text.replace('mavenCentral()', '''
-            mavenCentral()
-            maven {
-                url "https://oss.sonatype.org/content/repositories/staging/"
-                credentials {
-                    username project.getProperty('sonatypeUsername')
-                    password project.getProperty('sonatypePassword')
-                }
-            }''')
-        }
+def getLastReleaseVersion() {
+    (new File(project.rootDir, 'README.md').text =~ /testImplementation 'com.tngtech.archunit:archunit:(\d+.\d+.\d+)'/).findAll().first()[1]
+}
+
+def gradleProperties = new File(project.rootDir, 'gradle.properties')
+
+def getCurrentVersion = {
+    (gradleProperties.text =~ /archunit\.version=(.*)/).findAll().first()[1]
+}
+
+def withCurrentVersion = { Closure<?> doWithCurrentVersion ->
+    List<String> versionParts = (getCurrentVersion() =~ /^(\d+)\.(\d+)\.(\d+)(.*)$/).findAll().first().tail()
+    assert versionParts.size() == 4: "Could not parse major.minor.patch(-suffix)? from supplied version string '$version'"
+
+    int majorVersion = Integer.parseInt(versionParts[0])
+    int minorVersion = Integer.parseInt(versionParts[1])
+    int patchVersion = Integer.parseInt(versionParts[2])
+    String suffix = versionParts[3]
+    return doWithCurrentVersion(majorVersion, minorVersion, patchVersion, suffix)
+}
+
+def updateVersion = { Closure<String> calculateNewVersion ->
+    def newVersion = withCurrentVersion(calculateNewVersion)
+    println "Setting ArchUnit version to ${newVersion}"
+    gradleProperties.text = gradleProperties.text.replaceAll(/archunit\.version=.*/, "archunit.version=${newVersion}")
+    rootProject.allprojects { it.version = newVersion }
+}
+
+def executeCommand = { String command ->
+    new StringBuilder().with { output ->
+        command.split(' ').execute().with { it.consumeProcessOutputStream(output); it }.waitFor()
+        output.toString().trim()
     }
+}
 
-    def testExampleProject = { String exampleProjectName ->
-        List<String> testClassNames = fileTree(new File(testReleaseDir, exampleProjectName)) {
-            include '**/*Test.java'
-        }.getFiles().collect { it.name.replaceAll(/\.java$/, '') }
-
-        def outputStream = new ByteArrayOutputStream()
-        exec {
-            workingDir testReleaseDir
-            commandLine './gradlew', ":${exampleProjectName}:build"
-            ignoreExitValue true
-            standardOutput = outputStream
-        }
-        String output = outputStream.toString()
-
-        assert output.contains("Task :${exampleProjectName}:test FAILED"): "The test task should have failed"
-        assert output.contains('java.lang.AssertionError'): "There should be AssertionErrors"
-        testClassNames.each { testClassName ->
-            assert output.contains(testClassName): "The failure output should contain the test class '${testClassName}'"
-        }
-    }
-
+task prepareRelease() {
     doFirst {
-        gitCheckOut(archunitExamplesGitRepo, testReleaseDir)
+        updateVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.$oldMinor.$oldPatch" }
 
-        updateArchUnitExampleVersion(testReleaseDir)
+        String currentVersion = getCurrentVersion()
+        def releaseBranch = "release-$currentVersion"
+        executeCommand("git checkout -b $releaseBranch")
+        String currentBranch = executeCommand('git rev-parse --abbrev-ref HEAD')
+        assert currentBranch == releaseBranch: "Mismatch: Should be on branch $releaseBranch but current branch is $currentBranch"
 
-        configureStagingRepository()
+        String lastReleaseVersion = getLastReleaseVersion()
+        ['README.md', 'docs/_data/navigation.yml', 'docs/_pages/getting-started.md'].each {
+            new File(project.rootDir, it).with { file ->
+                println "Replacing last release version $lastReleaseVersion by $currentVersion in file ${file.absolutePath}"
+                file.text = file.text.replaceAll(lastReleaseVersion, currentVersion)
+            }
+        }
+    }
+}
+prepareRelease.finalizedBy(':docs:renderUserGuide')
 
-        testExampleProject('example-plain')
-        testExampleProject('example-junit4')
-        testExampleProject('example-junit5')
+task setNextSnapshotVersion() {
+    doFirst {
+        updateVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.${oldMinor + 1}.0-SNAPSHOT" }
     }
 }

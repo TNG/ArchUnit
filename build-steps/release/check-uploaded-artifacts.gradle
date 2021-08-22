@@ -3,13 +3,17 @@ import java.time.LocalDateTime
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 
+apply from: scriptRelativePath(this, 'vcs-utils.gradle')
+apply from: scriptRelativePath(this, 'archunit-examples-utils.gradle')
+
 File scriptRoot = currentScriptRootOf this
-def rootUrl =  {
-    if (!project.hasProperty('tngRepoId')) {
-        throw new IllegalArgumentException(
-                'You must pass the repo id (see Sonatype Repository Manager -> comtngtech-${repoId}) as parameter, e.g. -P tngRepoId=1162')
-    }
-    "https://oss.sonatype.org/service/local/repositories/comtngtech-${tngRepoId}/content/com/tngtech/archunit"
+
+ext {
+    tngRepoId = project.findProperty('tngRepoId')
+}
+
+def rootUrl = {
+    "https://oss.sonatype.org/service/local/repositories/${tngRepoId}/content/com/tngtech/archunit"
 }
 
 def createArtifactUrl = { String artifactId ->
@@ -116,6 +120,10 @@ def checkArtifactContent = { Project project, JarFile jarFile ->
 }
 
 task checkUploadedArtifacts {
+    doFirst {
+        tngRepoId = tngRepoId ?: closeSonatypeStagingRepository.stagingRepositoryId.get()
+    }
+
     doLast {
         releaseProjects.each { Project project ->
             checkPom(project.name)
@@ -127,9 +135,10 @@ task checkUploadedArtifacts {
         }
     }
 }
+closeSonatypeStagingRepository.finalizedBy(checkUploadedArtifacts)
 
 releaseProjects.each { Project project ->
-    def task = project.task(['dependsOn': project.build],'checkArtifact') {
+    def task = project.task(['dependsOn': project.build], 'checkArtifact') {
         doLast {
             def jarFile = new JarFile(project.jar.archiveFile.get().getAsFile())
             checkArtifactContent(project, jarFile)
@@ -137,3 +146,55 @@ releaseProjects.each { Project project ->
     }
     project.build.finalizedBy(task)
 }
+
+task testRelease() {
+    File testReleaseDir = new File(project.buildDir, 'test-release')
+
+    def configureStagingRepository = {
+        new File(testReleaseDir, 'build.gradle').with {
+            text = text.replace('mavenCentral()', '''
+            mavenCentral()
+            maven {
+                url "https://oss.sonatype.org/content/repositories/staging/"
+                credentials {
+                    username project.getProperty('sonatypeUsername')
+                    password project.getProperty('sonatypePassword')
+                }
+            }''')
+        }
+    }
+
+    def testExampleProject = { String exampleProjectName ->
+        List<String> testClassNames = fileTree(new File(testReleaseDir, exampleProjectName)) {
+            include '**/*Test.java'
+        }.getFiles().collect { it.name.replaceAll(/\.java$/, '') }
+
+        def outputStream = new ByteArrayOutputStream()
+        exec {
+            workingDir testReleaseDir
+            commandLine './gradlew', ":${exampleProjectName}:build"
+            ignoreExitValue true
+            standardOutput = outputStream
+        }
+        String output = outputStream.toString()
+
+        assert output.contains("Task :${exampleProjectName}:test FAILED"): "The test task should have failed"
+        assert output.contains('java.lang.AssertionError'): "There should be AssertionErrors"
+        testClassNames.each { testClassName ->
+            assert output.contains(testClassName): "The failure output should contain the test class '${testClassName}'"
+        }
+    }
+
+    doFirst {
+        gitCheckOut(archunitExamplesGitRepo, testReleaseDir)
+
+        updateArchUnitExampleVersion(testReleaseDir)
+
+        configureStagingRepository()
+
+        testExampleProject('example-plain')
+        testExampleProject('example-junit4')
+        testExampleProject('example-junit5')
+    }
+}
+closeSonatypeStagingRepository.finalizedBy(testRelease)
