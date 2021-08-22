@@ -66,6 +66,10 @@ if [ -n "$(git status --porcelain)" ]; then
     git commit -m "Update version to $VERSION"
 fi
 
+echo Tagging release "v$VERSION"
+git tag "v$VERSION"
+git push origin "v$VERSION"
+
 echo Publishing ArchUnit...
 ./gradlew clean publishArchUnit --no-parallel -PsonatypeUsername="$SONATYPE_USERNAME" -PsonatypePassword="$SONATYPE_PASSWORD" -PsigningKey="$GPG_SIGNING_KEY" -PsigningPassword="$GPG_SIGNING_PASSWORD"
 
