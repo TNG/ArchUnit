@@ -73,6 +73,11 @@ git push origin "v$VERSION"
 echo Publishing ArchUnit...
 ./gradlew clean publishArchUnit --no-parallel -PsonatypeUsername="$SONATYPE_USERNAME" -PsonatypePassword="$SONATYPE_PASSWORD" -PsigningKey="$GPG_SIGNING_KEY" -PsigningPassword="$GPG_SIGNING_PASSWORD"
 
+echo Publishing website and examples...
+./gradlew publishDocs
+(cd build/docs-update && git add -A && git commit -s -m "release ArchUnit $VERSION" && git push)
+(cd build/example-update && git add -A && git commit -s -m "release ArchUnit $VERSION" && git push)
+
 git checkout main
 git merge release-"$NEW_VERSION"
 git push
