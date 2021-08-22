@@ -94,7 +94,7 @@ class JavaClassProcessor extends ClassVisitor {
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        LOG.debug("Analyzing class '{}'", name);
+        LOG.debug("Processing class '{}'", name);
         JavaClassDescriptor descriptor = JavaClassDescriptorImporter.createFromAsmObjectTypeName(name);
         if (alreadyImported(descriptor)) {
             return;
