@@ -126,7 +126,14 @@ def updateVersion = { Closure<String> calculateNewVersion ->
 
 def executeCommand = { String command ->
     new StringBuilder().with { output ->
-        command.split(' ').execute().with { it.consumeProcessOutputStream(output); it }.waitFor()
+        def error = new StringBuilder()
+        def exitCode = command.split(' ').execute()
+            .with {
+                it.consumeProcessOutputStream(output)
+                it.consumeProcessErrorStream(error)
+                it
+            }.waitFor()
+        assert exitCode == 0: "Command '$command' failed with exit code $exitCode: $error"
         output.toString().trim()
     }
 }
