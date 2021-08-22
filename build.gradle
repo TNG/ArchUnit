@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    asciidoctor 'org.asciidoctor:asciidoctorj-diagram:2.1.2'
+    asciidoctor 'org.asciidoctor:asciidoctorj-diagram:2.2.0'
 }
 
 task cleanUserGuide(type: Delete) {
@@ -16,8 +16,7 @@ task cleanUserGuide(type: Delete) {
 
 asciidoctor {
     backends 'html'
-    attributes 'revnumber': project.version,
-            'source-highlighter': 'highlightjs',
+    attributes 'source-highlighter': 'highlightjs',
             'highlightjs-theme': 'mono-blue',
             'stylesheet': 'archunit.css'
     sourceDir file('userguide')
@@ -26,7 +25,10 @@ asciidoctor {
     }
     outputDir file('userguide')
     requires = ['asciidoctor-diagram']
-
+}
+asciidoctor.doFirst {
+    // make sure we get the current version in case it has changed during the run on release
+    asciidoctor.attributes('revnumber': project.version)
 }
 
 asciidoctorj {
