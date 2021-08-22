@@ -136,6 +136,7 @@ task checkUploadedArtifacts {
     }
 }
 closeSonatypeStagingRepository.finalizedBy(checkUploadedArtifacts)
+releaseSonatypeStagingRepository.dependsOn(checkUploadedArtifacts)
 
 releaseProjects.each { Project project ->
     def task = project.task(['dependsOn': project.build], 'checkArtifact') {
@@ -198,3 +199,4 @@ task testRelease() {
     }
 }
 closeSonatypeStagingRepository.finalizedBy(testRelease)
+releaseSonatypeStagingRepository.dependsOn(testRelease)
