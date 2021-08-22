@@ -95,3 +95,65 @@ releaseProjects*.with {
 
 task publishArchUnit(dependsOn: [closeSonatypeStagingRepository, releaseSonatypeStagingRepository])
 releaseProjects.each { publishArchUnit.dependsOn("${it.name}:publishToSonatype") }
+
+def getLastReleaseVersion() {
+    (new File(project.rootDir, 'README.md').text =~ /testImplementation 'com.tngtech.archunit:archunit:(\d+.\d+.\d+)'/).findAll().first()[1]
+}
+
+def gradleProperties = new File(project.rootDir, 'gradle.properties')
+
+def getCurrentVersion = {
+    (gradleProperties.text =~ /archunit\.version=(.*)/).findAll().first()[1]
+}
+
+def withCurrentVersion = { Closure<?> doWithCurrentVersion ->
+    List<String> versionParts = (getCurrentVersion() =~ /^(\d+)\.(\d+)\.(\d+)(.*)$/).findAll().first().tail()
+    assert versionParts.size() == 4: "Could not parse major.minor.patch(-suffix)? from supplied version string '$version'"
+
+    int majorVersion = Integer.parseInt(versionParts[0])
+    int minorVersion = Integer.parseInt(versionParts[1])
+    int patchVersion = Integer.parseInt(versionParts[2])
+    String suffix = versionParts[3]
+    return doWithCurrentVersion(majorVersion, minorVersion, patchVersion, suffix)
+}
+
+def updateVersion = { Closure<String> calculateNewVersion ->
+    def newVersion = withCurrentVersion(calculateNewVersion)
+    println "Setting ArchUnit version to ${newVersion}"
+    gradleProperties.text = gradleProperties.text.replaceAll(/archunit\.version=.*/, "archunit.version=${newVersion}")
+    rootProject.allprojects { it.version = newVersion }
+}
+
+def executeCommand = { String command ->
+    new StringBuilder().with { output ->
+        command.split(' ').execute().with { it.consumeProcessOutputStream(output); it }.waitFor()
+        output.toString().trim()
+    }
+}
+
+task prepareRelease() {
+    doFirst {
+        updateVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.$oldMinor.$oldPatch" }
+
+        String currentVersion = getCurrentVersion()
+        def releaseBranch = "release-$currentVersion"
+        executeCommand("git checkout -b $releaseBranch")
+        String currentBranch = executeCommand('git rev-parse --abbrev-ref HEAD')
+        assert currentBranch == releaseBranch: "Mismatch: Should be on branch $releaseBranch but current branch is $currentBranch"
+
+        String lastReleaseVersion = getLastReleaseVersion()
+        ['README.md', 'docs/_data/navigation.yml', 'docs/_pages/getting-started.md'].each {
+            new File(project.rootDir, it).with { file ->
+                println "Replacing last release version $lastReleaseVersion by $currentVersion in file ${file.absolutePath}"
+                file.text = file.text.replaceAll(lastReleaseVersion, currentVersion)
+            }
+        }
+    }
+}
+prepareRelease.finalizedBy(':docs:renderUserGuide')
+
+task setNextSnapshotVersion() {
+    doFirst {
+        updateVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.${oldMinor + 1}.0-SNAPSHOT" }
+    }
+}
