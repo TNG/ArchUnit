@@ -25,7 +25,6 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
@@ -52,7 +51,6 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
@@ -1460,32 +1458,35 @@ public class JavaClass
     }
 
     private static class Interfaces {
-        static final Interfaces EMPTY = new Interfaces(Collections.<JavaType>emptySet());
+        static final Interfaces EMPTY = new Interfaces(ImmutableSet.<JavaClass>of(), ImmutableSet.<JavaType>of());
 
-        private final Set<JavaClass> rawTypes;
-        private final Set<JavaType> types;
+        private final ImmutableSet<JavaClass> rawTypes;
+        private final ImmutableSet<JavaType> types;
 
-        private Interfaces(Set<JavaType> types) {
-            this.rawTypes = FluentIterable.from(types).transform(toGuava(TO_ERASURE)).toSet();
-            this.types = ImmutableSet.copyOf(types);
+        private Interfaces(ImmutableSet<JavaClass> rawTypes, ImmutableSet<JavaType> types) {
+            this.rawTypes = checkNotNull(rawTypes);
+            this.types = checkNotNull(types);
         }
 
-        Set<JavaClass> getRaw() {
+        ImmutableSet<JavaClass> getRaw() {
             return rawTypes;
         }
 
-        Set<JavaType> get() {
-            return types;
+        ImmutableSet<JavaType> get() {
+            return types.isEmpty() ? getRawTypesAsJavaTypes() : types;
         }
 
-        // Set is covariant, so the cast is safe
-        @SuppressWarnings({"unchecked", "rawtypes"})
+        @SuppressWarnings({"unchecked", "rawtypes"}) // ImmutableSet is a pure producer, thus covariant, making the cast safe
+        private ImmutableSet<JavaType> getRawTypesAsJavaTypes() {
+            return (ImmutableSet) getRaw();
+        }
+
         Interfaces withRawTypes(Set<JavaClass> rawTypes) {
-            return new Interfaces((Set) rawTypes);
+            return new Interfaces(ImmutableSet.copyOf(rawTypes), types);
         }
 
         Interfaces withGenericTypes(Set<JavaType> genericTypes) {
-            return new Interfaces(genericTypes);
+            return new Interfaces(rawTypes, ImmutableSet.copyOf(genericTypes));
         }
     }
 
