@@ -1,0 +1,24 @@
+name: Check dependencies
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  check_asm:
+    name: Check ASM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+      - name: Check for dependency updates
+        uses: eskatos/gradle-command-action@v2
+        with:
+          arguments: dependencyUpdates
+      - name: Find ASM update
+        run: |
+          if grep 'org.ow2.asm:asm.*->' build/dependencyUpdates/report.txt; then
+            echo 'ASM is not up-to-date.'
+            exit 1
+          fi
+          echo 'ASM is up-to-date.'
