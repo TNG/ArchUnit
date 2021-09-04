@@ -14,7 +14,7 @@ jobs:
       - name: Check for dependency updates
         uses: eskatos/gradle-command-action@v2
         with:
-          arguments: dependencyUpdates
+          arguments: checkDependencyUpdates
       - name: Find ASM update
         run: |
           if grep 'org.ow2.asm:asm.*->' build/dependencyUpdates/report.txt; then
