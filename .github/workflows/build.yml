@@ -55,7 +55,7 @@ jobs:
         with:
           java-version: ${{ matrix.test_java_version }}
       - name: Provide installed JDKs
-        uses: actions/github-script@v4.1
+        uses: actions/github-script@v5
         with:
           script: |
             for ( let envVarName in process.env ) {
@@ -105,7 +105,7 @@ jobs:
         with:
           java-version: ${{ matrix.java_version }}
       - name: Provide installed JDKs
-        uses: actions/github-script@v4.1
+        uses: actions/github-script@v5
         id: provideJdkPaths
         with:
           script: |
