@@ -29,6 +29,17 @@ public class SourceCodeLocationTest {
         Assertions.assertThat(SourceCodeLocation.of(classWithoutSource, 7).toString()).isEqualTo(String.format("(%s.java:7)", classWithoutSource.getSimpleName()));
     }
 
+    @Test
+    public void details_of_source_code_location() {
+        JavaClass classWithSource = importClassWithContext(Object.class);
+
+        SourceCodeLocation sourceCodeLocation = SourceCodeLocation.of(classWithSource, 7);
+
+        assertThat(sourceCodeLocation.getSourceClass()).as("source class").isEqualTo(classWithSource);
+        assertThat(sourceCodeLocation.getLineNumber()).as("line number").isEqualTo(7);
+        assertThat(sourceCodeLocation.getSourceFileName()).as("source file name").isEqualTo("Object.java");
+    }
+
     private JavaClass getClassWithoutSource() {
         for (JavaAccess<?> javaAccess : importClassWithContext(SomeClass.class).getAccessesFromSelf()) {
             if (javaAccess.getTargetOwner().isEquivalentTo(ArrayList.class)) {
