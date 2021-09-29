@@ -21,7 +21,7 @@ jobs:
         with:
           java-version: ${{ env.build_java_version }}
       - name: Build
-        uses: eskatos/gradle-command-action@v1
+        uses: eskatos/gradle-command-action@v2
         with:
           arguments: build
 
@@ -69,7 +69,7 @@ jobs:
               }
             }
       - name: Test
-        uses: eskatos/gradle-command-action@v1
+        uses: eskatos/gradle-command-action@v2
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
@@ -120,7 +120,7 @@ jobs:
               }
             }
       - name: Integration test
-        uses: eskatos/gradle-command-action@v1
+        uses: eskatos/gradle-command-action@v2
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
