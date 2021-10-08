@@ -24,8 +24,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.TestUtils.uriOf;
+import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -38,11 +39,11 @@ public class SourceTest {
     }
 
     @Test
-    public void source_file_name() throws URISyntaxException {
-        Source source = new Source(urlOf(Object.class).toURI(), Optional.of("SomeClass.java"), false);
+    public void source_file_name() {
+        Source source = new Source(uriOf(Object.class), Optional.of("SomeClass.java"), false);
         assertThat(source.getFileName()).as("source file name").contains("SomeClass.java");
 
-        source = new Source(urlOf(Object.class).toURI(), Optional.<String>empty(), false);
+        source = new Source(uriOf(Object.class), Optional.<String>empty(), false);
         assertThat(source.getFileName()).as("source file name").isAbsent();
     }
 
@@ -150,10 +151,10 @@ public class SourceTest {
 
     @Test
     public void disables_md5_calculation_via_parameter() throws Exception {
-        Source source = new Source(urlOf(getClass()).toURI(), Optional.of("any.java"), false);
+        Source source = new Source(uriOf(getClass()), Optional.of("any.java"), false);
         assertThat(source.getMd5sum()).isEqualTo(Md5sum.DISABLED);
 
-        source = new Source(urlOf(getClass()).toURI(), Optional.of("any.java"), true);
+        source = new Source(uriOf(getClass()), Optional.of("any.java"), true);
         assertThat(source.getMd5sum().asBytes()).isEqualTo(expectedMd5BytesAt(source.getUri().toURL()));
     }
 
@@ -184,10 +185,5 @@ public class SourceTest {
 
     private static Object jarUrl() {
         return urlOf(Rule.class);
-    }
-
-    public static URL urlOf(Class<?> clazz) {
-        return checkNotNull(clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class"),
-                "Can't determine url of %s", clazz.getName());
     }
 }

@@ -1,5 +1,18 @@
 package com.tngtech.archunit.core.importer;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.InitialConfigurationTest;
+import com.tngtech.archunit.core.importer.resolvers.ClassResolverFactoryTest;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.Condition;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,19 +27,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.InitialConfigurationTest;
-import com.tngtech.archunit.core.importer.resolvers.ClassResolverFactoryTest;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.assertj.core.api.Condition;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Preconditions.checkState;
@@ -283,7 +283,7 @@ public class LocationTest {
     @Test
     public void location_of_path() throws URISyntaxException {
         URL url = getClass().getResource(".");
-        assertThat(Location.of(Paths.get(url.toURI())).asURI().getPath()).isEqualTo(url.getFile());
+        assertThat(Location.of(Paths.get(url.toURI())).asURI()).isEqualTo(url.toURI());
     }
 
     @DataProvider

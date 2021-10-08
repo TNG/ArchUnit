@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -87,7 +86,6 @@ import static com.tngtech.archunit.core.domain.JavaModifier.BRIDGE;
 import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.SourceTest.bytesAt;
-import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
 import static com.tngtech.archunit.core.domain.TestUtils.MD5_SUM_DISABLED;
 import static com.tngtech.archunit.core.domain.TestUtils.md5sumOf;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
@@ -100,6 +98,8 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
+import static com.tngtech.archunit.testutil.TestUtils.uriOf;
+import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
@@ -654,7 +654,7 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_urls_of_folders() throws Exception {
-        File testexamplesFolder = new File(new File(urlOf(getClass()).toURI()).getParentFile(), "testexamples");
+        File testexamplesFolder = new File(new File(uriOf(getClass())).getParentFile(), "testexamples");
 
         JavaClasses javaClasses = new ClassFileImporter().importUrl(testexamplesFolder.toURI().toURL());
 
@@ -797,19 +797,19 @@ public class ClassFileImporterTest {
 
         JavaClass clazzFromFile = new ClassFileImporter().importClass(ClassToImportOne.class);
         Source source = clazzFromFile.getSource().get();
-        assertThat(source.getUri()).isEqualTo(urlOf(ClassToImportOne.class).toURI());
+        assertThat(source.getUri()).isEqualTo(uriOf(ClassToImportOne.class));
         assertThat(source.getFileName()).contains(ClassToImportOne.class.getSimpleName() + ".java");
         assertThat(source.getMd5sum()).isEqualTo(md5sumOf(bytesAt(urlOf(ClassToImportOne.class))));
 
         clazzFromFile = new ClassFileImporter().importClass(ClassWithInnerClass.Inner.class);
         source = clazzFromFile.getSource().get();
-        assertThat(source.getUri()).isEqualTo(urlOf(ClassWithInnerClass.Inner.class).toURI());
+        assertThat(source.getUri()).isEqualTo(uriOf(ClassWithInnerClass.Inner.class));
         assertThat(source.getFileName()).contains(ClassWithInnerClass.class.getSimpleName() + ".java");
         assertThat(source.getMd5sum()).isEqualTo(md5sumOf(bytesAt(urlOf(ClassWithInnerClass.Inner.class))));
 
         JavaClass clazzFromJar = new ClassFileImporter().importClass(Rule.class);
         source = clazzFromJar.getSource().get();
-        assertThat(source.getUri()).isEqualTo(urlOf(Rule.class).toURI());
+        assertThat(source.getUri()).isEqualTo(uriOf(Rule.class));
         assertThat(source.getFileName()).contains(Rule.class.getSimpleName() + ".java");
         assertThat(source.getMd5sum()).isEqualTo(md5sumOf(bytesAt(urlOf(Rule.class))));
 
@@ -850,8 +850,8 @@ public class ClassFileImporterTest {
     }
 
     @Test
-    public void imports_paths() throws Exception {
-        File exampleFolder = new File(new File(urlOf(getClass()).toURI()).getParentFile(), "testexamples");
+    public void imports_paths() {
+        File exampleFolder = new File(new File(uriOf(getClass())).getParentFile(), "testexamples");
         File folderOne = new File(exampleFolder, "pathone");
         File folderTwo = new File(exampleFolder, "pathtwo");
 
@@ -876,7 +876,7 @@ public class ClassFileImporterTest {
     public void ImportOptions_are_respected() throws Exception {
         ClassFileImporter importer = new ClassFileImporter().withImportOption(importOnly(getClass(), Rule.class));
 
-        assertThatTypes(importer.importPath(Paths.get(urlOf(getClass()).toURI()))).matchExactly(getClass());
+        assertThatTypes(importer.importPath(Paths.get(uriOf(getClass())))).matchExactly(getClass());
         assertThatTypes(importer.importUrl(urlOf(getClass()))).matchExactly(getClass());
         assertThatTypes(importer.importJar(jarFileOf(Rule.class))).matchExactly(Rule.class);
     }
@@ -898,8 +898,8 @@ public class ClassFileImporterTest {
         assertThat(classes.get(clazz.getName())).hasSimpleName(clazz.getSimpleName());
     }
 
-    private void copyClassFile(Class<?> clazz, File targetFolder) throws IOException, URISyntaxException {
-        Files.copy(Paths.get(urlOf(clazz).toURI()), new File(targetFolder, clazz.getSimpleName() + ".class").toPath());
+    private void copyClassFile(Class<?> clazz, File targetFolder) throws IOException {
+        Files.copy(Paths.get(uriOf(clazz)), new File(targetFolder, clazz.getSimpleName() + ".class").toPath());
     }
 
     private ImportOption importOnly(final Class<?>... classes) {

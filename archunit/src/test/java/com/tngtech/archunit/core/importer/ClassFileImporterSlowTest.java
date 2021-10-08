@@ -1,7 +1,6 @@
 package com.tngtech.archunit.core.importer;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -21,13 +20,13 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
-import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.jarFileOf;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.importer.UrlSourceTest.JAVA_CLASS_PATH_PROP;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static java.util.jar.Attributes.Name.CLASS_PATH;
 
 @Category(Slow.class)
@@ -99,7 +98,7 @@ public class ClassFileImporterSlowTest {
     }
 
     @Test
-    public void imports_duplicate_classes() throws IOException {
+    public void imports_duplicate_classes() {
         String existingClass = urlOf(JavaClass.class).getFile();
         copyRule.copy(
                 new File(existingClass),

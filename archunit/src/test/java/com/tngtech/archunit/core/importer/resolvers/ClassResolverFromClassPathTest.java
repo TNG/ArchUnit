@@ -1,11 +1,9 @@
 package com.tngtech.archunit.core.importer.resolvers;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImporter;
+import com.tngtech.archunit.testutil.TestUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -27,9 +25,9 @@ public class ClassResolverFromClassPathTest {
     private ClassResolverFromClasspath resolver = new ClassResolverFromClasspath();
 
     @Test
-    public void finds_uri_of_class_on_classpath() throws URISyntaxException {
+    public void finds_uri_of_class_on_classpath() {
         JavaClass expectedJavaClass = importClassWithContext(Object.class);
-        when(uriImporter.tryImport(uriOf(Object.class))).thenReturn(Optional.of(expectedJavaClass));
+        when(uriImporter.tryImport(TestUtils.uriOf(Object.class))).thenReturn(Optional.of(expectedJavaClass));
 
         resolver.setClassUriImporter(uriImporter);
 
@@ -39,7 +37,7 @@ public class ClassResolverFromClassPathTest {
     }
 
     @Test
-    public void is_resilient_if_URI_cant_be_located() throws URISyntaxException {
+    public void is_resilient_if_URI_cant_be_located() {
         resolver.setClassUriImporter(uriImporter);
 
         Optional<JavaClass> result = resolver.tryResolve("sooo.Wrong");
@@ -48,7 +46,4 @@ public class ClassResolverFromClassPathTest {
         verifyNoMoreInteractions(uriImporter);
     }
 
-    private URI uriOf(Class<?> clazz) throws URISyntaxException {
-        return getClass().getResource("/" + clazz.getName().replace('.', '/') + ".class").toURI();
-    }
 }

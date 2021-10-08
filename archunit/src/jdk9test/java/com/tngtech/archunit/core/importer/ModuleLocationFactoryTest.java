@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.lang.module.ModuleFinder;
 import java.lang.module.ModuleReference;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -13,15 +12,15 @@ import java.util.stream.StreamSupport;
 
 import org.junit.Test;
 
-import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
 import static com.tngtech.archunit.core.importer.ClassFileSourceTest.MODULE_INFO_FILE_NAME;
+import static com.tngtech.archunit.testutil.TestUtils.uriOf;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModuleLocationFactoryTest {
     private ModuleLocationFactory locationFactory = new ModuleLocationFactory();
 
     @Test
-    public void reads_single_entry_of_jrt() throws URISyntaxException {
+    public void reads_single_entry_of_jrt() {
         URI jrtJavaIoFile = uriOf(File.class);
         Location jrtJavaIo = locationFactory.create(jrtJavaIoFile);
 
@@ -30,7 +29,7 @@ public class ModuleLocationFactoryTest {
     }
 
     @Test
-    public void iterates_package_of_jrt() throws URISyntaxException {
+    public void iterates_package_of_jrt() {
         URI jrtJavaIoFile = uriOf(File.class);
         Location jrtJavaIo = locationFactory.create(parentOf(jrtJavaIoFile));
 
@@ -39,7 +38,7 @@ public class ModuleLocationFactoryTest {
     }
 
     @Test
-    public void iterates_entire_jrt() throws URISyntaxException {
+    public void iterates_entire_jrt() {
         Location jrtContainingFile = locationFactory.create(createModuleUriContaining(File.class));
 
         assertThat(jrtContainingFile.iterateEntries())
@@ -47,7 +46,7 @@ public class ModuleLocationFactoryTest {
     }
 
     @Test
-    public void respects_import_options() throws URISyntaxException {
+    public void respects_import_options() {
         Location jrtContainingFile = locationFactory.create(createModuleUriContaining(File.class));
 
         ClassFileSource fileSource = jrtContainingFile.asClassFileSource(new ImportOptions()
@@ -76,7 +75,7 @@ public class ModuleLocationFactoryTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private URI createModuleUriContaining(Class<?> clazz) throws URISyntaxException {
+    private URI createModuleUriContaining(Class<?> clazz) {
         URI someJrt = uriOf(clazz);
         String moduleUri = someJrt.toString().replaceAll("(jrt:/[^/]+).*", "$1");
         return URI.create(moduleUri);
@@ -84,9 +83,5 @@ public class ModuleLocationFactoryTest {
 
     private URI parentOf(URI uri) {
         return URI.create(uri.toString().replaceAll("/[^/]+$", ""));
-    }
-
-    private URI uriOf(Class<?> clazz) throws URISyntaxException {
-        return urlOf(clazz).toURI();
     }
 }

@@ -1,14 +1,5 @@
 package com.tngtech.archunit.testutil;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -18,8 +9,18 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.TestUtils.newTemporaryFolder;
+import static com.tngtech.archunit.testutil.TestUtils.toUri;
 
 public class OutsideOfClassPathRule extends ExternalResource {
     private final TemporaryFolder temporaryFolder = new TemporaryFolder(newTemporaryFolder());
@@ -39,7 +40,7 @@ public class OutsideOfClassPathRule extends ExternalResource {
     }
 
     public Path setUp(URL folder) throws IOException {
-        this.originFolder = new File(folder.getFile()).toPath();
+        this.originFolder = new File(toUri(folder)).toPath();
         return moveOutOfClassPath();
     }
 
