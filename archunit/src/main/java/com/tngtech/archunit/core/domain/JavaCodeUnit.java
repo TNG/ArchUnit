@@ -21,16 +21,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.ForwardingList;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
+import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
 
@@ -82,16 +87,59 @@ public abstract class JavaCodeUnit
         return fullName;
     }
 
+    /**
+     * @return the raw parameter types of this {@link JavaCodeUnit}. On the contrary to {@link #getParameterTypes()}
+     *         these will always be {@link JavaClass} and thus not containing any parameterization/generic
+     *         information. Note that the raw parameter types can contain synthetic parameters added by the compiler.
+     *         E.g. for inner class constructors that receive the outer class as synthetic parameter or enum constructors
+     *         that receive enum name and ordinal as synthetic parameters. There is no guarantee about the number
+     *         of synthetic parameters, nor if they are appended or prepended, as e.g. local classes will append
+     *         all local variables from the outer scope that are referenced as additional synthetic constructor
+     *         parameters.
+     *
+     * @see #getParameterTypes()
+     * @see #getParameters()
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public List<JavaClass> getRawParameterTypes() {
         return parameters.getRawParameterTypes();
     }
 
+    /**
+     * @return the (possibly generic) parameter types of this {@link JavaCodeUnit}. This could for example be a
+     *         {@link JavaTypeVariable} or a {@link JavaParameterizedType}, but also simply a {@link JavaClass}.<br>
+     *         Note that <b>if</b> the method has a generic signature (e.g. declaring a parameterized type) then
+     *         on the contrary to {@link #getRawParameterTypes()} these types will be parsed from the
+     *         signature encoded in the bytecode, i.e. they will not contain synthetic parameters added by the
+     *         compiler. However, if there is no generic signature, then this information can also not be parsed
+     *         from the signature. In this case the parameter types will be equal to the raw parameter types
+     *         and by that can also contain synthetic parameters.
+     *
+     * @see #getRawParameterTypes()
+     * @see #getParameters()
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public List<JavaType> getParameterTypes() {
         return parameters.getParameterTypes();
+    }
+
+    /**
+     * @return the {@link Parameter parameters} of this {@link JavaCodeUnit}. On the contrary to the Reflection API this will only contain
+     *         the parameters from the signature and not synthetic parameters, if the signature is generic. In these cases
+     *         {@link #getParameters()}{@code .size()} will always be equal to {@link #getParameterTypes()}{@code .size()},
+     *         but not necessarily to {@link #getRawParameterTypes()}{@code .size()} in case the compiler adds synthetic parameters.<br>
+     *         Note that for non-generic method signatures {@link #getParameters()} actually contains the raw parameter types and thus
+     *         can also contain synthetic parameters. Unfortunately there is no way at the moment to distinguish synthetic
+     *         parameters from non-synthetic parameters in these cases.
+     *
+     * @see #getRawParameterTypes()
+     * @see #getParameterTypes()
+     */
+    @PublicAPI(usage = ACCESS)
+    public List<Parameter> getParameters() {
+        return parameters;
     }
 
     @Override
@@ -203,13 +251,80 @@ public abstract class JavaCodeUnit
         return result.toArray(new Class<?>[0]);
     }
 
-    private static class Parameters {
+    /**
+     * A parameter of a {@link JavaCodeUnit}, i.e. encapsulates the raw parameter type, the (possibly) generic
+     * parameter type and any annotations this parameter has.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final class Parameter implements HasType, HasDescription, HasOwner<JavaCodeUnit> {
+        private final JavaCodeUnit owner;
+        private final int index;
+        private final JavaType type;
+        private final JavaClass rawType;
+
+        private Parameter(JavaCodeUnit owner, int index, JavaType type) {
+            this.owner = owner;
+            this.index = index;
+            this.type = type;
+            this.rawType = type.toErasure();
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public JavaCodeUnit getOwner() {
+            return owner;
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public int getIndex() {
+            return index;
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public JavaType getType() {
+            return type;
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public JavaClass getRawType() {
+            return rawType;
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public String getDescription() {
+            return "Parameter <" + type.getName() + "> of " + startWithLowercase(owner.getDescription());
+        }
+
+        @Override
+        public String toString() {
+            return "JavaParameter{owner='" + owner.getFullName() + "', index='" + index + "', type='" + type.getName() + "'}";
+        }
+
+        static String startWithLowercase(String string) {
+            return Character.toLowerCase(string.charAt(0)) + string.substring(1);
+        }
+    }
+
+    private static class Parameters extends ForwardingList<Parameter> {
         private final List<JavaClass> rawParameterTypes;
         private final List<JavaType> parameterTypes;
+        private final List<Parameter> parameters;
 
         Parameters(JavaCodeUnit owner, JavaCodeUnitBuilder<?, ?> builder) {
             rawParameterTypes = builder.getRawParameterTypes();
             parameterTypes = getParameterTypes(builder.getGenericParameterTypes(owner));
+            parameters = createParameters(owner, parameterTypes);
+        }
+
+        private static List<Parameter> createParameters(JavaCodeUnit owner, List<JavaType> parameterTypes) {
+            ImmutableList.Builder<Parameter> result = ImmutableList.builder();
+            for (int i = 0; i < parameterTypes.size(); i++) {
+                result.add(new Parameter(owner, i, parameterTypes.get(i)));
+            }
+            return result.build();
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"}) // the cast is safe because the list is immutable, thus used in a covariant way
@@ -223,6 +338,11 @@ public abstract class JavaCodeUnit
 
         List<JavaType> getParameterTypes() {
             return parameterTypes;
+        }
+
+        @Override
+        protected List<Parameter> delegate() {
+            return parameters;
         }
     }
 

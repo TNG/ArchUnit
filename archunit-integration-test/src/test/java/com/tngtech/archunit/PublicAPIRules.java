@@ -73,7 +73,7 @@ public class PublicAPIRules {
                     .and(doNot(inheritPublicAPI()))
                     .and(are(relevantArchUnitMembers()))
 
-                    .should(notBePublic())
+                    .should().notBePublic()
 
                     .because("users of ArchUnit should only access intended members, to preserve maintainability");
 
