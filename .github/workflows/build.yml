@@ -21,7 +21,7 @@ jobs:
         with:
           java-version: ${{ env.build_java_version }}
       - name: Build
-        uses: eskatos/gradle-command-action@v1
+        uses: eskatos/gradle-command-action@v2
         with:
           arguments: build
 
@@ -55,7 +55,7 @@ jobs:
         with:
           java-version: ${{ matrix.test_java_version }}
       - name: Provide installed JDKs
-        uses: actions/github-script@v4.1
+        uses: actions/github-script@v5
         with:
           script: |
             for ( let envVarName in process.env ) {
@@ -69,7 +69,7 @@ jobs:
               }
             }
       - name: Test
-        uses: eskatos/gradle-command-action@v1
+        uses: eskatos/gradle-command-action@v2
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
@@ -105,7 +105,7 @@ jobs:
         with:
           java-version: ${{ matrix.java_version }}
       - name: Provide installed JDKs
-        uses: actions/github-script@v4.1
+        uses: actions/github-script@v5
         id: provideJdkPaths
         with:
           script: |
@@ -120,7 +120,7 @@ jobs:
               }
             }
       - name: Integration test
-        uses: eskatos/gradle-command-action@v1
+        uses: eskatos/gradle-command-action@v2
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
