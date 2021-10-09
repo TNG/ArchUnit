@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitTestEngine.SharedCache;
 import com.tngtech.archunit.junit.testexamples.ClassWithPrivateTests;
@@ -47,6 +48,7 @@ import com.tngtech.archunit.junit.testexamples.subtwo.SimpleRules;
 import com.tngtech.archunit.junit.testexamples.wrong.WrongRuleMethodNotStatic;
 import com.tngtech.archunit.junit.testexamples.wrong.WrongRuleMethodWrongParameters;
 import com.tngtech.archunit.junit.testutil.MockitoExtension;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -749,13 +751,6 @@ class ArchUnitTestEngineTest {
                     .collect(onlyElement());
         }
 
-        private TestDescriptor getOnlyTest(TestDescriptor descriptor) {
-            TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
-            TestDescriptor ruleDescriptor = getOnlyElement(testClass.getChildren());
-            assertThat(ruleDescriptor.getType()).isEqualTo(TEST);
-            return ruleDescriptor;
-        }
-
         private Stream<TestDescriptor> getArchRulesDescriptorsOfOnlyChild(TestDescriptor descriptor) {
             TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
             Set<? extends TestDescriptor> archRulesDescriptors = testClass.getChildren();
@@ -1122,6 +1117,53 @@ class ArchUnitTestEngineTest {
         }
     }
 
+    @Nested
+    class GeneratesDisplayName {
+        @Test
+        void for_field_by_replacing_underscores_with_blanks_if_property_is_set_to_true() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            ArchConfiguration.get().setProperty(DisplayNameResolver.JUNIT_DISPLAYNAME_REPLACE_UNDERSCORES_BY_SPACES_PROPERTY_NAME, "true");
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple rule");
+        }
+
+        @Test
+        void for_method_by_replacing_underscores_with_blanks_if_property_is_set_to_true() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleMethod.class);
+
+            ArchConfiguration.get().setProperty(DisplayNameResolver.JUNIT_DISPLAYNAME_REPLACE_UNDERSCORES_BY_SPACES_PROPERTY_NAME, "true");
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple rule");
+        }
+
+        @Test
+        void by_returning_original_name_if_property_is_set_to_false() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(SimpleRuleField.class);
+
+            ArchConfiguration.get().setProperty(DisplayNameResolver.JUNIT_DISPLAYNAME_REPLACE_UNDERSCORES_BY_SPACES_PROPERTY_NAME, "false");
+
+            TestDescriptor descriptor = testEngine.discover(discoveryRequest, engineId);
+
+            TestDescriptor ruleDescriptor = getOnlyTest(descriptor);
+
+            assertThat(ruleDescriptor.getDisplayName()).isEqualTo("simple_rule");
+        }
+
+        @AfterEach
+        void resetConfiguration() {
+            ArchConfiguration.get().reset();
+        }
+    }
+
     private UniqueId createEngineId() {
         return UniqueId.forEngine(ArchUnitTestEngine.UNIQUE_ID);
     }
@@ -1218,6 +1260,13 @@ class ArchUnitTestEngineTest {
 
     private Set<UniqueId> getAllLeafUniqueIds(TestDescriptor rootDescriptor) {
         return getAllLeafs(rootDescriptor).stream().map(TestDescriptor::getUniqueId).collect(toSet());
+    }
+
+    private TestDescriptor getOnlyTest(TestDescriptor descriptor) {
+        TestDescriptor testClass = getOnlyElement(descriptor.getChildren());
+        TestDescriptor ruleDescriptor = getOnlyElement(testClass.getChildren());
+        assertThat(ruleDescriptor.getType()).isEqualTo(TEST);
+        return ruleDescriptor;
     }
 
     private Set<? extends TestDescriptor> getAllLeafs(TestDescriptor descriptor) {

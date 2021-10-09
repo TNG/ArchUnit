@@ -1,7 +1,9 @@
 package com.tngtech.archunit.junit;
 
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitRunner.SharedCache;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,6 +40,8 @@ import static org.mockito.Mockito.when;
 public class ArchUnitRunnerRunsMethodsTest {
     @Rule
     public final MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @Mock
     private SharedCache cache;
@@ -138,6 +142,32 @@ public class ArchUnitRunnerRunsMethodsTest {
         assertThat(description.getAnnotation(Deprecated.class)).as("expected annotation").isNotNull();
     }
 
+    @Test
+    public void underscores_in_method_name_are_replaced_with_blanks_if_property_is_set_to_true() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithMethodWithUnderscoresInName.class, cache);
+
+        ArchConfiguration.get().setProperty(DisplayNameResolver.JUNIT_DISPLAYNAME_REPLACE_UNDERSCORES_BY_SPACES_PROPERTY_NAME, "true");
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(ArchTestWithMethodWithUnderscoresInName.TEST_METHOD_NAME, runner), runNotifier);
+
+        verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
+        Description description = descriptionCaptor.getValue();
+        assertThat(description.getDisplayName()).as("expected display name").startsWith("some test Method(");
+    }
+
+    @Test
+    public void original_method_name_is_used_as_displayname_if_property_is_set_to_false() {
+        ArchUnitRunner runner = newRunnerFor(ArchTestWithMethodWithUnderscoresInName.class, cache);
+
+        ArchConfiguration.get().setProperty(DisplayNameResolver.JUNIT_DISPLAYNAME_REPLACE_UNDERSCORES_BY_SPACES_PROPERTY_NAME, "false");
+
+        runner.runChild(ArchUnitRunnerTestUtils.getRule(ArchTestWithMethodWithUnderscoresInName.TEST_METHOD_NAME, runner), runNotifier);
+
+        verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
+        Description description = descriptionCaptor.getValue();
+        assertThat(description.getDisplayName()).as("expected display name").startsWith("some_test_Method(");
+    }
+
     private ArchUnitRunner newRunner(Class<ArchTestWithIllegalTestMethods> testClass) {
         return newRunnerFor(testClass, cache);
     }
@@ -220,6 +250,15 @@ public class ArchUnitRunnerRunsMethodsTest {
         @Deprecated
         @ArchTest
         public static void annotatedTestMethod(JavaClasses classes) {
+        }
+    }
+
+    @AnalyzeClasses(packages = "some.pkg")
+    public static class ArchTestWithMethodWithUnderscoresInName {
+        static final String TEST_METHOD_NAME = "some_test_Method";
+
+        @ArchTest
+        public static void some_test_Method(JavaClasses classes) {
         }
     }
 

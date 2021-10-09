@@ -21,6 +21,8 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 
+import static com.tngtech.archunit.junit.DisplayNameResolver.determineDisplayName;
+
 class ArchRuleExecution extends ArchTestExecution {
     private final Field ruleField;
 
@@ -47,7 +49,7 @@ class ArchRuleExecution extends ArchTestExecution {
 
     @Override
     Description describeSelf() {
-        return Description.createTestDescription(testClass, ruleField.getName(), ruleField.getAnnotations());
+        return Description.createTestDescription(testClass, determineDisplayName(ruleField.getName()), ruleField.getAnnotations());
     }
 
     @Override
