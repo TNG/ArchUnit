@@ -53,9 +53,5 @@ echo Publishing website and examples...
 
 echo Committing new SNAPSHOT version
 git add -A
-git commit -m "set next SNAPSHOT version"
-
-releaseBranch="$(git rev-parse --abbrev-ref HEAD)"
-git checkout main
-git merge "$releaseBranch"
-git push
+git commit -s -m "set next SNAPSHOT version"
+git push origin "$(git rev-parse --abbrev-ref HEAD)"
