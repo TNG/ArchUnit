@@ -981,10 +981,42 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
     }
 
     @DataProvider
+    public static Object[][] data_imports_generic_array_code_unit_parameter_type() {
+        @SuppressWarnings("unused")
+        class GenericSignatureOnConstructor<X extends Serializable, Y extends String> {
+            GenericSignatureOnConstructor(X[] first, Y[][] second) {
+            }
+        }
+        @SuppressWarnings("unused")
+        class GenericSignatureOnMethod<X extends Serializable, Y extends String> {
+            void method(X[] first, Y[][] second) {
+            }
+        }
+
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(
+                GenericSignatureOnConstructor.class,
+                GenericSignatureOnMethod.class,
+                Serializable.class, String.class);
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_imports_generic_array_code_unit_parameter_type(JavaCodeUnit codeUnit) {
+        assertThatType(codeUnit.getParameterTypes().get(0)).matches(
+                genericArray(typeVariableArrayName("X", 1)).withComponentType(
+                        typeVariable("X").withUpperBounds(Serializable.class)));
+        assertThatType(codeUnit.getParameterTypes().get(1)).matches(
+                genericArray(typeVariableArrayName("Y", 2)).withComponentType(
+                        genericArray(typeVariableArrayName("Y", 1)).withComponentType(
+                                typeVariable("Y").withUpperBounds(String.class))));
+    }
+
+    @DataProvider
     public static Object[][] data_imports_complex_generic_code_unit_parameter_type_with_multiple_nested_actual_type_arguments_with_generic_array_bounds() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor<X extends Serializable, Y extends String> {
-            GenericSignatureOnConstructor(ClassParameterWithThreeTypeParameters<
+            GenericSignatureOnConstructor(ClassParameterWithFourTypeParameters<
+                    X[],
                     List<X[]>,
                     List<? extends X[][]>,
                     Map<? super Y[], Map<Map<? super Y[][][], ?>, X[][]>>> param) {
@@ -992,7 +1024,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
         }
         @SuppressWarnings("unused")
         class GenericSignatureOnMethod<X extends Serializable, Y extends String> {
-            void method(ClassParameterWithThreeTypeParameters<
+            void method(ClassParameterWithFourTypeParameters<
+                    X[],
                     List<X[]>,
                     List<? extends X[][]>,
                     Map<? super Y[], Map<Map<? super Y[][][], ?>, X[][]>>> param) {
@@ -1002,7 +1035,7 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
                 GenericSignatureOnMethod.class,
-                ClassParameterWithThreeTypeParameters.class, List.class, Serializable.class, Map.class, String.class);
+                ClassParameterWithFourTypeParameters.class, List.class, Serializable.class, Map.class, String.class);
     }
 
     @Test
@@ -1011,6 +1044,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
         JavaType genericParameterType = codeUnit.getParameterTypes().get(0);
 
         assertThatType(genericParameterType).hasActualTypeArguments(
+                genericArray("X[]").withComponentType(
+                        typeVariable("X").withUpperBounds(Serializable.class)),
                 parameterizedType(List.class).withTypeArguments(
                         genericArray(typeVariableArrayName("X", 1)).withComponentType(
                                 typeVariable("X").withUpperBounds(Serializable.class))),
@@ -1144,6 +1179,10 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
     @SuppressWarnings("unused")
     public static class ClassParameterWithThreeTypeParameters<A, B, C> {
+    }
+
+    @SuppressWarnings("unused")
+    public static class ClassParameterWithFourTypeParameters<A, B, C, D> {
     }
 
     @SuppressWarnings("unused")

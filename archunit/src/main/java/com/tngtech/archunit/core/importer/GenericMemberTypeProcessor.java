@@ -68,7 +68,7 @@ class GenericMemberTypeProcessor<T extends HasDescription> extends SignatureVisi
 
     @Override
     public void visitTypeVariable(String name) {
-        typeCreationProcess = new ReferenceCreationProcess<>(name);
+        typeCreationProcess = new ReferenceCreationProcess<>(name, typeFinisher);
     }
 
     private void updateType(JavaParameterizedTypeBuilder<T> type) {

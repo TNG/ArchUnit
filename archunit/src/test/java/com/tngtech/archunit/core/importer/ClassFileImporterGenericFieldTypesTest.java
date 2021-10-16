@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -649,6 +650,29 @@ public class ClassFileImporterGenericFieldTypesTest {
                         genericArray(parameterizedTypeArrayName(List.class, String[][].class, 2)).withComponentType(
                                 genericArray(parameterizedTypeArrayName(List.class, String[][].class, 1)).withComponentType(
                                         parameterizedType(List.class).withTypeArguments(String[][].class)))));
+    }
+
+    @Test
+    public void imports_generic_field_type_with_type_parameter_as_array_component_type() {
+        @SuppressWarnings("unused")
+        class SomeClass<T extends String> {
+            T[] field;
+            T[][] field2Dim;
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClasses(SomeClass.class, String.class)
+                .get(SomeClass.class);
+
+        assertThatType(javaClass.getField("field").getType()).as("generic field type")
+                .hasErasure(String[].class)
+                .matches(genericArray(typeVariableArrayName("T", 1))
+                        .withComponentType(typeVariable("T").withUpperBounds(String.class)));
+        assertThatType(javaClass.getField("field2Dim").getType()).as("generic field type")
+                .hasErasure(String[][].class)
+                .matches(genericArray(typeVariableArrayName("T", 2))
+                        .withComponentType(genericArray(typeVariableArrayName("T", 1))
+                                .withComponentType(typeVariable("T")
+                                        .withUpperBounds(String.class))));
     }
 
     @Test
