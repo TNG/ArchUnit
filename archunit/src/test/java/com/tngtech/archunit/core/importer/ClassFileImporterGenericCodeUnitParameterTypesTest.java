@@ -77,6 +77,32 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
     }
 
     @DataProvider
+    public static Object[][] data_imports_non_generic_code_unit_parameter_type_when_signature_is_generic() {
+        @SuppressWarnings("unused")
+        class GenericSignatureOnConstructor {
+            <T> GenericSignatureOnConstructor(Object object, int primitive, Object[] objectArray, int[] primitiveArray) {
+            }
+        }
+        @SuppressWarnings("unused")
+        abstract class GenericSignatureOnMethod {
+            abstract <T> T method(Object object, int primitive, Object[] objectArray, int[] primitiveArray);
+        }
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(
+                GenericSignatureOnConstructor.class,
+                GenericSignatureOnMethod.class,
+                Object.class);
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_imports_non_generic_code_unit_parameter_type_when_signature_is_generic(JavaCodeUnit codeUnit) {
+        assertThatType(codeUnit.getParameterTypes().get(0)).as("parameter type").matches(Object.class);
+        assertThatType(codeUnit.getParameterTypes().get(1)).as("parameter type").matches(int.class);
+        assertThatType(codeUnit.getParameterTypes().get(2)).as("parameter type").matches(Object[].class);
+        assertThatType(codeUnit.getParameterTypes().get(3)).as("parameter type").matches(int[].class);
+    }
+
+    @DataProvider
     public static Object[][] data_imports_generic_code_unit_parameter_type_with_one_type_argument() {
         @SuppressWarnings("unused")
         class GenericSignatureOnConstructor {

@@ -49,6 +49,28 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
     }
 
     @Test
+    public void imports_non_generic_method_return_type_on_generic_signature() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            <T> Object method(T irrelevant) {
+                return null;
+            }
+
+            <T> int primitive(T irrelevant) {
+                return 0;
+            }
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClasses(SomeClass.class, Object.class).get(SomeClass.class);
+
+        JavaType returnType = javaClass.getMethod("method", Object.class).getReturnType();
+        assertThatType(returnType).as("return type").matches(Object.class);
+
+        returnType = javaClass.getMethod("primitive", Object.class).getReturnType();
+        assertThatType(returnType).as("return type").matches(int.class);
+    }
+
+    @Test
     public void imports_generic_method_return_type_with_one_type_argument() {
         @SuppressWarnings("unused")
         class GenericReturnType<T> {
