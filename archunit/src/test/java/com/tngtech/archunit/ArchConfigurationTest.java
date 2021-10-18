@@ -17,13 +17,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
-import static com.tngtech.archunit.testutil.TestUtils.properties;
-import static com.tngtech.archunit.testutil.TestUtils.singleProperty;
+import static com.tngtech.archunit.testutil.TestUtils.*;
 import static org.assertj.core.api.Assertions.entry;
 
 public class ArchConfigurationTest {
     private static final String PROPERTIES_FILE_NAME = "archconfigtest.properties";
-    private final File testPropsFile = new File(getClass().getResource("/").getFile(), PROPERTIES_FILE_NAME);
+    private final File testPropsFile = new File(new File(toUri(getClass().getResource("/"))), PROPERTIES_FILE_NAME);
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();

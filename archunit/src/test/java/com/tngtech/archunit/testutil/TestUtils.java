@@ -2,6 +2,9 @@ package com.tngtech.archunit.testutil;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Properties;
@@ -11,6 +14,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.util.Files;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 import static org.assertj.core.util.Files.temporaryFolderPath;
 import static org.assertj.core.util.Strings.concat;
 
@@ -62,5 +66,22 @@ public class TestUtils {
                 return o1.getName().compareTo(o2.getName());
             }
         });
+    }
+
+    public static URI toUri(URL url) {
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static URL urlOf(Class<?> clazz) {
+        return requireNonNull(clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class"),
+                String.format("Can't determine url of %s", clazz.getName()));
+    }
+
+    public static URI uriOf(Class<?> clazz) {
+        return toUri(urlOf(clazz));
     }
 }

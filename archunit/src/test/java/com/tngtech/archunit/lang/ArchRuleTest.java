@@ -1,12 +1,5 @@
 package com.tngtech.archunit.lang;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
@@ -23,6 +16,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
@@ -30,6 +30,7 @@ import static com.tngtech.archunit.lang.ArchRule.Assertions.ARCHUNIT_IGNORE_PATT
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.testutil.TestUtils.toUri;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -178,7 +179,7 @@ public class ArchRuleTest {
     }
 
     private File ignoreFile() {
-        return new File(new File(getClass().getResource("/").getFile()), ARCHUNIT_IGNORE_PATTERNS_FILE_NAME);
+        return new File(new File(toUri(getClass().getResource("/"))), ARCHUNIT_IGNORE_PATTERNS_FILE_NAME);
     }
 
     private void expectAssertionErrorWithMessages(final String... messages) {

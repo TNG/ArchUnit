@@ -57,9 +57,19 @@ public final class ClassResolverFromClasspath implements ClassResolver {
             return Optional.empty();
         }
         try {
-            return Optional.of(resource.toURI());
+            return Optional.of(toUri(resource));
         } catch (URISyntaxException e) {
             throw new ArchUnitException.LocationException(e);
+        }
+    }
+
+    private URI toUri(URL resource) throws URISyntaxException {
+        try {
+            return resource.toURI();
+        } catch (URISyntaxException e) {
+            // In case the ClassLoader returns a URL with unencoded characters (e.g. spaces), this will correctly encode them.
+            // This was added to solve https://github.com/TNG/ArchUnit/issues/683 where some OSGI ClassLoader would not encode spaces correctly.
+            return new URI(resource.getProtocol(), resource.getHost(), resource.getPath(), null);
         }
     }
 }

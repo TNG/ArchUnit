@@ -16,7 +16,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getFirst;
-import static com.tngtech.archunit.core.domain.SourceTest.urlOf;
+import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 
 class ClassFileImporterTestUtils {
 
