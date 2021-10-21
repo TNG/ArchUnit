@@ -1,6 +1,6 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '6.1.0' apply false
-    id 'com.github.spotbugs' version '4.7.6' apply false
+    id 'com.github.spotbugs' version '4.7.9' apply false
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0" apply false
     id "com.diffplug.spotless" version "5.16.0" apply false
 }
