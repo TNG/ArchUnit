@@ -39,7 +39,6 @@ import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
-import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -84,10 +83,10 @@ public final class DomainBuilders {
     private DomainBuilders() {
     }
 
-    static <T extends HasDescription> Map<String, JavaAnnotation<T>> buildAnnotations(T owner, Set<JavaAnnotationBuilder> annotations, ImportContext importContext) {
+    static <T extends HasDescription> Map<String, JavaAnnotation<T>> buildAnnotations(T owner, Set<JavaAnnotationBuilder> annotations, ImportedClasses importedClasses) {
         ImmutableMap.Builder<String, JavaAnnotation<T>> result = ImmutableMap.builder();
         for (JavaAnnotationBuilder annotationBuilder : annotations) {
-            JavaAnnotation<T> javaAnnotation = annotationBuilder.build(owner, importContext);
+            JavaAnnotation<T> javaAnnotation = annotationBuilder.build(owner, importedClasses);
             result.put(javaAnnotation.getRawType().getName(), javaAnnotation);
         }
         return result.build();
@@ -503,7 +502,7 @@ public final class DomainBuilders {
     public static final class JavaAnnotationBuilder {
         private JavaClassDescriptor type;
         private final Map<String, ValueBuilder> values = new LinkedHashMap<>();
-        private ImportContext importContext;
+        private ImportedClasses importedClasses;
 
         JavaAnnotationBuilder() {
         }
@@ -523,13 +522,13 @@ public final class DomainBuilders {
         }
 
         public JavaClass getType() {
-            return importContext.resolveClass(type.getFullyQualifiedClassName());
+            return importedClasses.getOrResolve(type.getFullyQualifiedClassName());
         }
 
         public <T extends HasDescription> Map<String, Object> getValues(T owner) {
             ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
             for (Map.Entry<String, ValueBuilder> entry : values.entrySet()) {
-                Optional<Object> value = entry.getValue().build(owner, importContext);
+                Optional<Object> value = entry.getValue().build(owner, importedClasses);
                 if (value.isPresent()) {
                     result.put(entry.getKey(), value.get());
                 }
@@ -537,18 +536,18 @@ public final class DomainBuilders {
             return result.build();
         }
 
-        public <T extends HasDescription> JavaAnnotation<T> build(T owner, ImportContext importContext) {
-            this.importContext = importContext;
+        public <T extends HasDescription> JavaAnnotation<T> build(T owner, ImportedClasses importedClasses) {
+            this.importedClasses = importedClasses;
             return DomainObjectCreationContext.createJavaAnnotation(owner, this);
         }
 
         abstract static class ValueBuilder {
-            abstract <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext);
+            abstract <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses);
 
             static ValueBuilder ofFinished(final Object value) {
                 return new ValueBuilder() {
                     @Override
-                    <T extends HasDescription> Optional<Object> build(T owner, ImportContext unused) {
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses unused) {
                         return Optional.of(value);
                     }
                 };
@@ -557,8 +556,8 @@ public final class DomainBuilders {
             static ValueBuilder from(final JavaAnnotationBuilder builder) {
                 return new ValueBuilder() {
                     @Override
-                    <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
-                        return Optional.<Object>of(builder.build(owner, importContext));
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {
+                        return Optional.<Object>of(builder.build(owner, importedClasses));
                     }
                 };
             }

@@ -52,6 +52,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuil
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
+import com.tngtech.archunit.core.importer.ImportedClasses.MethodReturnTypeGetter;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
@@ -79,7 +80,12 @@ class ClassGraphCreator implements ImportContext {
 
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
-        classes = new ImportedClasses(importRecord.getClasses(), classResolver);
+        classes = new ImportedClasses(importRecord.getClasses(), classResolver, new MethodReturnTypeGetter() {
+            @Override
+            public Optional<JavaClass> getReturnType(String declaringClassName, String methodName) {
+                return getMethodReturnType(declaringClassName, methodName);
+            }
+        });
         superclassStrategy = createSuperclassStrategy();
         interfaceStrategy = createInterfaceStrategy();
     }
@@ -302,7 +308,7 @@ class ClassGraphCreator implements ImportContext {
                     @Override
                     public Optional<Object> apply(JavaMethod method) {
                         Optional<ValueBuilder> defaultValueBuilder = importRecord.getAnnotationDefaultValueBuilderFor(method);
-                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, ClassGraphCreator.this) : Optional.empty();
+                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, classes) : Optional.empty();
                     }
                 });
             }
@@ -336,7 +342,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private <OWNER extends HasDescription> Map<String, JavaAnnotation<OWNER>> createAnnotations(OWNER owner, Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
-        return buildAnnotations(owner, annotationBuilders, this);
+        return buildAnnotations(owner, annotationBuilders, classes);
     }
 
     @Override
@@ -364,8 +370,7 @@ class ClassGraphCreator implements ImportContext {
         return classes.getOrResolve(fullyQualifiedClassName);
     }
 
-    @Override
-    public Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {
+    private Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {
         for (DomainBuilders.JavaMethodBuilder methodBuilder : importRecord.getMethodBuildersFor(declaringClassName)) {
             if (methodBuilder.getName().equals(methodName) && methodBuilder.hasNoParameters()) {
                 return Optional.of(classes.getOrResolve(methodBuilder.getReturnTypeName()));

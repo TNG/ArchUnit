@@ -40,11 +40,13 @@ class ImportedClasses {
     private final ImmutableMap<String, JavaClass> directlyImported;
     private final Map<String, JavaClass> allClasses = new HashMap<>();
     private final ClassResolver resolver;
+    private final MethodReturnTypeGetter getMethodReturnType;
 
-    ImportedClasses(Map<String, JavaClass> directlyImported, ClassResolver resolver) {
+    ImportedClasses(Map<String, JavaClass> directlyImported, ClassResolver resolver, MethodReturnTypeGetter methodReturnTypeGetter) {
         this.directlyImported = ImmutableMap.copyOf(directlyImported);
         allClasses.putAll(directlyImported);
         this.resolver = resolver;
+        this.getMethodReturnType = methodReturnTypeGetter;
     }
 
     Map<String, JavaClass> getDirectlyImported() {
@@ -84,5 +86,13 @@ class ImportedClasses {
         if (descriptor.isPrimitive() || descriptor.isArray()) {
             builder.withModifiers(PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS);
         }
+    }
+
+    public Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {
+        return getMethodReturnType.getReturnType(declaringClassName, methodName);
+    }
+
+    interface MethodReturnTypeGetter {
+        Optional<JavaClass> getReturnType(String declaringClassName, String methodName);
     }
 }

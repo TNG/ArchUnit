@@ -57,6 +57,4 @@ public interface ImportContext {
     Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit);
 
     JavaClass resolveClass(String fullyQualifiedClassName);
-
-    Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName);
 }

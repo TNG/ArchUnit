@@ -36,7 +36,6 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
-import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -674,7 +673,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         private class ArrayValueBuilder extends ValueBuilder {
             @Override
-            public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
+            public <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importContext) {
                 Optional<Class<?>> componentType = determineComponentType(importContext);
                 if (!componentType.isPresent()) {
                     return Optional.empty();
@@ -705,7 +704,7 @@ class JavaClassProcessor extends ClassVisitor {
                 return values.toArray((Object[]) Array.newInstance(componentType, values.size()));
             }
 
-            private <T extends HasDescription> List<Object> buildValues(T owner, ImportContext importContext) {
+            private <T extends HasDescription> List<Object> buildValues(T owner, ImportedClasses importContext) {
                 List<Object> result = new ArrayList<>();
                 for (ValueBuilder value : values) {
                     result.addAll(value.build(owner, importContext).asSet());
@@ -713,7 +712,7 @@ class JavaClassProcessor extends ClassVisitor {
                 return result;
             }
 
-            private Optional<Class<?>> determineComponentType(ImportContext importContext) {
+            private Optional<Class<?>> determineComponentType(ImportedClasses importContext) {
                 if (derivedComponentType != null) {
                     return Optional.<Class<?>>of(derivedComponentType);
                 }
@@ -776,10 +775,10 @@ class JavaClassProcessor extends ClassVisitor {
     private static ValueBuilder javaEnumBuilder(final String desc, final String value) {
         return new ValueBuilder() {
             @Override
-            public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
+            public <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importContext) {
                 return Optional.<Object>of(
                         new DomainBuilders.JavaEnumConstantBuilder()
-                                .withDeclaringClass(importContext.resolveClass(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc).getFullyQualifiedClassName()))
+                                .withDeclaringClass(importContext.getOrResolve(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc).getFullyQualifiedClassName()))
                                 .withName(value)
                                 .build());
             }
@@ -792,8 +791,8 @@ class JavaClassProcessor extends ClassVisitor {
             if (value instanceof JavaClassDescriptor) {
                 return new ValueBuilder() {
                     @Override
-                    public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
-                        return Optional.<Object>of(importContext.resolveClass(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
+                    public <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importContext) {
+                        return Optional.<Object>of(importContext.getOrResolve(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
                     }
                 };
             }

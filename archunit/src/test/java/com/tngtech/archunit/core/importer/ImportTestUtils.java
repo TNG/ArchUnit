@@ -256,7 +256,8 @@ public class ImportTestUtils {
     }
 
     private static JavaAnnotation<JavaClass> javaAnnotationFrom(Annotation annotation, Class<?> annotatedClass, ImportContext importContext) {
-        return javaAnnotationBuilderFrom(annotation, annotatedClass, importContext).build(importContext.resolveClass(annotatedClass.getName()), importContext);
+        return javaAnnotationBuilderFrom(annotation, annotatedClass, importContext)
+                .build(importContext.resolveClass(annotatedClass.getName()), ImportTestUtils.simpleImportedClasses());
     }
 
     private static DomainBuilders.JavaAnnotationBuilder javaAnnotationBuilderFrom(Annotation annotation, Class<?> annotatedClass,
@@ -319,16 +320,24 @@ public class ImportTestUtils {
         private final Map<String, JavaClass> imported = new HashMap<>();
 
         ImportedTestClasses() {
-            super(Collections.<String, JavaClass>emptyMap(), new ClassResolver() {
-                @Override
-                public void setClassUriImporter(ClassUriImporter classUriImporter) {
-                }
+            super(
+                    Collections.<String, JavaClass>emptyMap(),
+                    new ClassResolver() {
+                        @Override
+                        public void setClassUriImporter(ClassUriImporter classUriImporter) {
+                        }
 
-                @Override
-                public Optional<JavaClass> tryResolve(String typeName) {
-                    return Optional.empty();
-                }
-            });
+                        @Override
+                        public Optional<JavaClass> tryResolve(String typeName) {
+                            return Optional.empty();
+                        }
+                    },
+                    new MethodReturnTypeGetter() {
+                        @Override
+                        public Optional<JavaClass> getReturnType(String declaringClassName, String methodName) {
+                            return Optional.empty();
+                        }
+                    });
         }
 
         void register(JavaClass clazz) {
@@ -434,11 +443,6 @@ public class ImportTestUtils {
         @Override
         public JavaClass resolveClass(String fullyQualifiedClassName) {
             throw new UnsupportedOperationException("Override me where necessary");
-        }
-
-        @Override
-        public Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {
-            return Optional.empty();
         }
     }
 }
