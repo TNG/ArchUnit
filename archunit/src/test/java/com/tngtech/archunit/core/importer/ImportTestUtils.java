@@ -42,21 +42,22 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
+import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 
 public class ImportTestUtils {
 
-    private static Set<JavaConstructor> createConstructors(JavaClass owner, Class<?> inputClass, ClassesByTypeName importedClasses) {
+    private static Set<JavaConstructor> createConstructors(JavaClass owner, Class<?> inputClass, ImportedClasses importedClasses) {
         return finish(constructorBuildersFor(inputClass), owner, importedClasses);
     }
 
-    private static Set<JavaMethod> createMethods(JavaClass owner, Class<?> inputClass, ClassesByTypeName importedClasses) {
+    private static Set<JavaMethod> createMethods(JavaClass owner, Class<?> inputClass, ImportedClasses importedClasses) {
         return finish(methodBuildersFor(inputClass), owner, importedClasses);
     }
 
-    private static Set<JavaField> createFields(JavaClass owner, Class<?> inputClass, ClassesByTypeName importedClasses) {
+    private static Set<JavaField> createFields(JavaClass owner, Class<?> inputClass, ImportedClasses importedClasses) {
         return finish(fieldBuildersFor(inputClass), owner, importedClasses);
     }
 
@@ -105,7 +106,7 @@ public class ImportTestUtils {
     }
 
     private static <T> Set<T> finish(Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, T>> builders, JavaClass owner,
-            ClassesByTypeName importedClasses) {
+            ImportedClasses importedClasses) {
         ImmutableSet.Builder<T> result = ImmutableSet.builder();
         for (DomainBuilders.BuilderWithBuildParameter<JavaClass, T> builder : builders) {
             result.add(builder.build(owner, importedClasses));
@@ -314,15 +315,28 @@ public class ImportTestUtils {
                 });
     }
 
-    public static class ImportedTestClasses implements ClassesByTypeName {
+    public static class ImportedTestClasses extends ImportedClasses {
         private final Map<String, JavaClass> imported = new HashMap<>();
+
+        ImportedTestClasses() {
+            super(Collections.<String, JavaClass>emptyMap(), new ClassResolver() {
+                @Override
+                public void setClassUriImporter(ClassUriImporter classUriImporter) {
+                }
+
+                @Override
+                public Optional<JavaClass> tryResolve(String typeName) {
+                    return Optional.empty();
+                }
+            });
+        }
 
         void register(JavaClass clazz) {
             imported.put(clazz.getName(), clazz);
         }
 
         @Override
-        public JavaClass get(String typeName) {
+        public JavaClass getOrResolve(String typeName) {
             return imported.containsKey(typeName) ?
                     imported.get(typeName) :
                     importNew(JavaClassDescriptor.From.name(typeName).resolveClass());

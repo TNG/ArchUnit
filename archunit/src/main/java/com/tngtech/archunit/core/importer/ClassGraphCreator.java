@@ -246,7 +246,7 @@ class ClassGraphCreator implements ImportContext {
     public Optional<JavaType> createGenericSuperclass(JavaClass owner) {
         Optional<JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilder = importRecord.getGenericSuperclassFor(owner);
         return genericSuperclassBuilder.isPresent()
-                ? Optional.of(genericSuperclassBuilder.get().build(owner, getTypeParametersInContextOf(owner), classes.byTypeName()))
+                ? Optional.of(genericSuperclassBuilder.get().build(owner, getTypeParametersInContextOf(owner), classes))
                 : Optional.<JavaType>empty();
     }
 
@@ -259,7 +259,7 @@ class ClassGraphCreator implements ImportContext {
 
         ImmutableSet.Builder<JavaType> result = ImmutableSet.builder();
         for (JavaParameterizedTypeBuilder<JavaClass> builder : genericInterfaceBuilders.get()) {
-            result.add(builder.build(owner, getTypeParametersInContextOf(owner), classes.byTypeName()));
+            result.add(builder.build(owner, getTypeParametersInContextOf(owner), classes));
         }
         return Optional.<Set<JavaType>>of(result.build());
     }
@@ -285,12 +285,12 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner) {
         JavaClassTypeParametersBuilder typeParametersBuilder = importRecord.getTypeParameterBuildersFor(owner.getName());
-        return typeParametersBuilder.build(owner, classes.byTypeName());
+        return typeParametersBuilder.build(owner, classes);
     }
 
     @Override
     public Set<JavaField> createFields(JavaClass owner) {
-        return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
+        return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes);
     }
 
     @Override
@@ -307,12 +307,12 @@ class ClassGraphCreator implements ImportContext {
                 });
             }
         }
-        return build(methodBuilders, owner, classes.byTypeName());
+        return build(methodBuilders, owner, classes);
     }
 
     @Override
     public Set<JavaConstructor> createConstructors(JavaClass owner) {
-        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes.byTypeName());
+        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes);
     }
 
     @Override
@@ -321,7 +321,7 @@ class ClassGraphCreator implements ImportContext {
         if (!builder.isPresent()) {
             return Optional.empty();
         }
-        JavaStaticInitializer staticInitializer = builder.get().build(owner, classes.byTypeName());
+        JavaStaticInitializer staticInitializer = builder.get().build(owner, classes);
         return Optional.of(staticInitializer);
     }
 

@@ -73,15 +73,6 @@ class ImportedClasses {
         return ImmutableSortedMap.copyOf(allClasses).values();
     }
 
-    ClassesByTypeName byTypeName() {
-        return new ClassesByTypeName() {
-            @Override
-            public JavaClass get(String typeName) {
-                return ImportedClasses.this.getOrResolve(typeName);
-            }
-        };
-    }
-
     private static JavaClass simpleClassOf(String typeName) {
         JavaClassDescriptor descriptor = JavaClassDescriptor.From.name(typeName);
         DomainBuilders.JavaClassBuilder builder = new DomainBuilders.JavaClassBuilder().withDescriptor(descriptor);
