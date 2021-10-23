@@ -382,6 +382,32 @@ public class ClassFileImporterGenericClassesTest {
     }
 
     @Test
+    public void imports_inner_class_as_type_variable_bound() {
+        @SuppressWarnings("unused")
+        class ClassWithTypeParameterBoundByInnerClass<T extends ClassWithTypeParameterBoundByInnerClass<T, U>.SomeInner<String>, U extends ClassWithTypeParameterBoundByInnerClass<T, U>.SomeInner<String>.EvenMoreInner> {
+            @SuppressWarnings("InnerClassMayBeStatic")
+            class SomeInner<Z> {
+                class EvenMoreInner {
+                }
+            }
+        }
+
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithTypeParameterBoundByInnerClass.class,
+                ClassWithTypeParameterBoundByInnerClass.SomeInner.class,
+                ClassWithTypeParameterBoundByInnerClass.SomeInner.EvenMoreInner.class,
+                String.class);
+
+        JavaClass javaClass = classes.get(ClassWithTypeParameterBoundByInnerClass.class);
+
+        assertThatType(javaClass).hasTypeParameters("T", "U")
+                .hasTypeParameter("T")
+                .withBoundsMatching(
+                        parameterizedType(ClassWithTypeParameterBoundByInnerClass.SomeInner.class).withTypeArguments(String.class))
+                .hasTypeParameter("U")
+                .withBoundsMatching(ClassWithTypeParameterBoundByInnerClass.SomeInner.EvenMoreInner.class);
+    }
+
+    @Test
     public void creates_new_stub_type_variables_for_type_variables_of_enclosing_classes_that_are_out_of_context() {
         @SuppressWarnings("unused")
         class ClassWithTypeParameterWithInnerClassesWithTypeVariableBound<U extends T, T extends String> {

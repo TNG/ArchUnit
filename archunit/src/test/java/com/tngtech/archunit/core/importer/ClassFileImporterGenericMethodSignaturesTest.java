@@ -589,6 +589,53 @@ public class ClassFileImporterGenericMethodSignaturesTest {
     }
 
     @DataProvider
+    public static Object[][] data_imports_inner_class_as_type_variable_bound() {
+        @SuppressWarnings("unused")
+        class ConstructorWithTypeParameterBoundByInnerClass<A, B> {
+            <T extends ConstructorWithTypeParameterBoundByInnerClass<T, U>.SomeInner<String>, U extends ConstructorWithTypeParameterBoundByInnerClass<T, U>.SomeInner<String>.EvenMoreInner> ConstructorWithTypeParameterBoundByInnerClass() {
+            }
+
+            class SomeInner<Z> {
+                class EvenMoreInner {
+                }
+            }
+        }
+        @SuppressWarnings("unused")
+        class MethodWithTypeParameterBoundByInnerClass<A, B> {
+            <T extends MethodWithTypeParameterBoundByInnerClass<T, U>.SomeInner<String>, U extends MethodWithTypeParameterBoundByInnerClass<T, U>.SomeInner<String>.EvenMoreInner> void method() {
+            }
+
+            class SomeInner<Z> {
+                class EvenMoreInner {
+                }
+            }
+        }
+
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(
+                ConstructorWithTypeParameterBoundByInnerClass.class,
+                MethodWithTypeParameterBoundByInnerClass.class,
+                ConstructorWithTypeParameterBoundByInnerClass.SomeInner.class,
+                ConstructorWithTypeParameterBoundByInnerClass.SomeInner.EvenMoreInner.class,
+                MethodWithTypeParameterBoundByInnerClass.SomeInner.class,
+                MethodWithTypeParameterBoundByInnerClass.SomeInner.EvenMoreInner.class,
+                String.class);
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_imports_inner_class_as_type_variable_bound(JavaCodeUnit codeUnit) throws ClassNotFoundException {
+        Class<?> expectedInnerClass = Class.forName(codeUnit.getOwner().getName() + "$SomeInner");
+        Class<?> expectedMoreInnerClass = Class.forName(codeUnit.getOwner().getName() + "$SomeInner$EvenMoreInner");
+
+        assertThatCodeUnit(codeUnit).hasTypeParameters("T", "U")
+                .hasTypeParameter("T")
+                .withBoundsMatching(
+                        parameterizedType(expectedInnerClass).withTypeArguments(String.class))
+                .hasTypeParameter("U")
+                .withBoundsMatching(expectedMoreInnerClass);
+    }
+
+    @DataProvider
     public static Object[][] data_creates_new_stub_type_variables_for_type_variables_of_enclosing_classes_that_are_out_of_context() {
         @SuppressWarnings("unused")
         class Outer<U extends T, T extends String> {

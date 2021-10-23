@@ -58,7 +58,6 @@ class SignatureTypeParameterProcessor<OWNER extends HasDescription> extends Sign
         JavaClassDescriptor type = JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName);
         log.trace("Encountered upper bound for {}: Class type {}", currentType.getName(), type.getFullyQualifiedClassName());
         currentBound = new JavaParameterizedTypeBuilder<>(type);
-        currentType.addBound(new NewJavaTypeCreationProcess<>(currentBound));
     }
 
     @Override
@@ -76,5 +75,15 @@ class SignatureTypeParameterProcessor<OWNER extends HasDescription> extends Sign
     @Override
     public SignatureVisitor visitTypeArgument(char wildcard) {
         return SignatureTypeArgumentProcessor.create(wildcard, currentBound);
+    }
+
+    @Override
+    public void visitInnerClassType(String name) {
+        currentBound = currentBound.forInnerClass(name);
+    }
+
+    @Override
+    public void visitEnd() {
+        currentType.addBound(new NewJavaTypeCreationProcess<>(currentBound));
     }
 }
