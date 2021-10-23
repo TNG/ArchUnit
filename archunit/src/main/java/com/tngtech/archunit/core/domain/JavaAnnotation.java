@@ -100,7 +100,7 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
 
     private static CanBeAnnotated getAnnotatedElement(Object owner) {
         Object candiate = owner;
-        while (!(candiate instanceof JavaClass) && !(candiate instanceof JavaMember) && (candiate instanceof HasOwner<?>)) {
+        while (!(candiate instanceof CanBeAnnotated) && (candiate instanceof HasOwner<?>)) {
             candiate = ((HasOwner<?>) candiate).getOwner();
         }
         if (!(candiate instanceof CanBeAnnotated)) {
