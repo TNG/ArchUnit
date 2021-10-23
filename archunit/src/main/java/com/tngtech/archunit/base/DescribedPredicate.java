@@ -141,7 +141,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return new EmptyPredicate();
     }
 
-    public static <T> DescribedPredicate<Iterable<T>> anyElementThat(final DescribedPredicate<? super T> predicate) {
+    public static <T> DescribedPredicate<Iterable<? extends T>> anyElementThat(final DescribedPredicate<? super T> predicate) {
         return new AnyElementPredicate<>(predicate);
     }
 
@@ -320,7 +320,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
     }
 
-    private static class AnyElementPredicate<T> extends DescribedPredicate<Iterable<T>> {
+    private static class AnyElementPredicate<T> extends DescribedPredicate<Iterable<? extends T>> {
         private final DescribedPredicate<T> predicate;
 
         AnyElementPredicate(DescribedPredicate<? super T> predicate) {
@@ -329,7 +329,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(Iterable<T> iterable) {
+        public boolean apply(Iterable<? extends T> iterable) {
             for (T javaClass : iterable) {
                 if (predicate.apply(javaClass)) {
                     return true;

@@ -29,6 +29,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
@@ -235,6 +236,7 @@ public final class DomainBuilders {
         private JavaClassDescriptor rawReturnType;
         private List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypes;
         private List<JavaClassDescriptor> rawParameterTypes;
+        private SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex;
         private JavaCodeUnitTypeParametersBuilder typeParametersBuilder;
         private List<JavaClassDescriptor> throwsDeclarations;
         private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
@@ -252,6 +254,11 @@ public final class DomainBuilders {
         SELF withParameterTypes(List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypes, List<JavaClassDescriptor> rawParameterTypes) {
             this.genericParameterTypes = genericParameterTypes;
             this.rawParameterTypes = rawParameterTypes;
+            return self();
+        }
+
+        SELF withParameterAnnotations(SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex) {
+            this.parameterAnnotationsByIndex = parameterAnnotationsByIndex;
             return self();
         }
 
@@ -317,6 +324,10 @@ public final class DomainBuilders {
             return result.build();
         }
 
+        public Set<JavaAnnotationBuilder> getParameterAnnotations(int index) {
+            return parameterAnnotationsByIndex.get(index);
+        }
+
         public List<JavaTypeVariable<JavaCodeUnit>> getTypeParameters(JavaCodeUnit owner) {
             return typeParametersBuilder.build(owner, importedClasses);
         }
@@ -347,6 +358,33 @@ public final class DomainBuilders {
                 result.add(get(javaClassDescriptor.getFullyQualifiedClassName()));
             }
             return result.build();
+        }
+
+        public ParameterAnnotationsBuilder getParameterAnnotationsBuilder(int index) {
+            return new ParameterAnnotationsBuilder(parameterAnnotationsByIndex.get(index), importedClasses);
+        }
+
+        public Iterable<JavaAnnotationBuilder> getParameterAnnotationBuilders() {
+            return parameterAnnotationsByIndex.values();
+        }
+
+        @Internal
+        public static class ParameterAnnotationsBuilder {
+            private final Iterable<JavaAnnotationBuilder> annotationBuilders;
+            private final ImportedClasses importedClasses;
+
+            private ParameterAnnotationsBuilder(Iterable<JavaAnnotationBuilder> annotationBuilders, ImportedClasses importedClasses) {
+                this.annotationBuilders = annotationBuilders;
+                this.importedClasses = importedClasses;
+            }
+
+            public Set<JavaAnnotation<JavaCodeUnit.Parameter>> build(JavaCodeUnit.Parameter owner) {
+                ImmutableSet.Builder<JavaAnnotation<JavaCodeUnit.Parameter>> result = ImmutableSet.builder();
+                for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : annotationBuilders) {
+                    result.add(annotationBuilder.build(owner, importedClasses));
+                }
+                return result.build();
+            }
         }
     }
 

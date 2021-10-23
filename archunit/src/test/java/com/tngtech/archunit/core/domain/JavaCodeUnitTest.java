@@ -9,14 +9,20 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.union;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaCodeUnit.Parameter.startWithLowercase;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class JavaCodeUnitTest {
@@ -154,10 +160,10 @@ public class JavaCodeUnitTest {
     public void adds_description_to_parameters_of_code_unit(JavaCodeUnit codeUnit) {
         List<JavaCodeUnit.Parameter> parameters = codeUnit.getParameters();
 
-        assertThat(parameters.get(0).getDescription()).isEqualTo("Parameter <" + List.class.getName() + "<" + String.class.getName() + ">>");
-        assertThat(parameters.get(1).getDescription()).isEqualTo("Parameter <T>");
-        assertThat(parameters.get(2).getDescription()).isEqualTo("Parameter <" + String.class.getName() + ">");
-        assertThat(parameters.get(3).getDescription()).isEqualTo("Parameter <" + int.class.getName() + ">");
+        assertThat(parameters.get(0).getDescription()).isEqualTo("Parameter <" + List.class.getName() + "<" + String.class.getName() + ">> of " + startWithLowercase(codeUnit.getDescription()));
+        assertThat(parameters.get(1).getDescription()).isEqualTo("Parameter <T> of " + startWithLowercase(codeUnit.getDescription()));
+        assertThat(parameters.get(2).getDescription()).isEqualTo("Parameter <" + String.class.getName() + "> of " + startWithLowercase(codeUnit.getDescription()));
+        assertThat(parameters.get(3).getDescription()).isEqualTo("Parameter <" + int.class.getName() + "> of " + startWithLowercase(codeUnit.getDescription()));
     }
 
     @Test
@@ -193,6 +199,110 @@ public class JavaCodeUnitTest {
         for (JavaCodeUnit.Parameter parameter : codeUnit.getParameters()) {
             assertThat(parameter.getOwner()).isEqualTo(codeUnit);
         }
+    }
+
+    @Test
+    public void parameter_isAnnotatedWith() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            void method(@SomeParameterAnnotation("test") String param) {
+            }
+        }
+
+        JavaCodeUnit.Parameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+                .getMethod("method", String.class).getParameters().get(0);
+
+        assertThat(parameter.isAnnotatedWith(SomeParameterAnnotation.class))
+                .as("parameter is annotated with @" + SomeParameterAnnotation.class.getSimpleName()).isTrue();
+        assertThat(parameter.isAnnotatedWith(Deprecated.class))
+                .as("parameter is annotated with @" + Deprecated.class.getSimpleName()).isFalse();
+
+        assertThat(parameter.isAnnotatedWith(SomeParameterAnnotation.class.getName()))
+                .as("parameter is annotated with @" + SomeParameterAnnotation.class.getSimpleName()).isTrue();
+        assertThat(parameter.isAnnotatedWith(Deprecated.class.getName()))
+                .as("parameter is annotated with @" + Deprecated.class.getSimpleName()).isFalse();
+
+        assertThat(parameter.isAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(SomeParameterAnnotation.class))))
+                .as("parameter is annotated with @" + SomeParameterAnnotation.class.getSimpleName()).isTrue();
+        assertThat(parameter.isAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(Deprecated.class))))
+                .as("parameter is annotated with @" + Deprecated.class.getSimpleName()).isFalse();
+    }
+
+    @Test
+    public void parameter_isMetaAnnotatedWith() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            void method(@SomeParameterAnnotation("test") String param) {
+            }
+        }
+
+        JavaCodeUnit.Parameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+                .getMethod("method", String.class).getParameters().get(0);
+
+        assertThat(parameter.isMetaAnnotatedWith(SomeMetaAnnotation.class))
+                .as("parameter is meta-annotated with @" + SomeMetaAnnotation.class.getSimpleName()).isTrue();
+        assertThat(parameter.isMetaAnnotatedWith(Deprecated.class))
+                .as("parameter is meta-annotated with @" + Deprecated.class.getSimpleName()).isFalse();
+
+        assertThat(parameter.isMetaAnnotatedWith(SomeMetaAnnotation.class.getName()))
+                .as("parameter is meta-annotated with @" + SomeMetaAnnotation.class.getSimpleName()).isTrue();
+        assertThat(parameter.isMetaAnnotatedWith(Deprecated.class.getName()))
+                .as("parameter is meta-annotated with @" + Deprecated.class.getSimpleName()).isFalse();
+
+        assertThat(parameter.isMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(SomeMetaAnnotation.class))))
+                .as("parameter is meta-annotated with @" + SomeMetaAnnotation.class.getSimpleName()).isTrue();
+        assertThat(parameter.isMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(Deprecated.class))))
+                .as("parameter is meta-annotated with @" + Deprecated.class.getSimpleName()).isFalse();
+    }
+
+    @Test
+    public void parameter_getAnnotationOfType() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            void method(@SomeParameterAnnotation("test") String param) {
+            }
+        }
+
+        final JavaCodeUnit.Parameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+                .getMethod("method", String.class).getParameters().get(0);
+
+        SomeParameterAnnotation annotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class);
+        assertThat(annotation).isInstanceOf(SomeParameterAnnotation.class);
+        assertThat(annotation.value()).isEqualTo("test");
+        assertThatThrownBy(new ThrowingCallable() {
+            @Override
+            public void call() {
+                parameter.getAnnotationOfType(Deprecated.class);
+            }
+        }).isInstanceOf(IllegalArgumentException.class);
+
+        JavaAnnotation<JavaCodeUnit.Parameter> javaAnnotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class.getName());
+        assertThatAnnotation(javaAnnotation).hasType(SomeParameterAnnotation.class);
+        assertThat(javaAnnotation.get("value")).contains("test");
+        assertThatThrownBy(new ThrowingCallable() {
+            @Override
+            public void call() {
+                parameter.getAnnotationOfType(Deprecated.class.getName());
+            }
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void parameter_tryGetAnnotationOfType() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            void method(@SomeParameterAnnotation("test") String param) {
+            }
+        }
+
+        final JavaCodeUnit.Parameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+                .getMethod("method", String.class).getParameters().get(0);
+
+        assertThat(parameter.tryGetAnnotationOfType(SomeParameterAnnotation.class).get()).isInstanceOf(SomeParameterAnnotation.class);
+        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+
+        assertThatAnnotation(parameter.tryGetAnnotationOfType(SomeParameterAnnotation.class.getName()).get()).hasType(SomeParameterAnnotation.class);
+        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class.getName())).isAbsent();
     }
 
     @SuppressWarnings("unused")
@@ -246,5 +356,13 @@ public class JavaCodeUnitTest {
 
         NonTrivialEnum(File file, double primitive) {
         }
+    }
+
+    @interface SomeMetaAnnotation {
+    }
+
+    @SomeMetaAnnotation
+    @interface SomeParameterAnnotation {
+        String value();
     }
 }

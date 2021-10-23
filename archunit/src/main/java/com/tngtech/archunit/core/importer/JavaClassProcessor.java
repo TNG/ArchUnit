@@ -22,8 +22,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SetMultimap;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
@@ -324,6 +326,7 @@ class JavaClassProcessor extends ClassVisitor {
         private final DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder;
         private final DeclarationHandler declarationHandler;
         private final Set<DomainBuilders.JavaAnnotationBuilder> annotations = new HashSet<>();
+        private final SetMultimap<Integer, DomainBuilders.JavaAnnotationBuilder> parameterAnnotationsByIndex = HashMultimap.create();
         private int actualLineNumber;
 
         MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler) {
@@ -332,11 +335,17 @@ class JavaClassProcessor extends ClassVisitor {
             this.accessHandler = accessHandler;
             this.codeUnitBuilder = codeUnitBuilder;
             this.declarationHandler = declarationHandler;
+            codeUnitBuilder.withParameterAnnotations(parameterAnnotationsByIndex);
         }
 
         @Override
         public void visitCode() {
             actualLineNumber = 0;
+        }
+
+        @Override
+        public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
+            return new AnnotationProcessor(addAnnotationAtIndex(parameterAnnotationsByIndex, parameter), annotationBuilderFor(desc));
         }
 
         // NOTE: ASM does not reliably visit this method, so if this method is skipped, line number 0 is recorded
@@ -601,6 +610,15 @@ class JavaClassProcessor extends ClassVisitor {
             @Override
             public void add(DomainBuilders.JavaAnnotationBuilder annotation) {
                 collection.add(annotation);
+            }
+        };
+    }
+
+    private static TakesAnnotationBuilder addAnnotationAtIndex(final SetMultimap<Integer, DomainBuilders.JavaAnnotationBuilder> annotations, final int index) {
+        return new TakesAnnotationBuilder() {
+            @Override
+            public void add(DomainBuilders.JavaAnnotationBuilder annotation) {
+                annotations.put(index, annotation);
             }
         };
     }

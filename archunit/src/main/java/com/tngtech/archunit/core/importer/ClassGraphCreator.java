@@ -191,6 +191,7 @@ class ClassGraphCreator implements ImportContext {
         return ImmutableSet.<String>builder()
                 .addAll(importRecord.getAnnotationTypeNamesFor(javaClass))
                 .addAll(importRecord.getMemberAnnotationTypeNamesFor(javaClass))
+                .addAll(importRecord.getParameterAnnotationTypeNamesFor(javaClass))
                 .build();
     }
 
