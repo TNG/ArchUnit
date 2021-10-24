@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Suppliers.memoize;
 import static com.tngtech.archunit.junit.ArchTestInitializationException.WRAP_CAUSE;
 import static com.tngtech.archunit.junit.DisplayNameResolver.determineDisplayName;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
@@ -80,8 +79,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
     @Override
     public void createChildren(ElementResolver resolver) {
-        Supplier<JavaClasses> classes =
-                memoize(() -> classCache.getClassesToAnalyzeFor(testClass, new JUnit5ClassAnalysisRequest(testClass)))::get;
+        Supplier<JavaClasses> classes = () -> classCache.getClassesToAnalyzeFor(testClass, new JUnit5ClassAnalysisRequest(testClass));
 
         getAllFields(testClass, withAnnotation(ArchTest.class))
                 .forEach(field -> resolveField(resolver, classes, field));
