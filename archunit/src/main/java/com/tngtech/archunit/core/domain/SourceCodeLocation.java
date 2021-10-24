@@ -51,12 +51,15 @@ public final class SourceCodeLocation {
         return new SourceCodeLocation(sourceClass, lineNumber);
     }
 
-    private static String formatLocation(JavaClass sourceClass, int lineNumber) {
+    private static String formatLocation(String sourceFileName, int lineNumber) {
+        return "(" + sourceFileName + ":" + lineNumber + ")";
+    }
+
+    private static String resolveSourceFileName(JavaClass sourceClass) {
         Optional<String> recordedSourceFileName = sourceClass.getSource().isPresent()
                 ? sourceClass.getSource().get().getFileName()
                 : Optional.<String>empty();
-        String sourceFileName = recordedSourceFileName.isPresent() ? recordedSourceFileName.get() : guessSourceFileName(sourceClass);
-        return "(" + sourceFileName + ":" + lineNumber + ")";
+        return recordedSourceFileName.isPresent() ? recordedSourceFileName.get() : guessSourceFileName(sourceClass);
     }
 
     private static String guessSourceFileName(JavaClass location) {
@@ -68,16 +71,29 @@ public final class SourceCodeLocation {
 
     private final JavaClass sourceClass;
     private final int lineNumber;
+    private final String sourceFileName;
     private final String description;
 
     private SourceCodeLocation(JavaClass sourceClass, int lineNumber) {
         this.sourceClass = checkNotNull(sourceClass);
         this.lineNumber = lineNumber;
         checkArgument(lineNumber >= 0, "Line number must be non-negative but was " + lineNumber);
-        description = formatLocation(sourceClass, lineNumber);
+        this.sourceFileName = resolveSourceFileName(sourceClass);
+        this.description = formatLocation(sourceFileName, lineNumber);
     }
 
-    int getLineNumber() {
+    @PublicAPI(usage = ACCESS)
+    public JavaClass getSourceClass() {
+        return sourceClass;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public String getSourceFileName() {
+        return sourceFileName;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public int getLineNumber() {
         return lineNumber;
     }
 
