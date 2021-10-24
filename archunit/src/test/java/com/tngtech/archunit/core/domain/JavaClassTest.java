@@ -762,6 +762,10 @@ public class JavaClassTest {
                         .from(ClassWithAnnotationDependencies.class)
                         .to(OnMethod.class)
                         .inLineNumber(0))
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnMethodParam.class)
+                        .inLineNumber(0))
                 .areAtLeastOne(annotationMemberOfTypeDependency()
                         .from(ClassWithAnnotationDependencies.class)
                         .to(WithType.class)
@@ -920,7 +924,7 @@ public class JavaClassTest {
         assertThatTypes(targets).matchInAnyOrder(
                 B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
                 List.class, Serializable.class, SomeSuperclass.class,
-                WithType.class, WithNestedAnnotations.class, OnClass.class, OnMethod.class,
+                WithType.class, WithNestedAnnotations.class, OnClass.class, OnMethod.class, OnMethodParam.class,
                 OnConstructor.class, OnField.class, MetaAnnotated.class, WithEnum.class, WithPrimitive.class,
                 WithOtherEnum.class, WithOtherType.class,
                 SomeEnumAsAnnotationParameter.class, SomeEnumAsAnnotationArrayParameter.class,
@@ -1245,6 +1249,12 @@ public class JavaClassTest {
                 .areAtLeastOne(annotationTypeDependency()
                         .from(ClassWithAnnotationDependencies.class)
                         .to(OnMethod.class)
+                        .inLineNumber(0));
+
+        assertThat(javaClasses.get(OnMethodParam.class).getDirectDependenciesToSelf())
+                .areAtLeastOne(annotationTypeDependency()
+                        .from(ClassWithAnnotationDependencies.class)
+                        .to(OnMethodParam.class)
                         .inLineNumber(0));
 
         assertThat(javaClasses.get(OnConstructor.class).getDirectDependenciesToSelf())
