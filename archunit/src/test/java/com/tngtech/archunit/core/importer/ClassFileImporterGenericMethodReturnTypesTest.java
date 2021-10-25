@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
@@ -45,6 +46,28 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
         JavaType returnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(returnType).as("return type").matches(NonGenericReturnType.class);
+    }
+
+    @Test
+    public void imports_non_generic_method_return_type_on_generic_signature() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            <T> Object method(T irrelevant) {
+                return null;
+            }
+
+            <T> int primitive(T irrelevant) {
+                return 0;
+            }
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClasses(SomeClass.class, Object.class).get(SomeClass.class);
+
+        JavaType returnType = javaClass.getMethod("method", Object.class).getReturnType();
+        assertThatType(returnType).as("return type").matches(Object.class);
+
+        returnType = javaClass.getMethod("primitive", Object.class).getReturnType();
+        assertThatType(returnType).as("return type").matches(int.class);
     }
 
     @Test
@@ -705,13 +728,38 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
     }
 
     @Test
+    public void imports_generic_field_type_with_type_parameter_as_array_component_type() {
+        @SuppressWarnings("unused")
+        abstract class SomeClass<T extends String> {
+            abstract T[] method();
+
+            abstract T[][] method2Dim();
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClasses(SomeClass.class, String.class)
+                .get(SomeClass.class);
+
+        assertThatType(javaClass.getMethod("method").getReturnType())
+                .hasErasure(String[].class)
+                .matches(genericArray(typeVariableArrayName("T", 1))
+                        .withComponentType(typeVariable("T").withUpperBounds(String.class)));
+        assertThatType(javaClass.getMethod("method2Dim").getReturnType())
+                .hasErasure(String[][].class)
+                .matches(genericArray(typeVariableArrayName("T", 2))
+                        .withComponentType(genericArray(typeVariableArrayName("T", 1))
+                                .withComponentType(typeVariable("T")
+                                        .withUpperBounds(String.class))));
+    }
+
+    @Test
     public void imports_complex_generic_method_return_type_with_multiple_nested_actual_type_arguments_with_generic_array_bounds() {
         @SuppressWarnings("unused")
-        class GenericReturnType<A, B, C> {
+        class GenericReturnType<A, B, C, D> {
         }
         @SuppressWarnings("unused")
         class SomeClass<X extends Serializable, Y extends String> {
             GenericReturnType<
+                    X[],
                     List<X[]>,
                     List<? extends X[][]>,
                     Map<? super Y[], Map<Map<? super Y[][][], ?>, X[][]>>> method() {
@@ -725,6 +773,8 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
         JavaType genericReturnType = classes.get(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).hasActualTypeArguments(
+                genericArray("X[]").withComponentType(
+                        typeVariable("X").withUpperBounds(Serializable.class)),
                 parameterizedType(List.class).withTypeArguments(
                         genericArray(typeVariableArrayName("X", 1)).withComponentType(
                                 typeVariable("X").withUpperBounds(Serializable.class))),

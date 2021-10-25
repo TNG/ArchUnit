@@ -46,6 +46,11 @@ class GenericMemberTypeProcessor<T extends HasDescription> extends SignatureVisi
     }
 
     @Override
+    public void visitBaseType(char descriptor) {
+        visitClassType(String.valueOf(descriptor));
+    }
+
+    @Override
     public void visitInnerClassType(String name) {
         updateType(parameterizedType.forInnerClass(name));
     }
@@ -68,7 +73,7 @@ class GenericMemberTypeProcessor<T extends HasDescription> extends SignatureVisi
 
     @Override
     public void visitTypeVariable(String name) {
-        typeCreationProcess = new ReferenceCreationProcess<>(name);
+        typeCreationProcess = new ReferenceCreationProcess<>(name, typeFinisher);
     }
 
     private void updateType(JavaParameterizedTypeBuilder<T> type) {
