@@ -177,6 +177,10 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
             JavaClass clazz = (JavaClass) originCandidate;
             return new Origin(clazz, clazz.getDescription());
         }
+        if (originCandidate instanceof JavaCodeUnit.Parameter) {
+            JavaCodeUnit.Parameter parameter = (JavaCodeUnit.Parameter) originCandidate;
+            return new Origin(parameter.getOwner().getOwner(), parameter.getDescription());
+        }
         throw new IllegalStateException("Could not find suitable dependency origin for " + dependencyCause);
     }
 

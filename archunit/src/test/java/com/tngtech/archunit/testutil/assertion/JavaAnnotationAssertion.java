@@ -26,11 +26,19 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotationAssertion, JavaAnnotation<?>> {
     public JavaAnnotationAssertion(JavaAnnotation<?> actual) {
         super(actual, JavaAnnotationAssertion.class);
+    }
+
+    public JavaAnnotationAssertion matches(Annotation annotation) {
+        assertThat(runtimePropertiesOf(singleton(actual)))
+                .as("runtime properties of " + actual)
+                .containsExactly(propertiesOf(annotation));
+        return this;
     }
 
     public JavaAnnotationAssertion hasType(Class<? extends Annotation> annotationType) {

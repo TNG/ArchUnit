@@ -15,28 +15,46 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.ForwardingList;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
+import com.tngtech.archunit.core.domain.properties.HasAnnotations;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
+import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder.ParameterAnnotationsBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
+import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 /**
  * Represents a unit of code containing accesses to other units of code. A unit of code can be
@@ -53,8 +71,7 @@ public abstract class JavaCodeUnit
         implements HasParameterTypes, HasReturnType, HasTypeParameters<JavaCodeUnit>, HasThrowsClause<JavaCodeUnit> {
 
     private final JavaType returnType;
-    private final List<JavaClass> rawParameterTypes;
-    private final List<JavaType> parameterTypes;
+    private final Parameters parameters;
     private final String fullName;
     private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
     private final Set<ReferencedClassObject> referencedClassObjects;
@@ -68,17 +85,10 @@ public abstract class JavaCodeUnit
         super(builder);
         typeParameters = builder.getTypeParameters(this);
         returnType = builder.getReturnType(this);
-        rawParameterTypes = builder.getRawParameterTypes();
-        parameterTypes = getParameterTypes(builder);
+        parameters = new Parameters(this, builder);
         fullName = formatMethod(getOwner().getName(), getName(), namesOf(getRawParameterTypes()));
         referencedClassObjects = ImmutableSet.copyOf(builder.getReferencedClassObjects(this));
         instanceofChecks = ImmutableSet.copyOf(builder.getInstanceofChecks(this));
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"}) // the cast is safe because the list is immutable, thus used in a covariant way
-    private List<JavaType> getParameterTypes(JavaCodeUnitBuilder<?, ?> builder) {
-        List<JavaType> genericParameterTypes = builder.getGenericParameterTypes(this);
-        return genericParameterTypes.isEmpty() ? (List) rawParameterTypes : genericParameterTypes;
     }
 
     /**
@@ -90,16 +100,59 @@ public abstract class JavaCodeUnit
         return fullName;
     }
 
+    /**
+     * @return the raw parameter types of this {@link JavaCodeUnit}. On the contrary to {@link #getParameterTypes()}
+     *         these will always be {@link JavaClass} and thus not containing any parameterization/generic
+     *         information. Note that the raw parameter types can contain synthetic parameters added by the compiler.
+     *         E.g. for inner class constructors that receive the outer class as synthetic parameter or enum constructors
+     *         that receive enum name and ordinal as synthetic parameters. There is no guarantee about the number
+     *         of synthetic parameters, nor if they are appended or prepended, as e.g. local classes will append
+     *         all local variables from the outer scope that are referenced as additional synthetic constructor
+     *         parameters.
+     *
+     * @see #getParameterTypes()
+     * @see #getParameters()
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public List<JavaClass> getRawParameterTypes() {
-        return rawParameterTypes;
+        return parameters.getRawParameterTypes();
     }
 
+    /**
+     * @return the (possibly generic) parameter types of this {@link JavaCodeUnit}. This could for example be a
+     *         {@link JavaTypeVariable} or a {@link JavaParameterizedType}, but also simply a {@link JavaClass}.<br>
+     *         Note that <b>if</b> the method has a generic signature (e.g. declaring a parameterized type) then
+     *         on the contrary to {@link #getRawParameterTypes()} these types will be parsed from the
+     *         signature encoded in the bytecode, i.e. they will not contain synthetic parameters added by the
+     *         compiler. However, if there is no generic signature, then this information can also not be parsed
+     *         from the signature. In this case the parameter types will be equal to the raw parameter types
+     *         and by that can also contain synthetic parameters.
+     *
+     * @see #getRawParameterTypes()
+     * @see #getParameters()
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public List<JavaType> getParameterTypes() {
-        return parameterTypes;
+        return parameters.getParameterTypes();
+    }
+
+    /**
+     * @return the {@link Parameter parameters} of this {@link JavaCodeUnit}. On the contrary to the Reflection API this will only contain
+     *         the parameters from the signature and not synthetic parameters, if the signature is generic. In these cases
+     *         {@link #getParameters()}{@code .size()} will always be equal to {@link #getParameterTypes()}{@code .size()},
+     *         but not necessarily to {@link #getRawParameterTypes()}{@code .size()} in case the compiler adds synthetic parameters.<br>
+     *         Note that for non-generic method signatures {@link #getParameters()} actually contains the raw parameter types and thus
+     *         can also contain synthetic parameters. Unfortunately there is no way at the moment to distinguish synthetic
+     *         parameters from non-synthetic parameters in these cases.
+     *
+     * @see #getRawParameterTypes()
+     * @see #getParameterTypes()
+     */
+    @PublicAPI(usage = ACCESS)
+    public List<Parameter> getParameters() {
+        return parameters;
     }
 
     @Override
@@ -195,6 +248,11 @@ public abstract class JavaCodeUnit
         return typeParameters;
     }
 
+    @PublicAPI(usage = ACCESS)
+    public List<Set<JavaAnnotation<Parameter>>> getParameterAnnotations() {
+        return parameters.getAnnotations();
+    }
+
     void completeAccessesFrom(ImportContext context) {
         fieldAccesses = context.createFieldAccessesFor(this);
         methodCalls = context.createMethodCallsFor(this);
@@ -209,6 +267,184 @@ public abstract class JavaCodeUnit
             result.add(parameter.reflect());
         }
         return result.toArray(new Class<?>[0]);
+    }
+
+    /**
+     * A parameter of a {@link JavaCodeUnit}, i.e. encapsulates the raw parameter type, the (possibly) generic
+     * parameter type and any annotations this parameter has.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final class Parameter implements HasType, HasOwner<JavaCodeUnit>, HasAnnotations<Parameter> {
+        private static final ChainableFunction<HasType, String> GET_ANNOTATION_TYPE_NAME = GET_RAW_TYPE.then(GET_NAME);
+        private static final Function<HasType, String> GUAVA_GET_ANNOTATION_TYPE_NAME = toGuava(GET_ANNOTATION_TYPE_NAME);
+
+        private final JavaCodeUnit owner;
+        private final int index;
+        private final JavaType type;
+        private final JavaClass rawType;
+        private final Map<String, JavaAnnotation<Parameter>> annotations;
+
+        private Parameter(JavaCodeUnit owner, ParameterAnnotationsBuilder builder, int index, JavaType type) {
+            this.owner = owner;
+            this.index = index;
+            this.type = type;
+            this.rawType = type.toErasure();
+            this.annotations = buildIndexedByTypeName(builder);
+        }
+
+        private Map<String, JavaAnnotation<Parameter>> buildIndexedByTypeName(ParameterAnnotationsBuilder builder) {
+            Set<JavaAnnotation<Parameter>> annotations = builder.build(this);
+            return Maps.uniqueIndex(annotations, GUAVA_GET_ANNOTATION_TYPE_NAME);
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public JavaCodeUnit getOwner() {
+            return owner;
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public int getIndex() {
+            return index;
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public JavaType getType() {
+            return type;
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public JavaClass getRawType() {
+            return rawType;
+        }
+
+        @Override
+        public boolean isAnnotatedWith(Class<? extends Annotation> annotationType) {
+            return annotations.containsKey(annotationType.getName());
+        }
+
+        @Override
+        public boolean isAnnotatedWith(String annotationTypeName) {
+            return annotations.containsKey(annotationTypeName);
+        }
+
+        @Override
+        public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+            return anyElementThat(predicate).apply(annotations.values());
+        }
+
+        @Override
+        public boolean isMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
+            return isMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(annotationType)));
+        }
+
+        @Override
+        public boolean isMetaAnnotatedWith(String annotationTypeName) {
+            return isMetaAnnotatedWith(GET_ANNOTATION_TYPE_NAME.is(equalTo(annotationTypeName)));
+        }
+
+        @Override
+        public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+            return CanBeAnnotated.Utils.isMetaAnnotatedWith(annotations.values(), predicate);
+        }
+
+        @Override
+        public Set<JavaAnnotation<Parameter>> getAnnotations() {
+            return ImmutableSet.copyOf(annotations.values());
+        }
+
+        @Override
+        public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
+            return getAnnotationOfType(type.getName()).as(type);
+        }
+
+        @Override
+        public JavaAnnotation<Parameter> getAnnotationOfType(String typeName) {
+            Optional<JavaAnnotation<Parameter>> annotation = tryGetAnnotationOfType(typeName);
+            if (!annotation.isPresent()) {
+                throw new IllegalArgumentException(String.format("%s is not annotated with @%s", getDescription(), typeName));
+            }
+            return annotation.get();
+        }
+
+        @Override
+        public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
+            return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
+        }
+
+        @Override
+        public Optional<JavaAnnotation<Parameter>> tryGetAnnotationOfType(String typeName) {
+            return Optional.ofNullable(annotations.get(typeName));
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public String getDescription() {
+            return "Parameter <" + type.getName() + "> of " + startWithLowercase(owner.getDescription());
+        }
+
+        @Override
+        public String toString() {
+            return "JavaParameter{owner='" + owner.getFullName() + "', index='" + index + "', type='" + type.getName() + "'}";
+        }
+
+        static String startWithLowercase(String string) {
+            return Character.toLowerCase(string.charAt(0)) + string.substring(1);
+        }
+    }
+
+    private static class Parameters extends ForwardingList<Parameter> {
+        private final List<JavaClass> rawParameterTypes;
+        private final List<JavaType> parameterTypes;
+        private final List<Set<JavaAnnotation<Parameter>>> parameterAnnotations;
+        private final List<Parameter> parameters;
+
+        Parameters(JavaCodeUnit owner, JavaCodeUnitBuilder<?, ?> builder) {
+            rawParameterTypes = builder.getRawParameterTypes();
+            parameterTypes = getParameterTypes(builder.getGenericParameterTypes(owner));
+            parameters = createParameters(owner, builder, parameterTypes);
+            parameterAnnotations = annotationsOf(parameters);
+        }
+
+        private List<Set<JavaAnnotation<Parameter>>> annotationsOf(List<Parameter> parameters) {
+            ImmutableList.Builder<Set<JavaAnnotation<Parameter>>> result = ImmutableList.builder();
+            for (Parameter parameter : parameters) {
+                result.add(parameter.getAnnotations());
+            }
+            return result.build();
+        }
+
+        private static List<Parameter> createParameters(JavaCodeUnit owner, JavaCodeUnitBuilder<?, ?> builder, List<JavaType> parameterTypes) {
+            ImmutableList.Builder<Parameter> result = ImmutableList.builder();
+            for (int i = 0; i < parameterTypes.size(); i++) {
+                result.add(new Parameter(owner, builder.getParameterAnnotationsBuilder(i), i, parameterTypes.get(i)));
+            }
+            return result.build();
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"}) // the cast is safe because the list is immutable, thus used in a covariant way
+        private List<JavaType> getParameterTypes(List<JavaType> genericParameterTypes) {
+            return genericParameterTypes.isEmpty() ? (List) rawParameterTypes : genericParameterTypes;
+        }
+
+        List<JavaClass> getRawParameterTypes() {
+            return rawParameterTypes;
+        }
+
+        List<JavaType> getParameterTypes() {
+            return parameterTypes;
+        }
+
+        List<Set<JavaAnnotation<Parameter>>> getAnnotations() {
+            return parameterAnnotations;
+        }
+
+        @Override
+        protected List<Parameter> delegate() {
+            return parameters;
+        }
     }
 
     public static final class Predicates {

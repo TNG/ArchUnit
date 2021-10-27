@@ -46,6 +46,7 @@ import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaAnnotationsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaClassAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaClassDescriptorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
@@ -193,6 +194,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static JavaAnnotationAssertion assertThatAnnotation(JavaAnnotation<?> annotation) {
         return new JavaAnnotationAssertion(annotation);
+    }
+
+    public static JavaAnnotationsAssertion assertThatAnnotations(Set<? extends JavaAnnotation<?>> annotation) {
+        return new JavaAnnotationsAssertion(annotation);
     }
 
     @SuppressWarnings("unchecked") // covariant

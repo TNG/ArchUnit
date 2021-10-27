@@ -22,8 +22,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SetMultimap;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Chars;
@@ -36,7 +38,6 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.MayResolveTypesViaReflection;
-import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -325,6 +326,7 @@ class JavaClassProcessor extends ClassVisitor {
         private final DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder;
         private final DeclarationHandler declarationHandler;
         private final Set<DomainBuilders.JavaAnnotationBuilder> annotations = new HashSet<>();
+        private final SetMultimap<Integer, DomainBuilders.JavaAnnotationBuilder> parameterAnnotationsByIndex = HashMultimap.create();
         private int actualLineNumber;
 
         MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler) {
@@ -333,11 +335,17 @@ class JavaClassProcessor extends ClassVisitor {
             this.accessHandler = accessHandler;
             this.codeUnitBuilder = codeUnitBuilder;
             this.declarationHandler = declarationHandler;
+            codeUnitBuilder.withParameterAnnotations(parameterAnnotationsByIndex);
         }
 
         @Override
         public void visitCode() {
             actualLineNumber = 0;
+        }
+
+        @Override
+        public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
+            return new AnnotationProcessor(addAnnotationAtIndex(parameterAnnotationsByIndex, parameter), annotationBuilderFor(desc));
         }
 
         // NOTE: ASM does not reliably visit this method, so if this method is skipped, line number 0 is recorded
@@ -606,6 +614,15 @@ class JavaClassProcessor extends ClassVisitor {
         };
     }
 
+    private static TakesAnnotationBuilder addAnnotationAtIndex(final SetMultimap<Integer, DomainBuilders.JavaAnnotationBuilder> annotations, final int index) {
+        return new TakesAnnotationBuilder() {
+            @Override
+            public void add(DomainBuilders.JavaAnnotationBuilder annotation) {
+                annotations.put(index, annotation);
+            }
+        };
+    }
+
     private static TakesAnnotationBuilder addAnnotationAsProperty(final String name, final DomainBuilders.JavaAnnotationBuilder annotationBuilder) {
         return new TakesAnnotationBuilder() {
             @Override
@@ -674,7 +691,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         private class ArrayValueBuilder extends ValueBuilder {
             @Override
-            public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
+            public <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importContext) {
                 Optional<Class<?>> componentType = determineComponentType(importContext);
                 if (!componentType.isPresent()) {
                     return Optional.empty();
@@ -705,7 +722,7 @@ class JavaClassProcessor extends ClassVisitor {
                 return values.toArray((Object[]) Array.newInstance(componentType, values.size()));
             }
 
-            private <T extends HasDescription> List<Object> buildValues(T owner, ImportContext importContext) {
+            private <T extends HasDescription> List<Object> buildValues(T owner, ImportedClasses importContext) {
                 List<Object> result = new ArrayList<>();
                 for (ValueBuilder value : values) {
                     result.addAll(value.build(owner, importContext).asSet());
@@ -713,7 +730,7 @@ class JavaClassProcessor extends ClassVisitor {
                 return result;
             }
 
-            private Optional<Class<?>> determineComponentType(ImportContext importContext) {
+            private Optional<Class<?>> determineComponentType(ImportedClasses importContext) {
                 if (derivedComponentType != null) {
                     return Optional.<Class<?>>of(derivedComponentType);
                 }
@@ -776,10 +793,10 @@ class JavaClassProcessor extends ClassVisitor {
     private static ValueBuilder javaEnumBuilder(final String desc, final String value) {
         return new ValueBuilder() {
             @Override
-            public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
+            public <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importContext) {
                 return Optional.<Object>of(
                         new DomainBuilders.JavaEnumConstantBuilder()
-                                .withDeclaringClass(importContext.resolveClass(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc).getFullyQualifiedClassName()))
+                                .withDeclaringClass(importContext.getOrResolve(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc).getFullyQualifiedClassName()))
                                 .withName(value)
                                 .build());
             }
@@ -792,8 +809,8 @@ class JavaClassProcessor extends ClassVisitor {
             if (value instanceof JavaClassDescriptor) {
                 return new ValueBuilder() {
                     @Override
-                    public <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
-                        return Optional.<Object>of(importContext.resolveClass(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
+                    public <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importContext) {
+                        return Optional.<Object>of(importContext.getOrResolve(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
                     }
                 };
             }

@@ -229,6 +229,27 @@ public class DependencyTest {
     }
 
     @Test
+    public void Dependency_from_parameter_annotation() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            void method(@SomeAnnotation(String.class) Object param) {
+            }
+        }
+
+        JavaCodeUnit.Parameter parameter = getOnlyElement(
+                new ClassFileImporter().importClass(SomeClass.class)
+                        .getMethod("method", Object.class).getParameters());
+
+        Dependency dependency = getOnlyElement(Dependency.tryCreateFromAnnotation(getOnlyElement(parameter.getAnnotations())));
+
+        assertThatType(dependency.getOriginClass()).matches(SomeClass.class);
+        assertThatType(dependency.getTargetClass()).matches(SomeAnnotation.class);
+        assertThat(dependency.getDescription()).as("description")
+                .contains("Parameter <" + Object.class.getName() + "> of method <" + SomeClass.class.getName() + "." + "method(" + Object.class.getName() + ")> "
+                        + "is annotated with <" + SomeAnnotation.class.getName() + ">");
+    }
+
+    @Test
     @UseDataProvider("annotated_classes")
     public void Dependency_from_class_annotation_member(JavaClass annotatedClass) {
         JavaAnnotation<?> annotation = annotatedClass.getAnnotationOfType(SomeAnnotation.class.getName());

@@ -3,6 +3,7 @@ package com.tngtech.archunit.core.importer;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,6 +13,7 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
@@ -25,6 +27,7 @@ import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.Clas
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithUnimportedAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.SimpleAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.TypeAnnotationWithEnumAndArrayValue;
+import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithAnnotatedFields;
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.FieldAnnotationWithArrays;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods;
@@ -35,7 +38,6 @@ import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,6 +51,7 @@ import static com.tngtech.archunit.core.importer.testexamples.annotationmethodim
 import static com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAnnotatedMethod;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
+import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotations;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.annotationProperty;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
@@ -194,11 +197,11 @@ public class ClassFileImporterAnnotationsTest {
         assertThat(Array.getLength(annotation.get("annotations").get())).isZero();
 
         ClassAnnotationWithArrays reflected = clazz.getAnnotationOfType(ClassAnnotationWithArrays.class);
-        Assertions.assertThat(reflected.primitives()).isEmpty();
-        Assertions.assertThat(reflected.objects()).isEmpty();
-        Assertions.assertThat(reflected.enums()).isEmpty();
-        Assertions.assertThat(reflected.classes()).isEmpty();
-        Assertions.assertThat(reflected.annotations()).isEmpty();
+        assertThat(reflected.primitives()).isEmpty();
+        assertThat(reflected.objects()).isEmpty();
+        assertThat(reflected.enums()).isEmpty();
+        assertThat(reflected.classes()).isEmpty();
+        assertThat(reflected.annotations()).isEmpty();
     }
 
     @Test
@@ -214,10 +217,10 @@ public class ClassFileImporterAnnotationsTest {
         assertThat((JavaEnumConstant) annotation.get("optionalEnum").get()).isEquivalentTo(OTHER_VALUE);
 
         SomeAnnotation reflected = clazz.getAnnotationOfType(SomeAnnotation.class);
-        Assertions.assertThat(reflected.mandatory()).isEqualTo("mandatory");
-        Assertions.assertThat(reflected.optional()).isEqualTo("optional");
-        Assertions.assertThat(reflected.mandatoryEnum()).isEqualTo(SOME_VALUE);
-        Assertions.assertThat(reflected.optionalEnum()).isEqualTo(OTHER_VALUE);
+        assertThat(reflected.mandatory()).isEqualTo("mandatory");
+        assertThat(reflected.optional()).isEqualTo("optional");
+        assertThat(reflected.mandatoryEnum()).isEqualTo(SOME_VALUE);
+        assertThat(reflected.optionalEnum()).isEqualTo(OTHER_VALUE);
     }
 
     @Test
@@ -422,11 +425,11 @@ public class ClassFileImporterAnnotationsTest {
         assertThat(Array.getLength(annotation.get("annotations").get())).isZero();
 
         MethodAnnotationWithArrays reflected = annotation.as(MethodAnnotationWithArrays.class);
-        Assertions.assertThat(reflected.primitives()).isEmpty();
-        Assertions.assertThat(reflected.objects()).isEmpty();
-        Assertions.assertThat(reflected.enums()).isEmpty();
-        Assertions.assertThat(reflected.classes()).isEmpty();
-        Assertions.assertThat(reflected.annotations()).isEmpty();
+        assertThat(reflected.primitives()).isEmpty();
+        assertThat(reflected.objects()).isEmpty();
+        assertThat(reflected.enums()).isEmpty();
+        assertThat(reflected.classes()).isEmpty();
+        assertThat(reflected.annotations()).isEmpty();
     }
 
     @Test
@@ -440,8 +443,134 @@ public class ClassFileImporterAnnotationsTest {
         assertThat(annotation.get("optional")).contains("optional");
 
         SomeAnnotation reflected = annotation.as(SomeAnnotation.class);
-        Assertions.assertThat(reflected.mandatory()).isEqualTo("mandatory");
-        Assertions.assertThat(reflected.optional()).isEqualTo("optional");
+        assertThat(reflected.mandatory()).isEqualTo("mandatory");
+        assertThat(reflected.optional()).isEqualTo("optional");
+    }
+
+    @Test
+    public void imports_empty_parameter_annotations_for_method_without_annotated_parameters() {
+        JavaMethod method = new ClassFileImporter().importPackagesOf(ClassWithMethodWithAnnotatedParameters.class)
+                .get(ClassWithMethodWithAnnotatedParameters.class)
+                .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithTwoUnannotatedParameters, String.class, int.class);
+
+        for (JavaCodeUnit.Parameter parameter : method.getParameters()) {
+            assertThat(parameter.getAnnotations()).isEmpty();
+        }
+        assertThat(method.getParameterAnnotations()).containsExactly(
+                Collections.<JavaAnnotation<JavaCodeUnit.Parameter>>emptySet(), Collections.<JavaAnnotation<JavaCodeUnit.Parameter>>emptySet());
+    }
+
+    @Test
+    public void imports_method_with_one_parameter_with_one_annotation() {
+        JavaMethod method = new ClassFileImporter().importPackagesOf(ClassWithMethodWithAnnotatedParameters.class)
+                .get(ClassWithMethodWithAnnotatedParameters.class)
+                .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithOneAnnotatedParameterWithOneAnnotation, String.class);
+
+        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = method.getParameterAnnotations();
+
+        JavaCodeUnit.Parameter parameter = getOnlyElement(method.getParameters());
+        JavaAnnotation<JavaCodeUnit.Parameter> annotation = getOnlyElement(getOnlyElement(parameterAnnotations));
+
+        assertThat((JavaEnumConstant) annotation.get("value").get()).isEquivalentTo(OTHER_VALUE);
+        assertThat((JavaEnumConstant) annotation.get("valueWithDefault").get()).isEquivalentTo(SOME_VALUE);
+        assertThat(((JavaEnumConstant[]) annotation.get("enumArray").get())).matches(SOME_VALUE, OTHER_VALUE);
+        assertThat(((JavaEnumConstant[]) annotation.get("enumArrayWithDefault").get())).matches(OTHER_VALUE);
+        JavaAnnotation<?> subAnnotation = (JavaAnnotation<?>) annotation.get("subAnnotation").get();
+        assertThat(subAnnotation.get("value").get()).isEqualTo("changed");
+        assertThat(subAnnotation.getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotation.getAnnotatedElement()).isEqualTo(parameter);
+        assertThat(((JavaAnnotation<?>) annotation.get("subAnnotationWithDefault").get()).get("value").get())
+                .isEqualTo("default");
+        JavaAnnotation<?>[] subAnnotationArray = (JavaAnnotation<?>[]) annotation.get("subAnnotationArray").get();
+        assertThat(subAnnotationArray[0].get("value").get()).isEqualTo("one");
+        assertThat(subAnnotationArray[0].getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotationArray[0].getAnnotatedElement()).isEqualTo(parameter);
+        assertThat(subAnnotationArray[1].get("value").get()).isEqualTo("two");
+        assertThat(subAnnotationArray[1].getOwner()).isEqualTo(annotation);
+        assertThat(subAnnotationArray[1].getAnnotatedElement()).isEqualTo(parameter);
+        assertThat(((JavaAnnotation<?>[]) annotation.get("subAnnotationArrayWithDefault").get())[0].get("value").get())
+                .isEqualTo("first");
+        assertThatType((JavaClass) annotation.get("clazz").get()).matches(Map.class);
+        assertThatType((JavaClass) annotation.get("clazzWithDefault").get()).matches(String.class);
+        assertThat((JavaClass[]) annotation.get("classes").get()).matchExactly(Object.class, Serializable.class);
+        assertThat((JavaClass[]) annotation.get("classesWithDefault").get()).matchExactly(Serializable.class, List.class);
+
+        assertThatAnnotation(getOnlyElement(parameter.getAnnotations())).matches(method.reflect().getParameterAnnotations()[0][0]);
+        assertThatAnnotation(annotation).matches(method.reflect().getParameterAnnotations()[0][0]);
+    }
+
+    @Test
+    public void imports_method_with_one_parameter_with_two_annotations() {
+        JavaMethod method = new ClassFileImporter().importPackagesOf(ClassWithMethodWithAnnotatedParameters.class)
+                .get(ClassWithMethodWithAnnotatedParameters.class)
+                .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithOneAnnotatedParameterWithTwoAnnotations, String.class);
+
+        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = method.getParameterAnnotations();
+
+        Set<JavaAnnotation<JavaCodeUnit.Parameter>> annotations = getOnlyElement(parameterAnnotations);
+
+        assertThat(annotations).isEqualTo(getOnlyElement(method.getParameters()).getAnnotations());
+        assertThatAnnotations(annotations).match(ImmutableSet.copyOf(method.reflect().getParameterAnnotations()[0]));
+    }
+
+    @Test
+    public void imports_methods_with_multiple_parameters_with_annotations() {
+        JavaMethod method = new ClassFileImporter().importPackagesOf(ClassWithMethodWithAnnotatedParameters.class)
+                .get(ClassWithMethodWithAnnotatedParameters.class)
+                .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithTwoAnnotatedParameters, String.class, int.class);
+
+        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = method.getParameterAnnotations();
+
+        List<JavaCodeUnit.Parameter> parameters = method.getParameters();
+        for (int i = 0; i < 2; i++) {
+            assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
+            assertThatAnnotations(parameterAnnotations.get(i)).match(ImmutableSet.copyOf(method.reflect().getParameterAnnotations()[i]));
+        }
+    }
+
+    @Test
+    public void imports_methods_with_multiple_parameters_with_annotations_but_unannotated_parameters_in_between() {
+        JavaMethod method = new ClassFileImporter().importPackagesOf(ClassWithMethodWithAnnotatedParameters.class)
+                .get(ClassWithMethodWithAnnotatedParameters.class)
+                .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithAnnotatedParametersGap, String.class, int.class, Object.class, List.class);
+
+        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = method.getParameterAnnotations();
+
+        assertThatAnnotations(parameterAnnotations.get(0)).isNotEmpty();
+        assertThatAnnotations(parameterAnnotations.get(1)).isEmpty();
+        assertThatAnnotations(parameterAnnotations.get(2)).isEmpty();
+        assertThatAnnotations(parameterAnnotations.get(3)).isNotEmpty();
+
+        List<JavaCodeUnit.Parameter> parameters = method.getParameters();
+        for (int i = 0; i < 4; i++) {
+            assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
+            assertThatAnnotations(parameterAnnotations.get(i)).match(ImmutableSet.copyOf(method.reflect().getParameterAnnotations()[i]));
+        }
+    }
+
+    @Test
+    public void imports_parameter_annotations_correctly_for_synthetic_constructor_parameter() {
+        @SuppressWarnings("unused")
+        class LocalClassThusSyntheticFirstConstructorParameter {
+            LocalClassThusSyntheticFirstConstructorParameter(Object notAnnotated, @SimpleAnnotation("test") List<String> annotated) {
+            }
+        }
+
+        JavaConstructor constructor = getOnlyElement(new ClassFileImporter().importClasses(LocalClassThusSyntheticFirstConstructorParameter.class, String.class)
+                .get(LocalClassThusSyntheticFirstConstructorParameter.class)
+                .getConstructors());
+
+        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = constructor.getParameterAnnotations();
+
+        assertThat(parameterAnnotations).as("parameter annotations").hasSize(2);
+        assertThatAnnotations(parameterAnnotations.get(0)).isEmpty();
+        assertThatAnnotations(parameterAnnotations.get(1)).isNotEmpty();
+
+        List<JavaCodeUnit.Parameter> parameters = constructor.getParameters();
+        for (int i = 0; i < parameterAnnotations.size(); i++) {
+            assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
+            assertThatAnnotations(parameterAnnotations.get(i)).match(ImmutableSet.copyOf(constructor.reflect().getParameterAnnotations()[i]));
+        }
     }
 
     @Test
@@ -531,7 +660,9 @@ public class ClassFileImporterAnnotationsTest {
                 new ClassFileImporter().importClass(MetaAnnotatedClass.class),
                 new ClassFileImporter().importClass(ClassWithMetaAnnotatedField.class).getField("metaAnnotatedField"),
                 new ClassFileImporter().importClass(ClassWithMetaAnnotatedMethod.class).getMethod("metaAnnotatedMethod"),
-                new ClassFileImporter().importClass(ClassWithMetaAnnotatedConstructor.class).getConstructor()
+                new ClassFileImporter().importClass(ClassWithMetaAnnotatedConstructor.class).getConstructor(),
+                getOnlyElement(new ClassFileImporter().importClass(ClassWithMetaAnnotatedConstructorParameter.class).getConstructor(String.class).getParameters()),
+                getOnlyElement(new ClassFileImporter().importClass(ClassWithMetaAnnotatedMethodParameter.class).getMethod("method", String.class).getParameters())
         );
     }
 
@@ -669,6 +800,18 @@ public class ClassFileImporterAnnotationsTest {
     private static class ClassWithMetaAnnotatedConstructor {
         @MetaAnnotatedAnnotation
         ClassWithMetaAnnotatedConstructor() {
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithMetaAnnotatedConstructorParameter {
+        ClassWithMetaAnnotatedConstructorParameter(@MetaAnnotatedAnnotation String param) {
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassWithMetaAnnotatedMethodParameter {
+        void method(@MetaAnnotatedAnnotation String param) {
         }
     }
 

@@ -80,7 +80,11 @@ import com.tngtech.archunit.example.layers.controller.SimpleControllerAnnotation
 import com.tngtech.archunit.example.layers.controller.SomeController;
 import com.tngtech.archunit.example.layers.controller.SomeGuiController;
 import com.tngtech.archunit.example.layers.controller.SomeUtility;
+import com.tngtech.archunit.example.layers.controller.UnmarshalTransport;
 import com.tngtech.archunit.example.layers.controller.WronglyAnnotated;
+import com.tngtech.archunit.example.layers.controller.marshaller.ByteUnmarshaller;
+import com.tngtech.archunit.example.layers.controller.marshaller.StringUnmarshaller;
+import com.tngtech.archunit.example.layers.controller.marshaller.Unmarshaller;
 import com.tngtech.archunit.example.layers.controller.one.SomeEnum;
 import com.tngtech.archunit.example.layers.controller.one.UseCaseOneThreeController;
 import com.tngtech.archunit.example.layers.controller.one.UseCaseOneTwoController;
@@ -100,6 +104,7 @@ import com.tngtech.archunit.example.layers.persistence.second.dao.jpa.OtherJpa;
 import com.tngtech.archunit.example.layers.security.Secured;
 import com.tngtech.archunit.example.layers.service.Async;
 import com.tngtech.archunit.example.layers.service.ComplexServiceAnnotation;
+import com.tngtech.archunit.example.layers.service.OtherServiceViolatingLayerRules;
 import com.tngtech.archunit.example.layers.service.ProxiedConnection;
 import com.tngtech.archunit.example.layers.service.ServiceHelper;
 import com.tngtech.archunit.example.layers.service.ServiceInterface;
@@ -174,6 +179,7 @@ import static com.tngtech.archunit.testutils.ExpectedAccess.callFromConstructor;
 import static com.tngtech.archunit.testutils.ExpectedAccess.callFromMethod;
 import static com.tngtech.archunit.testutils.ExpectedAccess.callFromStaticInitializer;
 import static com.tngtech.archunit.testutils.ExpectedDependency.annotatedClass;
+import static com.tngtech.archunit.testutils.ExpectedDependency.annotatedParameter;
 import static com.tngtech.archunit.testutils.ExpectedDependency.constructor;
 import static com.tngtech.archunit.testutils.ExpectedDependency.field;
 import static com.tngtech.archunit.testutils.ExpectedDependency.genericFieldType;
@@ -233,7 +239,7 @@ class ExamplesIntegrationTest {
                         .inLine(9));
 
         expectFailures.ofRule("fields that have raw type java.util.logging.Logger should be private " +
-                "and should be static and should be final, because we agreed on this convention")
+                        "and should be static and should be final, because we agreed on this convention")
                 .by(ExpectedField.of(ClassViolatingCodingRules.class, "log").doesNotHaveModifier(JavaModifier.PRIVATE))
                 .by(ExpectedField.of(ClassViolatingCodingRules.class, "log").doesNotHaveModifier(JavaModifier.FINAL));
 
@@ -245,8 +251,8 @@ class ExamplesIntegrationTest {
                 .by(method(ClassViolatingCodingRules.class, "jodaTimeIsBad")
                         .withReturnType(org.joda.time.DateTime.class));
 
-        expectFailures.ofRule("no classes should use field injection, because field injection is considered harmful; "
-                + "use constructor injection or setter injection instead; see https://stackoverflow.com/q/39890849 for detailed explanations")
+        expectFailures.ofRule("no classes should use field injection, because field injection is considered harmful; " +
+                        "use constructor injection or setter injection instead; see https://stackoverflow.com/q/39890849 for detailed explanations")
                 .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseAutowiredField").beingAnnotatedWith(Autowired.class))
                 .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseValueField").beingAnnotatedWith(Value.class))
                 .by(ExpectedField.of(ClassViolatingInjectionRules.class, "badBecauseJavaxInjectField").beingAnnotatedWith(javax.inject.Inject.class))
@@ -815,6 +821,15 @@ class ExamplesIntegrationTest {
                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(ComplexControllerAnnotation.class))
                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SimpleControllerAnnotation.class))
                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SomeEnum.class))
+                .by(annotatedParameter(Object.class)
+                        .ofMethod(OtherServiceViolatingLayerRules.class, "dependentOnParameterAnnotation", Object.class)
+                        .annotatedWith(UnmarshalTransport.class))
+                .by(annotatedParameter(Object.class)
+                        .ofMethod(OtherServiceViolatingLayerRules.class, "dependentOnParameterAnnotation", Object.class)
+                        .withAnnotationParameterType(StringUnmarshaller.class))
+                .by(annotatedParameter(Object.class)
+                        .ofMethod(OtherServiceViolatingLayerRules.class, "dependentOnParameterAnnotation", Object.class)
+                        .withAnnotationParameterType(ByteUnmarshaller.class))
                 .by(method(ComplexServiceAnnotation.class, "controllerAnnotation").withReturnType(ComplexControllerAnnotation.class))
                 .by(method(ComplexServiceAnnotation.class, "controllerEnum").withReturnType(SomeEnum.class))
 
@@ -898,6 +913,15 @@ class ExamplesIntegrationTest {
                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(ComplexControllerAnnotation.class))
                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SimpleControllerAnnotation.class))
                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SomeEnum.class))
+                .by(annotatedParameter(Object.class)
+                        .ofMethod(OtherServiceViolatingLayerRules.class, "dependentOnParameterAnnotation", Object.class)
+                        .annotatedWith(UnmarshalTransport.class))
+                .by(annotatedParameter(Object.class)
+                        .ofMethod(OtherServiceViolatingLayerRules.class, "dependentOnParameterAnnotation", Object.class)
+                        .withAnnotationParameterType(StringUnmarshaller.class))
+                .by(annotatedParameter(Object.class)
+                        .ofMethod(OtherServiceViolatingLayerRules.class, "dependentOnParameterAnnotation", Object.class)
+                        .withAnnotationParameterType(ByteUnmarshaller.class))
                 .by(method(ComplexServiceAnnotation.class, "controllerAnnotation").withReturnType(ComplexControllerAnnotation.class))
                 .by(method(ComplexServiceAnnotation.class, "controllerEnum").withReturnType(SomeEnum.class))
 
@@ -977,6 +1001,15 @@ class ExamplesIntegrationTest {
                                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(ComplexControllerAnnotation.class))
                                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SimpleControllerAnnotation.class))
                                 .by(annotatedClass(ServiceViolatingLayerRules.class).withAnnotationParameterType(SomeEnum.class))
+                                .by(annotatedParameter(Object.class)
+                                        .ofMethod(OtherServiceViolatingLayerRules.class, "dependentOnParameterAnnotation", Object.class)
+                                        .annotatedWith(UnmarshalTransport.class))
+                                .by(annotatedParameter(Object.class)
+                                        .ofMethod(OtherServiceViolatingLayerRules.class, "dependentOnParameterAnnotation", Object.class)
+                                        .withAnnotationParameterType(StringUnmarshaller.class))
+                                .by(annotatedParameter(Object.class)
+                                        .ofMethod(OtherServiceViolatingLayerRules.class, "dependentOnParameterAnnotation", Object.class)
+                                        .withAnnotationParameterType(ByteUnmarshaller.class))
                                 .by(method(ComplexServiceAnnotation.class, "controllerAnnotation").withReturnType(ComplexControllerAnnotation.class))
                                 .by(method(ComplexServiceAnnotation.class, "controllerEnum").withReturnType(SomeEnum.class))
                                 .by(method(OtherJpa.class, "testConnection")
@@ -1117,6 +1150,10 @@ class ExamplesIntegrationTest {
                 .by(simpleNameOf(InheritedControllerImpl.class).notEndingWith("Controller"))
                 .by(simpleNameOf(ComplexControllerAnnotation.class).notEndingWith("Controller"))
                 .by(simpleNameOf(SimpleControllerAnnotation.class).notEndingWith("Controller"))
+                .by(simpleNameOf(UnmarshalTransport.class).notEndingWith("Controller"))
+                .by(simpleNameOf(Unmarshaller.class).notEndingWith("Controller"))
+                .by(simpleNameOf(StringUnmarshaller.class).notEndingWith("Controller"))
+                .by(simpleNameOf(ByteUnmarshaller.class).notEndingWith("Controller"))
                 .by(simpleNameOf(SomeUtility.class).notEndingWith("Controller"))
                 .by(simpleNameOf(WronglyAnnotated.class).notEndingWith("Controller"))
                 .by(simpleNameOf(SomeEnum.class).notEndingWith("Controller"))
@@ -1398,14 +1435,15 @@ class ExamplesIntegrationTest {
         // controllers_should_only_use_their_own_slice
         addExpectedCommonFailureFor_controllers_should_only_use_their_own_slice
                 .accept("controllers_should_only_use_their_own_slice", expectedTestFailures);
-        expectedTestFailures.by(sliceDependency()
-                .described("Controller one depends on Controller two")
-                .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
-                        .toConstructor(UseCaseTwoController.class)
-                        .inLine(10))
-                .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
-                        .toMethod(UseCaseTwoController.class, doSomethingTwo)
-                        .inLine(10)))
+        expectedTestFailures
+                .by(sliceDependency()
+                        .described("Controller one depends on Controller two")
+                        .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
+                                .toConstructor(UseCaseTwoController.class)
+                                .inLine(10))
+                        .by(callFromMethod(UseCaseOneTwoController.class, doSomethingOne)
+                                .toMethod(UseCaseTwoController.class, doSomethingTwo)
+                                .inLine(10)))
                 .by(sliceDependency()
                         .described("Controller three depends on Controller one")
                         .by(callFromMethod(UseCaseThreeController.class, doSomethingThree)

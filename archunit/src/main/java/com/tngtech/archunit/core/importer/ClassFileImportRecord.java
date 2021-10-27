@@ -31,6 +31,8 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMemberBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
@@ -194,14 +196,14 @@ class ClassFileImportRecord {
     }
 
     Set<String> getMemberAnnotationTypeNamesFor(JavaClass owner) {
-        Iterable<DomainBuilders.JavaMemberBuilder<?, ?>> memberBuilders = Iterables.concat(
+        Iterable<JavaMemberBuilder<?, ?>> memberBuilders = Iterables.concat(
                 fieldBuildersByOwner.get(owner.getName()),
                 methodBuildersByOwner.get(owner.getName()),
                 constructorBuildersByOwner.get(owner.getName()),
                 nullToEmpty(staticInitializerBuildersByOwner.get(owner.getName())));
 
         ImmutableSet.Builder<String> result = ImmutableSet.builder();
-        for (DomainBuilders.JavaMemberBuilder<?, ?> memberBuilder : memberBuilders) {
+        for (JavaMemberBuilder<?, ?> memberBuilder : memberBuilders) {
             for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : annotationsByOwner.get(getMemberKey(owner.getName(), memberBuilder.getName(), memberBuilder.getDescriptor()))) {
                 result.add(annotationBuilder.getFullyQualifiedClassName());
             }
@@ -209,10 +211,24 @@ class ClassFileImportRecord {
         return result.build();
     }
 
-    private Iterable<DomainBuilders.JavaMemberBuilder<?, ?>> nullToEmpty(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
+    Set<String> getParameterAnnotationTypeNamesFor(JavaClass owner) {
+        Iterable<JavaCodeUnitBuilder<?, ?>> codeUnitBuilders = Iterables.<JavaCodeUnitBuilder<?, ?>>concat(
+                methodBuildersByOwner.get(owner.getName()),
+                constructorBuildersByOwner.get(owner.getName()));
+
+        ImmutableSet.Builder<String> result = ImmutableSet.builder();
+        for (JavaCodeUnitBuilder<?, ?> codeUnitBuilder : codeUnitBuilders) {
+            for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : codeUnitBuilder.getParameterAnnotationBuilders()) {
+                result.add(annotationBuilder.getFullyQualifiedClassName());
+            }
+        }
+        return result.build();
+    }
+
+    private Iterable<JavaMemberBuilder<?, ?>> nullToEmpty(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
         return staticInitializerBuilder != null
-                ? Collections.<DomainBuilders.JavaMemberBuilder<?, ?>>singleton(staticInitializerBuilder)
-                : Collections.<DomainBuilders.JavaMemberBuilder<?, ?>>emptySet();
+                ? Collections.<JavaMemberBuilder<?, ?>>singleton(staticInitializerBuilder)
+                : Collections.<JavaMemberBuilder<?, ?>>emptySet();
     }
 
     Set<DomainBuilders.JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {

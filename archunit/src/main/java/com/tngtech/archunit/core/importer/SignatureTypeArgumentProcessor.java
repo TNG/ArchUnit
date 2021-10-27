@@ -161,7 +161,7 @@ class SignatureTypeArgumentProcessor<TYPE extends HasDescription> extends Signat
         }
 
         @Override
-        public JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+        public JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ImportedClasses classes) {
             JavaType type = builder.build(owner, allTypeParametersInContext, classes);
             return typeFinisher.finish(type, classes);
         }
@@ -181,11 +181,11 @@ class SignatureTypeArgumentProcessor<TYPE extends HasDescription> extends Signat
         }
 
         @Override
-        public JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+        public JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ImportedClasses classes) {
             return finisher.finish(createTypeVariable(owner, allTypeParametersInContext, classes), classes);
         }
 
-        private JavaType createTypeVariable(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+        private JavaType createTypeVariable(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ImportedClasses classes) {
             for (JavaTypeVariable<?> existingTypeVariable : allTypeParametersInContext) {
                 if (existingTypeVariable.getName().equals(typeVariableName)) {
                     return existingTypeVariable;

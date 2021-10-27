@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -197,7 +198,9 @@ class JavaClassDependencies {
                 .addAll(annotationDependencies(javaClass))
                 .addAll(annotationDependencies(javaClass.getFields()))
                 .addAll(annotationDependencies(javaClass.getMethods()))
+                .addAll(parameterAnnotationDependencies(javaClass.getMethods()))
                 .addAll(annotationDependencies(javaClass.getConstructors()))
+                .addAll(parameterAnnotationDependencies(javaClass.getConstructors()))
                 .build();
     }
 
@@ -291,7 +294,15 @@ class JavaClassDependencies {
         return result.build();
     }
 
-    private <T extends HasDescription & HasAnnotations<?>> Set<Dependency> annotationDependencies(Set<T> annotatedObjects) {
+    private Set<Dependency> parameterAnnotationDependencies(Set<? extends JavaCodeUnit> codeUnits) {
+        ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            result.addAll(annotationDependencies(codeUnit.getParameters()));
+        }
+        return result.build();
+    }
+
+    private <T extends HasDescription & HasAnnotations<?>> Set<Dependency> annotationDependencies(Collection<T> annotatedObjects) {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
         for (T annotated : annotatedObjects) {
             result.addAll(annotationDependencies(annotated));

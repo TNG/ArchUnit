@@ -289,10 +289,10 @@ public class JavaClass
 
     /**
      * Returns the component type of this class, if this class is an array, otherwise
-     * {@link Optional#absent()}. The component type is the type of the elements of an array type.
+     * {@link Optional#empty()}. The component type is the type of the elements of an array type.
      * Consider {@code String[]}, then the component type would be {@code String}.
      * Likewise for {@code String[][]} the component type would be {@code String[]}.
-     * @return The component type, if this type is an array, otherwise {@link Optional#absent()}
+     * @return The component type, if this type is an array, otherwise {@link Optional#empty()}
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> tryGetComponentType() {
@@ -754,7 +754,7 @@ public class JavaClass
 
     /**
      * Returns the enclosing class if this class is nested within another class.
-     * Otherwise {@link Optional#absent()}.<br><br>
+     * Otherwise {@link Optional#empty()}.<br><br>
      * Take for example
      * <pre><code>
      * class OuterClass {
@@ -763,7 +763,7 @@ public class JavaClass
      * }
      * </code></pre>
      * Then {@code InnerClass.}{@link #getEnclosingClass()} would return {@code Optional.of(OuterClass)}.
-     * While {@code OuterClass.}{@link #getEnclosingClass()} would return {@link Optional#absent()}.
+     * While {@code OuterClass.}{@link #getEnclosingClass()} would return {@link Optional#empty()}.
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaClass> getEnclosingClass() {
@@ -772,7 +772,7 @@ public class JavaClass
 
     /**
      * Returns the enclosing {@link JavaCodeUnit} if this class is declared within the context of a {@link JavaCodeUnit},
-     * e.g. a method or a constructor. Otherwise {@link Optional#absent()}.<br><br>
+     * e.g. a method or a constructor. Otherwise {@link Optional#empty()}.<br><br>
      * Take for example
      * <pre><code>
      * class OuterClass {
@@ -793,7 +793,7 @@ public class JavaClass
      * {@code OuterClass()} and {@code LocalClass.}{@link #getEnclosingCodeUnit()} would return the {@link JavaMethod}
      * {@code void someMethod()}.<br>
      * On the other hand {@code OuterClass.}{@link #getEnclosingCodeUnit()} or
-     * {@code InnerClass.}{@link #getEnclosingCodeUnit()} would return {@link Optional#absent()}, since they are
+     * {@code InnerClass.}{@link #getEnclosingCodeUnit()} would return {@link Optional#empty()}, since they are
      * not defined within the context of a {@link JavaCodeUnit}.
      */
     @PublicAPI(usage = ACCESS)
@@ -845,7 +845,7 @@ public class JavaClass
     }
 
     /**
-     * @return The field with the given name, if this class has such a field, otherwise {@link Optional#absent()}.
+     * @return The field with the given name, if this class has such a field, otherwise {@link Optional#empty()}.
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaField> tryGetField(String name) {
@@ -886,7 +886,7 @@ public class JavaClass
     }
 
     /**
-     * Same as {@link #getCodeUnitWithParameterTypes(String, List)}, but will return {@link Optional#absent()}
+     * Same as {@link #getCodeUnitWithParameterTypes(String, List)}, but will return {@link Optional#empty()}
      * if there is no such {@link JavaCodeUnit}.
      */
     @PublicAPI(usage = ACCESS)
@@ -903,7 +903,7 @@ public class JavaClass
     }
 
     /**
-     * Same as {@link #getCodeUnitWithParameterTypeNames(String, List)}, but will return {@link Optional#absent()}
+     * Same as {@link #getCodeUnitWithParameterTypeNames(String, List)}, but will return {@link Optional#empty()}
      * if there is no such {@link JavaCodeUnit}.
      */
     @PublicAPI(usage = ACCESS)
@@ -921,7 +921,7 @@ public class JavaClass
     }
 
     /**
-     * @return The method with the given name and the given parameter types.
+     * @return The method with the given name and the given raw parameter types.
      * @throws IllegalArgumentException If this class does not have such a method.
      */
     @PublicAPI(usage = ACCESS)
@@ -939,7 +939,7 @@ public class JavaClass
 
     /**
      * @return The method with the given name and with zero parameters,
-     * if this class has such a method, otherwise {@link Optional#absent()}.
+     * if this class has such a method, otherwise {@link Optional#empty()}.
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name) {
@@ -948,7 +948,7 @@ public class JavaClass
 
     /**
      * @return The method with the given name and the given parameter types,
-     * if this class has such a method, otherwise {@link Optional#absent()}.
+     * if this class has such a method, otherwise {@link Optional#empty()}.
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name, Class<?>... parameters) {
@@ -983,7 +983,12 @@ public class JavaClass
     }
 
     /**
-     * @return The constructor with the given parameter types.
+     * @return The constructor with the given parameter types. Note that these are the raw parameter types, which can
+     *         include synthetic parameter types under certain circumstances. For example inner classes have the outer
+     *         class as synthetic first parameter type and enums have a {@code String} name and {@code int} ordinal as
+     *         prepended synthetic parameters. Unfortunately there is no fixed rule, e.g. local class constructors
+     *         can have multiple synthetic parameters appended to the parameters derived from the source code.
+     *
      * @throws IllegalArgumentException If this class does not have a constructor with the given parameter types.
      */
     @PublicAPI(usage = ACCESS)
@@ -1001,7 +1006,7 @@ public class JavaClass
 
     /**
      * @return The constructor with zero parameters,
-     * if this class has such a constructor, otherwise {@link Optional#absent()}.
+     * if this class has such a constructor, otherwise {@link Optional#empty()}.
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaConstructor> tryGetConstructor() {
@@ -1009,8 +1014,8 @@ public class JavaClass
     }
 
     /**
-     * @return The constructor with the given parameter types,
-     * if this class has such a constructor, otherwise {@link Optional#absent()}.
+     * @return The constructor with the given parameter types (compare {@link #getConstructor(Class[])}),
+     * if this class has such a constructor, otherwise {@link Optional#empty()}.
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaConstructor> tryGetConstructor(Class<?>... parameters) {

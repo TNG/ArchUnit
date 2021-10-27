@@ -11,6 +11,8 @@ import com.tngtech.archunit.core.domain.Dependency;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
+import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static java.util.regex.Pattern.quote;
 
@@ -80,6 +82,10 @@ public class ExpectedDependency implements ExpectedRelation {
 
     public static AnnotationDependencyCreator annotatedClass(Class<?> clazz) {
         return new AnnotationDependencyCreator(clazz);
+    }
+
+    public static AnnotationParameterDependencyCreator annotatedParameter(Class<?> parameterType) {
+        return new AnnotationParameterDependencyCreator(parameterType);
     }
 
     public static AccessCreator accessFrom(Class<?> clazz) {
@@ -317,21 +323,40 @@ public class ExpectedDependency implements ExpectedRelation {
         }
     }
 
-    public static class AnnotationDependencyCreator {
-        private final Class<?> owner;
+    public static class AnnotationParameterDependencyCreator {
+        private final Class<?> parameterType;
 
-        AnnotationDependencyCreator(Class<?> owner) {
-            this.owner = owner;
+        private AnnotationParameterDependencyCreator(Class<?> parameterType) {
+            this.parameterType = parameterType;
+        }
+
+        public AnnotationDependencyCreator ofMethod(Class<?> originClass, String methodName, Class<?>... paramTypes) {
+            return new AnnotationDependencyCreator(originClass, "Parameter <" + parameterType.getName() + "> of method <" +
+                    formatMethod(originClass.getName(), methodName, formatNamesOf(paramTypes)) + ">");
+        }
+    }
+
+    public static class AnnotationDependencyCreator {
+        private final Class<?> originClass;
+        private final String originDescription;
+
+        AnnotationDependencyCreator(Class<?> originClass) {
+            this(originClass, originClass.getName());
+        }
+
+        AnnotationDependencyCreator(Class<?> originClass, String originDescription) {
+            this.originClass = originClass;
+            this.originDescription = originDescription;
         }
 
         public ExpectedDependency annotatedWith(Class<?> annotationType) {
-            String dependencyPattern = getDependencyPattern(owner.getName(), "is annotated with", annotationType.getName(), 0);
-            return new ExpectedDependency(owner, annotationType, dependencyPattern);
+            String dependencyPattern = getDependencyPattern(originDescription, "is annotated with", annotationType.getName(), 0);
+            return new ExpectedDependency(originClass, annotationType, dependencyPattern);
         }
 
         public ExpectedDependency withAnnotationParameterType(Class<?> type) {
-            String dependencyPattern = getDependencyPattern(owner.getName(), "has annotation member of type", type.getName(), 0);
-            return new ExpectedDependency(owner, type, dependencyPattern);
+            String dependencyPattern = getDependencyPattern(originDescription, "has annotation member of type", type.getName(), 0);
+            return new ExpectedDependency(originClass, type, dependencyPattern);
         }
     }
 }

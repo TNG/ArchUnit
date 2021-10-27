@@ -29,6 +29,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
@@ -39,7 +40,6 @@ import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
-import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -84,10 +84,10 @@ public final class DomainBuilders {
     private DomainBuilders() {
     }
 
-    static <T extends HasDescription> Map<String, JavaAnnotation<T>> buildAnnotations(T owner, Set<JavaAnnotationBuilder> annotations, ImportContext importContext) {
+    static <T extends HasDescription> Map<String, JavaAnnotation<T>> buildAnnotations(T owner, Set<JavaAnnotationBuilder> annotations, ImportedClasses importedClasses) {
         ImmutableMap.Builder<String, JavaAnnotation<T>> result = ImmutableMap.builder();
         for (JavaAnnotationBuilder annotationBuilder : annotations) {
-            JavaAnnotation<T> javaAnnotation = annotationBuilder.build(owner, importContext);
+            JavaAnnotation<T> javaAnnotation = annotationBuilder.build(owner, importedClasses);
             result.put(javaAnnotation.getRawType().getName(), javaAnnotation);
         }
         return result.build();
@@ -132,7 +132,7 @@ public final class DomainBuilders {
         private String descriptor;
         private Set<JavaModifier> modifiers;
         private JavaClass owner;
-        ClassesByTypeName importedClasses;
+        ImportedClasses importedClasses;
         private int firstLineNumber;
 
         private JavaMemberBuilder() {
@@ -162,10 +162,10 @@ public final class DomainBuilders {
             return (SELF) this;
         }
 
-        abstract OUTPUT construct(SELF self, ClassesByTypeName importedClasses);
+        abstract OUTPUT construct(SELF self, ImportedClasses importedClasses);
 
         JavaClass get(String typeName) {
-            return importedClasses.get(typeName);
+            return importedClasses.getOrResolve(typeName);
         }
 
         public String getName() {
@@ -189,7 +189,7 @@ public final class DomainBuilders {
         }
 
         @Override
-        public final OUTPUT build(JavaClass owner, ClassesByTypeName importedClasses) {
+        public final OUTPUT build(JavaClass owner, ImportedClasses importedClasses) {
             this.owner = owner;
             this.importedClasses = importedClasses;
             return construct(self(), importedClasses);
@@ -217,7 +217,7 @@ public final class DomainBuilders {
         public JavaType getType(JavaField field) {
             return genericType.isPresent()
                     ? genericType.get().finish(field, allTypeParametersInContextOf(field.getOwner()), importedClasses)
-                    : importedClasses.get(rawType.getFullyQualifiedClassName());
+                    : importedClasses.getOrResolve(rawType.getFullyQualifiedClassName());
         }
 
         private static Iterable<JavaTypeVariable<?>> allTypeParametersInContextOf(JavaClass javaClass) {
@@ -225,7 +225,7 @@ public final class DomainBuilders {
         }
 
         @Override
-        JavaField construct(JavaFieldBuilder builder, ClassesByTypeName importedClasses) {
+        JavaField construct(JavaFieldBuilder builder, ImportedClasses importedClasses) {
             return DomainObjectCreationContext.createJavaField(builder);
         }
     }
@@ -236,6 +236,7 @@ public final class DomainBuilders {
         private JavaClassDescriptor rawReturnType;
         private List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypes;
         private List<JavaClassDescriptor> rawParameterTypes;
+        private SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex;
         private JavaCodeUnitTypeParametersBuilder typeParametersBuilder;
         private List<JavaClassDescriptor> throwsDeclarations;
         private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
@@ -253,6 +254,11 @@ public final class DomainBuilders {
         SELF withParameterTypes(List<JavaTypeCreationProcess<JavaCodeUnit>> genericParameterTypes, List<JavaClassDescriptor> rawParameterTypes) {
             this.genericParameterTypes = genericParameterTypes;
             this.rawParameterTypes = rawParameterTypes;
+            return self();
+        }
+
+        SELF withParameterAnnotations(SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex) {
+            this.parameterAnnotationsByIndex = parameterAnnotationsByIndex;
             return self();
         }
 
@@ -318,6 +324,10 @@ public final class DomainBuilders {
             return result.build();
         }
 
+        public Set<JavaAnnotationBuilder> getParameterAnnotations(int index) {
+            return parameterAnnotationsByIndex.get(index);
+        }
+
         public List<JavaTypeVariable<JavaCodeUnit>> getTypeParameters(JavaCodeUnit owner) {
             return typeParametersBuilder.build(owner, importedClasses);
         }
@@ -349,6 +359,33 @@ public final class DomainBuilders {
             }
             return result.build();
         }
+
+        public ParameterAnnotationsBuilder getParameterAnnotationsBuilder(int index) {
+            return new ParameterAnnotationsBuilder(parameterAnnotationsByIndex.get(index), importedClasses);
+        }
+
+        public Iterable<JavaAnnotationBuilder> getParameterAnnotationBuilders() {
+            return parameterAnnotationsByIndex.values();
+        }
+
+        @Internal
+        public static class ParameterAnnotationsBuilder {
+            private final Iterable<JavaAnnotationBuilder> annotationBuilders;
+            private final ImportedClasses importedClasses;
+
+            private ParameterAnnotationsBuilder(Iterable<JavaAnnotationBuilder> annotationBuilders, ImportedClasses importedClasses) {
+                this.annotationBuilders = annotationBuilders;
+                this.importedClasses = importedClasses;
+            }
+
+            public Set<JavaAnnotation<JavaCodeUnit.Parameter>> build(JavaCodeUnit.Parameter owner) {
+                ImmutableSet.Builder<JavaAnnotation<JavaCodeUnit.Parameter>> result = ImmutableSet.builder();
+                for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : annotationBuilders) {
+                    result.add(annotationBuilder.build(owner, importedClasses));
+                }
+                return result.build();
+            }
+        }
     }
 
     @Internal
@@ -369,7 +406,7 @@ public final class DomainBuilders {
         }
 
         @Override
-        JavaMethod construct(JavaMethodBuilder builder, final ClassesByTypeName importedClasses) {
+        JavaMethod construct(JavaMethodBuilder builder, final ImportedClasses importedClasses) {
             return DomainObjectCreationContext.createJavaMethod(builder, createAnnotationDefaultValue);
         }
     }
@@ -380,7 +417,7 @@ public final class DomainBuilders {
         }
 
         @Override
-        JavaConstructor construct(JavaConstructorBuilder builder, ClassesByTypeName importedClasses) {
+        JavaConstructor construct(JavaConstructorBuilder builder, ImportedClasses importedClasses) {
             return DomainObjectCreationContext.createJavaConstructor(builder);
         }
     }
@@ -503,7 +540,7 @@ public final class DomainBuilders {
     public static final class JavaAnnotationBuilder {
         private JavaClassDescriptor type;
         private final Map<String, ValueBuilder> values = new LinkedHashMap<>();
-        private ImportContext importContext;
+        private ImportedClasses importedClasses;
 
         JavaAnnotationBuilder() {
         }
@@ -523,13 +560,13 @@ public final class DomainBuilders {
         }
 
         public JavaClass getType() {
-            return importContext.resolveClass(type.getFullyQualifiedClassName());
+            return importedClasses.getOrResolve(type.getFullyQualifiedClassName());
         }
 
         public <T extends HasDescription> Map<String, Object> getValues(T owner) {
             ImmutableMap.Builder<String, Object> result = ImmutableMap.builder();
             for (Map.Entry<String, ValueBuilder> entry : values.entrySet()) {
-                Optional<Object> value = entry.getValue().build(owner, importContext);
+                Optional<Object> value = entry.getValue().build(owner, importedClasses);
                 if (value.isPresent()) {
                     result.put(entry.getKey(), value.get());
                 }
@@ -537,18 +574,18 @@ public final class DomainBuilders {
             return result.build();
         }
 
-        public <T extends HasDescription> JavaAnnotation<T> build(T owner, ImportContext importContext) {
-            this.importContext = importContext;
+        public <T extends HasDescription> JavaAnnotation<T> build(T owner, ImportedClasses importedClasses) {
+            this.importedClasses = importedClasses;
             return DomainObjectCreationContext.createJavaAnnotation(owner, this);
         }
 
         abstract static class ValueBuilder {
-            abstract <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext);
+            abstract <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses);
 
             static ValueBuilder ofFinished(final Object value) {
                 return new ValueBuilder() {
                     @Override
-                    <T extends HasDescription> Optional<Object> build(T owner, ImportContext unused) {
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses unused) {
                         return Optional.of(value);
                     }
                 };
@@ -557,8 +594,8 @@ public final class DomainBuilders {
             static ValueBuilder from(final JavaAnnotationBuilder builder) {
                 return new ValueBuilder() {
                     @Override
-                    <T extends HasDescription> Optional<Object> build(T owner, ImportContext importContext) {
-                        return Optional.<Object>of(builder.build(owner, importContext));
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {
+                        return Optional.<Object>of(builder.build(owner, importedClasses));
                     }
                 };
             }
@@ -577,26 +614,26 @@ public final class DomainBuilders {
         }
 
         @Override
-        JavaStaticInitializer construct(JavaStaticInitializerBuilder builder, ClassesByTypeName importedClasses) {
+        JavaStaticInitializer construct(JavaStaticInitializerBuilder builder, ImportedClasses importedClasses) {
             return DomainObjectCreationContext.createJavaStaticInitializer(builder);
         }
     }
 
     interface JavaTypeCreationProcess<OWNER> {
-        JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes);
+        JavaType finish(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ImportedClasses classes);
 
         abstract class JavaTypeFinisher {
             private JavaTypeFinisher() {
             }
 
-            abstract JavaType finish(JavaType input, ClassesByTypeName classes);
+            abstract JavaType finish(JavaType input, ImportedClasses classes);
 
             abstract String getFinishedName(String name);
 
             JavaTypeFinisher after(final JavaTypeFinisher other) {
                 return new JavaTypeFinisher() {
                     @Override
-                    JavaType finish(JavaType input, ClassesByTypeName classes) {
+                    JavaType finish(JavaType input, ImportedClasses classes) {
                         return JavaTypeFinisher.this.finish(other.finish(input, classes), classes);
                     }
 
@@ -609,7 +646,7 @@ public final class DomainBuilders {
 
             static JavaTypeFinisher IDENTITY = new JavaTypeFinisher() {
                 @Override
-                JavaType finish(JavaType input, ClassesByTypeName classes) {
+                JavaType finish(JavaType input, ImportedClasses classes) {
                     return input;
                 }
 
@@ -621,13 +658,13 @@ public final class DomainBuilders {
 
             static final JavaTypeFinisher ARRAY_CREATOR = new JavaTypeFinisher() {
                 @Override
-                public JavaType finish(JavaType componentType, ClassesByTypeName classes) {
+                public JavaType finish(JavaType componentType, ImportedClasses classes) {
                     JavaClassDescriptor erasureType = JavaClassDescriptor.From.javaClass(componentType.toErasure()).toArrayDescriptor();
                     if (componentType instanceof JavaClass) {
-                        return classes.get(erasureType.getFullyQualifiedClassName());
+                        return classes.getOrResolve(erasureType.getFullyQualifiedClassName());
                     }
 
-                    JavaClass erasure = classes.get(erasureType.getFullyQualifiedClassName());
+                    JavaClass erasure = classes.getOrResolve(erasureType.getFullyQualifiedClassName());
                     return createGenericArrayType(componentType, erasure);
                 }
 
@@ -644,7 +681,7 @@ public final class DomainBuilders {
         private final String name;
         private final List<JavaTypeCreationProcess<OWNER>> upperBounds = new ArrayList<>();
         private OWNER owner;
-        private ClassesByTypeName importedClasses;
+        private ImportedClasses importedClasses;
 
         JavaTypeParameterBuilder(String name) {
             this.name = checkNotNull(name);
@@ -654,10 +691,10 @@ public final class DomainBuilders {
             upperBounds.add(bound);
         }
 
-        public JavaTypeVariable<OWNER> build(OWNER owner, ClassesByTypeName importedClasses) {
+        public JavaTypeVariable<OWNER> build(OWNER owner, ImportedClasses importedClasses) {
             this.owner = owner;
             this.importedClasses = importedClasses;
-            return createTypeVariable(name, owner, this.importedClasses.get(Object.class.getName()));
+            return createTypeVariable(name, owner, this.importedClasses.getOrResolve(Object.class.getName()));
         }
 
         String getName() {
@@ -677,14 +714,14 @@ public final class DomainBuilders {
             this.typeParameterBuilders = typeParameterBuilders;
         }
 
-        final List<JavaTypeVariable<OWNER>> build(OWNER owner, ClassesByTypeName classesByTypeName) {
+        final List<JavaTypeVariable<OWNER>> build(OWNER owner, ImportedClasses ImportedClasses) {
             if (typeParameterBuilders.isEmpty()) {
                 return Collections.emptyList();
             }
 
             Map<JavaTypeVariable<OWNER>, JavaTypeParameterBuilder<OWNER>> typeArgumentsToBuilders = new LinkedHashMap<>();
             for (JavaTypeParameterBuilder<OWNER> builder : typeParameterBuilders) {
-                typeArgumentsToBuilders.put(builder.build(owner, classesByTypeName), builder);
+                typeArgumentsToBuilders.put(builder.build(owner, ImportedClasses), builder);
             }
             Set<JavaTypeVariable<?>> allGenericParametersInContext = union(typeParametersFromEnclosingContextOf(owner), typeArgumentsToBuilders.keySet());
             for (Map.Entry<JavaTypeVariable<OWNER>, JavaTypeParameterBuilder<OWNER>> typeParameterToBuilder : typeArgumentsToBuilders.entrySet()) {
@@ -747,7 +784,7 @@ public final class DomainBuilders {
     }
 
     interface JavaTypeBuilder<OWNER extends HasDescription> {
-        JavaType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName importedClasses);
+        JavaType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ImportedClasses importedClasses);
     }
 
     @Internal
@@ -756,7 +793,7 @@ public final class DomainBuilders {
         private final List<JavaTypeCreationProcess<OWNER>> upperBoundCreationProcesses = new ArrayList<>();
         private OWNER owner;
         private Iterable<JavaTypeVariable<?>> allTypeParametersInContext;
-        private ClassesByTypeName importedClasses;
+        private ImportedClasses importedClasses;
 
         JavaWildcardTypeBuilder() {
         }
@@ -772,7 +809,7 @@ public final class DomainBuilders {
         }
 
         @Override
-        public JavaWildcardType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName importedClasses) {
+        public JavaWildcardType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ImportedClasses importedClasses) {
             this.owner = owner;
             this.allTypeParametersInContext = allTypeParametersInContext;
             this.importedClasses = importedClasses;
@@ -805,11 +842,11 @@ public final class DomainBuilders {
         }
 
         @Override
-        public JavaType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ClassesByTypeName classes) {
+        public JavaType build(OWNER owner, Iterable<JavaTypeVariable<?>> allTypeParametersInContext, ImportedClasses classes) {
             List<JavaType> typeArguments = buildJavaTypes(typeArgumentCreationProcesses, owner, allTypeParametersInContext, classes);
             return typeArguments.isEmpty()
-                    ? classes.get(type.getFullyQualifiedClassName())
-                    : new ImportedParameterizedType(classes.get(type.getFullyQualifiedClassName()), typeArguments);
+                    ? classes.getOrResolve(type.getFullyQualifiedClassName())
+                    : new ImportedParameterizedType(classes.getOrResolve(type.getFullyQualifiedClassName()), typeArguments);
         }
 
         String getTypeName() {
@@ -822,7 +859,7 @@ public final class DomainBuilders {
         }
     }
 
-    private static <OWNER> List<JavaType> buildJavaTypes(List<? extends JavaTypeCreationProcess<OWNER>> typeCreationProcesses, OWNER owner, Iterable<JavaTypeVariable<?>> allGenericParametersInContext, ClassesByTypeName classes) {
+    private static <OWNER> List<JavaType> buildJavaTypes(List<? extends JavaTypeCreationProcess<OWNER>> typeCreationProcesses, OWNER owner, Iterable<JavaTypeVariable<?>> allGenericParametersInContext, ImportedClasses classes) {
         ImmutableList.Builder<JavaType> result = ImmutableList.builder();
         for (JavaTypeCreationProcess<OWNER> typeCreationProcess : typeCreationProcesses) {
             result.add(typeCreationProcess.finish(owner, allGenericParametersInContext, classes));
@@ -830,22 +867,22 @@ public final class DomainBuilders {
         return result.build();
     }
 
-    private static JavaClass getUnboundErasureType(List<JavaType> upperBounds, ClassesByTypeName importedClasses) {
+    private static JavaClass getUnboundErasureType(List<JavaType> upperBounds, ImportedClasses importedClasses) {
         return upperBounds.size() > 0
                 ? upperBounds.get(0).toErasure()
-                : importedClasses.get(Object.class.getName());
+                : importedClasses.getOrResolve(Object.class.getName());
     }
 
     @Internal
     interface BuilderWithBuildParameter<PARAMETER, VALUE> {
-        VALUE build(PARAMETER parameter, ClassesByTypeName importedClasses);
+        VALUE build(PARAMETER parameter, ImportedClasses importedClasses);
 
         @Internal
         class BuildFinisher {
             static <PARAMETER, VALUE> Set<VALUE> build(
                     Set<? extends BuilderWithBuildParameter<PARAMETER, ? extends VALUE>> builders,
                     PARAMETER parameter,
-                    ClassesByTypeName importedClasses) {
+                    ImportedClasses importedClasses) {
                 checkNotNull(builders);
                 checkNotNull(parameter);
 

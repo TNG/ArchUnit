@@ -52,6 +52,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuil
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
+import com.tngtech.archunit.core.importer.ImportedClasses.MethodReturnTypeGetter;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
@@ -79,7 +80,12 @@ class ClassGraphCreator implements ImportContext {
 
     ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
         this.importRecord = importRecord;
-        classes = new ImportedClasses(importRecord.getClasses(), classResolver);
+        classes = new ImportedClasses(importRecord.getClasses(), classResolver, new MethodReturnTypeGetter() {
+            @Override
+            public Optional<JavaClass> getReturnType(String declaringClassName, String methodName) {
+                return getMethodReturnType(declaringClassName, methodName);
+            }
+        });
         superclassStrategy = createSuperclassStrategy();
         interfaceStrategy = createInterfaceStrategy();
     }
@@ -185,6 +191,7 @@ class ClassGraphCreator implements ImportContext {
         return ImmutableSet.<String>builder()
                 .addAll(importRecord.getAnnotationTypeNamesFor(javaClass))
                 .addAll(importRecord.getMemberAnnotationTypeNamesFor(javaClass))
+                .addAll(importRecord.getParameterAnnotationTypeNamesFor(javaClass))
                 .build();
     }
 
@@ -246,7 +253,7 @@ class ClassGraphCreator implements ImportContext {
     public Optional<JavaType> createGenericSuperclass(JavaClass owner) {
         Optional<JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilder = importRecord.getGenericSuperclassFor(owner);
         return genericSuperclassBuilder.isPresent()
-                ? Optional.of(genericSuperclassBuilder.get().build(owner, getTypeParametersInContextOf(owner), classes.byTypeName()))
+                ? Optional.of(genericSuperclassBuilder.get().build(owner, getTypeParametersInContextOf(owner), classes))
                 : Optional.<JavaType>empty();
     }
 
@@ -259,7 +266,7 @@ class ClassGraphCreator implements ImportContext {
 
         ImmutableSet.Builder<JavaType> result = ImmutableSet.builder();
         for (JavaParameterizedTypeBuilder<JavaClass> builder : genericInterfaceBuilders.get()) {
-            result.add(builder.build(owner, getTypeParametersInContextOf(owner), classes.byTypeName()));
+            result.add(builder.build(owner, getTypeParametersInContextOf(owner), classes));
         }
         return Optional.<Set<JavaType>>of(result.build());
     }
@@ -285,12 +292,12 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public List<JavaTypeVariable<JavaClass>> createTypeParameters(JavaClass owner) {
         JavaClassTypeParametersBuilder typeParametersBuilder = importRecord.getTypeParameterBuildersFor(owner.getName());
-        return typeParametersBuilder.build(owner, classes.byTypeName());
+        return typeParametersBuilder.build(owner, classes);
     }
 
     @Override
     public Set<JavaField> createFields(JavaClass owner) {
-        return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes.byTypeName());
+        return build(importRecord.getFieldBuildersFor(owner.getName()), owner, classes);
     }
 
     @Override
@@ -302,17 +309,17 @@ class ClassGraphCreator implements ImportContext {
                     @Override
                     public Optional<Object> apply(JavaMethod method) {
                         Optional<ValueBuilder> defaultValueBuilder = importRecord.getAnnotationDefaultValueBuilderFor(method);
-                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, ClassGraphCreator.this) : Optional.empty();
+                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, classes) : Optional.empty();
                     }
                 });
             }
         }
-        return build(methodBuilders, owner, classes.byTypeName());
+        return build(methodBuilders, owner, classes);
     }
 
     @Override
     public Set<JavaConstructor> createConstructors(JavaClass owner) {
-        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes.byTypeName());
+        return build(importRecord.getConstructorBuildersFor(owner.getName()), owner, classes);
     }
 
     @Override
@@ -321,7 +328,7 @@ class ClassGraphCreator implements ImportContext {
         if (!builder.isPresent()) {
             return Optional.empty();
         }
-        JavaStaticInitializer staticInitializer = builder.get().build(owner, classes.byTypeName());
+        JavaStaticInitializer staticInitializer = builder.get().build(owner, classes);
         return Optional.of(staticInitializer);
     }
 
@@ -336,7 +343,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private <OWNER extends HasDescription> Map<String, JavaAnnotation<OWNER>> createAnnotations(OWNER owner, Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
-        return buildAnnotations(owner, annotationBuilders, this);
+        return buildAnnotations(owner, annotationBuilders, classes);
     }
 
     @Override
@@ -364,8 +371,7 @@ class ClassGraphCreator implements ImportContext {
         return classes.getOrResolve(fullyQualifiedClassName);
     }
 
-    @Override
-    public Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {
+    private Optional<JavaClass> getMethodReturnType(String declaringClassName, String methodName) {
         for (DomainBuilders.JavaMethodBuilder methodBuilder : importRecord.getMethodBuildersFor(declaringClassName)) {
             if (methodBuilder.getName().equals(methodName) && methodBuilder.hasNoParameters()) {
                 return Optional.of(classes.getOrResolve(methodBuilder.getReturnTypeName()));
