@@ -1,6 +1,8 @@
+apply from: scriptRelativePath(this, 'process-utils.gradle')
+
 ext.gitCheckOut = { String url, File targetDir, String branch = null ->
     def branchSuffix = branch ? " --branch ${branch}" : ''
     targetDir.deleteDir()
     targetDir.mkdirs()
-    ['sh', '-c', "git clone ${url}${branchSuffix} ${targetDir.absolutePath}"].execute().waitFor()
+    executeCommand(['sh', '-c', "git clone ${url}${branchSuffix} ${targetDir.absolutePath}"])
 }

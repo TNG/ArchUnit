@@ -1,6 +1,7 @@
 ext.isReleaseVersion = !project.version.endsWith("-SNAPSHOT")
 
 apply plugin: "io.github.gradle-nexus.publish-plugin"
+apply from: scriptRelativePath(this, 'process-utils.gradle')
 
 nexusPublishing {
     packageGroup = 'com.tngtech'
@@ -124,27 +125,13 @@ def updateVersion = { Closure<String> calculateNewVersion ->
     rootProject.allprojects { it.version = newVersion }
 }
 
-def executeCommand = { String command ->
-    new StringBuilder().with { output ->
-        def error = new StringBuilder()
-        def exitCode = command.split(' ').execute()
-            .with {
-                it.consumeProcessOutputStream(output)
-                it.consumeProcessErrorStream(error)
-                it
-            }.waitFor()
-        assert exitCode == 0: "Command '$command' failed with exit code $exitCode: $error"
-        output.toString().trim()
-    }
-}
-
 task prepareRelease() {
     doFirst {
         String releaseVersion = withCurrentVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.$oldMinor.$oldPatch" }
 
         def releaseBranch = "release-$releaseVersion"
-        executeCommand("git checkout -b $releaseBranch")
-        String currentBranch = executeCommand('git rev-parse --abbrev-ref HEAD')
+        executeCommand(['git', 'checkout', '-b', "$releaseBranch"])
+        String currentBranch = executeCommand(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
         assert currentBranch == releaseBranch: "Mismatch: Should be on branch $releaseBranch but current branch is $currentBranch"
 
         updateVersion { major, minor, patch, suffix -> releaseVersion }

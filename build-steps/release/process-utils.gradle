@@ -1,0 +1,14 @@
+ext.executeCommand = { List<String> command ->
+    new StringBuilder().with { output ->
+        def error = new StringBuilder()
+        def exitCode = command.execute()
+            .with {
+                it.consumeProcessOutputStream(output)
+                it.consumeProcessErrorStream(error)
+                it
+            }.waitFor()
+        Thread.sleep(100) // For some reason a call right after `waitFor` might fail, so we wait a little bit :-(
+        assert exitCode == 0: "Command '$command' failed with exit code $exitCode: $error"
+        output.toString().trim()
+    }
+}
