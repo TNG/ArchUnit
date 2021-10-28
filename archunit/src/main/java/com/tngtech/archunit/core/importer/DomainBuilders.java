@@ -54,6 +54,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
@@ -378,8 +379,8 @@ public final class DomainBuilders {
                 this.importedClasses = importedClasses;
             }
 
-            public Set<JavaAnnotation<JavaCodeUnit.Parameter>> build(JavaCodeUnit.Parameter owner) {
-                ImmutableSet.Builder<JavaAnnotation<JavaCodeUnit.Parameter>> result = ImmutableSet.builder();
+            public Set<JavaAnnotation<JavaParameter>> build(JavaParameter owner) {
+                ImmutableSet.Builder<JavaAnnotation<JavaParameter>> result = ImmutableSet.builder();
                 for (DomainBuilders.JavaAnnotationBuilder annotationBuilder : annotationBuilders) {
                     result.add(annotationBuilder.build(owner, importedClasses));
                 }

@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
-import static com.tngtech.archunit.core.domain.JavaCodeUnit.Parameter.startWithLowercase;
+import static com.tngtech.archunit.core.domain.JavaParameter.startWithLowercase;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -158,7 +158,7 @@ public class JavaCodeUnitTest {
     @Test
     @UseDataProvider("code_units_with_four_different_parameters")
     public void adds_description_to_parameters_of_code_unit(JavaCodeUnit codeUnit) {
-        List<JavaCodeUnit.Parameter> parameters = codeUnit.getParameters();
+        List<JavaParameter> parameters = codeUnit.getParameters();
 
         assertThat(parameters.get(0).getDescription()).isEqualTo("Parameter <" + List.class.getName() + "<" + String.class.getName() + ">> of " + startWithLowercase(codeUnit.getDescription()));
         assertThat(parameters.get(1).getDescription()).isEqualTo("Parameter <T> of " + startWithLowercase(codeUnit.getDescription()));
@@ -169,7 +169,7 @@ public class JavaCodeUnitTest {
     @Test
     @UseDataProvider("code_units_with_four_different_parameters")
     public void adds_index_to_parameters_of_code_unit(JavaCodeUnit codeUnit) {
-        List<JavaCodeUnit.Parameter> parameters = codeUnit.getParameters();
+        List<JavaParameter> parameters = codeUnit.getParameters();
 
         assertThat(parameters.get(0).getIndex()).isEqualTo(0);
         assertThat(parameters.get(1).getIndex()).isEqualTo(1);
@@ -196,7 +196,7 @@ public class JavaCodeUnitTest {
     @Test
     @UseDataProvider
     public void test_adds_owner_to_parameters_of_code_unit(JavaCodeUnit codeUnit) {
-        for (JavaCodeUnit.Parameter parameter : codeUnit.getParameters()) {
+        for (JavaParameter parameter : codeUnit.getParameters()) {
             assertThat(parameter.getOwner()).isEqualTo(codeUnit);
         }
     }
@@ -209,7 +209,7 @@ public class JavaCodeUnitTest {
             }
         }
 
-        JavaCodeUnit.Parameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+        JavaParameter parameter = new ClassFileImporter().importClass(SomeClass.class)
                 .getMethod("method", String.class).getParameters().get(0);
 
         assertThat(parameter.isAnnotatedWith(SomeParameterAnnotation.class))
@@ -236,7 +236,7 @@ public class JavaCodeUnitTest {
             }
         }
 
-        JavaCodeUnit.Parameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+        JavaParameter parameter = new ClassFileImporter().importClass(SomeClass.class)
                 .getMethod("method", String.class).getParameters().get(0);
 
         assertThat(parameter.isMetaAnnotatedWith(SomeMetaAnnotation.class))
@@ -263,7 +263,7 @@ public class JavaCodeUnitTest {
             }
         }
 
-        final JavaCodeUnit.Parameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+        final JavaParameter parameter = new ClassFileImporter().importClass(SomeClass.class)
                 .getMethod("method", String.class).getParameters().get(0);
 
         SomeParameterAnnotation annotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class);
@@ -276,7 +276,7 @@ public class JavaCodeUnitTest {
             }
         }).isInstanceOf(IllegalArgumentException.class);
 
-        JavaAnnotation<JavaCodeUnit.Parameter> javaAnnotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class.getName());
+        JavaAnnotation<JavaParameter> javaAnnotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class.getName());
         assertThatAnnotation(javaAnnotation).hasType(SomeParameterAnnotation.class);
         assertThat(javaAnnotation.get("value")).contains("test");
         assertThatThrownBy(new ThrowingCallable() {
@@ -295,7 +295,7 @@ public class JavaCodeUnitTest {
             }
         }
 
-        final JavaCodeUnit.Parameter parameter = new ClassFileImporter().importClass(SomeClass.class)
+        final JavaParameter parameter = new ClassFileImporter().importClass(SomeClass.class)
                 .getMethod("method", String.class).getParameters().get(0);
 
         assertThat(parameter.tryGetAnnotationOfType(SomeParameterAnnotation.class).get()).isInstanceOf(SomeParameterAnnotation.class);

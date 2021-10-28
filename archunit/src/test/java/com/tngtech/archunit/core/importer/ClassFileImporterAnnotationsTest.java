@@ -13,11 +13,11 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassAnnotationWithArrays;
@@ -453,11 +453,11 @@ public class ClassFileImporterAnnotationsTest {
                 .get(ClassWithMethodWithAnnotatedParameters.class)
                 .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithTwoUnannotatedParameters, String.class, int.class);
 
-        for (JavaCodeUnit.Parameter parameter : method.getParameters()) {
+        for (JavaParameter parameter : method.getParameters()) {
             assertThat(parameter.getAnnotations()).isEmpty();
         }
         assertThat(method.getParameterAnnotations()).containsExactly(
-                Collections.<JavaAnnotation<JavaCodeUnit.Parameter>>emptySet(), Collections.<JavaAnnotation<JavaCodeUnit.Parameter>>emptySet());
+                Collections.<JavaAnnotation<JavaParameter>>emptySet(), Collections.<JavaAnnotation<JavaParameter>>emptySet());
     }
 
     @Test
@@ -466,10 +466,10 @@ public class ClassFileImporterAnnotationsTest {
                 .get(ClassWithMethodWithAnnotatedParameters.class)
                 .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithOneAnnotatedParameterWithOneAnnotation, String.class);
 
-        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = method.getParameterAnnotations();
+        List<Set<JavaAnnotation<JavaParameter>>> parameterAnnotations = method.getParameterAnnotations();
 
-        JavaCodeUnit.Parameter parameter = getOnlyElement(method.getParameters());
-        JavaAnnotation<JavaCodeUnit.Parameter> annotation = getOnlyElement(getOnlyElement(parameterAnnotations));
+        JavaParameter parameter = getOnlyElement(method.getParameters());
+        JavaAnnotation<JavaParameter> annotation = getOnlyElement(getOnlyElement(parameterAnnotations));
 
         assertThat((JavaEnumConstant) annotation.get("value").get()).isEquivalentTo(OTHER_VALUE);
         assertThat((JavaEnumConstant) annotation.get("valueWithDefault").get()).isEquivalentTo(SOME_VALUE);
@@ -505,9 +505,9 @@ public class ClassFileImporterAnnotationsTest {
                 .get(ClassWithMethodWithAnnotatedParameters.class)
                 .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithOneAnnotatedParameterWithTwoAnnotations, String.class);
 
-        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = method.getParameterAnnotations();
+        List<Set<JavaAnnotation<JavaParameter>>> parameterAnnotations = method.getParameterAnnotations();
 
-        Set<JavaAnnotation<JavaCodeUnit.Parameter>> annotations = getOnlyElement(parameterAnnotations);
+        Set<JavaAnnotation<JavaParameter>> annotations = getOnlyElement(parameterAnnotations);
 
         assertThat(annotations).isEqualTo(getOnlyElement(method.getParameters()).getAnnotations());
         assertThatAnnotations(annotations).match(ImmutableSet.copyOf(method.reflect().getParameterAnnotations()[0]));
@@ -519,9 +519,9 @@ public class ClassFileImporterAnnotationsTest {
                 .get(ClassWithMethodWithAnnotatedParameters.class)
                 .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithTwoAnnotatedParameters, String.class, int.class);
 
-        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = method.getParameterAnnotations();
+        List<Set<JavaAnnotation<JavaParameter>>> parameterAnnotations = method.getParameterAnnotations();
 
-        List<JavaCodeUnit.Parameter> parameters = method.getParameters();
+        List<JavaParameter> parameters = method.getParameters();
         for (int i = 0; i < 2; i++) {
             assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
             assertThatAnnotations(parameterAnnotations.get(i)).match(ImmutableSet.copyOf(method.reflect().getParameterAnnotations()[i]));
@@ -534,14 +534,14 @@ public class ClassFileImporterAnnotationsTest {
                 .get(ClassWithMethodWithAnnotatedParameters.class)
                 .getMethod(ClassWithMethodWithAnnotatedParameters.methodWithAnnotatedParametersGap, String.class, int.class, Object.class, List.class);
 
-        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = method.getParameterAnnotations();
+        List<Set<JavaAnnotation<JavaParameter>>> parameterAnnotations = method.getParameterAnnotations();
 
         assertThatAnnotations(parameterAnnotations.get(0)).isNotEmpty();
         assertThatAnnotations(parameterAnnotations.get(1)).isEmpty();
         assertThatAnnotations(parameterAnnotations.get(2)).isEmpty();
         assertThatAnnotations(parameterAnnotations.get(3)).isNotEmpty();
 
-        List<JavaCodeUnit.Parameter> parameters = method.getParameters();
+        List<JavaParameter> parameters = method.getParameters();
         for (int i = 0; i < 4; i++) {
             assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
             assertThatAnnotations(parameterAnnotations.get(i)).match(ImmutableSet.copyOf(method.reflect().getParameterAnnotations()[i]));
@@ -560,13 +560,13 @@ public class ClassFileImporterAnnotationsTest {
                 .get(LocalClassThusSyntheticFirstConstructorParameter.class)
                 .getConstructors());
 
-        List<Set<JavaAnnotation<JavaCodeUnit.Parameter>>> parameterAnnotations = constructor.getParameterAnnotations();
+        List<Set<JavaAnnotation<JavaParameter>>> parameterAnnotations = constructor.getParameterAnnotations();
 
         assertThat(parameterAnnotations).as("parameter annotations").hasSize(2);
         assertThatAnnotations(parameterAnnotations.get(0)).isEmpty();
         assertThatAnnotations(parameterAnnotations.get(1)).isNotEmpty();
 
-        List<JavaCodeUnit.Parameter> parameters = constructor.getParameters();
+        List<JavaParameter> parameters = constructor.getParameters();
         for (int i = 0; i < parameterAnnotations.size(); i++) {
             assertThat(parameterAnnotations.get(i)).isEqualTo(parameters.get(i).getAnnotations());
             assertThatAnnotations(parameterAnnotations.get(i)).match(ImmutableSet.copyOf(constructor.reflect().getParameterAnnotations()[i]));

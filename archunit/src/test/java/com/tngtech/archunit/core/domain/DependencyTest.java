@@ -236,7 +236,7 @@ public class DependencyTest {
             }
         }
 
-        JavaCodeUnit.Parameter parameter = getOnlyElement(
+        JavaParameter parameter = getOnlyElement(
                 new ClassFileImporter().importClass(SomeClass.class)
                         .getMethod("method", Object.class).getParameters());
 
