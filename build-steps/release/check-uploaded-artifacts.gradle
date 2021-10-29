@@ -187,7 +187,7 @@ task testRelease() {
     }
 
     doFirst {
-        gitCheckOut(archunitExamplesGitRepo, testReleaseDir)
+        gitHubClone(archunitExamplesGitRepo, testReleaseDir)
 
         updateArchUnitExampleVersion(testReleaseDir)
 

@@ -1,11 +1,13 @@
 import java.nio.file.Files
 
-final String archunitGitRepo = 'git@github.com:TNG/ArchUnit.git'
+apply from: scriptRelativePath(this, 'vcs-utils.gradle')
+
+final String archunitGitRepo = 'TNG/ArchUnit.git'
 final File checkoutDir = new File(project.buildDir, 'docs-update')
 
 task checkoutArchUnitWebsite {
     doLast {
-        gitCheckOut(archunitGitRepo, checkoutDir, 'gh-pages')
+        gitHubClone(archunitGitRepo, checkoutDir, 'gh-pages')
     }
 }
 

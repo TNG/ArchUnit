@@ -1,4 +1,4 @@
-ext.archunitExamplesGitRepo = 'git@github.com:TNG/ArchUnit-Examples.git'
+ext.archunitExamplesGitRepo = 'TNG/ArchUnit-Examples.git'
 ext.updateArchUnitExampleVersion = { File archUnitExampleDir ->
     fileTree(archUnitExampleDir) {
         include '**/build.gradle'

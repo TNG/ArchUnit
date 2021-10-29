@@ -1,8 +1,10 @@
 apply from: scriptRelativePath(this, 'process-utils.gradle')
 
-ext.gitCheckOut = { String url, File targetDir, String branch = null ->
+def gitHubRemotePrefix = System.getenv('GITHUB_REMOTE_PREFIX') ?: 'git@github.com:'
+
+ext.gitHubClone = { String repoPath, File targetDir, String branch = null ->
     def branchSuffix = branch ? " --branch ${branch}" : ''
     targetDir.deleteDir()
     targetDir.mkdirs()
-    executeCommand(['sh', '-c', "git clone ${url}${branchSuffix} ${targetDir.absolutePath}"])
+    executeCommand(['sh', '-c', "git clone ${gitHubRemotePrefix}${repoPath}${branchSuffix} ${targetDir.absolutePath}"])
 }

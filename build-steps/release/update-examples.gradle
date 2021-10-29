@@ -9,7 +9,7 @@ final List<String> exampleFolders = ['example-plain', 'example-junit4', 'example
 
 task checkoutArchUnitExample {
     doLast {
-        gitCheckOut(archunitExamplesGitRepo, checkoutDir)
+        gitHubClone(archunitExamplesGitRepo, checkoutDir)
     }
 }
 
