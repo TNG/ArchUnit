@@ -173,7 +173,7 @@ task testRelease() {
         def outputStream = new ByteArrayOutputStream()
         exec {
             workingDir testReleaseDir
-            commandLine './gradlew', ":${exampleProjectName}:build"
+            commandLine './gradlew', ":${exampleProjectName}:build", '-P', "sonatypeUsername=${project.getProperty('sonatypeUsername')}", '-P', "sonatypePassword=${project.getProperty('sonatypePassword')}"
             ignoreExitValue true
             standardOutput = outputStream
         }
