@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    asciidoctor 'org.asciidoctor:asciidoctorj-diagram:2.2.0'
+    asciidoctor 'org.asciidoctor:asciidoctorj-diagram:2.2.1'
 }
 
 task cleanUserGuide(type: Delete) {
