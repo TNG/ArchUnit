@@ -80,6 +80,8 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
+import static com.tngtech.archunit.core.domain.JavaModifier.BRIDGE;
+import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.asClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
@@ -398,6 +400,32 @@ public class ClassFileImporterAccessesTest {
                 .isFrom(callSubclassMethod)
                 .isTo(subClassWithCalledMethod.getMethod(SubclassWithCalledMethod.maskedMethod))
                 .inLineNumber(CallOfSuperAndSubclassMethod.callSubclassLineNumber);
+    }
+
+    @Test
+    public void imports_origin_and_target_of_call_from_bridge_method_correctly() {
+        class Parent {
+            @SuppressWarnings("unused")
+            Object covariantlyOverriddenCausingBridgeMethod() {
+                return null;
+            }
+        }
+        class Child extends Parent {
+            @Override
+            String covariantlyOverriddenCausingBridgeMethod() {
+                return null;
+            }
+        }
+
+        JavaMethodCall callFromBridgeMethodToOverriddenOne = getOnlyElement(
+                new ClassFileImporter().importClasses(Parent.class, Child.class)
+                        .get(Child.class)
+                        .getMethodCallsFromSelf());
+        JavaCodeUnit bridgeMethod = callFromBridgeMethodToOverriddenOne.getOrigin();
+
+        assertThat(bridgeMethod.getName()).isEqualTo("covariantlyOverriddenCausingBridgeMethod");
+        assertThatType(bridgeMethod.getRawReturnType()).as("Return type of bridge method").matches(Object.class);
+        assertThat(bridgeMethod.getModifiers()).as("modifiers of bridge method").contains(BRIDGE, SYNTHETIC);
     }
 
     @Test

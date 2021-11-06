@@ -363,7 +363,7 @@ class ClassGraphCreator implements ImportContext {
 
         CodeUnit codeUnit = enclosingCodeUnit.get();
         JavaClass enclosingClass = classes.getOrResolve(codeUnit.getDeclaringClassName());
-        return enclosingClass.tryGetCodeUnitWithParameterTypeNames(codeUnit.getName(), codeUnit.getParameters());
+        return enclosingClass.tryGetCodeUnitWithParameterTypeNames(codeUnit.getName(), codeUnit.getRawParameterTypeNames());
     }
 
     @Override

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.google.common.primitives.Booleans;
@@ -207,8 +206,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         if (name != null && desc != null) {
             JavaClassDescriptor ownerType = JavaClassDescriptorImporter.createFromAsmObjectTypeName(owner);
-            List<JavaClassDescriptor> parameterTypes = JavaClassDescriptorImporter.importAsmMethodArgumentTypes(desc);
-            CodeUnit codeUnit = new CodeUnit(name, namesOf(parameterTypes), ownerType.getFullyQualifiedClassName());
+            CodeUnit codeUnit = new CodeUnit(name, desc, ownerType.getFullyQualifiedClassName());
             declarationHandler.registerEnclosingCodeUnit(className, codeUnit);
         }
     }
@@ -249,8 +247,8 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         LOG.trace("Analyzing method {}.{}:{}", className, name, desc);
-        List<JavaClassDescriptor> rawParameterTypes = JavaClassDescriptorImporter.importAsmMethodArgumentTypes(desc);
-        accessHandler.setContext(new CodeUnit(name, namesOf(rawParameterTypes), className));
+        CodeUnit codeUnit = new CodeUnit(name, desc, className);
+        accessHandler.setContext(codeUnit);
 
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
         JavaCodeUnitSignature codeUnitSignature = JavaCodeUnitSignatureImporter.parseAsmMethodSignature(signature);
@@ -259,7 +257,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
                 .withTypeParameters(codeUnitSignature.getTypeParameterBuilders())
-                .withParameterTypes(codeUnitSignature.getParameterTypes(), rawParameterTypes)
+                .withParameterTypes(codeUnitSignature.getParameterTypes(), codeUnit.getRawParameterTypes())
                 .withReturnType(codeUnitSignature.getReturnType(), rawReturnType)
                 .withDescriptor(desc)
                 .withThrowsClause(typesFrom(exceptions));
@@ -310,14 +308,6 @@ class JavaClassProcessor extends ClassVisitor {
 
         declarationHandler.onDeclaredClassAnnotations(annotations);
         LOG.trace("Done analyzing {}", className);
-    }
-
-    private static List<String> namesOf(Iterable<JavaClassDescriptor> descriptors) {
-        ImmutableList.Builder<String> result = ImmutableList.builder();
-        for (JavaClassDescriptor descriptor : descriptors) {
-            result.add(descriptor.getFullyQualifiedClassName());
-        }
-        return result.build();
     }
 
     private static class MethodProcessor extends MethodVisitor {
