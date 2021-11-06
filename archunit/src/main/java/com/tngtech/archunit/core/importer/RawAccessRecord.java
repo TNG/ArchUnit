@@ -18,12 +18,13 @@ package com.tngtech.archunit.core.importer;
 import java.util.List;
 import java.util.Objects;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 class RawAccessRecord {
     final CodeUnit caller;
@@ -66,23 +67,41 @@ class RawAccessRecord {
 
     static class CodeUnit {
         private final String name;
-        private final List<String> parameters;
+        private final String descriptor;
+        private final List<JavaClassDescriptor> rawParameterTypes;
+        private final JavaClassDescriptor returnType;
+        private final List<String> rawParameterTypeNames;
         private final String declaringClassName;
         private final int hashCode;
 
-        CodeUnit(String name, List<String> parameters, String declaringClassName) {
+        CodeUnit(String name, String descriptor, String declaringClassName) {
             this.name = name;
-            this.parameters = parameters;
+            this.descriptor = descriptor;
+            this.rawParameterTypes = JavaClassDescriptorImporter.importAsmMethodArgumentTypes(descriptor);
+            this.returnType = JavaClassDescriptorImporter.importAsmMethodReturnType(descriptor);
+            this.rawParameterTypeNames = namesOf(rawParameterTypes);
             this.declaringClassName = declaringClassName;
-            this.hashCode = Objects.hash(name, parameters, declaringClassName);
+            this.hashCode = Objects.hash(name, descriptor, declaringClassName);
+        }
+
+        private static List<String> namesOf(Iterable<JavaClassDescriptor> descriptors) {
+            ImmutableList.Builder<String> result = ImmutableList.builder();
+            for (JavaClassDescriptor descriptor : descriptors) {
+                result.add(descriptor.getFullyQualifiedClassName());
+            }
+            return result.build();
         }
 
         public String getName() {
             return name;
         }
 
-        public List<String> getParameters() {
-            return parameters;
+        public List<JavaClassDescriptor> getRawParameterTypes() {
+            return rawParameterTypes;
+        }
+
+        public List<String> getRawParameterTypeNames() {
+            return rawParameterTypeNames;
         }
 
         String getDeclaringClassName() {
@@ -105,7 +124,7 @@ class RawAccessRecord {
 
             CodeUnit codeUnit = (CodeUnit) o;
             return Objects.equals(name, codeUnit.name) &&
-                    Objects.equals(parameters, codeUnit.parameters) &&
+                    Objects.equals(descriptor, codeUnit.descriptor) &&
                     Objects.equals(declaringClassName, codeUnit.declaringClassName);
         }
 
@@ -113,14 +132,15 @@ class RawAccessRecord {
         public String toString() {
             return "CodeUnit{" +
                     "name='" + name + '\'' +
-                    ", parameters=" + parameters +
+                    ", descriptor=" + descriptor +
                     ", declaringClassName='" + declaringClassName + '\'' +
                     '}';
         }
 
         public boolean is(JavaCodeUnit method) {
             return getName().equals(method.getName())
-                    && getParameters().equals(namesOf(method.getRawParameterTypes()))
+                    && getRawParameterTypeNames().equals(HasName.Utils.namesOf(method.getRawParameterTypes()))
+                    && returnType.getFullyQualifiedClassName().equals(method.getRawReturnType().getName())
                     && getDeclaringClassName().equals(method.getOwner().getName());
         }
     }
