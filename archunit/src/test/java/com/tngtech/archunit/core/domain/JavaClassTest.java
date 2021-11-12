@@ -81,6 +81,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameSt
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
+import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
@@ -467,6 +468,28 @@ public class JavaClassTest {
         assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isAbsent();
         assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isAbsent();
         assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isAbsent();
+    }
+
+    @Test
+    public void getMethod_returns_non_synthetic_method_if_method_name_and_parameters_are_ambiguous() {
+        class Parent {
+            @SuppressWarnings("unused")
+            Object covariantlyOverriddenCausingBridgeMethod() {
+                return null;
+            }
+        }
+        class Child extends Parent {
+            @Override
+            String covariantlyOverriddenCausingBridgeMethod() {
+                return null;
+            }
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClasses(Parent.class, Child.class).get(Child.class);
+        JavaMethod method = javaClass.getMethod("covariantlyOverriddenCausingBridgeMethod");
+
+        assertThatType(method.getReturnType()).matches(String.class);
+        assertThat(method.getModifiers()).doesNotContain(SYNTHETIC);
     }
 
     @Test
