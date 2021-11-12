@@ -16,18 +16,25 @@
 package com.tngtech.archunit.core.domain;
 
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
+import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
 class JavaClassMembers {
@@ -256,12 +263,29 @@ class JavaClassMembers {
     }
 
     private <T extends JavaCodeUnit> Optional<T> tryFindMatchingCodeUnit(Set<T> codeUnits, String name, List<String> parameters) {
+        Set<T> matching = findCodeUnitsWithMatchingNameAndParameters(codeUnits, name, parameters);
+
+        if (matching.isEmpty()) {
+            return Optional.empty();
+        } else if (matching.size() == 1) {
+            return Optional.of(getOnlyElement(matching));
+        } else {
+            // In this case we have some synthetic methods like bridge methods making name and parameters alone ambiguous
+            // We want to return the non-synthetic method first because that is usually the relevant one for users
+            SortedSet<T> sortedByPriority = new TreeSet<>(SORTED_BY_SYNTHETIC_LAST_THEN_FULL_NAME);
+            sortedByPriority.addAll(matching);
+            return Optional.of(sortedByPriority.first());
+        }
+    }
+
+    private <T extends JavaCodeUnit> Set<T> findCodeUnitsWithMatchingNameAndParameters(Set<T> codeUnits, String name, List<String> parameters) {
+        Set<T> matching = new HashSet<>();
         for (T codeUnit : codeUnits) {
             if (name.equals(codeUnit.getName()) && parameters.equals(namesOf(codeUnit.getRawParameterTypes()))) {
-                return Optional.of(codeUnit);
+                matching.add(codeUnit);
             }
         }
-        return Optional.empty();
+        return matching;
     }
 
     void completeAnnotations(ImportContext context) {
@@ -281,6 +305,16 @@ class JavaClassMembers {
             member.setReverseDependencies(reverseDependencies);
         }
     }
+
+    private static final Comparator<JavaCodeUnit> SORTED_BY_SYNTHETIC_LAST_THEN_FULL_NAME = new Comparator<JavaCodeUnit>() {
+        @Override
+        public int compare(JavaCodeUnit codeUnit1, JavaCodeUnit codeUnit2) {
+            return ComparisonChain.start()
+                    .compareTrueFirst(!codeUnit1.getModifiers().contains(SYNTHETIC), !codeUnit2.getModifiers().contains(SYNTHETIC))
+                    .compare(codeUnit1.getFullName(), codeUnit2.getFullName())
+                    .result();
+        }
+    };
 
     static JavaClassMembers empty(JavaClass owner) {
         return new JavaClassMembers(
