@@ -928,91 +928,156 @@ public final class ArchConditions {
         return not(beAssignableFrom(predicate));
     }
 
+    /**
+     * @return A condition matching interfaces as defined in {@link JavaClass#isInterface()}
+     * @see #notBeInterfaces()
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beInterfaces() {
         return InterfacesCondition.BE_INTERFACES;
     }
 
+    /**
+     * @return negation of {@link #beInterfaces()}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeInterfaces() {
         return not(InterfacesCondition.BE_INTERFACES);
     }
 
+    /**
+     * @return A condition matching classes that are enums as defined in {@link JavaClass#isEnum()}
+     * @see #notBeEnums()
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beEnums() {
         return EnumsCondition.BE_ENUMS;
     }
 
+    /**
+     * @return negation of {@link #beEnums()}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeEnums() {
         return not(EnumsCondition.BE_ENUMS);
     }
 
+    /**
+     * @return A condition matching classes that are records according to the Java Language Specification
+     * as defined in {@link JavaClass#isRecord()}
+     * @see #notBeRecords()
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beRecords() {
         return RecordsCondition.BE_RECORDS;
     }
 
+    /**
+     * @return negation of {@link #beRecords()}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeRecords() {
         return not(RecordsCondition.BE_RECORDS);
     }
 
+    /**
+     * @return A condition matching classes that are top level classes (not nested classes)
+     * as defined in {@link JavaClass#isTopLevelClass()}
+     * @see #notBeTopLevelClasses()
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beTopLevelClasses() {
         return BE_TOP_LEVEL_CLASSES;
     }
 
+    /**
+     * @return negation of {@link #beTopLevelClasses()}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeTopLevelClasses() {
         return not(BE_TOP_LEVEL_CLASSES);
     }
 
+    /**
+     * @return A condition matching classes that are nested classes as defined in {@link JavaClass#isNestedClass()}
+     * @see #notBeNestedClasses()
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beNestedClasses() {
         return BE_NESTED_CLASSES;
     }
 
+    /**
+     * @return negation of {@link #beNestedClasses()}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeNestedClasses() {
         return not(BE_NESTED_CLASSES);
     }
 
+    /**
+     * @return A condition matching classes that are member classes as defined in {@link JavaClass#isMemberClass()}
+     * @see #notBeMemberClasses()
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beMemberClasses() {
         return BE_MEMBER_CLASSES;
     }
 
+    /**
+     * @return negation of {@link #beMemberClasses()}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeMemberClasses() {
         return not(BE_MEMBER_CLASSES);
     }
 
+    /**
+     * @return A condition matching classes that are inner classes as defined in {@link JavaClass#isInnerClass()}
+     * @see #notBeInnerClasses()
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beInnerClasses() {
         return BE_INNER_CLASSES;
     }
 
+    /**
+     * @return negation of {@link #beInnerClasses()}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeInnerClasses() {
         return not(BE_INNER_CLASSES);
     }
 
+    /**
+     * @return A condition matching classes that are anonymous as defined in {@link JavaClass#isAnonymousClass()}
+     * @see #notBeAnonymousClasses()
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAnonymousClasses() {
         return BE_ANONYMOUS_CLASSES;
     }
 
+    /**
+     * @return negation of {@link #beAnonymousClasses()}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeAnonymousClasses() {
         return not(BE_ANONYMOUS_CLASSES);
     }
 
+    /**
+     * @return A condition matching classes that are local as defined in {@link JavaClass#isLocalClass()}
+     * @see #notBeLocalClasses()
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beLocalClasses() {
         return BE_LOCAL_CLASSES;
     }
 
+    /**
+     * @return negation of {@link #beLocalClasses()}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> notBeLocalClasses() {
         return not(BE_LOCAL_CLASSES);
@@ -1023,26 +1088,44 @@ public final class ArchConditions {
         return new NumberOfElementsCondition(predicate);
     }
 
+    /**
+     * @return A condition matching members that are declared in the specified class
+     * @see #notBeDeclaredIn(Class)
+     * @see #beDeclaredIn(String)
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> beDeclaredIn(Class<?> owner) {
         return new IsConditionByPredicate<>(declaredIn(owner));
     }
 
+    /**
+     * @return negation of {@link #beDeclaredIn(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> notBeDeclaredIn(Class<?> owner) {
         return not(beDeclaredIn(owner));
     }
 
+    /**
+     * @return like {@link #beDeclaredIn(Class)} but the class is specified by the fully qualified class name
+     * @see #notBeDeclaredIn(String)
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> beDeclaredIn(String ownerTypeName) {
         return new IsConditionByPredicate<>(declaredIn(ownerTypeName));
     }
 
+    /**
+     * @return negation of {@link #beDeclaredIn(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> notBeDeclaredIn(String ownerTypeName) {
         return not(beDeclaredIn(ownerTypeName));
     }
 
+    /**
+     * @return like {@link #beDeclaredIn(Class)} but matching classes are defined by a predicate
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> beDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         DescribedPredicate<JavaMember> declaredIn = declaredIn(
@@ -1050,16 +1133,27 @@ public final class ArchConditions {
         return new IsConditionByPredicate<>(declaredIn);
     }
 
+    /**
+     * @return A condition matching fields that have a specific raw type
+     * @see #haveRawType(String)
+     * @see #haveRawType(DescribedPredicate)
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaField> haveRawType(Class<?> type) {
         return new HaveConditionByPredicate<>(rawType(type));
     }
 
+    /**
+     * @return like {@link #haveRawType(Class)} but the class is specified by the fully qualified class name
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaField> haveRawType(String typeName) {
         return new HaveConditionByPredicate<>(rawType(typeName));
     }
 
+    /**
+     * @return like {@link #haveRawType(Class)} but matching classes are defined by a predicate
+     */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaField> haveRawType(DescribedPredicate<? super JavaClass> predicate) {
         return new HaveConditionByPredicate<>(rawType(predicate));
