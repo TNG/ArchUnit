@@ -20,11 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
@@ -48,7 +48,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
@@ -344,9 +343,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         @PublicAPI(usage = ACCESS)
         public ThrowsClause<CodeUnitCallTarget> getThrowsClause() {
-            List<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = FluentIterable.from(resolve())
-                    .transform(toGuava(JavaCodeUnit.Functions.Get.throwsClause()))
-                    .toList();
+            List<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = resolve().stream()
+                    .map(unit -> JavaCodeUnit.Functions.Get.throwsClause().apply(unit))
+                    .collect(Collectors.toList());
 
             if (resolvedThrowsClauses.isEmpty()) {
                 return ThrowsClause.empty(this);
