@@ -1,6 +1,5 @@
 def unquote = { string -> string.replaceAll(/^"(.*)"$/, '$1')}
 def testJdksDefinition = [
-        [suffix: "Jre7", javaVersion: JavaVersion.VERSION_1_7, jdkProp: "java7Home"],
         [suffix: "Jre8", javaVersion: JavaVersion.VERSION_1_8, jdkProp: "java8Home"],
         [suffix: "Jre9", javaVersion: JavaVersion.VERSION_1_9, jdkProp: "java9Home"],
         [suffix: "Jre10", javaVersion: JavaVersion.VERSION_1_10, jdkProp: "java10Home"],
