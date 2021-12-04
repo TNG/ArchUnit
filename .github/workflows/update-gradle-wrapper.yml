@@ -14,7 +14,7 @@ jobs:
       - name: Install Gradle JDK
         uses: actions/setup-java@v1
         with:
-          java-version: 14
+          java-version: 17
 
       - name: Update Gradle Wrapper
         uses: gradle-update/update-gradle-wrapper-action@v1.0.15
