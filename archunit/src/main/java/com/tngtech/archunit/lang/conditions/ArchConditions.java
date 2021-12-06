@@ -64,8 +64,7 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassGet
 import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSetsFieldCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
-import static com.tngtech.archunit.base.DescribedPredicate.empty;
+import static com.tngtech.archunit.base.DescribedPredicate.optionalContains;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
@@ -174,7 +173,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyAccessFieldsThat(final DescribedPredicate<? super JavaField> predicate) {
         ChainableFunction<JavaFieldAccess, FieldAccessTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaFieldAccess> accessPredicate = getTarget.then(FieldAccessTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaField>forSubtype()).or(empty()));
+                .is(optionalContains(predicate.<JavaField>forSubtype()).or(DescribedPredicate.<JavaField>optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(accessPredicate, GET_FIELD_ACCESSES_FROM_SELF)
                 .as("only access fields that " + predicate.getDescription());
     }
@@ -207,7 +206,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallMethodsThat(final DescribedPredicate<? super JavaMethod> predicate) {
         ChainableFunction<JavaMethodCall, MethodCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaMethodCall> callPredicate = getTarget.then(MethodCallTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaMethod>forSubtype()).or(empty()));
+                .is(optionalContains(predicate.<JavaMethod>forSubtype()).or(DescribedPredicate.<JavaMethod>optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_METHOD_CALLS_FROM_SELF)
                 .as("only call methods that " + predicate.getDescription());
     }
@@ -240,7 +239,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallConstructorsThat(final DescribedPredicate<? super JavaConstructor> predicate) {
         ChainableFunction<JavaConstructorCall, ConstructorCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaConstructorCall> callPredicate = getTarget.then(ConstructorCallTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaConstructor>forSubtype()).or(empty()));
+                .is(optionalContains(predicate.<JavaConstructor>forSubtype()).or(DescribedPredicate.<JavaConstructor>optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CONSTRUCTOR_CALLS_FROM_SELF)
                 .as("only call constructors that " + predicate.getDescription());
     }
@@ -255,7 +254,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallCodeUnitsThat(final DescribedPredicate<? super JavaCodeUnit> predicate) {
         ChainableFunction<JavaCall<?>, CodeUnitCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaCall<?>> callPredicate = getTarget.then(CodeUnitCallTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaCodeUnit>forSubtype()).or(empty()));
+                .is(optionalContains(predicate.<JavaCodeUnit>forSubtype()).or(DescribedPredicate.<JavaCodeUnit>optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CALLS_FROM_SELF)
                 .as("only call code units that " + predicate.getDescription());
     }
@@ -263,8 +262,8 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyAccessMembersThat(final DescribedPredicate<? super JavaMember> predicate) {
         ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
-        DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(AccessTarget.Functions.RESOLVE)
-                .is(anyElementThat(predicate.<JavaMember>forSubtype()).or(empty()));
+        DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(AccessTarget.Functions.RESOLVE_MEMBER)
+                .is(optionalContains(predicate.<JavaMember>forSubtype()).or(DescribedPredicate.<JavaMember>optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(accessPredicate, GET_ACCESSES_FROM_SELF)
                 .as("only access members that " + predicate.getDescription());
     }
@@ -1324,12 +1323,11 @@ public final class ArchConditions {
 
     private static class NumberOfElementsCondition extends ArchCondition<JavaClass> {
         private final DescribedPredicate<Integer> predicate;
-        private SortedSet<String> allClassNames;
+        private final SortedSet<String> allClassNames = new TreeSet<>();
 
         NumberOfElementsCondition(DescribedPredicate<? super Integer> predicate) {
             super("contain number of elements " + predicate.getDescription());
             this.predicate = predicate.forSubtype();
-            allClassNames = new TreeSet<>();
         }
 
         @Override

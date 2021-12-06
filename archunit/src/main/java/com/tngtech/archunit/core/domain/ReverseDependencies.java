@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
+import com.tngtech.archunit.base.Optional;
 
 final class ReverseDependencies {
 
@@ -261,7 +262,8 @@ final class ReverseDependencies {
             ImmutableSet.Builder<ACCESS> result = ImmutableSet.builder();
             for (final JavaClass javaClass : getPossibleTargetClassesForAccess(member.getOwner())) {
                 for (ACCESS access : this.accessesToSelf.get(javaClass)) {
-                    if (access.getTarget().resolve().contains(member)) {
+                    Optional<? extends JavaMember> target = access.getTarget().resolveMember();
+                    if (target.isPresent() && target.get().equals(member)) {
                         result.add(access);
                     }
                 }

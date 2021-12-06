@@ -3,7 +3,6 @@ package com.tngtech.archunit.core.domain;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -110,11 +109,11 @@ public class TestUtils {
     }
 
     public static MethodCallTarget resolvedTargetFrom(JavaMethod target) {
-        return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Collections.singleton(target)));
+        return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Optional.of(target)));
     }
 
     private static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
-        return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Collections.<JavaMethod>emptySet()));
+        return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Optional.<JavaMethod>empty()));
     }
 
     public static Class<?>[] asClasses(List<JavaClass> parameters) {

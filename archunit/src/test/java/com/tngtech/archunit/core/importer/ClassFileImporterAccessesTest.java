@@ -3,7 +3,6 @@ package com.tngtech.archunit.core.importer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +15,9 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -45,7 +47,6 @@ import com.tngtech.archunit.core.importer.testexamples.dependents.SecondClassWit
 import com.tngtech.archunit.core.importer.testexamples.diamond.ClassCallingDiamond;
 import com.tngtech.archunit.core.importer.testexamples.diamond.ClassImplementingD;
 import com.tngtech.archunit.core.importer.testexamples.diamond.InterfaceB;
-import com.tngtech.archunit.core.importer.testexamples.diamond.InterfaceC;
 import com.tngtech.archunit.core.importer.testexamples.diamond.InterfaceD;
 import com.tngtech.archunit.core.importer.testexamples.fieldaccessimport.ExternalFieldAccess;
 import com.tngtech.archunit.core.importer.testexamples.fieldaccessimport.ExternalShadowedFieldAccess;
@@ -56,10 +57,11 @@ import com.tngtech.archunit.core.importer.testexamples.fieldaccessimport.Foreign
 import com.tngtech.archunit.core.importer.testexamples.fieldaccessimport.MultipleFieldAccessInSameMethod;
 import com.tngtech.archunit.core.importer.testexamples.fieldaccessimport.OwnFieldAccess;
 import com.tngtech.archunit.core.importer.testexamples.fieldaccessimport.OwnStaticFieldAccess;
-import com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.ClassAccessingInterfaceFields;
 import com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.InterfaceWithFields;
 import com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.OtherInterfaceWithFields;
 import com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.ParentInterfaceWithFields;
+import com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.ambiguous_in_hierarchy.ClassAccessingChildExtendingParentWithSameInterfaceFields;
+import com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.unique_in_hierarchy.ClassAccessingInterfaceFields;
 import com.tngtech.archunit.core.importer.testexamples.fieldimport.ClassWithIntAndObjectFields;
 import com.tngtech.archunit.core.importer.testexamples.hierarchicalfieldaccess.AccessToSuperAndSubclassField;
 import com.tngtech.archunit.core.importer.testexamples.hierarchicalfieldaccess.SubclassWithAccessedField;
@@ -74,7 +76,9 @@ import com.tngtech.archunit.core.importer.testexamples.integration.ClassD;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassXDependingOnClassesABCD;
 import com.tngtech.archunit.core.importer.testexamples.integration.InterfaceOfClassX;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -96,6 +100,7 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 
+@RunWith(DataProviderRunner.class)
 public class ClassFileImporterAccessesTest {
 
     @Test
@@ -333,7 +338,7 @@ public class ClassFileImporterAccessesTest {
 
         assertThat(accesses).hasSize(2);
         JavaField field = superclassWithAccessedField.getField("field");
-        AccessTarget.FieldAccessTarget expectedSuperclassFieldAccess = new DomainBuilders.FieldAccessTargetBuilder()
+        FieldAccessTarget expectedSuperclassFieldAccess = new DomainBuilders.FieldAccessTargetBuilder()
                 .withOwner(subClassWithAccessedField)
                 .withName(field.getName())
                 .withType(field.getRawType())
@@ -354,18 +359,29 @@ public class ClassFileImporterAccessesTest {
         Set<JavaFieldAccess> accesses = new ClassFileImporter().importUrl(getClass().getResource("testexamples/fieldaccesstointerfaces"))
                 .get(ClassAccessingInterfaceFields.class).getFieldAccessesFromSelf();
 
-        assertThat(findAnyByName(accesses, "" + InterfaceWithFields.objectFieldOne).getTarget().resolveField().get())
+        assertThat(resolve(findAnyByName(accesses, "" + InterfaceWithFields.objectFieldOne).getTarget()))
                 .isEquivalentTo(field(InterfaceWithFields.class, "" + InterfaceWithFields.objectFieldOne));
-        assertThat(findAnyByName(accesses, "" + InterfaceWithFields.objectFieldTwo).getTarget().resolveField().get())
+        assertThat(resolve(findAnyByName(accesses, "" + InterfaceWithFields.objectFieldTwo).getTarget()))
                 .isEquivalentTo(field(InterfaceWithFields.class, "" + InterfaceWithFields.objectFieldTwo));
-        assertThat(findAnyByName(accesses, "" + OtherInterfaceWithFields.otherObjectFieldOne).getTarget().resolveField().get())
+        assertThat(resolve(findAnyByName(accesses, "" + OtherInterfaceWithFields.otherObjectFieldOne).getTarget()))
                 .isEquivalentTo(field(OtherInterfaceWithFields.class, "" + OtherInterfaceWithFields.otherObjectFieldOne));
-        assertThat(findAnyByName(accesses, "" + OtherInterfaceWithFields.otherObjectFieldTwo).getTarget().resolveField().get())
+        assertThat(resolve(findAnyByName(accesses, "" + OtherInterfaceWithFields.otherObjectFieldTwo).getTarget()))
                 .isEquivalentTo(field(OtherInterfaceWithFields.class, "" + OtherInterfaceWithFields.otherObjectFieldTwo));
-        assertThat(findAnyByName(accesses, "" + ParentInterfaceWithFields.parentObjectFieldOne).getTarget().resolveField().get())
+        assertThat(resolve(findAnyByName(accesses, "" + ParentInterfaceWithFields.parentObjectFieldOne).getTarget()))
                 .isEquivalentTo(field(ParentInterfaceWithFields.class, "" + ParentInterfaceWithFields.parentObjectFieldOne));
-        assertThat(findAnyByName(accesses, "" + ParentInterfaceWithFields.parentObjectFieldTwo).getTarget().resolveField().get())
+        assertThat(resolve(findAnyByName(accesses, "" + ParentInterfaceWithFields.parentObjectFieldTwo).getTarget()))
                 .isEquivalentTo(field(ParentInterfaceWithFields.class, "" + ParentInterfaceWithFields.parentObjectFieldTwo));
+    }
+
+    @Test
+    public void imports_field_accesses_to_fields_from_interfaces_even_if_same_type_exists_in_class_hierarchy_with_lesser_visibility() {
+        Set<JavaFieldAccess> accesses = new ClassFileImporter().importUrl(getClass().getResource("testexamples/fieldaccesstointerfaces"))
+                .get(ClassAccessingChildExtendingParentWithSameInterfaceFields.class).getFieldAccessesFromSelf();
+
+        assertThat(resolve(findAnyByName(accesses, "" + InterfaceWithFields.objectFieldOne).getTarget()))
+                .isEquivalentTo(field(InterfaceWithFields.class, "" + InterfaceWithFields.objectFieldOne));
+        assertThat(resolve(findAnyByName(accesses, "" + OtherInterfaceWithFields.otherObjectFieldOne).getTarget()))
+                .isEquivalentTo(field(OtherInterfaceWithFields.class, "" + OtherInterfaceWithFields.otherObjectFieldOne));
     }
 
     @Test
@@ -387,7 +403,7 @@ public class ClassFileImporterAccessesTest {
                 .withName(expectedSuperclassMethod.getName())
                 .withParameters(expectedSuperclassMethod.getRawParameterTypes())
                 .withReturnType(expectedSuperclassMethod.getRawReturnType())
-                .withMethods(Suppliers.ofInstance(Collections.singleton(expectedSuperclassMethod)))
+                .withMethod(Suppliers.ofInstance(Optional.of(expectedSuperclassMethod)))
                 .build();
         assertThatCall(getOnlyByCaller(calls, callSuperclassMethod))
                 .isFrom(callSuperclassMethod)
@@ -493,7 +509,7 @@ public class ClassFileImporterAccessesTest {
                 .isFrom(constructorCallingObjectInit)
                 .inLineNumber(4);
 
-        AccessTarget.ConstructorCallTarget target = objectInitCall.getTarget();
+        ConstructorCallTarget target = objectInitCall.getTarget();
         assertThat(target.getFullName()).isEqualTo(Object.class.getName() + ".<init>()");
         assertThat(reflect(target)).isEqualTo(Object.class.getConstructor());
     }
@@ -514,7 +530,7 @@ public class ClassFileImporterAccessesTest {
                 .isFrom(call)
                 .inLineNumber(lineNumber);
 
-        AccessTarget.ConstructorCallTarget target = callToExternalClass.getTarget();
+        ConstructorCallTarget target = callToExternalClass.getTarget();
         assertThat(target.getFullName()).isEqualTo(constructorOwner.getName() + ".<init>()");
         assertThat(reflect(target)).isEqualTo(constructor(constructorOwner));
     }
@@ -529,7 +545,7 @@ public class ClassFileImporterAccessesTest {
                 .isFrom(classThatCallsExternalMethod.getCodeUnitWithParameterTypes("getString"))
                 .inLineNumber(7);
 
-        AccessTarget.MethodCallTarget target = call.getTarget();
+        MethodCallTarget target = call.getTarget();
         assertThat(target.getOwner().reflect()).isEqualTo(ArrayList.class);
         assertThat(target.getFullName()).isEqualTo(ArrayList.class.getName() + ".toString()");
     }
@@ -544,9 +560,9 @@ public class ClassFileImporterAccessesTest {
                 .isFrom(classThatCallsExternalMethod.getCodeUnitWithParameterTypes("call"))
                 .inLineNumber(9);
 
-        AccessTarget.MethodCallTarget target = call.getTarget();
+        MethodCallTarget target = call.getTarget();
         assertThat(target.getFullName()).isEqualTo(ChildClass.class.getName() + ".overrideMe()");
-        assertThat(getOnlyElement(target.resolve()).getFullName()).isEqualTo(ChildClass.class.getName() + ".overrideMe()");
+        assertThat(resolve(target).getFullName()).isEqualTo(ChildClass.class.getName() + ".overrideMe()");
         assertThat(reflect(target)).isEqualTo(method(ChildClass.class, "overrideMe"));
     }
 
@@ -560,7 +576,7 @@ public class ClassFileImporterAccessesTest {
                 .isFrom(classThatCallsExternalMethod.getCodeUnitWithParameterTypes("call"))
                 .inLineNumber(9);
 
-        AccessTarget.MethodCallTarget target = call.getTarget();
+        MethodCallTarget target = call.getTarget();
         assertThat(reflect(target)).isEqualTo(method(Map.class, "put", Object.class, Object.class));
     }
 
@@ -568,8 +584,6 @@ public class ClassFileImporterAccessesTest {
     public void imports_non_unique_targets_for_diamond_scenarios() {
         JavaClasses diamondScenario = new ClassFileImporter().importUrl(getClass().getResource("testexamples/diamond"));
         JavaClass classCallingDiamond = diamondScenario.get(ClassCallingDiamond.class);
-        JavaClass diamondLeftInterface = diamondScenario.get(InterfaceB.class);
-        JavaClass diamondRightInterface = diamondScenario.get(InterfaceC.class);
         JavaClass diamondPeakInterface = diamondScenario.get(InterfaceD.class);
         JavaClass diamondPeakClass = diamondScenario.get(ClassImplementingD.class);
 
@@ -587,10 +601,7 @@ public class ClassFileImporterAccessesTest {
         assertThat(callToInterface.getTarget().getName()).isEqualTo(InterfaceD.implementMe);
         assertThat(callToInterface.getTarget().getOwner()).isEqualTo(diamondPeakInterface);
         assertThat(callToInterface.getTarget().getRawParameterTypes()).isEmpty();
-        assertThat(callToInterface.getTarget().resolve()).extracting("fullName")
-                .containsOnly(
-                        diamondLeftInterface.getMethod(InterfaceB.implementMe).getFullName(),
-                        diamondRightInterface.getMethod(InterfaceB.implementMe).getFullName());
+        assertThat(resolve(callToInterface.getTarget())).isEquivalentTo(InterfaceB.class, InterfaceB.implementMe);
 
         JavaCodeUnit callImplementation = classCallingDiamond
                 .getCodeUnitWithParameterTypes(ClassCallingDiamond.callImplementation);
@@ -604,7 +615,7 @@ public class ClassFileImporterAccessesTest {
     public void imports_method_calls_that_return_Arrays() {
         JavaClass classThatCallsMethodReturningArray = new ClassFileImporter().importUrl(getClass().getResource("testexamples/callimport")).get(CallsMethodReturningArray.class);
 
-        AccessTarget.MethodCallTarget target = getOnlyElement(classThatCallsMethodReturningArray.getMethodCallsFromSelf()).getTarget();
+        MethodCallTarget target = getOnlyElement(classThatCallsMethodReturningArray.getMethodCallsFromSelf()).getTarget();
         assertThatType(target.getOwner()).matches(CallsMethodReturningArray.SomeEnum.class);
         assertThatType(target.getRawReturnType()).matches(CallsMethodReturningArray.SomeEnum[].class);
     }
@@ -895,8 +906,29 @@ public class ClassFileImporterAccessesTest {
         return result;
     }
 
-    private Constructor<?> reflect(AccessTarget.ConstructorCallTarget target) {
-        return reflect(target.resolveConstructor().get());
+    // only temporary to make sure resolveMember() and resolve() are in sync. Inline again when we throw out resolve()
+    private JavaField resolve(FieldAccessTarget fieldAccessTarget) {
+        JavaField field = fieldAccessTarget.resolveMember().get();
+        assertThat(fieldAccessTarget.resolve()).containsExactly(field);
+        return field;
+    }
+
+    // only temporary to make sure resolveMember() and resolve() are in sync. Inline again when we throw out resolve()
+    private JavaConstructor resolve(ConstructorCallTarget target) {
+        JavaConstructor constructor = target.resolveMember().get();
+        assertThat(target.resolve()).containsExactly(constructor);
+        return constructor;
+    }
+
+    // only temporary to make sure resolveMember() and resolve() are in sync. Inline again when we throw out resolve()
+    private JavaMethod resolve(MethodCallTarget target) {
+        JavaMethod method = target.resolveMember().get();
+        assertThat(target.resolve()).containsExactly(method);
+        return method;
+    }
+
+    private Constructor<?> reflect(ConstructorCallTarget target) {
+        return reflect(resolve(target));
     }
 
     private Constructor<?> reflect(JavaConstructor javaConstructor) {
@@ -907,8 +939,8 @@ public class ClassFileImporterAccessesTest {
         }
     }
 
-    private Method reflect(AccessTarget.MethodCallTarget target) {
-        return reflect(getOnlyElement(target.resolve()));
+    private Method reflect(MethodCallTarget target) {
+        return reflect(resolve(target));
     }
 
     private Method reflect(JavaMethod javaMethod) {
@@ -993,8 +1025,8 @@ public class ClassFileImporterAccessesTest {
         return FluentIterable.from(calls).filter(predicate).toSet();
     }
 
-    private Set<AccessTarget.FieldAccessTarget> targetsOf(Set<JavaFieldAccess> fieldAccesses) {
-        Set<AccessTarget.FieldAccessTarget> result = new HashSet<>();
+    private Set<FieldAccessTarget> targetsOf(Set<JavaFieldAccess> fieldAccesses) {
+        Set<FieldAccessTarget> result = new HashSet<>();
         for (JavaFieldAccess access : fieldAccesses) {
             result.add(access.getTarget());
         }

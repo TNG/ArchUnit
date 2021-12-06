@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
@@ -53,21 +54,40 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
 /**
- * Represents the target of a {@link JavaAccess}. ArchUnit distinguishes between an 'access target' and a concrete field/method/constructor, because
- * the bytecode does not allow a 1-to-1 association here.
+ * Represents the target of a {@link JavaAccess}. ArchUnit distinguishes between an 'access target' and a concrete field/method/constructor,
+ * because the bytecode does not reflect the exact member that an access will resolve to. Take for example
+ * <pre><code>
+ * class Caller {
+ *     void call(Target target) {
+ *         target.call();
+ *     }
+ * }
+ *
+ * class Target extends TargetParent {
+ * }
+ *
+ * class TargetParent {
+ *     void call() {}
+ * }
+ * </code></pre>
+ * Then the bytecode will have encoded {@code Caller -> Target.call()}, but there is no method {@code call()} in {@code Target} since
+ * it needs to be resolved from the parent. This can be a lot more complex for interface inheritance, where multiple inheritance is
+ * possible.<br><br>
+ * To determine the respective member targeted by a {@link JavaAccess} ArchUnit follows the logic of the Reflection API
+ * (e.g. {@link Class#getMethod(String, Class[])}). This only applies to <b>how</b> members are located, not what members are located
+ * (e.g. ArchUnit <b>will</b> find a {@link JavaCodeUnit} with name {@value com.tngtech.archunit.core.domain.JavaConstructor#CONSTRUCTOR_NAME},
+ * even if the Reflection API explicitly excludes this bytecode-only method and represents the constructor as a method with the simple class
+ * name instead).
  * <br><br>
- * For one part, the target might be missing from the import, e.g. some method
- * <code>Foo.origin()</code> of some imported class <code>Foo</code> might call a method <code>Bar.target()</code>. But if <code>Bar</code>
- * is missing from the import (i.e. the bytecode of <code>Bar.class</code> has not been scanned together with <code>Foo.class</code>),
- * there will not be a {@link JavaMethod} representing <code>Bar.target()</code>.
- * So even though we can derive an {@link AccessTarget} that is <code>Bar.target()</code>
- * from <code>Foo's</code> bytecode (including method name and parameters), we cannot associate any {@link JavaMethod} with that target.
- * <br><br>
- * For the other part, even if all the participating classes are imported, there are still situations, where the respective access target cannot
- * be associated with one single {@link JavaMethod}. I.e. some diamond scenarios, where two interfaces <code>A</code> and <code>B</code>
- * both declare a method <code>target()</code>, interface <code>C</code> extends both, and some third party calls <code>C.target()</code>.
- * For further elaboration refer to the documentation of {@link #resolve()}. In particular {@link #resolve()} attempts to find
- * matching {@link JavaMember JavaMembers} for the respective {@link AccessTarget}.
+ * Note that it is possible that ArchUnit will not find any member matching this {@link AccessTarget}. This is due to the fact that any
+ * numbers of referenced classes can be missing from the import. E.g. some method {@code Foo.origin()} of some imported
+ * class {@code Foo} might call a method {@code Bar.target()}. But if {@code Bar}
+ * is missing from the import (i.e. the bytecode of {@code Bar.class} has not been scanned together with {@code Foo.class}),
+ * there will not be a {@link JavaMethod} representing {@code Bar.target()}.
+ * So even though we can derive an {@link AccessTarget} that is {@code Bar.target()}
+ * from {@code Foo's} bytecode (including method name and parameters), we cannot associate any {@link JavaMethod} with that target.
+ *
+ * @see #resolveMember()
  */
 public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass>, HasDescription {
     private final String name;
@@ -102,42 +122,27 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         return fullName;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(fullName);
-    }
-
     /**
-     * Tries to resolve the targeted members (methods, fields or constructors). In most cases this will be a
-     * single element, if the target was imported, or an empty set, if the target was not imported. However,
-     * for {@link MethodCallTarget MethodCallTargets}, there can be multiple possible targets.
-     * For further information refer to {@link AccessTarget}.
-     *
-     * @see MethodCallTarget#resolve()
-     * @see FieldAccessTarget#resolve()
-     * @see ConstructorCallTarget#resolve()
-     *
-     * @return Set of all members that match the call target
+     * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
      */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public abstract Set<? extends JavaMember> resolve();
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final AccessTarget other = (AccessTarget) obj;
-        return Objects.equals(this.fullName, other.fullName);
-    }
-
-    @Override
-    public String toString() {
-        return "target{" + fullName + '}';
-    }
+    /**
+     * Attempts to resolve the targeted member (method, field or constructor).
+     * This will be a single element if the target has been imported,
+     * or {@link Optional#empty()} if the target was not imported.
+     * For further information refer to {@link AccessTarget}.
+     *
+     * @see MethodCallTarget#resolveMember()
+     * @see FieldAccessTarget#resolveMember()
+     * @see ConstructorCallTarget#resolveMember()
+     *
+     * @return The member that matches the access target or empty if it was not imported
+     */
+    @PublicAPI(usage = ACCESS)
+    public abstract Optional<? extends JavaMember> resolveMember();
 
     /**
      * Returns true, if one of the resolved targets is annotated with the given annotation type.<br>
@@ -153,7 +158,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     }
 
     /**
-     * @see AccessTarget#isAnnotatedWith(Class)
+     * @see #isAnnotatedWith(Class)
      */
     @Override
     @PublicAPI(usage = ACCESS)
@@ -184,12 +189,22 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         });
     }
 
+    /**
+     * Returns true, if one of the resolved targets is meta-annotated with an annotation of the given type.<br>
+     * NOTE: If the target was not imported, this method will always return false.
+     *
+     * @param annotationType Type of the annotation to look for
+     * @return true if one of the resolved targets is meta-annotated with an annotation with the given type
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
         return isMetaAnnotatedWith(annotationType.getName());
     }
 
+    /**
+     * @see #isMetaAnnotatedWith(Class)
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(final String annotationTypeName) {
@@ -201,6 +216,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         });
     }
 
+    /**
+     * Returns true, if one of the resolved targets is meta-annotated with an annotation matching the predicate.<br>
+     * NOTE: If the target was not imported, this method will always return false.
+     *
+     * @param predicate Qualifies matching annotations
+     * @return true if one of the resolved targets is meta-annotated with an annotation matching the predicate
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
@@ -221,19 +243,53 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         return false;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(fullName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final AccessTarget other = (AccessTarget) obj;
+        return Objects.equals(this.fullName, other.fullName);
+    }
+
+    @Override
+    public String toString() {
+        return "target{" + fullName + '}';
+    }
+
     public static final class Functions {
         private Functions() {
         }
 
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<AccessTarget, Set<JavaMember>> RESOLVE =
-                new ChainableFunction<AccessTarget, Set<JavaMember>>() {
-                    @SuppressWarnings("unchecked") // Set is covariant
+        public static final ChainableFunction<AccessTarget, Optional<JavaMember>> RESOLVE_MEMBER =
+                new ChainableFunction<AccessTarget, Optional<JavaMember>>() {
+                    @SuppressWarnings("unchecked") // Optional is covariant
                     @Override
-                    public Set<JavaMember> apply(AccessTarget input) {
-                        return (Set<JavaMember>) input.resolve();
+                    public Optional<JavaMember> apply(AccessTarget input) {
+                        return (Optional<JavaMember>) input.resolveMember();
                     }
                 };
+
+        /**
+         * @deprecated Use {@link #RESOLVE_MEMBER} instead
+         */
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<AccessTarget, Set<JavaMember>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaMember>, Set<JavaMember>>() {
+            @Override
+            public Set<JavaMember> apply(Optional<JavaMember> input) {
+                return input.asSet();
+            }
+        });
     }
 
     /**
@@ -263,21 +319,61 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
 
         /**
-         * @return A field that matches this target, or {@link Optional#absent()} if no matching field was imported.
+         * @deprecated Use {@link #resolveMember()} instead
          */
+        @Deprecated
         @PublicAPI(usage = ACCESS)
         public Optional<JavaField> resolveField() {
-            return field.get();
+            return resolveMember();
         }
 
         /**
-         * @return Fields that match the target, this will always be either one field, or no field
-         * @see #resolveField()
+         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
+         */
+        @Override
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
+        public Set<JavaField> resolve() {
+            return resolveMember().asSet();
+        }
+
+        /**
+         * Attempts to resolve an imported field that has the same type and name as this target.<br>
+         * The result will be the only accessible field that the origin can reach. I.e. if there are multiple
+         * fields with the same type and name in the hierarchy of the target, then the one that is accessible
+         * will be picked. This must be unique, otherwise the compiler would force disambiguating by an
+         * explicit cast. Consider e.g.
+         *
+         * <pre><code>
+         * interface A {
+         *     Class&lt;?&gt; value = A.class;
+         * }
+         *
+         * interface B {
+         *     Class&lt;?&gt; value = B.class;
+         * }
+         *
+         * class C implements A, B {
+         * }
+         *
+         * class X {
+         *     C c;
+         *     // ...
+         *     Class&lt;?&gt; origin() {
+         *         return ((B) c).value;
+         *     }
+         * }
+         * </code></pre>
+         * Without the cast {@code ((B) c)} this code would not compile because the field reference is ambiguous.<br>
+         * Note that the result can still be {@link Optional#empty()} in case the class containing the field has not
+         * been imported.
+         *
+         * @return The field that matches this target, or {@link Optional#empty()} if no matching field was imported.
          */
         @Override
         @PublicAPI(usage = ACCESS)
-        public Set<JavaField> resolve() {
-            return resolveField().asSet();
+        public Optional<JavaField> resolveMember() {
+            return field.get();
         }
 
         @Override
@@ -291,11 +387,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE =
-                    new ChainableFunction<FieldAccessTarget, Set<JavaField>>() {
+            public static final ChainableFunction<FieldAccessTarget, Optional<JavaField>> RESOLVE =
+                    new ChainableFunction<FieldAccessTarget, Optional<JavaField>>() {
                         @Override
-                        public Set<JavaField> apply(FieldAccessTarget input) {
-                            return input.resolve();
+                        public Optional<JavaField> apply(FieldAccessTarget input) {
+                            return input.resolveMember();
                         }
                     };
         }
@@ -304,7 +400,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     /**
      * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
      * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget} and in particular the
-     * documentation at {@link MethodCallTarget#resolve() MethodCallTarget.resolve()}.
+     * documentation at {@link MethodCallTarget#resolveMember() MethodCallTarget.resolveMember()}.
      */
     public abstract static class CodeUnitCallTarget extends AccessTarget
             implements HasParameterTypes, HasReturnType, HasThrowsClause<CodeUnitCallTarget> {
@@ -370,10 +466,18 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         /**
          * Tries to resolve the targeted method or constructor.
          *
-         * @see ConstructorCallTarget#resolveConstructor()
-         * @see MethodCallTarget#resolve()
+         * @see ConstructorCallTarget#resolveMember()
+         * @see MethodCallTarget#resolveMember()
          */
         @Override
+        @PublicAPI(usage = ACCESS)
+        public abstract Optional<? extends JavaCodeUnit> resolveMember();
+
+        /**
+         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
+         */
+        @Override
+        @Deprecated
         @PublicAPI(usage = ACCESS)
         public abstract Set<? extends JavaCodeUnit> resolve();
 
@@ -382,12 +486,12 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<CodeUnitCallTarget, Set<JavaCodeUnit>> RESOLVE =
-                    new ChainableFunction<CodeUnitCallTarget, Set<JavaCodeUnit>>() {
-                        @SuppressWarnings("unchecked") // Set is covariant
+            public static final ChainableFunction<CodeUnitCallTarget, Optional<JavaCodeUnit>> RESOLVE =
+                    new ChainableFunction<CodeUnitCallTarget, Optional<JavaCodeUnit>>() {
+                        @SuppressWarnings("unchecked") // Optional is covariant
                         @Override
-                        public Set<JavaCodeUnit> apply(CodeUnitCallTarget input) {
-                            return (Set<JavaCodeUnit>) input.resolve();
+                        public Optional<JavaCodeUnit> apply(CodeUnitCallTarget input) {
+                            return (Optional<JavaCodeUnit>) input.resolveMember();
                         }
                     };
         }
@@ -402,22 +506,32 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
 
         /**
-         * @return A constructor that matches this target, or {@link Optional#absent()} if no matching constructor
-         * was imported.
+         * @deprecated Use {@link #resolveMember()} instead
          */
+        @Deprecated
         @PublicAPI(usage = ACCESS)
         public Optional<JavaConstructor> resolveConstructor() {
-            return constructor.get();
+            return resolveMember();
         }
 
         /**
-         * @return constructors that match the target, this will always be either one constructor, or no constructor
-         * @see #resolveConstructor()
+         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
+         */
+        @Override
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
+        public Set<JavaConstructor> resolve() {
+            return resolveMember().asSet();
+        }
+
+        /**
+         * @return A constructor that matches this target, or {@link Optional#empty()} if no matching constructor
+         * was imported.
          */
         @Override
         @PublicAPI(usage = ACCESS)
-        public Set<JavaConstructor> resolve() {
-            return resolveConstructor().asSet();
+        public Optional<JavaConstructor> resolveMember() {
+            return constructor.get();
         }
 
         @Override
@@ -431,11 +545,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE =
-                    new ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>>() {
+            public static final ChainableFunction<ConstructorCallTarget, Optional<JavaConstructor>> RESOLVE =
+                    new ChainableFunction<ConstructorCallTarget, Optional<JavaConstructor>>() {
                         @Override
-                        public Set<JavaConstructor> apply(ConstructorCallTarget input) {
-                            return input.resolve();
+                        public Optional<JavaConstructor> apply(ConstructorCallTarget input) {
+                            return input.resolveMember();
                         }
                     };
         }
@@ -444,19 +558,19 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     /**
      * Represents a {@link CodeUnitCallTarget} where the target is a method. For further elaboration about the necessity to distinguish
      * {@link MethodCallTarget MethodCallTarget} from {@link JavaMethod}, refer to the documentation at {@link AccessTarget} and in particular the
-     * documentation at {@link #resolve()}.
+     * documentation at {@link #resolveMember()}.
      */
     public static final class MethodCallTarget extends CodeUnitCallTarget {
-        private final Supplier<Set<JavaMethod>> methods;
+        private final Supplier<Optional<JavaMethod>> method;
 
         MethodCallTarget(MethodCallTargetBuilder builder) {
             super(builder);
-            this.methods = Suppliers.memoize(builder.getMethods());
+            this.method = Suppliers.memoize(builder.getMethod());
         }
 
         /**
-         * Attempts to resolve imported methods that match this target. Note that while usually there is one unique
-         * target (if imported), it is possible that the call is ambiguous. For example consider
+         * Attempts to resolve an imported method that matches this target. Note that while usually the respective method is
+         * clear from the context, there are more complicated scenarios. Consider for example
          * <pre><code>
          * interface A {
          *     void target();
@@ -476,22 +590,26 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          *     }
          * }
          * </code></pre>
-         * While, for any concrete implementation, the compiler will naturally resolve one concrete target to link to,
-         * and thus at runtime the called target ist clear, from an analytical point of view the relevant target
-         * can't be uniquely identified here. To sum up, the result can be
-         * <ul>
-         * <li>empty - if no imported method matches the target</li>
-         * <li>a single method - if the method was imported and can uniquely be identified</li>
-         * <li>several methods - in scenarios where there is no unique method that matches the target</li>
-         * </ul>
-         * Note that the target would be uniquely determinable, if C would declare <code>void target()</code> itself.
+         * At runtime the target will be clear, but considering only this bytecode there seem to be two valid candidates
+         * we could pick as the referenced method. To resolve this ambiguity ArchUnit follows the logic described
+         * in the Java Reflection API, i.e. {@link Class#getMethod(String, Class[])}.
          *
-         * @return Set of matching methods, usually a single target
+         * @return Matching method if imported, {@link Optional#empty()} otherwise
          */
         @Override
         @PublicAPI(usage = ACCESS)
+        public Optional<JavaMethod> resolveMember() {
+            return method.get();
+        }
+
+        /**
+         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
+         */
+        @Override
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
         public Set<JavaMethod> resolve() {
-            return methods.get();
+            return resolveMember().asSet();
         }
 
         @Override
@@ -505,11 +623,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE =
-                    new ChainableFunction<MethodCallTarget, Set<JavaMethod>>() {
+            public static final ChainableFunction<MethodCallTarget, Optional<JavaMethod>> RESOLVE =
+                    new ChainableFunction<MethodCallTarget, Optional<JavaMethod>>() {
                         @Override
-                        public Set<JavaMethod> apply(MethodCallTarget input) {
-                            return input.resolve();
+                        public Optional<JavaMethod> apply(MethodCallTarget input) {
+                            return input.resolveMember();
                         }
                     };
         }

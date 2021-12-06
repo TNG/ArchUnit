@@ -1,0 +1,6 @@
+package com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.ambiguous_in_hierarchy;
+
+import com.tngtech.archunit.core.importer.testexamples.fieldaccesstointerfaces.OtherInterfaceWithFields;
+
+public class ParentClassWithSameFieldsAsInterfaces extends GrandParentClassWithSameFieldsAsInterfaces implements OtherInterfaceWithFields {
+}

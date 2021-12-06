@@ -145,7 +145,7 @@ class RawAccessRecord {
         }
     }
 
-    static class TargetInfo {
+    static final class TargetInfo {
         final JavaClassDescriptor owner;
         final String name;
         final String desc;

@@ -241,13 +241,13 @@ public class ImportTestUtils {
                 .build();
     }
 
-    public static MethodCallTarget targetFrom(JavaMethod target, Supplier<Set<JavaMethod>> resolveSupplier) {
+    public static MethodCallTarget targetFrom(JavaMethod target, Supplier<Optional<JavaMethod>> resolveSupplier) {
         return new DomainBuilders.MethodCallTargetBuilder()
                 .withOwner(target.getOwner())
                 .withName(target.getName())
                 .withParameters(target.getRawParameterTypes())
                 .withReturnType(target.getRawReturnType())
-                .withMethods(resolveSupplier)
+                .withMethod(resolveSupplier)
                 .build();
     }
 
@@ -371,13 +371,13 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Optional<Set<JavaType>> createGenericInterfaces(JavaClass owner) {
+        public Optional<List<JavaType>> createGenericInterfaces(JavaClass owner) {
             return Optional.empty();
         }
 
         @Override
-        public Set<JavaClass> createInterfaces(JavaClass owner) {
-            return Collections.emptySet();
+        public List<JavaClass> createInterfaces(JavaClass owner) {
+            return Collections.emptyList();
         }
 
         @Override

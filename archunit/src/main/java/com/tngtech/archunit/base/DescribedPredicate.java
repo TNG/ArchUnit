@@ -138,7 +138,17 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     }
 
     public static DescribedPredicate<Iterable<?>> empty() {
-        return new EmptyPredicate();
+        return EMPTY;
+    }
+
+    public static <T> DescribedPredicate<Optional<T>> optionalContains(final DescribedPredicate<? super T> predicate) {
+        return new OptionalContainsPredicate<>(predicate);
+    }
+
+    // OPTIONAL_EMPTY is independent of the concrete type parameter T of Optional<T>
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T> DescribedPredicate<Optional<T>> optionalEmpty() {
+        return (DescribedPredicate) OPTIONAL_EMPTY;
     }
 
     public static <T> DescribedPredicate<Iterable<? extends T>> anyElementThat(final DescribedPredicate<? super T> predicate) {
@@ -148,6 +158,19 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     public static <T> DescribedPredicate<Iterable<T>> allElements(final DescribedPredicate<? super T> predicate) {
         return new AllElementsPredicate<>(predicate);
     }
+
+    private static final DescribedPredicate<Iterable<?>> EMPTY = new DescribedPredicate<Iterable<?>>("empty") {
+        @Override
+        public boolean apply(Iterable<?> input) {
+            return Iterables.isEmpty(input);
+        }
+    };
+    private static final DescribedPredicate<Optional<?>> OPTIONAL_EMPTY = new DescribedPredicate<Optional<?>>("empty") {
+        @Override
+        public boolean apply(Optional<?> input) {
+            return !input.isPresent();
+        }
+    };
 
     private static class AsPredicate<T> extends DescribedPredicate<T> {
         private final DescribedPredicate<T> current;
@@ -309,17 +332,6 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
     }
 
-    private static class EmptyPredicate extends DescribedPredicate<Iterable<?>> {
-        EmptyPredicate() {
-            super("empty");
-        }
-
-        @Override
-        public boolean apply(Iterable<?> input) {
-            return Iterables.isEmpty(input);
-        }
-    }
-
     private static class AnyElementPredicate<T> extends DescribedPredicate<Iterable<? extends T>> {
         private final DescribedPredicate<T> predicate;
 
@@ -355,6 +367,20 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
                 }
             }
             return true;
+        }
+    }
+
+    private static class OptionalContainsPredicate<T> extends DescribedPredicate<Optional<T>> {
+        private final DescribedPredicate<T> predicate;
+
+        OptionalContainsPredicate(DescribedPredicate<? super T> predicate) {
+            super("contains " + predicate.getDescription());
+            this.predicate = predicate.forSubType();
+        }
+
+        @Override
+        public boolean apply(Optional<T> optional) {
+            return optional.isPresent() && predicate.apply(optional.get());
         }
     }
 }
