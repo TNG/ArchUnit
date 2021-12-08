@@ -33,6 +33,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
@@ -186,6 +187,8 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
 
     private static PlantUmlArchCondition create(URL url, Configuration configuration) {
         PlantUmlDiagram diagram = new PlantUmlParser().parse(url);
+        checkState(!diagram.getAllComponents().isEmpty(), "No components defined in diagram <%s>", url);
+
         JavaClassDiagramAssociation javaClassDiagramAssociation = new JavaClassDiagramAssociation(diagram);
         DescribedPredicate<Dependency> ignorePredicate = configuration.asIgnorePredicate(javaClassDiagramAssociation);
         return new PlantUmlArchCondition(getDescription(url, ignorePredicate.getDescription()), ignorePredicate, javaClassDiagramAssociation);
