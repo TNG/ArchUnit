@@ -1,9 +1,12 @@
 package com.tngtech.archunit.library.plantuml;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.UUID;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -36,6 +39,7 @@ import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Config
 import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.consideringOnlyDependenciesInAnyPackage;
 import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.consideringOnlyDependenciesInDiagram;
 import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.adhereToPlantUmlDiagram;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -218,6 +222,16 @@ public class PlantUmlArchConditionTest {
                         .ignoreDependenciesWithTarget(equivalentTo(SomeOrigin.class))
                         .ignoreDependencies(SomeOrigin.class, SomeTarget.class),
                 0);
+    }
+
+    @Test
+    public void diagram_with_unparseable_content() throws IOException {
+        File file = temporaryFolder.newFile("plantuml_diagram_" + UUID.randomUUID() + ".puml");
+        Files.write(file.toPath(), "XXX-someUnparseableContent-XXX".getBytes(UTF_8));
+
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage(String.format("No components defined in diagram <%s>", toUrl(file)));
+        adhereToPlantUmlDiagram(file, consideringOnlyDependenciesInDiagram());
     }
 
     private ListAssert<String> assertThatEvaluatedConditionWithConfiguration(
