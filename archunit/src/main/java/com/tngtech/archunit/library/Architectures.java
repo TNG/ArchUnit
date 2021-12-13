@@ -226,12 +226,9 @@ public final class Architectures {
         }
 
         private EvaluationResult evaluateDependenciesShouldBeSatisfied(JavaClasses classes, LayerDependencySpecification specification) {
-            ArchCondition<JavaClass> satisfyLayerDependenciesCondition =
-                    onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedAccessors));
-            if (!specification.allowedTargets.isEmpty()) {
-                satisfyLayerDependenciesCondition = satisfyLayerDependenciesCondition
-                        .and(onlyHaveDependenciesWhere(targetMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedTargets)));
-            }
+            ArchCondition<JavaClass> satisfyLayerDependenciesCondition = specification.constraint == LayerDependencyConstraint.ORIGIN
+                    ? onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedLayers))
+                    : onlyHaveDependenciesWhere(targetMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedLayers));
             return classes().that(layerDefinitions.containsPredicateFor(specification.layerName))
                     .should(satisfyLayerDependenciesCondition)
                     .evaluate(classes);
@@ -410,10 +407,15 @@ public final class Architectures {
             }
         }
 
+        private enum LayerDependencyConstraint {
+            ORIGIN,
+            TARGET
+        }
+
         public final class LayerDependencySpecification {
             private final String layerName;
-            private final Set<String> allowedAccessors = new LinkedHashSet<>();
-            private final Set<String> allowedTargets = new LinkedHashSet<>();
+            private final Set<String> allowedLayers = new LinkedHashSet<>();
+            private LayerDependencyConstraint constraint;
             private String descriptionSuffix;
 
             private LayerDependencySpecification(String layerName) {
@@ -422,26 +424,28 @@ public final class Architectures {
 
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayNotBeAccessedByAnyLayer() {
+                allowedLayers.clear();
+                constraint = LayerDependencyConstraint.ORIGIN;
                 descriptionSuffix = "may not be accessed by any layer";
                 return LayeredArchitecture.this.addDependencySpecification(this);
             }
 
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyBeAccessedByLayers(String... layerNames) {
-                checkLayerNamesExist(layerNames);
-                allowedAccessors.addAll(asList(layerNames));
-                descriptionSuffix = String.format("may only be accessed by layers ['%s']",
-                        Joiner.on("', '").join(allowedAccessors));
-                return LayeredArchitecture.this.addDependencySpecification(this);
+                return restrictLayers(LayerDependencyConstraint.ORIGIN, layerNames, "may only be accessed by layers ['%s']");
             }
 
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyAccessLayers(String... layerNames) {
-                checkArgument(layerNames.length > 0, "At least 1 layer name should be provided.");
+                return restrictLayers(LayerDependencyConstraint.TARGET, layerNames, "may only access layers ['%s']");
+            }
+
+            private LayeredArchitecture restrictLayers(LayerDependencyConstraint constraint, String[] layerNames, String descriptionTemplate) {
+                checkArgument(layerNames.length > 0, "At least 1 layer name must be provided.");
                 checkLayerNamesExist(layerNames);
-                allowedTargets.addAll(asList(layerNames));
-                descriptionSuffix = String.format("may only access layers ['%s']",
-                        Joiner.on("', '").join(allowedTargets));
+                allowedLayers.addAll(asList(layerNames));
+                this.constraint = constraint;
+                descriptionSuffix = String.format(descriptionTemplate, Joiner.on("', '").join(layerNames));
                 return LayeredArchitecture.this.addDependencySpecification(this);
             }
 
