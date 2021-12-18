@@ -37,11 +37,11 @@ import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.core.domain.properties.HasType;
+import com.tngtech.archunit.core.importer.DomainBuilders.AccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.JavaCodeUnit.Functions.Get.throwsClause;
@@ -88,11 +88,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     private final String name;
     private final JavaClass owner;
     private final String fullName;
+    private final Supplier<? extends Optional<? extends JavaMember>> member;
 
-    AccessTarget(JavaClass owner, String name, String fullName) {
-        this.name = name;
-        this.owner = owner;
-        this.fullName = fullName;
+    AccessTarget(AccessTargetBuilder<?, ?, ?> builder) {
+        this.name = checkNotNull(builder.getName());
+        this.owner = checkNotNull(builder.getOwner());
+        this.fullName = checkNotNull(builder.getFullName());
+        this.member = Suppliers.memoize(builder.getMember());
     }
 
     @Override
@@ -137,7 +139,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * @return The member that matches the access target or empty if it was not imported
      */
     @PublicAPI(usage = ACCESS)
-    public abstract Optional<? extends JavaMember> resolveMember();
+    public Optional<? extends JavaMember> resolveMember() {
+        return member.get();
+    }
 
     /**
      * Returns true, if one of the resolved targets is annotated with the given annotation type.<br>
@@ -264,12 +268,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      */
     public static final class FieldAccessTarget extends AccessTarget implements HasType {
         private final JavaClass type;
-        private final Supplier<Optional<JavaField>> field;
 
         FieldAccessTarget(FieldAccessTargetBuilder builder) {
-            super(builder.getOwner(), builder.getName(), builder.getFullName());
-            this.type = builder.getType();
-            this.field = Suppliers.memoize(builder.getField());
+            super(builder);
+            this.type = checkNotNull(builder.getType());
         }
 
         @Override
@@ -338,8 +340,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaField if present
         public Optional<JavaField> resolveMember() {
-            return field.get();
+            return (Optional<JavaField>) super.resolveMember();
         }
 
         @Override
@@ -385,10 +388,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
-        CodeUnitCallTarget(CodeUnitCallTargetBuilder<?> builder) {
-            super(builder.getOwner(), builder.getName(), builder.getFullName());
+        CodeUnitCallTarget(CodeUnitCallTargetBuilder<?, ?> builder) {
+            super(builder);
             this.parameters = ImmutableList.copyOf(builder.getParameters());
-            this.returnType = builder.getReturnType();
+            this.returnType = checkNotNull(builder.getReturnType());
         }
 
         @Override
@@ -435,7 +438,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @PublicAPI(usage = ACCESS)
-        public abstract Optional<? extends JavaCodeUnit> resolveMember();
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaCodeUnit if present
+        public Optional<? extends JavaCodeUnit> resolveMember() {
+            return (Optional<? extends JavaCodeUnit>) super.resolveMember();
+        }
 
         /**
          * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
@@ -474,11 +480,8 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     }
 
     public static final class ConstructorCallTarget extends CodeUnitCallTarget {
-        private final Supplier<Optional<JavaConstructor>> constructor;
-
-        ConstructorCallTarget(ConstructorCallTargetBuilder builder) {
+        ConstructorCallTarget(CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget> builder) {
             super(builder);
-            constructor = builder.getConstructor();
         }
 
         /**
@@ -506,8 +509,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaConstructor if present
         public Optional<JavaConstructor> resolveMember() {
-            return constructor.get();
+            return (Optional<JavaConstructor>) super.resolveMember();
         }
 
         @Override
@@ -549,11 +553,8 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * documentation at {@link #resolveMember()}.
      */
     public static final class MethodCallTarget extends CodeUnitCallTarget {
-        private final Supplier<Optional<JavaMethod>> method;
-
-        MethodCallTarget(MethodCallTargetBuilder builder) {
+        MethodCallTarget(CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget> builder) {
             super(builder);
-            this.method = Suppliers.memoize(builder.getMethod());
         }
 
         /**
@@ -586,8 +587,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaMethod if present
         public Optional<JavaMethod> resolveMember() {
-            return method.get();
+            return (Optional<JavaMethod>) super.resolveMember();
         }
 
         /**

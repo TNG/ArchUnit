@@ -51,6 +51,7 @@ import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -979,11 +980,16 @@ public final class DomainBuilders {
         }
     }
 
-    abstract static class AccessTargetBuilder<SELF extends AccessTargetBuilder<SELF>> {
+    @Internal
+    public static abstract class AccessTargetBuilder<MEMBER extends JavaMember, TARGET extends AccessTarget, SELF extends AccessTargetBuilder<MEMBER, TARGET, SELF>> {
+        private final Function<SELF, TARGET> createTarget;
+
         private JavaClass owner;
         private String name;
+        Supplier<Optional<MEMBER>> member;
 
-        private AccessTargetBuilder() {
+        AccessTargetBuilder(Function<SELF, TARGET> createTarget) {
+            this.createTarget = createTarget;
         }
 
         SELF withOwner(final JavaClass owner) {
@@ -996,6 +1002,15 @@ public final class DomainBuilders {
             return self();
         }
 
+        SELF withMember(Supplier<Optional<MEMBER>> member) {
+            this.member = member;
+            return self();
+        }
+
+        TARGET build() {
+            return createTarget.apply(self());
+        }
+
         public JavaClass getOwner() {
             return owner;
         }
@@ -1004,18 +1019,31 @@ public final class DomainBuilders {
             return name;
         }
 
+        public Supplier<Optional<MEMBER>> getMember() {
+            return member;
+        }
+
         @SuppressWarnings("unchecked")
         SELF self() {
             return (SELF) this;
         }
+
+        public abstract String getFullName();
     }
 
     @Internal
-    public static final class FieldAccessTargetBuilder extends AccessTargetBuilder<FieldAccessTargetBuilder> {
+    public static final class FieldAccessTargetBuilder extends AccessTargetBuilder<JavaField, FieldAccessTarget, FieldAccessTargetBuilder> {
+        private static final Function<FieldAccessTargetBuilder, FieldAccessTarget> CREATE_TARGET = new Function<FieldAccessTargetBuilder, FieldAccessTarget>() {
+            @Override
+            public FieldAccessTarget apply(FieldAccessTargetBuilder targetBuilder) {
+                return DomainObjectCreationContext.createFieldAccessTarget(targetBuilder);
+            }
+        };
+
         private JavaClass type;
-        private Supplier<Optional<JavaField>> field;
 
         FieldAccessTargetBuilder() {
+            super(CREATE_TARGET);
         }
 
         FieldAccessTargetBuilder withType(final JavaClass type) {
@@ -1023,43 +1051,32 @@ public final class DomainBuilders {
             return this;
         }
 
-        FieldAccessTargetBuilder withField(final Supplier<Optional<JavaField>> field) {
-            this.field = field;
-            return this;
-        }
-
         public JavaClass getType() {
             return type;
         }
 
-        public Supplier<Optional<JavaField>> getField() {
-            return field;
-        }
-
+        @Override
         public String getFullName() {
             return getOwner().getName() + "." + getName();
-        }
-
-        FieldAccessTarget build() {
-            return DomainObjectCreationContext.createFieldAccessTarget(this);
         }
     }
 
     @Internal
-    public abstract static class CodeUnitCallTargetBuilder<SELF extends CodeUnitCallTargetBuilder<SELF>>
-            extends AccessTargetBuilder<SELF> {
+    public static class CodeUnitCallTargetBuilder<CODE_UNIT extends JavaCodeUnit, ACCESS_TARGET extends AccessTarget.CodeUnitCallTarget>
+            extends AccessTargetBuilder<CODE_UNIT, ACCESS_TARGET, CodeUnitCallTargetBuilder<CODE_UNIT, ACCESS_TARGET>> {
         private List<JavaClass> parameters;
         private JavaClass returnType;
 
-        private CodeUnitCallTargetBuilder() {
+        private CodeUnitCallTargetBuilder(Function<CodeUnitCallTargetBuilder<CODE_UNIT, ACCESS_TARGET>, ACCESS_TARGET> createTarget) {
+            super(createTarget);
         }
 
-        SELF withParameters(final List<JavaClass> parameters) {
+        CodeUnitCallTargetBuilder<CODE_UNIT, ACCESS_TARGET> withParameters(final List<JavaClass> parameters) {
             this.parameters = parameters;
             return self();
         }
 
-        SELF withReturnType(final JavaClass returnType) {
+        CodeUnitCallTargetBuilder<CODE_UNIT, ACCESS_TARGET> withReturnType(final JavaClass returnType) {
             this.returnType = returnType;
             return self();
         }
@@ -1077,48 +1094,29 @@ public final class DomainBuilders {
         }
     }
 
-    @Internal
-    public static final class ConstructorCallTargetBuilder extends CodeUnitCallTargetBuilder<ConstructorCallTargetBuilder> {
-        private Supplier<Optional<JavaConstructor>> constructor;
-
-        ConstructorCallTargetBuilder() {
-            withName(CONSTRUCTOR_NAME);
-        }
-
-        ConstructorCallTargetBuilder withConstructor(Supplier<Optional<JavaConstructor>> constructor) {
-            this.constructor = constructor;
-            return self();
-        }
-
-        public Supplier<Optional<JavaConstructor>> getConstructor() {
-            return constructor;
-        }
-
-        ConstructorCallTarget build() {
-            return DomainObjectCreationContext.createConstructorCallTarget(this);
-        }
+    public static CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget> newConstructorCallTargetBuilder() {
+        return new CodeUnitCallTargetBuilder<>(CREATE_CONSTRUCTOR_CALL_TARGET).withName(CONSTRUCTOR_NAME);
     }
 
-    @Internal
-    public static final class MethodCallTargetBuilder extends CodeUnitCallTargetBuilder<MethodCallTargetBuilder> {
-        private Supplier<Optional<JavaMethod>> method;
-
-        MethodCallTargetBuilder() {
-        }
-
-        MethodCallTargetBuilder withMethod(final Supplier<Optional<JavaMethod>> method) {
-            this.method = method;
-            return this;
-        }
-
-        public Supplier<Optional<JavaMethod>> getMethod() {
-            return method;
-        }
-
-        MethodCallTarget build() {
-            return DomainObjectCreationContext.createMethodCallTarget(this);
-        }
+    public static CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget> newMethodCallTargetBuilder() {
+        return new CodeUnitCallTargetBuilder<>(CREATE_METHOD_CALL_TARGET);
     }
+
+    private static final Function<CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget>, ConstructorCallTarget> CREATE_CONSTRUCTOR_CALL_TARGET =
+            new Function<CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget>, ConstructorCallTarget>() {
+                @Override
+                public ConstructorCallTarget apply(CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget> targetBuilder) {
+                    return DomainObjectCreationContext.createConstructorCallTarget(targetBuilder);
+                }
+            };
+
+    private static final Function<CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget>, MethodCallTarget> CREATE_METHOD_CALL_TARGET =
+            new Function<CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget>, MethodCallTarget>() {
+                @Override
+                public MethodCallTarget apply(CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget> targetBuilder) {
+                    return DomainObjectCreationContext.createMethodCallTarget(targetBuilder);
+                }
+            };
 
     private static class ImportedParameterizedType implements JavaParameterizedType {
         private final JavaType type;

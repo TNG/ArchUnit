@@ -37,13 +37,13 @@ import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
+import static com.tngtech.archunit.core.importer.DomainBuilders.newConstructorCallTargetBuilder;
+import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
 
 interface AccessRecord<TARGET extends AccessTarget> {
     JavaCodeUnit getCaller();
@@ -112,11 +112,11 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Supplier<Optional<JavaConstructor>> constructorSupplier = new ConstructorTargetSupplier(targetOwner, record.target);
                 List<JavaClass> paramTypes = getArgumentTypesFrom(record.target.desc, classes);
                 JavaClass returnType = classes.getOrResolve(void.class.getName());
-                return new ConstructorCallTargetBuilder()
+                return newConstructorCallTargetBuilder()
                         .withOwner(targetOwner)
                         .withParameters(paramTypes)
                         .withReturnType(returnType)
-                        .withConstructor(constructorSupplier)
+                        .withMember(constructorSupplier)
                         .build();
             }
 
@@ -169,12 +169,12 @@ interface AccessRecord<TARGET extends AccessTarget> {
                 Supplier<Optional<JavaMethod>> methodsSupplier = new MethodTargetSupplier(targetOwner, record.target);
                 List<JavaClass> parameters = getArgumentTypesFrom(record.target.desc, classes);
                 JavaClass returnType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmMethodReturnType(record.target.desc).getFullyQualifiedClassName());
-                return new MethodCallTargetBuilder()
+                return newMethodCallTargetBuilder()
                         .withOwner(targetOwner)
                         .withName(record.target.name)
                         .withParameters(parameters)
                         .withReturnType(returnType)
-                        .withMethod(methodsSupplier)
+                        .withMember(methodsSupplier)
                         .build();
             }
 
@@ -230,7 +230,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
                         .withOwner(targetOwner)
                         .withName(record.target.name)
                         .withType(fieldType)
-                        .withField(fieldSupplier)
+                        .withMember(fieldSupplier)
                         .build();
             }
 

@@ -24,8 +24,10 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.importer.DomainBuilders;
-import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
@@ -38,7 +40,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -118,8 +119,8 @@ public class DomainObjectCreationContext {
         return new JavaConstructorCall(builder);
     }
 
-    public static AccessTarget.ConstructorCallTarget createConstructorCallTarget(ConstructorCallTargetBuilder builder) {
-        return new AccessTarget.ConstructorCallTarget(builder);
+    public static ConstructorCallTarget createConstructorCallTarget(CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget> builder) {
+        return new ConstructorCallTarget(builder);
     }
 
     public static JavaMethod createJavaMethod(JavaMethodBuilder builder, Function<JavaMethod, Optional<Object>> createAnnotationDefaultValue) {
@@ -130,8 +131,8 @@ public class DomainObjectCreationContext {
         return new JavaMethodCall(builder);
     }
 
-    public static AccessTarget.MethodCallTarget createMethodCallTarget(MethodCallTargetBuilder builder) {
-        return new AccessTarget.MethodCallTarget(builder);
+    public static MethodCallTarget createMethodCallTarget(CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget> builder) {
+        return new MethodCallTarget(builder);
     }
 
     public static JavaStaticInitializer createJavaStaticInitializer(JavaStaticInitializerBuilder builder) {

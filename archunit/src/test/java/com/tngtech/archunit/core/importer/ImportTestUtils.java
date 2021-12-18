@@ -40,12 +40,15 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
+import static com.tngtech.archunit.core.importer.DomainBuilders.newConstructorCallTargetBuilder;
+import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
 
 public class ImportTestUtils {
 
@@ -224,30 +227,30 @@ public class ImportTestUtils {
     }
 
     public static AccessTarget.ConstructorCallTarget targetFrom(JavaConstructor target) {
-        return new DomainBuilders.ConstructorCallTargetBuilder()
+        return newConstructorCallTargetBuilder()
                 .withOwner(target.getOwner())
                 .withParameters(target.getRawParameterTypes())
                 .withReturnType(target.getRawReturnType())
-                .withConstructor(Suppliers.ofInstance(Optional.of(target)))
+                .withMember(Suppliers.ofInstance(Optional.of(target)))
                 .build();
     }
 
     public static AccessTarget.FieldAccessTarget targetFrom(JavaField field) {
-        return new DomainBuilders.FieldAccessTargetBuilder()
+        return new FieldAccessTargetBuilder()
                 .withOwner(field.getOwner())
                 .withName(field.getName())
                 .withType(field.getRawType())
-                .withField(Suppliers.ofInstance(Optional.of(field)))
+                .withMember(Suppliers.ofInstance(Optional.of(field)))
                 .build();
     }
 
     public static MethodCallTarget targetFrom(JavaMethod target, Supplier<Optional<JavaMethod>> resolveSupplier) {
-        return new DomainBuilders.MethodCallTargetBuilder()
+        return newMethodCallTargetBuilder()
                 .withOwner(target.getOwner())
                 .withName(target.getName())
                 .withParameters(target.getRawParameterTypes())
                 .withReturnType(target.getRawReturnType())
-                .withMethod(resolveSupplier)
+                .withMember(resolveSupplier)
                 .build();
     }
 
