@@ -2,6 +2,8 @@ plugins {
     id "com.gradle.enterprise" version "3.1.1"
 }
 
+rootProject.name = 'archunit-root'
+
 include 'archunit', 'archunit-example', 'archunit-integration-test', 'archunit-java-modules-test',
         'archunit-junit', 'archunit-junit4', 'archunit-junit5-api','archunit-junit5-engine-api','archunit-junit5-engine', 'archunit-junit5',
         'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5', 'docs'
