@@ -10,7 +10,9 @@ ext.moduleName = 'com.tngtech.archunit.example'
         project(':archunit-example:example-junit5')
 ].each {
     proj ->
-        productionProjects.each { proj.compileTestJava.dependsOn(it.finishArchive) }
+        gradle.projectsEvaluated {
+            proj.compileTestJava.dependsOn(rootProject.getTasksByName('finishArchive', true))
+        }
 
         addTestJarTo proj
 

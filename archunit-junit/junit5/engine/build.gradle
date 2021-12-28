@@ -23,8 +23,10 @@ dependencies {
     testRuntimeOnly dependency.junit5JupiterEngine
 }
 
-compileJava.dependsOn project(':archunit-junit5-api').finishArchive
-compileJava.dependsOn project(':archunit-junit5-engine-api').finishArchive
+gradle.projectsEvaluated {
+    compileJava.dependsOn project(':archunit-junit5-api').finishArchive
+    compileJava.dependsOn project(':archunit-junit5-engine-api').finishArchive
+}
 
 javadoc {
     source(project(':archunit-junit').sourceSets.main.allJava)
