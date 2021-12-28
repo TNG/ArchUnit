@@ -1,5 +1,5 @@
 plugins {
-    id 'archunit.java-conventions'
+    id 'archunit.java-release-conventions'
 }
 
 apply plugin: 'idea'
@@ -32,10 +32,14 @@ shadowJar {
     }
 }
 
+repackaging {
+    repackagesAsm true
+}
+
 /* Besides SLF4J we'll shadow everything we need into the JAR to avoid conflicts with other libraries*/
-publishing{
-    publications{
-        mavenJava{
+publishing {
+    publications {
+        mavenJava {
             pom.withXml {
                 def deps = asNode().dependencies.first() // there is only one "dependencies" element
                 deps.children().removeIf { dep ->

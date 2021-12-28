@@ -109,7 +109,7 @@ def checkJavadocExists = { String artifactId ->
 
 def checkArtifactContent = { Project project, JarFile jarFile ->
     checkManifest(project.name, jarFile.manifest)
-    if (project.repackagesAsm) {
+    if (project.repackaging.repackagesAsm) {
         println "Artifact ${project.name} is configured to repackage 3rd party libs -> checking existence of 3rd party package..."
         checkThirdParty(jarFile)
     } else {
