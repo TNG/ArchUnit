@@ -1,5 +1,5 @@
 plugins {
-    id 'archunit.java-conventions'
+    id 'archunit.java-production-conventions'
     id 'archunit.java-repackaging-conventions'
     id 'archunit.java-release-publishing-conventions'
     id 'archunit.license-conventions'

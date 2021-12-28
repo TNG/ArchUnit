@@ -1,0 +1,4 @@
+plugins {
+    id 'archunit.java-conventions'
+    id 'archunit.java-code-quality-conventions'
+}

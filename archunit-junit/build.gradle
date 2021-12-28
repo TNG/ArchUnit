@@ -1,5 +1,5 @@
 plugins {
-    id 'archunit.java-conventions'
+    id 'archunit.java-production-conventions'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit'
