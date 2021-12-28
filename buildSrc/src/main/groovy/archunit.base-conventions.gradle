@@ -1,0 +1,6 @@
+group = getProperty('archunit.group')
+version = getProperty('archunit.version')
+
+repositories {
+    mavenCentral()
+}

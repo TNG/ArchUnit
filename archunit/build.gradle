@@ -1,3 +1,7 @@
+plugins {
+    id 'archunit.java-conventions'
+}
+
 apply plugin: 'idea'
 
 ext.moduleName = 'com.tngtech.archunit'

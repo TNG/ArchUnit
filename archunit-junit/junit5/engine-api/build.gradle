@@ -1,3 +1,7 @@
+plugins {
+    id 'archunit.java-conventions'
+}
+
 ext.moduleName = 'com.tngtech.archunit.junit5.engineapi'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
