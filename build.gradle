@@ -91,13 +91,6 @@ ext {
             project(':archunit-junit5-engine-api'),
             project(':archunit-junit5-engine'),
             project(':archunit-junit5')]
-    releaseProjects = [
-            project(':archunit'),
-            project(':archunit-junit4'),
-            project(':archunit-junit5-api'),
-            project(':archunit-junit5-engine-api'),
-            project(':archunit-junit5-engine'),
-            project(':archunit-junit5')]
     createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
     currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
