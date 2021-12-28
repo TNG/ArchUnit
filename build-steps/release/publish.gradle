@@ -152,3 +152,8 @@ task setNextSnapshotVersion() {
         updateVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.${oldMinor + 1}.0-SNAPSHOT" }
     }
 }
+
+releaseSonatypeStagingRepository.doFirst {
+    assert project.findProperty('activateReleaseToMavenCentral'): 'Release to Maven Central is disabled by default. Activate via \'-PactivateReleaseToMavenCentral\''
+    throw new RuntimeException("Bummer")
+}
