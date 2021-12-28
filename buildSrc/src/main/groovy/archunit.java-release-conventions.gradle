@@ -4,3 +4,5 @@ plugins {
     id 'archunit.license-conventions'
     id 'archunit.java-release-check-conventions'
 }
+
+ext.isReleaseProject = true

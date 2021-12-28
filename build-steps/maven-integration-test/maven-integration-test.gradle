@@ -184,8 +184,11 @@ def addMavenTest = { config ->
         tasks.create(name: runMavenTest, dependsOn: [prepareMavenTest, executeRules, verifyRules, cleanUpMavenTest])
 
         def executeRulesTask = tasks[executeRules]
-        releaseProjects*.with {
-            [publish, publishToMavenLocal].each { executeRulesTask.mustRunAfter it }
+        gradle.projectsEvaluated {
+            def publishTasks = allprojects
+                    .findAll { it.findProperty('isReleaseProject') }
+                    .collectMany { [it.publish, it.publishToMavenLocal] }
+            executeRulesTask.mustRunAfter(*publishTasks)
         }
     }
 }
