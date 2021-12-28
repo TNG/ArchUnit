@@ -1,5 +1,6 @@
 String guavaLicenseFile = 'licenses/guava.license'
 String asmLicenseFile = 'licenses/asm.license'
+String licenseGroup = 'license'
 
 def scriptRoot = currentScriptRootOf this
 def fillTemplateFile = {
@@ -77,6 +78,9 @@ def unwrapHtml = { htmlInput ->
 }
 
 task updateLicenses {
+    group licenseGroup
+    description 'Adds licenses of repackaged libraries as text file to the root packages of repackaged libraries'
+
     doLast {
         def asmLicenseWorkaround = parseLicenseInfoFrom(configurations.thirdpartyAsm)
         // No, they can never adhere to conventions :-( The URL from the POM at the moment forwards to the root page
@@ -113,6 +117,9 @@ releaseProjects*.with {
     }
 
     task addLicenseHeader {
+        group licenseGroup
+        description 'Adds a license header to each published ArchUnit source file'
+
         doLast {
             def javaFiles = ['main', 'jdk9main', 'api', 'engineApi']
                     .findAll(sourceSets.asMap.&containsKey)
