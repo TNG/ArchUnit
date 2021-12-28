@@ -85,7 +85,7 @@ releaseProjects*.with {
 
     signing {
         required {
-            isReleaseVersion && gradle.taskGraph.hasTask('publish')
+            isReleaseVersion && gradle.taskGraph.hasTask(publishArchUnit)
         }
         def signingKey = findProperty("signingKey")
         def signingPassword = findProperty("signingPassword")
