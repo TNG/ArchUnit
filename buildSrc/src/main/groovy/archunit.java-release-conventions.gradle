@@ -2,4 +2,5 @@ plugins {
     id 'archunit.java-conventions'
     id 'archunit.java-repackaging-conventions'
     id 'archunit.license-conventions'
+    id 'archunit.java-release-check-conventions'
 }

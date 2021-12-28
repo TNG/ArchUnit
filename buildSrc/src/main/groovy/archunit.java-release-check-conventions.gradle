@@ -1,0 +1,133 @@
+import java.nio.file.Files
+import java.time.LocalDateTime
+import java.util.jar.JarFile
+import java.util.jar.Manifest
+
+def checkThirdParty = { JarFile jarFile ->
+    assert jarFile.getEntry('com/tngtech/archunit/thirdparty/org/objectweb/asm/ClassVisitor.class') != null: 'ASM is missing from 3rd party'
+    assert jarFile.getEntry('com/tngtech/archunit/thirdparty/org/objectweb/asm/asm.license') != null: 'ASM license is missing from 3rd party'
+    assert jarFile.getEntry('com/tngtech/archunit/thirdparty/com/google/common/collect/ImmutableSet.class') != null: 'Guava is missing from 3rd party'
+}
+
+def checkNoThirdParty = { JarFile jarFile ->
+    assert jarFile.getEntry('com/tngtech/archunit/thirdparty') == null: 'There exists a third party folder'
+}
+
+def checkNoIllegalJarEntries = { JarFile jarFile ->
+    def illegalEntries = Collections.list(jarFile.entries()).findAll {
+        !it.name.startsWith('com/tngtech/archunit/') &&
+                it.name != 'com/' &&
+                it.name != 'com/tngtech/' &&
+                !it.name.startsWith('META-INF/')
+    }
+    assert illegalEntries.empty: """
+        |There are invalid entries contained inside of release artifact ${new File(jarFile.name).name}: 
+        |-> ${illegalEntries.join("${System.lineSeparator()}-> ")}""".stripMargin().trim()
+}
+
+def checkManifest = { Manifest manifest ->
+    println "Verifying correct Manifest of ${project.name}"
+
+    def checkAttributes = { expected ->
+        expected.each { key, value ->
+            assert manifest.mainAttributes.getValue(key) == value
+        }
+    }
+    checkAttributes([
+            'Specification-Title'   : "ArchUnit - Module '${project.name}'",
+            'Specification-Version' : version,
+            'Specification-Vendor'  : 'TNG Technology Consulting GmbH',
+            'Implementation-Title'  : "com.tngtech.${project.name.replace('-', '.')}",
+            'Implementation-Version': version,
+            'Implementation-Vendor' : 'TNG Technology Consulting GmbH',
+            'Issue-Tracker'         : 'https://github.com/TNG/ArchUnit/issues',
+            'Documentation-URL'     : 'https://github.com/TNG/ArchUnit',
+            'Copyright'             : "${LocalDateTime.now().year} TNG Technology Consulting GmbH",
+            'License'               : 'The Apache Software License, Version 2.0',
+            'Automatic-Module-Name' : "com.tngtech.${project.name.replaceFirst('-', '.').replaceFirst('-', '.').replace('-', '')}"
+    ])
+}
+
+def checkArtifactContent = { JarFile jarFile ->
+    checkManifest(jarFile.manifest)
+    if (project.repackaging.repackagesAsm) {
+        println "Artifact ${project.name} is configured to repackage 3rd party libs -> checking existence of 3rd party package..."
+        checkThirdParty(jarFile)
+    } else {
+        println "Artifact ${project.name} is configured to not repackage 3rd party libs -> checking absense of 3rd party package..."
+        checkNoThirdParty(jarFile)
+    }
+    checkNoIllegalJarEntries(jarFile)
+}
+
+task checkArtifact {
+    dependsOn(build)
+
+    doLast {
+        def jarFile = new JarFile(jar.archiveFile.get().getAsFile())
+        checkArtifactContent(jarFile)
+    }
+}
+build.finalizedBy(checkArtifact)
+
+task checkUploadedArtifacts {
+    doLast {
+        def tngRepoId = project.findProperty('tngRepoId') ?: rootProject.closeSonatypeStagingRepository.stagingRepositoryId.get()
+        def rootUrl = "https://oss.sonatype.org/service/local/repositories/${tngRepoId}/content/com/tngtech/archunit"
+
+        def createArtifactUrl = { String artifactId ->
+            "${rootUrl}/${artifactId}/${version}/${artifactId}-${version}"
+        }
+
+        def getUploadedFile = { String artifactId, String ending, String suffix ->
+            def fullEnding = (!suffix.isEmpty() ? "-${suffix}" : '') + ".${ending}"
+            def tempDir = Files.createTempDirectory('release-check').toFile()
+            File result = new File(tempDir, "${artifactId}${fullEnding}")
+            result.bytes = new URL("${createArtifactUrl(artifactId)}${fullEnding}").bytes
+            result
+        }
+
+        def getUploadedPomFileContent = {
+            new URL("${createArtifactUrl(project.name)}.pom").text.stripIndent()
+        }
+
+        def getExpectedPomFileContent = {
+            getClass().getResourceAsStream("release_check/${project.name}.pom").text.replace('${archunit.version}', version).stripIndent()
+        }
+
+        def checkPom = {
+            println "Verifying correct POM of ${project.name}"
+
+            String actual = getUploadedPomFileContent()
+            String expected = getExpectedPomFileContent()
+            if (actual.replaceAll("\\s", "") != expected.replaceAll("\\s", "")) {
+                throw new AssertionError("""POM of artifact '${project.name}' does not match:
+--------
+Actual: 
+${actual}
+--------
+Expected:
+${expected}
+--------
+""")
+            }
+        }
+
+        def checkSourcesExist = {
+            assert getUploadedFile(project.name, 'jar', 'sources') != null
+        }
+
+        def checkJavadocExists = {
+            assert getUploadedFile(project.name, 'jar', 'javadoc') != null
+        }
+
+        checkPom()
+        checkSourcesExist()
+        checkJavadocExists()
+
+        JarFile jarFile = new JarFile(getUploadedFile(project.name, 'jar', ''))
+        checkArtifactContent(jarFile)
+    }
+}
+rootProject.closeSonatypeStagingRepository.finalizedBy(checkUploadedArtifacts)
+rootProject.releaseSonatypeStagingRepository.dependsOn(checkUploadedArtifacts)

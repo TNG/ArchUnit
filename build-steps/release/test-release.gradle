@@ -1,0 +1,55 @@
+apply from: scriptRelativePath(this, 'vcs-utils.gradle')
+apply from: scriptRelativePath(this, 'archunit-examples-utils.gradle')
+
+task testRelease() {
+    File testReleaseDir = new File(project.buildDir, 'test-release')
+
+    def configureStagingRepository = {
+        new File(testReleaseDir, 'build.gradle').with {
+            text = text.replace('mavenCentral()', '''
+            mavenCentral()
+            maven {
+                url "https://oss.sonatype.org/content/repositories/staging/"
+                credentials {
+                    username project.getProperty('sonatypeUsername')
+                    password project.getProperty('sonatypePassword')
+                }
+            }''')
+        }
+    }
+
+    def testExampleProject = { String exampleProjectName ->
+        List<String> testClassNames = fileTree(new File(testReleaseDir, exampleProjectName)) {
+            include '**/*Test.java'
+        }.getFiles().collect { it.name.replaceAll(/\.java$/, '') }
+
+        def outputStream = new ByteArrayOutputStream()
+        exec {
+            workingDir testReleaseDir
+            commandLine './gradlew', ":${exampleProjectName}:build", '-P', "sonatypeUsername=${project.getProperty('sonatypeUsername')}", '-P', "sonatypePassword=${project.getProperty('sonatypePassword')}"
+            ignoreExitValue true
+            standardOutput = outputStream
+        }
+        String output = outputStream.toString()
+
+        assert output.contains("Task :${exampleProjectName}:test FAILED"): "The test task should have failed"
+        assert output.contains('java.lang.AssertionError'): "There should be AssertionErrors"
+        testClassNames.each { testClassName ->
+            assert output.contains(testClassName): "The failure output should contain the test class '${testClassName}'"
+        }
+    }
+
+    doFirst {
+        gitHubClone(archunitExamplesGitRepo, testReleaseDir)
+
+        updateArchUnitExampleVersion(testReleaseDir)
+
+        configureStagingRepository()
+
+        testExampleProject('example-plain')
+        testExampleProject('example-junit4')
+        testExampleProject('example-junit5')
+    }
+}
+closeSonatypeStagingRepository.finalizedBy(testRelease)
+releaseSonatypeStagingRepository.dependsOn(testRelease)
