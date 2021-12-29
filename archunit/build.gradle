@@ -89,30 +89,31 @@ dependencies {
 }
 
 compileJdk9mainJava.with {
-    sourceCompatibility = JavaVersion.VERSION_1_9
-    targetCompatibility = JavaVersion.VERSION_1_9
+    ext.minimumJavaVersion = JavaVersion.VERSION_1_9
 
     destinationDir = compileJava.destinationDir
 }
 
 compileJdk9testJava.with {
-    sourceCompatibility = JavaVersion.VERSION_1_9
-    targetCompatibility = JavaVersion.VERSION_1_9
+    ext.minimumJavaVersion = JavaVersion.VERSION_1_9
 }
 
 compileJdk15testJava.with {
-    sourceCompatibility = JavaVersion.VERSION_15
-    targetCompatibility = JavaVersion.VERSION_15
+    ext.minimumJavaVersion = JavaVersion.VERSION_15
 
     options.compilerArgs += '--enable-preview'
 }
 
 task jdk9Test(type: Test) {
+    ext.minimumJavaVersion = JavaVersion.VERSION_1_9
+
     testClassesDirs = sourceSets.jdk9test.output.classesDirs
     classpath = sourceSets.jdk9test.runtimeClasspath
 }
 
 task jdk15Test(type: Test) {
+    ext.minimumJavaVersion = JavaVersion.VERSION_15
+
     testClassesDirs = sourceSets.jdk15test.output.classesDirs
     classpath = sourceSets.jdk15test.runtimeClasspath
     jvmArgs += "--enable-preview"

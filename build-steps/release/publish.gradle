@@ -13,6 +13,9 @@ nexusPublishing {
     }
 }
 
+initializeSonatypeStagingRepository.doFirst {
+    assert allprojects.every { it.findProperty('isTestBuild') != true }: 'We cannot publish a test build, since a changed JDK target compatibility would break the artifacts'
+}
 task publishArchUnit(dependsOn: [closeSonatypeStagingRepository, releaseSonatypeStagingRepository])
 
 def getLastReleaseVersion() {

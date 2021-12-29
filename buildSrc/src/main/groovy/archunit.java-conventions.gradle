@@ -1,15 +1,10 @@
 plugins {
     id 'archunit.base-conventions'
+    id 'archunit.java-version-conventions'
     id 'java-library'
 }
 
 description "${rootProject.description} - Module '${project.name}'"
-
-afterEvaluate {
-    def minimumJavaVersion = findProperty('minimumJavaVersion') ?: JavaVersion.VERSION_1_7
-    sourceCompatibility = minimumJavaVersion
-    targetCompatibility = minimumJavaVersion
-}
 
 javadoc {
     options.addBooleanOption('html5', true)
