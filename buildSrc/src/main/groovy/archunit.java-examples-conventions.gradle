@@ -1,0 +1,21 @@
+plugins {
+    id 'archunit.java-conventions'
+}
+
+gradle.projectsEvaluated {
+    compileTestJava.dependsOn(rootProject.getTasksByName('finishArchive', true))
+}
+
+addTestJarTo this
+
+dependencies {
+    // `api` dependencies so we can access them within `archunit-integration-test`
+    api dependency.jodaTime
+    api dependency.javaxAnnotationApi
+    api dependency.springBeans
+    api dependency.guice
+    api dependency.geronimoEjb
+    api dependency.geronimoJpa
+
+    testImplementation project(path: ':archunit')
+}

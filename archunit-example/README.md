@@ -12,7 +12,7 @@ This demonstrates how ArchUnit detects such violations.
 In order to execute those tests (marked with `@Category(Example.class)`, excluded from the regular build),
 simply add the property `example` to the Gradle build:
 ```
-../gradlew clean build -P example
+${path_to}/gradlew clean build -P example
 ```
 
 Alternatively, the tests can also be run directly from any IDE, of course.
