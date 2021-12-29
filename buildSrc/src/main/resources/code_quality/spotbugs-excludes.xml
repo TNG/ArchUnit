@@ -6,6 +6,9 @@
             <Bug pattern="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE"/>
             <!-- We don't use Java serialization, so we don't want to be forced to add serialVersionUuid to fields of enums, etc. -->
             <Bug pattern="SE_BAD_FIELD"/>
+            <!-- These patterns cause too many false positives. We return fields in many places, but those are in fact ImmutableSet, etc.-->
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
         </Or>
     </Match>
     <Match>

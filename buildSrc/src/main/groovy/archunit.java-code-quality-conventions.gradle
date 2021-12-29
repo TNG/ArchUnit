@@ -3,8 +3,12 @@ plugins {
     id 'com.diffplug.spotless'
 }
 
+dependencies {
+    spotbugs "com.github.spotbugs:spotbugs:${spotbugs.toolVersion.get()}"
+}
+
 spotbugs {
-    toolVersion = '4.0.1'
+    toolVersion = '4.5.2'
 
     excludeFilter = rootProject.file('buildSrc/src/main/resources/code_quality/spotbugs-excludes.xml')
 }
