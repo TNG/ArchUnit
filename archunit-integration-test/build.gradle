@@ -4,8 +4,7 @@ plugins {
 
 ext.moduleName = 'com.tngtech.archunit.integrationtest'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 
 dependencies {
     testImplementation dependency.junit5JupiterEngine

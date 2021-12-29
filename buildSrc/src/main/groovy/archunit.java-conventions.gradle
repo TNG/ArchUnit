@@ -5,8 +5,11 @@ plugins {
 
 description "${rootProject.description} - Module '${project.name}'"
 
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
+afterEvaluate {
+    def minimumJavaVersion = findProperty('minimumJavaVersion') ?: JavaVersion.VERSION_1_7
+    sourceCompatibility = minimumJavaVersion
+    targetCompatibility = minimumJavaVersion
+}
 
 javadoc {
     options.addBooleanOption('html5', true)
