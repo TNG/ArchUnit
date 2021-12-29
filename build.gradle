@@ -91,7 +91,6 @@ ext {
             project(':archunit-junit5-engine-api'),
             project(':archunit-junit5-engine'),
             project(':archunit-junit5')]
-    createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
     currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
     scriptRelativePath = { context, fileName -> new File(currentScriptRootOf(context), fileName) }
@@ -106,19 +105,6 @@ task showJdkVersion {
 task clean {
     doLast {
         project.buildDir.deleteDir()
-    }
-}
-
-configure(subprojects.findAll { it.name != 'docs' }) {
-    apply plugin: 'java-library'
-
-    description createModuleDescription(rootProject.description, project)
-
-    sourceCompatibility = JavaVersion.VERSION_1_7
-    targetCompatibility = JavaVersion.VERSION_1_7
-
-    javadoc {
-        options.addBooleanOption('html5', true)
     }
 }
 

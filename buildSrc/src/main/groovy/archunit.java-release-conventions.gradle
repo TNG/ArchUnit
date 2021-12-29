@@ -14,7 +14,7 @@ afterEvaluate {
             attributes(
                     'Built-By': "Gradle ${gradle.gradleVersion}",
                     'Built-Date': new Date().format('yyyy-MM-dd'),
-                    'Specification-Title': createModuleDescription(app.name, project),
+                    'Specification-Title': "${app.name} - Module '${project.name}'",
                     'Specification-Version': archiveVersion.get(),
                     'Specification-Vendor': company.name,
                     'Implementation-Title': "com.tngtech.${project.name.replace('-', '.')}",
