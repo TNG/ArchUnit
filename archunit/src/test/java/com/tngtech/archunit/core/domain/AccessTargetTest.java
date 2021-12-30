@@ -16,6 +16,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContex
 import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.TestUtils.withinImportedClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static com.tngtech.archunit.testutil.Assertions.assertThatThrowsClause;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 
@@ -137,7 +138,7 @@ public class AccessTargetTest {
         CodeUnitCallTarget target = getTarget("withoutThrowsDeclaration");
 
         ThrowsClause<CodeUnitCallTarget> throwsClause = target.getThrowsClause();
-        assertThat(throwsClause).as("throws clause").isEmpty();
+        assertThatThrowsClause(throwsClause).as("throws clause").isEmpty();
         assertThat(throwsClause.getTypes()).isEmpty();
         assertThat(throwsClause.getOwner()).isEqualTo(target);
         assertThatType(throwsClause.getDeclaringClass()).matches(Target.class);
@@ -221,7 +222,7 @@ public class AccessTargetTest {
         assertThatTypes(throwsClause.getTypes()).matchExactly(exceptionTypes);
         for (ThrowsDeclaration<CodeUnitCallTarget> throwsDeclaration : throwsClause) {
             assertThatType(throwsDeclaration.getDeclaringClass()).isEqualTo(target.getOwner());
-            assertThat(throwsDeclaration.getOwner()).isEqualTo(target.getThrowsClause());
+            assertThatThrowsClause(throwsDeclaration.getOwner()).isEqualTo(target.getThrowsClause());
             assertThat(throwsDeclaration.getLocation()).isEqualTo(target);
         }
     }
