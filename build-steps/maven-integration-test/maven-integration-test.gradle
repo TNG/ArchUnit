@@ -2,6 +2,25 @@ import org.gradle.internal.os.OperatingSystem
 
 import java.nio.file.Files
 
+def unquote = { string -> string.replaceAll(/^"(.*)"$/, '$1') }
+def testJdksDefinition = [
+        [suffix: "Jre7", javaVersion: JavaVersion.VERSION_1_7, jdkProp: "java7Home"],
+        [suffix: "Jre8", javaVersion: JavaVersion.VERSION_1_8, jdkProp: "java8Home"],
+        [suffix: "Jre9", javaVersion: JavaVersion.VERSION_1_9, jdkProp: "java9Home"],
+        [suffix: "Jre10", javaVersion: JavaVersion.VERSION_1_10, jdkProp: "java10Home"],
+        [suffix: "Jre11", javaVersion: JavaVersion.VERSION_11, jdkProp: "java11Home"],
+        [suffix: "Jre12", javaVersion: JavaVersion.VERSION_12, jdkProp: "java12Home"],
+        [suffix: "Jre13", javaVersion: JavaVersion.VERSION_13, jdkProp: "java13Home"],
+        [suffix: "Jre14", javaVersion: JavaVersion.VERSION_14, jdkProp: "java14Home"],
+        [suffix: "Jre15", javaVersion: JavaVersion.VERSION_15, jdkProp: "java15Home"]
+]
+        .findAll { project.hasProperty(it.jdkProp) }
+        .collect { config -> config + [jdkPath: unquote(project[config.jdkProp])] }
+
+def testJdks = {
+    testJdksDefinition.collect { [:] + it }
+}
+
 def repositoryUrls = [
         tng     : [
                 snapshots: 'https://nexus.int.tngtech.com/repository/maven-snapshots',

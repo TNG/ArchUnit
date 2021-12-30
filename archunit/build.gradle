@@ -129,9 +129,6 @@ task jdk15Test(type: Test) {
 
 [jar, test]*.dependsOn compileJdk9mainJava
 
-[test, jdk9Test, jdk15Test].each { testTask ->
-    addMultiJdkTestsFor project, testTask
-}
 test.finalizedBy(jdk9Test, jdk15Test)
 
 [spotbugsJdk9test, spotbugsJdk15test]*.enabled = false

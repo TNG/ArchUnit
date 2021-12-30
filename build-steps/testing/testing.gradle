@@ -1,23 +1,4 @@
-def unquote = { string -> string.replaceAll(/^"(.*)"$/, '$1')}
-def testJdksDefinition = [
-        [suffix: "Jre7", javaVersion: JavaVersion.VERSION_1_7, jdkProp: "java7Home"],
-        [suffix: "Jre8", javaVersion: JavaVersion.VERSION_1_8, jdkProp: "java8Home"],
-        [suffix: "Jre9", javaVersion: JavaVersion.VERSION_1_9, jdkProp: "java9Home"],
-        [suffix: "Jre10", javaVersion: JavaVersion.VERSION_1_10, jdkProp: "java10Home"],
-        [suffix: "Jre11", javaVersion: JavaVersion.VERSION_11, jdkProp: "java11Home"],
-        [suffix: "Jre12", javaVersion: JavaVersion.VERSION_12, jdkProp: "java12Home"],
-        [suffix: "Jre13", javaVersion: JavaVersion.VERSION_13, jdkProp: "java13Home"],
-        [suffix: "Jre14", javaVersion: JavaVersion.VERSION_14, jdkProp: "java14Home"],
-        [suffix: "Jre15", javaVersion: JavaVersion.VERSION_15, jdkProp: "java15Home"]
-]
-        .findAll { project.hasProperty(it.jdkProp) }
-        .collect { config -> config + [jdkPath: unquote(project[config.jdkProp])] }
-
 ext {
-    testJdks = {
-        testJdksDefinition.collect { [:] + it }
-    }
-
     addTestJarTo = { proj ->
         proj.with {
             configurations {
@@ -44,39 +25,6 @@ ext {
                     }
                 }
             }
-        }
-    }
-
-    addMultiJdkTestsFor = { Project proj, Test testTask ->
-        if (!project.hasProperty('multiJdkTest')) {
-            return
-        }
-
-        assert testTask.name == 'test' || testTask.name ==~ /jdk\d+Test/: "Task must either be named 'test' or match 'jdk{x}Test'"
-        testTask.enabled = false
-
-        def taskMinimumJdkVersion = testTask.name.replaceAll(/jdk(\d+)Test/, '$1').with { it ==~ /\d+/ ? JavaVersion.toVersion(it) : proj.targetCompatibility }
-
-        def findJavaExecutable = { jdkPath ->
-            def javaExecutableUnix = new File("${jdkPath}", 'bin/java')
-            def javaExecutableWindows = new File("${javaExecutableUnix.absolutePath}.exe")
-            def result = javaExecutableUnix.exists() ? javaExecutableUnix : javaExecutableWindows
-            assert result.exists(): "Could not find path of Java executable for JDK path ${jdkPath}. Tried ${javaExecutableUnix} and ${javaExecutableWindows}."
-            result
-        }
-
-        testJdks().each { jdk ->
-            def additionalTestTask = proj.tasks.create(name: "${testTask.name}${jdk.suffix}", type: Test) {
-                executable = findJavaExecutable(jdk.jdkPath)
-
-                testClassesDirs = testTask.testClassesDirs
-                classpath = testTask.classpath
-                jvmArgs = testTask.jvmArgs
-                excludes = testTask.excludes
-            }
-            additionalTestTask.enabled = jdk.javaVersion >= taskMinimumJdkVersion
-
-            testTask.dependsOn(additionalTestTask)
         }
     }
 }

@@ -29,4 +29,3 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-addMultiJdkTestsFor project, test
