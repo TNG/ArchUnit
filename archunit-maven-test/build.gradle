@@ -1,3 +1,7 @@
+plugins {
+    id 'archunit.java-conventions'
+}
+
 import org.gradle.internal.os.OperatingSystem
 
 import java.nio.file.Files
@@ -82,14 +86,13 @@ def getRepoUrls = {
     repoUrls
 }
 
-File mavenTestRootDir = rootProject.file('archunit-maven-test')
-File mavenSrc = new File(mavenTestRootDir, 'src')
-File mavenTarget = new File(mavenTestRootDir, 'target')
-File mavenPomTemplate = new File(mavenTestRootDir, 'pom.xml.template')
-File mavenPom = new File(mavenTestRootDir, 'pom.xml')
-File verificationTestPath = new File(mavenTestRootDir, 'verification/TestResultTest.java')
-File verificationResultOriginPath = new File(mavenTestRootDir, 'target/surefire-reports')
-File verificationResultArchivePath = new File(mavenTestRootDir, 'verification-results')
+File mavenSrc = new File(projectDir, 'src')
+File mavenTarget = new File(projectDir, 'target')
+File mavenPomTemplate = new File(projectDir, 'pom.xml.template')
+File mavenPom = new File(projectDir, 'pom.xml')
+File verificationTestPath = new File(projectDir, 'verification/TestResultTest.java')
+File verificationResultOriginPath = new File(projectDir, 'target/surefire-reports')
+File verificationResultArchivePath = new File(projectDir, 'verification-results')
 
 clean {
     doLast {
@@ -164,7 +167,7 @@ def addMavenTest = { config ->
 
         def mavenExec = { closure ->
             return {
-                workingDir mavenTestRootDir
+                workingDir projectDir
 
                 if (config.jdkPath) {
                     environment JAVA_HOME: config.jdkPath

@@ -2,7 +2,6 @@ def utilsPath = { "build-steps/${it}" }
 
 apply from: utilsPath('testing/testing.gradle')
 apply from: utilsPath('release/publish.gradle')
-apply from: utilsPath('maven-integration-test/maven-integration-test.gradle')
 apply from: utilsPath('ci/ci-config.gradle')
 apply from: utilsPath('release/test-release.gradle')
 apply from: utilsPath('release/create-release-news.gradle')
