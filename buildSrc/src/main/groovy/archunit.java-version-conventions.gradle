@@ -15,14 +15,9 @@ class VersionSpec {
     }
 }
 
-ext.minSupportedJavaVersion = JavaVersion.VERSION_1_7
-ext.maxSupportedJavaVersion = JavaVersion.VERSION_15
-ext.isTestBuild = project.hasProperty('testJavaVersion')
-
 VersionSpec createVersionSpec() {
     if (isTestBuild) {
-        JavaVersion testJavaVersion = JavaVersion.toVersion(project.property('testJavaVersion').toString())
-        new VersionSpec(desiredJdkVersion: testJavaVersion, desiredSourceCompatibility: testJavaVersion)
+        new VersionSpec(desiredJdkVersion: configuredTestJavaVersion, desiredSourceCompatibility: configuredTestJavaVersion)
     } else {
         new VersionSpec(desiredJdkVersion: maxSupportedJavaVersion, desiredSourceCompatibility: minSupportedJavaVersion)
     }

@@ -6,24 +6,9 @@ import org.gradle.internal.os.OperatingSystem
 
 import java.nio.file.Files
 
-def unquote = { string -> string.replaceAll(/^"(.*)"$/, '$1') }
-def testJdksDefinition = [
-        [suffix: "Jre7", javaVersion: JavaVersion.VERSION_1_7, jdkProp: "java7Home"],
-        [suffix: "Jre8", javaVersion: JavaVersion.VERSION_1_8, jdkProp: "java8Home"],
-        [suffix: "Jre9", javaVersion: JavaVersion.VERSION_1_9, jdkProp: "java9Home"],
-        [suffix: "Jre10", javaVersion: JavaVersion.VERSION_1_10, jdkProp: "java10Home"],
-        [suffix: "Jre11", javaVersion: JavaVersion.VERSION_11, jdkProp: "java11Home"],
-        [suffix: "Jre12", javaVersion: JavaVersion.VERSION_12, jdkProp: "java12Home"],
-        [suffix: "Jre13", javaVersion: JavaVersion.VERSION_13, jdkProp: "java13Home"],
-        [suffix: "Jre14", javaVersion: JavaVersion.VERSION_14, jdkProp: "java14Home"],
-        [suffix: "Jre15", javaVersion: JavaVersion.VERSION_15, jdkProp: "java15Home"]
-]
-        .findAll { project.hasProperty(it.jdkProp) }
-        .collect { config -> config + [jdkPath: unquote(project[config.jdkProp])] }
-
-def testJdks = {
-    testJdksDefinition.collect { [:] + it }
-}
+JavaVersion integrationTestJavaVersion = configuredTestJavaVersion ?: maxSupportedJavaVersion
+def compiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(integrationTestJavaVersion.majorVersion) }
+String jdkHome = compiler.get().metadata.installationPath.asFile.absolutePath
 
 def repositoryUrls = [
         tng     : [
@@ -115,7 +100,7 @@ def mavenCommand = { String... params ->
             ['./mvnw'] + params.toList()
 }
 
-def addMavenTest = { config ->
+def addMavenTest = { IntegrationTestConfig config ->
     String prepareMavenTest = "prepareMavenTest${config.suffix}"
     String executeRules = "executeRules${config.suffix}"
     String verifyRules = "verifyRules${config.suffix}"
@@ -155,7 +140,7 @@ def addMavenTest = { config ->
                     into new File(mavenSrc, 'main')
                 }
                 copy {
-                    from new File(new File(project(":archunit-example:example-${config.examplePathSuffix}").projectDir, 'src'), 'test')
+                    from new File(new File(project(":archunit-example:example-${config.identifier}").projectDir, 'src'), 'test')
                     into new File(mavenSrc, 'test')
                 }
                 copy {
@@ -168,11 +153,7 @@ def addMavenTest = { config ->
         def mavenExec = { closure ->
             return {
                 workingDir projectDir
-
-                if (config.jdkPath) {
-                    environment JAVA_HOME: config.jdkPath
-                }
-
+                environment JAVA_HOME: jdkHome
                 delegate.with(closure)
             }
         }
@@ -190,7 +171,7 @@ def addMavenTest = { config ->
                 copy {
                     from verificationResultOriginPath
                     include '**/*.xml'
-                    into new File(verificationResultArchivePath, "${config.suffix}")
+                    into new File(verificationResultArchivePath, "${config.identifier}")
                 }
             }
             doLast {
@@ -215,49 +196,72 @@ def addMavenTest = { config ->
     }
 }
 
-def integrationTestJdks = testJdks() ?: [[suffix: 'java7', javaVersion: JavaVersion.VERSION_1_7]]
+List<IntegrationTestConfig> integrationTestConfigs = [
+        new IntegrationTestConfig(
+                javaVersion: integrationTestJavaVersion,
+                testType: TestType.PLAIN,
+                surefireExampleConfiguration: '<groups>com.tngtech.archunit.exampletest.Example</groups>',
+                archunitTestArtifact: 'archunit'
+        ),
+        new IntegrationTestConfig(
+                javaVersion: integrationTestJavaVersion,
+                testType: TestType.JUNIT4,
+                surefireExampleConfiguration: '<groups>com.tngtech.archunit.exampletest.junit4.Example</groups>',
+                archunitTestArtifact: 'archunit-junit4'
+        )
+]
 
-integrationTestJdks = integrationTestJdks.collect { config ->
+if (integrationTestJavaVersion > JavaVersion.VERSION_1_7) {
     // JUnit 5 needs at least Java 8
-    def testSupportTypes = config.javaVersion > JavaVersion.VERSION_1_7 ?
-            ['plain', 'junit4', 'junit5'] :
-            ['plain', 'junit4']
-    testSupportTypes.collect { testType ->
-        config + [suffix: config.suffix + testType] + [examplePathSuffix: testType]
-    }
-}.flatten()
-
-integrationTestJdks.findAll { it.suffix.endsWith('plain') }*.with {
-    surefireExampleConfiguration = '<groups>com.tngtech.archunit.exampletest.Example</groups>'
-    archunitTestArtifact = 'archunit'
+    def vintageEngine = dependency.junit5VintageEngine
+    integrationTestConfigs << new IntegrationTestConfig(
+            javaVersion: integrationTestJavaVersion,
+            testType: TestType.JUNIT5,
+            surefireExampleConfiguration: '<groups>example</groups>',
+            archunitTestArtifact: 'archunit-junit5',
+            additionalDependencies: """
+                <dependency>
+                    <groupId>${vintageEngine.group}</groupId>
+                    <artifactId>${vintageEngine.name}</artifactId>
+                    <version>${vintageEngine.version}</version>
+                    <scope>test</scope>
+                </dependency>"""
+    )
 }
 
-integrationTestJdks.findAll { it.suffix.endsWith('junit4') }*.with {
-    surefireExampleConfiguration = '<groups>com.tngtech.archunit.exampletest.junit4.Example</groups>'
-    archunitTestArtifact = 'archunit-junit4'
-}
+integrationTestConfigs.each { config -> project.with(addMavenTest(config)) }
 
-def vintageEngine = dependency.junit5VintageEngine
-integrationTestJdks.findAll { it.suffix.endsWith('junit5') }*.with {
-    surefireExampleConfiguration = '<groups>example</groups>'
-    archunitTestArtifact = 'archunit-junit5'
-    additionalDependencies = """
-        <dependency>
-            <groupId>${vintageEngine.group}</groupId>
-            <artifactId>${vintageEngine.name}</artifactId>
-            <version>${vintageEngine.version}</version>
-            <scope>test</scope>
-        </dependency>"""
-}
-
-integrationTestJdks.each { config ->
-    project.with(addMavenTest(config))
-}
-
-def suffixes = integrationTestJdks*.suffix.sort()
+def suffixes = integrationTestConfigs*.suffix.sort()
 [suffixes, suffixes.tail()].transpose().each { twoConsecutiveSuffixes ->
     tasks["prepareMavenTest${twoConsecutiveSuffixes[1]}"].mustRunAfter(tasks["cleanUpMavenTest${twoConsecutiveSuffixes[0]}"])
 }
 
 task runMavenTest
 tasks.findAll { it.name ==~ /^runMavenTest.+/ }.each { runMavenTest.dependsOn it }
+tasks.findAll { it.name ==~ /.*MavenTest.+/ }.each {
+    it.doFirst {
+        println "Running Maven Integration Test with JDK ${integrationTestJavaVersion} located at ${jdkHome}"
+    }
+}
+
+class IntegrationTestConfig {
+    TestType testType
+    JavaVersion javaVersion
+    String surefireExampleConfiguration
+    String archunitTestArtifact
+    String additionalDependencies = ''
+
+    String getIdentifier() {
+        return testType.name().toLowerCase()
+    }
+
+    String getSuffix() {
+        testType.name().toLowerCase().capitalize()
+    }
+}
+
+enum TestType {
+    PLAIN,
+    JUNIT4,
+    JUNIT5
+}

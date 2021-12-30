@@ -101,7 +101,7 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-        java_version:
+        test_java_version:
           - 7
           - 8
           - 9
@@ -122,7 +122,7 @@ jobs:
       - name: Set up Test JDK
         uses: actions/setup-java@v1
         with:
-          java-version: ${{ matrix.java_version }}
+          java-version: ${{ matrix.test_java_version }}
       - name: Provide installed JDKs
         uses: actions/github-script@v5
         id: provideJdkPaths
@@ -138,9 +138,15 @@ jobs:
                 }
               }
             }
+      - name: Publish to Maven Local
+        uses: eskatos/gradle-command-action@v2
+        env:
+          JAVA_HOME: ${{ env.build_jdk_path }}
+        with:
+          arguments: build -xtest -xspotbugsMain -xjavadoc publishToMavenLocal
       - name: Integration test
         uses: eskatos/gradle-command-action@v2
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
-          arguments: build -xtest -xspotbugsMain -xjavadoc publishToMavenLocal runMavenTest -Pjava${{ matrix.test_java_version }}Home="${{ env.test_jdk_path }}"
+          arguments: build -xtest -xspotbugsMain -xjavadoc runMavenTest -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}

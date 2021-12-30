@@ -78,6 +78,11 @@ ext {
             joox                : [group: 'org.jooq', name: 'joox-java-6', version: '1.6.0']
     ]
 
+    minSupportedJavaVersion = JavaVersion.VERSION_1_7
+    maxSupportedJavaVersion = JavaVersion.VERSION_15
+    isTestBuild = project.hasProperty('testJavaVersion')
+    configuredTestJavaVersion = project.findProperty('testJavaVersion')?.toString()?.with {JavaVersion.toVersion(it) }
+
     postfixedJar = { File jarFile, String postfix ->
         new File(jarFile.parentFile, jarFile.name.replaceAll(/\.jar$/, "-${postfix}.jar"))
     }
