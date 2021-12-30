@@ -239,6 +239,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     /**
      * @deprecated Use {@link #getSubpackages()} instead.
      */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public Set<JavaPackage> getSubPackages() {
         return getSubpackages();
@@ -262,6 +263,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     /**
      * @deprecated Use {@link #getAllSubpackages()} instead.
      */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public Set<JavaPackage> getAllSubPackages() {
         return getAllSubpackages();
