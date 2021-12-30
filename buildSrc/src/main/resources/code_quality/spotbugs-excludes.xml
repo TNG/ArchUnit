@@ -41,4 +41,14 @@
         <Method name="visitClassType"/>
         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
     </Match>
+    <Match>
+        <!-- This is a false positive as both of these occurrences are wrapped in a try-with-resources which will ensure the
+             resource is properly closed in the end -->
+        <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
+        <Class name="com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties"/>
+        <Or>
+            <Method name="loadRulesFrom"/>
+            <Method name="syncFileSystem"/>
+        </Or>
+    </Match>
 </FindBugsFilter>
