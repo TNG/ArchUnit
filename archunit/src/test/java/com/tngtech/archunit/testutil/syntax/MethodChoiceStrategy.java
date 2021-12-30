@@ -83,15 +83,19 @@ public class MethodChoiceStrategy {
         for (Method method : clazz.getMethods()) {
             MethodKey key = MethodKey.of(method);
             Method invocableCandidate = result.containsKey(key)
-                    ? resolveMethodInMoreSpecificType(method, result.get(key))
+                    ? resolveMoreSpecificMethod(method, result.get(key))
                     : method;
             result.put(key, invocableCandidate);
         }
         return result.values();
     }
 
-    private Method resolveMethodInMoreSpecificType(Method first, Method second) {
-        return second.getDeclaringClass().isAssignableFrom(first.getDeclaringClass()) ? first : second;
+    private Method resolveMoreSpecificMethod(Method first, Method second) {
+        if (first.getDeclaringClass() != second.getDeclaringClass()) {
+            return second.getDeclaringClass().isAssignableFrom(first.getDeclaringClass()) ? first : second;
+        } else {
+            return second.getReturnType().isAssignableFrom(first.getReturnType()) ? first : second;
+        }
     }
 
     private boolean isCandidate(Method method) {
