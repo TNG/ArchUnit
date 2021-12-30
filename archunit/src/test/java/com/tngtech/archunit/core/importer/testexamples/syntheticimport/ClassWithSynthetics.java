@@ -8,14 +8,19 @@ public class ClassWithSynthetics implements Comparator<String> {
     public class ClassWithSyntheticField {
     }
 
-    // for accesses to private fields of inner classes, the compiler must create a synthetic method to allow access to this field
-    // thus together with the method 'getNestedField', this causes the existence of a synthetic method
-    public class ClassWithSyntheticMethod {
-        private String nestedField;
+    abstract class Parent {
+        abstract Object overrideCovariantly();
     }
 
-    public String getNestedField() {
-        return new ClassWithSyntheticMethod().nestedField;
+    // for covariantly overridden return types the compiler generates a bridge method which will always also be synthetic
+    // i.e. the compiler overrides `Object overrideCovariantly()` and delegates to `String overrideCovariantly()`
+    public class ClassWithSyntheticMethod extends Parent {
+        private String nestedField;
+
+        @Override
+        String overrideCovariantly() {
+            return null;
+        }
     }
 
     // to cover type erasure, the compiler must add a bridge method with signature compare(Object, Object) here

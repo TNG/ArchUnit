@@ -358,11 +358,20 @@ public class ClassFileImporterTest {
         JavaField syntheticField = getOnlyElement(classes.get(ClassWithSynthetics.ClassWithSyntheticField.class).getFields());
         assertThat(syntheticField.getModifiers()).as("modifiers of field in ClassWithSynthetics.ClassWithSyntheticField").contains(SYNTHETIC);
 
-        JavaMethod syntheticMethod = getOnlyElement(classes.get(ClassWithSynthetics.ClassWithSyntheticMethod.class).getMethods());
+        JavaMethod syntheticMethod = getMethodWithReturnType(classes.get(ClassWithSynthetics.ClassWithSyntheticMethod.class), Object.class);
         assertThat(syntheticMethod.getModifiers()).as("modifiers of method in ClassWithSynthetics.ClassWithSyntheticMethod").contains(SYNTHETIC);
 
         JavaMethod compareMethod = classes.get(ClassWithSynthetics.class).getMethod("compare", Object.class, Object.class);
         assertThat(compareMethod.getModifiers()).as("modifiers of bridge method in ClassWithSynthetics").contains(BRIDGE, SYNTHETIC);
+    }
+
+    private JavaMethod getMethodWithReturnType(JavaClass javaClass, Class<?> returnType) {
+        for (JavaMethod method : javaClass.getMethods()) {
+            if (method.getRawReturnType().isEquivalentTo(returnType)) {
+                return method;
+            }
+        }
+        throw new AssertionError("Couldn't find method with return type " + returnType.getName());
     }
 
     @Test
