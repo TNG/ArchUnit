@@ -234,14 +234,15 @@ integrationTestJdks.findAll { it.suffix.endsWith('junit4') }*.with {
     archunitTestArtifact = 'archunit-junit4'
 }
 
+def vintageEngine = dependency.junit5VintageEngine
 integrationTestJdks.findAll { it.suffix.endsWith('junit5') }*.with {
     surefireExampleConfiguration = '<groups>example</groups>'
     archunitTestArtifact = 'archunit-junit5'
     additionalDependencies = """
         <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <version>5.5.2</version>
+            <groupId>${vintageEngine.group}</groupId>
+            <artifactId>${vintageEngine.name}</artifactId>
+            <version>${vintageEngine.version}</version>
             <scope>test</scope>
         </dependency>"""
 }
