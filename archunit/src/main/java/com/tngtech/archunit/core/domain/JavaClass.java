@@ -101,13 +101,14 @@ public class JavaClass
     private final Supplier<Set<JavaClass>> allRawInterfaces = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
         @Override
         public Set<JavaClass> get() {
-            ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+            Set<JavaClass> result = new HashSet<>();
             for (JavaClass i : interfaces.getRaw()) {
-                result.add(i);
-                result.addAll(i.getAllRawInterfaces());
+                if (result.add(i)) {
+                    result.addAll(i.getAllRawInterfaces());
+                }
             }
             result.addAll(superclass.getAllRawInterfaces());
-            return result.build();
+            return ImmutableSet.copyOf(result);
         }
     });
     private final Supplier<List<JavaClass>> classHierarchy = Suppliers.memoize(new Supplier<List<JavaClass>>() {
@@ -125,8 +126,9 @@ public class JavaClass
         public Set<JavaClass> get() {
             Set<JavaClass> result = new HashSet<>();
             for (JavaClass subclass : subclasses) {
-                result.add(subclass);
-                result.addAll(subclass.getAllSubclasses());
+                if (result.add(subclass)) {
+                    result.addAll(subclass.getAllSubclasses());
+                }
             }
             return result;
         }
