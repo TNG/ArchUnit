@@ -424,10 +424,7 @@ public final class Architectures {
 
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayNotBeAccessedByAnyLayer() {
-                allowedLayers.clear();
-                constraint = LayerDependencyConstraint.ORIGIN;
-                descriptionSuffix = "may not be accessed by any layer";
-                return LayeredArchitecture.this.addDependencySpecification(this);
+                return denyLayerAccess(LayerDependencyConstraint.ORIGIN, "may not be accessed by any layer");
             }
 
             @PublicAPI(usage = ACCESS)
@@ -436,8 +433,20 @@ public final class Architectures {
             }
 
             @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture mayNotAccessAnyLayer() {
+                return denyLayerAccess(LayerDependencyConstraint.TARGET, "may not access any layer");
+            }
+
+            @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyAccessLayers(String... layerNames) {
                 return restrictLayers(LayerDependencyConstraint.TARGET, layerNames, "may only access layers ['%s']");
+            }
+
+            private LayeredArchitecture denyLayerAccess(LayerDependencyConstraint constraint, String description) {
+                allowedLayers.clear();
+                this.constraint = constraint;
+                descriptionSuffix = description;
+                return LayeredArchitecture.this.addDependencySpecification(this);
             }
 
             private LayeredArchitecture restrictLayers(LayerDependencyConstraint constraint, String[] layerNames, String descriptionTemplate) {

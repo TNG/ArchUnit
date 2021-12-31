@@ -275,18 +275,20 @@ public class ArchitecturesTest {
                         .layer("Allowed").definedBy("..library.testclasses.mayonlyaccesslayers.allowed..")
                         .layer("Forbidden").definedBy("..library.testclasses.mayonlyaccesslayers.forbidden..")
                         .layer("Origin").definedBy("..library.testclasses.mayonlyaccesslayers.origin..")
-                        .whereLayer("Origin").mayOnlyAccessLayers("Allowed"),
+                        .whereLayer("Origin").mayOnlyAccessLayers("Allowed")
+                        .whereLayer("Forbidden").mayNotAccessAnyLayer(),
                 layeredArchitecture()
                         .layer("Allowed").definedBy(
-                        resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.allowed..")
-                                .as("'..library.testclasses.mayonlyaccesslayers.allowed..'"))
+                                resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.allowed..")
+                                        .as("'..library.testclasses.mayonlyaccesslayers.allowed..'"))
                         .layer("Forbidden").definedBy(
-                        resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.forbidden..")
-                                .as("'..library.testclasses.mayonlyaccesslayers.forbidden..'"))
+                                resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.forbidden..")
+                                        .as("'..library.testclasses.mayonlyaccesslayers.forbidden..'"))
                         .layer("Origin").definedBy(
-                        resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.origin..")
-                                .as("'..library.testclasses.mayonlyaccesslayers.origin..'"))
-                        .whereLayer("Origin").mayOnlyAccessLayers("Allowed"));
+                                resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.origin..")
+                                        .as("'..library.testclasses.mayonlyaccesslayers.origin..'"))
+                        .whereLayer("Origin").mayOnlyAccessLayers("Allowed")
+                        .whereLayer("Forbidden").mayNotAccessAnyLayer());
     }
 
     @Test
@@ -297,7 +299,8 @@ public class ArchitecturesTest {
                         "layer 'Allowed' ('..library.testclasses.mayonlyaccesslayers.allowed..')" + lineSeparator() +
                         "layer 'Forbidden' ('..library.testclasses.mayonlyaccesslayers.forbidden..')" + lineSeparator() +
                         "layer 'Origin' ('..library.testclasses.mayonlyaccesslayers.origin..')" + lineSeparator() +
-                        "where layer 'Origin' may only access layers ['Allowed']");
+                        "where layer 'Origin' may only access layers ['Allowed']" + lineSeparator() +
+                        "where layer 'Forbidden' may not access any layer");
     }
 
     @Test
@@ -312,7 +315,10 @@ public class ArchitecturesTest {
                         expectedAccessViolationPattern(
                                 MayOnlyAccessLayersOriginClass.class, "call", MayOnlyAccessLayersForbiddenClass.class, "callMe"),
                         expectedAccessViolationPattern(MayOnlyAccessLayersOriginClass.class, CONSTRUCTOR_NAME, Object.class, CONSTRUCTOR_NAME),
+                        expectedAccessViolationPattern(MayOnlyAccessLayersForbiddenClass.class, CONSTRUCTOR_NAME, Object.class, CONSTRUCTOR_NAME),
+                        expectedAccessViolationPattern(MayOnlyAccessLayersForbiddenClass.class, "callMe", MayOnlyAccessLayersOriginClass.class, CONSTRUCTOR_NAME),
                         expectedInheritancePattern(MayOnlyAccessLayersOriginClass.class, Object.class),
+                        expectedInheritancePattern(MayOnlyAccessLayersForbiddenClass.class, Object.class),
                         expectedFieldTypePattern(MayOnlyAccessLayersOriginClass.class, "illegalTarget", MayOnlyAccessLayersForbiddenClass.class)));
     }
 
@@ -322,7 +328,9 @@ public class ArchitecturesTest {
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
 
         architecture = architecture.ignoreDependency(MayOnlyAccessLayersOriginClass.class, MayOnlyAccessLayersForbiddenClass.class)
-                .ignoreDependency(MayOnlyAccessLayersOriginClass.class, Object.class);
+                .ignoreDependency(MayOnlyAccessLayersOriginClass.class, Object.class)
+                .ignoreDependency(MayOnlyAccessLayersForbiddenClass.class, Object.class)
+                .ignoreDependency(MayOnlyAccessLayersForbiddenClass.class, MayOnlyAccessLayersOriginClass.class);
 
         assertThat(architecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
     }
