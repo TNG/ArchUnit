@@ -451,11 +451,11 @@ public class ClassFileImporterTest {
 
         assertThat(baseClass.getRawSuperclass().get().reflect()).isEqualTo(Object.class);
         assertThat(baseClass.getSubclasses()).containsOnly(subclass, otherSubclass);
-        assertThat(baseClass.getSubclasses()).containsOnly(subclass, otherSubclass);
+        assertThat(baseClass.getSubClasses()).containsOnly(subclass, otherSubclass);
         assertThat(baseClass.getAllSubclasses()).containsOnly(subclass, otherSubclass, subSubclass, subSubSubclass, subSubSubSubclass);
-        assertThat(baseClass.getAllSubclasses()).containsOnly(subclass, otherSubclass, subSubclass, subSubSubclass, subSubSubSubclass);
+        assertThat(baseClass.getAllSubClasses()).containsOnly(subclass, otherSubclass, subSubclass, subSubSubclass, subSubSubSubclass);
         assertThat(subclass.getRawSuperclass()).contains(baseClass);
-        assertThat(subclass.getRawSuperclass()).contains(baseClass);
+        assertThat(subclass.getSuperClass()).contains(baseClass);
         assertThat(subclass.getAllSubclasses()).containsOnly(subSubclass, subSubSubclass, subSubSubSubclass);
         assertThat(subSubclass.getRawSuperclass()).contains(subclass);
     }
