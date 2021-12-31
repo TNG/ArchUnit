@@ -128,7 +128,7 @@ public class JavaClass
                 result.add(subclass);
                 result.addAll(subclass.getAllSubclasses());
             }
-            return result;
+            return ImmutableSet.copyOf(result);
         }
     });
     private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
