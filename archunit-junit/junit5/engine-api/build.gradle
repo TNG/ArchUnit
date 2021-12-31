@@ -23,7 +23,9 @@ dependencies {
 
 compileJava.dependsOn project(':archunit-junit5-api').finishArchive
 
-configureSlowTestsFor this
+archUnitTest {
+    hasSlowTests = true
+}
 
 test {
     useJUnitPlatform() {

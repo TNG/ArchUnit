@@ -1,69 +1,61 @@
-ext {
-    addTestJarTo = { proj ->
-        proj.with {
-            configurations {
-                tests.extendsFrom testRuntime
-            }
+abstract class ArchUnitTestExtension {
+    boolean providesTestJar = false
+    boolean hasSlowTests = false
+}
 
-            task testJar(type: Jar) {
-                archiveClassifier = 'tests'
-                from sourceSets.test.output
-            }
+ext.archUnitTest = extensions.create('archUnitTest', ArchUnitTestExtension)
 
-            artifacts {
-                tests testJar
-            }
+afterEvaluate {
+    if (archUnitTest.providesTestJar) {
+        configurations {
+            tests.extendsFrom testRuntime
+        }
+
+        task testJar(type: Jar) {
+            archiveClassifier = 'tests'
+            from sourceSets.test.output
+        }
+
+        artifacts {
+            tests testJar
         }
     }
 
-    configureSlowTestsFor = { proj ->
-        proj.afterEvaluate { projAfterEvaluate ->
-            projAfterEvaluate.tasks.withType(Test) {
-                if (!project.hasProperty('allTests')) {
-                    useJUnit {
-                        excludeCategories 'com.tngtech.archunit.Slow'
-                    }
+    if (archUnitTest.hasSlowTests) {
+        tasks.withType(Test) {
+            if (!project.hasProperty('allTests')) {
+                useJUnit {
+                    excludeCategories 'com.tngtech.archunit.Slow'
                 }
             }
         }
     }
 }
 
-configure(subprojects.findAll { it.name != 'docs' }) {
-    afterEvaluate { project ->
-        project.tasks.withType(Test) {
-            maxHeapSize = "2G"
+tasks.withType(Test) {
+    maxHeapSize = "2G"
 
-            testLogging {
-                events "failed"
-                exceptionFormat "full"
-            }
-
-            ignoreFailures = project.hasProperty('ignoreTestFailures')
-        }
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
     }
+
+    ignoreFailures = project.hasProperty('ignoreTestFailures')
 }
 
 // Add some better test failure reporting on the console
 
-List<TestFailureReport> testReports = []
-configure(subprojects.findAll { it.name != 'docs' }) {
-    TestFailureReport testReport = new TestFailureReport(project: name)
-    testReports << testReport
-
-    afterEvaluate { project ->
-        project.tasks.withType(Test) {
-            afterTest { TestDescriptor descriptor, TestResult result ->
-                if (result.resultType == TestResult.ResultType.FAILURE) {
-                    testReport.addFailure(new TestFailure(descriptor, result.exception))
-                }
-            }
+TestFailureReport testReport = new TestFailureReport(project: name)
+tasks.withType(Test) {
+    afterTest { TestDescriptor descriptor, TestResult result ->
+        if (result.resultType == TestResult.ResultType.FAILURE) {
+            testReport.addFailure(new TestFailure(descriptor, result.exception))
         }
     }
 }
 
 gradle.buildFinished {
-    testReports.each { it.printFailures() }
+    testReport.printFailures()
 }
 
 class TestFailureReport {

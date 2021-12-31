@@ -50,8 +50,10 @@ publishing {
     }
 }
 
-addTestJarTo this
-configureSlowTestsFor this
+archUnitTest {
+    providesTestJar = true
+    hasSlowTests = true
+}
 
 def jdk9MainDirs = ['src/jdk9main/java']
 def jdk9TestDirs = ['src/jdk9test/java']

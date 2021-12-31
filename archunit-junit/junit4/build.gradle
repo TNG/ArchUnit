@@ -40,7 +40,9 @@ sourcesJar {
     }
 }
 
-configureSlowTestsFor this
+archUnitTest {
+    hasSlowTests = true
+}
 
 shadowJar {
     exclude 'META-INF/**'

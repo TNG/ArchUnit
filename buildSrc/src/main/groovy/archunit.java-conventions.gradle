@@ -3,6 +3,7 @@ import static java.nio.charset.StandardCharsets.UTF_8
 plugins {
     id 'archunit.base-conventions'
     id 'archunit.java-version-conventions'
+    id 'archunit.java-testing-conventions'
     id 'java-library'
 }
 

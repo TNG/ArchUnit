@@ -6,7 +6,9 @@ gradle.projectsEvaluated {
     compileTestJava.dependsOn(rootProject.getTasksByName('finishArchive', true))
 }
 
-addTestJarTo this
+archUnitTest {
+    providesTestJar = true
+}
 
 dependencies {
     // `api` dependencies so we can access them within `archunit-integration-test`
