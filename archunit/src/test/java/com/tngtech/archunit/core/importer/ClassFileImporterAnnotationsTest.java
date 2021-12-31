@@ -684,7 +684,7 @@ public class ClassFileImporterAnnotationsTest {
                 .hasAnnotationProperty("parameterAnnotationDefault",
                         annotationProperty()
                                 .withAnnotationType(ParameterAnnotation.class)
-                                .withClassProperty("value", Integer.class));
+                                .withClassProperty("value", SomeAnnotationDefaultParameterType.class));
 
         JavaAnnotation<JavaClass> metaMetaMetaAnnotation = someAnnotation
                 .getRawType().getAnnotationOfType(SomeMetaAnnotation.class.getName())
@@ -729,7 +729,7 @@ public class ClassFileImporterAnnotationsTest {
 
         ParameterAnnotation parameterAnnotation();
 
-        ParameterAnnotation parameterAnnotationDefault() default @ParameterAnnotation(Integer.class);
+        ParameterAnnotation parameterAnnotationDefault() default @ParameterAnnotation(SomeAnnotationDefaultParameterType.class);
     }
 
     @SuppressWarnings("unused")
@@ -777,6 +777,9 @@ public class ClassFileImporterAnnotationsTest {
     }
 
     private static class SomeAnnotationParameterType {
+    }
+
+    private static class SomeAnnotationDefaultParameterType {
     }
 
     @MetaAnnotatedAnnotation
