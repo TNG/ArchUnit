@@ -1,6 +1,8 @@
 package com.tngtech.archunit.testutil.assertion;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -18,6 +20,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatTypeVariable;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.runtimePropertiesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion.getTypeVariableWithName;
+import static java.lang.reflect.Modifier.isPrivate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, JavaType> {
@@ -43,7 +46,7 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
         assertThat(javaClass.getPackageName()).as(describeAssertion("Package name of " + javaClass))
                 .isEqualTo(getExpectedPackageName(clazz));
         assertThat(javaClass.getModifiers()).as(describeAssertion("Modifiers of " + javaClass))
-                .isEqualTo(JavaModifier.getModifiersForClass(clazz.getModifiers()));
+                .isEqualTo(getExpectedModifiersForClass(clazz));
         assertThat(javaClass.isArray()).as(describeAssertion(javaClass + " is array")).isEqualTo(clazz.isArray());
         assertThat(runtimePropertiesOf(javaClass.getAnnotations())).as(describeAssertion("Annotations of " + javaClass))
                 .isEqualTo(propertiesOf(clazz.getAnnotations()));
@@ -111,6 +114,31 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
             return clazz.getPackage() != null ? clazz.getPackage().getName() : "";
         }
         return getExpectedPackageName(clazz.getComponentType());
+    }
+
+    private Set<JavaModifier> getExpectedModifiersForClass(Class<?> clazz) {
+        Set<JavaModifier> result = new HashSet<>(JavaModifier.getModifiersForClass(clazz.getModifiers()));
+        if (clazz.isAnonymousClass() && runsOnPreJava9Vm()) {
+            // anonymous classes have been a shady section of the JLS. At some point they are defined as "implicitly final"
+            // in a later JLS as "never final", and the bytecode contains something different than the Reflection API returns
+            // (possibly FINAL if declared in non-public classes, but not STATIC, while the Reflection API returns STATIC but not FINAL).
+            // We will ignore this and stick to the bytecode, since it's a corner case and being consistent with the bytecode is the easiest
+            result.remove(JavaModifier.STATIC);
+            if (clazz.getEnclosingMethod() == null || (clazz.getEnclosingClass() != null && isPrivate(clazz.getEnclosingClass().getModifiers()))) {
+                result.add(JavaModifier.FINAL);
+            }
+        }
+        return result;
+    }
+
+    private boolean runsOnPreJava9Vm() {
+        // Note that what we really would have to check is that the class was compiled with a JDK 7 or 8.
+        // But unfortunately not the bytecode compatibility, but really if an old compiler from JDK 7 or 8 was used.
+        // Since this seems very hard to find out, we just use the fact that we only compile with an old JDK if
+        // we also run the test with an old JRE, so if the running JRE is newer the code was compiled with a newer JDK
+        // (even if source and target compatibility are Java 7 / Java 8)
+        String javaVersion = System.getProperty("java.version");
+        return javaVersion.startsWith("1.7.") || javaVersion.startsWith("1.8.");
     }
 
     public class JavaTypeVariableOfClassAssertion extends AbstractObjectAssert<JavaTypeVariableOfClassAssertion, JavaTypeVariable<JavaClass>> {
