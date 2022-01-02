@@ -298,12 +298,18 @@ public class AccessTargetTest {
     }
 
     private CodeUnitCallTarget getTarget(JavaClass javaClass, String targetName) {
-        for (JavaCall<?> call : javaClass.getCallsFromSelf()) {
+        for (JavaCall<?> call : getCodeUnitCallsFromSelf(javaClass)) {
             if (call.getTarget().getName().equals(targetName)) {
                 return call.getTarget();
             }
         }
         throw new AssertionError(String.format("Couldn't find target %s.%s", javaClass.getSimpleName(), targetName));
+    }
+
+    private Set<JavaCall<?>> getCodeUnitCallsFromSelf(JavaClass javaClass) {
+        Set<JavaCall<?>> result = javaClass.getCodeUnitCallsFromSelf();
+        assertThat(result).isEqualTo(javaClass.getCallsFromSelf());
+        return result;
     }
 
     @SuppressWarnings({"unused", "FieldCanBeLocal"})

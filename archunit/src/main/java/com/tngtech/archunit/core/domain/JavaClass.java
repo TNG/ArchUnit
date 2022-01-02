@@ -1045,7 +1045,7 @@ public class JavaClass
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaAccess<?>> getAccessesFromSelf() {
-        return union(getFieldAccessesFromSelf(), getCallsFromSelf());
+        return union(getFieldAccessesFromSelf(), getCodeUnitCallsFromSelf());
     }
 
     /**
@@ -1066,13 +1066,22 @@ public class JavaClass
     }
 
     /**
+     * @deprecated Use {@link #getCodeUnitCallsFromSelf()} instead
+     */
+    @Deprecated
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaCall<?>> getCallsFromSelf() {
+        return getCodeUnitCallsFromSelf();
+    }
+
+    /**
      * Returns all calls of this class to methods or constructors.
      *
      * @see #getMethodCallsFromSelf()
      * @see #getConstructorCallsFromSelf()
      */
     @PublicAPI(usage = ACCESS)
-    public Set<JavaCall<?>> getCallsFromSelf() {
+    public Set<JavaCall<?>> getCodeUnitCallsFromSelf() {
         return union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
     }
 
@@ -1690,13 +1699,20 @@ public class JavaClass
                 };
 
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<JavaClass, Set<JavaCall<?>>> GET_CALLS_FROM_SELF =
+        public static final ChainableFunction<JavaClass, Set<JavaCall<?>>> GET_CODE_UNIT_CALLS_FROM_SELF =
                 new ChainableFunction<JavaClass, Set<JavaCall<?>>>() {
                     @Override
                     public Set<JavaCall<?>> apply(JavaClass input) {
-                        return input.getCallsFromSelf();
+                        return input.getCodeUnitCallsFromSelf();
                     }
                 };
+
+        /**
+         * @deprecated Use {@link #GET_CODE_UNIT_CALLS_FROM_SELF} instead
+         */
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
+        public static final ChainableFunction<JavaClass, Set<JavaCall<?>>> GET_CALLS_FROM_SELF = GET_CODE_UNIT_CALLS_FROM_SELF;
 
         @PublicAPI(usage = ACCESS)
         public static final ChainableFunction<JavaClass, Set<JavaAccess<?>>> GET_ACCESSES_FROM_SELF =
