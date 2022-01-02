@@ -27,6 +27,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
@@ -37,6 +38,7 @@ import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
@@ -46,7 +48,7 @@ import static com.tngtech.archunit.core.importer.DomainBuilders.newConstructorCa
 import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
 
 interface AccessRecord<TARGET extends AccessTarget> {
-    JavaCodeUnit getCaller();
+    JavaCodeUnit getOrigin();
 
     TARGET getTarget();
 
@@ -66,7 +68,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             return new Factory<RawAccessRecord, AccessRecord<ConstructorCallTarget>>() {
                 @Override
                 AccessRecord<ConstructorCallTarget> create(RawAccessRecord record, ImportedClasses classes) {
-                    return new RawConstructorCallRecordProcessed(record, classes);
+                    return new RawAccessRecordProcessed<>(record, classes, CONSTRUCTOR_CALL_TARGET_FACTORY);
                 }
             };
         }
@@ -75,7 +77,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
             return new Factory<RawAccessRecord, AccessRecord<MethodCallTarget>>() {
                 @Override
                 AccessRecord<MethodCallTarget> create(RawAccessRecord record, ImportedClasses classes) {
-                    return new RawMethodCallRecordProcessed(record, classes);
+                    return new RawAccessRecordProcessed<>(record, classes, METHOD_CALL_TARGET_FACTORY);
                 }
             };
         }
@@ -89,47 +91,55 @@ interface AccessRecord<TARGET extends AccessTarget> {
             };
         }
 
-        private static class RawConstructorCallRecordProcessed implements AccessRecord<ConstructorCallTarget> {
-            private final RawAccessRecord record;
-            private final ImportedClasses classes;
-            private final JavaClass targetOwner;
-            private final Supplier<JavaCodeUnit> callerSupplier;
+        private static final Supplier<CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget>> CONSTRUCTOR_CALL_TARGET_BUILDER_SUPPLIER =
+                new Supplier<CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget>>() {
+                    @Override
+                    public CodeUnitCallTargetBuilder<JavaConstructor, ConstructorCallTarget> get() {
+                        return newConstructorCallTargetBuilder();
+                    }
+                };
 
-            RawConstructorCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
-                this.record = record;
-                this.classes = classes;
-                targetOwner = this.classes.getOrResolve(record.target.owner.getFullyQualifiedClassName());
-                callerSupplier = createCallerSupplier(record.caller, classes);
+        private static final Supplier<CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget>> METHOD_CALL_TARGET_BUILDER_SUPPLIER =
+                new Supplier<CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget>>() {
+                    @Override
+                    public CodeUnitCallTargetBuilder<JavaMethod, MethodCallTarget> get() {
+                        return newMethodCallTargetBuilder();
+                    }
+                };
+
+        private static final AccessTargetFactory<ConstructorCallTarget> CONSTRUCTOR_CALL_TARGET_FACTORY = new ConstructorAccessTargetFactory<>(CONSTRUCTOR_CALL_TARGET_BUILDER_SUPPLIER);
+        private static final AccessTargetFactory<MethodCallTarget> METHOD_CALL_TARGET_FACTORY = new MethodAccessTargetFactory<>(METHOD_CALL_TARGET_BUILDER_SUPPLIER);
+        private static final AccessTargetFactory<FieldAccessTarget> FIELD_ACCESS_TARGET_FACTORY = new FieldAccessTargetFactory();
+
+        private interface AccessTargetFactory<TARGET extends AccessTarget> {
+            TARGET create(JavaClass targetOwner, TargetInfo targetInfo, ImportedClasses classes);
+        }
+
+        private static class ConstructorAccessTargetFactory<TARGET extends CodeUnitCallTarget> implements AccessTargetFactory<TARGET> {
+            private final Supplier<CodeUnitCallTargetBuilder<JavaConstructor, TARGET>> targetBuilderSupplier;
+
+            private ConstructorAccessTargetFactory(Supplier<CodeUnitCallTargetBuilder<JavaConstructor, TARGET>> targetBuilderSupplier) {
+                this.targetBuilderSupplier = targetBuilderSupplier;
             }
 
             @Override
-            public JavaCodeUnit getCaller() {
-                return callerSupplier.get();
-            }
-
-            @Override
-            public ConstructorCallTarget getTarget() {
-                Supplier<Optional<JavaConstructor>> constructorSupplier = new ConstructorTargetSupplier(targetOwner, record.target);
-                List<JavaClass> paramTypes = getArgumentTypesFrom(record.target.desc, classes);
+            public TARGET create(JavaClass targetOwner, TargetInfo target, ImportedClasses classes) {
+                Supplier<Optional<JavaConstructor>> memberSupplier = new ConstructorSupplier(targetOwner, target);
+                List<JavaClass> paramTypes = getArgumentTypesFrom(target.desc, classes);
                 JavaClass returnType = classes.getOrResolve(void.class.getName());
-                return newConstructorCallTargetBuilder()
+                return targetBuilderSupplier.get()
                         .withOwner(targetOwner)
                         .withParameters(paramTypes)
                         .withReturnType(returnType)
-                        .withMember(constructorSupplier)
+                        .withMember(memberSupplier)
                         .build();
             }
 
-            @Override
-            public int getLineNumber() {
-                return record.lineNumber;
-            }
-
-            private static class ConstructorTargetSupplier implements Supplier<Optional<JavaConstructor>> {
+            private static class ConstructorSupplier implements Supplier<Optional<JavaConstructor>> {
                 private final JavaClass targetOwner;
                 private final TargetInfo target;
 
-                ConstructorTargetSupplier(JavaClass targetOwner, TargetInfo target) {
+                ConstructorSupplier(JavaClass targetOwner, TargetInfo target) {
                     this.targetOwner = targetOwner;
                     this.target = target;
                 }
@@ -146,48 +156,32 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
         }
 
-        private static class RawMethodCallRecordProcessed implements AccessRecord<MethodCallTarget> {
-            private final RawAccessRecord record;
-            final ImportedClasses classes;
-            private final JavaClass targetOwner;
-            private final Supplier<JavaCodeUnit> callerSupplier;
+        private static class MethodAccessTargetFactory<TARGET extends CodeUnitCallTarget> implements AccessTargetFactory<TARGET> {
+            private final Supplier<CodeUnitCallTargetBuilder<JavaMethod, TARGET>> targetBuilderSupplier;
 
-            RawMethodCallRecordProcessed(RawAccessRecord record, ImportedClasses classes) {
-                this.record = record;
-                this.classes = classes;
-                targetOwner = this.classes.getOrResolve(record.target.owner.getFullyQualifiedClassName());
-                callerSupplier = createCallerSupplier(record.caller, classes);
+            private MethodAccessTargetFactory(Supplier<CodeUnitCallTargetBuilder<JavaMethod, TARGET>> targetBuilderSupplier) {
+                this.targetBuilderSupplier = targetBuilderSupplier;
             }
 
             @Override
-            public JavaCodeUnit getCaller() {
-                return callerSupplier.get();
-            }
-
-            @Override
-            public MethodCallTarget getTarget() {
-                Supplier<Optional<JavaMethod>> methodsSupplier = new MethodTargetSupplier(targetOwner, record.target);
-                List<JavaClass> parameters = getArgumentTypesFrom(record.target.desc, classes);
-                JavaClass returnType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmMethodReturnType(record.target.desc).getFullyQualifiedClassName());
-                return newMethodCallTargetBuilder()
+            public TARGET create(JavaClass targetOwner, TargetInfo target, ImportedClasses classes) {
+                Supplier<Optional<JavaMethod>> methodsSupplier = new MethodSupplier(targetOwner, target);
+                List<JavaClass> parameters = getArgumentTypesFrom(target.desc, classes);
+                JavaClass returnType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmMethodReturnType(target.desc).getFullyQualifiedClassName());
+                return targetBuilderSupplier.get()
                         .withOwner(targetOwner)
-                        .withName(record.target.name)
+                        .withName(target.name)
                         .withParameters(parameters)
                         .withReturnType(returnType)
                         .withMember(methodsSupplier)
                         .build();
             }
 
-            @Override
-            public int getLineNumber() {
-                return record.lineNumber;
-            }
-
-            private static class MethodTargetSupplier implements Supplier<Optional<JavaMethod>> {
+            private static class MethodSupplier implements Supplier<Optional<JavaMethod>> {
                 private final JavaClass targetOwner;
                 private final TargetInfo target;
 
-                MethodTargetSupplier(JavaClass targetOwner, TargetInfo target) {
+                MethodSupplier(JavaClass targetOwner, TargetInfo target) {
                     this.targetOwner = targetOwner;
                     this.target = target;
                 }
@@ -199,51 +193,24 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
         }
 
-        private static class RawFieldAccessRecordProcessed implements FieldAccessRecord {
-            private final RawAccessRecord.ForField record;
-            final ImportedClasses classes;
-            private final JavaClass targetOwner;
-            private final Supplier<JavaCodeUnit> callerSupplier;
-
-            RawFieldAccessRecordProcessed(RawAccessRecord.ForField record, ImportedClasses classes) {
-                this.record = record;
-                this.classes = classes;
-                targetOwner = this.classes.getOrResolve(record.target.owner.getFullyQualifiedClassName());
-                callerSupplier = createCallerSupplier(record.caller, classes);
-            }
-
+        private static class FieldAccessTargetFactory implements AccessTargetFactory<FieldAccessTarget> {
             @Override
-            public AccessType getAccessType() {
-                return record.accessType;
-            }
-
-            @Override
-            public JavaCodeUnit getCaller() {
-                return callerSupplier.get();
-            }
-
-            @Override
-            public FieldAccessTarget getTarget() {
-                Supplier<Optional<JavaField>> fieldSupplier = new FieldTargetSupplier(targetOwner, record.target);
-                JavaClass fieldType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(record.target.desc).getFullyQualifiedClassName());
+            public FieldAccessTarget create(JavaClass targetOwner, TargetInfo target, ImportedClasses classes) {
+                Supplier<Optional<JavaField>> fieldSupplier = new FieldSupplier(targetOwner, target);
+                JavaClass fieldType = classes.getOrResolve(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(target.desc).getFullyQualifiedClassName());
                 return new FieldAccessTargetBuilder()
                         .withOwner(targetOwner)
-                        .withName(record.target.name)
+                        .withName(target.name)
                         .withType(fieldType)
                         .withMember(fieldSupplier)
                         .build();
             }
 
-            @Override
-            public int getLineNumber() {
-                return record.lineNumber;
-            }
-
-            private static class FieldTargetSupplier implements Supplier<Optional<JavaField>> {
+            private static class FieldSupplier implements Supplier<Optional<JavaField>> {
                 private final JavaClass targetOwner;
                 private final TargetInfo target;
 
-                FieldTargetSupplier(JavaClass targetOwner, TargetInfo target) {
+                FieldSupplier(JavaClass targetOwner, TargetInfo target) {
                     this.targetOwner = targetOwner;
                     this.target = target;
                 }
@@ -255,23 +222,68 @@ interface AccessRecord<TARGET extends AccessTarget> {
             }
         }
 
-        private static Supplier<JavaCodeUnit> createCallerSupplier(final CodeUnit caller, final ImportedClasses classes) {
+        private static class RawAccessRecordProcessed<TARGET extends AccessTarget> implements AccessRecord<TARGET> {
+            private final RawAccessRecord record;
+            private final ImportedClasses classes;
+            private final JavaClass targetOwner;
+            private final AccessTargetFactory<TARGET> accessTargetFactory;
+            private final Supplier<JavaCodeUnit> originSupplier;
+
+            RawAccessRecordProcessed(RawAccessRecord record, ImportedClasses classes, AccessTargetFactory<TARGET> accessTargetFactory) {
+                this.record = record;
+                this.classes = classes;
+                targetOwner = this.classes.getOrResolve(record.target.owner.getFullyQualifiedClassName());
+                this.accessTargetFactory = accessTargetFactory;
+                originSupplier = createOriginSupplier(record.caller, classes);
+            }
+
+            @Override
+            public JavaCodeUnit getOrigin() {
+                return originSupplier.get();
+            }
+
+            @Override
+            public TARGET getTarget() {
+                return accessTargetFactory.create(targetOwner, record.target, classes);
+            }
+
+            @Override
+            public int getLineNumber() {
+                return record.lineNumber;
+            }
+        }
+
+        private static class RawFieldAccessRecordProcessed extends RawAccessRecordProcessed<FieldAccessTarget> implements FieldAccessRecord {
+            private final AccessType accessType;
+
+            RawFieldAccessRecordProcessed(RawAccessRecord.ForField record, ImportedClasses classes) {
+                super(record, classes, FIELD_ACCESS_TARGET_FACTORY);
+                accessType = record.accessType;
+            }
+
+            @Override
+            public AccessType getAccessType() {
+                return accessType;
+            }
+        }
+
+        private static Supplier<JavaCodeUnit> createOriginSupplier(final CodeUnit origin, final ImportedClasses classes) {
             return Suppliers.memoize(new Supplier<JavaCodeUnit>() {
                 @Override
                 public JavaCodeUnit get() {
-                    return Factory.getCaller(caller, classes);
+                    return Factory.getOrigin(origin, classes);
                 }
             });
         }
 
-        private static JavaCodeUnit getCaller(CodeUnit caller, ImportedClasses classes) {
-            for (JavaCodeUnit method : classes.getOrResolve(caller.getDeclaringClassName()).getCodeUnits()) {
-                if (caller.is(method)) {
+        private static JavaCodeUnit getOrigin(CodeUnit rawOrigin, ImportedClasses classes) {
+            for (JavaCodeUnit method : classes.getOrResolve(rawOrigin.getDeclaringClassName()).getCodeUnits()) {
+                if (rawOrigin.is(method)) {
                     return method;
                 }
             }
             throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
-                    " that matches supposed caller " + caller);
+                    " that matches supposed origin " + rawOrigin);
         }
 
         private static List<JavaClass> getArgumentTypesFrom(String descriptor, ImportedClasses classes) {
