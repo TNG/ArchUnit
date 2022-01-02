@@ -39,12 +39,16 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * following:
  * <ul>
  * <li>a class accesses a field of another class</li>
- * <li>a class calls a method of another class</li>
- * <li>a class calls a constructor of another class</li>
- * <li>a class inherits from another class (which is in fact a special case of constructor call)</li>
+ * <li>a class calls a method/constructor of another class</li>
+ * <li>a class inherits from another class</li>
  * <li>a class implements an interface</li>
  * <li>a class has a field with type of another class</li>
  * <li>a class has a method/constructor with parameter/return type of another class</li>
+ * <li>a class (or method/constructor of this class) declares a type parameter referencing another class</li>
+ * <li>a class (or method/constructor of this class) is annotated with an annotation of a certain type or referencing another class as annotation parameter</li>
+ * <li>a method/constructor of a class references another class in a throws declaration</li>
+ * <li>a class references another class object (e.g. {@code Example.class})</li>
+ * <li>a class references another class in an {@code instanceof} check</li>
  * </ul>
  * Note that a {@link Dependency} will by definition never be a self-reference,
  * i.e. <code>origin</code> will never be equal to <code>target</code>.
