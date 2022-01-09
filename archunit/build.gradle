@@ -2,8 +2,6 @@ plugins {
     id 'archunit.java-release-conventions'
 }
 
-apply plugin: 'idea'
-
 ext.moduleName = 'com.tngtech.archunit'
 
 dependencies {
@@ -134,13 +132,3 @@ task jdk15Test(type: Test) {
 test.finalizedBy(jdk9Test, jdk15Test)
 
 [spotbugsJdk9test, spotbugsJdk15test]*.enabled = false
-
-idea {
-    module {
-        sourceDirs += jdk9MainDirs.collect { file(it) }
-        sourceDirs -= jdk9TestDirs.collect { file(it) }
-        sourceDirs -= jdk15TestDirs.collect { file(it) }
-        testSourceDirs += jdk9TestDirs.collect { file(it) }
-        testSourceDirs += jdk15TestDirs.collect { file(it) }
-    }
-}
