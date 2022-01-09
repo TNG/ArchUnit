@@ -122,18 +122,11 @@ class ClassGraphCreator implements ImportContext {
 
     JavaClasses complete() {
         dependencyResolutionProcess.resolve(classes);
-        ensureCallTargetsArePresent();
         ensureClassesOfInheritanceHierarchiesArePresent();
         ensureMetaAnnotationsArePresent();
         completeClasses();
         completeAccesses();
         return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
-    }
-
-    private void ensureCallTargetsArePresent() {
-        for (RawAccessRecord record : importRecord.getAccessRecords()) {
-            classes.ensurePresent(record.target.owner.getFullyQualifiedClassName());
-        }
     }
 
     private void ensureClassesOfInheritanceHierarchiesArePresent() {

@@ -35,6 +35,12 @@ class DependencyResolutionProcess {
         }
     }
 
+    void registerAccessToType(String typeName) {
+        if (!initializationComplete) {
+            typeNames.add(typeName);
+        }
+    }
+
     void resolve(ImportedClasses importedClasses) {
         initializationComplete = true;
         for (String typeName : typeNames) {

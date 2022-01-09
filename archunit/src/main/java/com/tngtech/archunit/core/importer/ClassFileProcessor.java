@@ -57,7 +57,7 @@ class ClassFileProcessor {
     JavaClasses process(ClassFileSource source) {
         ClassFileImportRecord importRecord = new ClassFileImportRecord();
         DependencyResolutionProcess dependencyResolutionProcess = new DependencyResolutionProcess();
-        RecordAccessHandler accessHandler = new RecordAccessHandler(importRecord);
+        RecordAccessHandler accessHandler = new RecordAccessHandler(importRecord, dependencyResolutionProcess);
         ClassDetailsRecorder classDetailsRecorder = new ClassDetailsRecorder(importRecord, dependencyResolutionProcess);
         for (ClassFileLocation location : source) {
             try (InputStream s = location.openStream()) {
@@ -165,11 +165,13 @@ class ClassFileProcessor {
         private static final Logger LOG = LoggerFactory.getLogger(RecordAccessHandler.class);
 
         private final ClassFileImportRecord importRecord;
+        private final DependencyResolutionProcess dependencyResolutionProcess;
         private CodeUnit codeUnit;
         private int lineNumber;
 
-        private RecordAccessHandler(ClassFileImportRecord importRecord) {
+        private RecordAccessHandler(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess) {
             this.importRecord = importRecord;
+            this.dependencyResolutionProcess = dependencyResolutionProcess;
         }
 
         @Override
@@ -190,6 +192,7 @@ class ClassFileProcessor {
             importRecord.registerFieldAccess(filled(new RawAccessRecord.ForField.Builder(), target)
                     .withAccessType(accessType)
                     .build());
+            dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
         @Override
@@ -201,17 +204,19 @@ class ClassFileProcessor {
             } else {
                 importRecord.registerMethodCall(filled(new RawAccessRecord.Builder(), target).build());
             }
+            dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
         @Override
         public void handleMethodReferenceInstruction(String owner, String name, String desc) {
             LOG.trace("Found method reference {}.{}:{} in line {}", owner, name, desc, lineNumber);
-            TargetInfo targetInfo = new TargetInfo(owner, name, desc);
+            TargetInfo target = new TargetInfo(owner, name, desc);
             if (CONSTRUCTOR_NAME.equals(name)) {
-                importRecord.registerConstructorReference(filled(new RawAccessRecord.Builder(), targetInfo).build());
+                importRecord.registerConstructorReference(filled(new RawAccessRecord.Builder(), target).build());
             } else {
-                importRecord.registerMethodReference(filled(new RawAccessRecord.Builder(), targetInfo).build());
+                importRecord.registerMethodReference(filled(new RawAccessRecord.Builder(), target).build());
             }
+            dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
         private <BUILDER extends RawAccessRecord.BaseBuilder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {

@@ -288,16 +288,6 @@ class ClassFileImportRecord {
         return classes;
     }
 
-    Set<RawAccessRecord> getAccessRecords() {
-        return ImmutableSet.<RawAccessRecord>builder()
-                .addAll(rawFieldAccessRecords)
-                .addAll(rawMethodCallRecords)
-                .addAll(rawConstructorCallRecords)
-                .addAll(rawMethodReferenceRecords)
-                .addAll(rawConstructorReferenceRecords)
-                .build();
-    }
-
     Set<String> getAllSuperclassNames() {
         return ImmutableSet.copyOf(superclassNamesByOwner.values());
     }
