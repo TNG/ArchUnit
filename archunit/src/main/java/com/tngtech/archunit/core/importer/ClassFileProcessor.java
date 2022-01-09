@@ -25,7 +25,13 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
@@ -92,47 +98,47 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
+        public void onGenericSuperclass(JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
             importRecord.addGenericSuperclass(ownerName, genericSuperclassBuilder);
         }
 
         @Override
-        public void onGenericInterfaces(List<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
+        public void onGenericInterfaces(List<JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
             importRecord.addGenericInterfaces(ownerName, genericInterfaceBuilders);
         }
 
         @Override
-        public void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder) {
+        public void onDeclaredField(JavaFieldBuilder fieldBuilder) {
             importRecord.addField(ownerName, fieldBuilder);
         }
 
         @Override
-        public void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder) {
+        public void onDeclaredConstructor(JavaConstructorBuilder constructorBuilder) {
             importRecord.addConstructor(ownerName, constructorBuilder);
         }
 
         @Override
-        public void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder) {
+        public void onDeclaredMethod(JavaMethodBuilder methodBuilder) {
             importRecord.addMethod(ownerName, methodBuilder);
         }
 
         @Override
-        public void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
+        public void onDeclaredStaticInitializer(JavaStaticInitializerBuilder staticInitializerBuilder) {
             importRecord.setStaticInitializer(ownerName, staticInitializerBuilder);
         }
 
         @Override
-        public void onDeclaredClassAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
+        public void onDeclaredClassAnnotations(Set<JavaAnnotationBuilder> annotationBuilders) {
             importRecord.addClassAnnotations(ownerName, annotationBuilders);
         }
 
         @Override
-        public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations) {
+        public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotations) {
             importRecord.addMemberAnnotations(ownerName, memberName, descriptor, annotations);
         }
 
         @Override
-        public void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, DomainBuilders.JavaAnnotationBuilder.ValueBuilder valueBuilder) {
+        public void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, JavaAnnotationBuilder.ValueBuilder valueBuilder) {
             importRecord.addAnnotationDefaultValue(ownerName, methodName, methodDescriptor, valueBuilder);
         }
 
