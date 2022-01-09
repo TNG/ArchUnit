@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -55,8 +56,9 @@ class ClassFileProcessor {
 
     JavaClasses process(ClassFileSource source) {
         ClassFileImportRecord importRecord = new ClassFileImportRecord();
+        DependencyResolutionProcess dependencyResolutionProcess = new DependencyResolutionProcess();
         RecordAccessHandler accessHandler = new RecordAccessHandler(importRecord);
-        ClassDetailsRecorder classDetailsRecorder = new ClassDetailsRecorder(importRecord);
+        ClassDetailsRecorder classDetailsRecorder = new ClassDetailsRecorder(importRecord, dependencyResolutionProcess);
         for (ClassFileLocation location : source) {
             try (InputStream s = location.openStream()) {
                 JavaClassProcessor javaClassProcessor =
@@ -67,15 +69,17 @@ class ClassFileProcessor {
                 LOG.warn(String.format("Couldn't import class from %s", location.getUri()), e);
             }
         }
-        return new ClassGraphCreator(importRecord, getClassResolver(classDetailsRecorder)).complete();
+        return new ClassGraphCreator(importRecord, dependencyResolutionProcess, getClassResolver(classDetailsRecorder)).complete();
     }
 
     private static class ClassDetailsRecorder implements DeclarationHandler {
         private final ClassFileImportRecord importRecord;
+        private final DependencyResolutionProcess dependencyResolutionProcess;
         private String ownerName;
 
-        private ClassDetailsRecorder(ClassFileImportRecord importRecord) {
+        private ClassDetailsRecorder(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess) {
             this.importRecord = importRecord;
+            this.dependencyResolutionProcess = dependencyResolutionProcess;
         }
 
         @Override
@@ -108,18 +112,22 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onDeclaredField(JavaFieldBuilder fieldBuilder) {
+        public void onDeclaredField(JavaFieldBuilder fieldBuilder, String fieldTypeName) {
             importRecord.addField(ownerName, fieldBuilder);
+            dependencyResolutionProcess.registerMemberType(fieldTypeName);
         }
 
         @Override
-        public void onDeclaredConstructor(JavaConstructorBuilder constructorBuilder) {
+        public void onDeclaredConstructor(JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames) {
             importRecord.addConstructor(ownerName, constructorBuilder);
+            dependencyResolutionProcess.registerMemberTypes(rawParameterTypeNames);
         }
 
         @Override
-        public void onDeclaredMethod(JavaMethodBuilder methodBuilder) {
+        public void onDeclaredMethod(JavaMethodBuilder methodBuilder, Collection<String> rawParameterTypeNames, String rawReturnTypeName) {
             importRecord.addMethod(ownerName, methodBuilder);
+            dependencyResolutionProcess.registerMemberTypes(rawParameterTypeNames);
+            dependencyResolutionProcess.registerMemberType(rawReturnTypeName);
         }
 
         @Override

@@ -242,7 +242,7 @@ class JavaClassProcessor extends ClassVisitor {
                 .withType(genericType, rawType)
                 .withModifiers(JavaModifier.getModifiersForField(access))
                 .withDescriptor(desc);
-        declarationHandler.onDeclaredField(fieldBuilder);
+        declarationHandler.onDeclaredField(fieldBuilder, rawType.getFullyQualifiedClassName());
         return new FieldProcessor(fieldBuilder, declarationHandler);
     }
 
@@ -256,9 +256,9 @@ class JavaClassProcessor extends ClassVisitor {
         CodeUnit codeUnit = new CodeUnit(name, desc, className);
         accessHandler.setContext(codeUnit);
 
-        DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name);
-        JavaCodeUnitSignature codeUnitSignature = JavaCodeUnitSignatureImporter.parseAsmMethodSignature(signature);
         JavaClassDescriptor rawReturnType = JavaClassDescriptorImporter.importAsmMethodReturnType(desc);
+        DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name, codeUnit.getRawParameterTypeNames(), rawReturnType.getFullyQualifiedClassName());
+        JavaCodeUnitSignature codeUnitSignature = JavaCodeUnitSignatureImporter.parseAsmMethodSignature(signature);
         codeUnitBuilder
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
@@ -281,10 +281,10 @@ class JavaClassProcessor extends ClassVisitor {
         return result;
     }
 
-    private DomainBuilders.JavaCodeUnitBuilder<?, ?> addCodeUnitBuilder(String name) {
+    private DomainBuilders.JavaCodeUnitBuilder<?, ?> addCodeUnitBuilder(String name, Collection<String> rawParameterTypeNames, String rawReturnTypeName) {
         if (CONSTRUCTOR_NAME.equals(name)) {
             DomainBuilders.JavaConstructorBuilder builder = new DomainBuilders.JavaConstructorBuilder();
-            declarationHandler.onDeclaredConstructor(builder);
+            declarationHandler.onDeclaredConstructor(builder, rawParameterTypeNames);
             return builder;
         } else if (STATIC_INITIALIZER_NAME.equals(name)) {
             DomainBuilders.JavaStaticInitializerBuilder builder = new DomainBuilders.JavaStaticInitializerBuilder();
@@ -292,7 +292,7 @@ class JavaClassProcessor extends ClassVisitor {
             return builder;
         } else {
             DomainBuilders.JavaMethodBuilder builder = new DomainBuilders.JavaMethodBuilder();
-            declarationHandler.onDeclaredMethod(builder);
+            declarationHandler.onDeclaredMethod(builder, rawParameterTypeNames, rawReturnTypeName);
             return builder;
         }
     }
@@ -496,11 +496,11 @@ class JavaClassProcessor extends ClassVisitor {
 
         void onGenericInterfaces(List<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders);
 
-        void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder);
+        void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder, String fieldTypeName);
 
-        void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder);
+        void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames);
 
-        void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder);
+        void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder, Collection<String> rawParameterTypeNames, String rawReturnTypeName);
 
         void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder);
 

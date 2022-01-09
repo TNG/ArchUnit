@@ -79,6 +79,7 @@ class ClassGraphCreator implements ImportContext {
     private final ImportedClasses classes;
 
     private final ClassFileImportRecord importRecord;
+    private final DependencyResolutionProcess dependencyResolutionProcess;
 
     private final SetMultimap<JavaCodeUnit, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
@@ -88,8 +89,9 @@ class ClassGraphCreator implements ImportContext {
     private final Function<JavaClass, ? extends Collection<String>> superclassStrategy;
     private final Function<JavaClass, ? extends Collection<String>> interfaceStrategy;
 
-    ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
+    ClassGraphCreator(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess, ClassResolver classResolver) {
         this.importRecord = importRecord;
+        this.dependencyResolutionProcess = dependencyResolutionProcess;
         classes = new ImportedClasses(importRecord.getClasses(), classResolver, new MethodReturnTypeGetter() {
             @Override
             public Optional<JavaClass> getReturnType(String declaringClassName, String methodName) {
@@ -119,19 +121,13 @@ class ClassGraphCreator implements ImportContext {
     }
 
     JavaClasses complete() {
-        ensureMemberTypesArePresent();
+        dependencyResolutionProcess.resolve(classes);
         ensureCallTargetsArePresent();
         ensureClassesOfInheritanceHierarchiesArePresent();
         ensureMetaAnnotationsArePresent();
         completeClasses();
         completeAccesses();
         return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
-    }
-
-    private void ensureMemberTypesArePresent() {
-        for (String typeName : importRecord.getMemberSignatureTypeNames()) {
-            classes.ensurePresent(typeName);
-        }
     }
 
     private void ensureCallTargetsArePresent() {
