@@ -1,0 +1,114 @@
+abstract class ArchUnitTestExtension {
+    boolean providesTestJar = false
+    boolean hasSlowTests = false
+}
+
+ext.archUnitTest = extensions.create('archUnitTest', ArchUnitTestExtension)
+
+afterEvaluate {
+    if (archUnitTest.providesTestJar) {
+        configurations {
+            tests.extendsFrom testRuntime
+        }
+
+        task testJar(type: Jar) {
+            archiveClassifier = 'tests'
+            from sourceSets.test.output
+        }
+
+        artifacts {
+            tests testJar
+        }
+    }
+
+    if (archUnitTest.hasSlowTests) {
+        tasks.withType(Test) {
+            if (!project.hasProperty('allTests')) {
+                useJUnit {
+                    excludeCategories 'com.tngtech.archunit.Slow'
+                }
+            }
+        }
+    }
+}
+
+tasks.withType(Test) {
+    maxHeapSize = "2G"
+
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
+
+    ignoreFailures = project.hasProperty('ignoreTestFailures')
+}
+
+// Add some better test failure reporting on the console
+
+TestFailureReport testReport = new TestFailureReport(project: name)
+tasks.withType(Test) {
+    afterTest { TestDescriptor descriptor, TestResult result ->
+        if (result.resultType == TestResult.ResultType.FAILURE) {
+            testReport.addFailure(new TestFailure(descriptor, result.exception))
+        }
+    }
+}
+
+gradle.buildFinished {
+    testReport.printFailures()
+}
+
+class TestFailureReport {
+    String project
+    private Map<String, TestClassFailureReport> reports = [:].withDefault { testClassName -> new TestClassFailureReport(className: testClassName) }
+
+    void addFailure(TestFailure testFailure) {
+        reports[testFailure.className].testFailures << testFailure
+    }
+
+    void printFailures() {
+        def failureReports = reports.values().findAll { !it.testFailures.empty }
+        if (failureReports.empty) {
+            return
+        }
+
+        String redX = "\033[1;31m\u2718 \033[0m"
+        String heading = "Failed tests for ${project}"
+        int headingBoxWidth = heading.length() + 4
+        println """
+        ${'-' * headingBoxWidth}
+        | ${heading} |
+        ${'-' * headingBoxWidth}
+        """.stripIndent()
+        failureReports.each { TestClassFailureReport failureReport ->
+            println "- ${failureReport.className} --> ${failureReport.location}"
+            failureReport.testFailures.each { TestFailure failure ->
+                println "  ${redX}.${failure.testDescription} --> ${failure.location}"
+            }
+        }
+        println "${'-' * headingBoxWidth}"
+    }
+}
+
+class TestClassFailureReport {
+    String className
+    List<TestFailure> testFailures = []
+
+    String getLocation() {
+        return "(${className.replaceAll(/.*\./, '')}.java:0)"
+    }
+}
+
+class TestFailure {
+    String className
+    String testDescription
+    String location = 'Unknown'
+
+    TestFailure(TestDescriptor descriptor, Throwable failure) {
+        className = descriptor.className
+        testDescription = descriptor.displayName
+        failure?.stackTrace?.find { it.className == className }?.each {
+            location = "(${it.fileName}:${it.lineNumber})"
+        }
+    }
+}

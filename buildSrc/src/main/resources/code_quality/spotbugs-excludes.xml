@@ -6,6 +6,9 @@
             <Bug pattern="NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE"/>
             <!-- We don't use Java serialization, so we don't want to be forced to add serialVersionUuid to fields of enums, etc. -->
             <Bug pattern="SE_BAD_FIELD"/>
+            <!-- These patterns cause too many false positives. We return fields in many places, but those are in fact ImmutableSet, etc.-->
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
         </Or>
     </Match>
     <Match>
@@ -37,5 +40,15 @@
         <Class name="com.tngtech.archunit.core.importer.SignatureTypeArgumentProcessor"/>
         <Method name="visitClassType"/>
         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+    <Match>
+        <!-- This is a false positive as both of these occurrences are wrapped in a try-with-resources which will ensure the
+             resource is properly closed in the end -->
+        <Bug pattern="OBL_UNSATISFIED_OBLIGATION"/>
+        <Class name="com.tngtech.archunit.library.freeze.ViolationStoreFactory$TextFileBasedViolationStore$FileSyncedProperties"/>
+        <Or>
+            <Method name="loadRulesFrom"/>
+            <Method name="syncFileSystem"/>
+        </Or>
     </Match>
 </FindBugsFilter>

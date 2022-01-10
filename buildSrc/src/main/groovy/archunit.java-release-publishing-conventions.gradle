@@ -1,0 +1,84 @@
+plugins {
+    id 'maven-publish'
+    id 'signing'
+}
+
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false // the meta-data does not match the way the Maven artifacts are composed and thus is broken
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+// If I write @see ..., I don't want to fail my build because of a missing @param :-(
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+
+tasks.withType(AbstractPublishToMaven) {
+    it.dependsOn(build)
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = project.archivesBaseName
+            from components.java
+            pom {
+                name = app.name
+                packaging = "jar"
+                description = project.description
+                url = app.urls.entry
+
+                developers {
+                    developer {
+                        id = 'codecholeric'
+                        name = 'Peter Gafert'
+                        email = 'peter.gafert@tngtech.com'
+                    }
+                    developer {
+                        id = 'rweisleder'
+                        name = 'Roland Weisleder'
+                        email = 'roland.weisleder@googlemail.com'
+                    }
+                    developer {
+                        id = 'hankem'
+                        name = 'Manfred Hanke'
+                        email = 'manfred.hanke@tngtech.com'
+                    }
+                }
+
+                organization {
+                    name = company.name
+                    url = company.url
+                }
+
+                scm {
+                    url = app.urls.source
+                    connection = "scm:${app.gitRepo}"
+                    developerConnection = "scm:${app.gitRepo}"
+                }
+            }
+        }
+    }
+}
+
+def publishArchUnit = rootProject.tasks.getByName('publishArchUnit')
+
+signing {
+    required {
+        isReleaseVersion && gradle.taskGraph.hasTask(publishArchUnit)
+    }
+    def signingKey = findProperty("signingKey")
+    def signingPassword = findProperty("signingPassword")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
+}
+
+publishArchUnit.dependsOn(publishToSonatype)

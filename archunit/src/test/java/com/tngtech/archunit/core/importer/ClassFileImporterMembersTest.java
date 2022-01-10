@@ -65,6 +65,7 @@ import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getF
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getMethods;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClassObjects;
+import static com.tngtech.archunit.testutil.Assertions.assertThatThrowsClause;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
@@ -173,7 +174,7 @@ public class ClassFileImporterMembersTest {
     public void imports_methods_with_correct_throws_declarations() {
         JavaMethod method = new ClassFileImporter().importUrl(getClass().getResource("testexamples/methodimport")).get(ClassWithThrowingMethod.class).getMethod("throwExceptions");
 
-        assertThat(method.getThrowsClause())
+        assertThatThrowsClause(method.getThrowsClause())
                 .as("Throws types of method 'throwsExceptions'")
                 .matches(FirstCheckedException.class, SecondCheckedException.class);
         assertThatTypes(method.getExceptionTypes()).matchExactly(FirstCheckedException.class, SecondCheckedException.class);
@@ -249,7 +250,7 @@ public class ClassFileImporterMembersTest {
         JavaClass clazz = new ClassFileImporter().importUrl(getClass().getResource("testexamples/constructorimport")).get(ClassWithThrowingConstructor.class);
 
         JavaConstructor constructor = getOnlyElement(clazz.getConstructors());
-        assertThat(constructor.getThrowsClause()).as("Throws types of sole constructor")
+        assertThatThrowsClause(constructor.getThrowsClause()).as("Throws types of sole constructor")
                 .matches(FirstCheckedException.class, SecondCheckedException.class);
         assertThatTypes(constructor.getExceptionTypes()).matchExactly(FirstCheckedException.class, SecondCheckedException.class);
     }

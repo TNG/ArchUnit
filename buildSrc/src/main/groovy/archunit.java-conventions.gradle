@@ -1,0 +1,18 @@
+import static java.nio.charset.StandardCharsets.UTF_8
+
+plugins {
+    id 'archunit.base-conventions'
+    id 'archunit.java-version-conventions'
+    id 'archunit.java-testing-conventions'
+    id 'java-library'
+}
+
+description "${rootProject.description} - Module '${project.name}'"
+
+tasks.withType(JavaCompile) { Task task ->
+    options.encoding = UTF_8.toString()
+}
+
+javadoc {
+    options.addBooleanOption('html5', true)
+}

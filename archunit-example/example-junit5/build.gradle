@@ -1,7 +1,9 @@
-ext.moduleName = 'com.tngtech.archunit.example.junit5'
+plugins {
+    id 'archunit.java-examples-conventions'
+}
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+ext.moduleName = 'com.tngtech.archunit.example.junit5'
+ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 
 dependencies {
     testImplementation project(path: ':archunit-junit5')

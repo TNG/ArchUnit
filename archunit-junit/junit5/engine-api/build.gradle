@@ -1,7 +1,10 @@
+plugins {
+    id 'archunit.java-release-conventions'
+}
+
 ext.moduleName = 'com.tngtech.archunit.junit5.engineapi'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 
 dependencies {
     api dependency.junitPlatformEngine
@@ -20,7 +23,9 @@ dependencies {
 
 compileJava.dependsOn project(':archunit-junit5-api').finishArchive
 
-configureSlowTestsFor this
+archUnitTest {
+    hasSlowTests = true
+}
 
 test {
     useJUnitPlatform() {

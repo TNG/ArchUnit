@@ -104,6 +104,7 @@ public abstract class Optional<T> {
     /**
      * @deprecated Use {@link #orElse(Object) orElse(null)} instead.
      */
+    @Deprecated
     @PublicAPI(usage = ACCESS)
     public T orNull() {
         return orElse(null);

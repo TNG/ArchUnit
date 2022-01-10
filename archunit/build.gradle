@@ -1,4 +1,6 @@
-apply plugin: 'idea'
+plugins {
+    id 'archunit.java-release-conventions'
+}
 
 ext.moduleName = 'com.tngtech.archunit'
 
@@ -28,10 +30,14 @@ shadowJar {
     }
 }
 
+repackaging {
+    repackagesAsm true
+}
+
 /* Besides SLF4J we'll shadow everything we need into the JAR to avoid conflicts with other libraries*/
-publishing{
-    publications{
-        mavenJava{
+publishing {
+    publications {
+        mavenJava {
             pom.withXml {
                 def deps = asNode().dependencies.first() // there is only one "dependencies" element
                 deps.children().removeIf { dep ->
@@ -42,8 +48,10 @@ publishing{
     }
 }
 
-addTestJarTo this
-configureSlowTestsFor this
+archUnitTest {
+    providesTestJar = true
+    hasSlowTests = true
+}
 
 def jdk9MainDirs = ['src/jdk9main/java']
 def jdk9TestDirs = ['src/jdk9test/java']
@@ -59,13 +67,13 @@ sourceSets {
         java {
             srcDirs = jdk9TestDirs
         }
-        compileClasspath += sourceSets.test.compileClasspath
+        compileClasspath += sourceSets.test.compileClasspath + sourceSets.jdk9main.output.classesDirs
     }
     jdk15test {
         java {
             srcDirs = jdk15TestDirs
         }
-        compileClasspath += sourceSets.test.compileClasspath
+        compileClasspath += sourceSets.test.compileClasspath + sourceSets.jdk9main.output.classesDirs
     }
 }
 
@@ -81,35 +89,36 @@ dependencies {
 }
 
 compileJdk9mainJava.with {
-    sourceCompatibility = JavaVersion.VERSION_1_9
-    targetCompatibility = JavaVersion.VERSION_1_9
+    ext.minimumJavaVersion = JavaVersion.VERSION_1_9
 
     destinationDir = compileJava.destinationDir
 }
 
 compileJdk9testJava.with {
-    sourceCompatibility = JavaVersion.VERSION_1_9
-    targetCompatibility = JavaVersion.VERSION_1_9
+    ext.minimumJavaVersion = JavaVersion.VERSION_1_9
 }
 
 compileJdk15testJava.with {
-    sourceCompatibility = JavaVersion.VERSION_15
-    targetCompatibility = JavaVersion.VERSION_15
+    ext.minimumJavaVersion = JavaVersion.VERSION_15
 
     options.compilerArgs += '--enable-preview'
 }
 
 task jdk9Test(type: Test) {
+    ext.minimumJavaVersion = JavaVersion.VERSION_1_9
+
     testClassesDirs = sourceSets.jdk9test.output.classesDirs
     classpath = sourceSets.jdk9test.runtimeClasspath
 }
 
 task jdk15Test(type: Test) {
+    ext.minimumJavaVersion = JavaVersion.VERSION_15
+
     testClassesDirs = sourceSets.jdk15test.output.classesDirs
     classpath = sourceSets.jdk15test.runtimeClasspath
     jvmArgs += "--enable-preview"
 
-    // workaround for issue in Gradle 6.7, see https://github.com/gradle/gradle/issues/14714
+    // workaround for issue in Gradle 6, see https://github.com/gradle/gradle/issues/14714
     exclude '**/ClassFileImporterRecordsTest\$*RecordToImport.class'
     exclude '**/GivenClassesThatRecordsTest\$*SomeRecord.class'
     exclude '**/GivenMembersDeclaredInClassesThatRecordsTest\$*SomeRecord.class'
@@ -118,21 +127,8 @@ task jdk15Test(type: Test) {
     exclude '**/ShouldOnlyByClassesThatRecordsTest\$*SomeRecord.class'
 }
 
-[jar, test]*.dependsOn compileJdk9mainJava
+assemble.dependsOn compileJdk9mainJava
 
-[test, jdk9Test, jdk15Test].each { testTask ->
-    addMultiJdkTestsFor project, testTask
-}
 test.finalizedBy(jdk9Test, jdk15Test)
 
 [spotbugsJdk9test, spotbugsJdk15test]*.enabled = false
-
-idea {
-    module {
-        sourceDirs += jdk9MainDirs.collect { file(it) }
-        sourceDirs -= jdk9TestDirs.collect { file(it) }
-        sourceDirs -= jdk15TestDirs.collect { file(it) }
-        testSourceDirs += jdk9TestDirs.collect { file(it) }
-        testSourceDirs += jdk15TestDirs.collect { file(it) }
-    }
-}

@@ -13,89 +13,10 @@ nexusPublishing {
     }
 }
 
-releaseProjects*.with {
-    apply plugin: "maven-publish"
-    apply plugin: "signing"
-
-    tasks.withType(GenerateModuleMetadata) {
-        enabled = false // the meta-data does not match the way the Maven artifacts are composed and thus is broken
-    }
-
-    java {
-        withJavadocJar()
-        withSourcesJar()
-    }
-
-    // If I write @see ..., I don't want to fail my build because of a missing @param :-(
-    if (JavaVersion.current().isJava8Compatible()) {
-        allprojects {
-            tasks.withType(Javadoc) {
-                options.addStringOption('Xdoclint:none', '-quiet')
-            }
-        }
-    }
-
-    tasks.withType(AbstractPublishToMaven) {
-        it.dependsOn(build)
-    }
-
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                artifactId = project.archivesBaseName
-                from components.java
-                pom {
-                    name = app.name
-                    packaging = "jar"
-                    description = project.description
-                    url = app.urls.entry
-
-                    developers {
-                        developer {
-                            id = 'codecholeric'
-                            name = 'Peter Gafert'
-                            email = 'peter.gafert@tngtech.com'
-                        }
-                        developer {
-                            id = 'rweisleder'
-                            name = 'Roland Weisleder'
-                            email = 'roland.weisleder@googlemail.com'
-                        }
-                        developer {
-                            id = 'hankem'
-                            name = 'Manfred Hanke'
-                            email = 'manfred.hanke@tngtech.com'
-                        }
-                    }
-
-                    organization {
-                        name = company.name
-                        url = company.url
-                    }
-
-                    scm {
-                        url = app.urls.source
-                        connection = "scm:${app.gitRepo}"
-                        developerConnection = "scm:${app.gitRepo}"
-                    }
-                }
-            }
-        }
-    }
-
-    signing {
-        required {
-            isReleaseVersion && gradle.taskGraph.hasTask('publish')
-        }
-        def signingKey = findProperty("signingKey")
-        def signingPassword = findProperty("signingPassword")
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign publishing.publications.mavenJava
-    }
+initializeSonatypeStagingRepository.doFirst {
+    assert !isTestBuild: 'We cannot publish a test build, since a changed JDK target compatibility would break the artifacts'
 }
-
 task publishArchUnit(dependsOn: [closeSonatypeStagingRepository, releaseSonatypeStagingRepository])
-releaseProjects.each { publishArchUnit.dependsOn("${it.name}:publishToSonatype") }
 
 def getLastReleaseVersion() {
     (new File(project.rootDir, 'README.md').text =~ /testImplementation 'com.tngtech.archunit:archunit:(\d+.\d+.\d+)'/).findAll().first()[1]
@@ -151,4 +72,9 @@ task setNextSnapshotVersion() {
     doFirst {
         updateVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.${oldMinor + 1}.0-SNAPSHOT" }
     }
+}
+
+releaseSonatypeStagingRepository.doFirst {
+    assert project.findProperty('activateReleaseToMavenCentral'): 'Release to Maven Central is disabled by default. Activate via \'-PactivateReleaseToMavenCentral\''
+    throw new RuntimeException("Bummer")
 }

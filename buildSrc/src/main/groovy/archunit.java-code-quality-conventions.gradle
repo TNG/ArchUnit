@@ -1,0 +1,29 @@
+plugins {
+    id 'com.github.spotbugs'
+    id 'com.diffplug.spotless'
+}
+
+dependencies {
+    spotbugs "com.github.spotbugs:spotbugs:${spotbugs.toolVersion.get()}"
+}
+
+spotbugs {
+    toolVersion = '4.5.2'
+
+    excludeFilter = rootProject.file('buildSrc/src/main/resources/code_quality/spotbugs-excludes.xml')
+}
+
+spotbugsMain {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+}
+
+spotbugsTest.enabled = false
+
+spotless {
+    java {
+        removeUnusedImports()
+    }
+}

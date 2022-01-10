@@ -3,7 +3,8 @@ import groovy.transform.Canonical
 import static java.nio.charset.StandardCharsets.UTF_8
 
 plugins {
-  id "org.asciidoctor.convert" version "2.4.0"
+    id 'archunit.base-conventions'
+    id "org.asciidoctor.convert" version "2.4.0"
 }
 
 dependencies {

@@ -1,3 +1,7 @@
+plugins {
+    id 'archunit.java-production-conventions'
+}
+
 ext.moduleName = 'com.tngtech.archunit.junit'
 
 configurations {
@@ -48,7 +52,9 @@ dependencies {
     testImplementation project(path: ':archunit', configuration: 'tests')
 }
 
-addTestJarTo this
+archUnitTest {
+    providesTestJar = true
+}
 
 shadowJar {
     exclude 'META-INF/**'

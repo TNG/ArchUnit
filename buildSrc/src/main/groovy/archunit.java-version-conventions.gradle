@@ -1,0 +1,67 @@
+class VersionSpec {
+    JavaVersion desiredJdkVersion
+    JavaVersion desiredSourceCompatibility
+
+    VersionSpec withLowerVersionBound(JavaVersion version) {
+        new VersionSpec(desiredJdkVersion: [desiredJdkVersion, version].max(), desiredSourceCompatibility: [desiredSourceCompatibility, version].max())
+    }
+
+    JavaLanguageVersion getDesiredJavaLanguageVersion() {
+        JavaLanguageVersion.of(desiredJdkVersion.majorVersion)
+    }
+
+    String describe() {
+        "Build JDK[${desiredJdkVersion}] / JVM Compatibility[${desiredSourceCompatibility}]"
+    }
+}
+
+VersionSpec createVersionSpec() {
+    if (isTestBuild) {
+        new VersionSpec(desiredJdkVersion: configuredTestJavaVersion, desiredSourceCompatibility: configuredTestJavaVersion)
+    } else {
+        new VersionSpec(desiredJdkVersion: maxSupportedJavaVersion, desiredSourceCompatibility: minSupportedJavaVersion)
+    }
+}
+
+afterEvaluate {
+    VersionSpec versionSpec = createVersionSpec().withLowerVersionBound(findProperty('minimumJavaVersion') as JavaVersion)
+    println "Project ${project.name} configured: ${versionSpec.describe()}"
+
+    def getMinTaskJavaVersion = { Task task -> task.hasProperty('minimumJavaVersion') ? task.property('minimumJavaVersion') as JavaVersion : null }
+
+    java {
+        toolchain {
+            languageVersion = versionSpec.desiredJavaLanguageVersion
+        }
+    }
+
+    sourceCompatibility = versionSpec.desiredSourceCompatibility
+    targetCompatibility = versionSpec.desiredSourceCompatibility
+
+    tasks.withType(JavaCompile) { Task task ->
+        VersionSpec taskVersionSpec = versionSpec.withLowerVersionBound(getMinTaskJavaVersion(task))
+        println "Task ${task.name} configured: ${taskVersionSpec.describe()}"
+
+        sourceCompatibility = taskVersionSpec.desiredSourceCompatibility
+        targetCompatibility = taskVersionSpec.desiredSourceCompatibility
+
+        javaCompiler = javaToolchains.compilerFor {
+            languageVersion = taskVersionSpec.desiredJavaLanguageVersion
+        }
+    }
+
+    tasks.withType(Test) { Task task ->
+        VersionSpec taskVersionSpec = versionSpec.withLowerVersionBound(getMinTaskJavaVersion(task))
+        println "Task ${task.name} runs with Java version: ${taskVersionSpec.desiredJdkVersion}"
+
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = taskVersionSpec.desiredJavaLanguageVersion
+        }
+    }
+
+    tasks.withType(Javadoc) { Task task ->
+        javadocTool = javaToolchains.javadocToolFor {
+            languageVersion = JavaLanguageVersion.of(maxSupportedJavaVersion.majorVersion)
+        }
+    }
+}

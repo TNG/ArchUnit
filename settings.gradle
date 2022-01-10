@@ -2,9 +2,11 @@ plugins {
     id "com.gradle.enterprise" version "3.1.1"
 }
 
-include 'archunit', 'archunit-example', 'archunit-integration-test', 'archunit-java-modules-test',
-        'archunit-junit', 'archunit-junit4', 'archunit-junit5-api','archunit-junit5-engine-api','archunit-junit5-engine', 'archunit-junit5',
-        'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5', 'docs'
+rootProject.name = 'archunit-root'
+
+include 'archunit', 'archunit-integration-test', 'archunit-java-modules-test',
+        'archunit-junit', 'archunit-junit4', 'archunit-junit5-api', 'archunit-junit5-engine-api', 'archunit-junit5-engine', 'archunit-junit5',
+        'archunit-example:example-plain', 'archunit-example:example-junit4', 'archunit-example:example-junit5', 'archunit-maven-test', 'docs'
 
 project(':archunit-junit4').projectDir = file('archunit-junit/junit4')
 project(':archunit-junit5-api').projectDir = file('archunit-junit/junit5/api')

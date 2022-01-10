@@ -440,8 +440,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         @PublicAPI(usage = ACCESS)
         public ThrowsClause<CodeUnitCallTarget> getThrowsClause() {
+            @SuppressWarnings("RedundantTypeArguments") // Some JDK versions need the type argument, or it will not compile
             List<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = FluentIterable.from(resolve())
-                    .transform(toGuava(JavaCodeUnit.Functions.Get.throwsClause()))
+                    .transform(toGuava(JavaCodeUnit.Functions.Get.<JavaCodeUnit>throwsClause()))
                     .toList();
 
             if (resolvedThrowsClauses.isEmpty()) {

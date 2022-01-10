@@ -1,3 +1,7 @@
+plugins {
+    id 'archunit.java-release-conventions'
+}
+
 ext.moduleName = 'com.tngtech.archunit.junit4'
 
 dependencies {
@@ -36,7 +40,9 @@ sourcesJar {
     }
 }
 
-configureSlowTestsFor this
+archUnitTest {
+    hasSlowTests = true
+}
 
 shadowJar {
     exclude 'META-INF/**'

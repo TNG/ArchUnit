@@ -1,7 +1,10 @@
+plugins {
+    id 'archunit.java-release-conventions'
+}
+
 ext.moduleName = 'com.tngtech.archunit.junit5.engine'
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 
 dependencies {
     api project(path: ':archunit')
@@ -19,8 +22,10 @@ dependencies {
     testRuntimeOnly dependency.junit5JupiterEngine
 }
 
-compileJava.dependsOn project(':archunit-junit5-api').finishArchive
-compileJava.dependsOn project(':archunit-junit5-engine-api').finishArchive
+gradle.projectsEvaluated {
+    compileJava.dependsOn project(':archunit-junit5-api').finishArchive
+    compileJava.dependsOn project(':archunit-junit5-engine-api').finishArchive
+}
 
 javadoc {
     source(project(':archunit-junit').sourceSets.main.allJava)
@@ -29,7 +34,9 @@ sourcesJar {
     from project(':archunit-junit').sourceSets.main.allSource
 }
 
-configureSlowTestsFor this
+archUnitTest {
+    hasSlowTests = true
+}
 
 test {
     useJUnitPlatform() {

@@ -1,9 +1,9 @@
 String guavaLicenseFile = 'licenses/guava.license'
 String asmLicenseFile = 'licenses/asm.license'
+String licenseGroup = 'license'
 
-def scriptRoot = currentScriptRootOf this
-def fillTemplateFile = {
-    new File(scriptRoot, it).text.
+def fillTemplateFile = { String resourceName ->
+    getClass().getResourceAsStream("license/$resourceName").text.
             replace('${year}', year).
             replace('${owner}', "${company.name}")
 }
@@ -77,6 +77,9 @@ def unwrapHtml = { htmlInput ->
 }
 
 task updateLicenses {
+    group licenseGroup
+    description 'Adds licenses of repackaged libraries as text file to the root packages of repackaged libraries'
+
     doLast {
         def asmLicenseWorkaround = parseLicenseInfoFrom(configurations.thirdpartyAsm)
         // No, they can never adhere to conventions :-( The URL from the POM at the moment forwards to the root page
@@ -86,19 +89,18 @@ task updateLicenses {
     }
 }
 
-releaseProjects*.with {
-    ext.repackagesAsm = project.name == "archunit"
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                pom {
-                    licenses {
-                        license {
-                            name = app.license.name
-                            url = app.license.url
-                            distribution = 'repo'
-                        }
-                        if (repackagesAsm) {
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                licenses {
+                    license {
+                        name = app.license.name
+                        url = app.license.url
+                        distribution = 'repo'
+                    }
+                    afterEvaluate {
+                        if (repackaging.repackagesAsm) {
                             def asmLicense = rootProject.file(asmLicenseFile).readLines() as Queue
                             license {
                                 name = asmLicense.poll().replaceAll(/^.*?: /, '')
@@ -111,33 +113,36 @@ releaseProjects*.with {
             }
         }
     }
+}
 
-    task addLicenseHeader {
-        doLast {
-            def javaFiles = ['main', 'jdk9main', 'api', 'engineApi']
-                    .findAll(sourceSets.asMap.&containsKey)
-                    .collect { sourceSets[it].allJava.asList() }
-                    .flatten()
+task addLicenseHeader {
+    group licenseGroup
+    description 'Adds a license header to each published ArchUnit source file'
 
-            def headerText = fillTemplateFile('archunit.header.template')
+    doLast {
+        def javaFiles = ['main', 'jdk9main', 'api', 'engineApi']
+                .findAll(sourceSets.asMap.&containsKey)
+                .collect { sourceSets[it].allJava.asList() }
+                .flatten()
 
-            javaFiles.each { sourceFile ->
-                if (!sourceFile.text.startsWith(headerText)) {
-                    sourceFile.text = headerText + sourceFile.text.substring(sourceFile.text.indexOf('package '))
-                }
+        def headerText = fillTemplateFile('archunit.header.template')
+
+        javaFiles.each { sourceFile ->
+            if (!sourceFile.text.startsWith(headerText)) {
+                sourceFile.text = headerText + sourceFile.text.substring(sourceFile.text.indexOf('package '))
             }
         }
     }
-    compileJava.dependsOn addLicenseHeader
+}
+compileJava.dependsOn addLicenseHeader
 
-    afterEvaluate {
-        if (repackagesAsm) {
-            shadowJar {
-                from(rootProject.file(asmLicenseFile)) {
-                    into "/${asmRelocationPackage.replace('.', '/')}"
-                }
+afterEvaluate {
+    if (repackaging.repackagesAsm) {
+        shadowJar {
+            from(rootProject.file(asmLicenseFile)) {
+                into "/${asmRelocationPackage.replace('.', '/')}"
             }
-            shadowJar.mustRunAfter updateLicenses
         }
+        shadowJar.mustRunAfter updateLicenses
     }
 }

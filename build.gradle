@@ -1,4 +1,5 @@
 plugins {
+    id 'archunit.base-conventions'
     id 'com.github.johnrengelman.shadow' version '6.1.0' apply false
     id 'com.github.spotbugs' version '4.7.9' apply false
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0" apply false
@@ -54,6 +55,7 @@ ext {
             junit4              : [group: 'junit', name: 'junit', version: '4.13.2'],
             junit5JupiterApi    : [group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.1'],
             junit5JupiterEngine : [group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.1'],
+            junit5VintageEngine : [group: 'org.junit.vintage', name: 'junit-vintage-engine', version: '5.8.1'],
             junitPlatform       : [group: 'org.junit.platform', name: 'junit-platform-runner', version: '1.8.1'],
             junitPlatformCommons: [group: 'org.junit.platform', name: 'junit-platform-commons', version: '1.8.1'],
             junitPlatformEngine : [group: 'org.junit.platform', name: 'junit-platform-engine', version: '1.8.1'],
@@ -76,6 +78,11 @@ ext {
             joox                : [group: 'org.jooq', name: 'joox-java-6', version: '1.6.0']
     ]
 
+    minSupportedJavaVersion = JavaVersion.VERSION_1_7
+    maxSupportedJavaVersion = JavaVersion.VERSION_15
+    isTestBuild = project.hasProperty('testJavaVersion')
+    configuredTestJavaVersion = project.findProperty('testJavaVersion')?.toString()?.with {JavaVersion.toVersion(it) }
+
     postfixedJar = { File jarFile, String postfix ->
         new File(jarFile.parentFile, jarFile.name.replaceAll(/\.jar$/, "-${postfix}.jar"))
     }
@@ -90,26 +97,9 @@ ext {
             project(':archunit-junit5-engine-api'),
             project(':archunit-junit5-engine'),
             project(':archunit-junit5')]
-    releaseProjects = [
-            project(':archunit'),
-            project(':archunit-junit4'),
-            project(':archunit-junit5-api'),
-            project(':archunit-junit5-engine-api'),
-            project(':archunit-junit5-engine'),
-            project(':archunit-junit5')]
-    createModuleDescription = { description, proj -> "${description} - Module '${proj.name}'" }
 
     currentScriptRootOf = { it.buildscript.sourceFile.parentFile }
     scriptRelativePath = { context, fileName -> new File(currentScriptRootOf(context), fileName) }
-}
-
-allprojects {
-    group = 'com.tngtech.archunit'
-    version = getProperty('archunit.version')
-
-    repositories {
-        mavenCentral()
-    }
 }
 
 description = 'A Java architecture test library, to specify and assert architecture rules in plain Java'
@@ -121,19 +111,6 @@ task showJdkVersion {
 task clean {
     doLast {
         project.buildDir.deleteDir()
-    }
-}
-
-configure(subprojects.findAll { it.name != 'docs' }) {
-    apply plugin: 'java-library'
-
-    description createModuleDescription(rootProject.description, project)
-
-    sourceCompatibility = JavaVersion.VERSION_1_7
-    targetCompatibility = JavaVersion.VERSION_1_7
-
-    javadoc {
-        options.addBooleanOption('html5', true)
     }
 }
 

@@ -1301,7 +1301,7 @@ class ExamplesIntegrationTest {
                 + "because we want to have one isolated cross-cutting concern 'security'");
 
         addExpectedFailure.accept("classes that reside in a package 'java.security.cert..' "
-                + "should only be accessed by any package ['..example.layers.security..', 'java..', '..sun..', 'javax..', 'apple.security..']");
+                + "should only be accessed by any package ['..example.layers.security..', 'java..', '..sun..', 'javax..', 'apple.security..', 'org.jcp..']");
 
         return expectedTestFailures.toDynamicTests();
     }

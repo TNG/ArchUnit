@@ -1,3 +1,7 @@
+plugins {
+    id 'archunit.java-examples-conventions'
+}
+
 ext.moduleName = 'com.tngtech.archunit.example.junit4'
 
 dependencies {
