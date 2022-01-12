@@ -353,13 +353,25 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<FieldAccessTarget, Optional<JavaField>> RESOLVE =
+            public static final ChainableFunction<FieldAccessTarget, Optional<JavaField>> RESOLVE_MEMBER =
                     new ChainableFunction<FieldAccessTarget, Optional<JavaField>>() {
                         @Override
                         public Optional<JavaField> apply(FieldAccessTarget input) {
                             return input.resolveMember();
                         }
                     };
+
+            /**
+             * @deprecated Use {@link #RESOLVE_MEMBER} instead
+             */
+            @Deprecated
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaField>, Set<JavaField>>() {
+                @Override
+                public Set<JavaField> apply(Optional<JavaField> input) {
+                    return input.asSet();
+                }
+            });
         }
     }
 
@@ -438,7 +450,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<CodeUnitCallTarget, Optional<JavaCodeUnit>> RESOLVE =
+            public static final ChainableFunction<CodeUnitCallTarget, Optional<JavaCodeUnit>> RESOLVE_MEMBER =
                     new ChainableFunction<CodeUnitCallTarget, Optional<JavaCodeUnit>>() {
                         @SuppressWarnings("unchecked") // Optional is covariant
                         @Override
@@ -446,6 +458,18 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
                             return (Optional<JavaCodeUnit>) input.resolveMember();
                         }
                     };
+
+            /**
+             * @deprecated Use {@link #RESOLVE_MEMBER} instead
+             */
+            @Deprecated
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<CodeUnitCallTarget, Set<JavaCodeUnit>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaCodeUnit>, Set<JavaCodeUnit>>() {
+                @Override
+                public Set<JavaCodeUnit> apply(Optional<JavaCodeUnit> input) {
+                    return input.asSet();
+                }
+            });
         }
     }
 
@@ -497,13 +521,25 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<ConstructorCallTarget, Optional<JavaConstructor>> RESOLVE =
+            public static final ChainableFunction<ConstructorCallTarget, Optional<JavaConstructor>> RESOLVE_MEMBER =
                     new ChainableFunction<ConstructorCallTarget, Optional<JavaConstructor>>() {
                         @Override
                         public Optional<JavaConstructor> apply(ConstructorCallTarget input) {
                             return input.resolveMember();
                         }
                     };
+
+            /**
+             * @deprecated Use {@link #RESOLVE_MEMBER} instead
+             */
+            @Deprecated
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaConstructor>, Set<JavaConstructor>>() {
+                @Override
+                public Set<JavaConstructor> apply(Optional<JavaConstructor> input) {
+                    return input.asSet();
+                }
+            });
         }
     }
 
@@ -575,13 +611,25 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<MethodCallTarget, Optional<JavaMethod>> RESOLVE =
+            public static final ChainableFunction<MethodCallTarget, Optional<JavaMethod>> RESOLVE_MEMBER =
                     new ChainableFunction<MethodCallTarget, Optional<JavaMethod>>() {
                         @Override
                         public Optional<JavaMethod> apply(MethodCallTarget input) {
                             return input.resolveMember();
                         }
                     };
+
+            /**
+             * @deprecated Use {@link #RESOLVE_MEMBER} instead
+             */
+            @Deprecated
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaMethod>, Set<JavaMethod>>() {
+                @Override
+                public Set<JavaMethod> apply(Optional<JavaMethod> input) {
+                    return input.asSet();
+                }
+            });
         }
     }
 
