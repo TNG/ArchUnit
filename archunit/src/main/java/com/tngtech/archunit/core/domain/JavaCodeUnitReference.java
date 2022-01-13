@@ -17,14 +17,14 @@ package com.tngtech.archunit.core.domain;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitCallTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitReferenceTarget;
 import com.tngtech.archunit.core.domain.JavaAccess.Predicates.TargetPredicate;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAccessBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public abstract class JavaCall<T extends CodeUnitCallTarget> extends JavaCodeUnitAccess<T> {
-    JavaCall(JavaAccessBuilder<T, ?> builder) {
+public abstract class JavaCodeUnitReference<T extends CodeUnitReferenceTarget> extends JavaCodeUnitAccess<T> {
+    JavaCodeUnitReference(JavaAccessBuilder<T, ?> builder) {
         super(builder);
     }
 
@@ -33,7 +33,7 @@ public abstract class JavaCall<T extends CodeUnitCallTarget> extends JavaCodeUni
         }
 
         @PublicAPI(usage = ACCESS)
-        public static DescribedPredicate<JavaCall<?>> target(final DescribedPredicate<? super CodeUnitCallTarget> predicate) {
+        public static DescribedPredicate<JavaCodeUnitReference<?>> target(final DescribedPredicate<? super CodeUnitReferenceTarget> predicate) {
             return new TargetPredicate<>(predicate);
         }
     }

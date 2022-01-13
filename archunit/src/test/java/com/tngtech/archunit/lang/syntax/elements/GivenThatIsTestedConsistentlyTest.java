@@ -4,10 +4,10 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,8 +33,8 @@ public class GivenThatIsTestedConsistentlyTest {
     }
 
     private void assertAccessFrom(JavaClass test, JavaMethod method) {
-        for (JavaMethodCall call : method.getAccessesToSelf()) {
-            if (call.getOriginOwner().equals(test)) {
+        for (JavaAccess<?> access : method.getAccessesToSelf()) {
+            if (access.getOriginOwner().equals(test)) {
                 return;
             }
         }

@@ -16,15 +16,12 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
@@ -40,16 +37,14 @@ import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.core.domain.properties.HasType;
-import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitCallTargetBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.ConstructorCallTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.AccessTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.CodeUnitAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.MethodCallTargetBuilder;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.base.Guava.toGuava;
+import static com.tngtech.archunit.core.domain.JavaCodeUnit.Functions.Get.throwsClause;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 
@@ -93,11 +88,13 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     private final String name;
     private final JavaClass owner;
     private final String fullName;
+    private final Supplier<? extends Optional<? extends JavaMember>> member;
 
-    AccessTarget(JavaClass owner, String name, String fullName) {
-        this.name = name;
-        this.owner = owner;
-        this.fullName = fullName;
+    AccessTarget(AccessTargetBuilder<?, ?, ?> builder) {
+        this.name = checkNotNull(builder.getName());
+        this.owner = checkNotNull(builder.getOwner());
+        this.fullName = checkNotNull(builder.getFullName());
+        this.member = Suppliers.memoize(builder.getMember());
     }
 
     @Override
@@ -142,7 +139,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * @return The member that matches the access target or empty if it was not imported
      */
     @PublicAPI(usage = ACCESS)
-    public abstract Optional<? extends JavaMember> resolveMember();
+    public Optional<? extends JavaMember> resolveMember() {
+        return member.get();
+    }
 
     /**
      * Returns true, if one of the resolved targets is annotated with the given annotation type.<br>
@@ -163,12 +162,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(final String annotationTypeName) {
-        return anyMember(new Predicate<JavaMember>() {
-            @Override
-            public boolean apply(JavaMember input) {
-                return input.isAnnotatedWith(annotationTypeName);
-            }
-        });
+        return resolveMember().isPresent() && resolveMember().get().isAnnotatedWith(annotationTypeName);
     }
 
     /**
@@ -181,12 +175,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return anyMember(new Predicate<JavaMember>() {
-            @Override
-            public boolean apply(JavaMember input) {
-                return input.isAnnotatedWith(predicate);
-            }
-        });
+        return resolveMember().isPresent() && resolveMember().get().isAnnotatedWith(predicate);
     }
 
     /**
@@ -208,12 +197,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(final String annotationTypeName) {
-        return anyMember(new Predicate<JavaMember>() {
-            @Override
-            public boolean apply(JavaMember input) {
-                return input.isMetaAnnotatedWith(annotationTypeName);
-            }
-        });
+        return resolveMember().isPresent() && resolveMember().get().isMetaAnnotatedWith(annotationTypeName);
     }
 
     /**
@@ -226,21 +210,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return anyMember(new Predicate<JavaMember>() {
-            @Override
-            public boolean apply(JavaMember input) {
-                return input.isMetaAnnotatedWith(predicate);
-            }
-        });
-    }
-
-    private boolean anyMember(Predicate<JavaMember> predicate) {
-        for (final JavaMember member : resolve()) {
-            if (predicate.apply(member)) {
-                return true;
-            }
-        }
-        return false;
+        return resolveMember().isPresent() && resolveMember().get().isMetaAnnotatedWith(predicate);
     }
 
     @Override
@@ -298,12 +268,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      */
     public static final class FieldAccessTarget extends AccessTarget implements HasType {
         private final JavaClass type;
-        private final Supplier<Optional<JavaField>> field;
 
         FieldAccessTarget(FieldAccessTargetBuilder builder) {
-            super(builder.getOwner(), builder.getName(), builder.getFullName());
-            this.type = builder.getType();
-            this.field = Suppliers.memoize(builder.getField());
+            super(builder);
+            this.type = checkNotNull(builder.getType());
         }
 
         @Override
@@ -372,8 +340,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaField if present
         public Optional<JavaField> resolveMember() {
-            return field.get();
+            return (Optional<JavaField>) super.resolveMember();
         }
 
         @Override
@@ -387,30 +356,41 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<FieldAccessTarget, Optional<JavaField>> RESOLVE =
+            public static final ChainableFunction<FieldAccessTarget, Optional<JavaField>> RESOLVE_MEMBER =
                     new ChainableFunction<FieldAccessTarget, Optional<JavaField>>() {
                         @Override
                         public Optional<JavaField> apply(FieldAccessTarget input) {
                             return input.resolveMember();
                         }
                     };
+
+            /**
+             * @deprecated Use {@link #RESOLVE_MEMBER} instead
+             */
+            @Deprecated
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaField>, Set<JavaField>>() {
+                @Override
+                public Set<JavaField> apply(Optional<JavaField> input) {
+                    return input.asSet();
+                }
+            });
         }
     }
 
     /**
      * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
-     * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget} and in particular the
-     * documentation at {@link MethodCallTarget#resolveMember() MethodCallTarget.resolveMember()}.
+     * {@link CodeUnitAccessTarget CodeUnitAccessTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget}.
      */
-    public abstract static class CodeUnitCallTarget extends AccessTarget
-            implements HasParameterTypes, HasReturnType, HasThrowsClause<CodeUnitCallTarget> {
+    public abstract static class CodeUnitAccessTarget extends AccessTarget
+            implements HasParameterTypes, HasReturnType, HasThrowsClause<CodeUnitAccessTarget> {
         private final ImmutableList<JavaClass> parameters;
         private final JavaClass returnType;
 
-        CodeUnitCallTarget(CodeUnitCallTargetBuilder<?> builder) {
-            super(builder.getOwner(), builder.getName(), builder.getFullName());
+        CodeUnitAccessTarget(CodeUnitAccessTargetBuilder<?, ?> builder) {
+            super(builder);
             this.parameters = ImmutableList.copyOf(builder.getParameters());
-            this.returnType = builder.getReturnType();
+            this.returnType = checkNotNull(builder.getReturnType());
         }
 
         @Override
@@ -439,29 +419,14 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
         @Override
         @PublicAPI(usage = ACCESS)
-        public ThrowsClause<CodeUnitCallTarget> getThrowsClause() {
-            @SuppressWarnings("RedundantTypeArguments") // Some JDK versions need the type argument, or it will not compile
-            List<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = FluentIterable.from(resolve())
-                    .transform(toGuava(JavaCodeUnit.Functions.Get.<JavaCodeUnit>throwsClause()))
-                    .toList();
+        public ThrowsClause<? extends CodeUnitAccessTarget> getThrowsClause() {
+            Optional<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = resolveMember().map(throwsClause());
 
-            if (resolvedThrowsClauses.isEmpty()) {
-                return ThrowsClause.empty(this);
-            } else if (resolvedThrowsClauses.size() == 1) {
-                return ThrowsClause.from(this, getOnlyElement(resolvedThrowsClauses).getTypes());
+            if (resolvedThrowsClauses.isPresent()) {
+                return ThrowsClause.from(this, resolvedThrowsClauses.get().getTypes());
             } else {
-                return ThrowsClause.from(this, intersectTypesOf(resolvedThrowsClauses));
+                return ThrowsClause.empty(this);
             }
-        }
-
-        private List<JavaClass> intersectTypesOf(List<ThrowsClause<JavaCodeUnit>> throwsClauses) {
-            checkArgument(throwsClauses.size() > 1, "Can only intersect more than one throws clause");
-
-            List<JavaClass> result = new ArrayList<>(throwsClauses.get(0).getTypes());
-            for (ThrowsClause<?> throwsClause : throwsClauses.subList(1, throwsClauses.size())) {
-                result.retainAll(throwsClause.getTypes());
-            }
-            return result;
         }
 
         /**
@@ -472,7 +437,10 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @PublicAPI(usage = ACCESS)
-        public abstract Optional<? extends JavaCodeUnit> resolveMember();
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaCodeUnit if present
+        public Optional<? extends JavaCodeUnit> resolveMember() {
+            return (Optional<? extends JavaCodeUnit>) super.resolveMember();
+        }
 
         /**
          * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
@@ -487,23 +455,77 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<CodeUnitCallTarget, Optional<JavaCodeUnit>> RESOLVE =
-                    new ChainableFunction<CodeUnitCallTarget, Optional<JavaCodeUnit>>() {
+            public static final ChainableFunction<CodeUnitAccessTarget, Optional<JavaCodeUnit>> RESOLVE_MEMBER =
+                    new ChainableFunction<CodeUnitAccessTarget, Optional<JavaCodeUnit>>() {
                         @SuppressWarnings("unchecked") // Optional is covariant
                         @Override
-                        public Optional<JavaCodeUnit> apply(CodeUnitCallTarget input) {
+                        public Optional<JavaCodeUnit> apply(CodeUnitAccessTarget input) {
                             return (Optional<JavaCodeUnit>) input.resolveMember();
                         }
                     };
+
+            /**
+             * @deprecated Use {@link #RESOLVE_MEMBER} instead
+             */
+            @Deprecated
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<CodeUnitAccessTarget, Set<JavaCodeUnit>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaCodeUnit>, Set<JavaCodeUnit>>() {
+                @Override
+                public Set<JavaCodeUnit> apply(Optional<JavaCodeUnit> input) {
+                    return input.asSet();
+                }
+            });
         }
     }
 
-    public static final class ConstructorCallTarget extends CodeUnitCallTarget {
-        private final Supplier<Optional<JavaConstructor>> constructor;
-
-        ConstructorCallTarget(ConstructorCallTargetBuilder builder) {
+    /**
+     * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
+     * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit} refer to the documentation at {@link AccessTarget}.
+     */
+    public abstract static class CodeUnitCallTarget extends CodeUnitAccessTarget {
+        CodeUnitCallTarget(CodeUnitAccessTargetBuilder<?, ?> builder) {
             super(builder);
-            constructor = builder.getConstructor();
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // the cast is safe because the type parameter represents this object
+        public ThrowsClause<? extends CodeUnitCallTarget> getThrowsClause() {
+            return (ThrowsClause<CodeUnitCallTarget>) super.getThrowsClause();
+        }
+    }
+
+    /**
+     * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
+     * {@link CodeUnitReferenceTarget CodeUnitReferenceTarget} from {@link JavaCodeUnit} refer to the documentation at {@link AccessTarget}.
+     */
+    public abstract static class CodeUnitReferenceTarget extends CodeUnitAccessTarget {
+        CodeUnitReferenceTarget(CodeUnitAccessTargetBuilder<?, ?> builder) {
+            super(builder);
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // the cast is safe because the type parameter represents this object
+        public ThrowsClause<? extends CodeUnitReferenceTarget> getThrowsClause() {
+            return (ThrowsClause<CodeUnitReferenceTarget>) super.getThrowsClause();
+        }
+    }
+
+    /**
+     * Represents a {@link CodeUnitCallTarget} where the target is a constructor. For further elaboration about the necessity to distinguish
+     * {@link ConstructorCallTarget ConstructorCallTarget} from {@link JavaConstructor} refer to the documentation at {@link AccessTarget}.
+     */
+    public static final class ConstructorCallTarget extends CodeUnitCallTarget {
+        ConstructorCallTarget(CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget> builder) {
+            super(builder);
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // the cast is safe because the type parameter represents this object
+        public ThrowsClause<ConstructorCallTarget> getThrowsClause() {
+            return (ThrowsClause<ConstructorCallTarget>) super.getThrowsClause();
         }
 
         /**
@@ -531,8 +553,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaConstructor if present
         public Optional<JavaConstructor> resolveMember() {
-            return constructor.get();
+            return (Optional<JavaConstructor>) super.resolveMember();
         }
 
         @Override
@@ -546,11 +569,81 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<ConstructorCallTarget, Optional<JavaConstructor>> RESOLVE =
+            public static final ChainableFunction<ConstructorCallTarget, Optional<JavaConstructor>> RESOLVE_MEMBER =
                     new ChainableFunction<ConstructorCallTarget, Optional<JavaConstructor>>() {
                         @Override
                         public Optional<JavaConstructor> apply(ConstructorCallTarget input) {
                             return input.resolveMember();
+                        }
+                    };
+
+            /**
+             * @deprecated Use {@link #RESOLVE_MEMBER} instead
+             */
+            @Deprecated
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaConstructor>, Set<JavaConstructor>>() {
+                @Override
+                public Set<JavaConstructor> apply(Optional<JavaConstructor> input) {
+                    return input.asSet();
+                }
+            });
+        }
+    }
+
+    /**
+     * Represents a {@link CodeUnitReferenceTarget} where the target is a constructor. For further elaboration about the necessity to distinguish
+     * {@link ConstructorReferenceTarget ConstructorReferenceTarget} from {@link JavaConstructor} refer to the documentation at {@link AccessTarget}.
+     */
+    public static final class ConstructorReferenceTarget extends CodeUnitReferenceTarget {
+        ConstructorReferenceTarget(CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget> builder) {
+            super(builder);
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // the cast is safe because the type parameter represents this object
+        public ThrowsClause<ConstructorReferenceTarget> getThrowsClause() {
+            return (ThrowsClause<ConstructorReferenceTarget>) super.getThrowsClause();
+        }
+
+        /**
+         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
+         */
+        @Override
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
+        public Set<JavaConstructor> resolve() {
+            return resolveMember().asSet();
+        }
+
+        /**
+         * @return A constructor that matches this target, or {@link Optional#empty()} if no matching constructor
+         * was imported.
+         */
+        @Override
+        @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaConstructor if present
+        public Optional<JavaConstructor> resolveMember() {
+            return (Optional<JavaConstructor>) super.resolveMember();
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public String getDescription() {
+            return "constructor <" + getFullName() + ">";
+        }
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<ConstructorReferenceTarget, Set<JavaConstructor>> RESOLVE_MEMBER =
+                    new ChainableFunction<ConstructorReferenceTarget, Set<JavaConstructor>>() {
+                        @Override
+                        public Set<JavaConstructor> apply(ConstructorReferenceTarget input) {
+                            return input.resolve();
                         }
                     };
         }
@@ -558,15 +651,18 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
 
     /**
      * Represents a {@link CodeUnitCallTarget} where the target is a method. For further elaboration about the necessity to distinguish
-     * {@link MethodCallTarget MethodCallTarget} from {@link JavaMethod}, refer to the documentation at {@link AccessTarget} and in particular the
-     * documentation at {@link #resolveMember()}.
+     * {@link MethodCallTarget MethodCallTarget} from {@link JavaMethod} refer to the documentation at {@link AccessTarget}.
      */
     public static final class MethodCallTarget extends CodeUnitCallTarget {
-        private final Supplier<Optional<JavaMethod>> method;
-
-        MethodCallTarget(MethodCallTargetBuilder builder) {
+        MethodCallTarget(CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget> builder) {
             super(builder);
-            this.method = Suppliers.memoize(builder.getMethod());
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // the cast is safe because the type parameter represents this object
+        public ThrowsClause<MethodCallTarget> getThrowsClause() {
+            return (ThrowsClause<MethodCallTarget>) super.getThrowsClause();
         }
 
         /**
@@ -599,8 +695,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Override
         @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaMethod if present
         public Optional<JavaMethod> resolveMember() {
-            return method.get();
+            return (Optional<JavaMethod>) super.resolveMember();
         }
 
         /**
@@ -624,10 +721,82 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<MethodCallTarget, Optional<JavaMethod>> RESOLVE =
+            public static final ChainableFunction<MethodCallTarget, Optional<JavaMethod>> RESOLVE_MEMBER =
                     new ChainableFunction<MethodCallTarget, Optional<JavaMethod>>() {
                         @Override
                         public Optional<JavaMethod> apply(MethodCallTarget input) {
+                            return input.resolveMember();
+                        }
+                    };
+
+            /**
+             * @deprecated Use {@link #RESOLVE_MEMBER} instead
+             */
+            @Deprecated
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaMethod>, Set<JavaMethod>>() {
+                @Override
+                public Set<JavaMethod> apply(Optional<JavaMethod> input) {
+                    return input.asSet();
+                }
+            });
+        }
+    }
+
+    /**
+     * Represents a {@link CodeUnitReferenceTarget} where the target is a method. For further elaboration about the necessity to distinguish
+     * {@link MethodReferenceTarget MethodReferenceTarget} from {@link JavaMethod} refer to the documentation at {@link AccessTarget}.
+     */
+    public static final class MethodReferenceTarget extends CodeUnitReferenceTarget {
+        MethodReferenceTarget(CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget> builder) {
+            super(builder);
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // the cast is safe because the type parameter represents this object
+        public ThrowsClause<MethodReferenceTarget> getThrowsClause() {
+            return (ThrowsClause<MethodReferenceTarget>) super.getThrowsClause();
+        }
+
+        /**
+         * Attempts to resolve an imported method that matches this target.
+         * The process is the same as described at {@link MethodCallTarget#resolveMember() MethodCallTarget.resolveMember()}.
+         *
+         * @return Matching method if imported, {@link Optional#empty()} otherwise
+         */
+        @Override
+        @PublicAPI(usage = ACCESS)
+        @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaMethod if present
+        public Optional<JavaMethod> resolveMember() {
+            return (Optional<JavaMethod>) super.resolveMember();
+        }
+
+        /**
+         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
+         */
+        @Override
+        @Deprecated
+        @PublicAPI(usage = ACCESS)
+        public Set<JavaMethod> resolve() {
+            return resolveMember().asSet();
+        }
+
+        @Override
+        @PublicAPI(usage = ACCESS)
+        public String getDescription() {
+            return "method <" + getFullName() + ">";
+        }
+
+        public static final class Functions {
+            private Functions() {
+            }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<MethodReferenceTarget, Optional<JavaMethod>> RESOLVE_MEMBER =
+                    new ChainableFunction<MethodReferenceTarget, Optional<JavaMethod>>() {
+                        @Override
+                        public Optional<JavaMethod> apply(MethodReferenceTarget input) {
                             return input.resolveMember();
                         }
                     };

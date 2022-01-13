@@ -16,12 +16,17 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Type;
 
 class JavaClassDescriptorImporter {
+    private static final String LAMBDA_METAFACTORY_ASM_OBJECT_TYPE_NAME = "java/lang/invoke/LambdaMetafactory";
+    private static final Pattern LAMBDA_METHOD_PATTERN = Pattern.compile("lambda\\$.*\\$\\d+");
+
     /**
      * Takes an 'internal' ASM object type name, i.e. the class name but with slashes instead of periods,
      * i.e. java/lang/Object (note that this is not a descriptor like Ljava/lang/Object;)
@@ -40,6 +45,25 @@ class JavaClassDescriptorImporter {
 
     static boolean isAsmType(Object value) {
         return value instanceof Type;
+    }
+
+    static boolean isAsmMethodHandle(Object value) {
+        return value instanceof Handle && isAsmMethodHandle((Handle) value);
+    }
+
+    private static boolean isAsmMethodHandle(Handle handle) {
+        // not very pretty, but ASM doesn't seem to offer an efficient and convenient way to determine if a descriptor
+        // belongs to a method. Thus, we use the fact that a method descriptor always has the form {@code ($params)$returnType}
+        // while a field never has a form containing brackets (compare the JVM spec)
+        return handle.getDesc().startsWith("(");
+    }
+
+    static boolean isLambdaMetafactory(String asmObjectTypeName) {
+        return asmObjectTypeName.equals(LAMBDA_METAFACTORY_ASM_OBJECT_TYPE_NAME);
+    }
+
+    static boolean isLambdaMethod(Handle methodHandle) {
+        return LAMBDA_METHOD_PATTERN.matcher(methodHandle.getName()).matches();
     }
 
     static Object importAsmTypeIfPossible(Object value) {

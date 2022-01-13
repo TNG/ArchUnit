@@ -3,8 +3,8 @@ package com.tngtech.archunit.core.domain;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
+import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitCallTarget;
 import org.junit.Test;
@@ -137,7 +137,7 @@ public class AccessTargetTest {
     public void no_throws_clause_is_resolved() {
         CodeUnitCallTarget target = getTarget("withoutThrowsDeclaration");
 
-        ThrowsClause<CodeUnitCallTarget> throwsClause = target.getThrowsClause();
+        ThrowsClause<? extends CodeUnitCallTarget> throwsClause = target.getThrowsClause();
         assertThatThrowsClause(throwsClause).as("throws clause").isEmpty();
         assertThat(throwsClause.getTypes()).isEmpty();
         assertThat(throwsClause.getOwner()).isEqualTo(target);
@@ -163,16 +163,6 @@ public class AccessTargetTest {
         CodeUnitCallTarget target = getTarget("diamondMethod");
 
         assertDeclarations(target, FirstCheckedException.class, SecondCheckedException.class, ThirdCheckedException.class);
-    }
-
-    @Test
-    public void function_resolve_member() {
-        CodeUnitCallTarget target = getTarget("diamondMethod");
-
-        assertThat(AccessTarget.Functions.RESOLVE_MEMBER.apply(target))
-                .contains(target.resolveMember().get());
-        assertThat(AccessTarget.Functions.RESOLVE.apply(target))
-                .isEqualTo(ImmutableSet.of(target.resolveMember().get()));
     }
 
     @Test
@@ -218,9 +208,9 @@ public class AccessTargetTest {
         Method reflectedMethod = publicMethod(target.getOwner().reflect(), target.getName());
         assertThat(reflectedMethod.getExceptionTypes()).containsOnly(exceptionTypes);
 
-        ThrowsClause<CodeUnitCallTarget> throwsClause = target.getThrowsClause();
+        ThrowsClause<? extends CodeUnitCallTarget> throwsClause = target.getThrowsClause();
         assertThatTypes(throwsClause.getTypes()).matchExactly(exceptionTypes);
-        for (ThrowsDeclaration<CodeUnitCallTarget> throwsDeclaration : throwsClause) {
+        for (ThrowsDeclaration<? extends CodeUnitCallTarget> throwsDeclaration : throwsClause) {
             assertThatType(throwsDeclaration.getDeclaringClass()).isEqualTo(target.getOwner());
             assertThatThrowsClause(throwsDeclaration.getOwner()).isEqualTo(target.getThrowsClause());
             assertThat(throwsDeclaration.getLocation()).isEqualTo(target);
@@ -241,12 +231,18 @@ public class AccessTargetTest {
     }
 
     private CodeUnitCallTarget getTarget(JavaClass javaClass, String targetName) {
-        for (JavaCall<?> call : javaClass.getCallsFromSelf()) {
+        for (JavaCall<?> call : getCodeUnitCallsFromSelf(javaClass)) {
             if (call.getTarget().getName().equals(targetName)) {
                 return call.getTarget();
             }
         }
         throw new AssertionError(String.format("Couldn't find target %s.%s", javaClass.getSimpleName(), targetName));
+    }
+
+    private Set<JavaCall<?>> getCodeUnitCallsFromSelf(JavaClass javaClass) {
+        Set<JavaCall<?>> result = javaClass.getCodeUnitCallsFromSelf();
+        assertThat(result).isEqualTo(javaClass.getCallsFromSelf());
+        return result;
     }
 
     @SuppressWarnings({"unused", "FieldCanBeLocal"})

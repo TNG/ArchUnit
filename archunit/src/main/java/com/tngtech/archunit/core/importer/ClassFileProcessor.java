@@ -181,12 +181,22 @@ class ClassFileProcessor {
         @Override
         public void handleMethodInstruction(String owner, String name, String desc) {
             LOG.trace("Found call of method {}.{}:{} in line {}", owner, name, desc, lineNumber);
+            TargetInfo target = new TargetInfo(owner, name, desc);
             if (CONSTRUCTOR_NAME.equals(name)) {
-                TargetInfo target = new TargetInfo(owner, name, desc);
                 importRecord.registerConstructorCall(filled(new RawAccessRecord.Builder(), target).build());
             } else {
-                TargetInfo target = new TargetInfo(owner, name, desc);
                 importRecord.registerMethodCall(filled(new RawAccessRecord.Builder(), target).build());
+            }
+        }
+
+        @Override
+        public void handleMethodReferenceInstruction(String owner, String name, String desc) {
+            LOG.trace("Found method reference {}.{}:{} in line {}", owner, name, desc, lineNumber);
+            TargetInfo targetInfo = new TargetInfo(owner, name, desc);
+            if (CONSTRUCTOR_NAME.equals(name)) {
+                importRecord.registerConstructorReference(filled(new RawAccessRecord.Builder(), targetInfo).build());
+            } else {
+                importRecord.registerMethodReference(filled(new RawAccessRecord.Builder(), targetInfo).build());
             }
         }
 

@@ -28,6 +28,7 @@ import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
 
+import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
@@ -65,13 +66,18 @@ public final class JavaConstructor extends JavaCodeUnit {
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaConstructorCall> getCallsOfSelf() {
-        return getAccessesToSelf();
+        return getReverseDependencies().getCallsTo(this);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaConstructorReference> getReferencesToSelf() {
+        return getReverseDependencies().getReferencesTo(this);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public Set<JavaConstructorCall> getAccessesToSelf() {
-        return getReverseDependencies().getCallsTo(this);
+    public Set<JavaCodeUnitAccess<?>> getAccessesToSelf() {
+        return union(getCallsOfSelf(), getReferencesToSelf());
     }
 
     @Override

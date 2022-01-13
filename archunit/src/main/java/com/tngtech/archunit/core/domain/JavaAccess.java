@@ -154,7 +154,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaAccess<?>> target(final DescribedPredicate<? super AccessTarget> predicate) {
-            return new TargetPredicate(predicate);
+            return new TargetPredicate<>(predicate);
         }
 
         private static class OriginOwnerEqualsTargetOwnerPredicate extends DescribedPredicate<JavaAccess<?>> {
@@ -168,16 +168,16 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
             }
         }
 
-        private static class TargetPredicate extends DescribedPredicate<JavaAccess<?>> {
-            private final DescribedPredicate<? super AccessTarget> predicate;
+        static class TargetPredicate<ACCESS extends JavaAccess<? extends TARGET>, TARGET extends AccessTarget> extends DescribedPredicate<ACCESS> {
+            private final DescribedPredicate<? super TARGET> predicate;
 
-            TargetPredicate(DescribedPredicate<? super AccessTarget> predicate) {
+            TargetPredicate(DescribedPredicate<? super TARGET> predicate) {
                 super("target " + predicate.getDescription());
                 this.predicate = predicate;
             }
 
             @Override
-            public boolean apply(JavaAccess<?> input) {
+            public boolean apply(ACCESS input) {
                 return predicate.apply(input.getTarget());
             }
         }

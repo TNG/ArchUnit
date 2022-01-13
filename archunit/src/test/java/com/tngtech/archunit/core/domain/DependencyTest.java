@@ -34,7 +34,6 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyO
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
-import static com.tngtech.archunit.core.domain.TestUtils.simulateCall;
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
@@ -79,16 +78,6 @@ public class DependencyTest {
         }
 
         assertThatDependencies(dependencies).containOnly(expectedDependencies);
-    }
-
-    @Test
-    public void Dependency_from_access() {
-        JavaMethodCall call = simulateCall().from(getClass(), "toString").to(Object.class, "toString");
-
-        Dependency dependency = getOnlyElement(Dependency.tryCreateFromAccess(call));
-        assertThatType(dependency.getTargetClass()).as("target class").isEqualTo(call.getTargetOwner());
-        assertThat(dependency.getDescription())
-                .as("description").isEqualTo(call.getDescription());
     }
 
     @DataProvider

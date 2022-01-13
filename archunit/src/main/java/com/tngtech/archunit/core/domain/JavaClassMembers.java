@@ -228,6 +228,22 @@ class JavaClassMembers {
         return result.build();
     }
 
+    Set<JavaMethodReference> getMethodReferencesFromSelf() {
+        ImmutableSet.Builder<JavaMethodReference> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            result.addAll(codeUnit.getMethodReferencesFromSelf());
+        }
+        return result.build();
+    }
+
+    Set<JavaConstructorReference> getConstructorReferencesFromSelf() {
+        ImmutableSet.Builder<JavaConstructorReference> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            result.addAll(codeUnit.getConstructorReferencesFromSelf());
+        }
+        return result.build();
+    }
+
     Set<JavaFieldAccess> getFieldAccessesToSelf() {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (JavaField field : fields) {
@@ -244,10 +260,26 @@ class JavaClassMembers {
         return result.build();
     }
 
+    Set<JavaMethodReference> getMethodReferencesToSelf() {
+        ImmutableSet.Builder<JavaMethodReference> result = ImmutableSet.builder();
+        for (JavaMethod method : methods) {
+            result.addAll(method.getReferencesToSelf());
+        }
+        return result.build();
+    }
+
     Set<JavaConstructorCall> getConstructorCallsToSelf() {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
         for (JavaConstructor constructor : constructors) {
             result.addAll(constructor.getCallsOfSelf());
+        }
+        return result.build();
+    }
+
+    Set<JavaConstructorReference> getConstructorReferencesToSelf() {
+        ImmutableSet.Builder<JavaConstructorReference> result = ImmutableSet.builder();
+        for (JavaConstructor constructor : constructors) {
+            result.addAll(constructor.getReferencesToSelf());
         }
         return result.build();
     }

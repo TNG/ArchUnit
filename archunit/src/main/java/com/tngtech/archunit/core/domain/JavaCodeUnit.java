@@ -36,6 +36,7 @@ import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
 
+import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
@@ -64,6 +65,8 @@ public abstract class JavaCodeUnit
     private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
     private Set<JavaMethodCall> methodCalls = Collections.emptySet();
     private Set<JavaConstructorCall> constructorCalls = Collections.emptySet();
+    private Set<JavaMethodReference> methodReferences = Collections.emptySet();
+    private Set<JavaConstructorReference> constructorReferences = Collections.emptySet();
 
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
@@ -179,6 +182,16 @@ public abstract class JavaCodeUnit
     }
 
     @PublicAPI(usage = ACCESS)
+    public Set<JavaMethodReference> getMethodReferencesFromSelf() {
+        return methodReferences;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaConstructorReference> getConstructorReferencesFromSelf() {
+        return constructorReferences;
+    }
+
+    @PublicAPI(usage = ACCESS)
     public Set<ReferencedClassObject> getReferencedClassObjects() {
         return referencedClassObjects;
     }
@@ -190,10 +203,12 @@ public abstract class JavaCodeUnit
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaCall<?>> getCallsFromSelf() {
-        return ImmutableSet.<JavaCall<?>>builder()
-                .addAll(getMethodCallsFromSelf())
-                .addAll(getConstructorCallsFromSelf())
-                .build();
+        return union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaCodeUnitReference<?>> getCodeUnitReferencesFromSelf() {
+        return union(getMethodReferencesFromSelf(), getConstructorReferencesFromSelf());
     }
 
     @PublicAPI(usage = ACCESS)
@@ -201,6 +216,7 @@ public abstract class JavaCodeUnit
         return ImmutableSet.<JavaAccess<?>>builder()
                 .addAll(getCallsFromSelf())
                 .addAll(getFieldAccesses())
+                .addAll(getCodeUnitReferencesFromSelf())
                 .build();
     }
 
@@ -241,6 +257,8 @@ public abstract class JavaCodeUnit
         fieldAccesses = context.createFieldAccessesFor(this);
         methodCalls = context.createMethodCallsFor(this);
         constructorCalls = context.createConstructorCallsFor(this);
+        methodReferences = context.createMethodReferencesFor(this);
+        constructorReferences = context.createConstructorReferencesFor(this);
     }
 
     @ResolvesTypesViaReflection

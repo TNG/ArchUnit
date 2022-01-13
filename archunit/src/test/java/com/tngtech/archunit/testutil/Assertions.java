@@ -12,15 +12,16 @@ import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
-import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaCodeUnitAccess;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
@@ -72,7 +73,6 @@ import static com.google.common.base.Strings.emptyToNull;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodSimple;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.domain.TestUtils.resolvedTargetFrom;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
 
 public class Assertions extends org.assertj.core.api.Assertions {
@@ -276,12 +276,16 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new AccessToFieldAssertion(access);
     }
 
-    public static MethodCallAssertion assertThatCall(JavaMethodCall call) {
-        return new MethodCallAssertion(call);
+    public static CodeUnitAccessAssertion assertThatAccess(JavaCodeUnitAccess<?> reference) {
+        return new CodeUnitAccessAssertion(reference);
     }
 
-    public static ConstructorCallAssertion assertThatCall(JavaConstructorCall call) {
-        return new ConstructorCallAssertion(call);
+    public static CodeUnitAccessAssertion assertThatCall(JavaMethodCall call) {
+        return assertThatAccess(call);
+    }
+
+    public static CodeUnitAccessAssertion assertThatCall(JavaConstructorCall call) {
+        return assertThatAccess(call);
     }
 
     public static class JavaEnumConstantAssertion extends AbstractObjectAssert<JavaEnumConstantAssertion, JavaEnumConstant> {
@@ -447,53 +451,46 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class MethodCallAssertion extends BaseAccessAssertion<MethodCallAssertion, JavaMethodCall, MethodCallTarget> {
-        private MethodCallAssertion(JavaMethodCall call) {
-            super(call);
+    public static class CodeUnitAccessAssertion
+            extends BaseAccessAssertion<CodeUnitAccessAssertion, JavaCodeUnitAccess<CodeUnitAccessTarget>, CodeUnitAccessTarget> {
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private CodeUnitAccessAssertion(JavaCodeUnitAccess<? extends CodeUnitAccessTarget> call) {
+            super((JavaCodeUnitAccess) call);
         }
 
-        public MethodCallAssertion isTo(JavaMethod target) {
-            return isTo(resolvedTargetFrom(target));
-        }
-
-        public MethodCallAssertion isTo(final String methodName, final Class<?>... parameterTypes) {
-            return isTo(new Condition<MethodCallTarget>("method " + methodName + "(" + formatNamesOf(parameterTypes) + ")") {
+        public CodeUnitAccessAssertion isTo(final JavaCodeUnit target) {
+            return isTo(new Condition<CodeUnitAccessTarget>("method " + target.getFullName()) {
                 @Override
-                public boolean matches(MethodCallTarget methodCallTarget) {
-                    return methodCallTarget.getName().equals(methodName)
-                            && HasName.Utils.namesOf(methodCallTarget.getRawParameterTypes()).equals(formatNamesOf(parameterTypes));
+                public boolean matches(CodeUnitAccessTarget codeUnitAccessTarget) {
+                    return codeUnitAccessTarget.getOwner().equals(target.getOwner())
+                            && codeUnitAccessTarget.getName().equals(target.getName())
+                            && codeUnitAccessTarget.getRawParameterTypes().equals(target.getRawParameterTypes());
+                }
+            });
+        }
+
+        public CodeUnitAccessAssertion isTo(final Class<?> codeUnitOwner) {
+            return isTo(new Condition<CodeUnitAccessTarget>() {
+                @Override
+                public boolean matches(CodeUnitAccessTarget target) {
+                    return target.getOwner().isEquivalentTo(codeUnitOwner);
+                }
+            });
+        }
+
+        public CodeUnitAccessAssertion isTo(final String codeUnitName, final Class<?>... parameterTypes) {
+            return isTo(new Condition<CodeUnitAccessTarget>("code unit " + codeUnitName + "(" + formatNamesOf(parameterTypes) + ")") {
+                @Override
+                public boolean matches(CodeUnitAccessTarget target) {
+                    return target.getName().equals(codeUnitName)
+                            && HasName.Utils.namesOf(target.getRawParameterTypes()).equals(formatNamesOf(parameterTypes));
                 }
             });
         }
 
         @Override
-        protected MethodCallAssertion newAssertion(JavaMethodCall call) {
-            return new MethodCallAssertion(call);
+        protected CodeUnitAccessAssertion newAssertion(JavaCodeUnitAccess<CodeUnitAccessTarget> reference) {
+            return new CodeUnitAccessAssertion(reference);
         }
     }
-
-    public static class ConstructorCallAssertion extends BaseAccessAssertion<ConstructorCallAssertion, JavaConstructorCall, ConstructorCallTarget> {
-        private ConstructorCallAssertion(JavaConstructorCall call) {
-            super(call);
-        }
-
-        public ConstructorCallAssertion isTo(JavaConstructor target) {
-            return isTo(targetFrom(target));
-        }
-
-        public ConstructorCallAssertion isTo(final Class<?> constructorOwner) {
-            return isTo(new Condition<ConstructorCallTarget>() {
-                @Override
-                public boolean matches(ConstructorCallTarget constructorCallTarget) {
-                    return constructorCallTarget.getOwner().isEquivalentTo(constructorOwner);
-                }
-            });
-        }
-
-        @Override
-        protected ConstructorCallAssertion newAssertion(JavaConstructorCall call) {
-            return new ConstructorCallAssertion(call);
-        }
-    }
-
 }

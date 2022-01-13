@@ -29,6 +29,7 @@ import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
+import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
@@ -71,13 +72,18 @@ public class JavaMethod extends JavaCodeUnit {
 
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getCallsOfSelf() {
-        return getAccessesToSelf();
+        return getReverseDependencies().getCallsTo(this);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<JavaMethodReference> getReferencesToSelf() {
+        return getReverseDependencies().getReferencesTo(this);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public Set<JavaMethodCall> getAccessesToSelf() {
-        return getReverseDependencies().getCallsTo(this);
+    public Set<JavaCodeUnitAccess<?>> getAccessesToSelf() {
+        return union(getCallsOfSelf(), getReferencesToSelf());
     }
 
     @Override

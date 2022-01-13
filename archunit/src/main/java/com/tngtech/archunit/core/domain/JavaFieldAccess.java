@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
+import com.tngtech.archunit.core.domain.JavaAccess.Predicates.TargetPredicate;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import org.objectweb.asm.Opcodes;
 
@@ -109,7 +110,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
 
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaFieldAccess> target(final DescribedPredicate<? super FieldAccessTarget> predicate) {
-            return new TargetPredicate(predicate);
+            return new TargetPredicate<>(predicate);
         }
 
         private static class AccessTypePredicate extends DescribedPredicate<JavaFieldAccess> {
@@ -123,20 +124,6 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
             @Override
             public boolean apply(JavaFieldAccess input) {
                 return accessType == input.getAccessType();
-            }
-        }
-
-        private static class TargetPredicate extends DescribedPredicate<JavaFieldAccess> {
-            private final DescribedPredicate<? super FieldAccessTarget> predicate;
-
-            TargetPredicate(DescribedPredicate<? super FieldAccessTarget> predicate) {
-                super("target " + predicate.getDescription());
-                this.predicate = predicate;
-            }
-
-            @Override
-            public boolean apply(JavaFieldAccess input) {
-                return predicate.apply(input.getTarget());
             }
         }
     }

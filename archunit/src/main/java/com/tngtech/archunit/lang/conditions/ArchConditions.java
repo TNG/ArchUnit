@@ -73,7 +73,7 @@ import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_TO_SELF;
-import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CALLS_FROM_SELF;
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNIT_CALLS_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTOR_CALLS_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_DIRECT_DEPENDENCIES_FROM_SELF;
@@ -172,7 +172,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyAccessFieldsThat(final DescribedPredicate<? super JavaField> predicate) {
         ChainableFunction<JavaFieldAccess, FieldAccessTarget> getTarget = JavaAccess.Functions.Get.target();
-        DescribedPredicate<JavaFieldAccess> accessPredicate = getTarget.then(FieldAccessTarget.Functions.RESOLVE)
+        DescribedPredicate<JavaFieldAccess> accessPredicate = getTarget.then(FieldAccessTarget.Functions.RESOLVE_MEMBER)
                 .is(optionalContains(predicate.<JavaField>forSubtype()).or(DescribedPredicate.<JavaField>optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(accessPredicate, GET_FIELD_ACCESSES_FROM_SELF)
                 .as("only access fields that " + predicate.getDescription());
@@ -205,7 +205,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyCallMethodsThat(final DescribedPredicate<? super JavaMethod> predicate) {
         ChainableFunction<JavaMethodCall, MethodCallTarget> getTarget = JavaAccess.Functions.Get.target();
-        DescribedPredicate<JavaMethodCall> callPredicate = getTarget.then(MethodCallTarget.Functions.RESOLVE)
+        DescribedPredicate<JavaMethodCall> callPredicate = getTarget.then(MethodCallTarget.Functions.RESOLVE_MEMBER)
                 .is(optionalContains(predicate.<JavaMethod>forSubtype()).or(DescribedPredicate.<JavaMethod>optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_METHOD_CALLS_FROM_SELF)
                 .as("only call methods that " + predicate.getDescription());
@@ -238,7 +238,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyCallConstructorsThat(final DescribedPredicate<? super JavaConstructor> predicate) {
         ChainableFunction<JavaConstructorCall, ConstructorCallTarget> getTarget = JavaAccess.Functions.Get.target();
-        DescribedPredicate<JavaConstructorCall> callPredicate = getTarget.then(ConstructorCallTarget.Functions.RESOLVE)
+        DescribedPredicate<JavaConstructorCall> callPredicate = getTarget.then(ConstructorCallTarget.Functions.RESOLVE_MEMBER)
                 .is(optionalContains(predicate.<JavaConstructor>forSubtype()).or(DescribedPredicate.<JavaConstructor>optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CONSTRUCTOR_CALLS_FROM_SELF)
                 .as("only call constructors that " + predicate.getDescription());
@@ -246,16 +246,16 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> callCodeUnitWhere(DescribedPredicate<? super JavaCall<?>> predicate) {
-        return new ClassAccessesCondition<>(predicate, GET_CALLS_FROM_SELF)
+        return new ClassAccessesCondition<>(predicate, GET_CODE_UNIT_CALLS_FROM_SELF)
                 .as("call code unit where " + predicate.getDescription());
     }
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyCallCodeUnitsThat(final DescribedPredicate<? super JavaCodeUnit> predicate) {
         ChainableFunction<JavaCall<?>, CodeUnitCallTarget> getTarget = JavaAccess.Functions.Get.target();
-        DescribedPredicate<JavaCall<?>> callPredicate = getTarget.then(CodeUnitCallTarget.Functions.RESOLVE)
+        DescribedPredicate<JavaCall<?>> callPredicate = getTarget.then(CodeUnitCallTarget.Functions.RESOLVE_MEMBER)
                 .is(optionalContains(predicate.<JavaCodeUnit>forSubtype()).or(DescribedPredicate.<JavaCodeUnit>optionalEmpty()));
-        return new ClassOnlyAccessesCondition<>(callPredicate, GET_CALLS_FROM_SELF)
+        return new ClassOnlyAccessesCondition<>(callPredicate, GET_CODE_UNIT_CALLS_FROM_SELF)
                 .as("only call code units that " + predicate.getDescription());
     }
 

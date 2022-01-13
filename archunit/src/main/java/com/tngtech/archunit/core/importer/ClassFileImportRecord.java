@@ -65,6 +65,8 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
+    private final Set<RawAccessRecord> rawMethodReferenceRecords = new HashSet<>();
+    private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
 
     void setSuperclass(String ownerName, String superclassName) {
         checkState(!superclassNamesByOwner.containsKey(ownerName),
@@ -262,6 +264,14 @@ class ClassFileImportRecord {
         rawConstructorCallRecords.add(record);
     }
 
+    void registerMethodReference(RawAccessRecord record) {
+        rawMethodReferenceRecords.add(record);
+    }
+
+    void registerConstructorReference(RawAccessRecord record) {
+        rawConstructorReferenceRecords.add(record);
+    }
+
     Set<RawAccessRecord.ForField> getRawFieldAccessRecords() {
         return ImmutableSet.copyOf(rawFieldAccessRecords);
     }
@@ -272,6 +282,14 @@ class ClassFileImportRecord {
 
     Set<RawAccessRecord> getRawConstructorCallRecords() {
         return ImmutableSet.copyOf(rawConstructorCallRecords);
+    }
+
+    Set<RawAccessRecord> getRawMethodReferenceRecords() {
+        return ImmutableSet.copyOf(rawMethodReferenceRecords);
+    }
+
+    Set<RawAccessRecord> getRawConstructorReferenceRecords() {
+        return ImmutableSet.copyOf(rawConstructorReferenceRecords);
     }
 
     void addAll(Collection<JavaClass> javaClasses) {
@@ -289,6 +307,8 @@ class ClassFileImportRecord {
                 .addAll(rawFieldAccessRecords)
                 .addAll(rawMethodCallRecords)
                 .addAll(rawConstructorCallRecords)
+                .addAll(rawMethodReferenceRecords)
+                .addAll(rawConstructorReferenceRecords)
                 .build();
     }
 

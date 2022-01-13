@@ -1989,7 +1989,7 @@ public class JavaClassTest {
         }
     }
 
-    private static class DependencyConditionCreation {
+    static class DependencyConditionCreation {
         private final String descriptionPart;
 
         DependencyConditionCreation(String descriptionPart) {
@@ -2000,7 +2000,7 @@ public class JavaClassTest {
             return new Step2(origin);
         }
 
-        private class Step2 {
+        class Step2 {
             private final Class<?> origin;
             private final String originDescription;
 
@@ -2017,7 +2017,7 @@ public class JavaClassTest {
                 return new Step3(target, targetName);
             }
 
-            private class Step3 {
+            class Step3 {
                 private final Class<?> target;
                 private final String targetDescription;
 

@@ -30,6 +30,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
+import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsExternalMethod;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsMethodReturningArray;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsOtherConstructor;
@@ -91,6 +92,7 @@ import static com.tngtech.archunit.core.domain.TestUtils.asClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.findAnyByName;
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getByName;
+import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
@@ -338,11 +340,11 @@ public class ClassFileImporterAccessesTest {
 
         assertThat(accesses).hasSize(2);
         JavaField field = superclassWithAccessedField.getField("field");
-        FieldAccessTarget expectedSuperclassFieldAccess = new DomainBuilders.FieldAccessTargetBuilder()
+        FieldAccessTarget expectedSuperclassFieldAccess = new FieldAccessTargetBuilder()
                 .withOwner(subClassWithAccessedField)
                 .withName(field.getName())
                 .withType(field.getRawType())
-                .withField(Suppliers.ofInstance(Optional.of(field)))
+                .withMember(Suppliers.ofInstance(Optional.of(field)))
                 .build();
         assertThatAccess(getOnly(accesses, "field", GET))
                 .isFrom("accessSuperclassField")
@@ -398,12 +400,12 @@ public class ClassFileImporterAccessesTest {
         JavaCodeUnit callSuperclassMethod = classThatCallsMethodOfSuperclass
                 .getCodeUnitWithParameterTypes(CallOfSuperAndSubclassMethod.callSuperclassMethod);
         JavaMethod expectedSuperclassMethod = superclassWithCalledMethod.getMethod(SuperclassWithCalledMethod.method);
-        AccessTarget.MethodCallTarget expectedSuperclassCall = new DomainBuilders.MethodCallTargetBuilder()
+        AccessTarget.MethodCallTarget expectedSuperclassCall = newMethodCallTargetBuilder()
                 .withOwner(subClassWithCalledMethod)
                 .withName(expectedSuperclassMethod.getName())
                 .withParameters(expectedSuperclassMethod.getRawParameterTypes())
                 .withReturnType(expectedSuperclassMethod.getRawReturnType())
-                .withMethod(Suppliers.ofInstance(Optional.of(expectedSuperclassMethod)))
+                .withMember(Suppliers.ofInstance(Optional.of(expectedSuperclassMethod)))
                 .build();
         assertThatCall(getOnlyByCaller(calls, callSuperclassMethod))
                 .isFrom(callSuperclassMethod)
