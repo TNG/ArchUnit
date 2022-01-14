@@ -13,3 +13,4 @@ _site
 .jekyll-cache
 .asciidoctor
 verification-results
+.java-version
