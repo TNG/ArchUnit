@@ -1,13 +1,23 @@
 package com.tngtech.archunit.lang;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClassesTest;
+import com.tngtech.archunit.core.importer.testexamples.SomeClass;
 import com.tngtech.archunit.lang.ArchConditionTest.ConditionWithInitAndFinish;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -15,13 +25,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
@@ -31,12 +34,18 @@ import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.TestUtils.toUri;
+import static java.lang.Boolean.FALSE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArchRuleTest {
+    private static final String FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME = "archRule.failOnEmptyShould";
+
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @Before
     public void setUp() {
@@ -159,6 +168,35 @@ public class ArchRuleTest {
         assertThat(condition.eventsFromFinish.getViolating()).hasSize(1);
     }
 
+    @Test
+    public void evaluation_fails_because_of_empty_set_of_classes_with_default_fail_on_empty_should() {
+        archConfigurationRule.removeProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
+
+        thrown.expect(AssertionError.class);
+        thrown.expectMessage("Rule failed to check any classes");
+        thrown.expectMessage(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
+
+        classes().should(ALWAYS_BE_VALID).evaluate(importClasses());
+    }
+
+    @Test
+    public void evaluation_fails_because_of_empty_set_of_classes_after_filter_with_default_fail_on_empty_should() {
+        archConfigurationRule.removeProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
+
+        thrown.expect(AssertionError.class);
+        thrown.expectMessage("Rule failed to check any classes");
+        thrown.expectMessage(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
+
+        classes().that().doNotHaveSimpleName(SomeClass.class.getSimpleName()).should(ALWAYS_BE_VALID).evaluate(importClasses(SomeClass.class));
+    }
+
+    @Test
+    public void evaluation_passes_on_empty_set_of_classes_with_deactivated_fail_on_empty_should() {
+        ArchConfiguration.get().setProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME, FALSE.toString());
+
+        classes().should(ALWAYS_BE_VALID).evaluate(importClasses());
+    }
+
     private ClassesTransformer<String> strings() {
         return new AbstractClassesTransformer<String>("strings") {
             @Override
@@ -250,6 +288,14 @@ public class ArchRuleTest {
                 }
             };
 
+    private static final ArchCondition<JavaClass> ALWAYS_BE_VALID =
+            new ArchCondition<JavaClass>("always be valid") {
+                @Override
+                public void check(JavaClass item, ConditionEvents events) {
+                }
+            };
+
+    @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
     private static class ClassAccessingStringTwoTimes {
         void execute() {
             "foo".length();

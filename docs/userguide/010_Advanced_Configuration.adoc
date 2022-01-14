@@ -98,6 +98,32 @@ If this feature is enabled, the MD5 sum can be queried as
 javaClass.getSource().get().getMd5sum()
 ----
 
+=== Fail Rules on Empty Should
+
+By default, ArchUnit will forbid the should-part of rules to be evaluated against an empty set of classes.
+The reason is that this can lead to rules that by accident do not check any classes at all.
+Take for example
+
+[source,java,options="nowrap"]
+----
+classes().that().resideInAPackage("com.myapp.old").should()...
+----
+
+Now consider somebody renames the package `old` to `newer`.
+The rule will now always evaluate successfully without any reported error.
+However, it actually does not check any classes at all anymore.
+This is likely not what most users want.
+Thus, by default ArchUnit will fail checking the rule in this case.
+If you want to allow evaluating such rules,
+i.e. where the actual input to the should-conditionis empty,
+you can set the following property:
+
+[source,options="nowrap"]
+.archunit.properties
+----
+archRule.failOnEmptyShould=false
+----
+
 === Custom Error Messages
 
 You can configure a custom format to display the failures of a rule.
