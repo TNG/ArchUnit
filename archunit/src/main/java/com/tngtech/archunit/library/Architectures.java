@@ -30,6 +30,7 @@ import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -226,12 +227,9 @@ public final class Architectures {
         }
 
         private EvaluationResult evaluateDependenciesShouldBeSatisfied(JavaClasses classes, LayerDependencySpecification specification) {
-            ArchCondition<JavaClass> satisfyLayerDependenciesCondition =
-                    onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedAccessors));
-            if (!specification.allowedTargets.isEmpty()) {
-                satisfyLayerDependenciesCondition = satisfyLayerDependenciesCondition
-                        .and(onlyHaveDependenciesWhere(targetMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedTargets)));
-            }
+            ArchCondition<JavaClass> satisfyLayerDependenciesCondition = specification.constraint == LayerDependencyConstraint.ORIGIN
+                    ? onlyHaveDependentsWhere(originMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedLayers))
+                    : onlyHaveDependenciesWhere(targetMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedLayers));
             return classes().that(layerDefinitions.containsPredicateFor(specification.layerName))
                     .should(satisfyLayerDependenciesCondition)
                     .evaluate(classes);
@@ -305,16 +303,30 @@ public final class Architectures {
                     irrelevantDependenciesPredicate, Optional.of(newDescription), optionalLayers);
         }
 
+        /**
+         * Configures the rule to ignore any violation from a specific {@code origin} class to a specific {@code target} class.
+         * @param origin A {@link Class} object specifying the origin of a {@link Dependency} to ignore
+         * @param target A {@link Class} object specifying the target of a {@link Dependency} to ignore
+         * @return a {@link LayeredArchitecture} to be used as an {@link ArchRule} or further restricted through a fluent API.
+         */
         @PublicAPI(usage = ACCESS)
         public LayeredArchitecture ignoreDependency(Class<?> origin, Class<?> target) {
             return ignoreDependency(equivalentTo(origin), equivalentTo(target));
         }
 
+        /**
+         * Same as {@link #ignoreDependency(Class, Class)} but allows specifying origin and target as fully qualified class names.
+         */
         @PublicAPI(usage = ACCESS)
-        public LayeredArchitecture ignoreDependency(String origin, String target) {
-            return ignoreDependency(name(origin), name(target));
+        public LayeredArchitecture ignoreDependency(String originFullyQualifiedClassName, String targetFullyQualifiedClassName) {
+            return ignoreDependency(name(originFullyQualifiedClassName), name(targetFullyQualifiedClassName));
         }
 
+        /**
+         * Same as {@link #ignoreDependency(Class, Class)} but allows specifying origin and target by freely defined predicates.
+         * Any dependency where the {@link Dependency#getOriginClass()} matches the {@code origin} predicate
+         * and the {@link Dependency#getTargetClass()} matches the {@code target} predicate will be ignored.
+         */
         @PublicAPI(usage = ACCESS)
         public LayeredArchitecture ignoreDependency(
                 DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
@@ -323,6 +335,12 @@ public final class Architectures {
                     irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription, optionalLayers);
         }
 
+        /**
+         * Allows restricting accesses to or from this layer. Note that "access" in the context of a layer refers to
+         * any dependency as defined by {@link Dependency}.
+         * @param name a layer name as specified before via {@link #layer(String)}
+         * @return a specification to fluently define further restrictions
+         */
         @PublicAPI(usage = ACCESS)
         public LayerDependencySpecification whereLayer(String name) {
             checkLayerNamesExist(name);
@@ -383,6 +401,9 @@ public final class Architectures {
                 this.optional = optional;
             }
 
+            /**
+             * Defines a layer by a predicate, i.e. any {@link JavaClass} that will match the predicate will belong to this layer.
+             */
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture definedBy(DescribedPredicate<? super JavaClass> predicate) {
                 checkNotNull(predicate, "Supplied predicate must not be null");
@@ -390,6 +411,9 @@ public final class Architectures {
                 return LayeredArchitecture.this.addLayerDefinition(this);
             }
 
+            /**
+             * Defines a layer by package identifiers (compare {@link PackageMatcher})
+             */
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture definedBy(String... packageIdentifiers) {
                 String description = String.format("'%s'", Joiner.on("', '").join(packageIdentifiers));
@@ -410,38 +434,72 @@ public final class Architectures {
             }
         }
 
+        private enum LayerDependencyConstraint {
+            ORIGIN,
+            TARGET
+        }
+
         public final class LayerDependencySpecification {
             private final String layerName;
-            private final Set<String> allowedAccessors = new LinkedHashSet<>();
-            private final Set<String> allowedTargets = new LinkedHashSet<>();
+            private final Set<String> allowedLayers = new LinkedHashSet<>();
+            private LayerDependencyConstraint constraint;
             private String descriptionSuffix;
 
             private LayerDependencySpecification(String layerName) {
                 this.layerName = layerName;
             }
 
+            /**
+             * Forbids any {@link Dependency dependency} from another layer to this layer.
+             * @return a {@link LayeredArchitecture} to be used as an {@link ArchRule} or further restricted through a fluent API.
+             */
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayNotBeAccessedByAnyLayer() {
-                descriptionSuffix = "may not be accessed by any layer";
-                return LayeredArchitecture.this.addDependencySpecification(this);
+                return denyLayerAccess(LayerDependencyConstraint.ORIGIN, "may not be accessed by any layer");
             }
 
+            /**
+             * Restricts this layer to only allow the specified layers to have {@link Dependency dependencies} to this layer.
+             * @param layerNames the names of other layers (as specified by {@link #layer(String)}) that may access this layer
+             * @return a {@link LayeredArchitecture} to be used as an {@link ArchRule} or further restricted through a fluent API.
+             */
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyBeAccessedByLayers(String... layerNames) {
-                checkLayerNamesExist(layerNames);
-                allowedAccessors.addAll(asList(layerNames));
-                descriptionSuffix = String.format("may only be accessed by layers ['%s']",
-                        Joiner.on("', '").join(allowedAccessors));
+                return restrictLayers(LayerDependencyConstraint.ORIGIN, layerNames, "may only be accessed by layers ['%s']");
+            }
+
+            /**
+             * Forbids any {@link Dependency dependency} from this layer to any other layer.
+             * @return a {@link LayeredArchitecture} to be used as an {@link ArchRule} or further restricted through a fluent API.
+             */
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture mayNotAccessAnyLayer() {
+                return denyLayerAccess(LayerDependencyConstraint.TARGET, "may not access any layer");
+            }
+
+            /**
+             * Restricts this layer to only allow {@link Dependency dependencies} to the specified layers.
+             * @param layerNames the only names of other layers (as specified by {@link #layer(String)}) that this layer may access
+             * @return a {@link LayeredArchitecture} to be used as an {@link ArchRule} or further restricted through a fluent API.
+             */
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture mayOnlyAccessLayers(String... layerNames) {
+                return restrictLayers(LayerDependencyConstraint.TARGET, layerNames, "may only access layers ['%s']");
+            }
+
+            private LayeredArchitecture denyLayerAccess(LayerDependencyConstraint constraint, String description) {
+                allowedLayers.clear();
+                this.constraint = constraint;
+                descriptionSuffix = description;
                 return LayeredArchitecture.this.addDependencySpecification(this);
             }
 
-            @PublicAPI(usage = ACCESS)
-            public LayeredArchitecture mayOnlyAccessLayers(String... layerNames) {
-                checkArgument(layerNames.length > 0, "At least 1 layer name should be provided.");
+            private LayeredArchitecture restrictLayers(LayerDependencyConstraint constraint, String[] layerNames, String descriptionTemplate) {
+                checkArgument(layerNames.length > 0, "At least 1 layer name must be provided.");
                 checkLayerNamesExist(layerNames);
-                allowedTargets.addAll(asList(layerNames));
-                descriptionSuffix = String.format("may only access layers ['%s']",
-                        Joiner.on("', '").join(allowedTargets));
+                allowedLayers.addAll(asList(layerNames));
+                this.constraint = constraint;
+                descriptionSuffix = String.format(descriptionTemplate, Joiner.on("', '").join(layerNames));
                 return LayeredArchitecture.this.addDependencySpecification(this);
             }
 

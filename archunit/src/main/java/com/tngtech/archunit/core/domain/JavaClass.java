@@ -1221,18 +1221,8 @@ public class JavaClass
     }
 
     /**
-     * Returns all dependencies originating directly from this class (i.e. not just from a superclass),
-     * where a dependency can be
-     * <ul>
-     * <li>field access</li>
-     * <li>method call</li>
-     * <li>constructor call</li>
-     * <li>extending a class</li>
-     * <li>implementing an interface</li>
-     * <li>referencing in throws declaration</li>
-     * </ul>
-     *
-     * @return All dependencies originating directly from this class (i.e. where this class is the origin)
+     * @return All dependencies originating directly from this class (i.e. where this class is the origin).
+     *         For further details about dependencies refer to {@link Dependency}.
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getDirectDependenciesFromSelf() {
