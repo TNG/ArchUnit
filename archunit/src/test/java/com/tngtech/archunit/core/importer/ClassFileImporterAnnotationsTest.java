@@ -18,13 +18,10 @@ import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaParameter;
-import com.tngtech.archunit.core.domain.properties.HasAnnotations;
-import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassAnnotationWithArrays;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithAnnotationWithEmptyArrays;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithComplexAnnotations;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithOneAnnotation;
-import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithUnimportedAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.SimpleAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.TypeAnnotationWithEnumAndArrayValue;
 import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters;
@@ -35,9 +32,7 @@ import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.Me
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationParameter;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.AnnotationToImport;
 import com.tngtech.archunit.core.importer.testexamples.simpleimport.EnumToImport;
-import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -45,7 +40,6 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.SOME_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.enumAndArrayAnnotatedMethod;
-import static com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.methodAnnotatedWithAnnotationFromParentPackage;
 import static com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.methodAnnotatedWithEmptyArrays;
 import static com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAndIntAnnotatedMethod;
 import static com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.stringAnnotatedMethod;
@@ -53,8 +47,6 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotations;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
-import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.annotationProperty;
-import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
 public class ClassFileImporterAnnotationsTest {
@@ -205,25 +197,6 @@ public class ClassFileImporterAnnotationsTest {
     }
 
     @Test
-    public void imports_class_annotated_with_unimported_annotation() {
-        JavaClass clazz = new ClassFileImporter().importPackagesOf(ClassWithUnimportedAnnotation.class)
-                .get(ClassWithUnimportedAnnotation.class);
-
-        JavaAnnotation<?> annotation = clazz.getAnnotationOfType(SomeAnnotation.class.getName());
-
-        assertThat(annotation.get("mandatory")).contains("mandatory");
-        assertThat(annotation.get("optional")).contains("optional");
-        assertThat((JavaEnumConstant) annotation.get("mandatoryEnum").get()).isEquivalentTo(SOME_VALUE);
-        assertThat((JavaEnumConstant) annotation.get("optionalEnum").get()).isEquivalentTo(OTHER_VALUE);
-
-        SomeAnnotation reflected = clazz.getAnnotationOfType(SomeAnnotation.class);
-        assertThat(reflected.mandatory()).isEqualTo("mandatory");
-        assertThat(reflected.optional()).isEqualTo("optional");
-        assertThat(reflected.mandatoryEnum()).isEqualTo(SOME_VALUE);
-        assertThat(reflected.optionalEnum()).isEqualTo(OTHER_VALUE);
-    }
-
-    @Test
     public void imports_fields_with_one_annotation_correctly() throws Exception {
         JavaField field = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedFields.class)
                 .get(ClassWithAnnotatedFields.class).getField("stringAnnotatedField");
@@ -322,21 +295,6 @@ public class ClassFileImporterAnnotationsTest {
     }
 
     @Test
-    public void imports_fields_annotated_with_unimported_annotation() {
-        JavaClass clazz = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedFields.class).get(ClassWithAnnotatedFields.class);
-
-        JavaAnnotation<?> annotation = clazz.getField("fieldAnnotatedWithAnnotationFromParentPackage")
-                .getAnnotationOfType(SomeAnnotation.class.getName());
-
-        assertThat(annotation.get("mandatory")).contains("mandatory");
-        assertThat(annotation.get("optional")).contains("optional");
-
-        SomeAnnotation reflected = annotation.as(SomeAnnotation.class);
-        assertThat(reflected.mandatory()).isEqualTo("mandatory");
-        assertThat(reflected.optional()).isEqualTo("optional");
-    }
-
-    @Test
     public void imports_methods_with_one_annotation_correctly() throws Exception {
         JavaMethod method = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedMethods.class)
                 .get(ClassWithAnnotatedMethods.class).getMethod(stringAnnotatedMethod);
@@ -430,21 +388,6 @@ public class ClassFileImporterAnnotationsTest {
         assertThat(reflected.enums()).isEmpty();
         assertThat(reflected.classes()).isEmpty();
         assertThat(reflected.annotations()).isEmpty();
-    }
-
-    @Test
-    public void imports_methods_annotated_with_unimported_annotation() {
-        JavaClass clazz = new ClassFileImporter().importPackagesOf(ClassWithAnnotatedMethods.class).get(ClassWithAnnotatedMethods.class);
-
-        JavaAnnotation<?> annotation = clazz.getMethod(methodAnnotatedWithAnnotationFromParentPackage)
-                .getAnnotationOfType(SomeAnnotation.class.getName());
-
-        assertThat(annotation.get("mandatory")).contains("mandatory");
-        assertThat(annotation.get("optional")).contains("optional");
-
-        SomeAnnotation reflected = annotation.as(SomeAnnotation.class);
-        assertThat(reflected.mandatory()).isEqualTo("mandatory");
-        assertThat(reflected.optional()).isEqualTo("optional");
     }
 
     @Test
@@ -640,71 +583,6 @@ public class ClassFileImporterAnnotationsTest {
         assertThat(annotations).as("annotations with parameter type " + String.class.getSimpleName()).containsOnlyElementsOf(expected);
     }
 
-    @Test
-    public void meta_annotation_types_are_transitively_imported() {
-        JavaClass javaClass = new ClassFileImporter().importClass(MetaAnnotatedClass.class);
-        JavaAnnotation<JavaClass> someAnnotation = javaClass.getAnnotationOfType(MetaAnnotatedAnnotation.class.getName());
-        JavaAnnotation<JavaClass> someMetaAnnotation = someAnnotation.getRawType()
-                .getAnnotationOfType(SomeMetaAnnotation.class.getName());
-        JavaAnnotation<JavaClass> someMetaMetaAnnotation = someMetaAnnotation.getRawType()
-                .getAnnotationOfType(SomeMetaMetaAnnotation.class.getName());
-        JavaAnnotation<JavaClass> someMetaMetaMetaAnnotation = someMetaMetaAnnotation.getRawType()
-                .getAnnotationOfType(SomeMetaMetaMetaAnnotationWithParameters.class.getName());
-
-        assertThatType(someMetaMetaMetaAnnotation.getType()).matches(SomeMetaMetaMetaAnnotationWithParameters.class);
-    }
-
-    @DataProvider
-    public static Object[][] elementsAnnotatedWithSomeAnnotation() {
-        return testForEach(
-                new ClassFileImporter().importClass(MetaAnnotatedClass.class),
-                new ClassFileImporter().importClass(ClassWithMetaAnnotatedField.class).getField("metaAnnotatedField"),
-                new ClassFileImporter().importClass(ClassWithMetaAnnotatedMethod.class).getMethod("metaAnnotatedMethod"),
-                new ClassFileImporter().importClass(ClassWithMetaAnnotatedConstructor.class).getConstructor(),
-                getOnlyElement(new ClassFileImporter().importClass(ClassWithMetaAnnotatedConstructorParameter.class).getConstructor(String.class).getParameters()),
-                getOnlyElement(new ClassFileImporter().importClass(ClassWithMetaAnnotatedMethodParameter.class).getMethod("method", String.class).getParameters())
-        );
-    }
-
-    @Test
-    @UseDataProvider("elementsAnnotatedWithSomeAnnotation")
-    public void parameters_of_meta_annotations_are_transitively_imported(HasAnnotations<?> annotatedWithSomeAnnotation) {
-        JavaAnnotation<?> someAnnotation = annotatedWithSomeAnnotation
-                .getAnnotationOfType(MetaAnnotatedAnnotation.class.getName());
-        JavaAnnotation<?> metaAnnotationWithParameters = someAnnotation.getRawType()
-                .getAnnotationOfType(MetaAnnotationWithParameters.class.getName());
-
-        assertThatAnnotation(metaAnnotationWithParameters)
-                .hasEnumProperty("someEnum", SomeEnum.CONSTANT)
-                .hasEnumProperty("someEnumDefault", SomeEnum.VARIABLE)
-                .hasAnnotationProperty("parameterAnnotation",
-                        annotationProperty()
-                                .withAnnotationType(ParameterAnnotation.class)
-                                .withClassProperty("value", SomeAnnotationParameterType.class))
-                .hasAnnotationProperty("parameterAnnotationDefault",
-                        annotationProperty()
-                                .withAnnotationType(ParameterAnnotation.class)
-                                .withClassProperty("value", SomeAnnotationDefaultParameterType.class));
-
-        JavaAnnotation<JavaClass> metaMetaMetaAnnotation = someAnnotation
-                .getRawType().getAnnotationOfType(SomeMetaAnnotation.class.getName())
-                .getRawType().getAnnotationOfType(SomeMetaMetaAnnotation.class.getName())
-                .getRawType().getAnnotationOfType(SomeMetaMetaMetaAnnotationWithParameters.class.getName());
-
-        assertThatAnnotation(metaMetaMetaAnnotation)
-                .hasClassProperty("classParam", SomeMetaMetaMetaAnnotationClassParameter.class)
-                .hasClassProperty("classParamDefault", String.class)
-                .hasEnumProperty("enumParam", SomeMetaMetaMetaAnnotationEnumParameter.VALUE)
-                .hasEnumProperty("enumParamDefault", SomeMetaMetaMetaAnnotationEnumParameter.CONSTANT)
-                .hasAnnotationProperty("annotationParam",
-                        annotationProperty()
-                                .withAnnotationType(SomeMetaMetaMetaParameterAnnotation.class)
-                                .withClassProperty("value", SomeMetaMetaMetaParameterAnnotationClassParameter.class))
-                .hasAnnotationProperty("annotationParamDefault",
-                        annotationProperty()
-                                .withAnnotationType(SomeMetaMetaMetaParameterAnnotation.class));
-    }
-
     @SuppressWarnings({"unchecked", "unused"})
     private static <T> T getAnnotationDefaultValue(JavaClass javaClass, String methodName, Class<T> valueType) {
         return (T) javaClass.getMethod(methodName).getDefaultValue().get();
@@ -729,7 +607,7 @@ public class ClassFileImporterAnnotationsTest {
 
         ParameterAnnotation parameterAnnotation();
 
-        ParameterAnnotation parameterAnnotationDefault() default @ParameterAnnotation(SomeAnnotationDefaultParameterType.class);
+        ParameterAnnotation parameterAnnotationDefault() default @ParameterAnnotation(Integer.class);
     }
 
     @SuppressWarnings("unused")
@@ -779,12 +657,6 @@ public class ClassFileImporterAnnotationsTest {
     private static class SomeAnnotationParameterType {
     }
 
-    private static class SomeAnnotationDefaultParameterType {
-    }
-
-    @MetaAnnotatedAnnotation
-    private static class MetaAnnotatedClass {
-    }
 
     @SuppressWarnings("unused")
     private static class ClassWithMetaAnnotatedField {

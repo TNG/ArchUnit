@@ -78,7 +78,7 @@ public class ClassWithMethodWithAnnotatedParameters {
     }
 
     @Retention(RUNTIME)
-    @interface SomeParameterAnnotation {
+    public @interface SomeParameterAnnotation {
         SomeEnum value();
 
         SomeEnum valueWithDefault() default SOME_VALUE;
