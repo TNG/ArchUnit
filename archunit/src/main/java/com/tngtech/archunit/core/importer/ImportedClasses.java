@@ -33,6 +33,8 @@ import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import static com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.importer.ImportedClasses.ImportedClassState.HAD_TO_BE_IMPORTED;
+import static com.tngtech.archunit.core.importer.ImportedClasses.ImportedClassState.WAS_ALREADY_PRESENT;
 
 class ImportedClasses {
     private static final ImmutableSet<JavaModifier> PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS =
@@ -56,20 +58,23 @@ class ImportedClasses {
 
     JavaClass getOrResolve(String typeName) {
         JavaClass javaClass = allClasses.get(typeName);
-        if (javaClass == null) {
-            Optional<JavaClass> resolved = resolver.tryResolve(typeName);
-            javaClass = resolved.isPresent() ? resolved.get() : stubClassOf(typeName);
-            allClasses.put(typeName, javaClass);
+        return javaClass != null ? javaClass : resolve(typeName);
+    }
+
+    ImportedClassState ensurePresent(String typeName) {
+        if (allClasses.containsKey(typeName)) {
+            return WAS_ALREADY_PRESENT;
         }
+
+        resolve(typeName);
+        return HAD_TO_BE_IMPORTED;
+    }
+
+    private JavaClass resolve(String typeName) {
+        Optional<JavaClass> resolved = resolver.tryResolve(typeName);
+        JavaClass javaClass = resolved.isPresent() ? resolved.get() : stubClassOf(typeName);
+        allClasses.put(typeName, javaClass);
         return javaClass;
-    }
-
-    boolean isPresent(String typeName) {
-        return allClasses.containsKey(typeName);
-    }
-
-    void ensurePresent(String typeName) {
-        getOrResolve(typeName);
     }
 
     Collection<JavaClass> getAllWithOuterClassesSortedBeforeInnerClasses() {
@@ -95,5 +100,10 @@ class ImportedClasses {
 
     interface MethodReturnTypeGetter {
         Optional<JavaClass> getReturnType(String declaringClassName, String methodName);
+    }
+
+    enum ImportedClassState {
+        HAD_TO_BE_IMPORTED,
+        WAS_ALREADY_PRESENT
     }
 }

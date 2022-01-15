@@ -140,11 +140,24 @@ class ClassFileProcessor {
         @Override
         public void onDeclaredClassAnnotations(Set<JavaAnnotationBuilder> annotationBuilders) {
             importRecord.addClassAnnotations(ownerName, annotationBuilders);
+            registerAnnotationTypesToResolve(annotationBuilders);
         }
 
         @Override
-        public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotations) {
-            importRecord.addMemberAnnotations(ownerName, memberName, descriptor, annotations);
+        public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotationBuilders) {
+            importRecord.addMemberAnnotations(ownerName, memberName, descriptor, annotationBuilders);
+            registerAnnotationTypesToResolve(annotationBuilders);
+        }
+
+        private void registerAnnotationTypesToResolve(Set<JavaAnnotationBuilder> annotationBuilders) {
+            for (JavaAnnotationBuilder annotationBuilder : annotationBuilders) {
+                dependencyResolutionProcess.registerAnnotationType(annotationBuilder.getFullyQualifiedClassName());
+            }
+        }
+
+        @Override
+        public void onDeclaredAnnotationValueType(String valueTypeName) {
+            dependencyResolutionProcess.registerAnnotationType(valueTypeName);
         }
 
         @Override

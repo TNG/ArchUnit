@@ -8,6 +8,8 @@ import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -27,6 +29,9 @@ import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.Class
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithAnnotatedFields;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.MethodAnnotationWithEnumAndArrayValue;
+import com.tngtech.archunit.core.importer.testexamples.annotations.AnotherAnnotationWithAnnotationParameter;
+import com.tngtech.archunit.core.importer.testexamples.annotations.SomeAnnotationWithAnnotationParameter;
+import com.tngtech.archunit.core.importer.testexamples.annotations.SomeAnnotationWithClassParameter;
 import com.tngtech.archunit.core.importer.testexamples.classhierarchy.Child;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -44,6 +49,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.annotationProperty;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
@@ -389,6 +395,80 @@ public class ClassFileImporterAutomaticResolutionTest {
         // then we also don't want to claim this class is fully imported, even though it went through the
         // resolution steps to complete the hierarchy, etc.
         assertThat(stubType).isFullyImported(false);
+    }
+
+    @DataProvider
+    public static Object[][] data_automatically_resolves_annotation_parameter_types() {
+        @SomeAnnotationWithClassParameter(String.class)
+        @SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(File.class))
+        @AnotherAnnotationWithAnnotationParameter(@SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(Serializable.class)))
+        class OnClass {
+        }
+        @SuppressWarnings("unused")
+        class OnField {
+            @SomeAnnotationWithClassParameter(String.class)
+            @SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(File.class))
+            @AnotherAnnotationWithAnnotationParameter(@SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(Serializable.class)))
+            Object field;
+        }
+        @SuppressWarnings("unused")
+        class OnMethod {
+            @SomeAnnotationWithClassParameter(String.class)
+            @SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(File.class))
+            @AnotherAnnotationWithAnnotationParameter(@SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(Serializable.class)))
+            void method() {
+            }
+        }
+        class OnConstructor {
+            @SomeAnnotationWithClassParameter(String.class)
+            @SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(File.class))
+            @AnotherAnnotationWithAnnotationParameter(@SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(Serializable.class)))
+            OnConstructor() {
+            }
+        }
+        class OnParameter {
+            OnParameter(
+                    @SomeAnnotationWithClassParameter(String.class)
+                    @SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(File.class))
+                    @AnotherAnnotationWithAnnotationParameter(@SomeAnnotationWithAnnotationParameter(@SomeAnnotationWithClassParameter(Serializable.class))) Object parameter) {
+            }
+        }
+
+        return FluentIterable.concat(
+                nestedAnnotationValueTestCases(new ClassFileImporter().importClass(OnClass.class)),
+                nestedAnnotationValueTestCases(new ClassFileImporter().importClass(OnField.class).getField("field")),
+                nestedAnnotationValueTestCases(new ClassFileImporter().importClass(OnMethod.class).getMethod("method")),
+                nestedAnnotationValueTestCases(getOnlyElement(new ClassFileImporter().importClass(OnConstructor.class).getConstructors())),
+                nestedAnnotationValueTestCases(getOnlyElement(new ClassFileImporter().importClass(OnParameter.class).getConstructors()).getParameters().get(0))
+        ).toArray(Object[].class);
+    }
+
+    private static Iterable<Object[]> nestedAnnotationValueTestCases(HasAnnotations<?> hasAnnotations) {
+        return ImmutableList.of(
+                $(getNestedAnnotationClassValue(hasAnnotations, SomeAnnotationWithClassParameter.class), expect(String.class)),
+                $(getNestedAnnotationClassValue(hasAnnotations, SomeAnnotationWithAnnotationParameter.class), expect(File.class)),
+                $(getNestedAnnotationClassValue(hasAnnotations, AnotherAnnotationWithAnnotationParameter.class), expect(Serializable.class))
+        );
+    }
+
+    private static JavaClass getNestedAnnotationClassValue(HasAnnotations<?> hasAnnotations, Class<?> annotationType) {
+        Object value = hasAnnotations.getAnnotationOfType(annotationType.getName());
+        while (!(value instanceof JavaClass)) {
+            value = ((JavaAnnotation<?>) value).get("value").get();
+        }
+        return (JavaClass) value;
+    }
+
+    // just syntactic sugar to improve readability what is actual and what is expected
+    private static Class<?> expect(Class<?> clazz) {
+        return clazz;
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_automatically_resolves_annotation_parameter_types(JavaClass annotationValue, Class<?> expectedType) {
+        assertThat(annotationValue).isFullyImported(true);
+        assertThatType(annotationValue).matches(expectedType);
     }
 
     @MetaAnnotatedAnnotation

@@ -303,7 +303,7 @@ class JavaClassProcessor extends ClassVisitor {
             return super.visitAnnotation(desc, visible);
         }
 
-        return new AnnotationProcessor(addAnnotationTo(annotations), annotationBuilderFor(desc));
+        return new AnnotationProcessor(addAnnotationTo(annotations), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
     }
 
     @Override
@@ -341,7 +341,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-            return new AnnotationProcessor(addAnnotationAtIndex(parameterAnnotationsByIndex, parameter), annotationBuilderFor(desc));
+            return new AnnotationProcessor(addAnnotationAtIndex(parameterAnnotationsByIndex, parameter), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         // NOTE: ASM does not reliably visit this method, so if this method is skipped, line number 0 is recorded
@@ -380,7 +380,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            return new AnnotationProcessor(addAnnotationTo(annotations), annotationBuilderFor(desc));
+            return new AnnotationProcessor(addAnnotationTo(annotations), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
@@ -432,7 +432,8 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             void visitClass(String name, JavaClassDescriptor clazz) {
-                declarationHandler.onDeclaredAnnotationDefaultValue(methodBuilder.getName(), methodBuilder.getDescriptor(), ValueBuilder.fromClassProperty(clazz));
+                declarationHandler.onDeclaredAnnotationDefaultValue(methodBuilder.getName(), methodBuilder.getDescriptor(), handleAnnotationClassProperty(clazz, declarationHandler));
+                declarationHandler.onDeclaredAnnotationValueType(clazz.getFullyQualifiedClassName());
             }
 
             @Override
@@ -442,17 +443,17 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void visitEnum(String name, String desc, String value) {
-                declarationHandler.onDeclaredAnnotationDefaultValue(methodBuilder.getName(), methodBuilder.getDescriptor(), javaEnumBuilder(desc, value));
+                declarationHandler.onDeclaredAnnotationDefaultValue(methodBuilder.getName(), methodBuilder.getDescriptor(), handleAnnotationEnumProperty(desc, value, declarationHandler));
             }
 
             @Override
             public AnnotationVisitor visitAnnotation(String name, String desc) {
-                return new AnnotationProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler), annotationBuilderFor(desc));
+                return new AnnotationProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
             }
 
             @Override
             public AnnotationVisitor visitArray(String name) {
-                return new AnnotationArrayProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler));
+                return new AnnotationArrayProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler), declarationHandler);
             }
         }
     }
@@ -512,6 +513,8 @@ class JavaClassProcessor extends ClassVisitor {
 
         void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotations);
 
+        void onDeclaredAnnotationValueType(String valueTypeName);
+
         void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, ValueBuilder valueBuilder);
 
         void registerEnclosingClass(String ownerName, String enclosingClassName);
@@ -568,7 +571,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            return new AnnotationProcessor(addAnnotationTo(annotations), annotationBuilderFor(desc));
+            return new AnnotationProcessor(addAnnotationTo(annotations), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
@@ -577,22 +580,20 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-    private static JavaAnnotationBuilder annotationBuilderFor(String desc) {
-        return new JavaAnnotationBuilder().withType(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc));
-    }
-
     private static class AnnotationProcessor extends ClassAndPrimitiveDistinguishingAnnotationVisitor {
         private final TakesAnnotationBuilder takesAnnotationBuilder;
-        private final DomainBuilders.JavaAnnotationBuilder annotationBuilder;
+        private final DeclarationHandler declarationHandler;
+        private final JavaAnnotationBuilder annotationBuilder;
 
-        private AnnotationProcessor(TakesAnnotationBuilder takesAnnotationBuilder, DomainBuilders.JavaAnnotationBuilder annotationBuilder) {
+        private AnnotationProcessor(TakesAnnotationBuilder takesAnnotationBuilder, DeclarationHandler declarationHandler, JavaAnnotationBuilder annotationBuilder) {
             this.takesAnnotationBuilder = takesAnnotationBuilder;
+            this.declarationHandler = declarationHandler;
             this.annotationBuilder = annotationBuilder;
         }
 
         @Override
         void visitClass(String name, JavaClassDescriptor clazz) {
-            annotationBuilder.addProperty(name, ValueBuilder.fromClassProperty(clazz));
+            annotationBuilder.addProperty(name, handleAnnotationClassProperty(clazz, declarationHandler));
         }
 
         @Override
@@ -602,12 +603,12 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public void visitEnum(String name, String desc, String value) {
-            annotationBuilder.addProperty(name, javaEnumBuilder(desc, value));
+            annotationBuilder.addProperty(name, handleAnnotationEnumProperty(desc, value, declarationHandler));
         }
 
         @Override
         public AnnotationVisitor visitAnnotation(final String name, String desc) {
-            return new AnnotationProcessor(addAnnotationAsProperty(name, annotationBuilder), annotationBuilderFor(desc));
+            return new AnnotationProcessor(addAnnotationAsProperty(name, this.annotationBuilder), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
@@ -627,7 +628,7 @@ class JavaClassProcessor extends ClassVisitor {
                 public void setArrayResult(ValueBuilder valueBuilder) {
                     annotationBuilder.addProperty(name, valueBuilder);
                 }
-            });
+            }, declarationHandler);
         }
 
         @Override
@@ -669,17 +670,19 @@ class JavaClassProcessor extends ClassVisitor {
 
     private static class AnnotationArrayProcessor extends ClassAndPrimitiveDistinguishingAnnotationVisitor {
         private final AnnotationArrayContext annotationArrayContext;
+        private final DeclarationHandler declarationHandler;
         private Class<?> derivedComponentType;
         private final List<ValueBuilder> values = new ArrayList<>();
 
-        private AnnotationArrayProcessor(AnnotationArrayContext annotationArrayContext) {
+        private AnnotationArrayProcessor(AnnotationArrayContext annotationArrayContext, DeclarationHandler declarationHandler) {
             this.annotationArrayContext = annotationArrayContext;
+            this.declarationHandler = declarationHandler;
         }
 
         @Override
         void visitClass(String name, JavaClassDescriptor clazz) {
             setDerivedComponentType(JavaClass.class);
-            values.add(ValueBuilder.fromClassProperty(clazz));
+            values.add(handleAnnotationClassProperty(clazz, declarationHandler));
         }
 
         @Override
@@ -696,13 +699,13 @@ class JavaClassProcessor extends ClassVisitor {
                 public void add(JavaAnnotationBuilder annotationBuilder) {
                     values.add(ValueBuilder.fromAnnotationProperty(annotationBuilder));
                 }
-            }, annotationBuilderFor(desc));
+            }, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
         public void visitEnum(String name, final String desc, final String value) {
             setDerivedComponentType(JavaEnumConstant.class);
-            values.add(javaEnumBuilder(desc, value));
+            values.add(handleAnnotationEnumProperty(desc, value, declarationHandler));
         }
 
         // NOTE: If the declared annotation is not imported itself, we can still use this heuristic,
@@ -822,9 +825,21 @@ class JavaClassProcessor extends ClassVisitor {
         void setArrayResult(ValueBuilder valueBuilder);
     }
 
-    private static ValueBuilder javaEnumBuilder(final String desc, final String value) {
+    private static ValueBuilder handleAnnotationClassProperty(JavaClassDescriptor clazz, DeclarationHandler declarationHandler) {
+        declarationHandler.onDeclaredAnnotationValueType(clazz.getFullyQualifiedClassName());
+        return ValueBuilder.fromClassProperty(clazz);
+    }
+
+    private static ValueBuilder handleAnnotationEnumProperty(String desc, String value, DeclarationHandler declarationHandler) {
         JavaClassDescriptor enumType = JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc);
+        declarationHandler.onDeclaredAnnotationValueType(enumType.getFullyQualifiedClassName());
         return ValueBuilder.fromEnumProperty(enumType, value);
+    }
+
+    private static JavaAnnotationBuilder handleAnnotationAnnotationProperty(String desc, DeclarationHandler declarationHandler) {
+        JavaAnnotationBuilder subAnnotationBuilder = new JavaAnnotationBuilder().withType(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc));
+        declarationHandler.onDeclaredAnnotationValueType(subAnnotationBuilder.getFullyQualifiedClassName());
+        return subAnnotationBuilder;
     }
 
     private abstract static class ClassAndPrimitiveDistinguishingAnnotationVisitor extends AnnotationVisitor {

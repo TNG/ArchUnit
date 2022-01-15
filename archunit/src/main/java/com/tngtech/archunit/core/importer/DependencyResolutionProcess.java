@@ -19,17 +19,23 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.importer.ImportedClasses.ImportedClassState;
+
+import static com.tngtech.archunit.core.importer.ImportedClasses.ImportedClassState.HAD_TO_BE_IMPORTED;
 
 class DependencyResolutionProcess {
-    private final Set<String> typeNames = new HashSet<>();
-    private boolean initializationComplete = false;
+    private static final int maxRunsForMemberTypes = 1;
+    private static final int maxRunsForAccessesToTypes = 1;
+    private static final int maxRunsForSupertypes = -1;
+    private static final int maxRunsForAnnotationTypes = -1;
+
+    private Set<String> currentTypeNames = new HashSet<>();
+    private int runNumber = 1;
+    private boolean shouldContinue;
 
     void registerMemberType(String typeName) {
-        if (!initializationComplete) {
-            typeNames.add(typeName);
+        if (runNumberHasNotExceeded(maxRunsForMemberTypes)) {
+            currentTypeNames.add(typeName);
         }
     }
 
@@ -40,14 +46,14 @@ class DependencyResolutionProcess {
     }
 
     void registerAccessToType(String typeName) {
-        if (!initializationComplete) {
-            typeNames.add(typeName);
+        if (runNumberHasNotExceeded(maxRunsForAccessesToTypes)) {
+            currentTypeNames.add(typeName);
         }
     }
 
     void registerSupertype(String typeName) {
-        if (!initializationComplete) {
-            typeNames.add(typeName);
+        if (runNumberHasNotExceeded(maxRunsForSupertypes)) {
+            currentTypeNames.add(typeName);
         }
     }
 
@@ -57,49 +63,30 @@ class DependencyResolutionProcess {
         }
     }
 
-    void resolve(ImportedClasses classes, ClassFileImportRecord importRecord) {
-        initializationComplete = true;
-        for (String typeName : typeNames) {
-            classes.ensurePresent(typeName);
-            resolveInheritance(typeName, classes, importRecord);
-        }
-        ensureMetaAnnotationsArePresent(classes, importRecord);
-    }
-
-    private void resolveInheritance(String typeName, ImportedClasses classes, ClassFileImportRecord importRecord) {
-        Optional<String> superclass = importRecord.getSuperclassFor(typeName);
-        if (superclass.isPresent()) {
-            classes.ensurePresent(superclass.get());
-            resolveInheritance(superclass.get(), classes, importRecord);
-        }
-        for (String interfaceName : importRecord.getInterfaceNamesFor(typeName)) {
-            classes.ensurePresent(interfaceName);
-            resolveInheritance(interfaceName, classes, importRecord);
+    void registerAnnotationType(String typeName) {
+        if (runNumberHasNotExceeded(maxRunsForAnnotationTypes)) {
+            currentTypeNames.add(typeName);
         }
     }
 
-    private void ensureMetaAnnotationsArePresent(ImportedClasses classes, ClassFileImportRecord importRecord) {
-        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
-            resolveAnnotationHierarchy(javaClass, classes, importRecord);
+    void resolve(ImportedClasses classes) {
+        do {
+            executeRun(classes);
+        } while (shouldContinue);
+    }
+
+    private void executeRun(ImportedClasses classes) {
+        runNumber++;
+        Set<String> typeNamesToResolve = this.currentTypeNames;
+        currentTypeNames = new HashSet<>();
+        shouldContinue = false;
+        for (String typeName : typeNamesToResolve) {
+            ImportedClassState classState = classes.ensurePresent(typeName);
+            shouldContinue = shouldContinue || (classState == HAD_TO_BE_IMPORTED);
         }
     }
 
-    private void resolveAnnotationHierarchy(JavaClass javaClass, ImportedClasses classes, ClassFileImportRecord importRecord) {
-        for (String annotationTypeName : getAnnotationTypeNamesToResolveFor(javaClass, importRecord)) {
-            boolean hadBeenPreviouslyResolved = classes.isPresent(annotationTypeName);
-            JavaClass annotationType = classes.getOrResolve(annotationTypeName);
-
-            if (!hadBeenPreviouslyResolved) {
-                resolveAnnotationHierarchy(annotationType, classes, importRecord);
-            }
-        }
-    }
-
-    private Set<String> getAnnotationTypeNamesToResolveFor(JavaClass javaClass, ClassFileImportRecord importRecord) {
-        return ImmutableSet.<String>builder()
-                .addAll(importRecord.getAnnotationTypeNamesFor(javaClass))
-                .addAll(importRecord.getMemberAnnotationTypeNamesFor(javaClass))
-                .addAll(importRecord.getParameterAnnotationTypeNamesFor(javaClass))
-                .build();
+    private boolean runNumberHasNotExceeded(int maxRuns) {
+        return maxRuns < 0 || runNumber <= maxRuns;
     }
 }

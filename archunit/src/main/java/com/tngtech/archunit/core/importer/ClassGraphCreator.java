@@ -98,7 +98,7 @@ class ClassGraphCreator implements ImportContext {
     }
 
     JavaClasses complete() {
-        dependencyResolutionProcess.resolve(classes, importRecord);
+        dependencyResolutionProcess.resolve(classes);
         completeClasses();
         completeAccesses();
         return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
