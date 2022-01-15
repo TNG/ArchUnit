@@ -375,7 +375,9 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitTypeInsn(int opcode, String type) {
             if (opcode == Opcodes.INSTANCEOF) {
-                codeUnitBuilder.addInstanceOfCheck(from(JavaClassDescriptorImporter.createFromAsmObjectTypeName(type), actualLineNumber));
+                JavaClassDescriptor instanceOfCheckType = JavaClassDescriptorImporter.createFromAsmObjectTypeName(type);
+                codeUnitBuilder.addInstanceOfCheck(from(instanceOfCheckType, actualLineNumber));
+                declarationHandler.onDeclaredInstanceofCheck(instanceOfCheckType.getFullyQualifiedClassName());
             }
         }
 
@@ -523,6 +525,8 @@ class JavaClassProcessor extends ClassVisitor {
         void registerEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit);
 
         void onDeclaredClassObject(String typeName);
+
+        void onDeclaredInstanceofCheck(String typeName);
     }
 
     interface AccessHandler {

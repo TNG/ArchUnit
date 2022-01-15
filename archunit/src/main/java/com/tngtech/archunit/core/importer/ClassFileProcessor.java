@@ -179,6 +179,11 @@ class ClassFileProcessor {
         public void onDeclaredClassObject(String typeName) {
             dependencyResolutionProcess.registerAccessToType(typeName);
         }
+
+        @Override
+        public void onDeclaredInstanceofCheck(String typeName) {
+            dependencyResolutionProcess.registerAccessToType(typeName);
+        }
     }
 
     private static class RecordAccessHandler implements AccessHandler {

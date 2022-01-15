@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructor;
@@ -485,6 +486,21 @@ public class ClassFileImporterAutomaticResolutionTest {
 
         assertThat(classObject.getRawType()).isFullyImported(true);
         assertThatType(classObject.getRawType()).matches(String.class);
+    }
+
+    @Test
+    public void automatically_resolves_instanceof_check_targets() {
+        @SuppressWarnings("unused")
+        class Origin {
+            boolean call(Object obj) {
+                return obj instanceof String;
+            }
+        }
+
+        InstanceofCheck instanceofCheck = getOnlyElement(new ClassFileImporter().importClass(Origin.class).getInstanceofChecks());
+
+        assertThat(instanceofCheck.getRawType()).isFullyImported(true);
+        assertThatType(instanceofCheck.getRawType()).matches(String.class);
     }
 
     @MetaAnnotatedAnnotation
