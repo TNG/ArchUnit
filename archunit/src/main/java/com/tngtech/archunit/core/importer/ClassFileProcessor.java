@@ -174,6 +174,11 @@ class ClassFileProcessor {
         public void registerEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit) {
             importRecord.setEnclosingCodeUnit(ownerName, enclosingCodeUnit);
         }
+
+        @Override
+        public void onDeclaredClassObject(String typeName) {
+            dependencyResolutionProcess.registerAccessToType(typeName);
+        }
     }
 
     private static class RecordAccessHandler implements AccessHandler {

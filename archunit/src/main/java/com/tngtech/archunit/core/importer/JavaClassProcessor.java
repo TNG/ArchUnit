@@ -356,8 +356,9 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitLdcInsn(Object value) {
             if (JavaClassDescriptorImporter.isAsmType(value)) {
-                codeUnitBuilder.addReferencedClassObject(
-                        RawReferencedClassObject.from(JavaClassDescriptorImporter.importAsmType(value), actualLineNumber));
+                JavaClassDescriptor type = JavaClassDescriptorImporter.importAsmType(value);
+                codeUnitBuilder.addReferencedClassObject(RawReferencedClassObject.from(type, actualLineNumber));
+                declarationHandler.onDeclaredClassObject(type.getFullyQualifiedClassName());
             }
         }
 
@@ -520,6 +521,8 @@ class JavaClassProcessor extends ClassVisitor {
         void registerEnclosingClass(String ownerName, String enclosingClassName);
 
         void registerEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit);
+
+        void onDeclaredClassObject(String typeName);
     }
 
     interface AccessHandler {

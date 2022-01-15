@@ -21,6 +21,7 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaMethodReference;
+import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithUnimportedAnnotation;
@@ -469,6 +470,21 @@ public class ClassFileImporterAutomaticResolutionTest {
     public void test_automatically_resolves_annotation_parameter_types(JavaClass annotationValue, Class<?> expectedType) {
         assertThat(annotationValue).isFullyImported(true);
         assertThatType(annotationValue).matches(expectedType);
+    }
+
+    @Test
+    public void automatically_resolves_class_objects() {
+        @SuppressWarnings("unused")
+        class Origin {
+            Class<?> call() {
+                return String.class;
+            }
+        }
+
+        ReferencedClassObject classObject = getOnlyElement(new ClassFileImporter().importClass(Origin.class).getReferencedClassObjects());
+
+        assertThat(classObject.getRawType()).isFullyImported(true);
+        assertThatType(classObject.getRawType()).matches(String.class);
     }
 
     @MetaAnnotatedAnnotation
