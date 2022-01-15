@@ -27,6 +27,7 @@ import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.Class
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithAnnotatedFields;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.MethodAnnotationWithEnumAndArrayValue;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchy.Child;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -102,6 +103,26 @@ public class ClassFileImporterAutomaticResolutionTest {
         JavaMethod method = javaClass.getMethod("methodParameters", Path.class, PrintStream.class);
         assertThat(method.getRawParameterTypes().get(0)).as("method parameter type").isFullyImported(true);
         assertThat(method.getRawParameterTypes().get(1)).as("method parameter type").isFullyImported(true);
+    }
+
+    @Test
+    public void automatically_resolves_class_hierarchy() {
+        JavaClass child = new ClassFileImporter().importClass(Child.class);
+
+        JavaClass parent = child.getRawSuperclass().get();
+        assertThat(parent).isFullyImported(true);
+
+        JavaClass grandparent = parent.getRawSuperclass().get();
+        assertThat(grandparent).isFullyImported(true);
+
+        JavaClass parentInterfaceDirect = getOnlyElement(child.getRawInterfaces());
+        assertThat(parentInterfaceDirect).isFullyImported(true);
+
+        JavaClass grandParentInterfaceDirect = getOnlyElement(parentInterfaceDirect.getRawInterfaces());
+        assertThat(grandParentInterfaceDirect).isFullyImported(true);
+
+        JavaClass grandParentInterfaceIndirect = getOnlyElement(getOnlyElement(grandparent.getRawInterfaces()).getRawInterfaces());
+        assertThat(grandParentInterfaceIndirect).isFullyImported(true);
     }
 
     @Test

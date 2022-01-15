@@ -92,8 +92,10 @@ class ClassFileProcessor {
             ownerName = className;
             if (superclassName.isPresent()) {
                 importRecord.setSuperclass(ownerName, superclassName.get());
+                dependencyResolutionProcess.registerSupertype(superclassName.get());
             }
             importRecord.addInterfaces(ownerName, interfaceNames);
+            dependencyResolutionProcess.registerSupertypes(interfaceNames);
         }
 
         @Override

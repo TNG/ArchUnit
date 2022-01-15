@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.tngtech.archunit.base.Optional;
+
 class DependencyResolutionProcess {
     private final Set<String> typeNames = new HashSet<>();
     private boolean initializationComplete = false;
@@ -41,10 +43,35 @@ class DependencyResolutionProcess {
         }
     }
 
-    void resolve(ImportedClasses importedClasses) {
+    void registerSupertype(String typeName) {
+        if (!initializationComplete) {
+            typeNames.add(typeName);
+        }
+    }
+
+    void registerSupertypes(Collection<String> typeNames) {
+        for (String typeName : typeNames) {
+            registerSupertype(typeName);
+        }
+    }
+
+    void resolve(ImportedClasses classes, ClassFileImportRecord importRecord) {
         initializationComplete = true;
         for (String typeName : typeNames) {
-            importedClasses.ensurePresent(typeName);
+            classes.ensurePresent(typeName);
+            resolveInheritance(typeName, classes, importRecord);
+        }
+    }
+
+    private void resolveInheritance(String typeName, ImportedClasses classes, ClassFileImportRecord importRecord) {
+        Optional<String> superclass = importRecord.getSuperclassFor(typeName);
+        if (superclass.isPresent()) {
+            classes.ensurePresent(superclass.get());
+            resolveInheritance(superclass.get(), classes, importRecord);
+        }
+        for (String interfaceName : importRecord.getInterfaceNamesFor(typeName)) {
+            classes.ensurePresent(interfaceName);
+            resolveInheritance(interfaceName, classes, importRecord);
         }
     }
 }
