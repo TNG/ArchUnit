@@ -43,6 +43,7 @@ import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
@@ -270,7 +271,7 @@ public class ImportTestUtils {
         DomainBuilders.JavaAnnotationBuilder builder = new DomainBuilders.JavaAnnotationBuilder()
                 .withType(JavaClassDescriptor.From.name(annotation.annotationType().getName()));
         for (Map.Entry<String, Object> entry : mapOf(annotation, annotatedClass, importedClasses).entrySet()) {
-            builder.addProperty(entry.getKey(), DomainBuilders.JavaAnnotationBuilder.ValueBuilder.ofFinished(entry.getValue()));
+            builder.addProperty(entry.getKey(), ValueBuilder.fromPrimitiveProperty(entry.getValue()));
         }
         return builder;
     }

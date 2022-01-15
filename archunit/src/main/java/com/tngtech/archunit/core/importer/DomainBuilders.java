@@ -589,7 +589,7 @@ public final class DomainBuilders {
         abstract static class ValueBuilder {
             abstract <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses);
 
-            static ValueBuilder ofFinished(final Object value) {
+            static ValueBuilder fromPrimitiveProperty(final Object value) {
                 return new ValueBuilder() {
                     @Override
                     <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses unused) {
@@ -598,7 +598,29 @@ public final class DomainBuilders {
                 };
             }
 
-            static ValueBuilder from(final JavaAnnotationBuilder builder) {
+            public static ValueBuilder fromEnumProperty(final JavaClassDescriptor enumType, final String value) {
+                return new ValueBuilder() {
+                    @Override
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {
+                        return Optional.<Object>of(
+                                new DomainBuilders.JavaEnumConstantBuilder()
+                                        .withDeclaringClass(importedClasses.getOrResolve(enumType.getFullyQualifiedClassName()))
+                                        .withName(value)
+                                        .build());
+                    }
+                };
+            }
+
+            static ValueBuilder fromClassProperty(final JavaClassDescriptor value) {
+                return new ValueBuilder() {
+                    @Override
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {
+                        return Optional.<Object>of(importedClasses.getOrResolve(value.getFullyQualifiedClassName()));
+                    }
+                };
+            }
+
+            static ValueBuilder fromAnnotationProperty(final JavaAnnotationBuilder builder) {
                 return new ValueBuilder() {
                     @Override
                     <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {

@@ -44,6 +44,7 @@ import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.JavaCodeUnitSignatureImporter.JavaCodeUnitSignature;
@@ -76,7 +77,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static final AccessHandler NO_OP = new AccessHandler.NoOp();
 
     private DomainBuilders.JavaClassBuilder javaClassBuilder;
-    private final Set<DomainBuilders.JavaAnnotationBuilder> annotations = new HashSet<>();
+    private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
     private final SourceDescriptor sourceDescriptor;
     private final DeclarationHandler declarationHandler;
     private final AccessHandler accessHandler;
@@ -320,8 +321,8 @@ class JavaClassProcessor extends ClassVisitor {
         private final AccessHandler accessHandler;
         private final DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder;
         private final DeclarationHandler declarationHandler;
-        private final Set<DomainBuilders.JavaAnnotationBuilder> annotations = new HashSet<>();
-        private final SetMultimap<Integer, DomainBuilders.JavaAnnotationBuilder> parameterAnnotationsByIndex = HashMultimap.create();
+        private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
+        private final SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex = HashMultimap.create();
         private int actualLineNumber;
 
         MethodProcessor(String declaringClassName, AccessHandler accessHandler, DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder, DeclarationHandler declarationHandler) {
@@ -464,8 +465,8 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         @Override
-        public void add(DomainBuilders.JavaAnnotationBuilder annotation) {
-            setArrayResult(ValueBuilder.from(annotation));
+        public void add(JavaAnnotationBuilder annotation) {
+            setArrayResult(ValueBuilder.fromAnnotationProperty(annotation));
         }
 
         @Override
@@ -503,9 +504,9 @@ class JavaClassProcessor extends ClassVisitor {
 
         void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder);
 
-        void onDeclaredClassAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders);
+        void onDeclaredClassAnnotations(Set<JavaAnnotationBuilder> annotationBuilders);
 
-        void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations);
+        void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotations);
 
         void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, ValueBuilder valueBuilder);
 
@@ -552,7 +553,7 @@ class JavaClassProcessor extends ClassVisitor {
     private static class FieldProcessor extends FieldVisitor {
         private final DomainBuilders.JavaFieldBuilder fieldBuilder;
         private final DeclarationHandler declarationHandler;
-        private final Set<DomainBuilders.JavaAnnotationBuilder> annotations = new HashSet<>();
+        private final Set<JavaAnnotationBuilder> annotations = new HashSet<>();
 
         private FieldProcessor(DomainBuilders.JavaFieldBuilder fieldBuilder, DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
@@ -572,8 +573,8 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-    private static DomainBuilders.JavaAnnotationBuilder annotationBuilderFor(String desc) {
-        return new DomainBuilders.JavaAnnotationBuilder().withType(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc));
+    private static JavaAnnotationBuilder annotationBuilderFor(String desc) {
+        return new JavaAnnotationBuilder().withType(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc));
     }
 
     private static class AnnotationProcessor extends AnnotationVisitor {
@@ -627,35 +628,35 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-    private static TakesAnnotationBuilder addAnnotationTo(final Collection<? super DomainBuilders.JavaAnnotationBuilder> collection) {
+    private static TakesAnnotationBuilder addAnnotationTo(final Collection<? super JavaAnnotationBuilder> collection) {
         return new TakesAnnotationBuilder() {
             @Override
-            public void add(DomainBuilders.JavaAnnotationBuilder annotation) {
+            public void add(JavaAnnotationBuilder annotation) {
                 collection.add(annotation);
             }
         };
     }
 
-    private static TakesAnnotationBuilder addAnnotationAtIndex(final SetMultimap<Integer, DomainBuilders.JavaAnnotationBuilder> annotations, final int index) {
+    private static TakesAnnotationBuilder addAnnotationAtIndex(final SetMultimap<Integer, JavaAnnotationBuilder> annotations, final int index) {
         return new TakesAnnotationBuilder() {
             @Override
-            public void add(DomainBuilders.JavaAnnotationBuilder annotation) {
+            public void add(JavaAnnotationBuilder annotation) {
                 annotations.put(index, annotation);
             }
         };
     }
 
-    private static TakesAnnotationBuilder addAnnotationAsProperty(final String name, final DomainBuilders.JavaAnnotationBuilder annotationBuilder) {
+    private static TakesAnnotationBuilder addAnnotationAsProperty(final String name, final JavaAnnotationBuilder annotationBuilder) {
         return new TakesAnnotationBuilder() {
             @Override
-            public void add(DomainBuilders.JavaAnnotationBuilder builder) {
-                annotationBuilder.addProperty(name, ValueBuilder.from(builder));
+            public void add(JavaAnnotationBuilder builder) {
+                annotationBuilder.addProperty(name, ValueBuilder.fromAnnotationProperty(builder));
             }
         };
     }
 
     private interface TakesAnnotationBuilder {
-        void add(DomainBuilders.JavaAnnotationBuilder annotation);
+        void add(JavaAnnotationBuilder annotation);
     }
 
     private static class AnnotationArrayProcessor extends AnnotationVisitor {
@@ -683,8 +684,8 @@ class JavaClassProcessor extends ClassVisitor {
             setDerivedComponentType(JavaAnnotation.class);
             return new AnnotationProcessor(new TakesAnnotationBuilder() {
                 @Override
-                public void add(DomainBuilders.JavaAnnotationBuilder annotationBuilder) {
-                    values.add(ValueBuilder.from(annotationBuilder));
+                public void add(JavaAnnotationBuilder annotationBuilder) {
+                    values.add(ValueBuilder.fromAnnotationProperty(annotationBuilder));
                 }
             }, annotationBuilderFor(desc));
         }
@@ -813,30 +814,17 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private static ValueBuilder javaEnumBuilder(final String desc, final String value) {
-        return new ValueBuilder() {
-            @Override
-            public <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importContext) {
-                return Optional.<Object>of(
-                        new DomainBuilders.JavaEnumConstantBuilder()
-                                .withDeclaringClass(importContext.getOrResolve(JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc).getFullyQualifiedClassName()))
-                                .withName(value)
-                                .build());
-            }
-        };
+        JavaClassDescriptor enumType = JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc);
+        return ValueBuilder.fromEnumProperty(enumType, value);
     }
 
     private static class AnnotationTypeConversion {
         static ValueBuilder convert(Object input) {
             final Object value = JavaClassDescriptorImporter.importAsmTypeIfPossible(input);
             if (value instanceof JavaClassDescriptor) {
-                return new ValueBuilder() {
-                    @Override
-                    public <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importContext) {
-                        return Optional.<Object>of(importContext.getOrResolve(((JavaClassDescriptor) value).getFullyQualifiedClassName()));
-                    }
-                };
+                return ValueBuilder.fromClassProperty((JavaClassDescriptor) value);
             }
-            return ValueBuilder.ofFinished(value);
+            return ValueBuilder.fromPrimitiveProperty(value);
         }
     }
 }
