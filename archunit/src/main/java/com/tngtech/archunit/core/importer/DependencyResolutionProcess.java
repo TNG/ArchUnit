@@ -19,7 +19,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.domain.JavaClass;
 
 class DependencyResolutionProcess {
     private final Set<String> typeNames = new HashSet<>();
@@ -61,6 +63,7 @@ class DependencyResolutionProcess {
             classes.ensurePresent(typeName);
             resolveInheritance(typeName, classes, importRecord);
         }
+        ensureMetaAnnotationsArePresent(classes, importRecord);
     }
 
     private void resolveInheritance(String typeName, ImportedClasses classes, ClassFileImportRecord importRecord) {
@@ -73,5 +76,30 @@ class DependencyResolutionProcess {
             classes.ensurePresent(interfaceName);
             resolveInheritance(interfaceName, classes, importRecord);
         }
+    }
+
+    private void ensureMetaAnnotationsArePresent(ImportedClasses classes, ClassFileImportRecord importRecord) {
+        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
+            resolveAnnotationHierarchy(javaClass, classes, importRecord);
+        }
+    }
+
+    private void resolveAnnotationHierarchy(JavaClass javaClass, ImportedClasses classes, ClassFileImportRecord importRecord) {
+        for (String annotationTypeName : getAnnotationTypeNamesToResolveFor(javaClass, importRecord)) {
+            boolean hadBeenPreviouslyResolved = classes.isPresent(annotationTypeName);
+            JavaClass annotationType = classes.getOrResolve(annotationTypeName);
+
+            if (!hadBeenPreviouslyResolved) {
+                resolveAnnotationHierarchy(annotationType, classes, importRecord);
+            }
+        }
+    }
+
+    private Set<String> getAnnotationTypeNamesToResolveFor(JavaClass javaClass, ClassFileImportRecord importRecord) {
+        return ImmutableSet.<String>builder()
+                .addAll(importRecord.getAnnotationTypeNamesFor(javaClass))
+                .addAll(importRecord.getMemberAnnotationTypeNamesFor(javaClass))
+                .addAll(importRecord.getParameterAnnotationTypeNamesFor(javaClass))
+                .build();
     }
 }

@@ -99,7 +99,6 @@ class ClassGraphCreator implements ImportContext {
 
     JavaClasses complete() {
         dependencyResolutionProcess.resolve(classes, importRecord);
-        ensureMetaAnnotationsArePresent();
         completeClasses();
         completeAccesses();
         return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
@@ -136,31 +135,6 @@ class ClassGraphCreator implements ImportContext {
             tryProcess(constructorReferenceCallRecord, AccessRecord.Factory.forConstructorReferenceRecord(),
                     processedConstructorReferenceRecords);
         }
-    }
-
-    private void ensureMetaAnnotationsArePresent() {
-        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
-            resolveAnnotationHierarchy(javaClass);
-        }
-    }
-
-    private void resolveAnnotationHierarchy(JavaClass javaClass) {
-        for (String annotationTypeName : getAnnotationTypeNamesToResolveFor(javaClass)) {
-            boolean hadBeenPreviouslyResolved = classes.isPresent(annotationTypeName);
-            JavaClass annotationType = classes.getOrResolve(annotationTypeName);
-
-            if (!hadBeenPreviouslyResolved) {
-                resolveAnnotationHierarchy(annotationType);
-            }
-        }
-    }
-
-    private Set<String> getAnnotationTypeNamesToResolveFor(JavaClass javaClass) {
-        return ImmutableSet.<String>builder()
-                .addAll(importRecord.getAnnotationTypeNamesFor(javaClass))
-                .addAll(importRecord.getMemberAnnotationTypeNamesFor(javaClass))
-                .addAll(importRecord.getParameterAnnotationTypeNamesFor(javaClass))
-                .build();
     }
 
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
