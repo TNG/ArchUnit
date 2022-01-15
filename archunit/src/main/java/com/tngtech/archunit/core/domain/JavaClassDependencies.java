@@ -206,10 +206,8 @@ class JavaClassDependencies {
 
     private Set<Dependency> instanceofCheckDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : javaClass.getCodeUnits()) {
-            for (InstanceofCheck instanceofCheck : codeUnit.getInstanceofChecks()) {
-                result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
-            }
+        for (InstanceofCheck instanceofCheck : javaClass.getInstanceofChecks()) {
+            result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
         }
         return result.build();
     }
