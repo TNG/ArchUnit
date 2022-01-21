@@ -184,6 +184,11 @@ class ClassFileProcessor {
         public void onDeclaredInstanceofCheck(String typeName) {
             dependencyResolutionProcess.registerAccessToType(typeName);
         }
+
+        @Override
+        public void onDeclaredThrowsClause(Collection<String> exceptionTypeNames) {
+            dependencyResolutionProcess.registerMemberTypes(exceptionTypeNames);
+        }
     }
 
     private static class RecordAccessHandler implements AccessHandler {

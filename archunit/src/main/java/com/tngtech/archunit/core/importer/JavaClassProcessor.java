@@ -259,6 +259,7 @@ class JavaClassProcessor extends ClassVisitor {
         JavaClassDescriptor rawReturnType = JavaClassDescriptorImporter.importAsmMethodReturnType(desc);
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name, codeUnit.getRawParameterTypeNames(), rawReturnType.getFullyQualifiedClassName());
         JavaCodeUnitSignature codeUnitSignature = JavaCodeUnitSignatureImporter.parseAsmMethodSignature(signature);
+        List<JavaClassDescriptor> throwsDeclarations = typesFrom(exceptions);
         codeUnitBuilder
                 .withName(name)
                 .withModifiers(JavaModifier.getModifiersForMethod(access))
@@ -266,9 +267,18 @@ class JavaClassProcessor extends ClassVisitor {
                 .withParameterTypes(codeUnitSignature.getParameterTypes(), codeUnit.getRawParameterTypes())
                 .withReturnType(codeUnitSignature.getReturnType(), rawReturnType)
                 .withDescriptor(desc)
-                .withThrowsClause(typesFrom(exceptions));
+                .withThrowsClause(throwsDeclarations);
+        declarationHandler.onDeclaredThrowsClause(fullyQualifiedClassNamesOf(throwsDeclarations));
 
         return new MethodProcessor(className, accessHandler, codeUnitBuilder, declarationHandler);
+    }
+
+    private Collection<String> fullyQualifiedClassNamesOf(List<JavaClassDescriptor> classDescriptors) {
+        ImmutableList.Builder<String> result = ImmutableList.builder();
+        for (JavaClassDescriptor classDescriptor : classDescriptors) {
+            result.add(classDescriptor.getFullyQualifiedClassName());
+        }
+        return result.build();
     }
 
     private List<JavaClassDescriptor> typesFrom(String[] throwsDeclarations) {
@@ -527,6 +537,8 @@ class JavaClassProcessor extends ClassVisitor {
         void onDeclaredClassObject(String typeName);
 
         void onDeclaredInstanceofCheck(String typeName);
+
+        void onDeclaredThrowsClause(Collection<String> exceptionTypeNames);
     }
 
     interface AccessHandler {
