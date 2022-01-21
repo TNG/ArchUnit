@@ -1551,6 +1551,19 @@ public class JavaClass
         return formatNamesOf(paramTypes);
     }
 
+    /**
+     * @return all throws declarations on any method or constructor of this class
+     *         (e.g. {@code void method() throws SomeException})
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<ThrowsDeclaration<? extends JavaCodeUnit>> getThrowsDeclarations() {
+        ImmutableSet.Builder<ThrowsDeclaration<? extends JavaCodeUnit>> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : getCodeUnits()) {
+            result.addAll(codeUnit.getThrowsClause());
+        }
+        return result.build();
+    }
+
     private static class Superclass {
         private static final Superclass ABSENT = new Superclass(Optional.<JavaType>empty());
 
