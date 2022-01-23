@@ -1261,7 +1261,7 @@ class ExamplesIntegrationTest {
     }
 
     private static MessageAssertionChain.Link classesContaining(final Class<?>... classes) {
-        final String expectedLine = String.format("there is/are %d element(s) in classes %s", classes.length, formatNamesOf(classes));
+        final String expectedLine = String.format("there is/are %d element(s) in %s", classes.length, formatNamesOf(classes));
         return new MessageAssertionChain.Link() {
             @Override
             public Result filterMatching(List<String> lines) {

@@ -1695,7 +1695,7 @@ public class ClassesShouldTest {
     public void containNumberOfElements_fails_on_mismatching_predicate() {
         assertThatRule(classes().should().containNumberOfElements(DescribedPredicate.<Integer>alwaysFalse()))
                 .checking(importClasses(String.class, Integer.class))
-                .hasOnlyViolations("there is/are 2 element(s) in classes [java.lang.Integer, java.lang.String]");
+                .hasOnlyViolations("there is/are 2 element(s) in [java.lang.Integer, java.lang.String]");
     }
 
     @DataProvider

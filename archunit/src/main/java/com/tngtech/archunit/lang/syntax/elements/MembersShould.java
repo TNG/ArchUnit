@@ -473,4 +473,12 @@ public interface MembersShould<CONJUNCTION extends MembersShouldConjunction<?>> 
      */
     @PublicAPI(usage = ACCESS)
     ClassesThat<CONJUNCTION> beDeclaredInClassesThat();
+
+    /**
+     * Asserts that the number of members checked by this rule conforms to the supplied predicate.
+     *
+     * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
+     */
+    @PublicAPI(usage = ACCESS)
+    CONJUNCTION containNumberOfElements(DescribedPredicate<? super Integer> predicate);
 }
