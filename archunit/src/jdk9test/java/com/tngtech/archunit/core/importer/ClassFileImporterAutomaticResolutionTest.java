@@ -518,6 +518,26 @@ public class ClassFileImporterAutomaticResolutionTest {
         assertThatType(throwsDeclaration.getRawType()).matches(InterruptedException.class);
     }
 
+    @Test
+    public void automatically_resolves_array_component_types() {
+        @SuppressWarnings("unused")
+        class Origin {
+            String[] oneDim;
+
+            File[][] twoDim;
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClass(Origin.class);
+
+        JavaClass componentType = javaClass.getField("oneDim").getRawType().getComponentType();
+        assertThat(componentType).isFullyImported(true);
+        assertThatType(componentType).matches(String.class);
+
+        componentType = javaClass.getField("twoDim").getRawType().getComponentType().getComponentType();
+        assertThat(componentType).isFullyImported(true);
+        assertThatType(componentType).matches(File.class);
+    }
+
     @MetaAnnotatedAnnotation
     private static class MetaAnnotatedClass {
     }

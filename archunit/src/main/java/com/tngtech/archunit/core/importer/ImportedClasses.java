@@ -73,8 +73,19 @@ class ImportedClasses {
     private JavaClass resolve(String typeName) {
         Optional<JavaClass> resolved = resolver.tryResolve(typeName);
         JavaClass javaClass = resolved.isPresent() ? resolved.get() : stubClassOf(typeName);
+        if (javaClass.isArray()) {
+            ensureAllComponentTypesPresent(javaClass);
+        }
         allClasses.put(typeName, javaClass);
         return javaClass;
+    }
+
+    private void ensureAllComponentTypesPresent(JavaClass javaClass) {
+        JavaClassDescriptor current = JavaClassDescriptor.From.javaClass(javaClass);
+        while (current.tryGetComponentType().isPresent()) {
+            current = current.tryGetComponentType().get();
+            ensurePresent(current.getFullyQualifiedClassName());
+        }
     }
 
     Collection<JavaClass> getAllWithOuterClassesSortedBeforeInnerClasses() {
