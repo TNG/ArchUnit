@@ -93,6 +93,9 @@ compileJdk9mainJava.with {
 
     destinationDir = compileJava.destinationDir
 }
+javadoc.dependsOn(compileJdk9mainJava)
+spotbugsMain.dependsOn(compileJdk9mainJava)
+compileTestJava.dependsOn(compileJdk9mainJava)
 
 compileJdk9testJava.with {
     ext.minimumJavaVersion = JavaVersion.VERSION_1_9
