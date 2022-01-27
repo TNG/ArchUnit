@@ -1,6 +1,6 @@
 plugins {
     id 'archunit.base-conventions'
-    id 'com.github.johnrengelman.shadow' version '6.1.0' apply false
+    id 'com.github.johnrengelman.shadow' version '7.1.2' apply false
     id 'com.github.spotbugs' version '4.7.9' apply false
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0" apply false
     id "com.diffplug.spotless" version "6.0.0" apply false
@@ -79,7 +79,7 @@ ext {
     ]
 
     minSupportedJavaVersion = JavaVersion.VERSION_1_7
-    maxSupportedJavaVersion = JavaVersion.VERSION_16
+    maxSupportedJavaVersion = JavaVersion.VERSION_17
     isTestBuild = project.hasProperty('testJavaVersion')
     configuredTestJavaVersion = project.findProperty('testJavaVersion')?.toString()?.with {JavaVersion.toVersion(it) }
     assert configuredTestJavaVersion <= maxSupportedJavaVersion :
