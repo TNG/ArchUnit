@@ -120,14 +120,6 @@ task jdk15Test(type: Test) {
     testClassesDirs = sourceSets.jdk15test.output.classesDirs
     classpath = sourceSets.jdk15test.runtimeClasspath
     jvmArgs += "--enable-preview"
-
-    // workaround for issue in Gradle 6, see https://github.com/gradle/gradle/issues/14714
-    exclude '**/ClassFileImporterRecordsTest\$*RecordToImport.class'
-    exclude '**/GivenClassesThatRecordsTest\$*SomeRecord.class'
-    exclude '**/GivenMembersDeclaredInClassesThatRecordsTest\$*SomeRecord.class'
-    exclude '**/ShouldClassesThatRecordsTest\$*SomeRecord.class'
-    exclude '**/ShouldOnlyByClassesThatRecordsTest\$*RecordAccessingRecord.class'
-    exclude '**/ShouldOnlyByClassesThatRecordsTest\$*SomeRecord.class'
 }
 
 assemble.dependsOn compileJdk9mainJava
