@@ -2,11 +2,13 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.nio.Buffer;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructor;
@@ -36,6 +38,7 @@ import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.OTHER_VAL
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.SOME_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters.methodWithOneAnnotatedParameterWithTwoAnnotations;
 import static com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.methodAnnotatedWithAnnotationFromParentPackage;
+import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
@@ -344,6 +347,27 @@ public class ClassFileImporterAutomaticResolutionTest {
         JavaConstructorReference reference = getOnlyElement(javaClass.getMethod("resolvesConstructorReferenceTargetOwner").getConstructorReferencesFromSelf());
 
         assertThat(reference.getTargetOwner()).isFullyImported(true);
+    }
+
+    @Test
+    public void never_reports_stub_classes_as_fully_imported() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            Serializable withStubType;
+        }
+
+        JavaClass javaClass = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return new ClassFileImporter().importClass(SomeClass.class);
+        });
+
+        JavaClass stubType = javaClass.getField("withStubType").getRawType();
+
+        // if we don't resolve the class from the classpath we don't know if it's an interface
+        assertThat(stubType).isInterface(false);
+        // then we also don't want to claim this class is fully imported, even though it went through the
+        // resolution steps to complete the hierarchy, etc.
+        assertThat(stubType).isFullyImported(false);
     }
 
     @MetaAnnotatedAnnotation

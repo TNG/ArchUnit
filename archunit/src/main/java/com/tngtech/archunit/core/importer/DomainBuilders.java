@@ -431,6 +431,7 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaClassBuilder {
+        private final boolean stub;
         private Optional<SourceDescriptor> sourceDescriptor = Optional.empty();
         private Optional<String> sourceFileName = Optional.empty();
         private JavaClassDescriptor descriptor;
@@ -443,6 +444,11 @@ public final class DomainBuilders {
         private Set<JavaModifier> modifiers = new HashSet<>();
 
         JavaClassBuilder() {
+            this(false);
+        }
+
+        private JavaClassBuilder(boolean stub) {
+            this.stub = stub;
         }
 
         JavaClassBuilder withSourceDescriptor(SourceDescriptor sourceDescriptor) {
@@ -540,6 +546,14 @@ public final class DomainBuilders {
 
         public Set<JavaModifier> getModifiers() {
             return modifiers;
+        }
+
+        public boolean isStub() {
+            return stub;
+        }
+
+        static JavaClassBuilder forStub() {
+            return new JavaClassBuilder(true);
         }
     }
 
