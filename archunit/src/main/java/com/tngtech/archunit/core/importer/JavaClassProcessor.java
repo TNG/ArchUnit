@@ -503,44 +503,6 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-    interface DeclarationHandler {
-        boolean isNew(String className);
-
-        void onNewClass(String className, Optional<String> superclassName, List<String> interfaceNames);
-
-        void onDeclaredTypeParameters(DomainBuilders.JavaClassTypeParametersBuilder typeParametersBuilder);
-
-        void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder);
-
-        void onGenericInterfaces(List<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders);
-
-        void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder, String fieldTypeName);
-
-        void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames);
-
-        void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder, Collection<String> rawParameterTypeNames, String rawReturnTypeName);
-
-        void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder);
-
-        void onDeclaredClassAnnotations(Set<JavaAnnotationBuilder> annotationBuilders);
-
-        void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotations);
-
-        void onDeclaredAnnotationValueType(String valueTypeName);
-
-        void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, ValueBuilder valueBuilder);
-
-        void registerEnclosingClass(String ownerName, String enclosingClassName);
-
-        void registerEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit);
-
-        void onDeclaredClassObject(String typeName);
-
-        void onDeclaredInstanceofCheck(String typeName);
-
-        void onDeclaredThrowsClause(Collection<String> exceptionTypeNames);
-    }
-
     interface AccessHandler {
         void handleFieldInstruction(int opcode, String owner, String name, String desc);
 
