@@ -1,14 +1,22 @@
 package com.tngtech.archunit.core.importer.resolvers;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.ArchUnitException.ClassResolverConfigurationException;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.Factory.NoOpClassResolver;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
+import com.tngtech.archunit.testutil.ContextClassLoaderRule;
+import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -16,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static com.tngtech.archunit.testutil.TestUtils.uriOf;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClassResolverFactoryTest {
@@ -23,6 +32,10 @@ public class ClassResolverFactoryTest {
     public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+    @Rule
+    public final OutsideOfClassPathRule outsideOfClassPathRule = new OutsideOfClassPathRule();
+    @Rule
+    public final ContextClassLoaderRule contextClassLoaderRule = new ContextClassLoaderRule();
 
     private final ClassResolver.Factory resolverFactory = new ClassResolver.Factory();
 
@@ -101,6 +114,25 @@ public class ClassResolverFactoryTest {
         thrown.expect(causeWithMessageContaining("bummer"));
 
         resolverFactory.create();
+    }
+
+    @Test
+    public void loads_resolver_from_context_ClassLoader() throws IOException {
+        String resolverPackageName = "com.tngtech.archunit.core.importer.resolvers.testclasses.someresolver";
+        String resolverClassName = resolverPackageName + ".SomeResolver";
+        ArchConfiguration.get().setProperty("classResolver", resolverClassName);
+
+        Path targetDir = outsideOfClassPathRule.setUp(
+                Paths.get(uriOf(getClass())).getParent().resolve("testclasses").resolve("someresolver").toUri().toURL(),
+                Splitter.on(".").splitToList(resolverPackageName)
+        );
+
+        URLClassLoader classLoaderThatKnowsResolver = new URLClassLoader(new URL[]{targetDir.toUri().toURL()}, getClass().getClassLoader());
+        Thread.currentThread().setContextClassLoader(classLoaderThatKnowsResolver);
+
+        ClassResolver resolver = resolverFactory.create();
+
+        assertThat(resolver.getClass().getName()).isEqualTo(resolverClassName);
     }
 
     private void expectWrongConstructorException(Class<?> resolverClass, String params) {

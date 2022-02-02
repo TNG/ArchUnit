@@ -23,4 +23,15 @@ public class ClassLoaders {
         ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         return contextClassLoader != null ? contextClassLoader : clazz.getClassLoader();
     }
+
+    @ResolvesTypesViaReflection
+    @MayResolveTypesViaReflection(reason = "This is just an utility method. Callers will be checked recursively for @MayResolveTypesViaReflection")
+    public static Class<?> loadClass(String className) throws ClassNotFoundException {
+        try {
+            return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException e) {
+            //fall through
+        }
+        return Class.forName(className);
+    }
 }

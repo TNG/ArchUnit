@@ -19,6 +19,7 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.ClassLoaders;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import org.junit.platform.engine.DiscoverySelector;
 
@@ -76,7 +77,7 @@ public final class FieldSelector implements DiscoverySelector {
     @MayResolveTypesViaReflection(reason = "Within the ArchUnitTestEngine we may resolve types via reflection, since they are needed anyway")
     private static Class<?> classForName(String className) {
         try {
-            return Class.forName(className);
+            return ClassLoaders.loadClass(className);
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException("Could not load requested class " + className, e);
         }

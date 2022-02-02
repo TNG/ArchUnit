@@ -24,6 +24,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import com.tngtech.archunit.base.ClassLoaders;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
@@ -103,7 +104,7 @@ class ElementResolver {
     @MayResolveTypesViaReflection(reason = "Within the ArchUnitTestEngine we may resolve types via reflection, since they are needed anyway")
     private Class<?> classOf(UniqueId.Segment segment) {
         try {
-            return Class.forName(segment.getValue());
+            return ClassLoaders.loadClass(segment.getValue());
         } catch (ClassNotFoundException e) {
             throw new ArchTestInitializationException(e, "Failed to load class from %s segment %s",
                     UniqueId.class.getSimpleName(), segment);
