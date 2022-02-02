@@ -27,6 +27,7 @@ class DependencyResolutionProcess {
     private static final int maxRunsForMemberTypes = 1;
     private static final int maxRunsForAccessesToTypes = 1;
     private static final int maxRunsForSupertypes = -1;
+    private static final int maxRunsForEnclosingTypes = -1;
     private static final int maxRunsForAnnotationTypes = -1;
 
     private Set<String> currentTypeNames = new HashSet<>();
@@ -60,6 +61,12 @@ class DependencyResolutionProcess {
     void registerSupertypes(Collection<String> typeNames) {
         for (String typeName : typeNames) {
             registerSupertype(typeName);
+        }
+    }
+
+    void registerEnclosingType(String typeName) {
+        if (runNumberHasNotExceeded(maxRunsForEnclosingTypes)) {
+            currentTypeNames.add(typeName);
         }
     }
 

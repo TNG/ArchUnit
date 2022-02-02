@@ -538,6 +538,42 @@ public class ClassFileImporterAutomaticResolutionTest {
         assertThatType(componentType).matches(File.class);
     }
 
+    @Test
+    public void automatically_resolves_enclosing_classes() throws ClassNotFoundException {
+        @SuppressWarnings("unused")
+        class Outermost {
+            class LessOuter {
+                class LeastOuter {
+                    void call() {
+                        class LessInner {
+                            class Innermost {
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Class<?> lessInnerClass = Class.forName(Outermost.LessOuter.LeastOuter.class.getName() + "$1LessInner");
+        JavaClass innermost = new ClassFileImporter().importClass(Class.forName(lessInnerClass.getName() + "$Innermost"));
+
+        JavaClass lessInner = innermost.getEnclosingClass().get();
+        assertThat(lessInner).isFullyImported(true);
+        assertThatType(lessInner).matches(lessInnerClass);
+
+        JavaClass leastOuter = lessInner.getEnclosingClass().get();
+        assertThat(leastOuter).isFullyImported(true);
+        assertThatType(leastOuter).matches(Outermost.LessOuter.LeastOuter.class);
+
+        JavaClass lessOuter = leastOuter.getEnclosingClass().get();
+        assertThat(lessOuter).isFullyImported(true);
+        assertThatType(lessOuter).matches(Outermost.LessOuter.class);
+
+        JavaClass outermost = lessOuter.getEnclosingClass().get();
+        assertThat(outermost).isFullyImported(true);
+        assertThatType(outermost).matches(Outermost.class);
+    }
+
     @MetaAnnotatedAnnotation
     private static class MetaAnnotatedClass {
     }

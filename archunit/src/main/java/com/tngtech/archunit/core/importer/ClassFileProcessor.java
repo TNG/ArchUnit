@@ -168,6 +168,7 @@ class ClassFileProcessor {
         @Override
         public void registerEnclosingClass(String ownerName, String enclosingClassName) {
             importRecord.setEnclosingClass(ownerName, enclosingClassName);
+            dependencyResolutionProcess.registerEnclosingType(enclosingClassName);
         }
 
         @Override
