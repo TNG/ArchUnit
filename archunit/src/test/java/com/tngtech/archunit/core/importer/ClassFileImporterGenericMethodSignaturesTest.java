@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -20,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassesWithOnlyGenericTypeResolution;
 import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCodeUnit;
@@ -553,7 +555,10 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnConstructor.class,
-                Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class
+                Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class,
+                Outer.SomeInner.EvenMoreInnerDeclaringOwn.class,
+                Outer.SomeInner.class,
+                Outer.class
         );
     }
 
@@ -640,7 +645,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             @Override
             public JavaClasses call() {
                 ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter().importClasses(
+                return importClassesWithOnlyGenericTypeResolution(
                         Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnConstructor.class,
                         Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class);
             }
@@ -682,10 +687,12 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 }
             }
         }
-        String level3ClassName = Level1.class.getName() + "$1Level3";
+        Class<?> level3Class = Class.forName(Level1.class.getName() + "$1Level3");
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
-                Class.forName(level3ClassName + "$GenericSignatureOnConstructor"),
-                Class.forName(level3ClassName + "$GenericSignatureOnMethod"));
+                Class.forName(level3Class.getName() + "$GenericSignatureOnConstructor"),
+                Class.forName(level3Class.getName() + "$GenericSignatureOnMethod"),
+                level3Class,
+                Level1.class);
     }
 
     @Test
@@ -753,7 +760,9 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 Outer.Inner.GenericSignatureOnConstructor.class,
-                Outer.Inner.GenericSignatureOnMethod.class
+                Outer.Inner.GenericSignatureOnMethod.class,
+                Outer.Inner.class,
+                Outer.class
         );
     }
 
@@ -796,7 +805,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             @Override
             public JavaClasses call() {
                 ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter().importClasses(
+                return importClassesWithOnlyGenericTypeResolution(
                         Outer.Inner.GenericSignatureOnConstructor.class,
                         Outer.Inner.GenericSignatureOnMethod.class,
                         List.class);
@@ -1038,8 +1047,15 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 );
     }
 
-    private static Object[][] testCasesFromSameGenericSignatureOnConstructorAndMethod(Class<?> genericSignatureOnConstructor, Class<?> genericSignatureOnMethod) {
-        JavaClasses classes = new ClassFileImporter().importClasses(genericSignatureOnConstructor, genericSignatureOnMethod);
+    @SuppressWarnings("rawtypes")
+    private static Object[][] testCasesFromSameGenericSignatureOnConstructorAndMethod(
+            Class<?> genericSignatureOnConstructor,
+            Class<?> genericSignatureOnMethod,
+            Class<?>... additionalClasses
+    ) {
+        JavaClasses classes = importClassesWithOnlyGenericTypeResolution(
+                FluentIterable.<Class>from(additionalClasses).append(genericSignatureOnConstructor, genericSignatureOnMethod).toArray(Class.class)
+        );
 
         return testForEach(
                 getOnlyElement(classes.get(genericSignatureOnConstructor).getConstructors()),

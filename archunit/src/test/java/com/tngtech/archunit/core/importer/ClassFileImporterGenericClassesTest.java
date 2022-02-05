@@ -18,6 +18,8 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassWithOnlyGenericTypeResolution;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassesWithOnlyGenericTypeResolution;
 import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
@@ -36,7 +38,7 @@ public class ClassFileImporterGenericClassesTest {
 
     @Test
     public void imports_empty_list_of_type_parameters_for_non_generic_class() {
-        JavaClass javaClass = new ClassFileImporter().importClass(getClass());
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(getClass());
 
         assertThat(javaClass.getTypeParameters()).as("type parameters of non generic class").isEmpty();
     }
@@ -47,7 +49,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterWithoutBound<T> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithSingleTypeParameterWithoutBound.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithSingleTypeParameterWithoutBound.class);
 
         assertThatType(javaClass).hasOnlyTypeParameter("T").withBoundsMatching(Object.class);
     }
@@ -58,7 +60,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithThreeTypeParametersWithoutBounds<A, B, C> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithThreeTypeParametersWithoutBounds.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithThreeTypeParametersWithoutBounds.class);
 
         assertThatType(javaClass).hasTypeParameters("A", "B", "C");
     }
@@ -69,7 +71,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterWithSimpleClassBound<T extends String> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithSingleTypeParameterWithSimpleClassBound.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithSingleTypeParameterWithSimpleClassBound.class);
 
         assertThatType(javaClass).hasOnlyTypeParameter("T").withBoundsMatching(String.class);
     }
@@ -80,7 +82,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithThreeTypeParametersWithSimpleClassBounds<A extends String, B extends System, C extends File> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithThreeTypeParametersWithSimpleClassBounds.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithThreeTypeParametersWithSimpleClassBounds.class);
 
         assertThatType(javaClass)
                 .hasTypeParameters("A", "B", "C")
@@ -95,7 +97,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterWithSimpleInterfaceBound<T extends Serializable> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithSingleTypeParameterWithSimpleInterfaceBound.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithSingleTypeParameterWithSimpleInterfaceBound.class);
 
         assertThatType(javaClass).hasOnlyTypeParameter("T").withBoundsMatching(Serializable.class);
     }
@@ -106,7 +108,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterWithMultipleSimpleClassAndInterfaceBounds<T extends String & Serializable & Runnable> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithSingleTypeParameterWithMultipleSimpleClassAndInterfaceBounds.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithSingleTypeParameterWithMultipleSimpleClassAndInterfaceBounds.class);
 
         assertThatType(javaClass).hasOnlyTypeParameter("T").withBoundsMatching(String.class, Serializable.class, Runnable.class);
     }
@@ -118,7 +120,7 @@ public class ClassFileImporterGenericClassesTest {
                 A extends String & Serializable, B extends System & Runnable, C extends File & Serializable & Closeable> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithThreeTypeParametersWithMultipleSimpleClassAndInterfaceBounds.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithThreeTypeParametersWithMultipleSimpleClassAndInterfaceBounds.class);
 
         assertThatType(javaClass)
                 .hasTypeParameters("A", "B", "C")
@@ -133,7 +135,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterWithGenericClassBoundAssignedToConcreteClass<T extends ClassParameterWithSingleTypeParameter<String>> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToConcreteClass.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToConcreteClass.class);
 
         assertThatType(javaClass).hasOnlyTypeParameter("T")
                 .withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(String.class));
@@ -145,7 +147,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType<T extends ClassParameterWithSingleTypeParameter<String[]>> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType.class);
 
         assertThatType(javaClass).hasOnlyTypeParameter("T")
                 .withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(String[].class));
@@ -157,7 +159,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType<T extends ClassParameterWithSingleTypeParameter<int[]>> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithSingleTypeParameterWithGenericClassBoundAssignedToArrayType.class);
 
         assertThatType(javaClass).hasOnlyTypeParameter("T")
                 .withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(int[].class));
@@ -172,7 +174,7 @@ public class ClassFileImporterGenericClassesTest {
                 C extends InterfaceParameterWithSingleTypeParameter<String>> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithMultipleTypeParametersWithGenericClassOrInterfaceBoundsAssignedToConcreteTypes.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithMultipleTypeParametersWithGenericClassOrInterfaceBoundsAssignedToConcreteTypes.class);
 
         assertThatType(javaClass).hasTypeParameters("A", "B", "C")
                 .hasTypeParameter("A").withBoundsMatching(parameterizedType(ClassParameterWithSingleTypeParameter.class).withTypeArguments(File.class))
@@ -188,7 +190,7 @@ public class ClassFileImporterGenericClassesTest {
                 B extends Map<String, Serializable> & Iterable<File> & Function<Integer, Long>> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithTwoTypeParametersWithMultipleGenericClassAndInterfaceBoundsAssignedToConcreteTypes.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithTwoTypeParametersWithMultipleGenericClassAndInterfaceBoundsAssignedToConcreteTypes.class);
 
         assertThatType(javaClass).hasTypeParameters("A", "B")
                 .hasTypeParameter("A")
@@ -208,7 +210,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithSingleTypeParameterBoundByTypeWithUnboundWildcard<T extends List<?>> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithSingleTypeParameterBoundByTypeWithUnboundWildcard.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithSingleTypeParameterBoundByTypeWithUnboundWildcard.class);
 
         assertThatType(javaClass)
                 .hasTypeParameter("T").withBoundsMatching(parameterizedType(List.class).withWildcardTypeParameter());
@@ -232,7 +234,7 @@ public class ClassFileImporterGenericClassesTest {
     @Test
     @UseDataProvider
     public void test_imports_single_type_bound_with_upper_bound_wildcard(Class<?> classWithWildcard, Class<?> expectedUpperBound) {
-        JavaClass javaClass = new ClassFileImporter().importClass(classWithWildcard);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(classWithWildcard);
 
         assertThatType(javaClass)
                 .hasTypeParameter("T").withBoundsMatching(parameterizedType(List.class).withWildcardTypeParameterWithUpperBound(expectedUpperBound));
@@ -256,7 +258,7 @@ public class ClassFileImporterGenericClassesTest {
     @Test
     @UseDataProvider
     public void test_imports_single_type_bound_with_lower_bound_wildcard(Class<?> classWithWildcard, Class<?> expectedLowerBound) {
-        JavaClass javaClass = new ClassFileImporter().importClass(classWithWildcard);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(classWithWildcard);
 
         assertThatType(javaClass)
                 .hasTypeParameter("T").withBoundsMatching(parameterizedType(List.class).withWildcardTypeParameterWithLowerBound(expectedLowerBound));
@@ -268,7 +270,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithMultipleTypeParametersBoundByTypesWithDifferentBounds<A extends Map<? extends Serializable, ? super File>, B extends Reference<? super String> & Map<?, ?>> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithMultipleTypeParametersBoundByTypesWithDifferentBounds.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithMultipleTypeParametersBoundByTypesWithDifferentBounds.class);
 
         assertThatType(javaClass).hasTypeParameters("A", "B")
                 .hasTypeParameter("A")
@@ -297,7 +299,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithTypeParameterWithTypeVariableBound<U extends T, T extends String, V extends T> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithTypeParameterWithTypeVariableBound.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithTypeParameterWithTypeVariableBound.class);
 
         assertThatType(javaClass).hasTypeParameters("U", "T", "V")
                 .hasTypeParameter("U").withBoundsMatching(typeVariable("T").withUpperBounds(String.class))
@@ -317,7 +319,12 @@ public class ClassFileImporterGenericClassesTest {
             }
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class);
+        JavaClass javaClass = importClassesWithOnlyGenericTypeResolution(
+                ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class,
+                ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.class,
+                ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.class,
+                ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.class
+        ).get(ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class);
 
         assertThatType(javaClass).hasTypeParameters("MOST_INNER1", "MOST_INNER2")
                 .hasTypeParameter("MOST_INNER1")
@@ -341,7 +348,7 @@ public class ClassFileImporterGenericClassesTest {
             }
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithTypeParameterBoundByInnerClass.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithTypeParameterBoundByInnerClass.class);
 
         assertThatType(javaClass).hasTypeParameters("T", "U")
                 .hasTypeParameter("T")
@@ -368,7 +375,7 @@ public class ClassFileImporterGenericClassesTest {
             @Override
             public JavaClass call() {
                 ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter().importClass(
+                return importClassWithOnlyGenericTypeResolution(
                         ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class);
             }
         });
@@ -394,9 +401,10 @@ public class ClassFileImporterGenericClassesTest {
             }
         }
 
-        Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3$1Level5");
+        Class<?> middleClass = Class.forName(Level1.class.getName() + "$1Level3");
+        Class<?> innermostClass = Class.forName(middleClass.getName() + "$1Level5");
 
-        JavaClass javaClass = new ClassFileImporter().importClass(innermostClass);
+        JavaClass javaClass = importClassesWithOnlyGenericTypeResolution(innermostClass, middleClass, Level1.class).get(innermostClass);
 
         assertThatType(javaClass).hasTypeParameters("T51", "T52")
                 .hasTypeParameter("T51")
@@ -415,7 +423,7 @@ public class ClassFileImporterGenericClassesTest {
         class ClassWithWildcardWithTypeVariableBounds<T extends String, U extends List<? extends T>, V extends List<? super T>> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithWildcardWithTypeVariableBounds.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithWildcardWithTypeVariableBounds.class);
 
         assertThatType(javaClass).hasTypeParameters("T", "U", "V")
                 .hasTypeParameter("U")
@@ -438,7 +446,11 @@ public class ClassFileImporterGenericClassesTest {
             }
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class);
+        JavaClass javaClass = importClassesWithOnlyGenericTypeResolution(
+                ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class,
+                ClassWithWildcardWithTypeVariableBounds.Inner.class,
+                ClassWithWildcardWithTypeVariableBounds.class
+        ).get(ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class);
 
         assertThatType(javaClass).hasTypeParameters("MOST_INNER1", "MOST_INNER2")
                 .hasTypeParameter("MOST_INNER1")
@@ -467,8 +479,7 @@ public class ClassFileImporterGenericClassesTest {
             @Override
             public JavaClass call() {
                 ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter()
-                        .importClasses(ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class, List.class)
+                return importClassesWithOnlyGenericTypeResolution(ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class, List.class)
                         .get(ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class);
             }
         });
@@ -499,7 +510,7 @@ public class ClassFileImporterGenericClassesTest {
                 RAW extends List> {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithComplexTypeParameters.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithComplexTypeParameters.class);
 
         assertThatType(javaClass)
                 .hasTypeParameter("A")
@@ -553,7 +564,7 @@ public class ClassFileImporterGenericClassesTest {
                 > {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithComplexTypeParametersWithConcreteArrayBounds.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithComplexTypeParametersWithConcreteArrayBounds.class);
 
         assertThatType(javaClass)
                 .hasTypeParameter("A")
@@ -585,7 +596,7 @@ public class ClassFileImporterGenericClassesTest {
                 > {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithTypeParameterWithParameterizedArrayBounds.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithTypeParameterWithParameterizedArrayBounds.class);
 
         assertThatType(javaClass)
                 .hasTypeParameter("T")
@@ -614,7 +625,7 @@ public class ClassFileImporterGenericClassesTest {
                 > {
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithComplexTypeParametersWithGenericArrayBounds.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(ClassWithComplexTypeParametersWithGenericArrayBounds.class);
 
         assertThatType(javaClass)
                 .hasTypeParameter("A")

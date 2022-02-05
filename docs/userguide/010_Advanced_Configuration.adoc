@@ -79,6 +79,49 @@ classResolver.args=myArgOne,myArgTwo
 
 For further details, compare the sources of `SelectedClassResolverFromClasspath`.
 
+==== Configuring the Number of Resolution Iterations
+
+It is also possible to apply a more fine-grained configuration to the import dependency resolution behavior.
+
+In particular, the ArchUnit importer distinguishes 6 types of import dependencies:
+
+- member types (e.g. the type of a field of a class, type of a method parameter, etc.)
+- accesses to types (e.g. a method calls another method of a different class)
+- supertypes (i.e. superclasses that are extended and interfaces that are implemented)
+- enclosing types (i.e. outer classes of nested classes)
+- annotation types, including parameters of annotations
+- generic signature types (i.e. types that comprise a parameterized type, like `List` and `String` for `List<String>`)
+
+For each of these dependency types it is possible to configure the maximum number of iterations to traverse the dependencies.
+E.g. let us assume we configure the maximum iterations as `2` for member types and we have a class `A` that declares a field of type `B` which in turn holds a field of type `C`.
+On the first run we would automatically resolve the type `B` as a dependency of `A`.
+On the second run we would then also resolve `C` as a member type dependency of `B`.
+
+The configuration parameters with their defaults are the following:
+
+[source,options="nowrap"]
+.archunit.properties
+----
+import.dependencyResolutionProcess.maxIterationsForMemberTypes = 1
+import.dependencyResolutionProcess.maxIterationsForAccessesToTypes = 1
+import.dependencyResolutionProcess.maxIterationsForSupertypes = -1
+import.dependencyResolutionProcess.maxIterationsForEnclosingTypes = -1
+import.dependencyResolutionProcess.maxIterationsForAnnotationTypes = -1
+import.dependencyResolutionProcess.maxIterationsForGenericSignatureTypes = -1
+----
+
+Note that setting a property to a negative value (e.g. `-1`) will not stop the resolution until all types for the given sort of dependency have been resolved.
+E.g. for generic type signatures a value of `-1` will by default lead to all types comprising the signature `Map<?, List<? extends String>>` (that is `Map`, `List` and `String`) to be automatically resolved.
+
+Setting a property to `0` will disable the automatic resolution,
+which can lead to types being only partially imported or stubbed.
+For these types the information is likely not complete or even wrong (e.g. an interface might be reported as class if the bytecode was never analyzed, or annotations might be missing).
+
+On the other hand, bigger (or negative) values can have a massive performance impact.
+The defaults should provide a reasonable behavior.
+They include the class graph for all types that are used by members or accesses directly and cut the resolution at that point.
+However, relevant information for these types is fully imported, no matter how many iterations it takes (e.g. supertypes or generic signatures).
+
 === MD5 Sums of Classes
 
 Sometimes it can be valuable to record the MD5 sums of classes being imported to track

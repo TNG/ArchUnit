@@ -16,6 +16,8 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassWithOnlyGenericTypeResolution;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassesWithOnlyGenericTypeResolution;
 import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
@@ -38,7 +40,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             NonGenericFieldType field;
         }
 
-        JavaType fieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType fieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(fieldType).as("generic field type").matches(NonGenericFieldType.class);
     }
@@ -53,7 +55,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<String> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type")
                 .hasErasure(GenericFieldType.class)
@@ -70,7 +72,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType field;
         }
 
-        JavaType rawGenericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType rawGenericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(rawGenericFieldType).as("raw generic field type").matches(GenericFieldType.class);
     }
@@ -85,7 +87,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<String[]> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type")
                 .hasErasure(GenericFieldType.class)
@@ -102,7 +104,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<int[]> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type")
                 .hasErasure(GenericFieldType.class)
@@ -119,7 +121,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<String, Serializable, File> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type")
                 .hasErasure(GenericFieldType.class)
@@ -136,7 +138,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<ClassParameterWithSingleTypeParameter<String>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -157,7 +159,7 @@ public class ClassFileImporterGenericFieldTypesTest {
                     InterfaceParameterWithSingleTypeParameter<String>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -179,7 +181,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<?> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(wildcardType());
     }
@@ -194,7 +196,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<ClassParameterWithSingleTypeParameter<?>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -214,7 +216,7 @@ public class ClassFileImporterGenericFieldTypesTest {
                     ClassParameterWithSingleTypeParameter<? super File>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -236,7 +238,7 @@ public class ClassFileImporterGenericFieldTypesTest {
                     ClassParameterWithSingleTypeParameter<Reference<? super String>>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -257,7 +259,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             T field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type")
                 .isInstanceOf(JavaTypeVariable.class)
@@ -274,7 +276,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<OF_CLASS> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(typeVariable("OF_CLASS"));
     }
@@ -289,7 +291,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<ClassParameterWithSingleTypeParameter<OF_CLASS>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -307,7 +309,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<ClassParameterWithSingleTypeParameter<OF_CLASS>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -330,8 +332,11 @@ public class ClassFileImporterGenericFieldTypesTest {
             }
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.SomeClass.class)
-                .getField("field").getType();
+        JavaType genericFieldType = importClassesWithOnlyGenericTypeResolution(
+                OuterWithTypeParameter.SomeInner.SomeClass.class,
+                OuterWithTypeParameter.SomeInner.class,
+                OuterWithTypeParameter.class
+        ).get(OuterWithTypeParameter.SomeInner.SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 typeVariable("OUTER").withUpperBounds(String.class)
@@ -356,7 +361,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             @Override
             public JavaType call() {
                 ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.SomeClass.class)
+                return importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class)
                         .getField("field").getType();
             }
         });
@@ -378,8 +383,9 @@ public class ClassFileImporterGenericFieldTypesTest {
         }
 
         Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3");
-        JavaType genericFieldType = new ClassFileImporter()
-                .importClass(innermostClass).getField("field").getType();
+        JavaType genericFieldType = importClassesWithOnlyGenericTypeResolution(
+                innermostClass, Level1.class
+        ).get(innermostClass).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type")
                 .matches(
@@ -400,8 +406,7 @@ public class ClassFileImporterGenericFieldTypesTest {
                     ClassParameterWithSingleTypeParameter<? super SECOND>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter()
-                .importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -429,8 +434,11 @@ public class ClassFileImporterGenericFieldTypesTest {
             }
         }
 
-        JavaType genericFieldType = new ClassFileImporter()
-                .importClass(OuterWithTypeParameter.SomeInner.SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassesWithOnlyGenericTypeResolution(
+                OuterWithTypeParameter.SomeInner.SomeClass.class,
+                OuterWithTypeParameter.SomeInner.class,
+                OuterWithTypeParameter.class
+        ).get(OuterWithTypeParameter.SomeInner.SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -463,8 +471,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             @Override
             public JavaType call() {
                 ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter()
-                        .importClasses(OuterWithTypeParameter.SomeInner.SomeClass.class, ClassParameterWithSingleTypeParameter.class)
+                return importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class, ClassParameterWithSingleTypeParameter.class)
                         .get(OuterWithTypeParameter.SomeInner.SomeClass.class).getField("field").getType();
             }
         });
@@ -498,7 +505,7 @@ public class ClassFileImporterGenericFieldTypesTest {
                     Comparable<SomeClass<FIRST, SECOND>>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         // @formatter:off
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
@@ -545,7 +552,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<Map<? super String, Map<Map<? super String, ?>, Serializable>>>[] field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).matches(
                 genericArray(
@@ -576,7 +583,7 @@ public class ClassFileImporterGenericFieldTypesTest {
                     Map<? super String[], Map<Map<? super String[][][], ?>, Serializable[][]>>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).hasActualTypeArguments(
                 parameterizedType(List.class).withTypeArguments(Serializable[].class),
@@ -601,7 +608,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             GenericFieldType<List<String>[], List<String[]>[][], List<String[][]>[][][]> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).hasActualTypeArguments(
                 genericArray(parameterizedTypeArrayName(List.class, String.class, 1)).withComponentType(
@@ -623,7 +630,7 @@ public class ClassFileImporterGenericFieldTypesTest {
             T[][] field2Dim;
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(SomeClass.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(SomeClass.class);
 
         assertThatType(javaClass.getField("field").getType()).as("generic field type")
                 .hasErasure(String[].class)
@@ -650,7 +657,7 @@ public class ClassFileImporterGenericFieldTypesTest {
                     Map<? super Y[], Map<Map<? super Y[][][], ?>, X[][]>>> field;
         }
 
-        JavaType genericFieldType = new ClassFileImporter().importClass(SomeClass.class).getField("field").getType();
+        JavaType genericFieldType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getField("field").getType();
 
         assertThatType(genericFieldType).hasActualTypeArguments(
                 parameterizedType(List.class).withTypeArguments(

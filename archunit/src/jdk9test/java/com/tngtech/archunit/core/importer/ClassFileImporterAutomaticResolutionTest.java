@@ -32,6 +32,7 @@ import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
+import com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.ImporterWithAdjustedResolutionRuns;
 import com.tngtech.archunit.core.importer.testexamples.SomeAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedclassimport.ClassWithUnimportedAnnotation;
 import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters;
@@ -50,6 +51,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ENCLOSING_TYPES_PROPERTY_NAME;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.OTHER_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.SomeEnum.SOME_VALUE;
 import static com.tngtech.archunit.core.importer.testexamples.annotatedparameters.ClassWithMethodWithAnnotatedParameters.methodWithOneAnnotatedParameterWithTwoAnnotations;
@@ -73,7 +80,8 @@ public class ClassFileImporterAutomaticResolutionTest {
             String field;
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(FieldTypeWithoutAnyFurtherReference.class);
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME)
+                .importClass(FieldTypeWithoutAnyFurtherReference.class);
 
         assertThat(javaClass.getField("field").getRawType()).as("field type").isFullyImported(true);
     }
@@ -86,7 +94,8 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(ConstructorParameterTypesWithoutAnyFurtherReference.class);
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME)
+                .importClass(ConstructorParameterTypesWithoutAnyFurtherReference.class);
 
         JavaConstructor constructor = javaClass.getConstructor(getClass(), FileSystem.class, Buffer.class);
         assertThat(constructor.getRawParameterTypes().get(0)).as("constructor parameter type").isFullyImported(true);
@@ -102,7 +111,8 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(MemberTypesWithoutAnyFurtherReference.class);
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME)
+                .importClass(MemberTypesWithoutAnyFurtherReference.class);
 
         assertThat(javaClass.getMethod("returnType").getRawReturnType()).as("method return type").isFullyImported(true);
     }
@@ -115,7 +125,8 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(MemberTypesWithoutAnyFurtherReference.class);
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME)
+                .importClass(MemberTypesWithoutAnyFurtherReference.class);
 
         JavaMethod method = javaClass.getMethod("methodParameters", Path.class, PrintStream.class);
         assertThat(method.getRawParameterTypes().get(0)).as("method parameter type").isFullyImported(true);
@@ -124,7 +135,8 @@ public class ClassFileImporterAutomaticResolutionTest {
 
     @Test
     public void automatically_resolves_class_hierarchy() {
-        JavaClass child = new ClassFileImporter().importClass(Child.class);
+        JavaClass child = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME)
+                .importClass(Child.class);
 
         JavaClass parent = child.getRawSuperclass().get();
         assertThat(parent).isFullyImported(true);
@@ -144,7 +156,8 @@ public class ClassFileImporterAutomaticResolutionTest {
 
     @Test
     public void automatically_resolves_class_annotations() {
-        JavaClass clazz = new ClassFileImporter().importClass(ClassWithUnimportedAnnotation.class);
+        JavaClass clazz = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME)
+                .importClass(ClassWithUnimportedAnnotation.class);
 
         JavaAnnotation<?> annotation = clazz.getAnnotationOfType(SomeAnnotation.class.getName());
 
@@ -164,7 +177,8 @@ public class ClassFileImporterAutomaticResolutionTest {
 
     @Test
     public void automatically_resolves_field_annotations() {
-        JavaClass clazz = new ClassFileImporter().importClass(ClassWithAnnotatedFields.class);
+        JavaClass clazz = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME)
+                .importClass(ClassWithAnnotatedFields.class);
 
         JavaAnnotation<?> annotation = clazz.getField("fieldAnnotatedWithAnnotationFromParentPackage")
                 .getAnnotationOfType(SomeAnnotation.class.getName());
@@ -181,7 +195,8 @@ public class ClassFileImporterAutomaticResolutionTest {
 
     @Test
     public void automatically_resolves_method_annotations() {
-        JavaClass clazz = new ClassFileImporter().importClass(ClassWithAnnotatedMethods.class);
+        JavaClass clazz = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME)
+                .importClass(ClassWithAnnotatedMethods.class);
 
         JavaAnnotation<?> annotation = clazz.getMethod(methodAnnotatedWithAnnotationFromParentPackage)
                 .getAnnotationOfType(SomeAnnotation.class.getName());
@@ -198,7 +213,8 @@ public class ClassFileImporterAutomaticResolutionTest {
 
     @Test
     public void automatically_resolves_constructor_annotations() {
-        JavaClass clazz = new ClassFileImporter().importClass(ClassWithAnnotatedMethods.class);
+        JavaClass clazz = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME)
+                .importClass(ClassWithAnnotatedMethods.class);
 
         JavaAnnotation<?> annotation = clazz.getConstructor()
                 .getAnnotationOfType(MethodAnnotationWithEnumAndArrayValue.class.getName());
@@ -213,7 +229,8 @@ public class ClassFileImporterAutomaticResolutionTest {
 
     @Test
     public void automatically_resolves_parameter_annotations() {
-        JavaClass clazz = new ClassFileImporter().importClass(ClassWithMethodWithAnnotatedParameters.class);
+        JavaClass clazz = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME)
+                .importClass(ClassWithMethodWithAnnotatedParameters.class);
 
         JavaAnnotation<?> annotation = clazz.getMethod(methodWithOneAnnotatedParameterWithTwoAnnotations, String.class)
                 .getParameters().get(0)
@@ -231,7 +248,8 @@ public class ClassFileImporterAutomaticResolutionTest {
 
     @Test
     public void automatically_resolves_meta_annotation_types() {
-        JavaClass javaClass = new ClassFileImporter().importClass(MetaAnnotatedClass.class);
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME)
+                .importClass(MetaAnnotatedClass.class);
         JavaAnnotation<JavaClass> someAnnotation = javaClass.getAnnotationOfType(MetaAnnotatedAnnotation.class.getName());
         JavaAnnotation<JavaClass> someMetaAnnotation = someAnnotation.getRawType()
                 .getAnnotationOfType(SomeMetaAnnotation.class.getName());
@@ -245,13 +263,14 @@ public class ClassFileImporterAutomaticResolutionTest {
 
     @DataProvider
     public static Object[][] elementsAnnotatedWithSomeAnnotation() {
+        ImporterWithAdjustedResolutionRuns importer = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME);
         return testForEach(
-                new ClassFileImporter().importClass(MetaAnnotatedClass.class),
-                new ClassFileImporter().importClass(ClassWithMetaAnnotatedField.class).getField("metaAnnotatedField"),
-                new ClassFileImporter().importClass(ClassWithMetaAnnotatedMethod.class).getMethod("metaAnnotatedMethod"),
-                new ClassFileImporter().importClass(ClassWithMetaAnnotatedConstructor.class).getConstructor(),
-                getOnlyElement(new ClassFileImporter().importClass(ClassWithMetaAnnotatedConstructorParameter.class).getConstructor(String.class).getParameters()),
-                getOnlyElement(new ClassFileImporter().importClass(ClassWithMetaAnnotatedMethodParameter.class).getMethod("method", String.class).getParameters())
+                importer.importClass(MetaAnnotatedClass.class),
+                importer.importClass(ClassWithMetaAnnotatedField.class).getField("metaAnnotatedField"),
+                importer.importClass(ClassWithMetaAnnotatedMethod.class).getMethod("metaAnnotatedMethod"),
+                importer.importClass(ClassWithMetaAnnotatedConstructor.class).getConstructor(),
+                getOnlyElement(importer.importClass(ClassWithMetaAnnotatedConstructorParameter.class).getConstructor(String.class).getParameters()),
+                getOnlyElement(importer.importClass(ClassWithMetaAnnotatedMethodParameter.class).getMethod("method", String.class).getParameters())
         );
     }
 
@@ -307,7 +326,9 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        JavaFieldAccess access = getOnlyElement(new ClassFileImporter().importClass(Origin.class).getMethod("resolvesFieldAccessOwner").getFieldAccesses());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
+        JavaFieldAccess access = getOnlyElement(javaClass.getMethod("resolvesFieldAccessOwner").getFieldAccesses());
 
         assertThat(access.getTargetOwner()).isFullyImported(true);
     }
@@ -326,7 +347,9 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        JavaMethodCall call = getOnlyElement(new ClassFileImporter().importClass(Origin.class).getMethodCallsFromSelf());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
+        JavaMethodCall call = getOnlyElement(javaClass.getMethodCallsFromSelf());
 
         assertThat(call.getTargetOwner()).isFullyImported(true);
     }
@@ -345,7 +368,9 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        JavaMethodReference reference = getOnlyElement(new ClassFileImporter().importClass(Origin.class).getMethodReferencesFromSelf());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
+        JavaMethodReference reference = getOnlyElement(javaClass.getMethodReferencesFromSelf());
 
         assertThat(reference.getTargetOwner()).isFullyImported(true);
     }
@@ -361,7 +386,8 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(Origin.class);
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
         JavaConstructorCall call = getOnlyElement(javaClass.getMethod("resolvesConstructorCallTargetOwner").getConstructorCallsFromSelf());
 
         assertThat(call.getTargetOwner()).isFullyImported(true);
@@ -381,7 +407,8 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(Origin.class);
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
         JavaConstructorReference reference = getOnlyElement(javaClass.getMethod("resolvesConstructorReferenceTargetOwner").getConstructorReferencesFromSelf());
 
         assertThat(reference.getTargetOwner()).isFullyImported(true);
@@ -445,12 +472,13 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
+        ImporterWithAdjustedResolutionRuns importer = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME);
         return FluentIterable.concat(
-                nestedAnnotationValueTestCases(new ClassFileImporter().importClass(OnClass.class)),
-                nestedAnnotationValueTestCases(new ClassFileImporter().importClass(OnField.class).getField("field")),
-                nestedAnnotationValueTestCases(new ClassFileImporter().importClass(OnMethod.class).getMethod("method")),
-                nestedAnnotationValueTestCases(getOnlyElement(new ClassFileImporter().importClass(OnConstructor.class).getConstructors())),
-                nestedAnnotationValueTestCases(getOnlyElement(new ClassFileImporter().importClass(OnParameter.class).getConstructors()).getParameters().get(0))
+                nestedAnnotationValueTestCases(importer.importClass(OnClass.class)),
+                nestedAnnotationValueTestCases(importer.importClass(OnField.class).getField("field")),
+                nestedAnnotationValueTestCases(importer.importClass(OnMethod.class).getMethod("method")),
+                nestedAnnotationValueTestCases(getOnlyElement(importer.importClass(OnConstructor.class).getConstructors())),
+                nestedAnnotationValueTestCases(getOnlyElement(importer.importClass(OnParameter.class).getConstructors()).getParameters().get(0))
         ).toArray(Object[].class);
     }
 
@@ -491,7 +519,9 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        ReferencedClassObject classObject = getOnlyElement(new ClassFileImporter().importClass(Origin.class).getReferencedClassObjects());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
+        ReferencedClassObject classObject = getOnlyElement(javaClass.getReferencedClassObjects());
 
         assertThat(classObject.getRawType()).isFullyImported(true);
         assertThatType(classObject.getRawType()).matches(String.class);
@@ -506,7 +536,9 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        InstanceofCheck instanceofCheck = getOnlyElement(new ClassFileImporter().importClass(Origin.class).getInstanceofChecks());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
+        InstanceofCheck instanceofCheck = getOnlyElement(javaClass.getInstanceofChecks());
 
         assertThat(instanceofCheck.getRawType()).isFullyImported(true);
         assertThatType(instanceofCheck.getRawType()).matches(String.class);
@@ -520,7 +552,9 @@ public class ClassFileImporterAutomaticResolutionTest {
             }
         }
 
-        ThrowsDeclaration<?> throwsDeclaration = getOnlyElement(new ClassFileImporter().importClass(Origin.class).getThrowsDeclarations());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME)
+                .importClass(Origin.class);
+        ThrowsDeclaration<?> throwsDeclaration = getOnlyElement(javaClass.getThrowsDeclarations());
 
         assertThat(throwsDeclaration.getRawType()).isFullyImported(true);
         assertThatType(throwsDeclaration.getRawType()).matches(InterruptedException.class);
@@ -563,7 +597,8 @@ public class ClassFileImporterAutomaticResolutionTest {
         }
 
         Class<?> lessInnerClass = Class.forName(Outermost.LessOuter.LeastOuter.class.getName() + "$1LessInner");
-        JavaClass innermost = new ClassFileImporter().importClass(Class.forName(lessInnerClass.getName() + "$Innermost"));
+        JavaClass innermost = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ENCLOSING_TYPES_PROPERTY_NAME)
+                .importClass(Class.forName(lessInnerClass.getName() + "$Innermost"));
 
         JavaClass lessInner = innermost.getEnclosingClass().get();
         assertThat(lessInner).isFullyImported(true);
@@ -732,24 +767,34 @@ public class ClassFileImporterAutomaticResolutionTest {
     }
 
     private static JavaType importFirstTypeParameterClassBound(Class<?> clazz) {
-        return getOnlyElement(getOnlyElement(new ClassFileImporter().importClass(clazz).getTypeParameters()).getBounds());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+                .importClass(clazz);
+        return getOnlyElement(getOnlyElement(javaClass.getTypeParameters()).getBounds());
     }
 
     private static JavaType importFirstTypeParameterMethodBound(Class<?> clazz) {
-        return getOnlyElement(getOnlyElement(new ClassFileImporter().importClass(clazz).getMethod("method").getTypeParameters()).getBounds());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+                .importClass(clazz);
+        return getOnlyElement(getOnlyElement(javaClass.getMethod("method").getTypeParameters()).getBounds());
     }
 
     private static JavaType importFirstTypeArgumentFieldBound(Class<?> clazz) {
-        return getFirstTypeArgumentUpperBound(new ClassFileImporter().importClass(clazz).getField("field").getType());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+                .importClass(clazz);
+        return getFirstTypeArgumentUpperBound(javaClass.getField("field").getType());
     }
 
     private static JavaType importFirstTypeArgumentMethodParameterBound(Class<?> clazz) {
-        JavaMethod method = getOnlyElement(new ClassFileImporter().importClass(clazz).getMethods());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+                .importClass(clazz);
+        JavaMethod method = getOnlyElement(javaClass.getMethods());
         return getFirstTypeArgumentUpperBound(method.getParameterTypes().get(0));
     }
 
     private static JavaType importFirstTypeArgumentConstructorParameterBound(Class<?> clazz) {
-        JavaConstructor constructor = getOnlyElement(new ClassFileImporter().importClass(clazz).getConstructors());
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+                .importClass(clazz);
+        JavaConstructor constructor = getOnlyElement(javaClass.getConstructors());
         return getFirstTypeArgumentUpperBound(constructor.getParameterTypes().get(0));
     }
 

@@ -16,6 +16,8 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassWithOnlyGenericTypeResolution;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcessTestUtils.importClassesWithOnlyGenericTypeResolution;
 import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
@@ -40,7 +42,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType returnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType returnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(returnType).as("return type").matches(NonGenericReturnType.class);
     }
@@ -58,7 +60,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(SomeClass.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(SomeClass.class);
 
         JavaType returnType = javaClass.getMethod("method", Object.class).getReturnType();
         assertThatType(returnType).as("return type").matches(Object.class);
@@ -79,7 +81,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type")
                 .hasErasure(GenericReturnType.class)
@@ -98,7 +100,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType rawGenericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType rawGenericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(rawGenericReturnType).as("raw generic method return type").matches(GenericReturnType.class);
     }
@@ -115,7 +117,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericMethodReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericMethodReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericMethodReturnType).as("generic method return type")
                 .hasErasure(GenericReturnType.class)
@@ -134,7 +136,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericMethodReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericMethodReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericMethodReturnType).as("generic method return type")
                 .hasErasure(GenericReturnType.class)
@@ -153,7 +155,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type")
                 .hasErasure(GenericReturnType.class)
@@ -172,7 +174,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -195,7 +197,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -219,7 +221,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(wildcardType());
     }
@@ -236,7 +238,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -258,7 +260,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -282,7 +284,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -305,7 +307,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericMethodReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericMethodReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericMethodReturnType).as("generic method return type")
                 .isInstanceOf(JavaTypeVariable.class)
@@ -324,7 +326,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(typeVariable("OF_CLASS"));
     }
@@ -341,7 +343,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -361,7 +363,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -386,8 +388,11 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.SomeClass.class)
-                .getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassesWithOnlyGenericTypeResolution(
+                OuterWithTypeParameter.SomeInner.SomeClass.class,
+                OuterWithTypeParameter.SomeInner.class,
+                OuterWithTypeParameter.class
+        ).get(OuterWithTypeParameter.SomeInner.SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 typeVariable("OUTER").withUpperBounds(String.class)
@@ -414,7 +419,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             @Override
             public JavaType call() {
                 ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.SomeClass.class)
+                return importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class)
                         .getMethod("method").getReturnType();
             }
         });
@@ -438,8 +443,9 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
         }
 
         Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3");
-        JavaType genericReturnType = new ClassFileImporter()
-                .importClass(innermostClass).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassesWithOnlyGenericTypeResolution(
+                innermostClass, Level1.class
+        ).get(innermostClass).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type")
                 .matches(
@@ -463,8 +469,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter()
-                .importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -494,8 +499,11 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter()
-                .importClass(OuterWithTypeParameter.SomeInner.SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassesWithOnlyGenericTypeResolution(
+                OuterWithTypeParameter.SomeInner.SomeClass.class,
+                OuterWithTypeParameter.SomeInner.class,
+                OuterWithTypeParameter.class
+        ).get(OuterWithTypeParameter.SomeInner.SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -530,7 +538,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             @Override
             public JavaType call() {
                 ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter().importClasses(OuterWithTypeParameter.SomeInner.SomeClass.class, ClassParameterWithSingleTypeParameter.class)
+                return importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class, ClassParameterWithSingleTypeParameter.class)
                         .get(OuterWithTypeParameter.SomeInner.SomeClass.class)
                         .getMethod("method").getReturnType();
             }
@@ -567,7 +575,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         // @formatter:off
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
@@ -616,7 +624,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).matches(
                 genericArray(
@@ -649,7 +657,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).hasActualTypeArguments(
                 parameterizedType(List.class).withTypeArguments(Serializable[].class),
@@ -676,7 +684,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).hasActualTypeArguments(
                 genericArray(parameterizedTypeArrayName(List.class, String.class, 1)).withComponentType(
@@ -699,7 +707,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             abstract T[][] method2Dim();
         }
 
-        JavaClass javaClass = new ClassFileImporter().importClass(SomeClass.class);
+        JavaClass javaClass = importClassWithOnlyGenericTypeResolution(SomeClass.class);
 
         assertThatType(javaClass.getMethod("method").getReturnType())
                 .hasErasure(String[].class)
@@ -729,7 +737,7 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = new ClassFileImporter().importClass(SomeClass.class).getMethod("method").getReturnType();
+        JavaType genericReturnType = importClassWithOnlyGenericTypeResolution(SomeClass.class).getMethod("method").getReturnType();
 
         assertThatType(genericReturnType).hasActualTypeArguments(
                 genericArray("X[]").withComponentType(
