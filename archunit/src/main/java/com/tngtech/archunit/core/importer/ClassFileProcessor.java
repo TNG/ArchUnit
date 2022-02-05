@@ -189,6 +189,11 @@ class ClassFileProcessor {
         public void onDeclaredThrowsClause(Collection<String> exceptionTypeNames) {
             dependencyResolutionProcess.registerMemberTypes(exceptionTypeNames);
         }
+
+        @Override
+        public void onDeclaredGenericSignatureType(String typeName) {
+            dependencyResolutionProcess.registerGenericSignatureType(typeName);
+        }
     }
 
     private static class RecordAccessHandler implements AccessHandler {

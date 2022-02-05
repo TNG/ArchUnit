@@ -38,17 +38,20 @@ class SignatureTypeArgumentProcessor<TYPE extends HasDescription> extends Signat
     private final TypeArgumentType typeArgumentType;
     private final JavaParameterizedTypeBuilder<TYPE> parameterizedType;
     private final JavaTypeFinisher typeFinisher;
+    private final DeclarationHandler declarationHandler;
 
     private JavaParameterizedTypeBuilder<TYPE> currentTypeArgument;
 
     SignatureTypeArgumentProcessor(
             TypeArgumentType typeArgumentType,
             JavaParameterizedTypeBuilder<TYPE> parameterizedType,
-            JavaTypeFinisher typeFinisher) {
+            JavaTypeFinisher typeFinisher,
+            DeclarationHandler declarationHandler) {
         super(ASM_API_VERSION);
         this.typeArgumentType = typeArgumentType;
         this.parameterizedType = parameterizedType;
         this.typeFinisher = typeFinisher;
+        this.declarationHandler = declarationHandler;
     }
 
     @Override
@@ -57,6 +60,7 @@ class SignatureTypeArgumentProcessor<TYPE extends HasDescription> extends Signat
         log.trace("Encountered {} for {}: Class type {}", typeArgumentType.description, parameterizedType.getTypeName(), type.getFullyQualifiedClassName());
         currentTypeArgument = new JavaParameterizedTypeBuilder<>(type);
         typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new NewJavaTypeCreationProcess<>(this.currentTypeArgument, typeFinisher));
+        declarationHandler.onDeclaredGenericSignatureType(type.getFullyQualifiedClassName());
     }
 
     @Override
@@ -80,30 +84,31 @@ class SignatureTypeArgumentProcessor<TYPE extends HasDescription> extends Signat
 
     @Override
     public SignatureVisitor visitTypeArgument(char wildcard) {
-        return SignatureTypeArgumentProcessor.create(wildcard, currentTypeArgument, JavaTypeFinisher.IDENTITY);
+        return SignatureTypeArgumentProcessor.create(wildcard, currentTypeArgument, JavaTypeFinisher.IDENTITY, declarationHandler);
     }
 
     @Override
     public SignatureVisitor visitArrayType() {
-        return new SignatureTypeArgumentProcessor<>(typeArgumentType, parameterizedType, typeFinisher.after(ARRAY_CREATOR));
+        return new SignatureTypeArgumentProcessor<>(typeArgumentType, parameterizedType, typeFinisher.after(ARRAY_CREATOR), declarationHandler);
     }
 
-    static <TYPE extends HasDescription> SignatureTypeArgumentProcessor<TYPE> create(char identifier, JavaParameterizedTypeBuilder<TYPE> parameterizedType) {
-        return create(identifier, parameterizedType, JavaTypeFinisher.IDENTITY);
+    static <TYPE extends HasDescription> SignatureTypeArgumentProcessor<TYPE> create(char identifier, JavaParameterizedTypeBuilder<TYPE> parameterizedType, DeclarationHandler declarationHandler) {
+        return create(identifier, parameterizedType, JavaTypeFinisher.IDENTITY, declarationHandler);
     }
 
     static <TYPE extends HasDescription> SignatureTypeArgumentProcessor<TYPE> create(
             char identifier,
             JavaParameterizedTypeBuilder<TYPE> parameterizedType,
-            JavaTypeFinisher typeFinisher) {
+            JavaTypeFinisher typeFinisher,
+            DeclarationHandler declarationHandler) {
 
         switch (identifier) {
             case INSTANCEOF:
-                return new SignatureTypeArgumentProcessor<>(PARAMETERIZED_TYPE, parameterizedType, typeFinisher);
+                return new SignatureTypeArgumentProcessor<>(PARAMETERIZED_TYPE, parameterizedType, typeFinisher, declarationHandler);
             case EXTENDS:
-                return new SignatureTypeArgumentProcessor<>(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeFinisher);
+                return new SignatureTypeArgumentProcessor<>(WILDCARD_WITH_UPPER_BOUND, parameterizedType, typeFinisher, declarationHandler);
             case SUPER:
-                return new SignatureTypeArgumentProcessor<>(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeFinisher);
+                return new SignatureTypeArgumentProcessor<>(WILDCARD_WITH_LOWER_BOUND, parameterizedType, typeFinisher, declarationHandler);
             default:
                 throw new IllegalStateException(String.format("Cannot handle asm type argument identifier '%s'", identifier));
         }

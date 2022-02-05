@@ -6,6 +6,10 @@ import java.io.Serializable;
 import java.nio.Buffer;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import com.google.common.collect.FluentIterable;
@@ -22,6 +26,9 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaMethodReference;
+import com.tngtech.archunit.core.domain.JavaParameterizedType;
+import com.tngtech.archunit.core.domain.JavaType;
+import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
@@ -53,6 +60,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.annotationProperty;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
+import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 
 @RunWith(DataProviderRunner.class)
@@ -572,6 +580,183 @@ public class ClassFileImporterAutomaticResolutionTest {
         JavaClass outermost = lessOuter.getEnclosingClass().get();
         assertThat(outermost).isFullyImported(true);
         assertThatType(outermost).matches(Outermost.class);
+    }
+
+    @DataProvider
+    public static Object[][] data_automatically_resolves_generic_type_parameter_bounds() {
+        @SuppressWarnings("unused")
+        class TypeParameterOnClassWithClassBound<T extends String> {
+        }
+        @SuppressWarnings("unused")
+        class TypeParameterOnClassWithInterfaceBound<T extends Serializable> {
+        }
+        @SuppressWarnings("unused")
+        class TypeParameterOnMethodWithClassBound {
+            <T extends String> void method() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class TypeParameterOnMethodWithInterfaceBound {
+            <T extends Serializable> void method() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class TypeArgumentWithClassBoundOnField {
+            List<? extends String> field;
+        }
+        @SuppressWarnings("unused")
+        class TypeArgumentWithInterfaceBoundOnField {
+            List<? extends Serializable> field;
+        }
+        @SuppressWarnings("unused")
+        class TypeArgumentWithClassBoundOnMethod {
+            void method(List<? extends String> param) {
+            }
+        }
+        @SuppressWarnings("unused")
+        class TypeArgumentWithInterfaceBoundOnMethod {
+            void method(List<? extends Serializable> param) {
+            }
+        }
+        @SuppressWarnings("unused")
+        class TypeArgumentWithClassBoundOnConstructor {
+            TypeArgumentWithClassBoundOnConstructor(List<? extends String> param) {
+            }
+        }
+        @SuppressWarnings("unused")
+        class TypeArgumentWithInterfaceBoundOnConstructor {
+            TypeArgumentWithInterfaceBoundOnConstructor(List<? extends Serializable> param) {
+            }
+        }
+
+        return $$(
+                $(importFirstTypeParameterClassBound(TypeParameterOnClassWithClassBound.class), String.class),
+                $(importFirstTypeParameterClassBound(TypeParameterOnClassWithInterfaceBound.class), Serializable.class),
+                $(importFirstTypeParameterMethodBound(TypeParameterOnMethodWithClassBound.class), String.class),
+                $(importFirstTypeParameterMethodBound(TypeParameterOnMethodWithInterfaceBound.class), Serializable.class),
+                $(importFirstTypeArgumentFieldBound(TypeArgumentWithClassBoundOnField.class), String.class),
+                $(importFirstTypeArgumentFieldBound(TypeArgumentWithInterfaceBoundOnField.class), Serializable.class),
+                $(importFirstTypeArgumentMethodParameterBound(TypeArgumentWithClassBoundOnMethod.class), String.class),
+                $(importFirstTypeArgumentMethodParameterBound(TypeArgumentWithInterfaceBoundOnMethod.class), Serializable.class),
+                $(importFirstTypeArgumentConstructorParameterBound(TypeArgumentWithClassBoundOnConstructor.class), String.class),
+                $(importFirstTypeArgumentConstructorParameterBound(TypeArgumentWithInterfaceBoundOnConstructor.class), Serializable.class)
+        );
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_automatically_resolves_generic_type_parameter_bounds(JavaClass bound, Class<String> expectedType) {
+        assertThat(bound).isFullyImported(true);
+        assertThatType(bound).matches(expectedType);
+    }
+
+    @DataProvider
+    public static Object[][] data_automatically_resolves_parameterized_generic_type_bounds() {
+        @SuppressWarnings("unused")
+        class InterfaceTypeParameterBoundsOnClass<T extends List<? extends Map<?, ? super Serializable>>> {
+        }
+        @SuppressWarnings("unused")
+        class ClassTypeParameterBoundsOnClass<T extends ArrayList<? extends HashMap<?, ? super String>>> {
+        }
+        @SuppressWarnings("unused")
+        class InterfaceTypeParameterBoundsOnMethod {
+            <T extends List<? extends Map<?, ? super Serializable>>> void method() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class ClassTypeParameterBoundsOnMethod {
+            <T extends ArrayList<? extends HashMap<?, ? super String>>> void method() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class InterfaceTypeArgumentBoundsOnField {
+            List<? extends List<? extends Map<?, ? super Serializable>>> field;
+        }
+        @SuppressWarnings("unused")
+        class ClassTypeArgumentBoundsOnField {
+            ArrayList<? extends ArrayList<? extends HashMap<?, ? super String>>> field;
+        }
+        @SuppressWarnings("unused")
+        class InterfaceTypeArgumentBoundsOnMethod {
+            void method(List<? extends List<? extends Map<?, ? super Serializable>>> param) {
+            }
+        }
+        @SuppressWarnings("unused")
+        class ClassTypeArgumentBoundsOnMethod {
+            void method(ArrayList<? extends ArrayList<? extends HashMap<?, ? super String>>> param) {
+            }
+        }
+        @SuppressWarnings("unused")
+        class InterfaceTypeArgumentBoundsOnConstructor {
+            InterfaceTypeArgumentBoundsOnConstructor(List<? extends List<? extends Map<?, ? super Serializable>>> param) {
+            }
+        }
+        @SuppressWarnings("unused")
+        class ClassTypeArgumentBoundsOnConstructor {
+            ClassTypeArgumentBoundsOnConstructor(ArrayList<? extends ArrayList<? extends HashMap<?, ? super String>>> param) {
+            }
+        }
+
+        return $$(
+                $(importFirstTypeParameterClassBound(InterfaceTypeParameterBoundsOnClass.class), List.class, Map.class, Serializable.class),
+                $(importFirstTypeParameterClassBound(ClassTypeParameterBoundsOnClass.class), ArrayList.class, HashMap.class, String.class),
+                $(importFirstTypeParameterMethodBound(InterfaceTypeParameterBoundsOnMethod.class), List.class, Map.class, Serializable.class),
+                $(importFirstTypeParameterMethodBound(ClassTypeParameterBoundsOnMethod.class), ArrayList.class, HashMap.class, String.class),
+                $(importFirstTypeArgumentFieldBound(InterfaceTypeArgumentBoundsOnField.class), List.class, Map.class, Serializable.class),
+                $(importFirstTypeArgumentFieldBound(ClassTypeArgumentBoundsOnField.class), ArrayList.class, HashMap.class, String.class),
+                $(importFirstTypeArgumentMethodParameterBound(InterfaceTypeArgumentBoundsOnMethod.class), List.class, Map.class, Serializable.class),
+                $(importFirstTypeArgumentMethodParameterBound(ClassTypeArgumentBoundsOnMethod.class), ArrayList.class, HashMap.class, String.class),
+                $(importFirstTypeArgumentConstructorParameterBound(InterfaceTypeArgumentBoundsOnConstructor.class), List.class, Map.class, Serializable.class),
+                $(importFirstTypeArgumentConstructorParameterBound(ClassTypeArgumentBoundsOnConstructor.class), ArrayList.class, HashMap.class, String.class)
+        );
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_automatically_resolves_parameterized_generic_type_bounds(
+            JavaParameterizedType actual1stLevel,
+            Class<?> expected1stLevel, Class<?> expected2ndLevel, Class<?> expected3rdLevel
+    ) {
+        assertThat(actual1stLevel.toErasure()).isFullyImported(true);
+        assertThatType(actual1stLevel.toErasure()).matches(expected1stLevel);
+
+        JavaParameterizedType actual2ndLevel = (JavaParameterizedType) getOnlyElement(((JavaWildcardType) getOnlyElement(actual1stLevel.getActualTypeArguments())).getUpperBounds());
+
+        assertThat(actual2ndLevel.toErasure()).isFullyImported(true);
+        assertThatType(actual2ndLevel.toErasure()).matches(expected2ndLevel);
+
+        JavaClass actual3rdLevel = (JavaClass) getOnlyElement(((JavaWildcardType) actual2ndLevel.getActualTypeArguments().get(1)).getLowerBounds());
+
+        assertThat(actual3rdLevel.toErasure()).isFullyImported(true);
+        assertThatType(actual3rdLevel.toErasure()).matches(expected3rdLevel);
+    }
+
+    private static JavaType importFirstTypeParameterClassBound(Class<?> clazz) {
+        return getOnlyElement(getOnlyElement(new ClassFileImporter().importClass(clazz).getTypeParameters()).getBounds());
+    }
+
+    private static JavaType importFirstTypeParameterMethodBound(Class<?> clazz) {
+        return getOnlyElement(getOnlyElement(new ClassFileImporter().importClass(clazz).getMethod("method").getTypeParameters()).getBounds());
+    }
+
+    private static JavaType importFirstTypeArgumentFieldBound(Class<?> clazz) {
+        return getFirstTypeArgumentUpperBound(new ClassFileImporter().importClass(clazz).getField("field").getType());
+    }
+
+    private static JavaType importFirstTypeArgumentMethodParameterBound(Class<?> clazz) {
+        JavaMethod method = getOnlyElement(new ClassFileImporter().importClass(clazz).getMethods());
+        return getFirstTypeArgumentUpperBound(method.getParameterTypes().get(0));
+    }
+
+    private static JavaType importFirstTypeArgumentConstructorParameterBound(Class<?> clazz) {
+        JavaConstructor constructor = getOnlyElement(new ClassFileImporter().importClass(clazz).getConstructors());
+        return getFirstTypeArgumentUpperBound(constructor.getParameterTypes().get(0));
+    }
+
+    private static JavaType getFirstTypeArgumentUpperBound(JavaType type) {
+        JavaParameterizedType parameterizedType = (JavaParameterizedType) type;
+        JavaWildcardType firstTypeArgument = (JavaWildcardType) parameterizedType.getActualTypeArguments().get(0);
+        return firstTypeArgument.getUpperBounds().get(0);
     }
 
     @MetaAnnotatedAnnotation

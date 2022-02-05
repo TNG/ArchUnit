@@ -40,7 +40,7 @@ class JavaClassSignatureImporter {
 
         log.trace("Analyzing signature: {}", signature);
 
-        SignatureProcessor signatureProcessor = new SignatureProcessor();
+        SignatureProcessor signatureProcessor = new SignatureProcessor(declarationHandler);
         new SignatureReader(signature).accept(signatureProcessor);
         declarationHandler.onDeclaredTypeParameters(new JavaClassTypeParametersBuilder(signatureProcessor.getTypeParameterBuilders()));
 
@@ -53,12 +53,15 @@ class JavaClassSignatureImporter {
     }
 
     private static class SignatureProcessor extends SignatureVisitor {
-        private final SignatureTypeParameterProcessor<JavaClass> typeParameterProcessor = new SignatureTypeParameterProcessor<>();
-        private final GenericSuperclassProcessor superclassProcessor = new GenericSuperclassProcessor();
-        private final GenericInterfacesProcessor interfacesProcessor = new GenericInterfacesProcessor();
+        private final SignatureTypeParameterProcessor<JavaClass> typeParameterProcessor;
+        private final GenericSuperclassProcessor superclassProcessor;
+        private final GenericInterfacesProcessor interfacesProcessor;
 
-        SignatureProcessor() {
+        SignatureProcessor(DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
+            typeParameterProcessor = new SignatureTypeParameterProcessor<>(declarationHandler);
+            superclassProcessor = new GenericSuperclassProcessor(declarationHandler);
+            interfacesProcessor = new GenericInterfacesProcessor(declarationHandler);
         }
 
         List<JavaTypeParameterBuilder<JavaClass>> getTypeParameterBuilders() {
@@ -100,10 +103,12 @@ class JavaClassSignatureImporter {
         }
 
         private static class GenericSuperclassProcessor extends SignatureVisitor {
+            private final DeclarationHandler declarationHandler;
             private JavaParameterizedTypeBuilder<JavaClass> superclass;
 
-            GenericSuperclassProcessor() {
+            GenericSuperclassProcessor(DeclarationHandler declarationHandler) {
                 super(ASM_API_VERSION);
+                this.declarationHandler = declarationHandler;
             }
 
             @Override
@@ -118,16 +123,18 @@ class JavaClassSignatureImporter {
 
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
-                return SignatureTypeArgumentProcessor.create(wildcard, superclass);
+                return SignatureTypeArgumentProcessor.create(wildcard, superclass, declarationHandler);
             }
         }
 
         private static class GenericInterfacesProcessor extends SignatureVisitor {
+            private final DeclarationHandler declarationHandler;
             private final List<JavaParameterizedTypeBuilder<JavaClass>> interfaces = new ArrayList<>();
             private JavaParameterizedTypeBuilder<JavaClass> currentInterface;
 
-            GenericInterfacesProcessor() {
+            GenericInterfacesProcessor(DeclarationHandler declarationHandler) {
                 super(ASM_API_VERSION);
+                this.declarationHandler = declarationHandler;
             }
 
             @Override
@@ -138,7 +145,7 @@ class JavaClassSignatureImporter {
 
             @Override
             public SignatureVisitor visitTypeArgument(char wildcard) {
-                return SignatureTypeArgumentProcessor.create(wildcard, currentInterface);
+                return SignatureTypeArgumentProcessor.create(wildcard, currentInterface, declarationHandler);
             }
         }
     }

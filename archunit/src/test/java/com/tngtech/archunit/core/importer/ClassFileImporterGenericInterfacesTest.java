@@ -7,20 +7,21 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.importer.ClassFileImporterGenericInterfacesTest.Outer.SomeNestedInterface;
 import com.tngtech.archunit.core.importer.ClassFileImporterGenericInterfacesTest.Outer.SomeNestedInterface.SomeDeeplyNestedInterface;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
@@ -35,16 +36,12 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 @RunWith(DataProviderRunner.class)
 public class ClassFileImporterGenericInterfacesTest {
 
-    @Rule
-    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule().resolveAdditionalDependenciesFromClassPath(false);
-
     @Test
     public void imports_non_generic_interface() {
         class Child implements SomeInterface {
         }
 
-        Set<JavaType> genericInterfaces = new ClassFileImporter().importClasses(Child.class, SomeInterface.class)
-                .get(Child.class).getInterfaces();
+        Set<JavaType> genericInterfaces = new ClassFileImporter().importClass(Child.class).getInterfaces();
 
         assertThatTypes(genericInterfaces).as("generic interfaces").matchExactly(SomeInterface.class);
     }
@@ -54,9 +51,7 @@ public class ClassFileImporterGenericInterfacesTest {
         class Child implements InterfaceWithOneTypeParameter<String> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class, String.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface")
                 .hasErasure(InterfaceWithOneTypeParameter.class)
@@ -69,9 +64,7 @@ public class ClassFileImporterGenericInterfacesTest {
         class Child implements InterfaceWithOneTypeParameter {
         }
 
-        JavaType rawGenericInterface = getOnlyElement(
-                new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class)
-                        .get(Child.class).getInterfaces());
+        JavaType rawGenericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(rawGenericInterface).as("raw generic interface").matches(InterfaceWithOneTypeParameter.class);
     }
@@ -82,8 +75,7 @@ public class ClassFileImporterGenericInterfacesTest {
         }
 
         JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class, String.class)
-                        .get(Child.class).getInterfaces());
+                new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface")
                 .hasErasure(InterfaceWithOneTypeParameter.class)
@@ -95,9 +87,7 @@ public class ClassFileImporterGenericInterfacesTest {
         class Child implements InterfaceWithOneTypeParameter<int[]> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class, int.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface")
                 .hasErasure(InterfaceWithOneTypeParameter.class)
@@ -110,10 +100,7 @@ public class ClassFileImporterGenericInterfacesTest {
         class Child implements InterfaceWithThreeTypeParameters<String, Serializable, File> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(Child.class, InterfaceWithThreeTypeParameters.class, String.class, Serializable.class, File.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface")
                 .hasErasure(InterfaceWithThreeTypeParameters.class)
@@ -125,10 +112,7 @@ public class ClassFileImporterGenericInterfacesTest {
         class Child implements InterfaceWithOneTypeParameter<ClassParameterWithSingleTypeParameter<String>> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(Child.class, InterfaceWithOneTypeParameter.class, ClassParameterWithSingleTypeParameter.class, String.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -144,11 +128,7 @@ public class ClassFileImporterGenericInterfacesTest {
                 InterfaceWithOneTypeParameter<String>> {
         }
 
-        JavaType genericInterface = getOnlyElement(new ClassFileImporter()
-                .importClasses(
-                        Child.class, ClassParameterWithSingleTypeParameter.class, InterfaceWithThreeTypeParameters.class,
-                        InterfaceWithOneTypeParameter.class, File.class, Serializable.class, String.class)
-                .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -165,10 +145,7 @@ public class ClassFileImporterGenericInterfacesTest {
         class Child implements InterfaceWithOneTypeParameter<ClassParameterWithSingleTypeParameter<?>> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(Child.class, InterfaceWithOneTypeParameter.class, ClassParameterWithSingleTypeParameter.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -183,10 +160,7 @@ public class ClassFileImporterGenericInterfacesTest {
                 ClassParameterWithSingleTypeParameter<? super File>> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(Child.class, InterfaceWithTwoTypeParameters.class, ClassParameterWithSingleTypeParameter.class, String.class, File.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -203,12 +177,7 @@ public class ClassFileImporterGenericInterfacesTest {
                 ClassParameterWithSingleTypeParameter<Reference<? super String>>> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(
-                                Child.class, ClassParameterWithSingleTypeParameter.class,
-                                Map.class, Serializable.class, File.class, Reference.class, String.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -227,8 +196,7 @@ public class ClassFileImporterGenericInterfacesTest {
         class Child<SUB> implements InterfaceWithOneTypeParameter<SUB> {
         }
 
-        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClasses(Child.class, InterfaceWithOneTypeParameter.class)
-                .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(typeVariable("SUB"));
     }
@@ -238,10 +206,7 @@ public class ClassFileImporterGenericInterfacesTest {
         class Child<SUB> implements InterfaceWithOneTypeParameter<ClassParameterWithSingleTypeParameter<SUB>> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(Child.class, InterfaceWithOneTypeParameter.class, ClassParameterWithSingleTypeParameter.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -254,10 +219,7 @@ public class ClassFileImporterGenericInterfacesTest {
         class Child<SUB extends String> implements InterfaceWithOneTypeParameter<ClassParameterWithSingleTypeParameter<SUB>> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(Child.class, InterfaceWithOneTypeParameter.class, ClassParameterWithSingleTypeParameter.class, String.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -275,15 +237,7 @@ public class ClassFileImporterGenericInterfacesTest {
             }
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(
-                                OuterWithTypeParameter.class,
-                                OuterWithTypeParameter.SomeInner.class,
-                                OuterWithTypeParameter.SomeInner.Child.class,
-                                InterfaceWithOneTypeParameter.class,
-                                String.class)
-                        .get(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 typeVariable("OUTER").withUpperBounds(String.class)
@@ -300,10 +254,13 @@ public class ClassFileImporterGenericInterfacesTest {
             }
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(OuterWithTypeParameter.SomeInner.Child.class, InterfaceWithOneTypeParameter.class, String.class)
-                        .get(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
+        JavaType genericInterface = resetConfigurationAround(new Callable<JavaType>() {
+            @Override
+            public JavaType call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                return getOnlyElement(new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
+            }
+        });
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 typeVariable("OUTER").withoutUpperBounds()
@@ -321,10 +278,7 @@ public class ClassFileImporterGenericInterfacesTest {
         }
 
         Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3");
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(innermostClass, Level1.class, String.class)
-                        .get(innermostClass).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(innermostClass).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface")
                 .hasActualTypeArguments(
@@ -340,10 +294,7 @@ public class ClassFileImporterGenericInterfacesTest {
                 ClassParameterWithSingleTypeParameter<? super SECOND>> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(Child.class, InterfaceWithTwoTypeParameters.class, ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -367,14 +318,7 @@ public class ClassFileImporterGenericInterfacesTest {
             }
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(
-                                OuterWithTypeParameter.class,
-                                OuterWithTypeParameter.SomeInner.class,
-                                OuterWithTypeParameter.SomeInner.Child.class,
-                                InterfaceWithTwoTypeParameters.class, ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class)
-                        .get(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -398,12 +342,15 @@ public class ClassFileImporterGenericInterfacesTest {
             }
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(
-                                OuterWithTypeParameter.SomeInner.Child.class,
-                                ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class)
+        JavaType genericInterface = resetConfigurationAround(new Callable<JavaType>() {
+            @Override
+            public JavaType call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                return getOnlyElement(new ClassFileImporter()
+                        .importClasses(OuterWithTypeParameter.SomeInner.Child.class, ClassParameterWithSingleTypeParameter.class)
                         .get(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
+            }
+        });
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -452,11 +399,7 @@ public class ClassFileImporterGenericInterfacesTest {
     @Test
     @UseDataProvider
     public void test_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_self_referencing_type_definitions(Class<?> testInput) {
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(testInput, String.class, Serializable.class, Cloneable.class,
-                                List.class, Map.class, Map.Entry.class, Set.class, Iterable.class, Comparable.class)
-                        .get(testInput).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(testInput).getInterfaces());
 
         // @formatter:off
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
@@ -518,9 +461,7 @@ public class ClassFileImporterGenericInterfacesTest {
     @Test
     @UseDataProvider
     public void test_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_concrete_array_bounds(Class<?> testInput) {
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter().importClasses(testInput, List.class, Serializable.class, Map.class, String.class)
-                        .get(testInput).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(testInput).getInterfaces());
 
         assertThatType(genericInterface).hasActualTypeArguments(
                 parameterizedType(List.class).withTypeArguments(Serializable[].class),
@@ -553,9 +494,7 @@ public class ClassFileImporterGenericInterfacesTest {
     @Test
     @UseDataProvider
     public void test_imports_type_of_generic_interface_with_parameterized_array_bounds(Class<?> testInput) {
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter().importClasses(testInput, InterfaceWithThreeTypeParameters.class, List.class, String.class)
-                        .get(testInput).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(testInput).getInterfaces());
 
         assertThatType(genericInterface).hasActualTypeArguments(
                 genericArray(parameterizedTypeArrayName(List.class, String.class, 1)).withComponentType(
@@ -594,9 +533,7 @@ public class ClassFileImporterGenericInterfacesTest {
     @Test
     @UseDataProvider
     public void test_imports_complex_type_with_multiple_nested_actual_type_arguments_of_generic_interface_with_generic_array_bounds(Class<?> testInput) {
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter().importClasses(testInput, List.class, Serializable.class, Map.class, String.class)
-                        .get(testInput).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(testInput).getInterfaces());
 
         assertThatType(genericInterface).hasActualTypeArguments(
                 parameterizedType(List.class).withTypeArguments(
@@ -649,11 +586,7 @@ public class ClassFileImporterGenericInterfacesTest {
     @Test
     @UseDataProvider
     public void test_imports_multiple_generic_interfaces(Class<?> testInput) {
-        JavaClass child = new ClassFileImporter()
-                .importClasses(testInput,
-                        InterfaceWithOneTypeParameter.class, InterfaceWithTwoTypeParameters.class, InterfaceWithThreeTypeParameters.class,
-                        Path.class, List.class, Map.class, String.class, Serializable.class, File.class)
-                .get(testInput);
+        JavaClass child = new ClassFileImporter().importClass(testInput);
 
         assertThatType(getGenericInterface(child, InterfaceWithOneTypeParameter.class)).as("generic interface")
                 .hasActualTypeArguments(Path.class);
@@ -680,11 +613,7 @@ public class ClassFileImporterGenericInterfacesTest {
                 implements InterfaceWithOneTypeParameter<Path>, InterfaceWithTwoTypeParameters<T, String> {
         }
 
-        JavaClass child = new ClassFileImporter()
-                .importClasses(Child.class,
-                        InterfaceWithOneTypeParameter.class, InterfaceWithTwoTypeParameters.class, InterfaceWithThreeTypeParameters.class,
-                        Path.class, List.class, Map.class, String.class, Serializable.class, File.class)
-                .get(Child.class);
+        JavaClass child = new ClassFileImporter().importClass(Child.class);
 
         assertThatType(child.getSuperclass().get())
                 .hasErasure(BaseClass.class)
@@ -704,10 +633,7 @@ public class ClassFileImporterGenericInterfacesTest {
                 SomeDeeplyNestedInterface<File, SomeNestedInterface<Path, Path>> {
         }
 
-        JavaType genericInterface = getOnlyElement(
-                new ClassFileImporter()
-                        .importClasses(Child.class, SomeDeeplyNestedInterface.class, SomeNestedInterface.class, File.class, Path.class)
-                        .get(Child.class).getInterfaces());
+        JavaType genericInterface = getOnlyElement(new ClassFileImporter().importClass(Child.class).getInterfaces());
 
         assertThatType(genericInterface).as("generic interface")
                 .hasErasure(SomeDeeplyNestedInterface.class)

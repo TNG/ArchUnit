@@ -8,22 +8,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
@@ -41,9 +39,6 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 @RunWith(DataProviderRunner.class)
 public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
-    @Rule
-    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule().resolveAdditionalDependenciesFromClassPath(false);
-
     @DataProvider
     public static Object[][] data_imports_non_generic_code_unit_parameter_type() {
         class NonGenericParameterType {
@@ -60,8 +55,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
         }
         Object[][] testCases = testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 NoGenericSignatureOnConstructor.class,
-                NoGenericSignatureOnMethod.class,
-                NonGenericParameterType.class);
+                NoGenericSignatureOnMethod.class
+        );
         return $$(
                 $(testCases[0][0], NonGenericParameterType.class),
                 $(testCases[1][0], NonGenericParameterType.class)
@@ -89,8 +84,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                Object.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -116,8 +111,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -139,10 +134,7 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
         }
 
         JavaConstructor constructor = new ClassFileImporter()
-                .importClasses(
-                        LocalClassThatWillHaveEnclosingClassAsFirstRawConstructorParameter.class,
-                        getClass(), ClassParameterWithSingleTypeParameter.class, String.class)
-                .get(LocalClassThatWillHaveEnclosingClassAsFirstRawConstructorParameter.class)
+                .importClass(LocalClassThatWillHaveEnclosingClassAsFirstRawConstructorParameter.class)
                 .getConstructor(getClass(), ClassParameterWithSingleTypeParameter.class);
 
         assertThatTypes(constructor.getRawParameterTypes()).matchExactly(getClass(), ClassParameterWithSingleTypeParameter.class);
@@ -167,8 +159,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -194,8 +186,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -223,8 +215,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -252,8 +244,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithThreeTypeParameters.class, Serializable.class, File.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -281,8 +273,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, ClassParameterWithSingleTypeParameter.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -317,9 +309,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithThreeTypeParameters.class, ClassParameterWithSingleTypeParameter.class, InterfaceParameterWithSingleTypeParameter.class,
-                File.class, Serializable.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -352,8 +343,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -379,8 +370,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, ClassParameterWithSingleTypeParameter.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -413,8 +404,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithTwoTypeParameters.class, ClassParameterWithSingleTypeParameter.class, String.class, File.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -449,8 +440,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithTwoTypeParameters.class, ClassParameterWithSingleTypeParameter.class, Map.class, Serializable.class, File.class, Reference.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -485,8 +476,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -514,8 +505,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -541,8 +532,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, ClassParameterWithSingleTypeParameter.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -571,8 +562,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, ClassParameterWithSingleTypeParameter.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -605,8 +596,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
-                OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class,
-                OuterWithTypeParameter.class, OuterWithTypeParameter.SomeInner.class, ClassParameterWithSingleTypeParameter.class, String.class);
+                OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -636,10 +627,20 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
             }
         }
 
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(
-                OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
-                OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, String.class);
+        JavaClasses classes = resetConfigurationAround(new Callable<JavaClasses>() {
+            @Override
+            public JavaClasses call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                return new ClassFileImporter().importClasses(
+                        OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
+                        OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class);
+            }
+        });
+
+        return testForEach(
+                getOnlyElement(classes.get(OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class).getConstructors()),
+                getOnlyElement(classes.get(OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class).getMethods())
+        );
     }
 
     @Test
@@ -670,8 +671,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 Class.forName(Level1.class.getName() + "$1GenericSignatureOnConstructor"),
-                Class.forName(Level1.class.getName() + "$1GenericSignatureOnMethod"),
-                Level1.class, ClassParameterWithSingleTypeParameter.class, String.class);
+                Class.forName(Level1.class.getName() + "$1GenericSignatureOnMethod")
+        );
     }
 
     @Test
@@ -706,8 +707,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithTwoTypeParameters.class, ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -748,9 +749,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
-                OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class,
-                OuterWithTypeParameter.class, OuterWithTypeParameter.SomeInner.class, ClassParameterWithTwoTypeParameters.class,
-                ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class);
+                OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -789,10 +789,21 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
             }
         }
 
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(
-                OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
-                OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class,
-                ClassParameterWithTwoTypeParameters.class, ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class);
+        JavaClasses classes = resetConfigurationAround(new Callable<JavaClasses>() {
+            @Override
+            public JavaClasses call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                return new ClassFileImporter().importClasses(
+                        OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
+                        OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class,
+                        ClassParameterWithSingleTypeParameter.class);
+            }
+        });
+
+        return testForEach(
+                getOnlyElement(classes.get(OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class).getConstructors()),
+                getOnlyElement(classes.get(OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class).getMethods())
+        );
     }
 
     @Test
@@ -843,9 +854,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithThreeTypeParameters.class, String.class, Serializable.class, Cloneable.class, List.class,
-                Map.class, Map.Entry.class, Set.class, Iterable.class, Comparable.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -903,8 +913,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                List.class, Serializable.class, Map.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -949,8 +959,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithThreeTypeParameters.class, List.class, Serializable.class, Map.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -985,8 +995,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithThreeTypeParameters.class, List.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -1021,8 +1031,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                Serializable.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -1060,8 +1070,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithFourTypeParameters.class, List.class, Serializable.class, Map.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -1130,9 +1140,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class, Cloneable.class,
-                List.class, Map.class, Map.Entry.class, Set.class, Iterable.class, Comparable.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -1176,18 +1185,8 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
         // @formatter:on
     }
 
-    private static Object[][] testCasesFromSameGenericSignatureOnConstructorAndMethod(
-            Class<?> genericSignatureOnConstructor,
-            Class<?> genericSignatureOnMethod,
-            Class<?>... additionalImports) {
-        final List<Class<?>> toImport = FluentIterable.from(additionalImports).append(genericSignatureOnConstructor).append(genericSignatureOnMethod).toList();
-        JavaClasses classes = ArchConfigurationRule.resetConfigurationAround(new Callable<JavaClasses>() {
-            @Override
-            public JavaClasses call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter().importClasses(toImport);
-            }
-        });
+    private static Object[][] testCasesFromSameGenericSignatureOnConstructorAndMethod(Class<?> genericSignatureOnConstructor, Class<?> genericSignatureOnMethod) {
+        JavaClasses classes = new ClassFileImporter().importClasses(genericSignatureOnConstructor, genericSignatureOnMethod);
 
         return testForEach(
                 getOnlyElement(classes.get(genericSignatureOnConstructor).getConstructors()),

@@ -6,15 +6,15 @@ import java.lang.ref.Reference;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
-import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteGenericArray.genericArray;
@@ -26,9 +26,6 @@ import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.Expec
 
 @RunWith(DataProviderRunner.class)
 public class ClassFileImporterGenericSuperclassTest {
-
-    @Rule
-    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule().resolveAdditionalDependenciesFromClassPath(false);
 
     @Test
     public void imports_non_generic_superclass() {
@@ -50,7 +47,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child extends BaseClass<String> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, String.class).get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass")
                 .hasErasure(BaseClass.class)
@@ -66,8 +63,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child extends BaseClass {
         }
 
-        JavaType rawGenericSuperclass = new ClassFileImporter().importClasses(Child.class, BaseClass.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType rawGenericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(rawGenericSuperclass).as("raw generic superclass").matches(BaseClass.class);
     }
@@ -80,8 +76,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child extends BaseClass<String[]> {
         }
 
-        JavaType genericSuperClass = new ClassFileImporter().importClasses(Child.class, String.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperClass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperClass).as("generic superclass")
                 .hasErasure(BaseClass.class)
@@ -96,8 +91,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child extends BaseClass<int[]> {
         }
 
-        JavaType genericSuperClass = new ClassFileImporter().importClasses(Child.class, int.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperClass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperClass).as("generic superclass")
                 .hasErasure(BaseClass.class)
@@ -113,8 +107,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child extends BaseClass<String, Serializable, File> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, String.class, Serializable.class, File.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass")
                 .hasErasure(BaseClass.class)
@@ -129,8 +122,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child extends BaseClass<ClassParameterWithSingleTypeParameter<String>> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, ClassParameterWithSingleTypeParameter.class, String.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -149,11 +141,7 @@ public class ClassFileImporterGenericSuperclassTest {
                 InterfaceParameterWithSingleTypeParameter<String>> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter()
-                .importClasses(
-                        Child.class, ClassParameterWithSingleTypeParameter.class, InterfaceParameterWithSingleTypeParameter.class,
-                        File.class, Serializable.class, String.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -173,8 +161,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child extends BaseClass<ClassParameterWithSingleTypeParameter<?>> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, ClassParameterWithSingleTypeParameter.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -192,8 +179,7 @@ public class ClassFileImporterGenericSuperclassTest {
                 ClassParameterWithSingleTypeParameter<? super File>> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, ClassParameterWithSingleTypeParameter.class, String.class, File.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -213,11 +199,7 @@ public class ClassFileImporterGenericSuperclassTest {
                 ClassParameterWithSingleTypeParameter<Reference<? super String>>> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter()
-                .importClasses(
-                        Child.class, ClassParameterWithSingleTypeParameter.class,
-                        Map.class, Serializable.class, File.class, Reference.class, String.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -239,8 +221,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child<SUB> extends BaseClass<SUB> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, BaseClass.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(typeVariable("SUB"));
     }
@@ -253,8 +234,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child<SUB> extends BaseClass<ClassParameterWithSingleTypeParameter<SUB>> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, ClassParameterWithSingleTypeParameter.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -270,8 +250,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child<SUB extends String> extends BaseClass<ClassParameterWithSingleTypeParameter<SUB>> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, ClassParameterWithSingleTypeParameter.class, String.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -293,13 +272,7 @@ public class ClassFileImporterGenericSuperclassTest {
             }
         }
 
-        JavaType genericSuperclass = new ClassFileImporter()
-                .importClasses(
-                        OuterWithTypeParameter.class,
-                        OuterWithTypeParameter.SomeInner.class,
-                        OuterWithTypeParameter.SomeInner.Child.class,
-                        String.class)
-                .get(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 typeVariable("OUTER").withUpperBounds(String.class)
@@ -320,9 +293,14 @@ public class ClassFileImporterGenericSuperclassTest {
             }
         }
 
-        JavaType genericSuperclass = new ClassFileImporter()
-                .importClasses(OuterWithTypeParameter.SomeInner.Child.class, String.class)
-                .get(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
+        JavaType genericSuperclass = resetConfigurationAround(new Callable<JavaType>() {
+            @Override
+            public JavaType call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                return new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
+            }
+        });
+        ;
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 typeVariable("OUTER").withoutUpperBounds()
@@ -342,9 +320,7 @@ public class ClassFileImporterGenericSuperclassTest {
         }
 
         Class<?> innermostClass = Class.forName(Level1.class.getName() + "$1Level3");
-        JavaType genericSuperclass = new ClassFileImporter()
-                .importClasses(innermostClass, Level1.class, String.class)
-                .get(innermostClass).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(innermostClass).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass")
                 .hasActualTypeArguments(
@@ -364,9 +340,7 @@ public class ClassFileImporterGenericSuperclassTest {
                 ClassParameterWithSingleTypeParameter<? super SECOND>> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter()
-                .importClasses(Child.class, ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -394,13 +368,7 @@ public class ClassFileImporterGenericSuperclassTest {
             }
         }
 
-        JavaType genericSuperclass = new ClassFileImporter()
-                .importClasses(
-                        OuterWithTypeParameter.class,
-                        OuterWithTypeParameter.SomeInner.class,
-                        OuterWithTypeParameter.SomeInner.Child.class,
-                        ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class)
-                .get(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -428,11 +396,15 @@ public class ClassFileImporterGenericSuperclassTest {
             }
         }
 
-        JavaType genericSuperclass = new ClassFileImporter()
-                .importClasses(
-                        OuterWithTypeParameter.SomeInner.Child.class,
-                        ClassParameterWithSingleTypeParameter.class, String.class, Serializable.class)
-                .get(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
+        JavaType genericSuperclass = resetConfigurationAround(new Callable<JavaType>() {
+            @Override
+            public JavaType call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                return new ClassFileImporter()
+                        .importClasses(OuterWithTypeParameter.SomeInner.Child.class, ClassParameterWithSingleTypeParameter.class)
+                        .get(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
+            }
+        });
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 parameterizedType(ClassParameterWithSingleTypeParameter.class)
@@ -462,10 +434,7 @@ public class ClassFileImporterGenericSuperclassTest {
                 Comparable<Child<FIRST, SECOND>>> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter()
-                .importClasses(Child.class, String.class, Serializable.class, Cloneable.class,
-                        List.class, Map.class, Map.Entry.class, Set.class, Iterable.class, Comparable.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         // @formatter:off
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
@@ -516,10 +485,7 @@ public class ClassFileImporterGenericSuperclassTest {
                 > {
         }
 
-        JavaClasses classes = new ClassFileImporter().importClasses(Child.class,
-                List.class, Serializable.class, Map.class, String.class);
-
-        JavaType genericSuperclass = classes.get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).hasActualTypeArguments(
                 parameterizedType(List.class).withTypeArguments(Serializable[].class),
@@ -542,8 +508,7 @@ public class ClassFileImporterGenericSuperclassTest {
         class Child extends BaseClass<List<String>[], List<String[]>[][], List<String[][]>[][][]> {
         }
 
-        JavaType genericSuperclass = new ClassFileImporter().importClasses(Child.class, List.class, String.class)
-                .get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).hasActualTypeArguments(
                 genericArray(parameterizedTypeArrayName(List.class, String.class, 1)).withComponentType(
@@ -571,10 +536,7 @@ public class ClassFileImporterGenericSuperclassTest {
                 > {
         }
 
-        JavaClasses classes = new ClassFileImporter().importClasses(Child.class,
-                List.class, Serializable.class, Map.class, String.class);
-
-        JavaType genericSuperclass = classes.get(Child.class).getSuperclass().get();
+        JavaType genericSuperclass = new ClassFileImporter().importClass(Child.class).getSuperclass().get();
 
         assertThatType(genericSuperclass).hasActualTypeArguments(
                 parameterizedType(List.class).withTypeArguments(

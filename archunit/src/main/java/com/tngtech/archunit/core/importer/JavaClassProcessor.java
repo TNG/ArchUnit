@@ -236,7 +236,7 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         JavaClassDescriptor rawType = JavaClassDescriptorImporter.importAsmTypeFromDescriptor(desc);
-        Optional<JavaTypeCreationProcess<JavaField>> genericType = JavaFieldTypeSignatureImporter.parseAsmFieldTypeSignature(signature);
+        Optional<JavaTypeCreationProcess<JavaField>> genericType = JavaFieldTypeSignatureImporter.parseAsmFieldTypeSignature(signature, declarationHandler);
         DomainBuilders.JavaFieldBuilder fieldBuilder = new DomainBuilders.JavaFieldBuilder()
                 .withName(name)
                 .withType(genericType, rawType)
@@ -258,7 +258,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         JavaClassDescriptor rawReturnType = JavaClassDescriptorImporter.importAsmMethodReturnType(desc);
         DomainBuilders.JavaCodeUnitBuilder<?, ?> codeUnitBuilder = addCodeUnitBuilder(name, codeUnit.getRawParameterTypeNames(), rawReturnType.getFullyQualifiedClassName());
-        JavaCodeUnitSignature codeUnitSignature = JavaCodeUnitSignatureImporter.parseAsmMethodSignature(signature);
+        JavaCodeUnitSignature codeUnitSignature = JavaCodeUnitSignatureImporter.parseAsmMethodSignature(signature, declarationHandler);
         List<JavaClassDescriptor> throwsDeclarations = typesFrom(exceptions);
         codeUnitBuilder
                 .withName(name)

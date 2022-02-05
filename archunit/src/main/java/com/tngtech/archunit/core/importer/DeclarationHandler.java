@@ -58,4 +58,6 @@ interface DeclarationHandler {
     void onDeclaredInstanceofCheck(String typeName);
 
     void onDeclaredThrowsClause(Collection<String> exceptionTypeNames);
+
+    void onDeclaredGenericSignatureType(String typeName);
 }

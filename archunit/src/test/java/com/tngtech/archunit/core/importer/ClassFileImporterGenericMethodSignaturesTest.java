@@ -9,12 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -22,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.testutil.ArchConfigurationRule.resetConfigurationAround;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCodeUnit;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteClass.concreteClass;
@@ -69,8 +68,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <T> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                Object.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -112,8 +110,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <T extends String> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -134,8 +131,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <A extends String, B extends System, C extends File> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                String.class, System.class, File.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -160,8 +156,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <T extends Serializable> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                Serializable.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -182,8 +177,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <T extends String & Serializable & Runnable> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                String.class, Serializable.class, Runnable.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -204,8 +198,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <A extends String & Serializable, B extends System & Runnable, C extends File & Serializable & Closeable> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                String.class, Serializable.class, System.class, Runnable.class, File.class, Serializable.class, Closeable.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -230,8 +223,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <T extends ClassParameterWithSingleTypeParameter<String>> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -253,8 +245,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <T extends ClassParameterWithSingleTypeParameter<String[]>> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -276,8 +267,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <T extends ClassParameterWithSingleTypeParameter<int[]>> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -307,8 +297,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                     > void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, File.class, InterfaceParameterWithSingleTypeParameter.class, Serializable.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -336,9 +325,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                     B extends Map<String, Serializable> & Iterable<File> & Function<Integer, Long>> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                ClassParameterWithSingleTypeParameter.class, InterfaceParameterWithSingleTypeParameter.class,
-                Map.class, Iterable.class, Function.class, String.class, Serializable.class, File.class, Integer.class, Long.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -368,7 +355,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <T extends List<?>> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class, List.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -391,8 +378,8 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             }
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
-                GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                List.class, String.class);
+                GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -417,8 +404,8 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             }
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
-                GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                List.class, Serializable.class);
+                GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -443,8 +430,8 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             }
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
-                GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                List.class, String.class);
+                GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -469,8 +456,8 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             }
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
-                GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                List.class, Serializable.class);
+                GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -494,8 +481,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <A extends Map<? extends Serializable, ? super File>, B extends Reference<? super String> & Map<?, ?>> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                Map.class, Serializable.class, File.class, Reference.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -534,7 +520,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             <U extends T, T extends String, V extends T> void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -567,11 +553,8 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnConstructor.class,
-                Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class,
-                Outer.class,
-                Outer.SomeInner.class,
-                Outer.SomeInner.EvenMoreInnerDeclaringOwn.class,
-                String.class);
+                Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -613,12 +596,8 @@ public class ClassFileImporterGenericMethodSignaturesTest {
 
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 ConstructorWithTypeParameterBoundByInnerClass.class,
-                MethodWithTypeParameterBoundByInnerClass.class,
-                ConstructorWithTypeParameterBoundByInnerClass.SomeInner.class,
-                ConstructorWithTypeParameterBoundByInnerClass.SomeInner.EvenMoreInner.class,
-                MethodWithTypeParameterBoundByInnerClass.SomeInner.class,
-                MethodWithTypeParameterBoundByInnerClass.SomeInner.EvenMoreInner.class,
-                String.class);
+                MethodWithTypeParameterBoundByInnerClass.class
+        );
     }
 
     @Test
@@ -656,9 +635,21 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 }
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(
-                Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnConstructor.class,
-                Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class);
+
+        JavaClasses classes = resetConfigurationAround(new Callable<JavaClasses>() {
+            @Override
+            public JavaClasses call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                return new ClassFileImporter().importClasses(
+                        Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnConstructor.class,
+                        Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class);
+            }
+        });
+
+        return testForEach(
+                getOnlyElement(classes.get(Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnConstructor.class).getConstructors()),
+                getOnlyElement(classes.get(Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class).getMethods())
+        );
     }
 
     @Test
@@ -694,8 +685,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         String level3ClassName = Level1.class.getName() + "$1Level3";
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 Class.forName(level3ClassName + "$GenericSignatureOnConstructor"),
-                Class.forName(level3ClassName + "$GenericSignatureOnMethod"),
-                Class.forName(level3ClassName), Level1.class, String.class);
+                Class.forName(level3ClassName + "$GenericSignatureOnMethod"));
     }
 
     @Test
@@ -725,8 +715,8 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 GenericSignatureOnConstructor.class,
-                GenericSignatureOnMethod.class,
-                List.class, String.class);
+                GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -763,10 +753,8 @@ public class ClassFileImporterGenericMethodSignaturesTest {
         }
         return testCasesFromSameGenericSignatureOnConstructorAndMethod(
                 Outer.Inner.GenericSignatureOnConstructor.class,
-                Outer.Inner.GenericSignatureOnMethod.class,
-                Outer.class,
-                Outer.Inner.class,
-                List.class, String.class);
+                Outer.Inner.GenericSignatureOnMethod.class
+        );
     }
 
     @Test
@@ -803,10 +791,22 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 }
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(
-                Outer.Inner.GenericSignatureOnConstructor.class,
-                Outer.Inner.GenericSignatureOnMethod.class,
-                List.class, String.class);
+
+        JavaClasses classes = resetConfigurationAround(new Callable<JavaClasses>() {
+            @Override
+            public JavaClasses call() {
+                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+                return new ClassFileImporter().importClasses(
+                        Outer.Inner.GenericSignatureOnConstructor.class,
+                        Outer.Inner.GenericSignatureOnMethod.class,
+                        List.class);
+            }
+        });
+
+        return testForEach(
+                getOnlyElement(classes.get(Outer.Inner.GenericSignatureOnConstructor.class).getConstructors()),
+                getOnlyElement(classes.get(Outer.Inner.GenericSignatureOnMethod.class).getMethods())
+        );
     }
 
     @Test
@@ -855,8 +855,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                     > void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                List.class, Serializable.class, Comparable.class, Map.class, Map.Entry.class, String.class, Set.class, Iterable.class, Object.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -916,8 +915,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                     > void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                List.class, Serializable.class, Map.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -958,8 +956,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                     > void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                ClassWithThreeTypeParameters.class, List.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -1004,8 +1001,7 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                     > void genericSignatureOnMethod() {
             }
         }
-        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class,
-                List.class, Serializable.class, Map.class, String.class);
+        return testCasesFromSameGenericSignatureOnConstructorAndMethod(GenericSignatureOnConstructor.class, GenericSignatureOnMethod.class);
     }
 
     @Test
@@ -1042,18 +1038,8 @@ public class ClassFileImporterGenericMethodSignaturesTest {
                 );
     }
 
-    private static Object[][] testCasesFromSameGenericSignatureOnConstructorAndMethod(
-            Class<?> genericSignatureOnConstructor,
-            Class<?> genericSignatureOnMethod,
-            Class<?>... additionalImports) {
-        final List<Class<?>> toImport = FluentIterable.from(additionalImports).append(genericSignatureOnConstructor).append(genericSignatureOnMethod).toList();
-        JavaClasses classes = ArchConfigurationRule.resetConfigurationAround(new Callable<JavaClasses>() {
-            @Override
-            public JavaClasses call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return new ClassFileImporter().importClasses(toImport);
-            }
-        });
+    private static Object[][] testCasesFromSameGenericSignatureOnConstructorAndMethod(Class<?> genericSignatureOnConstructor, Class<?> genericSignatureOnMethod) {
+        JavaClasses classes = new ClassFileImporter().importClasses(genericSignatureOnConstructor, genericSignatureOnMethod);
 
         return testForEach(
                 getOnlyElement(classes.get(genericSignatureOnConstructor).getConstructors()),
