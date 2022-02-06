@@ -64,12 +64,7 @@ class ClassesShouldEvaluator {
     private List<String> getRelevantFailures(JavaClasses classes) {
         List<String> relevant = new ArrayList<>();
         for (String line : linesIn(rule.evaluate(classes).getFailureReport())) {
-            if (
-                    !isDefaultConstructor(line)
-                            && !isSelfReference(line)
-                            && !isExtendsJavaLangAnnotation(line)
-                            && !isDirectDependencyFromTest(line)
-            ) {
+            if (!isDefaultConstructor(line) && !isSelfReference(line) && !isExtendsJavaLangAnnotation(line)) {
                 relevant.add(line);
             }
         }
@@ -86,10 +81,6 @@ class ClassesShouldEvaluator {
 
     private boolean isExtendsJavaLangAnnotation(String line) {
         return line.matches(String.format(".*extends.*<%s> in.*", Annotation.class.getName()));
-    }
-
-    private boolean isDirectDependencyFromTest(String line) {
-        return line.matches("^Method <.*Test\\..*> .*");
     }
 
     private List<String> linesIn(FailureReport failureReport) {

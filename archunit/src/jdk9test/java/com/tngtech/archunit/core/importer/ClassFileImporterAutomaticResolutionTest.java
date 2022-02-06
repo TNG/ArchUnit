@@ -53,7 +53,9 @@ import org.junit.runner.RunWith;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ANNOTATION_TYPES_PROPERTY_NAME;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ENCLOSING_TYPES_DEFAULT_VALUE;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_ENCLOSING_TYPES_PROPERTY_NAME;
+import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_DEFAULT_VALUE;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME;
 import static com.tngtech.archunit.core.importer.DependencyResolutionProcess.MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME;
@@ -597,7 +599,8 @@ public class ClassFileImporterAutomaticResolutionTest {
         }
 
         Class<?> lessInnerClass = Class.forName(Outermost.LessOuter.LeastOuter.class.getName() + "$1LessInner");
-        JavaClass innermost = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_ENCLOSING_TYPES_PROPERTY_NAME)
+        JavaClass innermost = ImporterWithAdjustedResolutionRuns
+                .disableAllIterationsExcept(MAX_ITERATIONS_FOR_ENCLOSING_TYPES_PROPERTY_NAME, MAX_ITERATIONS_FOR_ENCLOSING_TYPES_DEFAULT_VALUE)
                 .importClass(Class.forName(lessInnerClass.getName() + "$Innermost"));
 
         JavaClass lessInner = innermost.getEnclosingClass().get();
@@ -767,32 +770,37 @@ public class ClassFileImporterAutomaticResolutionTest {
     }
 
     private static JavaType importFirstTypeParameterClassBound(Class<?> clazz) {
-        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns
+                .disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME, MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_DEFAULT_VALUE)
                 .importClass(clazz);
         return getOnlyElement(getOnlyElement(javaClass.getTypeParameters()).getBounds());
     }
 
     private static JavaType importFirstTypeParameterMethodBound(Class<?> clazz) {
-        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns
+                .disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME, MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_DEFAULT_VALUE)
                 .importClass(clazz);
         return getOnlyElement(getOnlyElement(javaClass.getMethod("method").getTypeParameters()).getBounds());
     }
 
     private static JavaType importFirstTypeArgumentFieldBound(Class<?> clazz) {
-        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns
+                .disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME, MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_DEFAULT_VALUE)
                 .importClass(clazz);
         return getFirstTypeArgumentUpperBound(javaClass.getField("field").getType());
     }
 
     private static JavaType importFirstTypeArgumentMethodParameterBound(Class<?> clazz) {
-        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns
+                .disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME, MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_DEFAULT_VALUE)
                 .importClass(clazz);
         JavaMethod method = getOnlyElement(javaClass.getMethods());
         return getFirstTypeArgumentUpperBound(method.getParameterTypes().get(0));
     }
 
     private static JavaType importFirstTypeArgumentConstructorParameterBound(Class<?> clazz) {
-        JavaClass javaClass = ImporterWithAdjustedResolutionRuns.disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME)
+        JavaClass javaClass = ImporterWithAdjustedResolutionRuns
+                .disableAllIterationsExcept(MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_PROPERTY_NAME, MAX_ITERATIONS_FOR_GENERIC_SIGNATURE_TYPES_DEFAULT_VALUE)
                 .importClass(clazz);
         JavaConstructor constructor = getOnlyElement(javaClass.getConstructors());
         return getFirstTypeArgumentUpperBound(constructor.getParameterTypes().get(0));
