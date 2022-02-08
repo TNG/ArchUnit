@@ -79,9 +79,11 @@ ext {
     ]
 
     minSupportedJavaVersion = JavaVersion.VERSION_1_7
-    maxSupportedJavaVersion = JavaVersion.VERSION_15
+    maxSupportedJavaVersion = JavaVersion.VERSION_16
     isTestBuild = project.hasProperty('testJavaVersion')
     configuredTestJavaVersion = project.findProperty('testJavaVersion')?.toString()?.with {JavaVersion.toVersion(it) }
+    assert configuredTestJavaVersion <= maxSupportedJavaVersion :
+            "Cannot test with ${configuredTestJavaVersion} because it is higher than max supported version ${maxSupportedJavaVersion}"
 
     postfixedJar = { File jarFile, String postfix ->
         new File(jarFile.parentFile, jarFile.name.replaceAll(/\.jar$/, "-${postfix}.jar"))

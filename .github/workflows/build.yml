@@ -8,7 +8,7 @@ on:
   pull_request:
 
 env:
-  build_java_version: 15
+  build_java_version: 16
 
 jobs:
   build:
@@ -81,6 +81,7 @@ jobs:
           - 13
           - 14
           - 15
+          - 16
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -111,6 +112,7 @@ jobs:
           - 13
           - 14
           - 15
+          - 16
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
