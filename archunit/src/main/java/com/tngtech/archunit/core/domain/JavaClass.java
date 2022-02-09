@@ -35,7 +35,7 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
-import com.tngtech.archunit.core.ResolvesTypesViaReflection;
+import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;

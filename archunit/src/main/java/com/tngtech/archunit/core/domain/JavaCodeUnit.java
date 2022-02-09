@@ -29,7 +29,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.ForwardingList;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.ResolvesTypesViaReflection;
+import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
