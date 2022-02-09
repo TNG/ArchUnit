@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
@@ -36,9 +37,11 @@ import com.tngtech.archunit.lang.syntax.elements.ClassesShould;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 
+import static com.google.common.collect.Iterables.isEmpty;
 import static com.google.common.io.Resources.readLines;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
+import static java.lang.Boolean.TRUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -175,6 +178,8 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
         }
 
         private static class SimpleArchRule<T> implements ArchRule {
+            private static final String FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME = "archRule.failOnEmptyShould";
+
             private final Priority priority;
             private final ClassesTransformer<T> classesTransformer;
             private final ArchCondition<T> condition;
@@ -206,6 +211,8 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             @Override
             public EvaluationResult evaluate(JavaClasses classes) {
                 Iterable<T> allObjects = classesTransformer.transform(classes);
+                verifyNoEmptyShouldIfEnabled(allObjects);
+
                 condition.init(allObjects);
                 ConditionEvents events = new ConditionEvents();
                 for (T object : allObjects) {
@@ -213,6 +220,21 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
                 }
                 condition.finish(events);
                 return new EvaluationResult(this, events, priority);
+            }
+
+            private void verifyNoEmptyShouldIfEnabled(Iterable<T> allObjects) {
+                if (isEmpty(allObjects) && isFailOnEmptyShouldEnabled()) {
+                    throw new AssertionError("Rule failed to check any classes. " +
+                            "This means either that no classes have been passed to the rule at all, " +
+                            "or that no classes passed to the rule matched the `that()` clause. " +
+                            "To allow rules being evaluated without checking any classes you can set the ArchUnit property " +
+                            FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME + " = " + false);
+                }
+            }
+
+            private boolean isFailOnEmptyShouldEnabled() {
+                return ArchConfiguration.get().getPropertyOrDefault(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME, TRUE.toString())
+                        .equals(TRUE.toString());
             }
 
             @Override
