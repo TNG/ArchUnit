@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Ordering;
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

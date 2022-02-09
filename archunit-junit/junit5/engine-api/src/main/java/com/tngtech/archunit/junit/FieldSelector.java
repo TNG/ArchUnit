@@ -19,7 +19,7 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import org.junit.platform.engine.DiscoverySelector;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

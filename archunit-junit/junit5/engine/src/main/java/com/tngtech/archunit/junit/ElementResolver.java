@@ -24,7 +24,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
 

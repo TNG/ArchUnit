@@ -5,7 +5,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;

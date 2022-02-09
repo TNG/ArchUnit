@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.core;
+package com.tngtech.archunit.base;
 
 import java.lang.annotation.Retention;
 

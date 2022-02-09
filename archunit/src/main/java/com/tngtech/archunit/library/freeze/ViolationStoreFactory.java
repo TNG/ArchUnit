@@ -30,7 +30,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.lang.ArchRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
