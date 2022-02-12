@@ -55,7 +55,7 @@ archUnitTest {
 
 def jdk9MainDirs = ['src/jdk9main/java']
 def jdk9TestDirs = ['src/jdk9test/java']
-def jdk15TestDirs = ['src/jdk15test/java']
+def jdk16TestDirs = ['src/jdk16test/java']
 sourceSets {
     jdk9main {
         java {
@@ -69,9 +69,9 @@ sourceSets {
         }
         compileClasspath += sourceSets.test.compileClasspath + sourceSets.jdk9main.output.classesDirs
     }
-    jdk15test {
+    jdk16test {
         java {
-            srcDirs = jdk15TestDirs
+            srcDirs = jdk16TestDirs
         }
         compileClasspath += sourceSets.test.compileClasspath + sourceSets.jdk9main.output.classesDirs
     }
@@ -82,8 +82,8 @@ dependencies {
     jdk9testImplementation sourceSets.test.output
     jdk9testImplementation sourceSets.test.compileClasspath
     jdk9testImplementation sourceSets.jdk9main.output
-    jdk15testImplementation sourceSets.test.output
-    jdk15testImplementation sourceSets.test.compileClasspath
+    jdk16testImplementation sourceSets.test.output
+    jdk16testImplementation sourceSets.test.compileClasspath
 
     runtimeOnly sourceSets.jdk9main.output
 }
@@ -93,15 +93,16 @@ compileJdk9mainJava.with {
 
     destinationDir = compileJava.destinationDir
 }
+javadoc.dependsOn(compileJdk9mainJava)
+spotbugsMain.dependsOn(compileJdk9mainJava)
+compileTestJava.dependsOn(compileJdk9mainJava)
 
 compileJdk9testJava.with {
     ext.minimumJavaVersion = JavaVersion.VERSION_1_9
 }
 
-compileJdk15testJava.with {
-    ext.minimumJavaVersion = JavaVersion.VERSION_15
-
-    options.compilerArgs += '--enable-preview'
+compileJdk16testJava.with {
+    ext.minimumJavaVersion = JavaVersion.VERSION_16
 }
 
 task jdk9Test(type: Test) {
@@ -111,24 +112,15 @@ task jdk9Test(type: Test) {
     classpath = sourceSets.jdk9test.runtimeClasspath
 }
 
-task jdk15Test(type: Test) {
-    ext.minimumJavaVersion = JavaVersion.VERSION_15
+task jdk16Test(type: Test) {
+    ext.minimumJavaVersion = JavaVersion.VERSION_16
 
-    testClassesDirs = sourceSets.jdk15test.output.classesDirs
-    classpath = sourceSets.jdk15test.runtimeClasspath
-    jvmArgs += "--enable-preview"
-
-    // workaround for issue in Gradle 6, see https://github.com/gradle/gradle/issues/14714
-    exclude '**/ClassFileImporterRecordsTest\$*RecordToImport.class'
-    exclude '**/GivenClassesThatRecordsTest\$*SomeRecord.class'
-    exclude '**/GivenMembersDeclaredInClassesThatRecordsTest\$*SomeRecord.class'
-    exclude '**/ShouldClassesThatRecordsTest\$*SomeRecord.class'
-    exclude '**/ShouldOnlyByClassesThatRecordsTest\$*RecordAccessingRecord.class'
-    exclude '**/ShouldOnlyByClassesThatRecordsTest\$*SomeRecord.class'
+    testClassesDirs = sourceSets.jdk16test.output.classesDirs
+    classpath = sourceSets.jdk16test.runtimeClasspath
 }
 
 assemble.dependsOn compileJdk9mainJava
 
-test.finalizedBy(jdk9Test, jdk15Test)
+test.finalizedBy(jdk9Test, jdk16Test)
 
-[spotbugsJdk9test, spotbugsJdk15test]*.enabled = false
+[spotbugsJdk9test, spotbugsJdk16test]*.enabled = false

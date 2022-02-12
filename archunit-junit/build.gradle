@@ -102,4 +102,3 @@ ext.configureJUnitArchive = { configureDependencies ->
 this.with addCleanThirdPartyTask
 
 javadoc.enabled = false
-uploadArchives.enabled = false

@@ -7,6 +7,7 @@ out
 .project
 .settings
 .classpath
+bin/
 _site
 .sass-cache
 .jekyll-metadata
