@@ -3,6 +3,8 @@ package com.tngtech.archunit.library.freeze;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -121,6 +123,42 @@ public class TextFileBasedViolationStoreTest {
 
         List<String> violations = store.getViolations(defaultRule());
         assertThat(violations).as("stored violations").containsExactlyElementsOf(expected);
+    }
+
+    @Test
+    public void stored_rules_file_is_sorted_alphabetically() throws IOException {
+        store.save(rule("a-rule"), Collections.<String>emptyList());
+        store.save(rule("b-rule"), Collections.<String>emptyList());
+        store.save(rule("c-rule"), Collections.<String>emptyList());
+        store.save(rule("A-rule"), Collections.<String>emptyList());
+
+        List<String> storedRules = Files.readLines(new File(configuredFolder, "stored.rules"), UTF_8);
+        storedRules = removeComments(storedRules);
+        storedRules = replaceUuidsWith(storedRules, "<uuid>");
+        assertThat(storedRules).containsExactly(
+                "A-rule=<uuid>",
+                "a-rule=<uuid>",
+                "b-rule=<uuid>",
+                "c-rule=<uuid>");
+    }
+
+    private List<String> removeComments(List<String> storedRules) {
+        List<String> storedRulesWithoutComments = new ArrayList<>();
+        for (String rule : storedRules) {
+            if (!rule.startsWith("#")) {
+                storedRulesWithoutComments.add(rule);
+            }
+        }
+        return storedRulesWithoutComments;
+    }
+
+    private List<String> replaceUuidsWith(List<String> storedRules, String uuidReplacement) {
+        List<String> storedRulesWithReplacedUuids = new ArrayList<>();
+        for (String rule : storedRules) {
+            String ruleDescription = rule.split("=")[0];
+            storedRulesWithReplacedUuids.add(ruleDescription + "=" + uuidReplacement);
+        }
+        return storedRulesWithReplacedUuids;
     }
 
     private Properties readProperties(File file) throws IOException {
