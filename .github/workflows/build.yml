@@ -94,7 +94,7 @@ jobs:
       - name: Test
         uses: eskatos/gradle-command-action@v2
         with:
-          arguments: test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }} -PallTests
+          arguments: test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }}
 
   integration-test:
     strategy:
