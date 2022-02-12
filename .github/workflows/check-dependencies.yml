@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2.4.0
       - name: Check for dependency updates
-        uses: eskatos/gradle-command-action@v2
+        uses: gradle/gradle-build-action@v2
         with:
           arguments: checkDependencyUpdates -DoutputFormatter=plain,json
       - name: Create issue/comment if ASM is not up-to-date
