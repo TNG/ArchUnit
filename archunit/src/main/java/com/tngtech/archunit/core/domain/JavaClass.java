@@ -128,7 +128,7 @@ public class JavaClass
                 result.add(subclass);
                 result.addAll(subclass.getAllSubclasses());
             }
-            return result;
+            return ImmutableSet.copyOf(result);
         }
     });
     private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
@@ -670,15 +670,6 @@ public class JavaClass
     }
 
     /**
-     * @deprecated Use {@link #getRawSuperclass()} instead
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public Optional<JavaClass> getSuperClass() {
-        return getRawSuperclass();
-    }
-
-    /**
      * @return The complete class hierarchy, i.e. the class itself and the result of {@link #getAllRawSuperclasses()}
      */
     @PublicAPI(usage = ACCESS)
@@ -695,27 +686,9 @@ public class JavaClass
         return allRawSuperclasses.get();
     }
 
-    /**
-     * @deprecated Use {@link #getAllRawSuperclasses()} instead.
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public List<JavaClass> getAllSuperClasses() {
-        return getAllRawSuperclasses();
-    }
-
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getSubclasses() {
         return subclasses;
-    }
-
-    /**
-     * @deprecated Use {@link #getSubclasses()} instead.
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public Set<JavaClass> getSubClasses() {
-        return getSubclasses();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -802,15 +775,6 @@ public class JavaClass
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllSubclasses() {
         return allSubclasses.get();
-    }
-
-    /**
-     * @deprecated Use {@link #getAllSubclasses()} instead.
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public Set<JavaClass> getAllSubClasses() {
-        return getAllSubclasses();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1579,15 +1543,6 @@ public class JavaClass
     @PublicAPI(usage = ACCESS)
     public static List<String> namesOf(Iterable<Class<?>> paramTypes) {
         return formatNamesOf(paramTypes);
-    }
-
-    /**
-     * @deprecated use {@link #isAnonymousClass()} instead
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public boolean isAnonymous() {
-        return isAnonymousClass();
     }
 
     private static class Superclass {

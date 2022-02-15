@@ -16,7 +16,7 @@ public class JavaMemberTest {
     @Test
     public void isAnnotatedWith_type() {
         assertThat(importField(SomeClass.class, "someField").isAnnotatedWith(SomeAnnotation.class))
-                .as("field is annotated with @Deprecated").isTrue();
+                .as("field is annotated with @%s", SomeAnnotation.class.getSimpleName()).isTrue();
         assertThat(importField(SomeClass.class, "someField").isAnnotatedWith(Retention.class))
                 .as("field is annotated with @Retention").isFalse();
     }
@@ -24,7 +24,7 @@ public class JavaMemberTest {
     @Test
     public void isAnnotatedWith_typeName() {
         assertThat(importField(SomeClass.class, "someField").isAnnotatedWith(SomeAnnotation.class.getName()))
-                .as("field is annotated with @Deprecated").isTrue();
+                .as("field is annotated with @%s", SomeAnnotation.class.getSimpleName()).isTrue();
         assertThat(importField(SomeClass.class, "someField").isAnnotatedWith(Retention.class.getName()))
                 .as("field is annotated with @Retention").isFalse();
     }
@@ -48,7 +48,7 @@ public class JavaMemberTest {
         assertThat(clazz.getField("someField").isMetaAnnotatedWith(Retention.class))
                 .as("field is meta-annotated with @Retention").isTrue();
         assertThat(clazz.getField("someField").isMetaAnnotatedWith(Deprecated.class))
-                .as("field is meta-annotated with @Deprecated").isFalse();
+                .as("field is meta-annotated with @%s", Deprecated.class.getSimpleName()).isFalse();
     }
 
     @Test
@@ -60,7 +60,7 @@ public class JavaMemberTest {
         assertThat(clazz.getField("someField").isMetaAnnotatedWith(Retention.class.getName()))
                 .as("field is meta-annotated with @Retention").isTrue();
         assertThat(clazz.getField("someField").isMetaAnnotatedWith(Deprecated.class.getName()))
-                .as("field is meta-annotated with @Deprecated").isFalse();
+                .as("field is meta-annotated with @%s", Deprecated.class.getSimpleName()).isFalse();
     }
 
     @Test

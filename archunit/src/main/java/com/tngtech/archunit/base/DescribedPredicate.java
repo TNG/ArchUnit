@@ -64,14 +64,6 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return (DescribedPredicate<U>) this;
     }
 
-    /**
-     * @deprecated Use {@link #forSubtype()} instead.
-     */
-    @Deprecated
-    public final <U extends T> DescribedPredicate<U> forSubType() {
-        return forSubtype();
-    }
-
     @Override
     public String toString() {
         return getDescription();
@@ -375,7 +367,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
         OptionalContainsPredicate(DescribedPredicate<? super T> predicate) {
             super("contains " + predicate.getDescription());
-            this.predicate = predicate.forSubType();
+            this.predicate = predicate.forSubtype();
         }
 
         @Override

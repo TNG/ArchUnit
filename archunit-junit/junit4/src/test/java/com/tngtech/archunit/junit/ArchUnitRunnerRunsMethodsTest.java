@@ -1,5 +1,7 @@
 package com.tngtech.archunit.junit;
 
+import java.lang.annotation.Retention;
+
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitRunner.SharedCache;
@@ -30,6 +32,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
@@ -139,7 +142,7 @@ public class ArchUnitRunnerRunsMethodsTest {
 
         verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
         Description description = descriptionCaptor.getValue();
-        assertThat(description.getAnnotation(Deprecated.class)).as("expected annotation").isNotNull();
+        assertThat(description.getAnnotation(SomeAnnotation.class)).as("expected annotation").isNotNull();
     }
 
     @Test
@@ -247,7 +250,7 @@ public class ArchUnitRunnerRunsMethodsTest {
     public static class ArchTestWithMethodWithAdditionalAnnotation {
         static final String TEST_METHOD_NAME = "annotatedTestMethod";
 
-        @Deprecated
+        @SomeAnnotation
         @ArchTest
         public static void annotatedTestMethod(JavaClasses classes) {
         }
@@ -274,5 +277,9 @@ public class ArchUnitRunnerRunsMethodsTest {
         void abstractBaseClassInstanceMethod(JavaClasses classes) {
             classes().should(BE_SATISFIED).check(classes);
         }
+    }
+
+    @Retention(RUNTIME)
+    @interface SomeAnnotation {
     }
 }

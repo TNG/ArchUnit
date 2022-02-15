@@ -17,7 +17,6 @@ package com.tngtech.archunit.lang;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
@@ -78,16 +77,6 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     @PublicAPI(usage = ACCESS)
     public boolean isEmpty() {
         return getAllowed().isEmpty() && getViolating().isEmpty();
-    }
-
-    /**
-     * @deprecated Use {@link #getFailureMessages()} instead
-     * @return List of text lines describing the contained failures of these events.
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public List<String> getFailureDescriptionLines() {
-        return getFailureMessages();
     }
 
     /**

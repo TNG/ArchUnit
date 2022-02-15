@@ -118,7 +118,6 @@ public class ConditionEventsTest {
                 SimpleConditionEvent.violated(new Object(), expectedDescriptionLines.get(0)));
 
         assertThat(events.getFailureMessages()).containsExactlyElementsOf(expectedDescriptionLines);
-        assertThat(events.getFailureDescriptionLines()).containsExactlyElementsOf(expectedDescriptionLines);
     }
 
     private static class BaseHandler<T> implements ViolationHandler<T> {
