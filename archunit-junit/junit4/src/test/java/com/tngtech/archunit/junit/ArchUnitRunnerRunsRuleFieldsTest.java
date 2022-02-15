@@ -1,5 +1,7 @@
 package com.tngtech.archunit.junit;
 
+import java.lang.annotation.Retention;
+
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitRunner.SharedCache;
@@ -31,6 +33,7 @@ import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.NEVER_BE_SATISFIED;
 import static com.tngtech.archunit.junit.ArchUnitRunnerTestUtils.newRunnerFor;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -167,7 +170,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
         Description description = descriptionCaptor.getValue();
-        assertThat(description.getAnnotation(Deprecated.class)).as("expected annotation").isNotNull();
+        assertThat(description.getAnnotation(SomeAnnotation.class)).as("expected annotation").isNotNull();
     }
 
     @Test
@@ -275,7 +278,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     public static class ArchTestWithFieldWithAdditionalAnnotation {
         static final String TEST_FIELD_NAME = "annotatedTestField";
 
-        @Deprecated
+        @SomeAnnotation
         @ArchTest
         public static final ArchRule annotatedTestField = classes().should(NEVER_BE_SATISFIED);
     }
@@ -286,5 +289,9 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
 
         @ArchTest
         public static final ArchRule some_test_Field = classes().should(NEVER_BE_SATISFIED);
+    }
+
+    @Retention(RUNTIME)
+    @interface SomeAnnotation {
     }
 }
