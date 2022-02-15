@@ -16,7 +16,7 @@ jobs:
         with:
           arguments: checkDependencyUpdates -DoutputFormatter=plain,json
       - name: Create issue/comment if ASM is not up-to-date
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         env:
           GITHUB_SERVER_URL: ${{github.server_url}}
           GITHUB_REPOSITORY: ${{github.repository}}
