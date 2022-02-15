@@ -99,14 +99,6 @@ public abstract class ArchCondition<T> {
         return (ArchCondition<U>) this;
     }
 
-    /**
-     * @deprecated Use {@link #forSubtype()} instead.
-     */
-    @Deprecated
-    public <U extends T> ArchCondition<U> forSubType() {
-        return forSubtype();
-    }
-
     private abstract static class JoinCondition<T> extends ArchCondition<T> {
         private final Collection<ArchCondition<T>> conditions;
 
