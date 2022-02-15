@@ -71,13 +71,6 @@ public abstract class Optional<T> {
     public abstract T get();
 
     /**
-     * @deprecated Use {@link #getOrThrow(Supplier)} instead (this version always instantiates the exception, no matter if needed)
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public abstract T getOrThrow(RuntimeException e);
-
-    /**
      * @deprecated Use {@link #orElseThrow(Supplier)} instead
      */
     @Deprecated
@@ -175,11 +168,6 @@ public abstract class Optional<T> {
         }
 
         @Override
-        public T getOrThrow(RuntimeException e) {
-            throw e;
-        }
-
-        @Override
         public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
             throw exceptionSupplier.get();
         }
@@ -240,11 +228,6 @@ public abstract class Optional<T> {
         @Override
         public Set<T> asSet() {
             return singleton(object);
-        }
-
-        @Override
-        public T getOrThrow(RuntimeException e) {
-            return object;
         }
 
         @Override

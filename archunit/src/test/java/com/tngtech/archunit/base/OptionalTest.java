@@ -40,16 +40,7 @@ public class OptionalTest {
 
     @Test
     public void getOrThrow_works() {
-        assertThat(Optional.of("test").getOrThrow(new IllegalStateException("Bummer"))).isEqualTo("test");
-
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage("Bummer");
-        Optional.empty().getOrThrow(new IllegalStateException("Bummer"));
-    }
-
-    @Test
-    public void getOrThrow_supplier_works() {
-        assertThat(Optional.of("test").orElseThrow(new Supplier<IllegalStateException>() {
+        assertThat(Optional.of("test").getOrThrow(new Supplier<IllegalStateException>() {
             @Override
             public IllegalStateException get() {
                 return new IllegalStateException("SupplierBummer");
