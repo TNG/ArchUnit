@@ -50,9 +50,9 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     /**
      * Can be used to override the information about the number of violations. If absent the violated rule
      * will simply report the number of violation lines as the number of violations (which is typically
-     * correct, since ArchUnit usually reports one violation per line). However in cases where
+     * correct, since ArchUnit usually reports one violation per line). However, in cases where
      * violations are omitted (e.g. because a limit of reported violations is configured), this information
-     * can be supplied here to inform users there there actually were more violations than reported.
+     * can be supplied here to inform users that there actually were more violations than reported.
      * @param informationAboutNumberOfViolations The text to be shown for the number of times a rule has been violated
      */
     @PublicAPI(usage = ACCESS)

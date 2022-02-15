@@ -21,7 +21,7 @@ jobs:
         with:
           java-version: ${{ env.build_java_version }}
       - name: Build
-        uses: eskatos/gradle-command-action@v2
+        uses: gradle/gradle-build-action@v2
         with:
           arguments: build
 
@@ -59,7 +59,7 @@ jobs:
               }
             }
       - name: Test
-        uses: eskatos/gradle-command-action@v2
+        uses: gradle/gradle-build-action@v2
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
@@ -92,9 +92,9 @@ jobs:
         with:
           java-version: ${{ env.build_java_version }}
       - name: Test
-        uses: eskatos/gradle-command-action@v2
+        uses: gradle/gradle-build-action@v2
         with:
-          arguments: test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }} -PallTests
+          arguments: test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }}
 
   integration-test:
     strategy:
@@ -143,13 +143,13 @@ jobs:
               }
             }
       - name: Publish to Maven Local
-        uses: eskatos/gradle-command-action@v2
+        uses: gradle/gradle-build-action@v2
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
           arguments: build -xtest -xspotbugsMain -xjavadoc publishToMavenLocal
       - name: Integration test
-        uses: eskatos/gradle-command-action@v2
+        uses: gradle/gradle-build-action@v2
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
