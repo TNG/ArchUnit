@@ -111,7 +111,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
 
     private Set<ArchTestExecution> findArchRulesIn(FrameworkField ruleField) {
         boolean ignore = elementShouldBeIgnored(ruleField.getField());
-        if (ruleField.getType() == ArchTests.class || ruleField.getType() == ArchRules.class) {
+        if (ruleField.getType() == ArchTests.class) {
             return asTestExecutions(getArchRules(ruleField.getField()), ignore);
         }
         return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), ignore));
@@ -126,7 +126,7 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
     }
 
     private ArchTests getArchRules(Field field) {
-        return ArchTests.from(getValue(field, field.getDeclaringClass()));
+        return getValue(field, field.getDeclaringClass());
     }
 
     private Collection<ArchTestExecution> findArchRuleMethods() {

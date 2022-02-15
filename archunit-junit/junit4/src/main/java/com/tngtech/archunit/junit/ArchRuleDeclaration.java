@@ -84,13 +84,13 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
     private static Set<ArchRuleDeclaration<?>> archRuleDeclarationsFrom(Class<?> testClass, Field field, Class<?> fieldOwner,
             Class<? extends Annotation> archTestAnnotationType, boolean forceIgnore) {
 
-        return ArchTests.class.isAssignableFrom(field.getType()) || ArchRules.class.isAssignableFrom(field.getType()) ?
+        return ArchTests.class.isAssignableFrom(field.getType()) ?
                 toDeclarations(getArchRulesIn(field, fieldOwner), testClass, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(field)) :
                 Collections.<ArchRuleDeclaration<?>>singleton(ArchRuleDeclaration.from(testClass, field, fieldOwner, forceIgnore));
     }
 
     private static ArchTests getArchRulesIn(Field field, Class<?> fieldOwner) {
-        ArchTests value = ArchTests.from(getValue(field, fieldOwner));
+        ArchTests value = getValue(field, fieldOwner);
         return checkNotNull(value, "Field %s.%s is not initialized", fieldOwner.getName(), field.getName());
     }
 

@@ -16,13 +16,11 @@ import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.ArchUnitTestEngine.SharedCache;
 import com.tngtech.archunit.junit.testexamples.ClassWithPrivateTests;
-import com.tngtech.archunit.junit.testexamples.ComplexLegacyRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.ComplexMetaTags;
 import com.tngtech.archunit.junit.testexamples.ComplexRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.ComplexTags;
 import com.tngtech.archunit.junit.testexamples.FullAnalyzeClassesSpec;
 import com.tngtech.archunit.junit.testexamples.LibraryWithPrivateTests;
-import com.tngtech.archunit.junit.testexamples.SimpleLegacyRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.SimpleRuleLibrary;
 import com.tngtech.archunit.junit.testexamples.TestClassWithMetaTag;
 import com.tngtech.archunit.junit.testexamples.TestClassWithMetaTags;
@@ -261,17 +259,6 @@ class ArchUnitTestEngineTest {
             assertThat(getAllLeafUniqueIds(rootDescriptor))
                     .as("all leaf unique ids of complex hierarchy")
                     .containsOnlyElementsOf(getExpectedIdsForComplexRuleLibrary(engineId));
-        }
-
-        @Test
-        void a_class_with_legacy_complex_hierarchy() {
-            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest().withClass(ComplexLegacyRuleLibrary.class);
-
-            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
-
-            assertThat(getAllLeafUniqueIds(rootDescriptor))
-                    .as("all leaf unique ids of complex hierarchy")
-                    .containsOnlyElementsOf(getExpectedIdsForComplexLegacyRuleLibrary(engineId));
         }
 
         @Test
@@ -1216,23 +1203,6 @@ class ArchUnitTestEngineTest {
                 .append(FIELD_SEGMENT_TYPE, ComplexRuleLibrary.RULES_ONE_FIELD));
         Set<UniqueId> simpleRulesIds = getExpectedIdsForSimpleRules(complexRuleLibrary
                 .append(FIELD_SEGMENT_TYPE, ComplexRuleLibrary.RULES_TWO_FIELD));
-
-        return Stream.of(simpleRuleLibraryIds, simpleRulesIds).flatMap(Set::stream).collect(toSet());
-    }
-
-    private Set<UniqueId> getExpectedIdsForComplexLegacyRuleLibrary(UniqueId uniqueId) {
-        UniqueId complexLegacyRuleLibrary = uniqueId.append(CLASS_SEGMENT_TYPE, ComplexLegacyRuleLibrary.class.getName());
-        UniqueId simpleLegacyRuleLibrary = complexLegacyRuleLibrary
-                .append(FIELD_SEGMENT_TYPE, ComplexLegacyRuleLibrary.RULES_ONE_FIELD).append(CLASS_SEGMENT_TYPE, SimpleLegacyRuleLibrary.class.getName());
-        Set<UniqueId> simpleRulesIds1 = getExpectedIdsForSimpleRules(
-                simpleLegacyRuleLibrary.append(FIELD_SEGMENT_TYPE, SimpleLegacyRuleLibrary.RULES_ONE_FIELD));
-        Set<UniqueId> simpleRuleFieldIds = singleton(simpleRuleFieldTestId(
-                simpleLegacyRuleLibrary.append(FIELD_SEGMENT_TYPE, SimpleLegacyRuleLibrary.RULES_TWO_FIELD)));
-
-        Set<UniqueId> simpleRuleLibraryIds = Stream.of(simpleRulesIds1, simpleRuleFieldIds)
-                .flatMap(Set::stream).collect(toSet());
-        Set<UniqueId> simpleRulesIds = getExpectedIdsForSimpleRules(complexLegacyRuleLibrary
-                .append(FIELD_SEGMENT_TYPE, ComplexLegacyRuleLibrary.RULES_TWO_FIELD));
 
         return Stream.of(simpleRuleLibraryIds, simpleRulesIds).flatMap(Set::stream).collect(toSet());
     }

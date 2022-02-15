@@ -68,11 +68,4 @@ public final class ArchTests {
     Class<?> getDefinitionLocation() {
         return definitionLocation;
     }
-
-    static ArchTests from(Object object) {
-        if (object instanceof ArchRules) {
-            return ArchTests.in(((ArchRules) object).getDefinitionLocation());
-        }
-        return (ArchTests) object;
-    }
 }

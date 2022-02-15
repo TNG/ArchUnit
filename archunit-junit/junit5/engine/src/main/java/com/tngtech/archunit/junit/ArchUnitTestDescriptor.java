@@ -100,7 +100,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     private static void resolveChildren(
             TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
 
-        if (ArchTests.class.isAssignableFrom(field.getType()) || ArchRules.class.isAssignableFrom(field.getType())) {
+        if (ArchTests.class.isAssignableFrom(field.getType())) {
             resolveArchRules(parent, resolver, field, classes);
         } else {
             parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field), classes, field));
@@ -126,7 +126,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static DeclaredArchTests getDeclaredArchTests(Field field) {
-        return new DeclaredArchTests(ArchTests.from(getValue(field)));
+        return new DeclaredArchTests(getValue(field));
     }
 
     @Override
