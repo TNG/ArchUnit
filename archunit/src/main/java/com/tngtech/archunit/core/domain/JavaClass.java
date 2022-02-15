@@ -1545,15 +1545,6 @@ public class JavaClass
         return formatNamesOf(paramTypes);
     }
 
-    /**
-     * @deprecated use {@link #isAnonymousClass()} instead
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public boolean isAnonymous() {
-        return isAnonymousClass();
-    }
-
     private static class Superclass {
         private static final Superclass ABSENT = new Superclass(Optional.<JavaType>empty());
 
