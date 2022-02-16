@@ -40,11 +40,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.base.DescribedPredicate.greaterThan;
-import static com.tngtech.archunit.base.DescribedPredicate.greaterThanOrEqualTo;
-import static com.tngtech.archunit.base.DescribedPredicate.lessThan;
-import static com.tngtech.archunit.base.DescribedPredicate.lessThanOrEqualTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
@@ -1689,30 +1684,18 @@ public class ClassesShouldTest {
                 .doesNotMatch(String.format(".*%s.* local class.*", quote(satisfied.getName())));
     }
 
-    @DataProvider
-    public static Object[][] containNumberOfElements_rules() {
-        return $$(
-                $(equalTo(999)),
-                $(lessThan(0)),
-                $(lessThan(1)),
-                $(lessThan(2)),
-                $(greaterThan(2)),
-                $(greaterThan(3)),
-                $(greaterThan(999)),
-                $(lessThanOrEqualTo(0)),
-                $(lessThanOrEqualTo(1)),
-                $(greaterThanOrEqualTo(3)),
-                $(greaterThanOrEqualTo(999)));
+    @Test
+    public void containNumberOfElements_passes_on_matching_predicate() {
+        assertThatRule(classes().should().containNumberOfElements(DescribedPredicate.<Integer>alwaysTrue()))
+                .checking(importClasses(String.class, Integer.class))
+                .hasNoViolation();
     }
 
     @Test
-    @UseDataProvider("containNumberOfElements_rules")
-    public void containNumberOfElements(DescribedPredicate<Integer> predicate) {
-        EvaluationResult result = classes().should().containNumberOfElements(predicate).evaluate(importClasses(String.class, Integer.class));
-
-        assertThat(singleLineFailureReportOf(result))
-                .contains("contain number of elements " + predicate.getDescription())
-                .contains("there is/are 2 element(s) in classes [java.lang.Integer, java.lang.String]");
+    public void containNumberOfElements_fails_on_mismatching_predicate() {
+        assertThatRule(classes().should().containNumberOfElements(DescribedPredicate.<Integer>alwaysFalse()))
+                .checking(importClasses(String.class, Integer.class))
+                .hasOnlyViolations("there is/are 2 element(s) in [java.lang.Integer, java.lang.String]");
     }
 
     @DataProvider

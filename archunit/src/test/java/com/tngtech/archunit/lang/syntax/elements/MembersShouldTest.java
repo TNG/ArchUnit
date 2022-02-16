@@ -8,6 +8,7 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -81,6 +82,7 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.allMemb
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.allMethodsExcept;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.areNoFieldsWithType;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
+import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.emptySet;
@@ -651,6 +653,23 @@ public class MembersShouldTest {
                         quote(suffix),
                         quote(suffix),
                         locationPattern(SimpleFieldAndMethod.class)));
+    }
+
+    @Test
+    public void containNumberOfElements_passes_on_matching_predicate() {
+        assertThatRule(members().should().containNumberOfElements(DescribedPredicate.<Integer>alwaysTrue()))
+                .checking(importClasses(SimpleFieldAndMethod.class))
+                .hasNoViolation();
+    }
+
+    @Test
+    public void containNumberOfElements_fails_on_mismatching_predicate() {
+        assertThatRule(members().should().containNumberOfElements(DescribedPredicate.<Integer>alwaysFalse()))
+                .checking(importClasses(SimpleFieldAndMethod.class))
+                .hasOnlyViolations("there is/are 3 element(s) in ["
+                        + "com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod.<init>(), "
+                        + "com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod.violated, "
+                        + "com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod.violated()]");
     }
 
     private Set<String> parseMembers(List<String> details) {

@@ -294,6 +294,11 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
         });
     }
 
+    @Override
+    public SELF containNumberOfElements(DescribedPredicate<? super Integer> predicate) {
+        return addCondition(ArchConditions.<JavaMember>containNumberOfElements(predicate));
+    }
+
     private SELF copyWithNewCondition(ArchCondition<? super MEMBER> newCondition) {
         return copyWithNewCondition(new ConditionAggregator<>(newCondition.<MEMBER>forSubtype()));
     }

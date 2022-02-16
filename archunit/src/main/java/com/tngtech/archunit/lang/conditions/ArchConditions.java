@@ -1083,8 +1083,8 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaClass> containNumberOfElements(DescribedPredicate<? super Integer> predicate) {
-        return new NumberOfElementsCondition(predicate);
+    public static <T extends HasName.AndFullName> ArchCondition<T> containNumberOfElements(DescribedPredicate<? super Integer> predicate) {
+        return new NumberOfElementsCondition<>(predicate);
     }
 
     /**
@@ -1321,9 +1321,9 @@ public final class ArchConditions {
         }
     }
 
-    private static class NumberOfElementsCondition extends ArchCondition<JavaClass> {
+    private static class NumberOfElementsCondition<T extends HasName.AndFullName> extends ArchCondition<T> {
         private final DescribedPredicate<Integer> predicate;
-        private final SortedSet<String> allClassNames = new TreeSet<>();
+        private final SortedSet<String> allElementNames = new TreeSet<>();
 
         NumberOfElementsCondition(DescribedPredicate<? super Integer> predicate) {
             super("contain number of elements " + predicate.getDescription());
@@ -1331,15 +1331,15 @@ public final class ArchConditions {
         }
 
         @Override
-        public void check(JavaClass item, ConditionEvents events) {
-            allClassNames.add(item.getName());
+        public void check(T item, ConditionEvents events) {
+            allElementNames.add(item.getFullName());
         }
 
         @Override
         public void finish(ConditionEvents events) {
-            int size = allClassNames.size();
+            int size = allElementNames.size();
             boolean conditionSatisfied = predicate.apply(size);
-            String message = String.format("there is/are %d element(s) in classes %s", size, join(allClassNames));
+            String message = String.format("there is/are %d element(s) in %s", size, join(allElementNames));
             events.add(new SimpleConditionEvent(size, conditionSatisfied, message));
         }
 
