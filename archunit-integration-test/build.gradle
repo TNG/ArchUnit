@@ -18,6 +18,7 @@ dependencies {
     testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation project(path: ':archunit-junit4')
     testImplementation project(path: ':archunit-junit5-api')
+    testImplementation project(path: ':archunit-junit5-engine-api')
     testImplementation project(path: ':archunit-example:example-plain')
     testImplementation project(path: ':archunit-example:example-plain', configuration: 'tests')
     testImplementation project(path: ':archunit-example:example-junit4', configuration: 'tests')

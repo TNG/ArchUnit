@@ -16,7 +16,7 @@
 package com.tngtech.archunit.library.freeze;
 
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 
 import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
 import static java.lang.Character.isDigit;

@@ -20,8 +20,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import com.tngtech.archunit.base.ArchUnitException;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.google.common.base.Preconditions.checkNotNull;

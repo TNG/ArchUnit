@@ -18,7 +18,7 @@ package com.tngtech.archunit.lang;
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 
 import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
 import static java.lang.System.lineSeparator;

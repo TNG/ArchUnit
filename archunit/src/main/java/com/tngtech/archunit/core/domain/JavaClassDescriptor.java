@@ -29,9 +29,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
-import com.tngtech.archunit.core.ResolvesTypesViaReflection;
+import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import org.objectweb.asm.Type;
 
 import static com.google.common.base.Preconditions.checkArgument;

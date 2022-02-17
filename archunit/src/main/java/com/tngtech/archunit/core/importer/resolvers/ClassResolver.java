@@ -23,9 +23,10 @@ import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.ClassResolverConfigurationException;
+import com.tngtech.archunit.base.ClassLoaders;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 
@@ -115,7 +116,7 @@ public interface ClassResolver {
         @MayResolveTypesViaReflection(reason = "Loading a ClassResolver implementation is independent of the actual import")
         private Class<?> classForName(Optional<String> resolverClassName) {
             try {
-                return Class.forName(resolverClassName.get());
+                return ClassLoaders.loadClass(resolverClassName.get());
             } catch (ClassNotFoundException e) {
                 throw ClassResolverConfigurationException.onLoadingClass(resolverClassName.get(), e);
             }

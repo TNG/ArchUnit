@@ -1,5 +1,16 @@
 package com.tngtech.archunit.testutil;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
+import java.util.List;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -9,18 +20,10 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.TestUtils.newTemporaryFolder;
 import static com.tngtech.archunit.testutil.TestUtils.toUri;
+import static java.nio.file.Files.createDirectories;
 
 public class OutsideOfClassPathRule extends ExternalResource {
     private final TemporaryFolder temporaryFolder = new TemporaryFolder(newTemporaryFolder());
@@ -40,13 +43,17 @@ public class OutsideOfClassPathRule extends ExternalResource {
     }
 
     public Path setUp(URL folder) throws IOException {
-        this.originFolder = new File(toUri(folder)).toPath();
-        return moveOutOfClassPath();
+        return setUp(folder, Collections.<String>emptyList());
     }
 
-    private Path moveOutOfClassPath() throws IOException {
+    public Path setUp(URL folder, List<String> subfolder) throws IOException {
+        this.originFolder = new File(toUri(folder)).toPath();
+        return moveOutOfClassPath(subfolder);
+    }
+
+    private Path moveOutOfClassPath(List<String> subfolder) throws IOException {
         String classNameToCheck = rememberClassNameForSanityCheck();
-        Path result = setupClassesOutsideOfClasspathWithMissingDependencies();
+        Path result = setupClassesOutsideOfClasspathWithMissingDependencies(subfolder);
         assertNotPresent(classNameToCheck);
         return result;
     }
@@ -57,13 +64,18 @@ public class OutsideOfClassPathRule extends ExternalResource {
         return classNameRetriever.className;
     }
 
-    private Path setupClassesOutsideOfClasspathWithMissingDependencies() throws IOException {
+    private Path setupClassesOutsideOfClasspathWithMissingDependencies(List<String> subfolder) throws IOException {
         File sourceDir = originFolder.toFile();
         checkFolderFlat(sourceDir);
         backup = temporaryFolder.newFolder().toPath();
         copy(sourceDir, backup);
         Path targetDir = temporaryFolder.newFolder().toPath();
-        moveMatchingFilesDeleteRest(sourceDir, targetDir, fileNamePredicate);
+        Path subdir = targetDir;
+        for (String f : subfolder) {
+            subdir = subdir.resolve(f);
+        }
+        createDirectories(subdir);
+        moveMatchingFilesDeleteRest(sourceDir, subdir, fileNamePredicate);
         return targetDir;
     }
 
