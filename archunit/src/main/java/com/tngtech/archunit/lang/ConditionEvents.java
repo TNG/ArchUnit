@@ -48,8 +48,11 @@ public interface ConditionEvents extends Iterable<ConditionEvent> {
     Collection<ConditionEvent> getViolating();
 
     /**
+     * @deprecated This method will be removed without any replacement. If you think you need this method, please
+     *             file an issue at https://github.com/TNG/ArchUnit/issues
      * @return All {@link ConditionEvent events} that correspond to non-violating elements.
      */
+    @Deprecated
     Collection<ConditionEvent> getAllowed();
 
     /**
@@ -58,8 +61,11 @@ public interface ConditionEvents extends Iterable<ConditionEvent> {
     boolean containViolation();
 
     /**
+     * @deprecated This method will be removed without any replacement. If you think you need this method, please
+     *             file an issue at https://github.com/TNG/ArchUnit/issues
      * @return {@code true}, if these events contain any event, be it {@link #getViolating() violating} or {@link #getAllowed() allowed}.
      */
+    @Deprecated
     boolean isEmpty();
 
     /**
