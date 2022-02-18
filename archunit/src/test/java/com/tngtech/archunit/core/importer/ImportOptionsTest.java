@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeArchives;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars;
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludePackageInfos;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
 import com.tngtech.archunit.core.importer.ImportOption.OnlyIncludeTests;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -24,6 +26,7 @@ import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.getLast;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_JARS;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_PACKAGE_INFOS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.ONLY_INCLUDE_TESTS;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -155,6 +158,29 @@ public class ImportOptionsTest {
         assertThat(doNotIncludeArchives.includes(locationOf(Object.class)))
                 .as("includes Jrt location")
                 .isFalse();
+    }
+
+    @DataProvider
+    public static Object[][] do_not_include_package_info_classes() {
+        return testForEach(new DoNotIncludePackageInfos(), DO_NOT_INCLUDE_PACKAGE_INFOS);
+    }
+
+    @Test
+    @UseDataProvider("do_not_include_package_info_classes")
+    public void detect_package_info_class(ImportOption doNotIncludePackageInfoClasses) throws URISyntaxException {
+        Location packageInfoLocation = Location.of(getClass().getResource(testExampleResourcePath("package-info.class")).toURI());
+        assertThat(doNotIncludePackageInfoClasses.includes(packageInfoLocation))
+                .as("doNotIncludePackageInfoClasses includes package-info.class")
+                .isFalse();
+
+        Location thisClassLocation = locationOf(getClass());
+        assertThat(doNotIncludePackageInfoClasses.includes(thisClassLocation))
+                .as("doNotIncludePackageInfoClasses includes test class location")
+                .isTrue();
+    }
+
+    private String testExampleResourcePath(String resourceName) {
+        return "/" + getClass().getPackage().getName().replace(".", "/") + "/testexamples/" + resourceName;
     }
 
     private static Location locationOf(Class<?> clazz) {

@@ -76,6 +76,17 @@ public interface ImportOption {
             public boolean includes(Location location) {
                 return doNotIncludeArchives.includes(location);
             }
+        },
+        /**
+         * @see DoNotIncludePackageInfos
+         */
+        DO_NOT_INCLUDE_PACKAGE_INFOS {
+            private final DoNotIncludePackageInfos doNotIncludePackageInfos = new DoNotIncludePackageInfos();
+
+            @Override
+            public boolean includes(Location location) {
+                return doNotIncludePackageInfos.includes(location);
+            }
         };
 
         static final PatternPredicate MAVEN_TEST_PATTERN = new PatternPredicate(".*/target/test-classes/.*");
@@ -135,6 +146,18 @@ public interface ImportOption {
         @Override
         public boolean includes(Location location) {
             return !location.isArchive();
+        }
+    }
+
+    /**
+     * Excludes {@code package-info.class} files.
+     */
+    final class DoNotIncludePackageInfos implements ImportOption {
+        private static final Pattern PACKAGE_INFO_PATTERN = Pattern.compile(".*package-info\\.class$");
+
+        @Override
+        public boolean includes(Location location) {
+            return !location.matches(PACKAGE_INFO_PATTERN);
         }
     }
 }
