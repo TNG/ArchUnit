@@ -80,7 +80,7 @@ public class FieldAccessConditionTest {
     }
 
     private ConditionEvents checkCondition(FieldAccessCondition getFieldCondition, JavaFieldAccess access) {
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         getFieldCondition.check(access, events);
         return events;
     }

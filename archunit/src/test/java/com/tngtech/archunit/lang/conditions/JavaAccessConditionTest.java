@@ -60,7 +60,7 @@ public class JavaAccessConditionTest {
 
     private ConditionEventsAssertion assertThatOnlyAccessToSomeClassFor(JavaClass clazz, JavaAccessCondition<JavaAccess<?>> condition) {
         Set<JavaAccess<?>> accesses = filterByTarget(clazz.getAccessesFromSelf(), SomeClass.class);
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         for (JavaAccess<?> access : accesses) {
             condition.check(access, events);
         }

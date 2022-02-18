@@ -55,14 +55,14 @@ public class NeverConditionTest {
     @Test
     @UseDataProvider("conditions")
     public void inverts_condition(ArchCondition<Object> condition) {
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(new Object(), events);
         condition.finish(events);
 
         assertThat(events).containAllowed(ORIGINALLY_NO_MISMATCH);
         assertThat(events).containViolations(ORIGINALLY_MISMATCH);
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         never(condition).check(new Object(), events);
         never(condition).finish(events);
 

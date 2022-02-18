@@ -16,35 +16,21 @@
 package com.tngtech.archunit.lang;
 
 import java.util.Collection;
-import java.util.Iterator;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Ordering;
-import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Optional;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
-public final class ConditionEvents implements Iterable<ConditionEvent> {
+@PublicAPI(usage = INHERITANCE)
+public interface ConditionEvents extends Iterable<ConditionEvent> {
 
-    @PublicAPI(usage = ACCESS)
-    public ConditionEvents() {
-    }
-
-    private final Multimap<Type, ConditionEvent> eventsByViolation = ArrayListMultimap.create();
-    private Optional<String> informationAboutNumberOfViolations = Optional.empty();
-
-    @PublicAPI(usage = ACCESS)
-    public void add(ConditionEvent event) {
-        eventsByViolation.get(Type.from(event.isViolation())).add(event);
-    }
+    /**
+     * Adds a {@link ConditionEvent} to these events.
+     * @param event A {@link ConditionEvent} caused by an {@link ArchCondition} when checking some element
+     */
+    void add(ConditionEvent event);
 
     /**
      * Can be used to override the information about the number of violations. If absent the violated rule
@@ -54,42 +40,33 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
      * can be supplied here to inform users that there actually were more violations than reported.
      * @param informationAboutNumberOfViolations The text to be shown for the number of times a rule has been violated
      */
-    @PublicAPI(usage = ACCESS)
-    public void setInformationAboutNumberOfViolations(String informationAboutNumberOfViolations) {
-        this.informationAboutNumberOfViolations = Optional.of(informationAboutNumberOfViolations);
-    }
+    void setInformationAboutNumberOfViolations(String informationAboutNumberOfViolations);
 
-    @PublicAPI(usage = ACCESS)
-    public Collection<ConditionEvent> getViolating() {
-        return eventsByViolation.get(Type.VIOLATION);
-    }
+    /**
+     * @return All {@link ConditionEvent events} that correspond to violations.
+     */
+    Collection<ConditionEvent> getViolating();
 
-    @PublicAPI(usage = ACCESS)
-    public Collection<ConditionEvent> getAllowed() {
-        return eventsByViolation.get(Type.ALLOWED);
-    }
+    /**
+     * @return All {@link ConditionEvent events} that correspond to non-violating elements.
+     */
+    Collection<ConditionEvent> getAllowed();
 
-    @PublicAPI(usage = ACCESS)
-    public boolean containViolation() {
-        return !getViolating().isEmpty();
-    }
+    /**
+     * @return {@code true}, if these events contain any {@link #getViolating() violating} event, otherwise {@code false}
+     */
+    boolean containViolation();
 
-    @PublicAPI(usage = ACCESS)
-    public boolean isEmpty() {
-        return getAllowed().isEmpty() && getViolating().isEmpty();
-    }
+    /**
+     * @return {@code true}, if these events contain any event, be it {@link #getViolating() violating} or {@link #getAllowed() allowed}.
+     */
+    boolean isEmpty();
 
     /**
      * @return Sorted failure messages describing the contained failures of these events.
      *         Also offers information about the number of violations contained in these events.
      */
-    @PublicAPI(usage = ACCESS)
-    public FailureMessages getFailureMessages() {
-        ImmutableList<String> result = FluentIterable.from(getViolating())
-                .transformAndConcat(TO_DESCRIPTION_LINES)
-                .toSortedList(Ordering.natural());
-        return new FailureMessages(result, informationAboutNumberOfViolations);
-    }
+    FailureMessages getFailureMessages();
 
     /**
      * Passes violations to the supplied {@link ViolationHandler}. The passed violations will automatically
@@ -102,66 +79,17 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
      * @param violationHandler The violation handler that is supposed to handle all violations matching the
      *                         respective type parameter
      */
-    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
-    public void handleViolations(ViolationHandler<?> violationHandler) {
-        ConditionEvent.Handler eventHandler = convertToEventHandler(violationHandler);
-        for (final ConditionEvent event : eventsByViolation.get(Type.VIOLATION)) {
-            event.handleWith(eventHandler);
-        }
-    }
+    @PublicAPI(usage = INHERITANCE, state = EXPERIMENTAL)
+    void handleViolations(ViolationHandler<?> violationHandler);
 
-    private <T> ConditionEvent.Handler convertToEventHandler(final ViolationHandler<T> handler) {
-        final Class<?> supportedElementType = TypeToken.of(handler.getClass())
-                .resolveType(ViolationHandler.class.getTypeParameters()[0]).getRawType();
-
-        return new ConditionEvent.Handler() {
-            @Override
-            public void handle(Collection<?> correspondingObjects, String message) {
-                if (allElementTypesMatch(correspondingObjects, supportedElementType)) {
-                    // If all elements are assignable to T (= supportedElementType), covariance of Collection allows this cast
-                    @SuppressWarnings("unchecked")
-                    Collection<T> collection = (Collection<T>) correspondingObjects;
-                    handler.handle(collection, message);
-                }
-            }
-        };
-    }
-
-    private boolean allElementTypesMatch(Collection<?> violatingObjects, Class<?> supportedElementType) {
-        for (Object violatingObject : violatingObjects) {
-            if (!supportedElementType.isInstance(violatingObject)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
     @PublicAPI(usage = ACCESS)
-    public Iterator<ConditionEvent> iterator() {
-        return ImmutableSet.copyOf(eventsByViolation.values()).iterator();
-    }
-
-    @Override
-    public String toString() {
-        return "ConditionEvents{" +
-                "Allowed Events: " + getAllowed() +
-                "; Violating Events: " + getViolating() +
-                '}';
-    }
-
-    private static final Function<ConditionEvent, Iterable<String>> TO_DESCRIPTION_LINES = new Function<ConditionEvent, Iterable<String>>() {
-        @Override
-        public Iterable<String> apply(ConditionEvent input) {
-            return input.getDescriptionLines();
+    final class Factory {
+        private Factory() {
         }
-    };
 
-    private enum Type {
-        ALLOWED, VIOLATION;
-
-        private static Type from(boolean violation) {
-            return violation ? VIOLATION : ALLOWED;
+        @PublicAPI(usage = ACCESS)
+        public static ConditionEvents create() {
+            return new ConditionEventsInternal();
         }
     }
 }

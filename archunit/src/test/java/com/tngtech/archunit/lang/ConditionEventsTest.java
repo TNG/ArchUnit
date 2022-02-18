@@ -25,7 +25,7 @@ public class ConditionEventsTest {
         return $$(
                 $(events(SimpleConditionEvent.satisfied("irrelevant", "irrelevant")), false),
                 $(events(SimpleConditionEvent.violated("irrelevant", "irrelevant")), false),
-                $(new ConditionEvents(), true));
+                $(ConditionEvents.Factory.create(), true));
     }
 
     @Test
@@ -137,7 +137,7 @@ public class ConditionEventsTest {
     }
 
     private static ConditionEvents events(ConditionEvent... events) {
-        ConditionEvents result = new ConditionEvents();
+        ConditionEvents result = ConditionEvents.Factory.create();
         for (ConditionEvent event : events) {
             result.add(event);
         }
