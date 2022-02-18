@@ -185,6 +185,7 @@ class ArchUnitTestEngineTest {
 
             assertThat(ruleDescriptor.getUniqueId()).isEqualTo(simpleRuleFieldTestId(engineId));
             FieldSource testSource = ((FieldSource) ruleDescriptor.getSource().get());
+            assertThat(testSource.getJavaClass()).isEqualTo(SimpleRuleField.class);
             assertThat(testSource.getClassName()).isEqualTo(SimpleRuleField.class.getName());
             assertThat(testSource.getFieldName()).isEqualTo(SIMPLE_RULE_FIELD_NAME);
         }

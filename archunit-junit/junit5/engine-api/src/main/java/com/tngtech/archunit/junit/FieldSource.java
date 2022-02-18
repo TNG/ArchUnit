@@ -25,17 +25,22 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
 public final class FieldSource implements TestSource {
-    private final String className;
+    private final Class<?> javaClass;
     private final String fieldName;
 
     private FieldSource(Field field) {
-        className = field.getDeclaringClass().getName();
+        javaClass = field.getDeclaringClass();
         fieldName = field.getName();
     }
 
     @PublicAPI(usage = ACCESS)
     public String getClassName() {
-        return className;
+        return javaClass.getName();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Class<?> getJavaClass() {
+        return javaClass;
     }
 
     @PublicAPI(usage = ACCESS)
@@ -45,7 +50,7 @@ public final class FieldSource implements TestSource {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(className, fieldName);
+        return Objects.hash(javaClass, fieldName);
 	}
 
 	@Override
@@ -57,13 +62,13 @@ public final class FieldSource implements TestSource {
 			return false;
 		}
 		final FieldSource other = (FieldSource) obj;
-		return Objects.equals(this.className, other.className)
-				&& Objects.equals(this.fieldName, other.fieldName);
+        return Objects.equals(this.javaClass, other.javaClass)
+                && Objects.equals(this.fieldName, other.fieldName);
 	}
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + "{" + className + '.' + fieldName + '}';
+        return getClass().getSimpleName() + "{" + getClassName() + '.' + fieldName + '}';
 	}
 
     static FieldSource from(Field field) {
