@@ -36,7 +36,7 @@ class NeverCondition<T> extends ArchCondition<T> {
 
     @Override
     public void finish(ConditionEvents events) {
-        ConditionEvents subEvents = new ConditionEvents();
+        ConditionEvents subEvents = ConditionEvents.Factory.create();
         condition.finish(subEvents);
         for (ConditionEvent event : subEvents) {
             event.addInvertedTo(events);
@@ -45,7 +45,7 @@ class NeverCondition<T> extends ArchCondition<T> {
 
     @Override
     public void check(T item, ConditionEvents events) {
-        ConditionEvents subEvents = new ConditionEvents();
+        ConditionEvents subEvents = ConditionEvents.Factory.create();
         condition.check(item, subEvents);
         for (ConditionEvent event : subEvents) {
             event.addInvertedTo(events);

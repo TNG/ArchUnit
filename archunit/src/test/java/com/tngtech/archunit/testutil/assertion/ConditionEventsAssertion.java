@@ -96,7 +96,7 @@ public class ConditionEventsAssertion
 
     @Override
     protected ConditionEventsAssertion newAbstractIterableAssert(Iterable<? extends ConditionEvent> iterable) {
-        ConditionEvents actual = new ConditionEvents();
+        ConditionEvents actual = ConditionEvents.Factory.create();
         iterable.forEach(actual::add);
         return new ConditionEventsAssertion(actual);
     }

@@ -25,6 +25,11 @@ import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
+/**
+ * An event that occurred while checking an {@link ArchCondition}. This can either be a {@link #isViolation() violation}
+ * or be allowed. An event that is allowed will turn into a violation if it is
+ * {@link #addInvertedTo(ConditionEvents) added inverted} to {@link ConditionEvents} (e.g. for negation of the rule).
+ */
 @PublicAPI(usage = INHERITANCE)
 public interface ConditionEvent {
     /**

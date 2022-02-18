@@ -35,7 +35,7 @@ class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
 
     @Override
     public void check(Collection<? extends T> collection, ConditionEvents events) {
-        ConditionEvents subEvents = new ConditionEvents();
+        ConditionEvents subEvents = ConditionEvents.Factory.create();
         for (T element : collection) {
             condition.check(element, subEvents);
         }

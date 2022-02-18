@@ -22,18 +22,18 @@ public class ContainAnyConditionTest {
 
     @Test
     public void satisfied_works_and_description_contains_mismatches() {
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         containAnyElementThat(IS_SERIALIZABLE).check(TWO_NONSERIALIZABLE_OBJECTS, events);
         assertThat(events).containViolations(messageForTwoTimes(isSerializableMessageFor(Object.class)));
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         containAnyElementThat(IS_SERIALIZABLE).check(ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT, events);
         assertThat(events).containNoViolation();
     }
 
     @Test
     public void inverting_works() throws Exception {
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         containAnyElementThat(IS_SERIALIZABLE).check(ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT, events);
 
         assertThat(events).containNoViolation();
@@ -44,7 +44,7 @@ public class ContainAnyConditionTest {
 
     @Test
     public void if_there_are_no_input_events_no_ContainsAnyEvent_is_added() {
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         containOnlyElementsThat(IS_SERIALIZABLE).check(emptyList(), events);
         assertThat(events.getAllowed()).as("allowed events").isEmpty();
         assertThat(events.getViolating()).as("violated events").isEmpty();

@@ -150,7 +150,7 @@ public abstract class ArchCondition<T> {
         }
 
         private static <T> ConditionEvents check(ArchCondition<T> condition, T item) {
-            ConditionEvents events = new ConditionEvents();
+            ConditionEvents events = ConditionEvents.Factory.create();
             condition.check(item, events);
             return events;
         }
@@ -197,7 +197,7 @@ public abstract class ArchCondition<T> {
         }
 
         private ConditionWithEvents<T> invert(ConditionWithEvents<T> evaluation) {
-            ConditionEvents invertedEvents = new ConditionEvents();
+            ConditionEvents invertedEvents = ConditionEvents.Factory.create();
             for (ConditionEvent event : evaluation.events) {
                 event.addInvertedTo(invertedEvents);
             }

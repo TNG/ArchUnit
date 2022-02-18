@@ -104,7 +104,7 @@ public class EvaluationResultTest {
     }
 
     private ConditionEvents events(ConditionEvent... events) {
-        ConditionEvents result = new ConditionEvents();
+        ConditionEvents result = ConditionEvents.Factory.create();
         for (ConditionEvent event : events) {
             result.add(event);
         }

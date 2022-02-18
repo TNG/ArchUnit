@@ -58,7 +58,7 @@ public class ClassAccessesFieldConditionTest {
 
     @Theory
     public void condition_works(PositiveTestCase testCase) {
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
 
         testCase.condition.check(CALLER_CLASS, events);
 
@@ -67,7 +67,7 @@ public class ClassAccessesFieldConditionTest {
 
     @Theory
     public void condition_works(NegativeTestCase testCase) {
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
 
         testCase.condition.check(CALLER_CLASS, events);
 

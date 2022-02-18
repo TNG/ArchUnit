@@ -48,7 +48,7 @@ public final class EvaluationResult {
 
     @PublicAPI(usage = ACCESS)
     public EvaluationResult(HasDescription rule, Priority priority) {
-        this(rule, new ConditionEvents(), priority);
+        this(rule, ConditionEvents.Factory.create(), priority);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -148,7 +148,7 @@ public final class EvaluationResult {
      */
     @PublicAPI(usage = ACCESS)
     public EvaluationResult filterDescriptionsMatching(Predicate<String> linePredicate) {
-        ConditionEvents filtered = new ConditionEvents();
+        ConditionEvents filtered = ConditionEvents.Factory.create();
         for (ConditionEvent event : events) {
             filtered.add(new FilteredEvent(event, linePredicate));
         }
