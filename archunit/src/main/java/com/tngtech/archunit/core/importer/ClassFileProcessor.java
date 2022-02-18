@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -25,9 +26,14 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.AccessHandler;
-import com.tngtech.archunit.core.importer.JavaClassProcessor.DeclarationHandler;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
@@ -49,8 +55,9 @@ class ClassFileProcessor {
 
     JavaClasses process(ClassFileSource source) {
         ClassFileImportRecord importRecord = new ClassFileImportRecord();
-        RecordAccessHandler accessHandler = new RecordAccessHandler(importRecord);
-        ClassDetailsRecorder classDetailsRecorder = new ClassDetailsRecorder(importRecord);
+        DependencyResolutionProcess dependencyResolutionProcess = new DependencyResolutionProcess();
+        RecordAccessHandler accessHandler = new RecordAccessHandler(importRecord, dependencyResolutionProcess);
+        ClassDetailsRecorder classDetailsRecorder = new ClassDetailsRecorder(importRecord, dependencyResolutionProcess);
         for (ClassFileLocation location : source) {
             try (InputStream s = location.openStream()) {
                 JavaClassProcessor javaClassProcessor =
@@ -61,15 +68,17 @@ class ClassFileProcessor {
                 LOG.warn(String.format("Couldn't import class from %s", location.getUri()), e);
             }
         }
-        return new ClassGraphCreator(importRecord, getClassResolver(classDetailsRecorder)).complete();
+        return new ClassGraphCreator(importRecord, dependencyResolutionProcess, getClassResolver(classDetailsRecorder)).complete();
     }
 
     private static class ClassDetailsRecorder implements DeclarationHandler {
         private final ClassFileImportRecord importRecord;
+        private final DependencyResolutionProcess dependencyResolutionProcess;
         private String ownerName;
 
-        private ClassDetailsRecorder(ClassFileImportRecord importRecord) {
+        private ClassDetailsRecorder(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess) {
             this.importRecord = importRecord;
+            this.dependencyResolutionProcess = dependencyResolutionProcess;
         }
 
         @Override
@@ -82,8 +91,10 @@ class ClassFileProcessor {
             ownerName = className;
             if (superclassName.isPresent()) {
                 importRecord.setSuperclass(ownerName, superclassName.get());
+                dependencyResolutionProcess.registerSupertype(superclassName.get());
             }
             importRecord.addInterfaces(ownerName, interfaceNames);
+            dependencyResolutionProcess.registerSupertypes(interfaceNames);
         }
 
         @Override
@@ -92,58 +103,96 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void onGenericSuperclass(DomainBuilders.JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
+        public void onGenericSuperclass(JavaParameterizedTypeBuilder<JavaClass> genericSuperclassBuilder) {
             importRecord.addGenericSuperclass(ownerName, genericSuperclassBuilder);
         }
 
         @Override
-        public void onGenericInterfaces(List<DomainBuilders.JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
+        public void onGenericInterfaces(List<JavaParameterizedTypeBuilder<JavaClass>> genericInterfaceBuilders) {
             importRecord.addGenericInterfaces(ownerName, genericInterfaceBuilders);
         }
 
         @Override
-        public void onDeclaredField(DomainBuilders.JavaFieldBuilder fieldBuilder) {
+        public void onDeclaredField(JavaFieldBuilder fieldBuilder, String fieldTypeName) {
             importRecord.addField(ownerName, fieldBuilder);
+            dependencyResolutionProcess.registerMemberType(fieldTypeName);
         }
 
         @Override
-        public void onDeclaredConstructor(DomainBuilders.JavaConstructorBuilder constructorBuilder) {
+        public void onDeclaredConstructor(JavaConstructorBuilder constructorBuilder, Collection<String> rawParameterTypeNames) {
             importRecord.addConstructor(ownerName, constructorBuilder);
+            dependencyResolutionProcess.registerMemberTypes(rawParameterTypeNames);
         }
 
         @Override
-        public void onDeclaredMethod(DomainBuilders.JavaMethodBuilder methodBuilder) {
+        public void onDeclaredMethod(JavaMethodBuilder methodBuilder, Collection<String> rawParameterTypeNames, String rawReturnTypeName) {
             importRecord.addMethod(ownerName, methodBuilder);
+            dependencyResolutionProcess.registerMemberTypes(rawParameterTypeNames);
+            dependencyResolutionProcess.registerMemberType(rawReturnTypeName);
         }
 
         @Override
-        public void onDeclaredStaticInitializer(DomainBuilders.JavaStaticInitializerBuilder staticInitializerBuilder) {
+        public void onDeclaredStaticInitializer(JavaStaticInitializerBuilder staticInitializerBuilder) {
             importRecord.setStaticInitializer(ownerName, staticInitializerBuilder);
         }
 
         @Override
-        public void onDeclaredClassAnnotations(Set<DomainBuilders.JavaAnnotationBuilder> annotationBuilders) {
+        public void onDeclaredClassAnnotations(Set<JavaAnnotationBuilder> annotationBuilders) {
             importRecord.addClassAnnotations(ownerName, annotationBuilders);
+            registerAnnotationTypesToResolve(annotationBuilders);
         }
 
         @Override
-        public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<DomainBuilders.JavaAnnotationBuilder> annotations) {
-            importRecord.addMemberAnnotations(ownerName, memberName, descriptor, annotations);
+        public void onDeclaredMemberAnnotations(String memberName, String descriptor, Set<JavaAnnotationBuilder> annotationBuilders) {
+            importRecord.addMemberAnnotations(ownerName, memberName, descriptor, annotationBuilders);
+            registerAnnotationTypesToResolve(annotationBuilders);
+        }
+
+        private void registerAnnotationTypesToResolve(Set<JavaAnnotationBuilder> annotationBuilders) {
+            for (JavaAnnotationBuilder annotationBuilder : annotationBuilders) {
+                dependencyResolutionProcess.registerAnnotationType(annotationBuilder.getFullyQualifiedClassName());
+            }
         }
 
         @Override
-        public void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, DomainBuilders.JavaAnnotationBuilder.ValueBuilder valueBuilder) {
+        public void onDeclaredAnnotationValueType(String valueTypeName) {
+            dependencyResolutionProcess.registerAnnotationType(valueTypeName);
+        }
+
+        @Override
+        public void onDeclaredAnnotationDefaultValue(String methodName, String methodDescriptor, JavaAnnotationBuilder.ValueBuilder valueBuilder) {
             importRecord.addAnnotationDefaultValue(ownerName, methodName, methodDescriptor, valueBuilder);
         }
 
         @Override
         public void registerEnclosingClass(String ownerName, String enclosingClassName) {
             importRecord.setEnclosingClass(ownerName, enclosingClassName);
+            dependencyResolutionProcess.registerEnclosingType(enclosingClassName);
         }
 
         @Override
         public void registerEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit) {
             importRecord.setEnclosingCodeUnit(ownerName, enclosingCodeUnit);
+        }
+
+        @Override
+        public void onDeclaredClassObject(String typeName) {
+            dependencyResolutionProcess.registerAccessToType(typeName);
+        }
+
+        @Override
+        public void onDeclaredInstanceofCheck(String typeName) {
+            dependencyResolutionProcess.registerAccessToType(typeName);
+        }
+
+        @Override
+        public void onDeclaredThrowsClause(Collection<String> exceptionTypeNames) {
+            dependencyResolutionProcess.registerMemberTypes(exceptionTypeNames);
+        }
+
+        @Override
+        public void onDeclaredGenericSignatureType(String typeName) {
+            dependencyResolutionProcess.registerGenericSignatureType(typeName);
         }
     }
 
@@ -151,11 +200,13 @@ class ClassFileProcessor {
         private static final Logger LOG = LoggerFactory.getLogger(RecordAccessHandler.class);
 
         private final ClassFileImportRecord importRecord;
+        private final DependencyResolutionProcess dependencyResolutionProcess;
         private CodeUnit codeUnit;
         private int lineNumber;
 
-        private RecordAccessHandler(ClassFileImportRecord importRecord) {
+        private RecordAccessHandler(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess) {
             this.importRecord = importRecord;
+            this.dependencyResolutionProcess = dependencyResolutionProcess;
         }
 
         @Override
@@ -176,6 +227,7 @@ class ClassFileProcessor {
             importRecord.registerFieldAccess(filled(new RawAccessRecord.ForField.Builder(), target)
                     .withAccessType(accessType)
                     .build());
+            dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
         @Override
@@ -187,17 +239,19 @@ class ClassFileProcessor {
             } else {
                 importRecord.registerMethodCall(filled(new RawAccessRecord.Builder(), target).build());
             }
+            dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
         @Override
         public void handleMethodReferenceInstruction(String owner, String name, String desc) {
             LOG.trace("Found method reference {}.{}:{} in line {}", owner, name, desc, lineNumber);
-            TargetInfo targetInfo = new TargetInfo(owner, name, desc);
+            TargetInfo target = new TargetInfo(owner, name, desc);
             if (CONSTRUCTOR_NAME.equals(name)) {
-                importRecord.registerConstructorReference(filled(new RawAccessRecord.Builder(), targetInfo).build());
+                importRecord.registerConstructorReference(filled(new RawAccessRecord.Builder(), target).build());
             } else {
-                importRecord.registerMethodReference(filled(new RawAccessRecord.Builder(), targetInfo).build());
+                importRecord.registerMethodReference(filled(new RawAccessRecord.Builder(), target).build());
             }
+            dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
         private <BUILDER extends RawAccessRecord.BaseBuilder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {

@@ -28,12 +28,14 @@ import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERS
 import static com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess.JavaTypeFinisher.ARRAY_CREATOR;
 
 class GenericMemberTypeProcessor<T extends HasDescription> extends SignatureVisitor {
+    private final DeclarationHandler declarationHandler;
     private JavaParameterizedTypeBuilder<T> parameterizedType;
     private JavaTypeCreationProcess<T> typeCreationProcess;
     private JavaTypeFinisher typeFinisher = JavaTypeFinisher.IDENTITY;
 
-    GenericMemberTypeProcessor() {
+    GenericMemberTypeProcessor(DeclarationHandler declarationHandler) {
         super(ASM_API_VERSION);
+        this.declarationHandler = declarationHandler;
     }
 
     Optional<JavaTypeCreationProcess<T>> getType() {
@@ -62,7 +64,7 @@ class GenericMemberTypeProcessor<T extends HasDescription> extends SignatureVisi
 
     @Override
     public SignatureVisitor visitTypeArgument(char wildcard) {
-        return SignatureTypeArgumentProcessor.create(wildcard, parameterizedType, JavaTypeFinisher.IDENTITY);
+        return SignatureTypeArgumentProcessor.create(wildcard, parameterizedType, JavaTypeFinisher.IDENTITY, declarationHandler);
     }
 
     @Override

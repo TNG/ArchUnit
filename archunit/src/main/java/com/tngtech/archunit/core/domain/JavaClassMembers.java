@@ -196,6 +196,14 @@ class JavaClassMembers {
         return result.build();
     }
 
+    Set<InstanceofCheck> getInstanceofChecks() {
+        ImmutableSet.Builder<InstanceofCheck> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            result.addAll(codeUnit.getInstanceofChecks());
+        }
+        return result.build();
+    }
+
     Set<ReferencedClassObject> getReferencedClassObjects() {
         ImmutableSet.Builder<ReferencedClassObject> result = ImmutableSet.builder();
         for (JavaCodeUnit codeUnit : codeUnits) {

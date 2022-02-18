@@ -185,10 +185,8 @@ class JavaClassDependencies {
 
     private Set<Dependency> throwsDeclarationDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : javaClass.getCodeUnits()) {
-            for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : codeUnit.getThrowsClause()) {
-                result.addAll(Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration));
-            }
+        for (ThrowsDeclaration<? extends JavaCodeUnit> throwsDeclaration : javaClass.getThrowsDeclarations()) {
+            result.addAll(Dependency.tryCreateFromThrowsDeclaration(throwsDeclaration));
         }
         return result.build();
     }
@@ -206,10 +204,8 @@ class JavaClassDependencies {
 
     private Set<Dependency> instanceofCheckDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaCodeUnit codeUnit : javaClass.getCodeUnits()) {
-            for (InstanceofCheck instanceofCheck : codeUnit.getInstanceofChecks()) {
-                result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
-            }
+        for (InstanceofCheck instanceofCheck : javaClass.getInstanceofChecks()) {
+            result.addAll(Dependency.tryCreateFromInstanceofCheck(instanceofCheck));
         }
         return result.build();
     }

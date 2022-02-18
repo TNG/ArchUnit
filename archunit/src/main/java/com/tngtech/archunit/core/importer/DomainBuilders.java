@@ -431,6 +431,7 @@ public final class DomainBuilders {
 
     @Internal
     public static final class JavaClassBuilder {
+        private final boolean stub;
         private Optional<SourceDescriptor> sourceDescriptor = Optional.empty();
         private Optional<String> sourceFileName = Optional.empty();
         private JavaClassDescriptor descriptor;
@@ -443,6 +444,11 @@ public final class DomainBuilders {
         private Set<JavaModifier> modifiers = new HashSet<>();
 
         JavaClassBuilder() {
+            this(false);
+        }
+
+        private JavaClassBuilder(boolean stub) {
+            this.stub = stub;
         }
 
         JavaClassBuilder withSourceDescriptor(SourceDescriptor sourceDescriptor) {
@@ -541,6 +547,14 @@ public final class DomainBuilders {
         public Set<JavaModifier> getModifiers() {
             return modifiers;
         }
+
+        public boolean isStub() {
+            return stub;
+        }
+
+        static JavaClassBuilder forStub() {
+            return new JavaClassBuilder(true);
+        }
     }
 
     @Internal
@@ -589,7 +603,7 @@ public final class DomainBuilders {
         abstract static class ValueBuilder {
             abstract <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses);
 
-            static ValueBuilder ofFinished(final Object value) {
+            static ValueBuilder fromPrimitiveProperty(final Object value) {
                 return new ValueBuilder() {
                     @Override
                     <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses unused) {
@@ -598,7 +612,29 @@ public final class DomainBuilders {
                 };
             }
 
-            static ValueBuilder from(final JavaAnnotationBuilder builder) {
+            public static ValueBuilder fromEnumProperty(final JavaClassDescriptor enumType, final String value) {
+                return new ValueBuilder() {
+                    @Override
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {
+                        return Optional.<Object>of(
+                                new DomainBuilders.JavaEnumConstantBuilder()
+                                        .withDeclaringClass(importedClasses.getOrResolve(enumType.getFullyQualifiedClassName()))
+                                        .withName(value)
+                                        .build());
+                    }
+                };
+            }
+
+            static ValueBuilder fromClassProperty(final JavaClassDescriptor value) {
+                return new ValueBuilder() {
+                    @Override
+                    <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {
+                        return Optional.<Object>of(importedClasses.getOrResolve(value.getFullyQualifiedClassName()));
+                    }
+                };
+            }
+
+            static ValueBuilder fromAnnotationProperty(final JavaAnnotationBuilder builder) {
                 return new ValueBuilder() {
                     @Override
                     <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importedClasses) {

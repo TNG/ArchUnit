@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,81 +78,30 @@ class ClassGraphCreator implements ImportContext {
     private final ImportedClasses classes;
 
     private final ClassFileImportRecord importRecord;
+    private final DependencyResolutionProcess dependencyResolutionProcess;
 
     private final SetMultimap<JavaCodeUnit, FieldAccessRecord> processedFieldAccessRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<MethodCallTarget>> processedMethodCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorCallTarget>> processedConstructorCallRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<MethodReferenceTarget>> processedMethodReferenceRecords = HashMultimap.create();
     private final SetMultimap<JavaCodeUnit, AccessRecord<ConstructorReferenceTarget>> processedConstructorReferenceRecords = HashMultimap.create();
-    private final Function<JavaClass, ? extends Collection<String>> superclassStrategy;
-    private final Function<JavaClass, ? extends Collection<String>> interfaceStrategy;
 
-    ClassGraphCreator(ClassFileImportRecord importRecord, ClassResolver classResolver) {
+    ClassGraphCreator(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess, ClassResolver classResolver) {
         this.importRecord = importRecord;
+        this.dependencyResolutionProcess = dependencyResolutionProcess;
         classes = new ImportedClasses(importRecord.getClasses(), classResolver, new MethodReturnTypeGetter() {
             @Override
             public Optional<JavaClass> getReturnType(String declaringClassName, String methodName) {
                 return getMethodReturnType(declaringClassName, methodName);
             }
         });
-        superclassStrategy = createSuperclassStrategy();
-        interfaceStrategy = createInterfaceStrategy();
-    }
-
-    private Function<JavaClass, Set<String>> createSuperclassStrategy() {
-        return new Function<JavaClass, Set<String>>() {
-            @Override
-            public Set<String> apply(JavaClass input) {
-                return importRecord.getSuperclassFor(input.getName()).asSet();
-            }
-        };
-    }
-
-    private Function<JavaClass, List<String>> createInterfaceStrategy() {
-        return new Function<JavaClass, List<String>>() {
-            @Override
-            public List<String> apply(JavaClass input) {
-                return importRecord.getInterfaceNamesFor(input.getName());
-            }
-        };
     }
 
     JavaClasses complete() {
-        ensureMemberTypesArePresent();
-        ensureCallTargetsArePresent();
-        ensureClassesOfInheritanceHierarchiesArePresent();
-        ensureMetaAnnotationsArePresent();
+        dependencyResolutionProcess.resolve(classes);
         completeClasses();
         completeAccesses();
         return createJavaClasses(classes.getDirectlyImported(), classes.getAllWithOuterClassesSortedBeforeInnerClasses(), this);
-    }
-
-    private void ensureMemberTypesArePresent() {
-        for (String typeName : importRecord.getMemberSignatureTypeNames()) {
-            classes.ensurePresent(typeName);
-        }
-    }
-
-    private void ensureCallTargetsArePresent() {
-        for (RawAccessRecord record : importRecord.getAccessRecords()) {
-            classes.ensurePresent(record.target.owner.getFullyQualifiedClassName());
-        }
-    }
-
-    private void ensureClassesOfInheritanceHierarchiesArePresent() {
-        for (String superclassName : importRecord.getAllSuperclassNames()) {
-            resolveInheritance(superclassName, superclassStrategy);
-        }
-
-        for (String superinterfaceName : importRecord.getAllSuperinterfaceNames()) {
-            resolveInheritance(superinterfaceName, interfaceStrategy);
-        }
-    }
-
-    private void resolveInheritance(String currentTypeName, Function<JavaClass, ? extends Collection<String>> inheritanceStrategy) {
-        for (String parent : inheritanceStrategy.apply(classes.getOrResolve(currentTypeName))) {
-            resolveInheritance(parent, inheritanceStrategy);
-        }
     }
 
     private void completeClasses() {
@@ -187,31 +135,6 @@ class ClassGraphCreator implements ImportContext {
             tryProcess(constructorReferenceCallRecord, AccessRecord.Factory.forConstructorReferenceRecord(),
                     processedConstructorReferenceRecords);
         }
-    }
-
-    private void ensureMetaAnnotationsArePresent() {
-        for (JavaClass javaClass : classes.getAllWithOuterClassesSortedBeforeInnerClasses()) {
-            resolveAnnotationHierarchy(javaClass);
-        }
-    }
-
-    private void resolveAnnotationHierarchy(JavaClass javaClass) {
-        for (String annotationTypeName : getAnnotationTypeNamesToResolveFor(javaClass)) {
-            boolean hadBeenPreviouslyResolved = classes.isPresent(annotationTypeName);
-            JavaClass annotationType = classes.getOrResolve(annotationTypeName);
-
-            if (!hadBeenPreviouslyResolved) {
-                resolveAnnotationHierarchy(annotationType);
-            }
-        }
-    }
-
-    private Set<String> getAnnotationTypeNamesToResolveFor(JavaClass javaClass) {
-        return ImmutableSet.<String>builder()
-                .addAll(importRecord.getAnnotationTypeNamesFor(javaClass))
-                .addAll(importRecord.getMemberAnnotationTypeNamesFor(javaClass))
-                .addAll(importRecord.getParameterAnnotationTypeNamesFor(javaClass))
-                .build();
     }
 
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(

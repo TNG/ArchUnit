@@ -34,25 +34,29 @@ import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERS
 class JavaCodeUnitSignatureImporter {
     private static final Logger log = LoggerFactory.getLogger(JavaCodeUnitSignatureImporter.class);
 
-    public static JavaCodeUnitSignature parseAsmMethodSignature(String signature) {
+    public static JavaCodeUnitSignature parseAsmMethodSignature(String signature, DeclarationHandler declarationHandler) {
         if (signature == null) {
             return JavaCodeUnitSignature.ABSENT;
         }
 
         log.trace("Analyzing method signature: {}", signature);
 
-        SignatureProcessor signatureProcessor = new SignatureProcessor();
+        SignatureProcessor signatureProcessor = new SignatureProcessor(declarationHandler);
         new SignatureReader(signature).accept(signatureProcessor);
         return signatureProcessor.getParsedSignature();
     }
 
     private static class SignatureProcessor extends SignatureVisitor {
-        private final SignatureTypeParameterProcessor<JavaCodeUnit> typeParameterProcessor = new SignatureTypeParameterProcessor<>();
+        private final DeclarationHandler declarationHandler;
+        private final SignatureTypeParameterProcessor<JavaCodeUnit> typeParameterProcessor;
+        private final GenericMemberTypeProcessor<JavaCodeUnit> genericMethodReturnTypeProcessor;
         private final List<GenericMemberTypeProcessor<JavaCodeUnit>> genericMethodParameterTypeProcessors = new ArrayList<>();
-        private final GenericMemberTypeProcessor<JavaCodeUnit> genericMethodReturnTypeProcessor = new GenericMemberTypeProcessor<>();
 
-        SignatureProcessor() {
+        SignatureProcessor(DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
+            this.declarationHandler = declarationHandler;
+            typeParameterProcessor = new SignatureTypeParameterProcessor<>(declarationHandler);
+            genericMethodReturnTypeProcessor = new GenericMemberTypeProcessor<>(declarationHandler);
         }
 
         @Override
@@ -73,7 +77,7 @@ class JavaCodeUnitSignatureImporter {
 
         @Override
         public SignatureVisitor visitParameterType() {
-            GenericMemberTypeProcessor<JavaCodeUnit> parameterTypeProcessor = new GenericMemberTypeProcessor<>();
+            GenericMemberTypeProcessor<JavaCodeUnit> parameterTypeProcessor = new GenericMemberTypeProcessor<>(declarationHandler);
             genericMethodParameterTypeProcessors.add(parameterTypeProcessor);
             return parameterTypeProcessor;
         }

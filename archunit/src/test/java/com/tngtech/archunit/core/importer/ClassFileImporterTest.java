@@ -13,7 +13,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -111,8 +110,6 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.uriOf;
 import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$;
-import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
@@ -784,55 +781,6 @@ public class ClassFileImporterTest {
         clazz = new ClassFileImporter().importUrl(getClass().getResource("testexamples/simpleimport")).get(ClassToImportOne.class);
 
         assertThat(clazz.getRawSuperclass().get().getMethods()).isEmpty();
-    }
-
-    @DataProvider
-    public static Object[][] classes_not_fully_imported() {
-        class Element {
-        }
-        @SuppressWarnings("unused")
-        class DependsOnArray {
-            Element[] array;
-        }
-
-        return ArchConfigurationRule.resetConfigurationAround(new Callable<Object[][]>() {
-            @Override
-            public Object[][] call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
-                JavaClass resolvedFromClasspath = new ClassFileImporter().importClasses(DependsOnArray.class)
-                        .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
-
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                JavaClass stub = new ClassFileImporter().importClasses(DependsOnArray.class)
-                        .get(DependsOnArray.class).getField("array").getRawType().getComponentType();
-
-                return $$(
-                        $("Resolved from classpath", resolvedFromClasspath),
-                        $("Stub class", stub)
-                );
-            }
-        });
-    }
-
-    @Test
-    @UseDataProvider("classes_not_fully_imported")
-    public void classes_not_fully_imported_have_flag_fullyImported_false_and_empty_dependencies(@SuppressWarnings("unused") String description, JavaClass notFullyImported) {
-        assertThat(notFullyImported).isFullyImported(false);
-        assertThat(notFullyImported.getDirectDependenciesFromSelf()).isEmpty();
-        assertThat(notFullyImported.getDirectDependenciesToSelf()).isEmpty();
-        assertThat(notFullyImported.getFieldAccessesToSelf()).isEmpty();
-        assertThat(notFullyImported.getMethodCallsToSelf()).isEmpty();
-        assertThat(notFullyImported.getConstructorCallsToSelf()).isEmpty();
-        assertThat(notFullyImported.getAccessesToSelf()).isEmpty();
-        assertThat(notFullyImported.getFieldsWithTypeOfSelf()).isEmpty();
-        assertThat(notFullyImported.getMethodsWithParameterTypeOfSelf()).isEmpty();
-        assertThat(notFullyImported.getMethodsWithReturnTypeOfSelf()).isEmpty();
-        assertThat(notFullyImported.getMethodThrowsDeclarationsWithTypeOfSelf()).isEmpty();
-        assertThat(notFullyImported.getConstructorsWithParameterTypeOfSelf()).isEmpty();
-        assertThat(notFullyImported.getConstructorsWithThrowsDeclarationTypeOfSelf()).isEmpty();
-        assertThat(notFullyImported.getAnnotationsWithTypeOfSelf()).isEmpty();
-        assertThat(notFullyImported.getAnnotationsWithParameterTypeOfSelf()).isEmpty();
-        assertThat(notFullyImported.getInstanceofChecksWithTypeOfSelf()).isEmpty();
     }
 
     @Test

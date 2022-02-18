@@ -1,6 +1,5 @@
 package com.tngtech.archunit.lang.extension;
 
-import java.io.IOException;
 import java.util.Properties;
 
 import com.google.common.collect.ImmutableSet;
@@ -39,7 +38,7 @@ public class ArchUnitExtensionsTest {
     private ArchUnitExtensions extensions;
 
     @Test
-    public void extensions_are_configured() throws IOException {
+    public void extensions_are_configured() {
         TestExtension extensionOne = new TestExtension("one");
         TestExtension extensionTwo = new TestExtension("two");
         when(extensionLoader.getAll()).thenReturn(ImmutableSet.<ArchUnitExtension>of(extensionOne, extensionTwo));

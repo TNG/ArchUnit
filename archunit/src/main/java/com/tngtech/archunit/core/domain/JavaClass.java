@@ -136,7 +136,7 @@ public class JavaClass
     private Map<String, JavaAnnotation<JavaClass>> annotations = emptyMap();
     private JavaClassDependencies javaClassDependencies = new JavaClassDependencies(this);  // just for stubs; will be overwritten for imported classes
     private ReverseDependencies reverseDependencies = ReverseDependencies.EMPTY;  // just for stubs; will be overwritten for imported classes
-    private final CompletionProcess completionProcess = CompletionProcess.start();
+    private final CompletionProcess completionProcess;
 
     JavaClass(JavaClassBuilder builder) {
         source = checkNotNull(builder.getSource());
@@ -151,6 +151,7 @@ public class JavaClass
         reflectSupplier = Suppliers.memoize(new ReflectClassSupplier());
         sourceCodeLocation = SourceCodeLocation.of(this);
         javaPackage = JavaPackage.simple(this);
+        completionProcess = builder.isStub() ? CompletionProcess.stub() : CompletionProcess.start();
     }
 
     /**
@@ -646,6 +647,11 @@ public class JavaClass
     @PublicAPI(usage = ACCESS)
     public List<JavaTypeVariable<JavaClass>> getTypeParameters() {
         return typeParameters;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<InstanceofCheck> getInstanceofChecks() {
+        return members.getInstanceofChecks();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1545,6 +1551,19 @@ public class JavaClass
         return formatNamesOf(paramTypes);
     }
 
+    /**
+     * @return all throws declarations on any method or constructor of this class
+     *         (e.g. {@code void method() throws SomeException})
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<ThrowsDeclaration<? extends JavaCodeUnit>> getThrowsDeclarations() {
+        ImmutableSet.Builder<ThrowsDeclaration<? extends JavaCodeUnit>> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : getCodeUnits()) {
+            result.addAll(codeUnit.getThrowsClause());
+        }
+        return result.build();
+    }
+
     private static class Superclass {
         private static final Superclass ABSENT = new Superclass(Optional.<JavaType>empty());
 
@@ -1646,7 +1665,74 @@ public class JavaClass
         }
     }
 
-    private static class CompletionProcess {
+    private abstract static class CompletionProcess {
+        private static final CompletionProcess stubCompletionProcess = new CompletionProcess() {
+            @Override
+            boolean hasFinished() {
+                return false;
+            }
+
+            @Override
+            public void markClassHierarchyComplete() {
+            }
+
+            @Override
+            public void markEnclosingDeclarationComplete() {
+            }
+
+            @Override
+            public void markTypeParametersComplete() {
+            }
+
+            @Override
+            public void markGenericSuperclassComplete() {
+            }
+
+            @Override
+            public void markGenericInterfacesComplete() {
+            }
+
+            @Override
+            public void markMembersComplete() {
+            }
+
+            @Override
+            public void markAnnotationsComplete() {
+            }
+
+            @Override
+            public void markDependenciesComplete() {
+            }
+        };
+
+        abstract boolean hasFinished();
+
+        public abstract void markClassHierarchyComplete();
+
+        public abstract void markEnclosingDeclarationComplete();
+
+        public abstract void markTypeParametersComplete();
+
+        public abstract void markGenericSuperclassComplete();
+
+        public abstract void markGenericInterfacesComplete();
+
+        public abstract void markMembersComplete();
+
+        public abstract void markAnnotationsComplete();
+
+        public abstract void markDependenciesComplete();
+
+        static CompletionProcess start() {
+            return new FullCompletionProcess();
+        }
+
+        static CompletionProcess stub() {
+            return stubCompletionProcess;
+        }
+    }
+
+    private static class FullCompletionProcess extends CompletionProcess {
         private boolean classHierarchyComplete = false;
         private boolean enclosingDeclarationComplete = false;
         private boolean typeParametersComplete = false;
@@ -1656,9 +1742,7 @@ public class JavaClass
         private boolean annotationsComplete = false;
         private boolean dependenciesComplete = false;
 
-        private CompletionProcess() {
-        }
-
+        @Override
         boolean hasFinished() {
             return classHierarchyComplete
                     && enclosingDeclarationComplete
@@ -1670,40 +1754,44 @@ public class JavaClass
                     && dependenciesComplete;
         }
 
+        @Override
         public void markClassHierarchyComplete() {
             this.classHierarchyComplete = true;
         }
 
+        @Override
         public void markEnclosingDeclarationComplete() {
             this.enclosingDeclarationComplete = true;
         }
 
+        @Override
         public void markTypeParametersComplete() {
             this.typeParametersComplete = true;
         }
 
+        @Override
         public void markGenericSuperclassComplete() {
             this.genericSuperclassComplete = true;
         }
 
+        @Override
         public void markGenericInterfacesComplete() {
             this.genericInterfacesComplete = true;
         }
 
+        @Override
         public void markMembersComplete() {
             this.membersComplete = true;
         }
 
+        @Override
         public void markAnnotationsComplete() {
             this.annotationsComplete = true;
         }
 
+        @Override
         public void markDependenciesComplete() {
             this.dependenciesComplete = true;
-        }
-
-        static CompletionProcess start() {
-            return new CompletionProcess();
         }
     }
 

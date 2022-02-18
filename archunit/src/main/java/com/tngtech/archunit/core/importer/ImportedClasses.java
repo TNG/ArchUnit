@@ -27,11 +27,14 @@ import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
 import static com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.importer.ImportedClasses.ImportedClassState.HAD_TO_BE_IMPORTED;
+import static com.tngtech.archunit.core.importer.ImportedClasses.ImportedClassState.WAS_ALREADY_PRESENT;
 
 class ImportedClasses {
     private static final ImmutableSet<JavaModifier> PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS =
@@ -55,34 +58,48 @@ class ImportedClasses {
 
     JavaClass getOrResolve(String typeName) {
         JavaClass javaClass = allClasses.get(typeName);
-        if (javaClass == null) {
-            Optional<JavaClass> resolved = resolver.tryResolve(typeName);
-            javaClass = resolved.isPresent() ? resolved.get() : simpleClassOf(typeName);
-            allClasses.put(typeName, javaClass);
+        return javaClass != null ? javaClass : resolve(typeName);
+    }
+
+    ImportedClassState ensurePresent(String typeName) {
+        if (allClasses.containsKey(typeName)) {
+            return WAS_ALREADY_PRESENT;
         }
+
+        resolve(typeName);
+        return HAD_TO_BE_IMPORTED;
+    }
+
+    private JavaClass resolve(String typeName) {
+        Optional<JavaClass> resolved = resolver.tryResolve(typeName);
+        JavaClass javaClass = resolved.isPresent() ? resolved.get() : stubClassOf(typeName);
+        if (javaClass.isArray()) {
+            ensureAllComponentTypesPresent(javaClass);
+        }
+        allClasses.put(typeName, javaClass);
         return javaClass;
     }
 
-    boolean isPresent(String typeName) {
-        return allClasses.containsKey(typeName);
-    }
-
-    void ensurePresent(String typeName) {
-        getOrResolve(typeName);
+    private void ensureAllComponentTypesPresent(JavaClass javaClass) {
+        JavaClassDescriptor current = JavaClassDescriptor.From.javaClass(javaClass);
+        while (current.tryGetComponentType().isPresent()) {
+            current = current.tryGetComponentType().get();
+            ensurePresent(current.getFullyQualifiedClassName());
+        }
     }
 
     Collection<JavaClass> getAllWithOuterClassesSortedBeforeInnerClasses() {
         return ImmutableSortedMap.copyOf(allClasses).values();
     }
 
-    private static JavaClass simpleClassOf(String typeName) {
+    private static JavaClass stubClassOf(String typeName) {
         JavaClassDescriptor descriptor = JavaClassDescriptor.From.name(typeName);
-        DomainBuilders.JavaClassBuilder builder = new DomainBuilders.JavaClassBuilder().withDescriptor(descriptor);
+        JavaClassBuilder builder = JavaClassBuilder.forStub().withDescriptor(descriptor);
         addModifiersIfPossible(builder, descriptor);
         return builder.build();
     }
 
-    private static void addModifiersIfPossible(DomainBuilders.JavaClassBuilder builder, JavaClassDescriptor descriptor) {
+    private static void addModifiersIfPossible(JavaClassBuilder builder, JavaClassDescriptor descriptor) {
         if (descriptor.isPrimitive() || descriptor.isArray()) {
             builder.withModifiers(PRIMITIVE_AND_ARRAY_TYPE_MODIFIERS);
         }
@@ -94,5 +111,10 @@ class ImportedClasses {
 
     interface MethodReturnTypeGetter {
         Optional<JavaClass> getReturnType(String declaringClassName, String methodName);
+    }
+
+    enum ImportedClassState {
+        HAD_TO_BE_IMPORTED,
+        WAS_ALREADY_PRESENT
     }
 }

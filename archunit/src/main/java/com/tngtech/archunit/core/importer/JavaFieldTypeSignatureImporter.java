@@ -28,23 +28,24 @@ import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERS
 class JavaFieldTypeSignatureImporter {
     private static final Logger log = LoggerFactory.getLogger(JavaFieldTypeSignatureImporter.class);
 
-    static Optional<JavaTypeCreationProcess<JavaField>> parseAsmFieldTypeSignature(String signature) {
+    static Optional<JavaTypeCreationProcess<JavaField>> parseAsmFieldTypeSignature(String signature, DeclarationHandler declarationHandler) {
         if (signature == null) {
             return Optional.empty();
         }
 
         log.trace("Analyzing field signature: {}", signature);
 
-        SignatureProcessor signatureProcessor = new SignatureProcessor();
+        SignatureProcessor signatureProcessor = new SignatureProcessor(declarationHandler);
         new SignatureReader(signature).accept(signatureProcessor);
         return signatureProcessor.getFieldType();
     }
 
     private static class SignatureProcessor extends SignatureVisitor {
-        private final GenericMemberTypeProcessor<JavaField> genericFieldTypeProcessor = new GenericMemberTypeProcessor<>();
+        private final GenericMemberTypeProcessor<JavaField> genericFieldTypeProcessor;
 
-        SignatureProcessor() {
+        SignatureProcessor(DeclarationHandler declarationHandler) {
             super(ASM_API_VERSION);
+            genericFieldTypeProcessor = new GenericMemberTypeProcessor<>(declarationHandler);
         }
 
         @Override
