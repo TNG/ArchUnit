@@ -42,7 +42,7 @@ git tag "v$VERSION"
 git push origin "v$VERSION"
 
 echo Publishing ArchUnit...
-./gradlew clean publishArchUnit --no-parallel -PsonatypeUsername="$SONATYPE_USERNAME" -PsonatypePassword="$SONATYPE_PASSWORD" -PsigningKey="$GPG_SIGNING_KEY" -PsigningPassword="$GPG_SIGNING_PASSWORD"
+./gradlew clean publishArchUnit --no-parallel -PactivateReleaseToMavenCentral -PsonatypeUsername="$SONATYPE_USERNAME" -PsonatypePassword="$SONATYPE_PASSWORD" -PsigningKey="$GPG_SIGNING_KEY" -PsigningPassword="$GPG_SIGNING_PASSWORD"
 
 echo Publishing website and examples...
 ./gradlew publishDocs

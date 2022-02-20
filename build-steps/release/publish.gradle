@@ -75,6 +75,7 @@ task setNextSnapshotVersion() {
 }
 
 releaseSonatypeStagingRepository.doFirst {
-    assert project.findProperty('activateReleaseToMavenCentral'): 'Release to Maven Central is disabled by default. Activate via \'-PactivateReleaseToMavenCentral\''
-    throw new RuntimeException("Bummer")
+    def activateReleasePropertyName = 'activateReleaseToMavenCentral'
+    assert project.findProperty(activateReleasePropertyName) != null:
+            "Release to Maven Central is disabled by default. Activate via '-P${activateReleasePropertyName}'"
 }
