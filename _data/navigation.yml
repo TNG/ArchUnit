@@ -10,6 +10,6 @@ main:
   - title: "User Guide"
     url: /userguide/html/000_Index.html
   - title: "API"
-    url: https://javadoc.io/doc/com.tngtech.archunit/archunit/0.22.0
+    url: https://javadoc.io/doc/com.tngtech.archunit/archunit/0.23.0
   - title: "About"
     url: /about
