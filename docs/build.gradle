@@ -4,11 +4,7 @@ import static java.nio.charset.StandardCharsets.UTF_8
 
 plugins {
     id 'archunit.base-conventions'
-    id "org.asciidoctor.convert" version "2.4.0"
-}
-
-dependencies {
-    asciidoctor 'org.asciidoctor:asciidoctorj-diagram:2.2.1'
+    id "org.asciidoctor.jvm.convert" version "3.3.2"
 }
 
 task cleanUserGuide(type: Delete) {
@@ -16,16 +12,21 @@ task cleanUserGuide(type: Delete) {
 }
 
 asciidoctor {
-    backends 'html'
     attributes 'source-highlighter': 'highlightjs',
-            'highlightjs-theme': 'mono-blue',
-            'stylesheet': 'archunit.css'
+               'highlightjs-theme': 'mono-blue',
+               'stylesheet': 'archunit.css'
     sourceDir file('userguide')
+    baseDirFollowsSourceDir()
     sources {
         include '000_Index.adoc'
     }
-    outputDir file('userguide')
-    requires = ['asciidoctor-diagram']
+    outputDir file('userguide/html')
+    asciidoctorj {
+        modules {
+            diagram.use()
+            diagram.version '1.5.16'
+        }
+    }
 }
 asciidoctor.doFirst {
     // make sure we get the current version in case it has changed during the run on release
