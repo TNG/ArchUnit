@@ -449,7 +449,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 0.22.0</span>
+<span id="revnumber">version 0.23.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -530,7 +530,8 @@ h4 {
 <li><a href="#_overriding_configuration">10.1. Overriding configuration</a></li>
 <li><a href="#_configuring_the_resolution_behavior">10.2. Configuring the Resolution Behavior</a></li>
 <li><a href="#_md5_sums_of_classes">10.3. MD5 Sums of Classes</a></li>
-<li><a href="#_custom_error_messages">10.4. Custom Error Messages</a></li>
+<li><a href="#_fail_rules_on_empty_should">10.4. Fail Rules on Empty Should</a></li>
+<li><a href="#_custom_error_messages">10.5. Custom Error Messages</a></li>
 </ul>
 </li>
 </ul>
@@ -616,7 +617,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;0.22.0&lt;/version&gt;
+    &lt;version&gt;0.23.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -625,7 +626,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:0.22.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:0.23.0'
 }</code></pre>
 </div>
 </div>
@@ -646,7 +647,7 @@ from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;0.22.0&lt;/version&gt;
+    &lt;version&gt;0.23.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -655,7 +656,7 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:0.22.0'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:0.23.0'
 }</code></pre>
 </div>
 </div>
@@ -672,7 +673,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;0.22.0&lt;/version&gt;
+    &lt;version&gt;0.23.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -681,7 +682,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:0.22.0'
+   testImplementation 'com.tngtech.archunit:archunit:0.23.0'
 }</code></pre>
 </div>
 </div>
@@ -848,7 +849,7 @@ class MyArchitectureTest {
 <h3 id="_package_dependency_checks"><a class="anchor" href="#_package_dependency_checks"></a>4.1. Package Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-no-access.png" alt="package deps no access" width="464" height="79">
+<img src="package-deps-no-access.png" alt="package deps no access" width="460" height="75">
 </div>
 </div>
 <div class="listingblock">
@@ -859,7 +860,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="package-deps-only-access.png" alt="package deps only access" width="491" height="335">
+<img src="package-deps-only-access.png" alt="package deps only access" width="487" height="333">
 </div>
 </div>
 <div class="listingblock">
@@ -873,7 +874,7 @@ class MyArchitectureTest {
 <h3 id="_class_dependency_checks"><a class="anchor" href="#_class_dependency_checks"></a>4.2. Class Dependency Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-naming-deps.png" alt="class naming deps" width="320" height="215">
+<img src="class-naming-deps.png" alt="class naming deps" width="324" height="213">
 </div>
 </div>
 <div class="listingblock">
@@ -887,7 +888,7 @@ class MyArchitectureTest {
 <h3 id="_class_and_package_containment_checks"><a class="anchor" href="#_class_and_package_containment_checks"></a>4.3. Class and Package Containment Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="class-package-contain.png" alt="class package contain" width="343" height="180">
+<img src="class-package-contain.png" alt="class package contain" width="348" height="203">
 </div>
 </div>
 <div class="listingblock">
@@ -901,7 +902,7 @@ class MyArchitectureTest {
 <h3 id="_inheritance_checks"><a class="anchor" href="#_inheritance_checks"></a>4.4. Inheritance Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-naming-check.png" alt="inheritance naming check" width="464" height="226">
+<img src="inheritance-naming-check.png" alt="inheritance naming check" width="468" height="224">
 </div>
 </div>
 <div class="listingblock">
@@ -912,7 +913,7 @@ class MyArchitectureTest {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-access-check.png" alt="inheritance access check" width="558" height="251">
+<img src="inheritance-access-check.png" alt="inheritance access check" width="569" height="266">
 </div>
 </div>
 <div class="listingblock">
@@ -926,7 +927,7 @@ class MyArchitectureTest {
 <h3 id="_annotation_checks"><a class="anchor" href="#_annotation_checks"></a>4.5. Annotation Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="583" height="221">
+<img src="inheritance-annotation-check.png" alt="inheritance annotation check" width="587" height="219">
 </div>
 </div>
 <div class="listingblock">
@@ -940,7 +941,7 @@ class MyArchitectureTest {
 <h3 id="_layer_checks"><a class="anchor" href="#_layer_checks"></a>4.6. Layer Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="layer-check.png" alt="layer check" width="632" height="575">
+<img src="layer-check.png" alt="layer check" width="643" height="598">
 </div>
 </div>
 <div class="listingblock">
@@ -960,7 +961,7 @@ class MyArchitectureTest {
 <h3 id="_cycle_checks"><a class="anchor" href="#_cycle_checks"></a>4.7. Cycle Checks</h3>
 <div class="imageblock">
 <div class="content">
-<img src="cycle-check.png" alt="cycle check" width="738" height="375">
+<img src="cycle-check.png" alt="cycle check" width="749" height="398">
 </div>
 </div>
 <div class="listingblock">
@@ -1168,7 +1169,7 @@ like this:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="domain-overview.png" alt="domain overview" width="988" height="693">
+<img src="domain-overview.png" alt="domain overview" width="984" height="691">
 </div>
 </div>
 <div class="paragraph">
@@ -1197,7 +1198,7 @@ inheritance is not completely straight forward. Consider for example</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-example.png" alt="resolution example" width="379" height="189">
+<img src="resolution-example.png" alt="resolution example" width="375" height="187">
 </div>
 </div>
 <div class="paragraph">
@@ -1212,7 +1213,7 @@ The situation looks roughly like</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="resolution-overview.png" alt="resolution overview" width="547" height="318">
+<img src="resolution-overview.png" alt="resolution overview" width="543" height="316">
 </div>
 </div>
 <div class="paragraph">
@@ -1232,7 +1233,7 @@ cases, for example:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="diamond-example.png" alt="diamond example" width="517" height="224">
+<img src="diamond-example.png" alt="diamond example" width="513" height="222">
 </div>
 </div>
 <div class="paragraph">
@@ -1588,7 +1589,7 @@ a more generic API that controls the types of objects that our concept targets.<
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="import-vs-lang.png" alt="import vs lang" width="714" height="81">
+<img src="import-vs-lang.png" alt="import vs lang" width="710" height="79">
 </div>
 </div>
 <div class="paragraph">
@@ -1782,7 +1783,7 @@ contain dependencies on any <code>adapter</code> package.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="onion-architecture-check.png" alt="onion architecture check" width="1180" height="748">
+<img src="onion-architecture-check.png" alt="onion architecture check" width="1139" height="771">
 </div>
 </div>
 </div>
@@ -1969,7 +1970,7 @@ The way this works is to use the respective package identifiers (compare
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="183" height="205">
+<img src="simple-plantuml-archrule-example.png" alt="simple plantuml archrule example" width="159" height="183">
 </div>
 </div>
 <div class="listingblock">
@@ -2272,7 +2273,7 @@ The <code>CCD</code> of the system divided by the <code>CCD</code> of a balanced
 <h5 id="_example"><a class="anchor" href="#_example"></a>Example</h5>
 <div class="imageblock">
 <div class="content">
-<img src="lakos-example.png" alt="lakos example" width="470" height="553">
+<img src="lakos-example.png" alt="lakos example" width="466" height="547">
 </div>
 </div>
 <div class="paragraph">
@@ -2357,7 +2358,7 @@ of abstract classes within the respective component.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="martin-example.png" alt="martin example" width="470" height="711">
+<img src="martin-example.png" alt="martin example" width="466" height="709">
 </div>
 </div>
 </div>
@@ -2416,7 +2417,7 @@ elements within a component.</p>
 <h5 id="_example_3"><a class="anchor" href="#_example_3"></a>Example</h5>
 <div class="imageblock">
 <div class="content">
-<img src="dowalil-example.png" alt="dowalil example" width="712" height="318">
+<img src="dowalil-example.png" alt="dowalil example" width="723" height="351">
 </div>
 </div>
 </div>
@@ -2808,6 +2809,72 @@ argument, and supply the concrete arguments as</p>
 <div class="paragraph">
 <p>For further details, compare the sources of <code>SelectedClassResolverFromClasspath</code>.</p>
 </div>
+<div class="sect3">
+<h4 id="_configuring_the_number_of_resolution_iterations"><a class="anchor" href="#_configuring_the_number_of_resolution_iterations"></a>10.2.1. Configuring the Number of Resolution Iterations</h4>
+<div class="paragraph">
+<p>It is also possible to apply a more fine-grained configuration to the import dependency resolution behavior.</p>
+</div>
+<div class="paragraph">
+<p>In particular, the ArchUnit importer distinguishes 6 types of import dependencies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>member types (e.g. the type of a field of a class, type of a method parameter, etc.)</p>
+</li>
+<li>
+<p>accesses to types (e.g. a method calls another method of a different class)</p>
+</li>
+<li>
+<p>supertypes (i.e. superclasses that are extended and interfaces that are implemented)</p>
+</li>
+<li>
+<p>enclosing types (i.e. outer classes of nested classes)</p>
+</li>
+<li>
+<p>annotation types, including parameters of annotations</p>
+</li>
+<li>
+<p>generic signature types (i.e. types that comprise a parameterized type, like <code>List</code> and <code>String</code> for <code>List&lt;String&gt;</code>)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For each of these dependency types it is possible to configure the maximum number of iterations to traverse the dependencies.
+E.g. let us assume we configure the maximum iterations as <code>2</code> for member types and we have a class <code>A</code> that declares a field of type <code>B</code> which in turn holds a field of type <code>C</code>.
+On the first run we would automatically resolve the type <code>B</code> as a dependency of <code>A</code>.
+On the second run we would then also resolve <code>C</code> as a member type dependency of <code>B</code>.</p>
+</div>
+<div class="paragraph">
+<p>The configuration parameters with their defaults are the following:</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">import.dependencyResolutionProcess.maxIterationsForMemberTypes = 1
+import.dependencyResolutionProcess.maxIterationsForAccessesToTypes = 1
+import.dependencyResolutionProcess.maxIterationsForSupertypes = -1
+import.dependencyResolutionProcess.maxIterationsForEnclosingTypes = -1
+import.dependencyResolutionProcess.maxIterationsForAnnotationTypes = -1
+import.dependencyResolutionProcess.maxIterationsForGenericSignatureTypes = -1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that setting a property to a negative value (e.g. <code>-1</code>) will not stop the resolution until all types for the given sort of dependency have been resolved.
+E.g. for generic type signatures a value of <code>-1</code> will by default lead to all types comprising the signature <code>Map&lt;?, List&lt;? extends String&gt;&gt;</code> (that is <code>Map</code>, <code>List</code> and <code>String</code>) to be automatically resolved.</p>
+</div>
+<div class="paragraph">
+<p>Setting a property to <code>0</code> will disable the automatic resolution,
+which can lead to types being only partially imported or stubbed.
+For these types the information is likely not complete or even wrong (e.g. an interface might be reported as class if the bytecode was never analyzed, or annotations might be missing).</p>
+</div>
+<div class="paragraph">
+<p>On the other hand, bigger (or negative) values can have a massive performance impact.
+The defaults should provide a reasonable behavior.
+They include the class graph for all types that are used by members or accesses directly and cut the resolution at that point.
+However, relevant information for these types is fully imported, no matter how many iterations it takes (e.g. supertypes or generic signatures).</p>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_md5_sums_of_classes"><a class="anchor" href="#_md5_sums_of_classes"></a>10.3. MD5 Sums of Classes</h3>
@@ -2832,7 +2899,36 @@ but it can be activated the following way:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_custom_error_messages"><a class="anchor" href="#_custom_error_messages"></a>10.4. Custom Error Messages</h3>
+<h3 id="_fail_rules_on_empty_should"><a class="anchor" href="#_fail_rules_on_empty_should"></a>10.4. Fail Rules on Empty Should</h3>
+<div class="paragraph">
+<p>By default, ArchUnit will forbid the should-part of rules to be evaluated against an empty set of classes.
+The reason is that this can lead to rules that by accident do not check any classes at all.
+Take for example</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">classes().that().resideInAPackage("com.myapp.old").should()...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now consider somebody renames the package <code>old</code> to <code>newer</code>.
+The rule will now always evaluate successfully without any reported error.
+However, it actually does not check any classes at all anymore.
+This is likely not what most users want.
+Thus, by default ArchUnit will fail checking the rule in this case.
+If you want to allow evaluating such rules,
+i.e. where the actual input to the should-conditionis empty,
+you can set the following property:</p>
+</div>
+<div class="listingblock">
+<div class="title">archunit.properties</div>
+<div class="content">
+<pre class="highlightjs highlight nowrap"><code class="language-none hljs">archRule.failOnEmptyShould=false</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_custom_error_messages"><a class="anchor" href="#_custom_error_messages"></a>10.5. Custom Error Messages</h3>
 <div class="paragraph">
 <p>You can configure a custom format to display the failures of a rule.</p>
 </div>
