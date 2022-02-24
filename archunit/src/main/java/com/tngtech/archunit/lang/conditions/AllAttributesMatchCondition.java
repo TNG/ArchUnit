@@ -17,26 +17,25 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
 
-abstract class AllAttributesMatchCondition<T> extends ArchCondition<JavaClass> {
-    private final ArchCondition<T> condition;
+abstract class AllAttributesMatchCondition<ATTRIBUTE, OWNER> extends ArchCondition<OWNER> {
+    private final ArchCondition<ATTRIBUTE> condition;
 
-    AllAttributesMatchCondition(String description, ArchCondition<T> condition) {
+    AllAttributesMatchCondition(String description, ArchCondition<ATTRIBUTE> condition) {
         super(description);
         this.condition = condition;
     }
 
     @Override
-    public final void check(JavaClass item, ConditionEvents events) {
+    public final void check(OWNER item, ConditionEvents events) {
         containOnlyElementsThat(condition).check(relevantAttributes(item), events);
     }
 
-    abstract Collection<T> relevantAttributes(JavaClass item);
+    abstract Collection<? extends ATTRIBUTE> relevantAttributes(OWNER item);
 
     @Override
     public String toString() {

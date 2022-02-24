@@ -76,4 +76,9 @@ public class JavaStaticInitializer extends JavaCodeUnit {
     public ThrowsClause<JavaStaticInitializer> getThrowsClause() {
         return ThrowsClause.empty(this);
     }
+
+    @Override
+    public Set<? extends JavaCall<?>> getCallsOfSelf() {
+        return emptySet();
+    }
 }

@@ -53,6 +53,7 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
@@ -91,6 +92,9 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameCo
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEndingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
+import static com.tngtech.archunit.core.domain.JavaCodeUnit.Functions.Get.GET_CALLS_OF_SELF;
+import static com.tngtech.archunit.core.domain.JavaCodeUnit.Predicates.constructor;
+import static com.tngtech.archunit.core.domain.JavaCodeUnit.Predicates.method;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
@@ -1205,6 +1209,35 @@ public final class ArchConditions {
         return new DoesConditionByPredicate<>(declareThrowableOfType);
     }
 
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> onlyBeCalledByClassesThat(DescribedPredicate<? super JavaClass> predicate) {
+        ChainableFunction<JavaAccess<?>, JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
+        ChainableFunction<HasOwner<JavaClass>, JavaClass> owner = Get.owner();
+        return new CodeUnitOnlyCallsCondition<>("only be called by classes that " + predicate.getDescription(),
+                origin.then(owner).is(predicate), GET_CALLS_OF_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> onlyBeCalledByCodeUnitsThat(DescribedPredicate<? super JavaMember> predicate) {
+        ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
+        return new CodeUnitOnlyCallsCondition<>("only be called by code units that " + predicate.getDescription(),
+                origin.is(predicate), GET_CALLS_OF_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> onlyBeCalledByMethodsThat(DescribedPredicate<? super JavaMember> predicate) {
+        ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
+        return new CodeUnitOnlyCallsCondition<>("only be called by methods that " + predicate.getDescription(),
+                origin.is(method().and(predicate)), GET_CALLS_OF_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static ArchCondition<JavaCodeUnit> onlyBeCalledByConstructorsThat(DescribedPredicate<? super JavaMember> predicate) {
+        ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
+        return new CodeUnitOnlyCallsCondition<>("only be called by constructors that " + predicate.getDescription(),
+                origin.is(constructor().and(predicate)), GET_CALLS_OF_SELF);
+    }
+
     private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
         return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
     }
@@ -1223,7 +1256,7 @@ public final class ArchConditions {
             new IsConditionByPredicate<>("a local class", JavaClass.Predicates.LOCAL_CLASSES);
 
     private static class HaveOnlyModifiersCondition<T extends HasModifiers & HasDescription & HasSourceCodeLocation>
-            extends AllAttributesMatchCondition<T> {
+            extends AllAttributesMatchCondition<T, JavaClass> {
 
         private final Function<JavaClass, ? extends Collection<T>> getHasModifiers;
 

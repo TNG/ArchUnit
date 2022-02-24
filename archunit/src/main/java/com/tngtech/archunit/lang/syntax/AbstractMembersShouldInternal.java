@@ -333,6 +333,11 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
         return copyWithNewCondition(conditionAggregator.thatORsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should")));
     }
 
+    @SuppressWarnings("unchecked")
+    SELF self() {
+        return (SELF) this;
+    }
+
     static class MembersShouldInternal extends AbstractMembersShouldInternal<JavaMember, MembersShouldInternal> {
 
         MembersShouldInternal(

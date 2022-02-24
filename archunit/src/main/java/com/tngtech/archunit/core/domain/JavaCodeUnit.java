@@ -172,6 +172,9 @@ public abstract class JavaCodeUnit
     }
 
     @PublicAPI(usage = ACCESS)
+    public abstract Set<? extends JavaCall<?>> getCallsOfSelf();
+
+    @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getMethodCallsFromSelf() {
         return methodCalls;
     }
@@ -222,6 +225,11 @@ public abstract class JavaCodeUnit
 
     @PublicAPI(usage = ACCESS)
     public boolean isConstructor() {
+        return false;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean isMethod() {
         return false;
     }
 
@@ -354,6 +362,16 @@ public abstract class JavaCodeUnit
                 }
             };
         }
+
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaCodeUnit> method() {
+            return new DescribedPredicate<JavaCodeUnit>("method") {
+                @Override
+                public boolean apply(JavaCodeUnit input) {
+                    return input.isMethod();
+                }
+            };
+        }
     }
 
     @PublicAPI(usage = ACCESS)
@@ -377,6 +395,15 @@ public abstract class JavaCodeUnit
                     }
                 };
             }
+
+            @PublicAPI(usage = ACCESS)
+            public static final ChainableFunction<JavaCodeUnit, Set<? extends JavaCall<?>>> GET_CALLS_OF_SELF =
+                    new ChainableFunction<JavaCodeUnit, Set<? extends JavaCall<?>>>() {
+                        @Override
+                        public Set<? extends JavaCall<?>> apply(JavaCodeUnit input) {
+                            return input.getCallsOfSelf();
+                        }
+                    };
         }
     }
 }

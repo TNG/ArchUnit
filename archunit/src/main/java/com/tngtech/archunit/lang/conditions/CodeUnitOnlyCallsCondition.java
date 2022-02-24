@@ -17,23 +17,22 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
-import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAccess;
-import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 
-class AllAccessesCondition extends AllAttributesMatchCondition<JavaAccess<?>, JavaClass> {
-    private final Function<JavaClass, ? extends Collection<JavaAccess<?>>> getRelevantAccesses;
+class CodeUnitOnlyCallsCondition<T extends JavaAccess<?>> extends AllAttributesMatchCondition<T, JavaCodeUnit> {
+    private final Function<? super JavaCodeUnit, ? extends Collection<? extends T>> getRelevantAccesses;
 
-    AllAccessesCondition(String prefix, DescribedPredicate<JavaAccess<?>> predicate,
-            Function<JavaClass, ? extends Collection<JavaAccess<?>>> getRelevantAccesses) {
-        super(Joiner.on(" ").join(prefix, predicate.getDescription()), new JavaAccessCondition<>(predicate));
+    CodeUnitOnlyCallsCondition(String description, DescribedPredicate<T> predicate,
+            Function<? super JavaCodeUnit, ? extends Collection<? extends T>> getRelevantAccesses) {
+        super(description, new JavaAccessCondition<>(predicate));
         this.getRelevantAccesses = getRelevantAccesses;
     }
 
     @Override
-    Collection<JavaAccess<?>> relevantAttributes(JavaClass item) {
+    Collection<? extends T> relevantAttributes(JavaCodeUnit item) {
         return getRelevantAccesses.apply(item);
     }
 }
