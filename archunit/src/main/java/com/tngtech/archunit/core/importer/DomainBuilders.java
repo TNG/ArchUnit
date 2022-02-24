@@ -305,10 +305,14 @@ public final class DomainBuilders {
             return rawParameterTypes.isEmpty();
         }
 
-        public JavaType getReturnType(JavaCodeUnit codeUnit) {
+        public JavaClass getRawReturnType() {
+            return get(rawReturnType.getFullyQualifiedClassName());
+        }
+
+        public JavaType getGenericReturnType(JavaCodeUnit codeUnit) {
             return genericReturnType.isPresent()
                     ? genericReturnType.get().finish(codeUnit, allTypeParametersInContextOf(codeUnit), importedClasses)
-                    : get(rawReturnType.getFullyQualifiedClassName());
+                    : getRawReturnType();
         }
 
         private Iterable<JavaTypeVariable<?>> allTypeParametersInContextOf(JavaCodeUnit codeUnit) {
