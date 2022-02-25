@@ -34,7 +34,9 @@ import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
 import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
@@ -66,6 +68,7 @@ public abstract class JavaCodeUnit
     private Set<JavaConstructorCall> constructorCalls = Collections.emptySet();
     private Set<JavaMethodReference> methodReferences = Collections.emptySet();
     private Set<JavaConstructorReference> constructorReferences = Collections.emptySet();
+    private Set<TryCatchBlock> tryCatchBlocks = Collections.emptySet();
 
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
@@ -204,6 +207,11 @@ public abstract class JavaCodeUnit
     }
 
     @PublicAPI(usage = ACCESS)
+    public Set<TryCatchBlock> getTryCatchBlocks() {
+        return tryCatchBlocks;
+    }
+
+    @PublicAPI(usage = ACCESS)
     public Set<JavaCall<?>> getCallsFromSelf() {
         return union(getMethodCallsFromSelf(), getConstructorCallsFromSelf());
     }
@@ -261,11 +269,15 @@ public abstract class JavaCodeUnit
     }
 
     void completeAccessesFrom(ImportContext context) {
-        fieldAccesses = context.createFieldAccessesFor(this);
-        methodCalls = context.createMethodCallsFor(this);
-        constructorCalls = context.createConstructorCallsFor(this);
-        methodReferences = context.createMethodReferencesFor(this);
-        constructorReferences = context.createConstructorReferencesFor(this);
+        Set<TryCatchBlockBuilder> tryCatchBlockBuilders = context.createTryCatchBlockBuilders(this);
+        fieldAccesses = context.createFieldAccessesFor(this, tryCatchBlockBuilders);
+        methodCalls = context.createMethodCallsFor(this, tryCatchBlockBuilders);
+        constructorCalls = context.createConstructorCallsFor(this, tryCatchBlockBuilders);
+        methodReferences = context.createMethodReferencesFor(this, tryCatchBlockBuilders);
+        constructorReferences = context.createConstructorReferencesFor(this, tryCatchBlockBuilders);
+        tryCatchBlocks = tryCatchBlockBuilders.stream()
+                .map(builder -> builder.build(this, context))
+                .collect(toImmutableSet());
     }
 
     @ResolvesTypesViaReflection

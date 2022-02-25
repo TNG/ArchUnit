@@ -44,6 +44,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodReferenceBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaWildcardTypeBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -105,6 +106,10 @@ public class DomainObjectCreationContext {
 
     public static JavaField createJavaField(JavaFieldBuilder builder) {
         return new JavaField(builder);
+    }
+
+    public static TryCatchBlock createTryCatchBlock(TryCatchBlockBuilder builder) {
+        return new TryCatchBlock(builder);
     }
 
     public static JavaFieldAccess createJavaFieldAccess(JavaFieldAccessBuilder builder) {

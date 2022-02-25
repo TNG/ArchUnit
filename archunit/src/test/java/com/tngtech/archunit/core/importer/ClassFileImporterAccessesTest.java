@@ -1,16 +1,22 @@
 package com.tngtech.archunit.core.importer;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableSet;
+import com.tngtech.archunit.base.ChainableFunction;
+import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
@@ -25,7 +31,10 @@ import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.SourceCodeLocation;
+import com.tngtech.archunit.core.domain.TryCatchBlock;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
+import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsExternalMethod;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsMethodReturningArray;
@@ -73,11 +82,17 @@ import com.tngtech.archunit.core.importer.testexamples.integration.ClassD;
 import com.tngtech.archunit.core.importer.testexamples.integration.ClassXDependingOnClassesABCD;
 import com.tngtech.archunit.core.importer.testexamples.integration.InterfaceOfClassX;
 import com.tngtech.archunit.core.importer.testexamples.specialtargets.ClassCallingSpecialTarget;
+import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassHoldingMethods;
+import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithComplexTryCatchBlocks;
+import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithSimpleTryCatchBlocks;
+import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithTryCatchBlockWithoutThrowables;
+import com.tngtech.archunit.core.importer.testexamples.trycatch.ClassWithTryWithResources;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
@@ -92,13 +107,17 @@ import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTar
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
+import static com.tngtech.archunit.testutil.Assertions.assertThatTryCatchBlock;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static com.tngtech.archunit.testutil.JavaCallQuery.methodCallTo;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
+import static com.tngtech.archunit.testutil.assertion.TryCatchBlocksAssertion.tryCatchBlock;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 
 @RunWith(DataProviderRunner.class)
@@ -749,6 +768,245 @@ public class ClassFileImporterAccessesTest {
     }
 
     @Test
+    public void imports_simple_try_catch_block() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            void method() {
+                try {
+                    new Object();
+                } catch (IllegalStateException ignored) {
+                }
+            }
+        }
+
+        JavaMethod method = new ClassFileImporter().importClass(SomeClass.class).getMethod("method");
+        TryCatchBlock tryCatchBlock = getOnlyElement(method.getTryCatchBlocks());
+
+        assertThatTypes(tryCatchBlock.getCaughtThrowables()).matchExactly(IllegalStateException.class);
+        assertThat(tryCatchBlock.getAccessesContainedInTryBlock()).isEqualTo(method.getAccessesFromSelf());
+        assertThat(tryCatchBlock.getOwner()).isEqualTo(method);
+        assertThat(tryCatchBlock.getSourceCodeLocation())
+                .isEqualTo(getOnlyElement(method.getAccessesFromSelf()).getSourceCodeLocation());
+    }
+
+    @Test
+    public void imports_simple_try_catch_block_that_returns_directly_from_try() {
+        // In this case the end-label has no associated line number, so it must be handled differently
+        @SuppressWarnings("unused")
+        class SomeClass {
+            Object method() {
+                try {
+                    return new Object();
+                } catch (IllegalStateException ignored) {
+                    return null;
+                }
+            }
+        }
+
+        JavaMethod method = new ClassFileImporter().importClass(SomeClass.class).getMethod("method");
+        TryCatchBlock tryCatchBlock = getOnlyElement(method.getTryCatchBlocks());
+
+        assertThatTypes(tryCatchBlock.getCaughtThrowables()).matchExactly(IllegalStateException.class);
+        assertThat(tryCatchBlock.getAccessesContainedInTryBlock()).isEqualTo(method.getAccessesFromSelf());
+    }
+
+    @Test
+    public void imports_source_code_location_of_try_catch_blocks() {
+        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithSimpleTryCatchBlocks.class);
+        Set<TryCatchBlock> tryCatchBlocks = javaClass.getMethod("method").getTryCatchBlocks();
+
+        assertThat(tryCatchBlocks).extracting("sourceCodeLocation")
+                .containsExactlyInAnyOrder(
+                        SourceCodeLocation.of(javaClass, 7),
+                        SourceCodeLocation.of(javaClass, 13));
+    }
+
+    @Test
+    public void imports_try_catch_blocks_from_same_starting_label() {
+        // this try-catch-combination creates a try-catch and a try-finally block from the same starting label
+        // we test that the second recorded block is not cleared out by accident when the first block is closed
+        @SuppressWarnings({"unused", "ConstantConditions", "TryFinallyCanBeTryWithResources", "UnnecessaryReturnStatement"})
+        class SomeClass {
+            private void method(final int first, final boolean second) {
+                try {
+                    Socket client = new Socket("", 0);
+                    BufferedReader reader = new BufferedReader(null);
+                    try {
+                        return;
+                    } finally {
+                        reader.close();
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        JavaMethod method = new ClassFileImporter().importClass(SomeClass.class).getMethod("method", int.class, boolean.class);
+
+        assertThat(method.getTryCatchBlocks()).hasSize(3);
+    }
+
+    @Test
+    public void imports_try_catch_block_with_multiple_caught_throwables() {
+        @SuppressWarnings("unused")
+        class SomeClass {
+            void method() {
+                try {
+                    new Object();
+                } catch (IllegalStateException | IllegalArgumentException ignored) {
+                } catch (UnsupportedOperationException ignored) {
+                    System.out.println("unsupported");
+                } finally {
+                    System.out.println("finally");
+                }
+            }
+        }
+
+        JavaMethod method = new ClassFileImporter().importClass(SomeClass.class).getMethod("method");
+        TryCatchBlock tryCatchBlock = getOnlyElement(method.getTryCatchBlocks());
+
+        assertThatTypes(tryCatchBlock.getCaughtThrowables()).matchInAnyOrder(
+                IllegalStateException.class,
+                IllegalArgumentException.class,
+                UnsupportedOperationException.class
+        );
+    }
+
+    @Test
+    public void imports_complex_nested_try_catch_blocks() {
+        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithComplexTryCatchBlocks.class);
+
+        JavaConstructor constructor = javaClass.getConstructor();
+        Set<TryCatchBlock> tryCatchBlocks = constructor.getTryCatchBlocks();
+
+        assertThat(tryCatchBlocks)
+                .hasSize(3)
+                .areExactly(1, tryCatchBlock()
+                        .declaredIn(constructor)
+                        .catching(Exception.class)
+                        .atLocation(ClassWithComplexTryCatchBlocks.class, 14)
+                ).areExactly(1, tryCatchBlock()
+                        .declaredIn(constructor)
+                        .catching(IllegalArgumentException.class, UnsupportedOperationException.class)
+                        .atLocation(ClassWithComplexTryCatchBlocks.class, 17)
+                ).areExactly(1, tryCatchBlock()
+                        .declaredIn(constructor)
+                        .catching(Throwable.class)
+                        .atLocation(ClassWithComplexTryCatchBlocks.class, 26)
+                );
+    }
+
+    @Test
+    public void imports_try_catch_block_without_caught_throwables() {
+        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithTryCatchBlockWithoutThrowables.class);
+
+        JavaMethod method = javaClass.getMethod("method");
+        Set<TryCatchBlock> tryCatchBlocks = method.getTryCatchBlocks();
+
+        assertThat(tryCatchBlocks)
+                .hasSize(1)
+                .areExactly(1, tryCatchBlock()
+                        .declaredIn(method)
+                        .catchingNoThrowables()
+                        .atLocation(ClassWithTryCatchBlockWithoutThrowables.class, 7));
+    }
+
+    @Test
+    public void imports_try_catch_block_with_resources() {
+        JavaClass javaClass = new ClassFileImporter().importClass(ClassWithTryWithResources.class);
+
+        JavaMethod method = javaClass.getMethod("method");
+        Set<TryCatchBlock> tryCatchBlocks = method.getTryCatchBlocks();
+
+        assertThat(tryCatchBlocks)
+                .hasSize(3) // each declared closeable in try-with-resources adds another try-catch-block
+                .areExactly(1, tryCatchBlock()
+                        .declaredIn(method)
+                        .catching(IOException.class)
+                        .atLocation(ClassWithTryWithResources.class, 11));
+    }
+
+    private static class Data_all_accesses_know_which_exceptions_are_handled {
+        @SuppressWarnings("unused")
+        static class Target {
+            Object field;
+
+            void target(Object field) {
+            }
+        }
+    }
+
+    @Test
+    public void all_accesses_know_which_exceptions_are_handled() {
+        @SuppressWarnings({"unused", "WriteOnlyObject"})
+        class Origin {
+            void method() {
+                new ArrayList<>().add(1);
+                try {
+                    Data_all_accesses_know_which_exceptions_are_handled.Target target = new Data_all_accesses_know_which_exceptions_are_handled.Target();
+                    target.target(target.field);
+                } catch (IllegalStateException e) {
+                    e.printStackTrace();
+                }
+                new Object();
+            }
+        }
+        JavaClasses classes = new ClassFileImporter().importClasses(Origin.class, Data_all_accesses_know_which_exceptions_are_handled.Target.class);
+        JavaMethod method = classes.get(Origin.class).getMethod("method");
+        Set<JavaAccess<?>> accesses = method.getAccessesFromSelf();
+        Function<JavaAccess<?>, Boolean> targetsTarget = GET_TARGET.then(Get.owner())
+                .then(equivalentTo(Data_all_accesses_know_which_exceptions_are_handled.Target.class)::test);
+        Map<Boolean, List<JavaAccess<?>>> accessesByTargetsTarget = accesses.stream().collect(groupingBy(targetsTarget));
+
+        assertThat(accessesByTargetsTarget.get(true)).as("accesses that target target").isNotEmpty();
+        for (JavaAccess<?> access : accessesByTargetsTarget.get(true)) {
+            assertThatTryCatchBlock(getOnlyElement(access.getContainingTryBlocks()))
+                    .isDeclaredIn(method)
+                    .catches(IllegalStateException.class);
+        }
+
+        assertThat(accessesByTargetsTarget.get(false)).as("accesses that do not target target").isNotEmpty();
+        for (JavaAccess<?> access : accessesByTargetsTarget.get(false)) {
+            assertThat(access.getContainingTryBlocks())
+                    .as("containing try-catch-blocks")
+                    .isEmpty();
+        }
+    }
+
+    @Test
+    public void method_calls_know_which_exceptions_are_handled_in_nested_complex_try_catch_blocks() {
+        JavaClasses classes = new ClassFileImporter().importClasses(ClassWithComplexTryCatchBlocks.class, ClassHoldingMethods.class);
+        JavaClass classHoldingMethods = classes.get(ClassHoldingMethods.class);
+        JavaClass classWithTryCatchBlocks = classes.get(ClassWithComplexTryCatchBlocks.class);
+        JavaMethod setSomeInt = classHoldingMethods.getMethod("setSomeInt", int.class);
+        JavaMethod setSomeString = classHoldingMethods.getMethod("setSomeString", String.class);
+        JavaMethod doSomething = classHoldingMethods.getMethod("doSomething");
+        JavaConstructor constructor = classWithTryCatchBlocks.getConstructor();
+
+        assertThatCall(methodCallTo(setSomeInt)
+                .from(constructor)
+                .inLineNumber(12))
+                .isNotWrappedInTryCatch();
+
+        assertThatCall(methodCallTo(setSomeInt)
+                .from(constructor)
+                .inLineNumber(14))
+                .isWrappedWithTryCatchFor(Exception.class);
+
+        assertThatCall(methodCallTo(doSomething)
+                .from(constructor)
+                .inLineNumber(17))
+                .isWrappedWithTryCatchFor(Exception.class)
+                .isWrappedWithTryCatchFor(IllegalArgumentException.class)
+                .isWrappedWithTryCatchFor(UnsupportedOperationException.class);
+
+        assertThatCall(methodCallTo(setSomeString)
+                .from(constructor)
+                .inLineNumber(26))
+                .isWrappedWithTryCatchFor(Throwable.class);
+    }
+
+    @Test
     public void classes_know_overridden_method_calls_to_themselves() {
         @SuppressWarnings("unused")
         class Base {
@@ -1027,4 +1285,6 @@ public class ClassFileImporterAccessesTest {
     private Set<Integer> lineNumbersOf(Set<JavaFieldAccess> fieldAccesses) {
         return fieldAccesses.stream().map(JavaAccess::getLineNumber).collect(toSet());
     }
+
+    private static final ChainableFunction<JavaAccess<?>, AccessTarget> GET_TARGET = JavaAccess.Functions.Get.target();
 }

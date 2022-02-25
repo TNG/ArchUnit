@@ -31,6 +31,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
@@ -43,6 +44,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -66,6 +68,7 @@ class ClassFileImportRecord {
     private final SetMultimap<String, JavaAnnotationBuilder> annotationsByOwner = HashMultimap.create();
     private final Map<String, JavaAnnotationBuilder.ValueBuilder> annotationDefaultValuesByOwner = new HashMap<>();
     private final EnclosingDeclarationsByInnerClasses enclosingDeclarationsByOwner = new EnclosingDeclarationsByInnerClasses();
+    private final SetMultimap<String, TryCatchBlockBuilder> tryCatchBlocksByOwner = HashMultimap.create();
 
     private final Set<RawAccessRecord.ForField> rawFieldAccessRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodCallRecords = new HashSet<>();
@@ -133,6 +136,10 @@ class ClassFileImportRecord {
 
     void setEnclosingCodeUnit(String ownerName, CodeUnit enclosingCodeUnit) {
         enclosingDeclarationsByOwner.registerEnclosingCodeUnit(ownerName, enclosingCodeUnit);
+    }
+
+    void addTryCatchBlocks(String declaringClassName, String methodName, String descriptor, Set<TryCatchBlockBuilder> tryCatchBlocks) {
+        tryCatchBlocksByOwner.putAll(getMemberKey(declaringClassName, methodName, descriptor), tryCatchBlocks);
     }
 
     Optional<String> getSuperclassFor(String name) {
@@ -236,6 +243,10 @@ class ClassFileImportRecord {
 
     Optional<CodeUnit> getEnclosingCodeUnitFor(String ownerName) {
         return enclosingDeclarationsByOwner.getEnclosingCodeUnit(ownerName);
+    }
+
+    Set<TryCatchBlockBuilder> getTryCatchBlockBuildersFor(JavaCodeUnit codeUnit) {
+        return tryCatchBlocksByOwner.get(getMemberKey(codeUnit));
     }
 
     void registerFieldAccess(RawAccessRecord.ForField record) {

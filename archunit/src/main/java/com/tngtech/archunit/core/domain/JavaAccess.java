@@ -16,6 +16,7 @@
 package com.tngtech.archunit.core.domain;
 
 import java.util.Objects;
+import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
@@ -28,6 +29,7 @@ import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public abstract class JavaAccess<TARGET extends AccessTarget>
@@ -127,6 +129,16 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     }
 
     protected abstract String descriptionVerb();
+
+    /**
+     * @return All try-catch-blocks where this {@link JavaAccess} is contained within the try-part the try-catch-block
+     */
+    @PublicAPI(usage = ACCESS)
+    public Set<TryCatchBlock> getContainingTryBlocks() {
+        return getOrigin().getTryCatchBlocks().stream()
+                .filter(block -> block.getAccessesContainedInTryBlock().contains(this))
+                .collect(toImmutableSet());
+    }
 
     public static final class Predicates {
         private Predicates() {

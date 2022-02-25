@@ -33,6 +33,7 @@ import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.ImportContext;
+import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -57,6 +58,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodReferenceBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
@@ -131,50 +133,64 @@ class ClassGraphCreator implements ImportContext {
     }
 
     @Override
-    public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit) {
+    public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (FieldAccessRecord record : processedFieldAccessRecords.get(codeUnit)) {
-            result.add(accessBuilderFrom(new JavaFieldAccessBuilder(), record)
+            JavaFieldAccess access = accessBuilderFrom(new JavaFieldAccessBuilder(), record)
                     .withAccessType(record.getAccessType())
-                    .build());
+                    .build();
+            result.add(access);
+            handlePossibleTryBlockAccess(tryCatchBlockBuilders, record, access);
         }
         return result.build();
     }
 
     @Override
-    public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit) {
+    public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaMethodCall> result = ImmutableSet.builder();
         for (AccessRecord<MethodCallTarget> record : processedMethodCallRecords.get(codeUnit)) {
-            result.add(accessBuilderFrom(new JavaMethodCallBuilder(), record).build());
+            JavaMethodCall call = accessBuilderFrom(new JavaMethodCallBuilder(), record).build();
+            result.add(call);
+            handlePossibleTryBlockAccess(tryCatchBlockBuilders, record, call);
         }
         return result.build();
     }
 
     @Override
-    public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit) {
+    public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaConstructorCall> result = ImmutableSet.builder();
         for (AccessRecord<ConstructorCallTarget> record : processedConstructorCallRecords.get(codeUnit)) {
-            result.add(accessBuilderFrom(new JavaConstructorCallBuilder(), record).build());
+            JavaConstructorCall call = accessBuilderFrom(new JavaConstructorCallBuilder(), record).build();
+            result.add(call);
+            handlePossibleTryBlockAccess(tryCatchBlockBuilders, record, call);
         }
         return result.build();
     }
 
     @Override
-    public Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit) {
+    public Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaMethodReference> result = ImmutableSet.builder();
         for (AccessRecord<MethodReferenceTarget> record : processedMethodReferenceRecords.get(codeUnit)) {
-            result.add(accessBuilderFrom(new JavaMethodReferenceBuilder(), record).build());
+            JavaMethodReference methodReference = accessBuilderFrom(new JavaMethodReferenceBuilder(), record).build();
+            result.add(methodReference);
+            handlePossibleTryBlockAccess(tryCatchBlockBuilders, record, methodReference);
         }
         return result.build();
     }
 
     @Override
-    public Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit) {
+    public Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
         ImmutableSet.Builder<JavaConstructorReference> result = ImmutableSet.builder();
         for (AccessRecord<ConstructorReferenceTarget> record : processedConstructorReferenceRecords.get(codeUnit)) {
-            result.add(accessBuilderFrom(new JavaConstructorReferenceBuilder(), record).build());
+            JavaConstructorReference constructorReference = accessBuilderFrom(new JavaConstructorReferenceBuilder(), record).build();
+            result.add(constructorReference);
+            handlePossibleTryBlockAccess(tryCatchBlockBuilders, record, constructorReference);
         }
         return result.build();
+    }
+
+    private void handlePossibleTryBlockAccess(Set<TryCatchBlockBuilder> tryCatchBlockBuilders, AccessRecord<?> record, JavaAccess<?> access) {
+        tryCatchBlockBuilders.forEach(builder -> builder.addIfContainedInTryBlock(record.getRaw(), access));
     }
 
     private <T extends AccessTarget, B extends DomainBuilders.JavaAccessBuilder<T, B>>
@@ -306,6 +322,11 @@ class ClassGraphCreator implements ImportContext {
         CodeUnit codeUnit = enclosingCodeUnit.get();
         JavaClass enclosingClass = classes.getOrResolve(codeUnit.getDeclaringClassName());
         return enclosingClass.tryGetCodeUnitWithParameterTypeNames(codeUnit.getName(), codeUnit.getRawParameterTypeNames());
+    }
+
+    @Override
+    public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit) {
+        return importRecord.getTryCatchBlockBuildersFor(codeUnit);
     }
 
     @Override

@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.tngtech.archunit.Internal;
+import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 
 @Internal
 public interface ImportContext {
@@ -50,15 +51,17 @@ public interface ImportContext {
 
     Optional<JavaCodeUnit> createEnclosingCodeUnit(JavaClass owner);
 
-    Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit);
+    Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
 
-    Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit);
+    Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
 
-    Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit);
+    Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
 
-    Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit);
+    Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
 
-    Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit);
+    Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders);
+
+    Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit);
 
     JavaClass resolveClass(String fullyQualifiedClassName);
 }

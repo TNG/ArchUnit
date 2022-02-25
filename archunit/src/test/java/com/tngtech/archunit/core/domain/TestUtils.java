@@ -32,6 +32,8 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.util.Files.newTemporaryFile;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -163,7 +165,7 @@ public class TestUtils {
             targets.add(methodCallTarget);
             ImportContext context = mock(ImportContext.class);
             Set<JavaMethodCall> calls = targets.stream().map(target -> newMethodCall(method, target, lineNumber)).collect(toSet());
-            when(context.createMethodCallsFor(method)).thenReturn(ImmutableSet.copyOf(calls));
+            when(context.createMethodCallsFor(eq(method), anySet())).thenReturn(ImmutableSet.copyOf(calls));
             method.completeAccessesFrom(context);
             return getCallToTarget(methodCallTarget);
         }
@@ -184,7 +186,7 @@ public class TestUtils {
 
         public void to(JavaField target, AccessType accessType) {
             ImportContext context = mock(ImportContext.class);
-            when(context.createFieldAccessesFor(method))
+            when(context.createFieldAccessesFor(eq(method), anySet()))
                     .thenReturn(ImmutableSet.of(
                             newFieldAccess(method, target, lineNumber, accessType)
                     ));
