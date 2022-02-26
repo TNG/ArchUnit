@@ -1,15 +1,20 @@
 package com.tngtech.archunit.lang;
 
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.List;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.Priority.HIGH;
@@ -18,11 +23,15 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class CompositeArchRuleTest {
     private static final boolean SATISFIED = true;
     private static final boolean UNSATISFIED = false;
+
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @DataProvider
     public static Object[][] rules_to_AND() {
@@ -81,6 +90,37 @@ public class CompositeArchRuleTest {
         String failureMessage = rule.evaluate(importClasses(getClass())).getFailureReport().toString();
 
         assertPriority(failureMessage, priority);
+    }
+
+    @Test
+    public void fails_on_empty_should_by_default() {
+        assertThatThrownBy(new ThrowingCallable() {
+            @Override
+            public void call() {
+                compositeRuleWithPartialEmptyShould().check(new ClassFileImporter().importClasses(Object.class));
+            }
+        }).isInstanceOf(AssertionError.class)
+                .hasMessageContaining("failed to check any classes");
+    }
+
+    @Test
+    public void should_allow_empty_should_if_configured() {
+        archConfigurationRule.setFailOnEmptyShould(false);
+
+        compositeRuleWithPartialEmptyShould().check(new ClassFileImporter().importClasses(Object.class));
+    }
+
+    @Test
+    public void allows_empty_should_if_overridden_by_rule() {
+        archConfigurationRule.setFailOnEmptyShould(true);
+
+        compositeRuleWithPartialEmptyShould().allowEmptyShould(true).check(new ClassFileImporter().importClasses(Object.class));
+    }
+
+    private static CompositeArchRule compositeRuleWithPartialEmptyShould() {
+        return CompositeArchRule
+                .of(classes().should().bePublic())
+                .and(classes().that(DescribedPredicate.<JavaClass>alwaysFalse()).should().bePublic());
     }
 
     private void assertPriority(String failureMessage, Priority priority) {

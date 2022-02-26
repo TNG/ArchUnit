@@ -16,6 +16,7 @@ import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +29,7 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.lang.System.lineSeparator;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class SliceRuleTest {
@@ -145,6 +147,35 @@ public class SliceRuleTest {
                 "Dependencies of Slice thirtydependencies",
                 "(10 further dependencies have been omitted...)",
                 "Dependencies of Slice threedependencies"));
+    }
+
+    @Test
+    public void forbids_empty_should_by_default() {
+        assertThatThrownBy(new ThrowingCallable() {
+            @Override
+            public void call() {
+                ruleWithEmptyShould().check(new ClassFileImporter().importClasses(getClass()));
+            }
+        }).isInstanceOf(AssertionError.class)
+                .hasMessageContaining("failed to check any classes");
+    }
+
+    @Test
+    public void should_allow_empty_should_if_configured() {
+        configurationRule.setFailOnEmptyShould(false);
+
+        ruleWithEmptyShould().check(new ClassFileImporter().importClasses(getClass()));
+    }
+
+    @Test
+    public void allows_empty_should_if_overridden() {
+        configurationRule.setFailOnEmptyShould(true);
+
+        ruleWithEmptyShould().allowEmptyShould(true).check(new ClassFileImporter().importClasses(getClass()));
+    }
+
+    private static SliceRule ruleWithEmptyShould() {
+        return slices().matching("nothing_because_there_is_no_capture_group").should().beFreeOfCycles();
     }
 
     private List<String> filterLinesMatching(String text, final String regex) {
