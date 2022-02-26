@@ -222,6 +222,8 @@ public final class Architectures {
         private EvaluationResult evaluateLayersShouldNotBeEmpty(JavaClasses classes, LayerDefinition layerDefinition) {
             return classes().that(layerDefinitions.containsPredicateFor(layerDefinition.name))
                     .should(notBeEmptyFor(layerDefinition))
+                    // we need to set `allowEmptyShould(true)` to allow the layer not empty check to be evaluated. This will provide a nicer error message.
+                    .allowEmptyShould(true)
                     .evaluate(classes);
         }
 
@@ -231,6 +233,7 @@ public final class Architectures {
                     : onlyHaveDependenciesWhere(targetMatchesIfDependencyIsRelevant(specification.layerName, specification.allowedLayers));
             return classes().that(layerDefinitions.containsPredicateFor(specification.layerName))
                     .should(satisfyLayerDependenciesCondition)
+                    .allowEmptyShould(true)
                     .evaluate(classes);
         }
 
@@ -256,32 +259,6 @@ public final class Architectures {
                     originPackageMatches;
         }
 
-        private static ArchCondition<JavaClass> notBeEmptyFor(final LayeredArchitecture.LayerDefinition layerDefinition) {
-            return new LayerShouldNotBeEmptyCondition(layerDefinition);
-        }
-
-        private static class LayerShouldNotBeEmptyCondition extends ArchCondition<JavaClass> {
-            private final LayeredArchitecture.LayerDefinition layerDefinition;
-            private boolean empty = true;
-
-            LayerShouldNotBeEmptyCondition(final LayeredArchitecture.LayerDefinition layerDefinition) {
-                super("not be empty");
-                this.layerDefinition = layerDefinition;
-            }
-
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                empty = false;
-            }
-
-            @Override
-            public void finish(ConditionEvents events) {
-                if (empty) {
-                    events.add(violated(layerDefinition, String.format("Layer '%s' is empty", layerDefinition.name)));
-                }
-            }
-        }
-
         @Override
         @PublicAPI(usage = ACCESS)
         public void check(JavaClasses classes) {
@@ -292,6 +269,15 @@ public final class Architectures {
         @PublicAPI(usage = ACCESS)
         public ArchRule because(String reason) {
             return ArchRule.Factory.withBecause(this, reason);
+        }
+
+        /**
+         * This method is equivalent to calling {@link #withOptionalLayers(boolean)}, which should be preferred in this context
+         * as the meaning is easier to understand.
+         */
+        @Override
+        public ArchRule allowEmptyShould(boolean allowEmptyShould) {
+            return withOptionalLayers(allowEmptyShould);
         }
 
         @Override
@@ -349,6 +335,32 @@ public final class Architectures {
         private void checkLayerNamesExist(String... layerNames) {
             for (String layerName : layerNames) {
                 checkArgument(layerDefinitions.containLayer(layerName), "There is no layer named '%s'", layerName);
+            }
+        }
+
+        private static ArchCondition<JavaClass> notBeEmptyFor(final LayeredArchitecture.LayerDefinition layerDefinition) {
+            return new LayerShouldNotBeEmptyCondition(layerDefinition);
+        }
+
+        private static class LayerShouldNotBeEmptyCondition extends ArchCondition<JavaClass> {
+            private final LayeredArchitecture.LayerDefinition layerDefinition;
+            private boolean empty = true;
+
+            LayerShouldNotBeEmptyCondition(final LayeredArchitecture.LayerDefinition layerDefinition) {
+                super("not be empty");
+                this.layerDefinition = layerDefinition;
+            }
+
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                empty = false;
+            }
+
+            @Override
+            public void finish(ConditionEvents events) {
+                if (empty) {
+                    events.add(violated(layerDefinition, String.format("Layer '%s' is empty", layerDefinition.name)));
+                }
             }
         }
 
@@ -570,6 +582,10 @@ public final class Architectures {
             return this;
         }
 
+        /**
+         * @param optionalLayers Whether the different parts of the Onion Architecture (domain models, domain services, ...) should be allowed to be empty.
+         *                       If set to {@code false} the {@link OnionArchitecture OnionArchitecture} will fail if any such layer does not contain any class.
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture withOptionalLayers(boolean optionalLayers) {
             this.optionalLayers = optionalLayers;
@@ -635,6 +651,15 @@ public final class Architectures {
         @Override
         public ArchRule because(String reason) {
             return ArchRule.Factory.withBecause(this, reason);
+        }
+
+        /**
+         * This method is equivalent to calling {@link #withOptionalLayers(boolean)}, which should be preferred in this context
+         * as the meaning is easier to understand.
+         */
+        @Override
+        public ArchRule allowEmptyShould(boolean allowEmptyShould) {
+            return withOptionalLayers(allowEmptyShould);
         }
 
         @Override

@@ -10,6 +10,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
+import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
@@ -20,9 +22,12 @@ import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ClassWithVario
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.MetaAnnotation;
 import com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.OtherClassWithMembers;
 import com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.ThrowableAssert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -88,9 +93,13 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.emptySet;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class MembersShouldTest {
+
+    @Rule
+    public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
 
     @Test
     public void complex_members_syntax() {
@@ -670,6 +679,35 @@ public class MembersShouldTest {
                         + "com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod.<init>(), "
                         + "com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod.violated, "
                         + "com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod.violated()]");
+    }
+
+    @Test
+    public void should_fail_on_empty_should_by_default() {
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            @Override
+            public void call() {
+                ruleWithEmptyShould().check(new ClassFileImporter().importClasses(getClass()));
+            }
+        }).isInstanceOf(AssertionError.class)
+                .hasMessageContaining("failed to check any classes");
+    }
+
+    @Test
+    public void should_allow_empty_should_if_configured() {
+        configurationRule.setFailOnEmptyShould(false);
+
+        ruleWithEmptyShould().check(new ClassFileImporter().importClasses(getClass()));
+    }
+
+    @Test
+    public void should_allow_empty_should_if_overridden_by_rule() {
+        configurationRule.setFailOnEmptyShould(true);
+
+        ruleWithEmptyShould().allowEmptyShould(true).check(new ClassFileImporter().importClasses(getClass()));
+    }
+
+    private static ArchRule ruleWithEmptyShould() {
+        return members().that(DescribedPredicate.<JavaMember>alwaysFalse()).should().bePublic();
     }
 
     private Set<String> parseMembers(List<String> details) {

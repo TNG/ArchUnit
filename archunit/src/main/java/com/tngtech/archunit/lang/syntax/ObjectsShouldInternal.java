@@ -87,6 +87,11 @@ class ObjectsShouldInternal<T> implements ArchRule {
     }
 
     @Override
+    public ArchRule allowEmptyShould(boolean allowEmptyShould) {
+        return finishedRule.get().allowEmptyShould(allowEmptyShould);
+    }
+
+    @Override
     public ArchRule as(String newDescription) {
         return finishedRule.get().as(newDescription);
     }
