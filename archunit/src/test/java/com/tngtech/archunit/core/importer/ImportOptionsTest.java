@@ -29,6 +29,7 @@ import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_PACKAGE_INFOS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.ONLY_INCLUDE_TESTS;
+import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.crossProduct;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
@@ -168,7 +169,7 @@ public class ImportOptionsTest {
     @Test
     @UseDataProvider("do_not_include_package_info_classes")
     public void detect_package_info_class(ImportOption doNotIncludePackageInfoClasses) throws URISyntaxException {
-        Location packageInfoLocation = Location.of(getClass().getResource(testExampleResourcePath("package-info.class")).toURI());
+        Location packageInfoLocation = Location.of(relativeResourceUri(getClass(), "testexamples/package-info.class"));
         assertThat(doNotIncludePackageInfoClasses.includes(packageInfoLocation))
                 .as("doNotIncludePackageInfoClasses includes package-info.class")
                 .isFalse();
@@ -177,10 +178,6 @@ public class ImportOptionsTest {
         assertThat(doNotIncludePackageInfoClasses.includes(thisClassLocation))
                 .as("doNotIncludePackageInfoClasses includes test class location")
                 .isTrue();
-    }
-
-    private String testExampleResourcePath(String resourceName) {
-        return "/" + getClass().getPackage().getName().replace(".", "/") + "/testexamples/" + resourceName;
     }
 
     private static Location locationOf(Class<?> clazz) {

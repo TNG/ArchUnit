@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -139,8 +138,7 @@ class RawAccessRecord {
 
         public boolean is(JavaCodeUnit method) {
             return getName().equals(method.getName())
-                    && getRawParameterTypeNames().equals(HasName.Utils.namesOf(method.getRawParameterTypes()))
-                    && returnType.getFullyQualifiedClassName().equals(method.getRawReturnType().getName())
+                    && descriptor.equals(method.getDescriptor())
                     && getDeclaringClassName().equals(method.getOwner().getName());
         }
     }

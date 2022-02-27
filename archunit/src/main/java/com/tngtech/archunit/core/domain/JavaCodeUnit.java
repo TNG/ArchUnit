@@ -55,7 +55,7 @@ public abstract class JavaCodeUnit
         extends JavaMember
         implements HasParameterTypes, HasReturnType, HasTypeParameters<JavaCodeUnit>, HasThrowsClause<JavaCodeUnit> {
 
-    private final JavaType returnType;
+    private final ReturnType returnType;
     private final Parameters parameters;
     private final String fullName;
     private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
@@ -71,7 +71,7 @@ public abstract class JavaCodeUnit
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
         typeParameters = builder.getTypeParameters(this);
-        returnType = builder.getReturnType(this);
+        returnType = new ReturnType(this, builder);
         parameters = new Parameters(this, builder);
         fullName = formatMethod(getOwner().getName(), getName(), namesOf(getRawParameterTypes()));
         referencedClassObjects = ImmutableSet.copyOf(builder.getReferencedClassObjects(this));
@@ -157,13 +157,13 @@ public abstract class JavaCodeUnit
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaType getReturnType() {
-        return returnType;
+        return returnType.get();
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass getRawReturnType() {
-        return returnType.toErasure();
+        return returnType.getRaw();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -320,6 +320,24 @@ public abstract class JavaCodeUnit
         @Override
         protected List<JavaParameter> delegate() {
             return parameters;
+        }
+    }
+
+    private static class ReturnType {
+        private final JavaClass rawReturnType;
+        private final JavaType returnType;
+
+        ReturnType(JavaCodeUnit owner, JavaCodeUnitBuilder<?, ?> builder) {
+            rawReturnType = builder.getRawReturnType();
+            returnType = builder.getGenericReturnType(owner);
+        }
+
+        JavaClass getRaw() {
+            return rawReturnType;
+        }
+
+        JavaType get() {
+            return returnType;
         }
     }
 
