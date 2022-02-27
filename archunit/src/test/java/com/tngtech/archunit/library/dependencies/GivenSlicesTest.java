@@ -12,6 +12,8 @@ import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.syntax.elements.GivenConjunction;
 import com.tngtech.archunit.library.ArchitecturesTest;
 import com.tngtech.archunit.library.dependencies.syntax.GivenSlices;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
@@ -20,6 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class GivenSlicesTest {
     static final String TEST_CLASSES_PACKAGE = ArchitecturesTest.class.getPackage().getName() + ".testclasses";
+
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @Test
     public void chosen_slices() {
@@ -46,6 +51,8 @@ public class GivenSlicesTest {
 
     @Test
     public void restricting_slices_that_should_not_depend_on_each_other() {
+        archConfigurationRule.setFailOnEmptyShould(false);
+
         GivenSlices givenSlices = slices().matching("..testclasses.(*)..");
         JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.library.testclasses");
 

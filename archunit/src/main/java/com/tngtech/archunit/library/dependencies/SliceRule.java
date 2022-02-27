@@ -21,6 +21,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -44,18 +45,32 @@ public final class SliceRule implements ArchRule {
     private final List<Transformation> transformations;
     private final DescribedPredicate<Dependency> ignoreDependency;
     private final ConditionFactory conditionFactory;
+    private final Optional<Boolean> allowEmptyShould;
 
     SliceRule(Slices.Transformer inputTransformer, Priority priority, ConditionFactory conditionFactory) {
-        this(inputTransformer, priority, Collections.<Transformation>emptyList(), DescribedPredicate.<Dependency>alwaysFalse(), conditionFactory);
+        this(
+                inputTransformer,
+                priority,
+                Collections.<Transformation>emptyList(),
+                DescribedPredicate.<Dependency>alwaysFalse(),
+                conditionFactory,
+                Optional.<Boolean>empty());
     }
 
-    private SliceRule(Slices.Transformer inputTransformer, Priority priority, List<Transformation> transformations,
-            DescribedPredicate<Dependency> ignoreDependency, ConditionFactory conditionFactory) {
+    private SliceRule(
+            Slices.Transformer inputTransformer,
+            Priority priority,
+            List<Transformation> transformations,
+            DescribedPredicate<Dependency> ignoreDependency,
+            ConditionFactory conditionFactory,
+            Optional<Boolean> allowEmptyShould
+    ) {
         this.inputTransformer = inputTransformer;
         this.priority = priority;
         this.transformations = transformations;
         this.ignoreDependency = ignoreDependency;
         this.conditionFactory = conditionFactory;
+        this.allowEmptyShould = allowEmptyShould;
     }
 
     @Override
@@ -68,6 +83,12 @@ public final class SliceRule implements ArchRule {
     @PublicAPI(usage = ACCESS)
     public SliceRule because(String reason) {
         return copyWithTransformation(new Because(reason));
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public ArchRule allowEmptyShould(boolean allowEmptyShould) {
+        return new SliceRule(inputTransformer, priority, transformations, ignoreDependency, conditionFactory, Optional.of(allowEmptyShould));
     }
 
     @Override
@@ -100,17 +121,22 @@ public final class SliceRule implements ArchRule {
 
     @PublicAPI(usage = ACCESS)
     public SliceRule ignoreDependency(DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
-        return new SliceRule(inputTransformer, priority, transformations, ignoreDependency.or(dependency(origin, target)), conditionFactory);
+        return new SliceRule(inputTransformer, priority, transformations, ignoreDependency.or(dependency(origin, target)), conditionFactory, allowEmptyShould);
     }
 
     private SliceRule copyWithTransformation(Transformation transformation) {
         List<Transformation> newTransformations =
                 ImmutableList.<Transformation>builder().addAll(transformations).add(transformation).build();
-        return new SliceRule(inputTransformer, priority, newTransformations, ignoreDependency, conditionFactory);
+        return new SliceRule(inputTransformer, priority, newTransformations, ignoreDependency, conditionFactory, allowEmptyShould);
     }
 
     private ArchRule getArchRule() {
-        ArchRule rule = priority(priority).all(inputTransformer).should(conditionFactory.create(inputTransformer, not(ignoreDependency)));
+        ArchRule rule = priority(priority)
+                .all(inputTransformer)
+                .should(conditionFactory.create(inputTransformer, not(ignoreDependency)));
+        if (allowEmptyShould.isPresent()) {
+            rule = rule.allowEmptyShould(allowEmptyShould.get());
+        }
         for (Transformation transformation : transformations) {
             rule = transformation.apply(rule);
         }

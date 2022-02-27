@@ -20,9 +20,11 @@ import com.tngtech.archunit.lang.CanBeEvaluated;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -57,6 +59,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class GivenMembersTest {
+
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @DataProvider
     public static Object[][] member_syntax_testcases() {
@@ -431,6 +436,8 @@ public class GivenMembersTest {
     @Test
     @UseDataProvider("restricted_property_rule_starts")
     public void property_predicates(DescribedRuleStart conjunction, Set<String> expectedMessages) {
+        archConfigurationRule.setFailOnEmptyShould(false);
+
         EvaluationResult result = conjunction.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class, A.class, B.class, C.class, MetaAnnotation.class));
 
@@ -676,7 +683,7 @@ public class GivenMembersTest {
     static final Set<String> ALL_MEMBER_DESCRIPTIONS =
             union(ALL_CODE_UNIT_DESCRIPTIONS, ALL_FIELD_DESCRIPTIONS);
 
-    @SuppressWarnings({"unused"})
+    @SuppressWarnings({"unused", "FieldCanBeLocal"})
     static class ClassWithVariousMembers {
         @A
         private String fieldA;

@@ -18,8 +18,10 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -38,6 +40,9 @@ public abstract class RandomSyntaxTestBase {
     private static final Logger LOG = LoggerFactory.getLogger(RandomSyntaxTestBase.class);
     protected static final Random random = new Random();
     private static final int NUMBER_OF_RULES_TO_BUILD = 1000;
+
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule().setFailOnEmptyShould(false);
 
     public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed,
             DescriptionReplacement... replacements) {

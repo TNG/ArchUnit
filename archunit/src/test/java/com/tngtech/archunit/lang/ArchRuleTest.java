@@ -10,7 +10,7 @@ import java.util.TreeSet;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
-import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClassesTest;
@@ -33,13 +33,12 @@ import static com.tngtech.archunit.lang.ArchRule.Assertions.ARCHUNIT_IGNORE_PATT
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.all;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.testutil.ArchConfigurationRule.FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME;
 import static com.tngtech.archunit.testutil.TestUtils.toUri;
-import static java.lang.Boolean.FALSE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArchRuleTest {
-    private static final String FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME = "archRule.failOnEmptyShould";
 
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
@@ -169,32 +168,47 @@ public class ArchRuleTest {
     }
 
     @Test
-    public void evaluation_fails_because_of_empty_set_of_classes_with_default_fail_on_empty_should() {
-        archConfigurationRule.removeProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
-
+    public void evaluation_fails_because_of_empty_set_of_elements_with_default_fail_on_empty_should() {
         thrown.expect(AssertionError.class);
-        thrown.expectMessage("Rule failed to check any classes");
+        thrown.expectMessage("failed to check any classes");
         thrown.expectMessage(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
 
-        classes().should(ALWAYS_BE_VALID).evaluate(importClasses());
+        createPassingArchRule().evaluate(importEmptyClasses());
     }
 
     @Test
-    public void evaluation_fails_because_of_empty_set_of_classes_after_filter_with_default_fail_on_empty_should() {
-        archConfigurationRule.removeProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
-
+    public void evaluation_fails_because_of_empty_set_of_elements_after_that_clause_with_default_fail_on_empty_should() {
         thrown.expect(AssertionError.class);
-        thrown.expectMessage("Rule failed to check any classes");
+        thrown.expectMessage("failed to check any classes");
         thrown.expectMessage(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
 
-        classes().that().doNotHaveSimpleName(SomeClass.class.getSimpleName()).should(ALWAYS_BE_VALID).evaluate(importClasses(SomeClass.class));
+        createPassingArchRule(strings().that(DescribedPredicate.<String>alwaysFalse())).evaluate(importClasses(SomeClass.class));
     }
 
     @Test
-    public void evaluation_passes_on_empty_set_of_classes_with_deactivated_fail_on_empty_should() {
-        ArchConfiguration.get().setProperty(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME, FALSE.toString());
+    public void evaluation_passes_on_empty_set_of_elements_with_deactivated_fail_on_empty_should_by_configuration() {
+        archConfigurationRule.setFailOnEmptyShould(false);
 
-        classes().should(ALWAYS_BE_VALID).evaluate(importClasses());
+        createPassingArchRule().evaluate(importEmptyClasses());
+    }
+
+    @Test
+    public void evaluation_passes_on_empty_set_of_elements_with_activated_fail_on_empty_should_by_configuration_but_overridden_by_rule() {
+        archConfigurationRule.setFailOnEmptyShould(true);
+
+        createPassingArchRule().allowEmptyShould(true).evaluate(importEmptyClasses());
+    }
+
+    private JavaClasses importEmptyClasses() {
+        return importClasses();
+    }
+
+    private ArchRule createPassingArchRule() {
+        return createPassingArchRule(strings());
+    }
+
+    private <T> ArchRule createPassingArchRule(ClassesTransformer<T> classesTransformer) {
+        return ArchRule.Factory.create(classesTransformer, ALWAYS_BE_VALID.<T>forSubtype(), Priority.MEDIUM);
     }
 
     private ClassesTransformer<String> strings() {
@@ -288,10 +302,10 @@ public class ArchRuleTest {
                 }
             };
 
-    private static final ArchCondition<JavaClass> ALWAYS_BE_VALID =
-            new ArchCondition<JavaClass>("always be valid") {
+    private static final ArchCondition<Object> ALWAYS_BE_VALID =
+            new ArchCondition<Object>("always be valid") {
                 @Override
-                public void check(JavaClass item, ConditionEvents events) {
+                public void check(Object item, ConditionEvents events) {
                 }
             };
 
