@@ -15,7 +15,7 @@ ArchUnit can be obtained from Maven Central.
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit</artifactId>
-    <version>0.23.0</version>
+    <version>0.23.1</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -23,7 +23,7 @@ ArchUnit can be obtained from Maven Central.
 #### Gradle
 ```groovy
 dependencies {
-    testImplementation 'com.tngtech.archunit:archunit:0.23.0'
+    testImplementation 'com.tngtech.archunit:archunit:0.23.1'
 }
 ```
 
