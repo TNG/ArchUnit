@@ -109,7 +109,7 @@ public final class Architectures {
         private final Set<LayerDependencySpecification> dependencySpecifications;
         private final PredicateAggregator<Dependency> irrelevantDependenciesPredicate;
         private final Optional<String> overriddenDescription;
-        private boolean optionalLayers;
+        private final boolean optionalLayers;
 
         private LayeredArchitecture() {
             this(new LayerDefinitions(),
@@ -140,8 +140,7 @@ public final class Architectures {
          */
         @PublicAPI(usage = ACCESS)
         public LayeredArchitecture withOptionalLayers(boolean optionalLayers) {
-            this.optionalLayers = optionalLayers;
-            return this;
+            return new LayeredArchitecture(layerDefinitions, dependencySpecifications, irrelevantDependenciesPredicate, overriddenDescription, optionalLayers);
         }
 
         private LayeredArchitecture addLayerDefinition(LayerDefinition definition) {
