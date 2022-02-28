@@ -47,6 +47,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.library.Architectures.onionArchitecture;
+import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
@@ -158,9 +159,7 @@ public class ArchitecturesTest {
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
-        EvaluationResult result = architecture.evaluate(classes);
-        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isFalse();
-        assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
+        assertThatRule(architecture).checking(classes).hasNoViolation();
     }
 
     @Test
@@ -177,7 +176,8 @@ public class ArchitecturesTest {
         return layeredArchitecture()
                 .layer("Some").definedBy(absolute("should.not.be.found.."))
                 .layer("Other").definedBy(absolute("also.not.found"))
-                .layer("Okay").definedBy("..testclasses..");
+                .layer("Okay").definedBy("..testclasses..")
+                .whereLayer("Other").mayOnlyBeAccessedByLayers("Some");
     }
 
     private void assertFailureLayeredArchitectureWithEmptyLayers(EvaluationResult result) {

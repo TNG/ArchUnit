@@ -124,7 +124,7 @@ class DependencyResolutionProcess {
     }
 
     private void logConfiguration() {
-        log.info("Automatically resolving transitive class dependencies with the following configuration:{}{}{}{}{}{}",
+        log.debug("Automatically resolving transitive class dependencies with the following configuration:{}{}{}{}{}{}",
                 formatConfigProperty(MAX_ITERATIONS_FOR_MEMBER_TYPES_PROPERTY_NAME, maxRunsForMemberTypes),
                 formatConfigProperty(MAX_ITERATIONS_FOR_ACCESSES_TO_TYPES_PROPERTY_NAME, maxRunsForAccessesToTypes),
                 formatConfigProperty(MAX_ITERATIONS_FOR_SUPERTYPES_PROPERTY_NAME, maxRunsForSupertypes),

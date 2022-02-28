@@ -26,6 +26,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,6 +56,9 @@ import static java.util.regex.Pattern.quote;
 public class GivenClassesThatTest {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
+
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @Test
     public void haveFullyQualifiedName() {
@@ -474,6 +478,8 @@ public class GivenClassesThatTest {
 
         assertThatType(getOnlyElement(classes)).matches(ArrayList.class);
 
+        archConfigurationRule.setFailOnEmptyShould(false);
+
         classes = filterResultOf(classes().that().implement(Set.class))
                 .on(ArrayList.class, List.class, Iterable.class);
 
@@ -511,6 +517,8 @@ public class GivenClassesThatTest {
 
         assertThatType(getOnlyElement(classes)).matches(ArrayList.class);
 
+        archConfigurationRule.setFailOnEmptyShould(false);
+
         classes = filterResultOf(classes().that().implement(AbstractList.class.getName()))
                 .on(ArrayList.class, List.class, Iterable.class);
 
@@ -531,6 +539,8 @@ public class GivenClassesThatTest {
                 .on(ArrayList.class, List.class, Iterable.class);
 
         assertThatType(getOnlyElement(classes)).matches(ArrayList.class);
+
+        archConfigurationRule.setFailOnEmptyShould(false);
 
         classes = filterResultOf(classes().that().implement(classWithNameOf(AbstractList.class)))
                 .on(ArrayList.class, List.class, Iterable.class);
@@ -890,6 +900,8 @@ public class GivenClassesThatTest {
      */
     @Test
     public void conjunctions_aggregate_in_sequence_without_special_precedence() {
+        archConfigurationRule.setFailOnEmptyShould(false);
+
         List<JavaClass> classes = filterResultOf(
                 // (List OR String) AND Collection => empty
                 classes().that().haveSimpleName(List.class.getSimpleName())

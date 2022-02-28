@@ -101,6 +101,8 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
+import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
+import static java.util.Collections.singleton;
 
 @RunWith(DataProviderRunner.class)
 public class ClassFileImporterAccessesTest {
@@ -896,6 +898,30 @@ public class ClassFileImporterAccessesTest {
 
         assertThat(call.getTarget().getParameterTypes())
                 .isEqualTo(call.getTarget().getRawParameterTypes());
+    }
+
+    @Test
+    public void identifies_call_origin_if_signature_and_descriptor_deviate() {
+        // Kotlin inline functions cause the creation of extra classes where the signature of the respective method shows
+        // the real types while the descriptor shows the erased types. The erasure of the real types from the signature
+        // does then not match the descriptor in some cases.
+        //
+        // The file `MismatchBetweenDescriptorAndSignature.class` is a byproduct of the following source code:
+        // --------------------
+        // package com.example
+        //
+        // object CrashArchUnit {
+        //     fun useInlineFunctionCrashingArchUnit(strings: List<String>) = strings.groupingBy { it.length }
+        // }
+        // --------------------
+        // With the current Kotlin version this creates a synthetic class file `CrashArchUnit$useInlineFunctionCrashingArchUnit$$inlined$groupingBy$1.class`
+        // which has been copied and renamed to `MismatchBetweenDescriptorAndSignature.class`.
+
+        JavaClass javaClass = getOnlyElement(new ClassFileImporter().importLocations(singleton(Location.of(
+                relativeResourceUri(getClass(), "testexamples/MismatchBetweenDescriptorAndSignature.class")))));
+
+        // this method in the problematic compiled class has a mismatch between return type of descriptor and signature
+        assertThat(javaClass.getMethod("keyOf", Object.class).getMethodCallsFromSelf()).isNotEmpty();
     }
 
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {

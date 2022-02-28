@@ -104,6 +104,12 @@ public final class FreezingArchRule implements ArchRule {
 
     @Override
     @PublicAPI(usage = ACCESS)
+    public ArchRule allowEmptyShould(boolean allowEmptyShould) {
+        return new FreezingArchRule(delegate.allowEmptyShould(allowEmptyShould), store, matcher);
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
     public FreezingArchRule as(String newDescription) {
         return new FreezingArchRule(delegate.as(newDescription), store, matcher);
     }

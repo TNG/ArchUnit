@@ -84,4 +84,12 @@ public class TestUtils {
     public static URI uriOf(Class<?> clazz) {
         return toUri(urlOf(clazz));
     }
+
+    public static URI relativeResourceUri(Class<?> relativeToClass, String resourceName) {
+        try {
+            return relativeToClass.getResource("/" + relativeToClass.getPackage().getName().replace(".", "/") + "/" + resourceName).toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

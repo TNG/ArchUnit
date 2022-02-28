@@ -19,12 +19,14 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.ClassRetentionAnnotation;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.DefaultClassRetentionAnnotation;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.RuntimeRetentionAnnotation;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.SourceRetentionAnnotation;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -35,6 +37,7 @@ import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -72,6 +75,7 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class ClassesShouldTest {
@@ -1765,6 +1769,35 @@ public class ClassesShouldTest {
         ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
 
         assertThatRule(rule).checking(importClasses(classCallingUnresolvableTarget)).hasNoViolation();
+    }
+
+    @Test
+    public void should_fail_on_empty_should_by_default() {
+        assertThatThrownBy(new ThrowingCallable() {
+            @Override
+            public void call() {
+                ruleWithEmptyShould().check(new ClassFileImporter().importClasses(getClass()));
+            }
+        }).isInstanceOf(AssertionError.class)
+                .hasMessageContaining("failed to check any classes");
+    }
+
+    @Test
+    public void should_allow_empty_should_if_configured() {
+        configurationRule.setFailOnEmptyShould(false);
+
+        ruleWithEmptyShould().check(new ClassFileImporter().importClasses(getClass()));
+    }
+
+    @Test
+    public void should_allow_empty_should_if_overridden_by_rule() {
+        configurationRule.setFailOnEmptyShould(true);
+
+        ruleWithEmptyShould().allowEmptyShould(true).check(new ClassFileImporter().importClasses(getClass()));
+    }
+
+    private static ArchRule ruleWithEmptyShould() {
+        return classes().that(DescribedPredicate.<JavaClass>alwaysFalse()).should().bePublic();
     }
 
     static String locationPattern(Class<?> clazz) {

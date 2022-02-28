@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.Optional;
@@ -41,7 +40,6 @@ import static com.google.common.collect.Iterables.isEmpty;
 import static com.google.common.io.Resources.readLines;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
-import static java.lang.Boolean.TRUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -67,6 +65,18 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
 
     @PublicAPI(usage = ACCESS)
     ArchRule because(String reason);
+
+    /**
+     * If set to {@code true} allows the should-clause of this rule to be checked against an empty set of elements.
+     * Otherwise, the rule will fail with a respective message. This is to prevent possible implementation errors,
+     * like filtering for a non-existing package in the that-clause causing an always-passing rule.<br>
+     * Note that this method will override the configuration property {@code archRule.failOnEmptyShould}.
+     *
+     * @param allowEmptyShould Whether the rule fails if the should-clause is evaluated with an empty set of elements
+     * @return A (new) {@link ArchRule} with adjusted {@code allowEmptyShould} behavior
+     */
+    @PublicAPI(usage = ACCESS)
+    ArchRule allowEmptyShould(boolean allowEmptyShould);
 
     @PublicAPI(usage = ACCESS)
     final class Assertions {
@@ -166,7 +176,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
     @Internal
     class Factory {
         public static <T> ArchRule create(final ClassesTransformer<T> classesTransformer, final ArchCondition<T> condition, final Priority priority) {
-            return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.<String>empty());
+            return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.<String>empty(), AllowEmptyShould.AS_CONFIGURED);
         }
 
         public static ArchRule withBecause(ArchRule rule, String reason) {
@@ -184,18 +194,20 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             private final ClassesTransformer<T> classesTransformer;
             private final ArchCondition<T> condition;
             private final Optional<String> overriddenDescription;
+            private final AllowEmptyShould allowEmptyShould;
 
             private SimpleArchRule(Priority priority, ClassesTransformer<T> classesTransformer, ArchCondition<T> condition,
-                    Optional<String> overriddenDescription) {
+                    Optional<String> overriddenDescription, AllowEmptyShould allowEmptyShould) {
                 this.priority = priority;
                 this.classesTransformer = classesTransformer;
                 this.condition = condition;
                 this.overriddenDescription = overriddenDescription;
+                this.allowEmptyShould = allowEmptyShould;
             }
 
             @Override
             public ArchRule as(String newDescription) {
-                return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.of(newDescription));
+                return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.of(newDescription), allowEmptyShould);
             }
 
             @Override
@@ -206,6 +218,11 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             @Override
             public ArchRule because(String reason) {
                 return withBecause(this, reason);
+            }
+
+            @Override
+            public ArchRule allowEmptyShould(boolean allowEmptyShould) {
+                return new SimpleArchRule<>(priority, classesTransformer, condition, overriddenDescription, AllowEmptyShould.fromBoolean(allowEmptyShould));
             }
 
             @Override
@@ -223,18 +240,16 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
             }
 
             private void verifyNoEmptyShouldIfEnabled(Iterable<T> allObjects) {
-                if (isEmpty(allObjects) && isFailOnEmptyShouldEnabled()) {
-                    throw new AssertionError("Rule failed to check any classes. " +
-                            "This means either that no classes have been passed to the rule at all, " +
-                            "or that no classes passed to the rule matched the `that()` clause. " +
-                            "To allow rules being evaluated without checking any classes you can set the ArchUnit property " +
-                            FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME + " = " + false);
+                if (isEmpty(allObjects) && !allowEmptyShould.isAllowed()) {
+                    throw new AssertionError(String.format(
+                            "Rule '%s' failed to check any classes. "
+                                    + "This means either that no classes have been passed to the rule at all, "
+                                    + "or that no classes passed to the rule matched the `that()` clause. "
+                                    + "To allow rules being evaluated without checking any classes you can either "
+                                    + "use `%s.allowEmptyShould(true)` on a single rule or set the configuration property `%s = false` "
+                                    + "to change the behavior globally.",
+                            getDescription(), ArchRule.class.getSimpleName(), FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME));
                 }
-            }
-
-            private boolean isFailOnEmptyShouldEnabled() {
-                return ArchConfiguration.get().getPropertyOrDefault(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME, TRUE.toString())
-                        .equals(TRUE.toString());
             }
 
             @Override

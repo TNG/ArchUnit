@@ -84,6 +84,16 @@ public final class CompositeArchRule implements ArchRule {
 
     @Override
     @PublicAPI(usage = ACCESS)
+    public ArchRule allowEmptyShould(boolean allowEmptyShould) {
+        ImmutableList.Builder<ArchRule> rulesWithOverriddenAllowEmptyShould = ImmutableList.builder();
+        for (ArchRule rule : rules) {
+            rulesWithOverriddenAllowEmptyShould.add(rule.allowEmptyShould(allowEmptyShould));
+        }
+        return new CompositeArchRule(priority, rulesWithOverriddenAllowEmptyShould.build(), description);
+    }
+
+    @Override
+    @PublicAPI(usage = ACCESS)
     public EvaluationResult evaluate(JavaClasses classes) {
         EvaluationResult result = new EvaluationResult(this, priority);
         for (ArchRule rule : rules) {
