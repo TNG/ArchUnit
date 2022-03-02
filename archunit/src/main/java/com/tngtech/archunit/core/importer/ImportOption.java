@@ -91,7 +91,7 @@ public interface ImportOption {
 
         static final PatternPredicate MAVEN_TEST_PATTERN = new PatternPredicate(".*/target/test-classes/.*");
         static final PatternPredicate GRADLE_TEST_PATTERN = new PatternPredicate(".*/build/classes/([^/]+/)?test/.*");
-        static final PatternPredicate INTELLIJ_TEST_PATTERN = new PatternPredicate(".*/out/test/classes/.*");
+        static final PatternPredicate INTELLIJ_TEST_PATTERN = new PatternPredicate(".*/out/test/.*");
         static final Predicate<Location> TEST_LOCATION = or(MAVEN_TEST_PATTERN, GRADLE_TEST_PATTERN, INTELLIJ_TEST_PATTERN);
         static final Predicate<Location> NO_TEST_LOCATION = not(TEST_LOCATION);
 

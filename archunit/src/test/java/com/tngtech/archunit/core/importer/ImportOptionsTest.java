@@ -90,6 +90,7 @@ public class ImportOptionsTest {
                 // IntelliJ
                 new FolderPattern("out", "production", "classes").expectMainFolder(),
                 new FolderPattern("out", "test", "classes").expectTestFolder(),
+                new FolderPattern("out", "test", "some-module").expectTestFolder(),
                 new FolderPattern("out", "test", "classes", "my", "test").expectTestFolder(),
                 new FolderPattern("out", "some", "classes").expectMainFolder()
         );
