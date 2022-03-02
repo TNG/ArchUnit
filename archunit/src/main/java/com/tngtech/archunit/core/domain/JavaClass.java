@@ -2450,11 +2450,11 @@ public class JavaClass
         }
 
         /**
-         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaConstructor constructors} matching the supplied predicate.
+         * A predicate to determine if a {@link JavaClass} contains one or more {@link JavaStaticInitializer static initializers} matching the supplied predicate.
          *
-         * @param predicate The predicate to check against the {@link JavaClass classes'} constructors.
+         * @param predicate The predicate to check against the {@link JavaClass classes'} static initializers.
          * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} contains at least
-         * one constructor matching the given predicate.
+         * one static initializer matching the given predicate.
          */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> containAnyStaticInitializersThat(DescribedPredicate<? super JavaStaticInitializer> predicate) {
