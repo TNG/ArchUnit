@@ -1,0 +1,64 @@
+plugins {
+    id 'archunit.java-production-conventions'
+}
+
+sourceSets {
+    examples {
+        java {
+            compileClasspath += main.compileClasspath
+            runtimeClasspath += main.runtimeClasspath
+        }
+    }
+    main {
+        java {
+            compileClasspath += project.sourceSets.examples.output
+            runtimeClasspath += project.sourceSets.examples.output
+        }
+    }
+    test {
+        java {
+            compileClasspath += project.sourceSets.examples.output
+            runtimeClasspath += project.sourceSets.examples.output
+        }
+    }
+}
+
+copy {
+    into new File(project.sourceSets.examples.output.resourcesDir, '@sources')
+    from(project.sourceSets.examples.java) {
+        include '**/*.java'
+    }
+
+}
+
+ext.moduleName = 'com.tngtech.archunit.tooling'
+
+ext.minimumJavaVersion = JavaVersion.VERSION_1_9
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation dependency.junit5JupiterEngine
+    implementation dependency.junitPlatform
+    implementation dependency.guava
+    implementation 'org.junit.platform:junit-platform-launcher:1.8.2'
+    testImplementation dependency.assertj
+    implementation project(path: ':archunit-junit5-engine-api')
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
+    testImplementation 'org.junit-pioneer:junit-pioneer:1.6.1'
+    implementation 'org.junit.vintage:junit-vintage-engine:5.8.2'
+    implementation 'com.github.stefanbirkner:system-lambda:1.2.1'
+    // implementation 'org.apache.maven.plugins:maven-surefire-plugin:3.0.0-M5'
+    implementation 'org.apache.maven.shared:maven-invoker:3.1.0'
+    // implementation 'org.apache.maven.surefire:surefire-api:3.0.0-M5'
+    implementation 'org.apache.maven.surefire:surefire-report-parser:3.0.0-M5'
+    implementation 'org.reflections:reflections:0.10.2'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'org.apache.maven.wrapper:maven-wrapper:3.1.0'
+}
+
+test {
+    useJUnitPlatform()
+}
