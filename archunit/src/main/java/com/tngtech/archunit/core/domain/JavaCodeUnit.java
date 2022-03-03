@@ -61,6 +61,7 @@ public abstract class JavaCodeUnit
     private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
     private final Set<ReferencedClassObject> referencedClassObjects;
     private final Set<InstanceofCheck> instanceofChecks;
+    private final Set<TypeCast> typeCast;
 
     private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
     private Set<JavaMethodCall> methodCalls = Collections.emptySet();
@@ -76,6 +77,7 @@ public abstract class JavaCodeUnit
         fullName = formatMethod(getOwner().getName(), getName(), namesOf(getRawParameterTypes()));
         referencedClassObjects = ImmutableSet.copyOf(builder.getReferencedClassObjects(this));
         instanceofChecks = ImmutableSet.copyOf(builder.getInstanceofChecks(this));
+        typeCast = ImmutableSet.copyOf(builder.getRawTypeCasts(this));
     }
 
     /**
@@ -199,6 +201,11 @@ public abstract class JavaCodeUnit
     @PublicAPI(usage = ACCESS)
     public Set<InstanceofCheck> getInstanceofChecks() {
         return instanceofChecks;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Set<TypeCast> getTypeCast() {
+        return typeCast;
     }
 
     @PublicAPI(usage = ACCESS)

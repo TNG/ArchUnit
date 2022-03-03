@@ -34,54 +34,20 @@ import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.domain.AccessTarget;
+import com.tngtech.archunit.core.domain.*;
 import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
-import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
-import com.tngtech.archunit.core.domain.Formatters;
-import com.tngtech.archunit.core.domain.InstanceofCheck;
-import com.tngtech.archunit.core.domain.JavaAnnotation;
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClassDescriptor;
-import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.archunit.core.domain.JavaConstructor;
-import com.tngtech.archunit.core.domain.JavaConstructorCall;
-import com.tngtech.archunit.core.domain.JavaConstructorReference;
-import com.tngtech.archunit.core.domain.JavaEnumConstant;
-import com.tngtech.archunit.core.domain.JavaField;
-import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
-import com.tngtech.archunit.core.domain.JavaMember;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.domain.JavaMethodCall;
-import com.tngtech.archunit.core.domain.JavaMethodReference;
-import com.tngtech.archunit.core.domain.JavaModifier;
-import com.tngtech.archunit.core.domain.JavaParameter;
-import com.tngtech.archunit.core.domain.JavaParameterizedType;
-import com.tngtech.archunit.core.domain.JavaStaticInitializer;
-import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.core.domain.JavaWildcardType;
-import com.tngtech.archunit.core.domain.ReferencedClassObject;
-import com.tngtech.archunit.core.domain.Source;
-import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.union;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createInstanceofCheck;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createReferencedClassObject;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTypeVariable;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createWildcardType;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.*;
 import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
@@ -248,6 +214,7 @@ public final class DomainBuilders {
         private List<JavaClassDescriptor> throwsDeclarations;
         private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
         private final List<RawInstanceofCheck> instanceOfChecks = new ArrayList<>();
+        private final List<RawTypeCast> rawTypeCasts = new ArrayList<>();
 
         private JavaCodeUnitBuilder() {
         }
@@ -286,6 +253,11 @@ public final class DomainBuilders {
 
         SELF addInstanceOfCheck(RawInstanceofCheck rawInstanceOfChecks) {
             this.instanceOfChecks.add(rawInstanceOfChecks);
+            return self();
+        }
+
+        SELF addRawTypeCast(RawTypeCast rawTypeCast) {
+            this.rawTypeCasts.add(rawTypeCast);
             return self();
         }
 
@@ -355,6 +327,14 @@ public final class DomainBuilders {
             ImmutableSet.Builder<InstanceofCheck> result = ImmutableSet.builder();
             for (RawInstanceofCheck instanceOfCheck : this.instanceOfChecks) {
                 result.add(createInstanceofCheck(codeUnit, get(instanceOfCheck.getTarget().getFullyQualifiedClassName()), instanceOfCheck.getLineNumber()));
+            }
+            return result.build();
+        }
+
+        public Set<TypeCast> getRawTypeCasts(JavaCodeUnit codeUnit) {
+            ImmutableSet.Builder<TypeCast> result = ImmutableSet.builder();
+            for (RawTypeCast rawTypeCast : this.rawTypeCasts) {
+                result.add(createTypeCast(codeUnit, get(rawTypeCast.getTarget().getFullyQualifiedClassName()), rawTypeCast.getLineNumber()));
             }
             return result.build();
         }
