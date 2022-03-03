@@ -26,7 +26,7 @@ public interface GivenFields extends GivenMembers<JavaField> {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    FieldsThat<?> that();
+    FieldsThat<? extends GivenFieldsConjunction> that();
 
     @Override
     @PublicAPI(usage = ACCESS)
