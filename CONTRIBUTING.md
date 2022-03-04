@@ -20,7 +20,9 @@ You can configure the JDK Gradle uses according to the
 
 ## How to contribute
 
-If you want to submit a contribution, please follow the following workflow:
+If you want to tackle an existing issue please add a comment to make sure the issue is sufficiently discussed
+and that no two contributors collide by working on the same issue. 
+To submit a contribution, please follow the following workflow:
 
 * Fork the project
 * Create a feature branch
