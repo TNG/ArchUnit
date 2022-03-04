@@ -94,7 +94,7 @@ public class PublicAPIRules {
                     .and(are(not(equivalentTo(ArchUnitRunner.class))))
 
                     .should(bePublicAPIForInheritance())
-                    .orShould(beInterfaces())
+                    .orShould().beInterfaces()
                     .orShould().haveModifier(FINAL)
 
                     .as("all public classes not meant for inheritance should be final")
@@ -206,12 +206,8 @@ public class PublicAPIRules {
             @Override
             public void check(JavaMember member, ConditionEvents events) {
                 boolean satisfied = !member.getModifiers().contains(PUBLIC);
-                events.add(new SimpleConditionEvent(member, satisfied,
-                        String.format("member %s.%s is %spublic in %s",
-                                member.getOwner().getName(),
-                                member.getName(),
-                                satisfied ? "not " : "",
-                                member.getSourceCodeLocation())));
+                events.addEventWithFormattedMessage(member, satisfied,
+                        "is %spublic", satisfied ? "not " : "");
             }
         };
     }
@@ -222,12 +218,8 @@ public class PublicAPIRules {
             public void check(JavaMember member, ConditionEvents events) {
                 boolean declaringClassIsPublic = getAllEnclosingClasses(member).allMatch(c -> c.getModifiers().contains(PUBLIC));
                 boolean satisfied = member.getModifiers().contains(PUBLIC) && declaringClassIsPublic;
-                events.add(new SimpleConditionEvent(member, satisfied,
-                        String.format("member %s.%s is %sdeclared in public location in %s",
-                                member.getOwner().getName(),
-                                member.getName(),
-                                satisfied ? "" : "not ",
-                                member.getSourceCodeLocation())));
+                events.addEventWithFormattedMessage(member, satisfied,
+                        "is %sdeclared in public location", satisfied ? "" : "not ");
             }
 
             private Stream<JavaClass> getAllEnclosingClasses(JavaMember member) {
@@ -340,25 +332,14 @@ public class PublicAPIRules {
         };
     }
 
-    private static ArchCondition<? super JavaClass> beInterfaces() {
-        return new ArchCondition<JavaClass>("be interfaces") {
-            @Override
-            public void check(JavaClass item, ConditionEvents events) {
-                boolean satisfied = item.isInterface();
-                events.add(new SimpleConditionEvent(item, satisfied,
-                        String.format("class %s is %sinterface", item.getName(), satisfied ? "" : "no ")));
-            }
-        };
-    }
-
     private static ArchCondition<JavaClass> bePublicAPIForInheritance() {
         return new ArchCondition<JavaClass>("be public API for inheritance") {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 boolean satisfied = item.isAnnotatedWith(publicApiForInheritance()) ||
                         markedAsPublicAPIForInheritance().apply(item);
-                events.add(new SimpleConditionEvent(item, satisfied,
-                        String.format("class %s is %smeant for inheritance", item.getName(), satisfied ? "" : "not ")));
+                events.addEventWithFormattedMessage(item, satisfied,
+                        "is %smeant for inheritance", satisfied ? "" : "not ");
             }
         };
     }
@@ -392,11 +373,9 @@ public class PublicAPIRules {
                         .map(predicateType -> predicateType.getActualTypeArguments()[0])
                         .filter(predicateTypeParameter -> !(predicateTypeParameter instanceof WildcardType)
                                 || ((WildcardType) predicateTypeParameter).getLowerBounds().length == 0)
-                        .forEach(type -> {
-                            String message = String.format("%s has a parameter %s<%s> instead of a contravariant type parameter in %s",
-                                    javaCodeUnit.getDescription(), DescribedPredicate.class.getSimpleName(), type.getTypeName(), javaCodeUnit.getSourceCodeLocation());
-                            events.add(violated(javaCodeUnit, message));
-                        });
+                        .forEach(type -> events.addEventWithFormattedMessage(javaCodeUnit, false,
+                                "has a parameter %s<%s> instead of a contravariant type parameter", DescribedPredicate.class.getSimpleName(), type.getTypeName())
+                        );
             }
         };
     }
