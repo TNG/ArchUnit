@@ -59,15 +59,13 @@ public class NeverConditionTest {
         condition.check(new Object(), events);
         condition.finish(events);
 
-        assertThat(events).containAllowed(ORIGINALLY_NO_MISMATCH);
-        assertThat(events).containViolations(ORIGINALLY_MISMATCH);
+        assertThat(events).containAllowed(ORIGINALLY_NO_MISMATCH).containViolations(ORIGINALLY_MISMATCH);
 
         events = new ConditionEvents();
         never(condition).check(new Object(), events);
         never(condition).finish(events);
 
-        assertThat(events).containAllowed(ORIGINALLY_MISMATCH);
-        assertThat(events).containViolations(ORIGINALLY_NO_MISMATCH);
+        assertThat(events).containAllowed(ORIGINALLY_MISMATCH).containViolations(ORIGINALLY_NO_MISMATCH);
     }
 
     @Test

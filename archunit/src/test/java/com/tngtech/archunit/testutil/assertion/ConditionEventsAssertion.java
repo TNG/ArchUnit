@@ -25,22 +25,24 @@ public class ConditionEventsAssertion
         super(actual, ConditionEventsAssertion.class);
     }
 
-    public void containViolations(String violation, String... additional) {
+    public ConditionEventsAssertion containViolations(String violation, String... additional) {
         Assertions.assertThat(actual.containViolation()).as("Condition is violated").isTrue();
 
         List<String> expected = concat(violation, additional);
         if (!sorted(messagesOf(actual.getViolating())).equals(sorted(expected))) {
             failWithMessage("Expected %s to contain only violations %s", actual, expected);
         }
+        return this;
     }
 
-    public void containAllowed(String message, String... additional) {
+    public ConditionEventsAssertion containAllowed(String message, String... additional) {
         Assertions.assertThat(actual.getAllowed()).as("Allowed events").isNotEmpty();
 
         List<String> expected = concat(message, additional);
         if (!sorted(messagesOf(actual.getAllowed())).equals(sorted(expected))) {
             failWithMessage("Expected %s to contain only allowed events %s", actual, expected);
         }
+        return this;
     }
 
     private List<String> messagesOf(Collection<? extends ConditionEvent> events) {
