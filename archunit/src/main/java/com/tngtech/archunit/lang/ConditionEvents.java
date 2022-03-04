@@ -27,7 +27,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -44,6 +46,27 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     @PublicAPI(usage = ACCESS)
     public void add(ConditionEvent event) {
         eventsByViolation.get(Type.from(event.isViolation())).add(event);
+    }
+
+    /**
+     * adds a {@link SimpleConditionEvent} with a message built from
+     * the {@link HasDescription#getDescription() corresponding object's description},
+     * the actual message content formatted with {@link String#format(String, Object...)}, and
+     * the {@link HasSourceCodeLocation#getSourceCodeLocation() corresponding object's source code location}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public <T extends HasDescription & HasSourceCodeLocation> void addEventWithFormattedMessage(
+            T correspondingObject,
+            boolean satisfied,
+            String messageContentFormat,
+            Object... messageContentArgs
+    ) {
+        String message = String.format("%s %s in %s",
+                correspondingObject.getDescription(),
+                String.format(messageContentFormat, messageContentArgs),
+                correspondingObject.getSourceCodeLocation()
+        );
+        add(new SimpleConditionEvent(correspondingObject, satisfied, message));
     }
 
     /**

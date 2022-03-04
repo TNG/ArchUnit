@@ -7,19 +7,34 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class ConditionEventsTest {
+    @Test
+    public void addEventWithFormattedMessage_prepends_description_and_appends_sourceCodeLocation() {
+        JavaClass correspondingObject = getOnlyElement(importClasses(getClass()));
+        ConditionEvents events = new ConditionEvents();
+
+        events.addEventWithFormattedMessage(correspondingObject, true, "is satisfied");
+        events.addEventWithFormattedMessage(correspondingObject, false, "is violated");
+
+        assertThat(events)
+                .containAllowed(correspondingObject.getDescription() + " is satisfied in " + correspondingObject.getSourceCodeLocation())
+                .containViolations(correspondingObject.getDescription() + " is violated in " + correspondingObject.getSourceCodeLocation());
+    }
+
     @DataProvider
     public static Object[][] eventsWithEmpty() {
         return $$(
@@ -125,7 +140,7 @@ public class ConditionEventsTest {
 
         @Override
         public void handle(Collection<T> violatingObjects, String message) {
-            recorded.add(Iterables.getOnlyElement(violatingObjects));
+            recorded.add(getOnlyElement(violatingObjects));
         }
 
         List<T> getRecorded() {
@@ -168,5 +183,4 @@ public class ConditionEventsTest {
 
     private static class WrongSupertype {
     }
-
 }
