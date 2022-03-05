@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.junit.engine_api;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
 
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import org.junit.platform.engine.TestSource;
 
@@ -61,17 +62,18 @@ public final class FieldSource implements TestSource {
 		if (obj == null || getClass() != obj.getClass()) {
 			return false;
 		}
-		final FieldSource other = (FieldSource) obj;
+        final FieldSource other = (FieldSource) obj;
         return Objects.equals(this.javaClass, other.javaClass)
                 && Objects.equals(this.fieldName, other.fieldName);
-	}
+    }
 
-	@Override
-	public String toString() {
+    @Override
+    public String toString() {
         return getClass().getSimpleName() + "{" + getClassName() + '.' + fieldName + '}';
-	}
+    }
 
-    static FieldSource from(Field field) {
+    @Internal
+    public static FieldSource from(Field field) {
         return new FieldSource(field);
     }
 }

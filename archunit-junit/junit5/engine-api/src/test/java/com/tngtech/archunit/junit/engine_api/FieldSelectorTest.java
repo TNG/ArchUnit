@@ -1,5 +1,6 @@
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.junit.engine_api;
 
+import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 

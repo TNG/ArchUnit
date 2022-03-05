@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.junit.engine_api.FieldSelector;
 import org.junit.platform.engine.ConfigurationParameters;
 import org.junit.platform.engine.DiscoveryFilter;
 import org.junit.platform.engine.DiscoverySelector;
@@ -23,7 +24,7 @@ import org.junit.platform.engine.discovery.PackageNameFilter;
 import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 
-import static com.tngtech.archunit.junit.FieldSelector.selectField;
+import static com.tngtech.archunit.junit.engine_api.FieldSelector.selectField;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;

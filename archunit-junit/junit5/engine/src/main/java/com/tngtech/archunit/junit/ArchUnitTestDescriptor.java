@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.junit.engine_api.FieldSource;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;

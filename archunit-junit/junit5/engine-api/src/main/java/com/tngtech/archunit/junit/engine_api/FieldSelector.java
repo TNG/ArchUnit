@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.junit;
+package com.tngtech.archunit.junit.engine_api;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
 
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ClassLoaders;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
@@ -35,11 +36,13 @@ public final class FieldSelector implements DiscoverySelector {
         this.field = field;
     }
 
-    Class<?> getJavaClass() {
+    @Internal
+    public Class<?> getJavaClass() {
         return clazz;
     }
 
-    Field getJavaField() {
+    @Internal
+    public Field getJavaField() {
         return field;
     }
 

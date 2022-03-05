@@ -21,7 +21,7 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.core.LauncherFactory;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.junit.FieldSelector.selectField;
+import static com.tngtech.archunit.junit.engine_api.FieldSelector.selectField;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder.request;
 
