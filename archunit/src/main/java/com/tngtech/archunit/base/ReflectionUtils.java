@@ -20,14 +20,25 @@ import java.lang.reflect.Constructor;
 import com.tngtech.archunit.Internal;
 
 @Internal
-public class ReflectionUtils {
-    public static <T> T newInstanceOf(Class<T> type) {
+public final class ReflectionUtils {
+    private ReflectionUtils() {
+    }
+
+    public static <T> T newInstanceOf(Class<T> type, Object... parameters) {
         try {
-            Constructor<T> constructor = type.getDeclaredConstructor();
+            Constructor<T> constructor = type.getDeclaredConstructor(typesOf(parameters));
             constructor.setAccessible(true);
-            return constructor.newInstance();
+            return constructor.newInstance(parameters);
         } catch (Exception e) {
             throw new ArchUnitException.ReflectionException(e);
         }
+    }
+
+    private static Class<?>[] typesOf(Object[] parameters) {
+        Class<?>[] result = new Class[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            result[i] = parameters[i].getClass();
+        }
+        return result;
     }
 }

@@ -15,6 +15,7 @@
  */
 package com.tngtech.archunit.junit;
 
+import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -65,7 +66,8 @@ public final class ArchTests {
         return new ArchTests(definitionLocation);
     }
 
-    Class<?> getDefinitionLocation() {
+    @Internal
+    public Class<?> getDefinitionLocation() {
         return definitionLocation;
     }
 }

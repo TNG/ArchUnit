@@ -15,32 +15,20 @@
  */
 package com.tngtech.archunit.junit;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.base.MayResolveTypesViaReflection;
+import com.tngtech.archunit.base.ReflectionUtils;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
-import org.junit.runners.model.FrameworkField;
-import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.junit.ArchRuleDeclaration.elementShouldBeIgnored;
-import static com.tngtech.archunit.junit.ArchRuleDeclaration.toDeclarations;
-import static com.tngtech.archunit.junit.ArchTestExecution.getValue;
 
 /**
  * Evaluates {@link ArchRule ArchRules} against the classes inside of the packages specified via
@@ -58,169 +46,61 @@ import static com.tngtech.archunit.junit.ArchTestExecution.getValue;
  * }
  * </code></pre>
  *
- * The runner will cache classes between test runs, for details please refer to {@link ClassCache}.
+ * The runner will cache classes between test runs, for details please refer to {@link com.tngtech.archunit.junit.internal.ClassCache}.
  */
 @PublicAPI(usage = ACCESS)
-public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
-    private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static/final reference
+public class ArchUnitRunner<T> extends ParentRunner<T> {
+    private final InternalRunner<T> runnerDelegate;
 
     @Internal
     public ArchUnitRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
-        checkAnnotation(testClass);
+        runnerDelegate = createInternalRunner(testClass);
     }
 
-    private static AnalyzeClasses checkAnnotation(Class<?> testClass) {
-        AnalyzeClasses analyzeClasses = testClass.getAnnotation(AnalyzeClasses.class);
-        ArchTestInitializationException.check(analyzeClasses != null,
-                "Class %s must be annotated with @%s",
-                testClass.getSimpleName(), AnalyzeClasses.class.getSimpleName());
-        return analyzeClasses;
+    private InternalRunner<T> createInternalRunner(Class<?> testClass) {
+        Class<InternalRunner<T>> runnerClass = classForName("com.tngtech.archunit.junit.internal.ArchUnitRunnerInternal");
+        return ReflectionUtils.newInstanceOf(runnerClass, testClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    @MayResolveTypesViaReflection(reason = "Only used to load internal ArchUnit class")
+    private static <T> Class<T> classForName(String typeName) {
+        try {
+            return (Class<T>) Class.forName(typeName);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     protected Statement classBlock(RunNotifier notifier) {
-        final Statement statement = super.classBlock(notifier);
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                try {
-                    statement.evaluate();
-                } finally {
-                    cache.clear(getTestClass().getJavaClass());
-                }
-            }
-        };
+        return runnerDelegate.classBlock(notifier);
     }
 
     @Override
-    protected List<ArchTestExecution> getChildren() {
-        List<ArchTestExecution> children = new ArrayList<>();
-        children.addAll(findArchRuleFields());
-        children.addAll(findArchRuleMethods());
-        return children;
-    }
-
-    private Collection<ArchTestExecution> findArchRuleFields() {
-        List<ArchTestExecution> result = new ArrayList<>();
-        for (FrameworkField ruleField : getTestClass().getAnnotatedFields(ArchTest.class)) {
-            result.addAll(findArchRulesIn(ruleField));
-        }
-        return result;
-    }
-
-    private Set<ArchTestExecution> findArchRulesIn(FrameworkField ruleField) {
-        boolean ignore = elementShouldBeIgnored(ruleField.getField());
-        if (ruleField.getType() == ArchTests.class) {
-            return asTestExecutions(getArchRules(ruleField.getField()), ignore);
-        }
-        return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), ignore));
-    }
-
-    private Set<ArchTestExecution> asTestExecutions(ArchTests archTests, boolean forceIgnore) {
-        ExecutionTransformer executionTransformer = new ExecutionTransformer();
-        for (ArchRuleDeclaration<?> declaration : toDeclarations(archTests, getTestClass().getJavaClass(), ArchTest.class, forceIgnore)) {
-            declaration.handleWith(executionTransformer);
-        }
-        return executionTransformer.getExecutions();
-    }
-
-    private ArchTests getArchRules(Field field) {
-        return getValue(field, field.getDeclaringClass());
-    }
-
-    private Collection<ArchTestExecution> findArchRuleMethods() {
-        List<ArchTestExecution> result = new ArrayList<>();
-        for (FrameworkMethod testMethod : getTestClass().getAnnotatedMethods(ArchTest.class)) {
-            boolean ignore = elementShouldBeIgnored(testMethod.getMethod());
-            result.add(new ArchTestMethodExecution(getTestClass().getJavaClass(), testMethod.getMethod(), ignore));
-        }
-        return result;
+    protected List<T> getChildren() {
+        return runnerDelegate.getChildren();
     }
 
     @Override
-    protected Description describeChild(ArchTestExecution child) {
-        return child.describeSelf();
+    protected Description describeChild(T child) {
+        return runnerDelegate.describeChild(child);
     }
 
     @Override
-    protected void runChild(ArchTestExecution child, RunNotifier notifier) {
-        if (child.ignore()) {
-            notifier.fireTestIgnored(describeChild(child));
-        } else {
-            notifier.fireTestStarted(describeChild(child));
-            Class<?> testClass = getTestClass().getJavaClass();
-            JavaClasses classes = cache.get().getClassesToAnalyzeFor(testClass, new JUnit4ClassAnalysisRequest(testClass));
-            child.evaluateOn(classes).notify(notifier);
-            notifier.fireTestFinished(describeChild(child));
-        }
+    protected void runChild(T child, RunNotifier notifier) {
+        runnerDelegate.runChild(child, notifier);
     }
 
-    static class SharedCache {
-        private static final ClassCache cache = new ClassCache();
+    @Internal
+    public interface InternalRunner<T> {
+        Statement classBlock(RunNotifier notifier);
 
-        ClassCache get() {
-            return cache;
-        }
+        List<T> getChildren();
 
-        void clear(Class<?> testClass) {
-            cache.clear(testClass);
-        }
-    }
+        Description describeChild(T child);
 
-    private static class ExecutionTransformer implements ArchRuleDeclaration.Handler {
-        private final ImmutableSet.Builder<ArchTestExecution> executions = ImmutableSet.builder();
-
-        @Override
-        public void handleFieldDeclaration(Field field, Class<?> fieldOwner, boolean ignore) {
-            executions.add(new ArchRuleExecution(fieldOwner, field, ignore));
-        }
-
-        @Override
-        public void handleMethodDeclaration(Method method, Class<?> methodOwner, boolean ignore) {
-            executions.add(new ArchTestMethodExecution(methodOwner, method, ignore));
-        }
-
-        Set<ArchTestExecution> getExecutions() {
-            return executions.build();
-        }
-    }
-
-    private static class JUnit4ClassAnalysisRequest implements ClassAnalysisRequest {
-        private final AnalyzeClasses analyzeClasses;
-
-        JUnit4ClassAnalysisRequest(Class<?> testClass) {
-            analyzeClasses = checkAnnotation(testClass);
-        }
-
-        @Override
-        public String[] getPackageNames() {
-            return analyzeClasses.packages();
-        }
-
-        @Override
-        public Class<?>[] getPackageRoots() {
-            return analyzeClasses.packagesOf();
-        }
-
-        @Override
-        public Class<? extends LocationProvider>[] getLocationProviders() {
-            return analyzeClasses.locations();
-        }
-
-        @Override
-        public Class<? extends ImportOption>[] getImportOptions() {
-            return analyzeClasses.importOptions();
-        }
-
-        @Override
-        public CacheMode getCacheMode() {
-            return analyzeClasses.cacheMode();
-        }
-
-        @Override
-        public boolean scanWholeClasspath() {
-            return analyzeClasses.wholeClasspath();
-        }
+        void runChild(T child, RunNotifier notifier);
     }
 }
