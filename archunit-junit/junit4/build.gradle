@@ -27,7 +27,7 @@ dependencies {
     testImplementation project(path: ':archunit-junit', configuration: 'tests')
 
     // This is a hack for running tests with IntelliJ instead of delegating to Gradle,
-    // because for some reason this dependency cannot be resolved otherwise only for archunit-junit4 :-(
+    // because for some reason this dependency cannot be resolved otherwise :-(
     testRuntimeOnly dependency.asm
 }
 

@@ -7,6 +7,7 @@ class TestAnalysisRequest implements ClassAnalysisRequest {
     private String[] packages = new String[0];
     private Class<?>[] packageRoots = new Class<?>[0];
     private Class<? extends LocationProvider>[] locationProviders = new Class[0];
+    private boolean wholeClasspath = false;
     private Class<? extends ImportOption>[] importOptions = new Class[0];
     private CacheMode cacheMode = CacheMode.FOREVER;
 
@@ -23,6 +24,11 @@ class TestAnalysisRequest implements ClassAnalysisRequest {
     @Override
     public Class<? extends LocationProvider>[] getLocationProviders() {
         return locationProviders;
+    }
+
+    @Override
+    public boolean scanWholeClasspath() {
+        return wholeClasspath;
     }
 
     @Override
@@ -48,6 +54,11 @@ class TestAnalysisRequest implements ClassAnalysisRequest {
     @SafeVarargs
     final TestAnalysisRequest withLocationProviders(Class<? extends LocationProvider>... locationProviders) {
         this.locationProviders = locationProviders;
+        return this;
+    }
+
+    final TestAnalysisRequest withWholeClasspath(boolean wholeClasspath) {
+        this.wholeClasspath = wholeClasspath;
         return this;
     }
 
