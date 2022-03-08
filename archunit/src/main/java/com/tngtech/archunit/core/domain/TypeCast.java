@@ -29,13 +29,11 @@ public final class TypeCast implements HasType, HasOwner<JavaCodeUnit>, HasSourc
 
     private final JavaCodeUnit owner;
     private final JavaClass value;
-    private final int lineNumber;
     private final SourceCodeLocation sourceCodeLocation;
 
     private TypeCast(JavaCodeUnit owner, JavaClass value, int lineNumber) {
         this.owner = checkNotNull(owner);
         this.value = checkNotNull(value);
-        this.lineNumber = lineNumber;
         sourceCodeLocation = SourceCodeLocation.of(owner.getOwner(), lineNumber);
     }
 
@@ -57,11 +55,6 @@ public final class TypeCast implements HasType, HasOwner<JavaCodeUnit>, HasSourc
         return owner;
     }
 
-    @PublicAPI(usage = ACCESS)
-    public int getLineNumber() {
-        return lineNumber;
-    }
-
     @Override
     public SourceCodeLocation getSourceCodeLocation() {
         return sourceCodeLocation;
@@ -72,7 +65,6 @@ public final class TypeCast implements HasType, HasOwner<JavaCodeUnit>, HasSourc
         return toStringHelper(this)
                 .add("owner", owner)
                 .add("target", value)
-                .add("lineNumber", lineNumber)
                 .toString();
     }
 

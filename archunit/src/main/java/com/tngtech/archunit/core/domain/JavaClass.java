@@ -660,7 +660,7 @@ public class JavaClass
     }
 
     @PublicAPI(usage = ACCESS)
-    public Set<TypeCast> getypeCast() {
+    public Set<TypeCast> getypeCasts() {
         return members.getTypeCast();
     }
 

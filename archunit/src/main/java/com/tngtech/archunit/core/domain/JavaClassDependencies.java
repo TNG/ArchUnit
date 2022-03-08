@@ -221,7 +221,7 @@ class JavaClassDependencies {
 
     private Set<Dependency> typeCastDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (TypeCast typeCast : javaClass.getypeCast()) {
+        for (TypeCast typeCast : javaClass.getypeCasts()) {
             result.addAll(Dependency.tryCreateFromTypeCast(typeCast));
         }
         return result.build();
