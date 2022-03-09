@@ -15,7 +15,49 @@
  */
 package com.tngtech.archunit.junit;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.platform.engine.ConfigurationParameters;
+import org.junit.platform.engine.EngineExecutionListener;
 import org.junit.platform.engine.support.hierarchical.EngineExecutionContext;
 
 class ArchUnitEngineExecutionContext implements EngineExecutionContext {
+    private final EngineExecutionListener engineExecutionListener;
+    private final ConfigurationParameters configurationParameters;
+
+    private final Map<Class<? extends Extension>, Extension> extensions = new HashMap<>();
+
+    public ArchUnitEngineExecutionContext(EngineExecutionListener engineExecutionListener, ConfigurationParameters configurationParameters) {
+        this.engineExecutionListener = engineExecutionListener;
+        this.configurationParameters = configurationParameters;
+    }
+
+    public EngineExecutionListener getEngineExecutionListener() {
+        return engineExecutionListener;
+    }
+
+    public ConfigurationParameters getConfigurationParameters() {
+        return configurationParameters;
+    }
+
+    public Collection<Extension> getExtensions() {
+        return Collections.unmodifiableCollection(extensions.values());
+    }
+
+    public <T extends Extension> Collection<T> getExtensions(Class<T> type) {
+        return getExtensions().stream()
+                .filter(type::isInstance)
+                .map(type::cast)
+                .collect(Collectors.toSet());
+    }
+
+    public ArchUnitEngineExecutionContext registerExtension(final Extension extension) {
+        extensions.put(extension.getClass(), extension);
+        return this;
+    }
 }

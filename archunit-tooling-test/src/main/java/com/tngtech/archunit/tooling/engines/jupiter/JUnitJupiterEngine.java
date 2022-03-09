@@ -8,17 +8,20 @@ import com.tngtech.archunit.tooling.TestReport;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
+import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
+import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -43,9 +46,12 @@ public enum JUnitJupiterEngine implements TestEngine {
     }
 
     private LauncherDiscoveryRequest toDiscoveryRequest(Set<TestFile> testFiles) {
-        LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request();
-        builder.selectors(testFiles.stream().flatMap(this::toSelectors).collect(Collectors.toList()));
-        return builder.build();
+        return LauncherDiscoveryRequestBuilder.request()
+                .selectors(testFiles.stream()
+                        .flatMap(this::toSelectors)
+                        .collect(Collectors.toList()))
+                .filters()
+                .build();
     }
 
     private Stream<DiscoverySelector> toSelectors(TestFile testFile) {
@@ -64,11 +70,9 @@ public enum JUnitJupiterEngine implements TestEngine {
     }
 
     private Optional<Method> getMethodByName(Class<?> owner, String name) {
-        try {
-            return Optional.of(owner.getDeclaredMethod(name));
-        } catch (NoSuchMethodException e) {
-            return Optional.empty();
-        }
+        return Arrays.stream(owner.getDeclaredMethods())
+                .filter(method -> name.equals(method.getName()))
+                .findFirst();
     }
 
     private Optional<Field> getFieldByName(Class<?> owner, String name) {
@@ -94,17 +98,22 @@ public enum JUnitJupiterEngine implements TestEngine {
 
         @Override
         public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+            registerTestResult(testIdentifier, testExecutionResult);
+        }
+
+        private void registerTestResult(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+            if (testIdentifier.isContainer()) {
+                testExecutionResult.getThrowable().ifPresent(throwable -> { throw new RuntimeException(throwable); });
+                return;
+            }
             registerTestResult(testIdentifier, toResult(testExecutionResult.getStatus()));
         }
 
-        private void registerTestResult(TestIdentifier testIdentifier, TestResult result) {
-            if (testIdentifier.isContainer()) {
-                return;
-            }
+        private void registerTestResult(TestIdentifier testIdentifier, TestResult testResult) {
             Map.Entry<Class<?>, String> testCaseEntry = testIdentifier.getSource()
                     .map(source -> resolveTestCaseInfo(testIdentifier, source))
                     .orElseThrow(RuntimeException::new);
-            report.ensureFileForFixture(testCaseEntry.getKey()).addResult(testCaseEntry.getValue(), result);
+            report.ensureFileForFixture(testCaseEntry.getKey()).addResult(testCaseEntry.getValue(), testResult);
         }
 
         private TestResult toResult(TestExecutionResult.Status status) {

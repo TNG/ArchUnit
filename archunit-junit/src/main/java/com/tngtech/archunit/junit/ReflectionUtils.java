@@ -22,19 +22,30 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.base.Function;
 
 import static com.google.common.collect.Collections2.filter;
 
 class ReflectionUtils {
+
+    private static final com.google.common.base.Function<Object, Class<?>> EXTRACTING_CLASS = new com.google.common.base.Function<Object, Class<?>>() {
+        @Override
+        public Class<?> apply(Object input) {
+            return input.getClass();
+        }
+    };
+
     private ReflectionUtils() {
     }
 
@@ -105,14 +116,32 @@ class ReflectionUtils {
 
     static <T> T invokeMethod(Method method, Class<?> methodOwner, Object... args) {
         if (Modifier.isStatic(method.getModifiers())) {
-            return invoke(null, method, args);
+            return invokeMethod(null, method, args);
         } else {
-            return invoke(newInstanceOf(methodOwner), method, args);
+            return invokeMethod(newInstanceOf(methodOwner), method, args);
         }
     }
 
+    /*protected void invokeTestMethod(JupiterEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor) {
+        ExtensionContext extensionContext = context.getExtensionContext();
+        ThrowableCollector throwableCollector = context.getThrowableCollector();
+
+        throwableCollector.execute(() -> {
+            try {
+                Method testMethod = getTestMethod();
+                Object instance = extensionContext.getRequiredTestInstance();
+                executableInvoker.invoke(testMethod, instance, extensionContext, context.getExtensionRegistry(),
+                        interceptorCall);
+            }
+            catch (Throwable throwable) {
+                UnrecoverableExceptions.rethrowIfUnrecoverable(throwable);
+                invokeTestExecutionExceptionHandlers(context.getExtensionRegistry(), extensionContext, throwable);
+            }
+        });
+    }*/
+
     @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
-    private static <T> T invoke(Object owner, Method method, Object... args) {
+    public static <T> T invokeMethod(Object owner, Method method, Object... args) {
         method.setAccessible(true);
         try {
             return (T) method.invoke(owner, args);
@@ -120,6 +149,22 @@ class ReflectionUtils {
             throw new ReflectionException(e);
         } catch (InvocationTargetException e) {
             ReflectionUtils.<RuntimeException>rethrowUnchecked(e.getTargetException());
+            return null; // will never be reached
+        }
+    }
+
+    public static <T> T invokeMethod(Object owner, String methodName, Object... args) {
+        return invokeMethod(owner, Objects.requireNonNull(findMethod(owner, methodName, args)), args);
+    }
+
+    private static Method findMethod(Object owner, String methodName, Object[] args) {
+        try {
+            return owner.getClass().getMethod(
+                    methodName,
+                    Iterables.toArray(Iterables.transform(Arrays.asList(args), EXTRACTING_CLASS), Class.class)
+            );
+        } catch (NoSuchMethodException e) {
+            ReflectionUtils.<RuntimeException>rethrowUnchecked(e);
             return null; // will never be reached
         }
     }

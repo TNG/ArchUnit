@@ -22,14 +22,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public enum MavenSurefireEngine implements TestEngine {
-    INSTANCE;
+    FOR_TESTS_LOCATED_IN_EXAMPLES(new MavenProjectLayout(
+            "com.tngtech.archunit.tooling.examples",
+            "project/pom.xml",
+            "",
+            "@sources",
+            "project"));
 
-    private final MavenProjectLayout projectLayout = new MavenProjectLayout();
+    private final MavenProjectLayout projectLayout;
+
     private final Invoker invoker;
 
-    MavenSurefireEngine() {
+    MavenSurefireEngine(final MavenProjectLayout projectLayout) {
         try {
             invoker = initInvoker();
+            this.projectLayout = projectLayout;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
