@@ -18,9 +18,14 @@ package com.tngtech.archunit.junit;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.tngtech.archunit.Internal;
@@ -40,6 +45,7 @@ import org.junit.platform.engine.discovery.PackageNameFilter;
 import org.junit.platform.engine.discovery.PackageSelector;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine;
+import org.junit.platform.engine.support.hierarchical.ThrowableCollector;
 
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.ReflectionUtils.getAllMethods;
@@ -63,6 +69,22 @@ import static java.util.stream.Collectors.toList;
 @Internal
 public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEngineExecutionContext> {
     static final String UNIQUE_ID = "archunit";
+
+    private static final Collection<String> ABORTING_THROWABLE_NAMES = Arrays.asList(
+            "org.junit.internal.AssumptionViolatedException",
+            "org.junit.AssumptionViolatedException",
+            "org.opentest4j.TestAbortedException"
+    );
+
+    private final Collection<Class<?>> abortingThrowables;
+
+    public ArchUnitTestEngine() {
+        abortingThrowables = ABORTING_THROWABLE_NAMES.stream()
+                .map(this::maybeLoadClass)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
+    }
 
     private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static/final reference
 
@@ -189,11 +211,26 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
     }
 
     @Override
+    protected ThrowableCollector.Factory createThrowableCollectorFactory(ExecutionRequest request) {
+        return () -> new ThrowableCollector(throwable -> abortingThrowables.stream()
+                .anyMatch(abortingThrowable -> abortingThrowable.isInstance(throwable)));
+    }
+
+    @Override
     protected ArchUnitEngineExecutionContext createExecutionContext(ExecutionRequest request) {
-        return new ArchUnitEngineExecutionContext();
+        return new ArchUnitEngineExecutionContext(request.getEngineExecutionListener(), request.getConfigurationParameters());
+    }
+
+    private Optional<Class<?>> maybeLoadClass(String name) {
+        try {
+            return Optional.of(Class.forName(name));
+        } catch (ClassNotFoundException e) {
+            return Optional.empty();
+        }
     }
 
     static class SharedCache {
+
         private static final ClassCache cache = new ClassCache();
 
         ClassCache get() {

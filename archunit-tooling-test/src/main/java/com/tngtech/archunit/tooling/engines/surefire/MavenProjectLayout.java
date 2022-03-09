@@ -30,10 +30,6 @@ public class MavenProjectLayout {
         this.mavenResourcesLocation = mavenResourcesLocation;
     }
 
-    public MavenProjectLayout() {
-        this("com.tngtech.archunit.tooling.examples", "project/pom.xml", "", "@sources", "project");
-    }
-
     public MavenProject applyTo(final Path projectRoot) throws IOException, URISyntaxException {
         ResourcesUtils.copyResource(projectRoot, pomLocation, "");
         ResourcesUtils.copyResourceDirectory(projectRoot, mavenResourcesLocation + "/.mvn", ".mvn");
