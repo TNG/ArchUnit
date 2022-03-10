@@ -2,6 +2,10 @@ plugins {
     id 'archunit.java-release-conventions'
 }
 
+repositories {
+    mavenLocal()
+}
+
 ext.moduleName = 'com.tngtech.archunit.junit5'
 
 ext.minimumJavaVersion = JavaVersion.VERSION_1_8
