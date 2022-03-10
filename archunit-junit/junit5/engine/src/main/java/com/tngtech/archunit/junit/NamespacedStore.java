@@ -17,7 +17,6 @@ package com.tngtech.archunit.junit;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import com.google.common.base.Objects;

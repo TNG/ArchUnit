@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.*
+
 plugins {
     id 'archunit.java-production-conventions'
 }
@@ -39,11 +41,20 @@ repositories {
     mavenCentral()
 }
 
+processExamplesResources {
+    filesMatching('**/pom.xml') {
+        filter ReplaceTokens, tokens: [
+                "junitDependency.version": project.property("archunit.version")
+        ]
+    }
+}
+
 dependencies {
     implementation dependency.junit5JupiterEngine
     implementation dependency.junitPlatform
     implementation dependency.guava
     implementation 'org.junit.platform:junit-platform-launcher:1.8.2'
+    implementation 'com.github.spotbugs:spotbugs-annotations:4.0.1'
     testImplementation dependency.assertj
     implementation project(path: ':archunit-junit5-engine-api')
     implementation project(path: ':archunit-junit5-engine')
@@ -59,6 +70,59 @@ dependencies {
     implementation 'org.apache.maven.wrapper:maven-wrapper:3.1.0'
 }
 
+File getArtifactDirectory(Project project) {
+    def pubs = project.publishing.publications.findAll() as Set<MavenPublication>
+    def pub = pubs[0]
+    if (!pub){
+        return null
+    }
+    URI repository = repositories.mavenLocal().url
+    String groupPath = pub.groupId.replace('.', '/')
+    File f = new File(new File(repository), "$groupPath/$pub.artifactId")
+    return f
+}
+
+task('removeFromMavenLocal') {
+    group = 'publishing'
+    description = 'Remove artifact and all versions/classifiers/flavors from local maven repository.'
+    doLast {
+        [project(':archunit-junit5-engine-api'),
+         project(':archunit-junit5-engine'),
+         project(':archunit-junit5-api'),
+         project(':archunit-junit5'),
+         project(':archunit-junit4'),
+         project(':archunit')].each { project ->
+
+            File f = getArtifactDirectory(project)
+            if (f.exists()) {
+                println "Deleting ${f.toURI().toString()}"
+                delete f
+            } else {
+                println "Could not find ${f.toURI().toString()}"
+            }
+        }
+    }
+}
+
+task('publishJUnitDepsToMavenLocal') {
+    group = 'publishing'
+    description = 'Publishes ArchUnit JUnit artifacts to local Maven repo'
+    dependsOn ':archunit-junit5-engine-api:publishMavenJavaPublicationToMavenLocal'
+    dependsOn ':archunit-junit5-engine:publishMavenJavaPublicationToMavenLocal'
+    dependsOn ':archunit-junit5-api:publishMavenJavaPublicationToMavenLocal'
+    dependsOn ':archunit-junit5:publishMavenJavaPublicationToMavenLocal'
+    dependsOn ':archunit-junit4:publishMavenJavaPublicationToMavenLocal'
+    dependsOn ':archunit:publishMavenJavaPublicationToMavenLocal'
+}
+
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(publishJUnitDepsToMavenLocal)) {
+        def externalTests = graph.allTasks.findAll { task -> task.name.toLowerCase().endsWith("test") && !task.path.startsWith(":archunit-tooling-test:") }
+        externalTests.each { externalTest -> externalTest.enabled = false }
+    }
+}
+
 test {
+    dependsOn removeFromMavenLocal, publishJUnitDepsToMavenLocal
     useJUnitPlatform()
 }

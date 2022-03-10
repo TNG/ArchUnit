@@ -52,6 +52,15 @@ public class ArchJUnit4Test {
         assertTrue(classes.that(assignableTo(Cloneable.class)).contain(ImplementingSerializable.class));
     }
 
-    static class ImplementingSerializable implements Serializable, Cloneable {}
+    static class ImplementingSerializable implements Serializable, Cloneable {
+        @Override
+        public ImplementingSerializable clone() {
+            try {
+                return (ImplementingSerializable) super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new AssertionError();
+            }
+        }
+    }
 
 }

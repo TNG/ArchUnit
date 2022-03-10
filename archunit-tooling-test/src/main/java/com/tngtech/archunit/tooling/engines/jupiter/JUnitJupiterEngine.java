@@ -1,5 +1,15 @@
 package com.tngtech.archunit.tooling.engines.jupiter;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.tngtech.archunit.junit.FieldSource;
 import com.tngtech.archunit.tooling.ExecutedTestFile.TestResult;
 import com.tngtech.archunit.tooling.TestEngine;
@@ -8,25 +18,16 @@ import com.tngtech.archunit.tooling.TestReport;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
-import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
-import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.tngtech.archunit.junit.FieldSelector.selectField;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
@@ -34,6 +35,8 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectMetho
 
 public enum JUnitJupiterEngine implements TestEngine {
     INSTANCE;
+
+    private static final Logger LOG = LoggerFactory.getLogger(JUnitJupiterEngine.class);
 
     private final Launcher launcher = LauncherFactory.create();
 
@@ -46,10 +49,12 @@ public enum JUnitJupiterEngine implements TestEngine {
     }
 
     private LauncherDiscoveryRequest toDiscoveryRequest(Set<TestFile> testFiles) {
+        List<DiscoverySelector> selectors = testFiles.stream()
+                .flatMap(this::toSelectors)
+                .collect(Collectors.toList());
+        LOG.info("Executing request with selectors {}", selectors);
         return LauncherDiscoveryRequestBuilder.request()
-                .selectors(testFiles.stream()
-                        .flatMap(this::toSelectors)
-                        .collect(Collectors.toList()))
+                .selectors(selectors)
                 .filters()
                 .build();
     }
@@ -103,7 +108,9 @@ public enum JUnitJupiterEngine implements TestEngine {
 
         private void registerTestResult(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
             if (testIdentifier.isContainer()) {
-                testExecutionResult.getThrowable().ifPresent(throwable -> { throw new RuntimeException(throwable); });
+                testExecutionResult.getThrowable().ifPresent(throwable -> {
+                    throw new RuntimeException(throwable);
+                });
                 return;
             }
             registerTestResult(testIdentifier, toResult(testExecutionResult.getStatus()));
@@ -113,19 +120,19 @@ public enum JUnitJupiterEngine implements TestEngine {
             Map.Entry<Class<?>, String> testCaseEntry = testIdentifier.getSource()
                     .map(source -> resolveTestCaseInfo(testIdentifier, source))
                     .orElseThrow(RuntimeException::new);
-            report.ensureFileForFixture(testCaseEntry.getKey()).addResult(testCaseEntry.getValue(), testResult);
+            report.ensureFileForFixture(testCaseEntry.getKey().getName()).addResult(testCaseEntry.getValue(), testResult);
         }
 
         private TestResult toResult(TestExecutionResult.Status status) {
             switch (status) {
-                case SUCCESSFUL:
-                    return TestResult.SUCCESS;
-                case FAILED:
-                    return TestResult.FAILURE;
-                case ABORTED:
-                    return TestResult.SKIPPED;
-                default:
-                    throw new RuntimeException("Unrecognized enum value TestExecutionResult.Status#" + status);
+            case SUCCESSFUL:
+                return TestResult.SUCCESS;
+            case FAILED:
+                return TestResult.FAILURE;
+            case ABORTED:
+                return TestResult.SKIPPED;
+            default:
+                throw new RuntimeException("Unrecognized enum value TestExecutionResult.Status#" + status);
             }
         }
 

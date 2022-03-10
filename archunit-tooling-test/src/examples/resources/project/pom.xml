@@ -17,12 +17,17 @@
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit</artifactId>
-            <version>0.22.0</version>
+            <version>@junitDependency.version@</version>
         </dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit4</artifactId>
-            <version>0.22.0</version>
+            <version>@junitDependency.version@</version>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>@junitDependency.version@</version>
         </dependency>
         <dependency>
             <groupId>org.junit.vintage</groupId>

@@ -17,18 +17,18 @@ public class TestReport {
         files.add(file);
     }
 
-    public Optional<ExecutedTestFile> getFile(Class<?> fixture) {
+    public Optional<ExecutedTestFile> getFile(String fixture) {
         return files.stream()
                 .filter(file -> file.getFixture().equals(fixture))
                 .findFirst();
     }
 
-    public synchronized ExecutedTestFile ensureFileForFixture(Class<?> fixture) {
+    public synchronized ExecutedTestFile ensureFileForFixture(String fixture) {
         return getFile(fixture)
                 .orElseGet(() -> newTestFile(fixture));
     }
 
-    private ExecutedTestFile newTestFile(Class<?> fixture) {
+    private ExecutedTestFile newTestFile(String fixture) {
         ExecutedTestFile result = new ExecutedTestFile(fixture);
         files.add(result);
         return result;

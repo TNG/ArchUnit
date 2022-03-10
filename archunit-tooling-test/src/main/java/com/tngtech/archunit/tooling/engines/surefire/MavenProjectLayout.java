@@ -7,6 +7,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.annotation.Nonnull;
+
 public class MavenProjectLayout {
 
     private static final String DOT = "\\.";
@@ -49,6 +51,7 @@ public class MavenProjectLayout {
             this.pomXml = pomXml;
         }
 
+        @Nonnull
         public Path getPomXml() {
             return pomXml;
         }

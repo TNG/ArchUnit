@@ -51,7 +51,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     private ClassCache classCache;
 
     private ArchUnitTestDescriptor(ElementResolver resolver, Class<?> testClass, ClassCache classCache) {
-        super(resolver.getUniqueId(), testClass.getSimpleName(), ClassSource.from(testClass), testClass);
+        super(resolver.getUniqueId(), testClass.getName(), ClassSource.from(testClass), testClass);
         this.testClass = testClass;
         this.classCache = classCache;
     }
@@ -239,7 +239,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         }
 
         String getDisplayName() {
-            return archTests.getDefinitionLocation().getSimpleName();
+            return archTests.getDefinitionLocation().getName();
         }
 
         void handleFields(Consumer<? super Field> doWithField) {
