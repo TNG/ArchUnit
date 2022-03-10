@@ -13,6 +13,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Strings;
 import com.tngtech.archunit.tooling.ExecutedTestFile;
 import com.tngtech.archunit.tooling.ExecutedTestFile.TestResult;
 import com.tngtech.archunit.tooling.TestEngine;
@@ -105,7 +106,10 @@ public enum MavenSurefireEngine implements TestEngine {
 
     private ExecutedTestFile toTestFile(ReportTestSuite reportTestSuite) {
         ExecutedTestFile result = new ExecutedTestFile(reportTestSuite.getFullClassName());
-        reportTestSuite.getTestCases().forEach(reportTestCase -> result.addResult(reportTestCase.getName(), resolveResult(reportTestCase)));
+        reportTestSuite.getTestCases()
+                .stream()
+                .filter(reportTestCase -> !Strings.isNullOrEmpty(reportTestCase.getName()))
+                .forEach(reportTestCase -> result.addResult(reportTestCase.getName(), resolveResult(reportTestCase)));
         return result;
     }
 
