@@ -1,25 +1,39 @@
 package com.tngtech.archunit.tooling.engines.surefire;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.tngtech.archunit.tooling.ExecutedTestFile;
 import com.tngtech.archunit.tooling.ExecutedTestFile.TestResult;
 import com.tngtech.archunit.tooling.TestEngine;
 import com.tngtech.archunit.tooling.TestFile;
 import com.tngtech.archunit.tooling.TestReport;
 import com.tngtech.archunit.tooling.engines.surefire.MavenProjectLayout.MavenProject;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.maven.plugin.surefire.log.api.NullConsoleLogger;
 import org.apache.maven.plugins.surefire.report.ReportTestCase;
 import org.apache.maven.plugins.surefire.report.ReportTestSuite;
 import org.apache.maven.plugins.surefire.report.SurefireReportParser;
-import org.apache.maven.shared.invoker.*;
+import org.apache.maven.shared.invoker.DefaultInvocationRequest;
+import org.apache.maven.shared.invoker.DefaultInvoker;
+import org.apache.maven.shared.invoker.InvocationRequest;
+import org.apache.maven.shared.invoker.InvocationResult;
+import org.apache.maven.shared.invoker.Invoker;
+import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.apache.maven.shared.utils.cli.CommandLineException;
 import org.apache.maven.surefire.shared.io.FileUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public enum MavenSurefireEngine implements TestEngine {
     FOR_TESTS_LOCATED_IN_EXAMPLES(new MavenProjectLayout(
@@ -27,19 +41,28 @@ public enum MavenSurefireEngine implements TestEngine {
             "project/pom.xml",
             "",
             "@sources",
-            "project"));
+            "project")
+    );
+
+    private static final Logger LOG = LoggerFactory.getLogger(MavenSurefireEngine.class);
 
     private final MavenProjectLayout projectLayout;
 
     private final Invoker invoker;
+    private final String goal;
 
-    MavenSurefireEngine(final MavenProjectLayout projectLayout) {
+    MavenSurefireEngine(final MavenProjectLayout projectLayout, final String goal) {
         try {
-            invoker = initInvoker();
+            this.invoker = initInvoker();
+            this.goal = goal;
             this.projectLayout = projectLayout;
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    MavenSurefireEngine(final MavenProjectLayout projectLayout) {
+        this(projectLayout, "surefire:test");
     }
 
     private Invoker initInvoker() throws URISyntaxException {
@@ -55,6 +78,7 @@ public enum MavenSurefireEngine implements TestEngine {
         return withProjectRoot(projectRoot -> {
             MavenProject mavenProject = prepareProjectDirectory(projectRoot);
             InvocationRequest request = prepareInvocationRequest(mavenProject, testFiles);
+            LOG.info("Executing request with properties {}", request.getProperties());
             invokeRequest(request);
             SurefireReportParser parser = createParser(projectRoot);
             List<ReportTestSuite> reportTestSuites = parser.parseXMLReportFiles();
@@ -80,13 +104,9 @@ public enum MavenSurefireEngine implements TestEngine {
     }
 
     private ExecutedTestFile toTestFile(ReportTestSuite reportTestSuite) {
-        try {
-            ExecutedTestFile result = new ExecutedTestFile(Class.forName(reportTestSuite.getFullClassName()));
-            reportTestSuite.getTestCases().forEach(reportTestCase -> result.addResult(reportTestCase.getName(), resolveResult(reportTestCase)));
-            return result;
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        ExecutedTestFile result = new ExecutedTestFile(reportTestSuite.getFullClassName());
+        reportTestSuite.getTestCases().forEach(reportTestCase -> result.addResult(reportTestCase.getName(), resolveResult(reportTestCase)));
+        return result;
     }
 
     private TestResult resolveResult(ReportTestCase reportTestCase) {
@@ -123,11 +143,12 @@ public enum MavenSurefireEngine implements TestEngine {
         }
     }
 
+    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private InvocationRequest prepareInvocationRequest(MavenProject mavenProject, Set<TestFile> testFiles) {
         InvocationRequest request = new DefaultInvocationRequest();
-        request.setBaseDirectory(mavenProject.getPomXml().getParent().toFile());
+        request.setBaseDirectory(Objects.requireNonNull(mavenProject.getPomXml().getParent()).toFile());
         request.setPomFile(mavenProject.getPomXml().toFile());
-        request.setGoals(Collections.singletonList("surefire:test"));
+        request.setGoals(Collections.singletonList(goal));
         request.setProperties(propertiesWithTest(toTestProperty(testFiles)));
         return request;
     }

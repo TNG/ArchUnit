@@ -1,20 +1,19 @@
 package com.tngtech.archunit.tooling;
 
-import com.google.common.collect.ImmutableMap;
-import com.tngtech.archunit.tooling.engines.jupiter.JUnitJupiterEngine;
-import com.tngtech.archunit.tooling.engines.surefire.MavenSurefireEngine;
-import com.tngtech.archunit.tooling.examples.RegularJunit4Test;
-import com.tngtech.archunit.tooling.examples.RegularJunit5Test;
-import org.junitpioneer.jupiter.cartesian.ArgumentSets;
-import org.junitpioneer.jupiter.cartesian.CartesianTest;
-import org.junitpioneer.jupiter.cartesian.CartesianTest.MethodFactory;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.tooling.engines.jupiter.JUnitJupiterEngine;
+import com.tngtech.archunit.tooling.engines.surefire.MavenSurefireEngine;
+import org.junitpioneer.jupiter.cartesian.ArgumentSets;
+
 import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable;
-import static com.tngtech.archunit.tooling.ExecutedTestFile.TestResult.*;
+import static com.tngtech.archunit.tooling.ExecutedTestFile.TestResult.ERROR;
+import static com.tngtech.archunit.tooling.ExecutedTestFile.TestResult.FAILURE;
+import static com.tngtech.archunit.tooling.ExecutedTestFile.TestResult.SKIPPED;
+import static com.tngtech.archunit.tooling.ExecutedTestFile.TestResult.SUCCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class BaseTest {
@@ -25,7 +24,7 @@ public abstract class BaseTest {
 
         // when
         TestReport report = engine.execute(Collections.singleton(testFile));
-        ExecutedTestFile actual = report.getFile(testFile.getFixture()).get();
+        ExecutedTestFile actual = findResult(report, testFile.getFixture());
 
         // then
         assertThat(actual.getResult("shouldReportSuccess")).isEqualTo(SUCCESS);
@@ -40,9 +39,10 @@ public abstract class BaseTest {
 
         // when
         TestReport report = engine.execute(Collections.singleton(testFile));
-        ExecutedTestFile actual = report.getFile(testFile.getFixture()).get();
+        ExecutedTestFile actual = findResult(report, testFile.getFixture());
 
         // then
+        assertThat(actual.getResults()).containsKey("shouldReportSuccess");
         assertThat(actual.getResults()).hasSize(1);
     }
 
@@ -55,13 +55,18 @@ public abstract class BaseTest {
         // when
         ExecutedTestFile actual = withEnvironmentVariable("SKIP_BY_ENV_VARIABLE", envValue).execute(() -> {
             TestReport report = engine.execute(Collections.singleton(testFile));
-            return report.getFile(fixture).get();
+            return findResult(report, fixture);
         });
 
         // then
         assertThat(actual.getResult("shouldBeSkippedConditionally")).isEqualTo(result);
     }
 
+    private ExecutedTestFile findResult(TestReport report, Class<?> fixture) {
+        return report.getFile(fixture.getName()).get();
+    }
+
+    @SuppressWarnings("unused")
     static ArgumentSets enginesFixturesAndIgnoreEnvVariables(Stream<Class<?>> fixtures) {
         return enginesAndFixtures(fixtures)
                 .argumentsForNextParameter(expectedResultPerEnvVariableValue().entrySet());
@@ -82,8 +87,8 @@ public abstract class BaseTest {
 
     static Stream<TestEngine> engines() {
         return Stream.of(
-                JUnitJupiterEngine.INSTANCE
-                //, MavenSurefireEngine.FOR_TESTS_LOCATED_IN_EXAMPLES
+                JUnitJupiterEngine.INSTANCE,
+                MavenSurefireEngine.FOR_TESTS_LOCATED_IN_EXAMPLES
         );
     }
 }
