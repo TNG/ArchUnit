@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -26,7 +27,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;

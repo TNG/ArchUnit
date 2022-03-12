@@ -16,9 +16,9 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 

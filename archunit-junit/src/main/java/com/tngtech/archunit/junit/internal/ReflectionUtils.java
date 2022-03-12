@@ -26,11 +26,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
-import com.tngtech.archunit.base.Function;
 
 import static com.google.common.collect.Collections2.filter;
 

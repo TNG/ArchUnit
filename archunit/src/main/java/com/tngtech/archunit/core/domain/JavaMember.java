@@ -92,7 +92,7 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type)::apply);
+        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
     }
 
     @Override

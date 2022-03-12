@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -27,7 +28,6 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasName;
@@ -421,7 +421,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Override
         @PublicAPI(usage = ACCESS)
         public ThrowsClause<? extends CodeUnitAccessTarget> getThrowsClause() {
-            Optional<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = resolveMember().map(throwsClause()::apply);
+            Optional<ThrowsClause<JavaCodeUnit>> resolvedThrowsClauses = resolveMember().map(throwsClause());
 
             if (resolvedThrowsClauses.isPresent()) {
                 return ThrowsClause.from(this, resolvedThrowsClauses.get().getTypes());

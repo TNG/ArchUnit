@@ -3,8 +3,7 @@ package com.tngtech.archunit.library.metrics;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.tngtech.archunit.base.Function;
+import java.util.function.Function;
 
 class TestElement {
     private final String name;

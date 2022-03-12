@@ -1,9 +1,9 @@
 package com.tngtech.archunit.library.metrics;
 
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaPackage;

@@ -16,10 +16,10 @@
 package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 

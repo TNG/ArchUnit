@@ -16,9 +16,8 @@
 package com.tngtech.archunit.lang.syntax;
 
 import java.util.Optional;
+import java.util.function.Function;
 
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -28,7 +27,7 @@ import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsInternal<T>> implements GivenObjects<T> {
 
     GivenObjectsInternal(Priority priority, ClassesTransformer<T> classesTransformer) {
-        this(priority, classesTransformer, Functions.<ArchCondition<T>>identity());
+        this(priority, classesTransformer, Function.identity());
     }
 
     GivenObjectsInternal(Priority priority,

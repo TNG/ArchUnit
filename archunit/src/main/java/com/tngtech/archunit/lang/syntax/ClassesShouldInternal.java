@@ -16,9 +16,9 @@
 package com.tngtech.archunit.lang.syntax;
 
 import java.lang.annotation.Annotation;
+import java.util.function.Function;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;

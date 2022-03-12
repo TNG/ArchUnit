@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.java.junit.dataprovider.DataProvider;

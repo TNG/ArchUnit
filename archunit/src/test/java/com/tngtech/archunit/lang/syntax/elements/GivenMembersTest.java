@@ -5,13 +5,13 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.lang.ArchCondition;

@@ -20,13 +20,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;

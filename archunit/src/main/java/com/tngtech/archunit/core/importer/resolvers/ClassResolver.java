@@ -19,13 +19,13 @@ import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.ClassResolverConfigurationException;
 import com.tngtech.archunit.base.ClassLoaders;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ClassFileImporter;

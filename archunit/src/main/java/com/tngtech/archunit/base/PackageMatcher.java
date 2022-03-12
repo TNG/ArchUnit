@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -161,14 +162,11 @@ public final class PackageMatcher {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static final Function<Result, List<String>> TO_GROUPS = new Function<Result, List<String>>() {
-        @Override
-        public List<String> apply(Result input) {
-            List<String> result = new ArrayList<>();
-            for (int i = 0; i < input.getNumberOfGroups(); i++) {
-                result.add(input.getGroup(i + 1));
-            }
-            return result;
+    public static final Function<Result, List<String>> TO_GROUPS = input -> {
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < input.getNumberOfGroups(); i++) {
+            result.add(input.getGroup(i + 1));
         }
+        return result;
     };
 }

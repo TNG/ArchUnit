@@ -16,6 +16,7 @@
 package com.tngtech.archunit.base;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.PublicAPI;

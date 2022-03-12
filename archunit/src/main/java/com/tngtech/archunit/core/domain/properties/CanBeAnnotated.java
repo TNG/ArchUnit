@@ -21,11 +21,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -265,12 +265,7 @@ public interface CanBeAnnotated {
 
         @PublicAPI(usage = ACCESS)
         public static <A extends Annotation> Function<JavaAnnotation<?>, A> toAnnotationOfType(final Class<A> type) {
-            return new Function<JavaAnnotation<?>, A>() {
-                @Override
-                public A apply(JavaAnnotation<?> input) {
-                    return input.as(type);
-                }
-            };
+            return input -> input.as(type);
         }
     }
 }

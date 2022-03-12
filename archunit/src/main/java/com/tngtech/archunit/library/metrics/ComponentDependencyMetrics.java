@@ -17,10 +17,10 @@ package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.google.common.base.Preconditions.checkArgument;

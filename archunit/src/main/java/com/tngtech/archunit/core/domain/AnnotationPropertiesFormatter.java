@@ -21,12 +21,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.base.Joiner;
-import com.tngtech.archunit.base.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.base.Function.Functions.identity;
+import static java.util.function.Function.identity;
 
 class AnnotationPropertiesFormatter {
     private final Function<List<String>, String> arrayFormatter;

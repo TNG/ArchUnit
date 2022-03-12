@@ -19,12 +19,12 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InconsistentClassPathException;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.importer.DomainBuilders;

@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;

@@ -1,6 +1,7 @@
 package com.tngtech.archunit.core.domain.testexamples;
 
-import com.tngtech.archunit.base.Function;
+import java.util.function.Function;
+
 import com.tngtech.archunit.base.Supplier;
 
 @SuppressWarnings("unused")

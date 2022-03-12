@@ -5,11 +5,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;

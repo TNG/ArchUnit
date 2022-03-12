@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
@@ -32,7 +33,6 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
@@ -632,7 +632,7 @@ public class JavaClass
     @Override
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type)::apply);
+        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
     }
 
     /**
@@ -1571,7 +1571,7 @@ public class JavaClass
         }
 
         private Superclass(Optional<JavaType> type) {
-            this.rawType = type.map(TO_ERASURE::apply);
+            this.rawType = type.map(TO_ERASURE);
             this.type = type;
         }
 

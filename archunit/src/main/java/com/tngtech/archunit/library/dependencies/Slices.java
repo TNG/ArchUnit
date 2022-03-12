@@ -331,7 +331,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         @Override
         public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
             PackageMatcher matcher = PackageMatcher.of(packageIdentifier);
-            Optional<List<String>> result = matcher.match(javaClass.getPackageName()).map(TO_GROUPS::apply);
+            Optional<List<String>> result = matcher.match(javaClass.getPackageName()).map(TO_GROUPS);
             List<String> parts = result.orElse(Collections.<String>emptyList());
             return parts.isEmpty() ? SliceIdentifier.ignore() : SliceIdentifier.of(parts);
         }

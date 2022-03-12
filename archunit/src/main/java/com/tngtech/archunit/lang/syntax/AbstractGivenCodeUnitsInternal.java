@@ -16,9 +16,8 @@
 package com.tngtech.archunit.lang.syntax;
 
 import java.util.Optional;
+import java.util.function.Function;
 
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -60,7 +59,7 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
     static class GivenCodeUnitsInternal extends AbstractGivenCodeUnitsInternal<JavaCodeUnit, GivenCodeUnitsInternal> {
 
         GivenCodeUnitsInternal(Priority priority, ClassesTransformer<JavaCodeUnit> classesTransformer) {
-            this(priority, classesTransformer, Functions.<ArchCondition<JavaCodeUnit>>identity());
+            this(priority, classesTransformer, Function.identity());
         }
 
         GivenCodeUnitsInternal(

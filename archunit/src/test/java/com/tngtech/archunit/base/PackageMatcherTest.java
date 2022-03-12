@@ -129,7 +129,7 @@ public class PackageMatcherTest {
         Optional<Result> result = PackageMatcher.of("com.(*)..service.(**)")
                 .match("com.mycompany.some.service.special.name");
 
-        assertThat(result.map(TO_GROUPS::apply).get()).contains("mycompany", "special.name");
+        assertThat(result.map(TO_GROUPS).get()).contains("mycompany", "special.name");
     }
 
     @Test

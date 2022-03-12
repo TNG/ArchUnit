@@ -20,9 +20,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.tngtech.archunit.Internal;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;

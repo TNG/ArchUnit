@@ -16,9 +16,8 @@
 package com.tngtech.archunit.lang.syntax;
 
 import java.util.Optional;
+import java.util.function.Function;
 
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -31,7 +30,7 @@ class GivenFieldsInternal
         implements GivenFields, GivenFieldsConjunction {
 
     GivenFieldsInternal(Priority priority, ClassesTransformer<JavaField> classesTransformer) {
-        this(priority, classesTransformer, Functions.<ArchCondition<JavaField>>identity());
+        this(priority, classesTransformer, Function.identity());
     }
 
     GivenFieldsInternal(

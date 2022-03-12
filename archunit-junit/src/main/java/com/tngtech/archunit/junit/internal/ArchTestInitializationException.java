@@ -1,6 +1,6 @@
 package com.tngtech.archunit.junit.internal;
 
-import com.tngtech.archunit.base.Function;
+import java.util.function.Function;
 
 class ArchTestInitializationException extends RuntimeException {
     private ArchTestInitializationException(String message, Object... args) {

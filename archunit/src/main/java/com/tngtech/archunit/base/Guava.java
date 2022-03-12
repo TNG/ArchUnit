@@ -37,7 +37,7 @@ public final class Guava {
         };
     }
 
-    public static <F, T> Function<F, T> toGuava(final com.tngtech.archunit.base.Function<F, T> function) {
+    public static <F, T> Function<F, T> toGuava(final java.util.function.Function<F, T> function) {
         return new Function<F, T>() {
             @Override
             public T apply(F input) {

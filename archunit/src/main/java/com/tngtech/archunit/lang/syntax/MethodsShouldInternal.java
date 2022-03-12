@@ -15,7 +15,8 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
-import com.tngtech.archunit.base.Function;
+import java.util.function.Function;
+
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;

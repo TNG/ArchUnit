@@ -3,9 +3,9 @@ package com.tngtech.archunit.lang.syntax.elements;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasType;

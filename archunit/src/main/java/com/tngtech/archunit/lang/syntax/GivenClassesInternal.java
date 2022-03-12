@@ -16,10 +16,9 @@
 package com.tngtech.archunit.lang.syntax;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -34,7 +33,7 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
         implements GivenClasses, GivenClassesConjunction {
 
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer) {
-        this(priority, classesTransformer, Functions.<ArchCondition<JavaClass>>identity());
+        this(priority, classesTransformer, Function.identity());
     }
 
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer,

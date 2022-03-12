@@ -16,11 +16,11 @@
 package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
+import java.util.function.Function;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Function;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.singleton;

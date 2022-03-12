@@ -462,7 +462,11 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public AnnotationVisitor visitAnnotation(String name, String desc) {
-                return new AnnotationProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+                return new AnnotationProcessor(
+                        new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler),
+                        declarationHandler,
+                        handleAnnotationAnnotationProperty(desc, declarationHandler)
+                );
             }
 
             @Override

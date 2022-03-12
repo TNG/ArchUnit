@@ -5,8 +5,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.function.Function;
 
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImporter;
 import com.tngtech.archunit.testutil.TestUtils;

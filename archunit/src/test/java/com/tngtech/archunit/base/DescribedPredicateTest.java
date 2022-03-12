@@ -1,6 +1,7 @@
 package com.tngtech.archunit.base;
 
 import java.util.Collections;
+import java.util.function.Function;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProvider;

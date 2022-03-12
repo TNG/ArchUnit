@@ -74,35 +74,26 @@ class JavaClassMembers {
                 .addAll(methods)
                 .addAll(constructors)
                 .build();
-        allFields = Suppliers.memoize(new Supplier<Set<JavaField>>() {
-            @Override
-            public Set<JavaField> get() {
-                ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
-                for (JavaClass javaClass : concat(owner.getClassHierarchy(), owner.getAllRawInterfaces())) {
-                    result.addAll(javaClass.getFields());
-                }
-                return result.build();
+        allFields = Suppliers.memoize(() -> {
+            ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
+            for (JavaClass javaClass : concat(owner.getClassHierarchy(), owner.getAllRawInterfaces())) {
+                result.addAll(javaClass.getFields());
             }
+            return result.build();
         });
-        allMethods = Suppliers.memoize(new Supplier<Set<JavaMethod>>() {
-            @Override
-            public Set<JavaMethod> get() {
-                ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
-                for (JavaClass javaClass : concat(owner.getClassHierarchy(), owner.getAllRawInterfaces())) {
-                    result.addAll(javaClass.getMethods());
-                }
-                return result.build();
+        allMethods = Suppliers.memoize(() -> {
+            ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
+            for (JavaClass javaClass : concat(owner.getClassHierarchy(), owner.getAllRawInterfaces())) {
+                result.addAll(javaClass.getMethods());
             }
+            return result.build();
         });
-        allConstructors = Suppliers.memoize(new Supplier<Set<JavaConstructor>>() {
-            @Override
-            public Set<JavaConstructor> get() {
-                ImmutableSet.Builder<JavaConstructor> result = ImmutableSet.builder();
-                for (JavaClass javaClass : owner.getClassHierarchy()) {
-                    result.addAll(javaClass.getConstructors());
-                }
-                return result.build();
+        allConstructors = Suppliers.memoize(() -> {
+            ImmutableSet.Builder<JavaConstructor> result = ImmutableSet.builder();
+            for (JavaClass javaClass : owner.getClassHierarchy()) {
+                result.addAll(javaClass.getConstructors());
             }
+            return result.build();
         });
     }
 
