@@ -17,8 +17,6 @@ package com.tngtech.archunit.library.plantuml;
 
 import java.util.Objects;
 
-import com.google.common.base.Function;
-
 class ParsedDependency {
     private final ComponentIdentifier origin;
     private final ComponentIdentifier target;
@@ -62,10 +60,4 @@ class ParsedDependency {
                 '}';
     }
 
-    static final Function<ParsedDependency, ComponentIdentifier> GET_ORIGIN = new Function<ParsedDependency, ComponentIdentifier>() {
-        @Override
-        public ComponentIdentifier apply(ParsedDependency input) {
-            return input.getOrigin();
-        }
-    };
 }

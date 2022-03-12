@@ -107,45 +107,25 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         }
 
         private Predicate<JarEntry> classFilesBeneath(final NormalizedResourceName prefix) {
-            return new Predicate<JarEntry>() {
-                @Override
-                public boolean apply(JarEntry input) {
-                    return input.getName().startsWith(prefix.toEntryName())
-                            && FileToImport.isRelevant(input.getName());
-                }
-            };
+            return input -> input.getName().startsWith(prefix.toEntryName())
+                    && FileToImport.isRelevant(input.getName());
         }
 
         private Function<JarEntry, ClassFileInJar> toClassFilesInJarOf(final JarURLConnection connection) {
-            return new Function<JarEntry, ClassFileInJar>() {
-                @Override
-                public ClassFileInJar apply(JarEntry input) {
-                    return new ClassFileInJar(connection, input);
-                }
-            };
+            return input -> new ClassFileInJar(connection, input);
         }
 
         private Predicate<ClassFileInJar> by(final ImportOptions importOptions) {
-            return new Predicate<ClassFileInJar>() {
-                @Override
-                public boolean apply(ClassFileInJar input) {
-                    return input.isIncludedIn(importOptions);
-                }
-            };
+            return input -> input.isIncludedIn(importOptions);
         }
 
         private Function<ClassFileInJar, ClassFileLocation> toInputStreamSupplier() {
-            return new Function<ClassFileInJar, ClassFileLocation>() {
+            return input -> new InputStreamSupplierClassFileLocation(input.getUri(), new InputStreamSupplier() {
                 @Override
-                public ClassFileLocation apply(final ClassFileInJar input) {
-                    return new InputStreamSupplierClassFileLocation(input.getUri(), new InputStreamSupplier() {
-                        @Override
-                        InputStream getInputStream() throws IOException {
-                            return input.openStream();
-                        }
-                    });
+                InputStream getInputStream() throws IOException {
+                    return input.openStream();
                 }
-            };
+            });
         }
 
         @Override

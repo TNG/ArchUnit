@@ -8,11 +8,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.jar.JarFile;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.testutil.SystemPropertiesRule;
@@ -24,6 +23,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.union;
 import static java.util.jar.Attributes.Name.CLASS_PATH;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UrlSourceTest {
@@ -170,18 +171,13 @@ public class UrlSourceTest {
     private WrittenJarFile writeJarWithManifestClasspathAttribute(final File folder, String identifier, ManifestClasspathEntry... additionalClasspathManifestClasspathEntries) {
         Set<ManifestClasspathEntry> classpathManifestEntries = union(createManifestClasspathEntries(identifier), ImmutableSet.copyOf(additionalClasspathManifestClasspathEntries));
         JarFile jarFile = new TestJarFile()
-                .withManifestAttribute(CLASS_PATH, Joiner.on(" ").join(FluentIterable.from(classpathManifestEntries).transform(resolveTo(folder)).toSet()))
+                .withManifestAttribute(CLASS_PATH, Joiner.on(" ").join(classpathManifestEntries.stream().map(resolveTo(folder)).collect(toSet())))
                 .create(new File(folder, identifier.replace(File.separator, "-") + ".jar"));
         return new WrittenJarFile(Paths.get(jarFile.getName()), classpathManifestEntries);
     }
 
     private Function<ManifestClasspathEntry, String> resolveTo(final File folder) {
-        return new Function<ManifestClasspathEntry, String>() {
-            @Override
-            public String apply(ManifestClasspathEntry manifestClasspathEntry) {
-                return manifestClasspathEntry.create(folder);
-            }
-        };
+        return manifestClasspathEntry -> manifestClasspathEntry.create(folder);
     }
 
     private Set<ManifestClasspathEntry> createManifestClasspathEntries(String infix) {
@@ -211,13 +207,7 @@ public class UrlSourceTest {
         }
 
         public Iterable<URL> getExpectedClasspathUrls() {
-            return FluentIterable.from(classpathManifestEntries)
-                    .transform(new Function<ManifestClasspathEntry, URL>() {
-                        @Override
-                        public URL apply(ManifestClasspathEntry input) {
-                            return input.toExpectedClasspathUrl();
-                        }
-                    });
+            return classpathManifestEntries.stream().map(ManifestClasspathEntry::toExpectedClasspathUrl).collect(toList());
         }
     }
 

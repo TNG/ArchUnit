@@ -11,7 +11,6 @@ import com.tngtech.archunit.core.importer.resolvers.testclasses.seconddependency
 import com.tngtech.archunit.core.importer.resolvers.testclasses.thirddependency.ThirdDependency;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -60,12 +59,7 @@ public class SelectedClassResolverFromClasspathTest {
     }
 
     private URI uriFor(final Class<?> clazz) {
-        return argThat(new ArgumentMatcher<URI>() {
-            @Override
-            public boolean matches(URI argument) {
-                return argument.toString().contains(clazz.getSimpleName());
-            }
-        });
+        return argThat(argument -> argument.toString().contains(clazz.getSimpleName()));
     }
 
     private ImmutableList<String> packages(String... subpackages) {

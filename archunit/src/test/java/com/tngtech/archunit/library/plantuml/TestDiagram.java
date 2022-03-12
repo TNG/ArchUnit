@@ -2,20 +2,17 @@ package com.tngtech.archunit.library.plantuml;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
 import org.junit.rules.TemporaryFolder;
 
 import static java.lang.System.lineSeparator;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.joining;
 
 class TestDiagram {
     private final List<String> lines = new ArrayList<>();
@@ -30,13 +27,9 @@ class TestDiagram {
     }
 
     private TestDiagram addComponent(ComponentCreator creator) {
-        String stereotypes = FluentIterable.from(creator.stereotypes)
-                .transform(new Function<String, String>() {
-                    @Override
-                    public String apply(String input) {
-                        return "<<" + input + ">>";
-                    }
-                }).join(Joiner.on(" "));
+        String stereotypes = creator.stereotypes
+                .stream().map(input -> "<<" + input + ">>")
+                .collect(joining(" "));
         String line = String.format("[%s] %s", creator.componentName, stereotypes);
         if (creator.alias != null) {
             line += " as " + creator.alias;
@@ -63,13 +56,12 @@ class TestDiagram {
 
     File write() {
         File file = createTempFile();
-        String diagram = FluentIterable.from(singleton("@startuml"))
-                .append(lines)
-                .append("@enduml")
-                .join(Joiner.on(lineSeparator()));
+        String diagram = "@startuml" + lineSeparator() +
+                lines.stream().collect(joining(lineSeparator())) + lineSeparator() +
+                "@enduml";
 
         try {
-            Files.write(diagram, file, UTF_8);
+            Files.write(file.toPath(), diagram.getBytes(UTF_8));
             return file;
         } catch (IOException e) {
             throw new RuntimeException(e);

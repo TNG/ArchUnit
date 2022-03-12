@@ -141,12 +141,7 @@ public interface ClassResolver {
         private Function<Exception, ClassResolverConfigurationException> instantiationException(
                 final Constructor<?> constructor, final List<String> args) {
 
-            return new Function<Exception, ClassResolverConfigurationException>() {
-                @Override
-                public ClassResolverConfigurationException apply(Exception cause) {
-                    return ClassResolverConfigurationException.onInstantiation(constructor, args, cause);
-                }
-            };
+            return cause -> ClassResolverConfigurationException.onInstantiation(constructor, args, cause);
         }
 
         private Optional<Constructor<?>> tryGetListConstructor(Class<?> resolverClass) {

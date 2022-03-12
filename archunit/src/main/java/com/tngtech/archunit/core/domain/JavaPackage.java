@@ -517,13 +517,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         return getClass().getSimpleName() + "[" + getName() + "]";
     }
 
-    private final Function<? super JavaAnnotation<JavaClass>, JavaAnnotation<JavaPackage>> withSelfAsOwner =
-            new Function<JavaAnnotation<JavaClass>, JavaAnnotation<JavaPackage>>() {
-                @Override
-                public JavaAnnotation<JavaPackage> apply(JavaAnnotation<JavaClass> input) {
-                    return input.withOwner(JavaPackage.this);
-                }
-            };
+    private final Function<? super JavaAnnotation<JavaClass>, JavaAnnotation<JavaPackage>> withSelfAsOwner = input -> input.withOwner(JavaPackage.this);
 
     static JavaPackage simple(JavaClass javaClass) {
         String packageName = javaClass.getPackageName();

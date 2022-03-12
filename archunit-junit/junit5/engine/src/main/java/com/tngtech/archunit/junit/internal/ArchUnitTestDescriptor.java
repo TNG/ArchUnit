@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.tngtech.archunit.junit.internal.ArchTestInitializationException.WRAP_CAUSE;
 import static com.tngtech.archunit.junit.internal.DisplayNameResolver.determineDisplayName;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllMethods;
@@ -114,7 +113,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static <T> T getValue(Field field) {
-        return getValueOrThrowException(field, field.getDeclaringClass(), WRAP_CAUSE);
+        return getValueOrThrowException(field, field.getDeclaringClass(), ArchTestInitializationException::new);
     }
 
     private static void resolveArchRules(

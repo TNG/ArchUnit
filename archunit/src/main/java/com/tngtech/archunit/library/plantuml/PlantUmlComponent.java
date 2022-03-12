@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.tngtech.archunit.library.plantuml.PlantUmlComponentDependency.GET_TARGET;
 import static java.util.Collections.emptyList;
 
 class PlantUmlComponent {
@@ -43,7 +42,7 @@ class PlantUmlComponent {
     }
 
     List<PlantUmlComponent> getDependencies() {
-        return FluentIterable.from(dependencies).transform(GET_TARGET).toList();
+        return FluentIterable.from(dependencies).transform(PlantUmlComponentDependency::getTarget).toList();
     }
 
     ComponentName getComponentName() {
@@ -98,21 +97,12 @@ class PlantUmlComponent {
     }
 
     static class Functions {
-        static final Function<PlantUmlComponent, ComponentName> GET_COMPONENT_NAME =
-                new Function<PlantUmlComponent, ComponentName>() {
-                    @Override
-                    public ComponentName apply(PlantUmlComponent input) {
-                        return input.getComponentName();
-                    }
-                };
+        static final Function<PlantUmlComponent, ComponentName> GET_COMPONENT_NAME = PlantUmlComponent::getComponentName;
 
         static final Function<PlantUmlComponent, Alias> TO_EXISTING_ALIAS =
-                new Function<PlantUmlComponent, Alias>() {
-                    @Override
-                    public Alias apply(PlantUmlComponent input) {
-                        checkState(input.getAlias().isPresent(), "Alias does not exist");
-                        return input.getAlias().get();
-                    }
+                input -> {
+                    checkState(input.getAlias().isPresent(), "Alias does not exist");
+                    return input.getAlias().get();
                 };
     }
 

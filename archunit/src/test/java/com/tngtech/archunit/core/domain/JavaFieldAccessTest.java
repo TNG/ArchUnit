@@ -23,7 +23,6 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 
-
 @RunWith(DataProviderRunner.class)
 public class JavaFieldAccessTest {
     @Test

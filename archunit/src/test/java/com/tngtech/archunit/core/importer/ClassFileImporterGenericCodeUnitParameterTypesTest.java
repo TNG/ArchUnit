@@ -6,7 +6,6 @@ import java.lang.ref.Reference;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
@@ -631,14 +630,11 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
             }
         }
 
-        JavaClasses classes = resetConfigurationAround(new Callable<JavaClasses>() {
-            @Override
-            public JavaClasses call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassesWithOnlyGenericTypeResolution(
-                        OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
-                        OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class);
-            }
+        JavaClasses classes = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassesWithOnlyGenericTypeResolution(
+                    OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
+                    OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class);
         });
 
         return testForEach(
@@ -796,15 +792,12 @@ public class ClassFileImporterGenericCodeUnitParameterTypesTest {
             }
         }
 
-        JavaClasses classes = resetConfigurationAround(new Callable<JavaClasses>() {
-            @Override
-            public JavaClasses call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassesWithOnlyGenericTypeResolution(
-                        OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
-                        OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class,
-                        ClassParameterWithSingleTypeParameter.class);
-            }
+        JavaClasses classes = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassesWithOnlyGenericTypeResolution(
+                    OuterWithTypeParameter.SomeInner.GenericSignatureOnConstructor.class,
+                    OuterWithTypeParameter.SomeInner.GenericSignatureOnMethod.class,
+                    ClassParameterWithSingleTypeParameter.class);
         });
 
         return testForEach(

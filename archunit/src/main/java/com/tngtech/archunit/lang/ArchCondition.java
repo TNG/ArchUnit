@@ -51,7 +51,7 @@ public abstract class ArchCondition<T> {
 
     /**
      * Can be used/overridden to finish the evaluation of this condition.<br>
-     * ArchUnit will call this method once after every single item was checked (by {@link #check(Object, ConditionEvents)}.<br>
+     * ArchUnit will call this method once after every single item was checked (by {@link #check(Object, ConditionEvents)}).<br>
      * This method can be used, if violations are dependent on multiple/all {@link #check(Object, ConditionEvents)} calls,
      * on the contrary to the default case, where each single {@link #check(Object, ConditionEvents)} stands for itself.
      */
@@ -59,11 +59,11 @@ public abstract class ArchCondition<T> {
     }
 
     public ArchCondition<T> and(ArchCondition<? super T> condition) {
-        return new AndCondition<>(this, condition.<T>forSubtype());
+        return new AndCondition<>(this, condition.forSubtype());
     }
 
     public ArchCondition<T> or(ArchCondition<? super T> condition) {
-        return new OrCondition<>(this, condition.<T>forSubtype());
+        return new OrCondition<>(this, condition.forSubtype());
     }
 
     public String getDescription() {
@@ -266,12 +266,7 @@ public abstract class ArchCondition<T> {
         @Override
         public void handleWith(final Handler handler) {
             for (ConditionWithEvents<T> condition : evaluatedConditions) {
-                condition.events.handleViolations(new ViolationHandler<Object>() {
-                    @Override
-                    public void handle(Collection<Object> violatingObjects, String message) {
-                        handler.handle(violatingObjects, message);
-                    }
-                });
+                condition.events.handleViolations(handler::handle);
             }
         }
     }

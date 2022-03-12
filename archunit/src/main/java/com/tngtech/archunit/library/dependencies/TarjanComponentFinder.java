@@ -124,15 +124,8 @@ class TarjanComponentFinder {
     }
 
     private int[] findComponentWithLowestNode(List<int[]> component) {
-        int[] componentWithLowestNodeIndex = Ordering.natural().onResultOf(MINIMUM_OF_INT_ARRAY).min(component);
+        int[] componentWithLowestNodeIndex = Ordering.natural().onResultOf((Function<int[], Integer>) Ints::min).min(component);
         sort(componentWithLowestNodeIndex);
         return componentWithLowestNodeIndex;
     }
-
-    private static final Function<int[], Integer> MINIMUM_OF_INT_ARRAY = new Function<int[], Integer>() {
-        @Override
-        public Integer apply(int[] input) {
-            return Ints.min(input);
-        }
-    };
 }

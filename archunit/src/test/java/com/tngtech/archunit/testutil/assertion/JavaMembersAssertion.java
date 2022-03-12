@@ -6,7 +6,6 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +14,7 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -31,7 +31,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.VOLATILE;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.runtimePropertiesOf;
-import static com.tngtech.archunit.testutil.assertion.JavaMemberAssertion.getExpectedFullNameOf;
+import static java.util.Comparator.comparing;
 
 public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssertion, List<JavaMember>> {
     public JavaMembersAssertion(Iterable<? extends JavaMember> javaMembers) {
@@ -40,12 +40,7 @@ public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssert
 
     private static List<JavaMember> sort(Iterable<? extends JavaMember> actual) {
         List<JavaMember> result = newArrayList(actual);
-        Collections.sort(result, new Comparator<JavaMember>() {
-            @Override
-            public int compare(JavaMember o1, JavaMember o2) {
-                return o1.getFullName().compareTo(o2.getFullName());
-            }
-        });
+        Collections.sort(result, comparing(HasName.AndFullName::getFullName));
         return result;
     }
 
@@ -60,12 +55,7 @@ public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssert
 
     private <M extends Member & AnnotatedElement> List<M> sort(Collection<M> expectedMembers) {
         List<M> sorted = new ArrayList<>(expectedMembers);
-        Collections.sort(sorted, new Comparator<M>() {
-            @Override
-            public int compare(M o1, M o2) {
-                return getExpectedFullNameOf(o1).compareTo(getExpectedFullNameOf(o2));
-            }
-        });
+        Collections.sort(sorted, comparing(JavaMemberAssertion::getExpectedFullNameOf));
         return sorted;
     }
 

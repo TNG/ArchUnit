@@ -67,17 +67,14 @@ final class ReverseDependencies {
     }
 
     private static Supplier<SetMultimap<JavaClass, Dependency>> createDirectDependenciesToClassSupplier(final List<JavaClassDependencies> allDependencies) {
-        return Suppliers.memoize(new Supplier<SetMultimap<JavaClass, Dependency>>() {
-            @Override
-            public SetMultimap<JavaClass, Dependency> get() {
-                ImmutableSetMultimap.Builder<JavaClass, Dependency> result = ImmutableSetMultimap.builder();
-                for (JavaClassDependencies dependencies : allDependencies) {
-                    for (Dependency dependency : dependencies.getDirectDependenciesFromClass()) {
-                        result.put(dependency.getTargetClass(), dependency);
-                    }
+        return Suppliers.memoize(() -> {
+            ImmutableSetMultimap.Builder<JavaClass, Dependency> result = ImmutableSetMultimap.builder();
+            for (JavaClassDependencies dependencies : allDependencies) {
+                for (Dependency dependency : dependencies.getDirectDependenciesFromClass()) {
+                    result.put(dependency.getTargetClass(), dependency);
                 }
-                return result.build();
             }
+            return result.build();
         });
     }
 

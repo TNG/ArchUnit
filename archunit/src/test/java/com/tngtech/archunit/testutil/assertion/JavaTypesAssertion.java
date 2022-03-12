@@ -1,7 +1,6 @@
 package com.tngtech.archunit.testutil.assertion;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +17,7 @@ import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.TestUtils.sortByName;
 import static java.util.Arrays.sort;
+import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion, JavaType[]> {
@@ -98,12 +98,7 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
 
     private Class<?>[] sortedClasses(Iterable<Class<?>> classes) {
         Class<?>[] sorted = toArray(classes, Class.class);
-        sort(sorted, new Comparator<Class<?>>() {
-            @Override
-            public int compare(Class<?> o1, Class<?> o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        sort(sorted, comparing(Class::getName));
         return sorted;
     }
 }

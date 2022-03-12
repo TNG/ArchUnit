@@ -29,21 +29,11 @@ import com.tngtech.archunit.Internal;
 @Internal
 public final class Guava {
     public static <T> Predicate<T> toGuava(final DescribedPredicate<T> predicate) {
-        return new Predicate<T>() {
-            @Override
-            public boolean apply(T input) {
-                return predicate.test(input);
-            }
-        };
+        return input -> predicate.test(input);
     }
 
     public static <F, T> Function<F, T> toGuava(final java.util.function.Function<F, T> function) {
-        return new Function<F, T>() {
-            @Override
-            public T apply(F input) {
-                return function.apply(input);
-            }
-        };
+        return input -> function.apply(input);
     }
 
     @Internal

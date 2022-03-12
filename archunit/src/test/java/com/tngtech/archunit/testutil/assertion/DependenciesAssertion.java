@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -85,21 +84,12 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         FluentIterable<Dependency> rest = FluentIterable.from(actual);
         List<ExpectedDependency> missingDependencies = new ArrayList<>();
         for (final ExpectedDependency expectedDependency : expectedDependencies) {
-            if (!rest.anyMatch(matches(expectedDependency))) {
+            if (!rest.anyMatch(expectedDependency::matches)) {
                 missingDependencies.add(expectedDependency);
             }
-            rest = rest.filter(not(matches(expectedDependency)));
+            rest = rest.filter(not(expectedDependency::matches));
         }
         return new ExpectedDependenciesMatchResult(missingDependencies, rest.toList());
-    }
-
-    private Predicate<Dependency> matches(final ExpectedDependency expectedDependency) {
-        return new Predicate<Dependency>() {
-            @Override
-            public boolean apply(Dependency input) {
-                return expectedDependency.matches(input);
-            }
-        };
     }
 
     public DependenciesAssertion containOnly(Class<?> expectedOrigin, Class<?> expectedTarget) {

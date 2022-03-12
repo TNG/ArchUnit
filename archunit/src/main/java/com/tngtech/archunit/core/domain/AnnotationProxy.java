@@ -286,12 +286,9 @@ class AnnotationProxy {
         }
 
         private Map<String, Object> unwrapProxiedProperties() {
-            return Maps.transformEntries(toProxy.getProperties(), new Maps.EntryTransformer<String, Object, Object>() {
-                @Override
-                public Object transformEntry(String key, Object value) {
-                    Class<?> returnType = getDeclaredMethod(key).getReturnType();
-                    return conversions.convertIfNecessary(value, returnType);
-                }
+            return Maps.transformEntries(toProxy.getProperties(), (key, value) -> {
+                Class<?> returnType = getDeclaredMethod(key).getReturnType();
+                return conversions.convertIfNecessary(value, returnType);
             });
         }
 

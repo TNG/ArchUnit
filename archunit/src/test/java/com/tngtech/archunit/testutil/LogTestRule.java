@@ -3,7 +3,6 @@ package com.tngtech.archunit.testutil;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -82,12 +81,7 @@ public class LogTestRule extends ExternalResource {
     }
 
     private Iterable<RecordedLogEvent> filterByLevel(List<RecordedLogEvent> events, final Level level) {
-        return FluentIterable.from(events).filter(new Predicate<RecordedLogEvent>() {
-            @Override
-            public boolean apply(RecordedLogEvent input) {
-                return input.getLevel().equals(level);
-            }
-        });
+        return FluentIterable.from(events).filter(input -> input.getLevel().equals(level));
     }
 
     private static class RecordedLogEvent {

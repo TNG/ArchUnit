@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -59,7 +58,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodReferenceBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
-import com.tngtech.archunit.core.importer.ImportedClasses.MethodReturnTypeGetter;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
@@ -89,12 +87,7 @@ class ClassGraphCreator implements ImportContext {
     ClassGraphCreator(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess, ClassResolver classResolver) {
         this.importRecord = importRecord;
         this.dependencyResolutionProcess = dependencyResolutionProcess;
-        classes = new ImportedClasses(importRecord.getClasses(), classResolver, new MethodReturnTypeGetter() {
-            @Override
-            public Optional<JavaClass> getReturnType(String declaringClassName, String methodName) {
-                return getMethodReturnType(declaringClassName, methodName);
-            }
-        });
+        classes = new ImportedClasses(importRecord.getClasses(), classResolver, this::getMethodReturnType);
     }
 
     JavaClasses complete() {
@@ -257,12 +250,9 @@ class ClassGraphCreator implements ImportContext {
         Set<DomainBuilders.JavaMethodBuilder> methodBuilders = importRecord.getMethodBuildersFor(owner.getName());
         if (owner.isAnnotation()) {
             for (DomainBuilders.JavaMethodBuilder methodBuilder : methodBuilders) {
-                methodBuilder.withAnnotationDefaultValue(new Function<JavaMethod, Optional<Object>>() {
-                    @Override
-                    public Optional<Object> apply(JavaMethod method) {
-                        Optional<ValueBuilder> defaultValueBuilder = importRecord.getAnnotationDefaultValueBuilderFor(method);
-                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, classes) : Optional.empty();
-                    }
+                methodBuilder.withAnnotationDefaultValue(method -> {
+                    Optional<ValueBuilder> defaultValueBuilder = importRecord.getAnnotationDefaultValueBuilderFor(method);
+                    return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, classes) : Optional.empty();
                 });
             }
         }

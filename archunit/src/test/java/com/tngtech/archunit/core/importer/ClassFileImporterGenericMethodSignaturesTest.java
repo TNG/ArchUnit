@@ -7,7 +7,6 @@ import java.lang.ref.Reference;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 import com.google.common.collect.FluentIterable;
@@ -641,14 +640,11 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             }
         }
 
-        JavaClasses classes = resetConfigurationAround(new Callable<JavaClasses>() {
-            @Override
-            public JavaClasses call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassesWithOnlyGenericTypeResolution(
-                        Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnConstructor.class,
-                        Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class);
-            }
+        JavaClasses classes = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassesWithOnlyGenericTypeResolution(
+                    Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnConstructor.class,
+                    Outer.SomeInner.EvenMoreInnerDeclaringOwn.GenericSignatureOnMethod.class);
         });
 
         return testForEach(
@@ -801,15 +797,12 @@ public class ClassFileImporterGenericMethodSignaturesTest {
             }
         }
 
-        JavaClasses classes = resetConfigurationAround(new Callable<JavaClasses>() {
-            @Override
-            public JavaClasses call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassesWithOnlyGenericTypeResolution(
-                        Outer.Inner.GenericSignatureOnConstructor.class,
-                        Outer.Inner.GenericSignatureOnMethod.class,
-                        List.class);
-            }
+        JavaClasses classes = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassesWithOnlyGenericTypeResolution(
+                    Outer.Inner.GenericSignatureOnConstructor.class,
+                    Outer.Inner.GenericSignatureOnMethod.class,
+                    List.class);
         });
 
         return testForEach(

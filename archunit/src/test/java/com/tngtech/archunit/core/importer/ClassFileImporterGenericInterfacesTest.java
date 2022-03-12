@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -261,12 +260,9 @@ public class ClassFileImporterGenericInterfacesTest {
             }
         }
 
-        JavaType genericInterface = resetConfigurationAround(new Callable<JavaType>() {
-            @Override
-            public JavaType call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return getOnlyElement(importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
-            }
+        JavaType genericInterface = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return getOnlyElement(importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
         });
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(
@@ -355,14 +351,11 @@ public class ClassFileImporterGenericInterfacesTest {
             }
         }
 
-        JavaType genericInterface = resetConfigurationAround(new Callable<JavaType>() {
-            @Override
-            public JavaType call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return getOnlyElement(
-                        importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.Child.class, ClassParameterWithSingleTypeParameter.class)
-                                .get(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
-            }
+        JavaType genericInterface = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return getOnlyElement(
+                    importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.Child.class, ClassParameterWithSingleTypeParameter.class)
+                            .get(OuterWithTypeParameter.SomeInner.Child.class).getInterfaces());
         });
 
         assertThatType(genericInterface).as("generic interface").hasActualTypeArguments(

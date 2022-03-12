@@ -17,8 +17,6 @@ package com.tngtech.archunit.library.plantuml;
 
 import java.util.Objects;
 
-import com.google.common.base.Function;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 class PlantUmlComponentDependency {
@@ -63,12 +61,4 @@ class PlantUmlComponentDependency {
                 ", target=" + target +
                 '}';
     }
-
-    static final Function<PlantUmlComponentDependency, PlantUmlComponent> GET_TARGET =
-            new Function<PlantUmlComponentDependency, PlantUmlComponent>() {
-                @Override
-                public PlantUmlComponent apply(PlantUmlComponentDependency input) {
-                    return input.getTarget();
-                }
-            };
 }

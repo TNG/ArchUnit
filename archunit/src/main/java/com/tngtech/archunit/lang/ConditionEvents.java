@@ -19,16 +19,15 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Ordering;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.Ordering.natural;
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -85,9 +84,10 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
      */
     @PublicAPI(usage = ACCESS)
     public FailureMessages getFailureMessages() {
-        ImmutableList<String> result = FluentIterable.from(getViolating())
-                .transformAndConcat(TO_DESCRIPTION_LINES)
-                .toSortedList(Ordering.natural());
+        ImmutableList<String> result = getViolating().stream()
+                .flatMap(event -> event.getDescriptionLines().stream())
+                .sorted(natural())
+                .collect(toImmutableList());
         return new FailureMessages(result, informationAboutNumberOfViolations);
     }
 
@@ -114,15 +114,12 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
         final Class<?> supportedElementType = TypeToken.of(handler.getClass())
                 .resolveType(ViolationHandler.class.getTypeParameters()[0]).getRawType();
 
-        return new ConditionEvent.Handler() {
-            @Override
-            public void handle(Collection<?> correspondingObjects, String message) {
-                if (allElementTypesMatch(correspondingObjects, supportedElementType)) {
-                    // If all elements are assignable to T (= supportedElementType), covariance of Collection allows this cast
-                    @SuppressWarnings("unchecked")
-                    Collection<T> collection = (Collection<T>) correspondingObjects;
-                    handler.handle(collection, message);
-                }
+        return (correspondingObjects, message) -> {
+            if (allElementTypesMatch(correspondingObjects, supportedElementType)) {
+                // If all elements are assignable to T (= supportedElementType), covariance of Collection allows this cast
+                @SuppressWarnings("unchecked")
+                Collection<T> collection = (Collection<T>) correspondingObjects;
+                handler.handle(collection, message);
             }
         };
     }
@@ -149,13 +146,6 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
                 "; Violating Events: " + getViolating() +
                 '}';
     }
-
-    private static final Function<ConditionEvent, Iterable<String>> TO_DESCRIPTION_LINES = new Function<ConditionEvent, Iterable<String>>() {
-        @Override
-        public Iterable<String> apply(ConditionEvent input) {
-            return input.getDescriptionLines();
-        }
-    };
 
     private enum Type {
         ALLOWED, VIOLATION;

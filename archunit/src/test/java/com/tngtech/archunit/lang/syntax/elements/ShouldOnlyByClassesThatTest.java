@@ -1136,6 +1136,7 @@ public class ShouldOnlyByClassesThatTest {
     }
 
     @Test
+    @SuppressWarnings("Convert2Lambda") // the test expects an anonymous class, not a lambda
     public void onlyHaveDependentClassesThat_reports_all_dependents() {
         Function<ArchRule, Set<JavaClass>> filterViolationOriginsInFailureReport = new Function<ArchRule, Set<JavaClass>>() {
             @Override
@@ -1428,6 +1429,7 @@ public class ShouldOnlyByClassesThatTest {
         }
     }
 
+    @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"}) // the test expects an anonymous class, not a lambda
     private static final Runnable anonymousClassBeingAccessed = new Runnable() {
         @Override
         public void run() {

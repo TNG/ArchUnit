@@ -6,7 +6,6 @@ import java.lang.ref.Reference;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaType;
@@ -299,12 +298,9 @@ public class ClassFileImporterGenericSuperclassTest {
             }
         }
 
-        JavaType genericSuperclass = resetConfigurationAround(new Callable<JavaType>() {
-            @Override
-            public JavaType call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
-            }
+        JavaType genericSuperclass = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
         });
         ;
 
@@ -408,13 +404,10 @@ public class ClassFileImporterGenericSuperclassTest {
             }
         }
 
-        JavaType genericSuperclass = resetConfigurationAround(new Callable<JavaType>() {
-            @Override
-            public JavaType call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.Child.class, ClassParameterWithSingleTypeParameter.class)
-                        .get(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
-            }
+        JavaType genericSuperclass = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.Child.class, ClassParameterWithSingleTypeParameter.class)
+                    .get(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
         });
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(

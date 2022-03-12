@@ -57,10 +57,5 @@ class PlantUmlComponents {
         return componentsByName.get(identifier.getComponentName());
     }
 
-    private static final Predicate<PlantUmlComponent> WITH_ALIAS = new Predicate<PlantUmlComponent>() {
-        @Override
-        public boolean apply(PlantUmlComponent input) {
-            return input.getAlias().isPresent();
-        }
-    };
+    private static final Predicate<PlantUmlComponent> WITH_ALIAS = input -> input.getAlias().isPresent();
 }

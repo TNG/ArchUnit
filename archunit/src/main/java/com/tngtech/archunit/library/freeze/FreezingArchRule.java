@@ -156,12 +156,7 @@ public final class FreezingArchRule implements ArchRule {
 
     private EvaluationResult filterOutKnownViolations(EvaluationResultLineBreakAdapter result, final Set<String> knownActualViolations) {
         log.debug("Filtering out known violations: {}", knownActualViolations);
-        return result.filterDescriptionsMatching(new Predicate<String>() {
-            @Override
-            public boolean test(String violation) {
-                return !knownActualViolations.contains(violation);
-            }
-        });
+        return result.filterDescriptionsMatching(violation -> !knownActualViolations.contains(violation));
     }
 
     @Override
@@ -302,12 +297,7 @@ public final class FreezingArchRule implements ArchRule {
         }
 
         EvaluationResult filterDescriptionsMatching(final Predicate<String> predicate) {
-            return result.filterDescriptionsMatching(new Predicate<String>() {
-                @Override
-                public boolean test(String input) {
-                    return predicate.test(ensureUnixLineBreaks(input));
-                }
-            });
+            return result.filterDescriptionsMatching(input -> predicate.test(ensureUnixLineBreaks(input)));
         }
     }
 }

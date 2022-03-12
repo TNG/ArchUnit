@@ -42,22 +42,19 @@ class JavaClassDependencies {
     }
 
     private Supplier<Set<Dependency>> createDirectDependenciesFromClassSupplier() {
-        return memoize(new Supplier<Set<Dependency>>() {
-            @Override
-            public Set<Dependency> get() {
-                ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-                result.addAll(dependenciesFromAccesses(javaClass.getAccessesFromSelf()));
-                result.addAll(inheritanceDependenciesFromSelf());
-                result.addAll(fieldDependenciesFromSelf());
-                result.addAll(returnTypeDependenciesFromSelf());
-                result.addAll(codeUnitParameterDependenciesFromSelf());
-                result.addAll(throwsDeclarationDependenciesFromSelf());
-                result.addAll(annotationDependenciesFromSelf());
-                result.addAll(instanceofCheckDependenciesFromSelf());
-                result.addAll(referencedClassObjectDependenciesFromSelf());
-                result.addAll(typeParameterDependenciesFromSelf());
-                return result.build();
-            }
+        return memoize(() -> {
+            ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
+            result.addAll(dependenciesFromAccesses(javaClass.getAccessesFromSelf()));
+            result.addAll(inheritanceDependenciesFromSelf());
+            result.addAll(fieldDependenciesFromSelf());
+            result.addAll(returnTypeDependenciesFromSelf());
+            result.addAll(codeUnitParameterDependenciesFromSelf());
+            result.addAll(throwsDeclarationDependenciesFromSelf());
+            result.addAll(annotationDependenciesFromSelf());
+            result.addAll(instanceofCheckDependenciesFromSelf());
+            result.addAll(referencedClassObjectDependenciesFromSelf());
+            result.addAll(typeParameterDependenciesFromSelf());
+            return result.build();
         });
     }
 

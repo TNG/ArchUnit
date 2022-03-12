@@ -68,12 +68,7 @@ public abstract class Location {
     }
 
     private static final Cache<NormalizedUri, Iterable<NormalizedResourceName>> ENTRY_CACHE = CacheBuilder.newBuilder().build();
-    private final Callable<Iterable<NormalizedResourceName>> readResourceEntries = new Callable<Iterable<NormalizedResourceName>>() {
-        @Override
-        public Iterable<NormalizedResourceName> call() {
-            return iterateEntriesInternal();
-        }
-    };
+    private final Callable<Iterable<NormalizedResourceName>> readResourceEntries = this::iterateEntriesInternal;
 
     final NormalizedUri uri;
 

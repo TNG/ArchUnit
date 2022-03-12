@@ -40,12 +40,7 @@ public class MethodChoiceStrategy {
     }
 
     private Predicate<Method> methodWithName(final String methodName) {
-        return new Predicate<Method>() {
-            @Override
-            public boolean apply(Method input) {
-                return input.getName().equals(methodName);
-            }
-        };
+        return input -> input.getName().equals(methodName);
     }
 
     Optional<Method> choose(PropagatedType type, boolean tryToTerminate) {

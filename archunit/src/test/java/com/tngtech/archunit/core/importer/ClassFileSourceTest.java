@@ -173,20 +173,12 @@ public class ClassFileSourceTest {
     }
 
     private static ImportOptions locationContains(final String part) {
-        return new ImportOptions().with(new ImportOption() {
-            @Override
-            public boolean includes(Location location) {
-                return location.contains(part);
-            }
-        });
+        return new ImportOptions().with(location -> location.contains(part));
     }
 
-    private static final Comparator<Object> MATCH_IF_EXPECTED_IS_SUBSTRING = new Comparator<Object>() {
-        @Override
-        public int compare(Object uri, Object expectedSub) {
-            String uriString = (String) uri;
-            String expectedSubstring = (String) expectedSub;
-            return uriString.contains(expectedSubstring) ? 0 : uriString.compareTo(expectedSubstring);
-        }
+    private static final Comparator<Object> MATCH_IF_EXPECTED_IS_SUBSTRING = (uri, expectedSub) -> {
+        String uriString = (String) uri;
+        String expectedSubstring = (String) expectedSub;
+        return uriString.contains(expectedSubstring) ? 0 : uriString.compareTo(expectedSubstring);
     };
 }

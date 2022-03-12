@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
@@ -34,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.base.Predicates.not;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 
 class PlantUmlParser {
     private final PlantUmlPatterns plantUmlPatterns = new PlantUmlPatterns();
@@ -56,7 +55,7 @@ class PlantUmlParser {
     }
 
     private List<String> filterOutComments(List<String> lines) {
-        return FluentIterable.from(lines).filter(not(containsPattern("^\\s*'"))).toList();
+        return lines.stream().filter(not(containsPattern("^\\s*'"))).collect(toList());
     }
 
     private List<String> readLines(URL url) {
@@ -69,7 +68,7 @@ class PlantUmlParser {
 
     private Set<PlantUmlComponent> parseComponents(List<String> plantUmlDiagramLines) {
         return plantUmlPatterns.filterComponents(plantUmlDiagramLines)
-                .transform(toPlantUmlComponent())
+                .transform(this::createNewComponent)
                 .toSet();
     }
 
@@ -83,21 +82,12 @@ class PlantUmlParser {
         return result.build();
     }
 
-    private Function<String, PlantUmlComponent> toPlantUmlComponent() {
-        return new Function<String, PlantUmlComponent>() {
-            @Override
-            public PlantUmlComponent apply(String input) {
-                return createNewComponent(input);
-            }
-        };
-    }
-
     private PlantUmlComponent createNewComponent(String input) {
         PlantUmlComponentMatcher matcher = plantUmlPatterns.matchComponent(input);
 
         ComponentName componentName = new ComponentName(matcher.matchComponentName());
         ImmutableSet<Stereotype> immutableStereotypes = identifyStereotypes(matcher, componentName);
-        Optional<Alias> alias = Optional.ofNullable(matcher.matchAlias().transform(TO_ALIAS).orNull());
+        Optional<Alias> alias = Optional.ofNullable(matcher.matchAlias().transform(Alias::new).orNull());
 
         return new PlantUmlComponent.Builder()
                 .withComponentName(componentName)
@@ -127,11 +117,4 @@ class PlantUmlParser {
 
         return plantUmlComponents.findComponentWith(originOrTargetString);
     }
-
-    private static final Function<String, Alias> TO_ALIAS = new Function<String, Alias>() {
-        @Override
-        public Alias apply(String value) {
-            return new Alias(value);
-        }
-    };
 }

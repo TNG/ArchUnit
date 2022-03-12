@@ -35,11 +35,6 @@ public class HasOwnerTest {
     }
 
     private <T> HasOwner<T> hasOwner(final T owner) {
-        return new HasOwner<T>() {
-            @Override
-            public T getOwner() {
-                return owner;
-            }
-        };
+        return () -> owner;
     }
 }

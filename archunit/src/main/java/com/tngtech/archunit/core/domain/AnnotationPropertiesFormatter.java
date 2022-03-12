@@ -83,52 +83,27 @@ class AnnotationPropertiesFormatter {
         private boolean omitOptionalIdentifierForSingleElementAnnotations = false;
 
         Builder formattingArraysWithSquareBrackets() {
-            arrayFormatter = new Function<List<String>, String>() {
-                @Override
-                public String apply(List<String> input) {
-                    return "[" + Joiner.on(", ").join(input) + "]";
-                }
-            };
+            arrayFormatter = input -> "[" + Joiner.on(", ").join(input) + "]";
             return this;
         }
 
         Builder formattingArraysWithCurlyBrackets() {
-            arrayFormatter = new Function<List<String>, String>() {
-                @Override
-                public String apply(List<String> input) {
-                    return "{" + Joiner.on(", ").join(input) + "}";
-                }
-            };
+            arrayFormatter = input -> "{" + Joiner.on(", ").join(input) + "}";
             return this;
         }
 
         Builder formattingTypesToString() {
-            typeFormatter = new Function<Class<?>, String>() {
-                @Override
-                public String apply(Class<?> input) {
-                    return String.valueOf(input);
-                }
-            };
+            typeFormatter = String::valueOf;
             return this;
         }
 
         Builder formattingTypesAsClassNames() {
-            typeFormatter = new Function<Class<?>, String>() {
-                @Override
-                public String apply(Class<?> input) {
-                    return input.getName() + ".class";
-                }
-            };
+            typeFormatter = input -> input.getName() + ".class";
             return this;
         }
 
         Builder quotingStrings() {
-            stringFormatter = new Function<String, String>() {
-                @Override
-                public String apply(String input) {
-                    return "\"" + input + "\"";
-                }
-            };
+            stringFormatter = input -> "\"" + input + "\"";
             return this;
         }
 

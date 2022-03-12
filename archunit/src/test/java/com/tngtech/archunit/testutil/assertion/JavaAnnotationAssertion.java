@@ -18,7 +18,6 @@ import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import org.assertj.core.api.AbstractObjectAssert;
-import org.assertj.core.api.ThrowableAssert;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -91,12 +90,8 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
                 .as(description + " has explicitly declared value")
                 .isFalse();
         assertThat(actual.tryGetExplicitlyDeclaredProperty(propertyName)).as(description).isEmpty();
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            @Override
-            public void call() {
-                actual.getExplicitlyDeclaredProperty(propertyName);
-            }
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> actual.getExplicitlyDeclaredProperty(propertyName))
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("%s has no explicitly declared property '%s'", actual.getDescription(), propertyName);
         return this;
     }
@@ -272,22 +267,12 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
         private final List<Consumer<JavaAnnotationAssertion>> executeAssertions = new ArrayList<>();
 
         public AnnotationPropertyAssertion withAnnotationType(final Class<? extends Annotation> annotationType) {
-            executeAssertions.add(new Consumer<JavaAnnotationAssertion>() {
-                @Override
-                public void accept(JavaAnnotationAssertion assertion) {
-                    assertion.hasType(annotationType);
-                }
-            });
+            executeAssertions.add(assertion -> assertion.hasType(annotationType));
             return this;
         }
 
         public AnnotationPropertyAssertion withClassProperty(final String propertyName, final Class<?> propertyValue) {
-            executeAssertions.add(new Consumer<JavaAnnotationAssertion>() {
-                @Override
-                public void accept(JavaAnnotationAssertion assertion) {
-                    assertion.hasClassProperty(propertyName, propertyValue);
-                }
-            });
+            executeAssertions.add(assertion -> assertion.hasClassProperty(propertyName, propertyValue));
             return this;
         }
 

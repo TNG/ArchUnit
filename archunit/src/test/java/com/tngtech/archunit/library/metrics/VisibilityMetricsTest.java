@@ -94,10 +94,5 @@ public class VisibilityMetricsTest {
         return MetricsComponent.of("Visible(" + numberOfVisibleElements + ")/Invisible(" + numberOfInvisibleElements + ")", elements);
     }
 
-    private static final Predicate<TestElement> visibleIfNameContainsIsVisible = new Predicate<TestElement>() {
-        @Override
-        public boolean test(TestElement input) {
-            return input.getName().contains("isVisible");
-        }
-    };
+    private static final Predicate<TestElement> visibleIfNameContainsIsVisible = input -> input.getName().contains("isVisible");
 }

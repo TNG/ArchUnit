@@ -171,12 +171,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static class EventRecorder {
         private static final String CYCLE_DETECTED_SECTION_INTRO = "Cycle detected: ";
         private static final String DEPENDENCY_DETAILS_INDENT = Strings.repeat(" ", 4);
-        private static final Function<Edge<Slice, Dependency>, String> GET_FROM_NODE_DESCRIPTION = new Function<Edge<Slice, Dependency>, String>() {
-            @Override
-            public String apply(Edge<Slice, Dependency> input) {
-                return input.getFrom().getDescription();
-            }
-        };
+        private static final Function<Edge<Slice, Dependency>, String> GET_FROM_NODE_DESCRIPTION = input -> input.getFrom().getDescription();
 
         private final CycleConfiguration cycleConfiguration = new CycleConfiguration();
 

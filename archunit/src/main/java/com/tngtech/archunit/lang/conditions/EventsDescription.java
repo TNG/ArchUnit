@@ -30,10 +30,5 @@ class EventsDescription {
         return Joiner.on(System.lineSeparator()).join(lines);
     }
 
-    private static final Function<ConditionEvent, Iterable<String>> TO_MESSAGES = new Function<ConditionEvent, Iterable<String>>() {
-        @Override
-        public Iterable<String> apply(ConditionEvent input) {
-            return input.getDescriptionLines();
-        }
-    };
+    private static final Function<ConditionEvent, Iterable<String>> TO_MESSAGES = ConditionEvent::getDescriptionLines;
 }

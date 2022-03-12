@@ -153,30 +153,24 @@ public class ClassFileImporterSlowTest {
     }
 
     private JavaClasses importJavaBase() {
-        return new ClassFileImporter().importClasspath(new ImportOptions().with(new ImportOption() {
-            @Override
-            public boolean includes(Location location) {
-                return
-                        // before Java 9 package like java.lang were in rt.jar
-                        location.contains("rt.jar") ||
-                                // from Java 9 on those packages were in a JRT with name 'java.base'
-                                (location.asURI().getScheme().equals("jrt") && location.contains("java.base"));
-            }
+        return new ClassFileImporter().importClasspath(new ImportOptions().with(location -> {
+            return
+                    // before Java 9 package like java.lang were in rt.jar
+                    location.contains("rt.jar") ||
+                            // from Java 9 on those packages were in a JRT with name 'java.base'
+                            (location.asURI().getScheme().equals("jrt") && location.contains("java.base"));
         }));
     }
 
     private ImportOption importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath() {
-        return new ImportOption() {
-            @Override
-            public boolean includes(Location location) {
-                if (!location.isArchive()) {
-                    return true;
-                }
-                if (location.isJar() && (location.contains("junit") || location.contains("/rt.jar"))) {
-                    return true;
-                }
-                return location.asURI().getScheme().equals("jrt") && location.contains("java.base");
+        return location -> {
+            if (!location.isArchive()) {
+                return true;
             }
+            if (location.isJar() && (location.contains("junit") || location.contains("/rt.jar"))) {
+                return true;
+            }
+            return location.asURI().getScheme().equals("jrt") && location.contains("java.base");
         };
     }
 }

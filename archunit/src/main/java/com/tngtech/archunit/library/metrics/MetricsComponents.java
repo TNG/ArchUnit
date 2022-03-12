@@ -45,12 +45,7 @@ public final class MetricsComponents<T> extends ForwardingCollection<MetricsComp
     private final Map<String, MetricsComponent<T>> componentsByIdentifier;
 
     private MetricsComponents(Collection<MetricsComponent<T>> components) {
-        this.componentsByIdentifier = Maps.uniqueIndex(components, new com.google.common.base.Function<MetricsComponent<T>, String>() {
-            @Override
-            public String apply(MetricsComponent<T> input) {
-                return input.getIdentifier();
-            }
-        });
+        this.componentsByIdentifier = Maps.uniqueIndex(components, MetricsComponent::getIdentifier);
     }
 
     /**

@@ -220,12 +220,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
          */
         @PublicAPI(usage = ACCESS)
         public static Configuration consideringAllDependencies() {
-            return new Configuration() {
-                @Override
-                public DescribedPredicate<Dependency> asIgnorePredicate(JavaClassDiagramAssociation javaClassDiagramAssociation) {
-                    return DescribedPredicate.<Dependency>alwaysFalse().as("");
-                }
-            };
+            return javaClassDiagramAssociation -> DescribedPredicate.<Dependency>alwaysFalse().as("");
         }
 
         /**
@@ -235,12 +230,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
          */
         @PublicAPI(usage = ACCESS)
         public static Configuration consideringOnlyDependenciesInDiagram() {
-            return new Configuration() {
-                @Override
-                public DescribedPredicate<Dependency> asIgnorePredicate(final JavaClassDiagramAssociation javaClassDiagramAssociation) {
-                    return new NotContainedInDiagramPredicate(javaClassDiagramAssociation);
-                }
-            };
+            return NotContainedInDiagramPredicate::new;
         }
 
         /**
@@ -254,12 +244,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
                     .append(furtherPackageIdentifiers)
                     .toList();
 
-            return new Configuration() {
-                @Override
-                public DescribedPredicate<Dependency> asIgnorePredicate(final JavaClassDiagramAssociation javaClassDiagramAssociation) {
-                    return new NotContainedInPackagesPredicate(packageIdentifiers);
-                }
-            };
+            return javaClassDiagramAssociation -> new NotContainedInPackagesPredicate(packageIdentifiers);
         }
 
         private static class NotContainedInDiagramPredicate extends DescribedPredicate<Dependency> {

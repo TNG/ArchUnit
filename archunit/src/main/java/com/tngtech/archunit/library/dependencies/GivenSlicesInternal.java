@@ -83,22 +83,12 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
 
     @Override
     public SliceRule beFreeOfCycles() {
-        return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
-            @Override
-            public ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate) {
-                return new SliceCycleArchCondition(predicate);
-            }
-        });
+        return new SliceRule(classesTransformer, priority, (transformer, predicate) -> new SliceCycleArchCondition(predicate));
     }
 
     @Override
     public SliceRule notDependOnEachOther() {
-        return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
-            @Override
-            public ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate) {
-                return new NotDependOnEachOtherCondition(predicate, transformer);
-            }
-        });
+        return new SliceRule(classesTransformer, priority, (transformer, predicate) -> new NotDependOnEachOtherCondition(predicate, transformer));
     }
 
     private static class NotDependOnEachOtherCondition extends ArchCondition<Slice> {

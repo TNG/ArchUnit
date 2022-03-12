@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -31,6 +30,7 @@ public class EvaluationResultTest {
     }
 
     @Test
+    @SuppressWarnings("Convert2Lambda") // to retrieve the type information ViolationHandler may not be converted to a Lambda
     public void allows_clients_to_handle_violations() {
         EvaluationResult result = evaluationResultWith(
                 new SimpleConditionEvent(ImmutableSet.of("message"), false, "expected"),
@@ -57,12 +57,7 @@ public class EvaluationResultTest {
                 new TestEvent(true, "drop first line3", "drop second line3"),
                 new TestEvent(false, "keep first line4", "keep second line4"));
 
-        EvaluationResult filtered = result.filterDescriptionsMatching(new Predicate<String>() {
-            @Override
-            public boolean test(String input) {
-                return input.contains("keep");
-            }
-        });
+        EvaluationResult filtered = result.filterDescriptionsMatching(input -> input.contains("keep"));
 
         assertThat(filtered.hasViolation()).as("filtered has violation").isTrue();
         assertThat(filtered.getFailureReport().getDetails()).containsOnly("keep first line1", "keep second line1", "keep second line2");
@@ -89,12 +84,7 @@ public class EvaluationResultTest {
     }
 
     private HasDescription hasDescription(final String description) {
-        return new HasDescription() {
-            @Override
-            public String getDescription() {
-                return description;
-            }
-        };
+        return () -> description;
     }
 
     private static class TestEvent implements ConditionEvent {

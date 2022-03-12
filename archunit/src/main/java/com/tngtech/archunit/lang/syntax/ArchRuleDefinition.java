@@ -295,11 +295,6 @@ public final class ArchRuleDefinition {
     }
 
     private static <T> Function<ArchCondition<T>, ArchCondition<T>> negateCondition() {
-        return new Function<ArchCondition<T>, ArchCondition<T>>() {
-            @Override
-            public ArchCondition<T> apply(ArchCondition<T> condition) {
-                return never(condition).as(condition.getDescription());
-            }
-        };
+        return condition -> never(condition).as(condition.getDescription());
     }
 }

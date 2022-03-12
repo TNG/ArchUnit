@@ -1,7 +1,7 @@
 package com.tngtech.archunit.core.importer.testexamples.methodimport;
 
+@SuppressWarnings("unused")
 public class ClassWithMultipleMethods {
-
     static String usage = "ClassFileImporterTest's @Test imports_methods_with_correct_sourceCodeLocation";
 
     int methodDefinedInLine7() { return 7; }

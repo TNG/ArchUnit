@@ -49,16 +49,11 @@ class JavaClassMembers {
     private final Supplier<Set<JavaMethod>> allMethods;
     private final Supplier<Set<JavaConstructor>> allConstructors;
     private final Supplier<Set<JavaField>> allFields;
-    private final Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(new Supplier<Set<JavaMember>>() {
-        @Override
-        public Set<JavaMember> get() {
-            return ImmutableSet.<JavaMember>builder()
-                    .addAll(getAllFields())
-                    .addAll(getAllMethods())
-                    .addAll(getAllConstructors())
-                    .build();
-        }
-    });
+    private final Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(() -> ImmutableSet.<JavaMember>builder()
+            .addAll(getAllFields())
+            .addAll(getAllMethods())
+            .addAll(getAllConstructors())
+            .build());
 
     JavaClassMembers(final JavaClass owner, Set<JavaField> fields, Set<JavaMethod> methods, Set<JavaConstructor> constructors, Optional<JavaStaticInitializer> staticInitializer) {
         this.owner = owner;
@@ -338,15 +333,11 @@ class JavaClassMembers {
         }
     }
 
-    private static final Comparator<JavaCodeUnit> SORTED_BY_SYNTHETIC_LAST_THEN_FULL_NAME = new Comparator<JavaCodeUnit>() {
-        @Override
-        public int compare(JavaCodeUnit codeUnit1, JavaCodeUnit codeUnit2) {
-            return ComparisonChain.start()
+    private static final Comparator<JavaCodeUnit> SORTED_BY_SYNTHETIC_LAST_THEN_FULL_NAME =
+            (codeUnit1, codeUnit2) -> ComparisonChain.start()
                     .compareTrueFirst(!codeUnit1.getModifiers().contains(SYNTHETIC), !codeUnit2.getModifiers().contains(SYNTHETIC))
                     .compare(codeUnit1.getFullName(), codeUnit2.getFullName())
                     .result();
-        }
-    };
 
     static JavaClassMembers empty(JavaClass owner) {
         return new JavaClassMembers(

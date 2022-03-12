@@ -42,7 +42,6 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.Condition;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -147,11 +146,7 @@ public class JavaClassTest {
 
         assertThat(nonArrayType.isArray()).isFalse();
         assertThat(nonArrayType.tryGetComponentType()).isEmpty();
-        assertThatThrownBy(new ThrowingCallable() {
-            public void call() {
-                nonArrayType.getComponentType();
-            }
-        }).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(nonArrayType::getComponentType).isInstanceOf(IllegalStateException.class);
         assertThat(nonArrayType.getBaseComponentType()).isSameAs(nonArrayType);
     }
 
@@ -422,24 +417,9 @@ public class JavaClassTest {
     public void getCodeUnitWithParameterTypes() {
         final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
 
-        assertIllegalArgumentException("childMethod", new Runnable() {
-            @Override
-            public void run() {
-                clazz.getCodeUnitWithParameterTypes("childMethod");
-            }
-        });
-        assertIllegalArgumentException("childMethod", new Runnable() {
-            @Override
-            public void run() {
-                clazz.getCodeUnitWithParameterTypes("childMethod", Object.class);
-            }
-        });
-        assertIllegalArgumentException("wrong", new Runnable() {
-            @Override
-            public void run() {
-                clazz.getCodeUnitWithParameterTypes("wrong", String.class);
-            }
-        });
+        assertIllegalArgumentException("childMethod", () -> clazz.getCodeUnitWithParameterTypes("childMethod"));
+        assertIllegalArgumentException("childMethod", () -> clazz.getCodeUnitWithParameterTypes("childMethod", Object.class));
+        assertIllegalArgumentException("wrong", () -> clazz.getCodeUnitWithParameterTypes("wrong", String.class));
 
         assertThatCodeUnit(clazz.getCodeUnitWithParameterTypes("childMethod", String.class))
                 .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
@@ -2059,12 +2039,7 @@ public class JavaClassTest {
     }
 
     private Extractor<JavaMember, String> memberIdentifier() {
-        return new Extractor<JavaMember, String>() {
-            @Override
-            public String extract(JavaMember input) {
-                return input.getOwner().getSimpleName() + "#" + input.getName();
-            }
-        };
+        return input -> input.getOwner().getSimpleName() + "#" + input.getName();
     }
 
     private Condition<JavaMember> isNotObject() {

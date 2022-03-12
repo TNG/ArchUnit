@@ -74,12 +74,7 @@ class PlantUmlPatterns {
     }
 
     private Predicate<String> matches(final Pattern pattern) {
-        return new Predicate<String>() {
-            @Override
-            public boolean apply(String input) {
-                return pattern.matcher(input).matches();
-            }
-        };
+        return input -> pattern.matcher(input).matches();
     }
 
     Iterable<PlantUmlDependencyMatcher> matchDependencies(List<String> diagramLines) {

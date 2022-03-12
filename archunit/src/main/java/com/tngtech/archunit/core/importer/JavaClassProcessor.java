@@ -314,7 +314,7 @@ class JavaClassProcessor extends ClassVisitor {
             return super.visitAnnotation(desc, visible);
         }
 
-        return new AnnotationProcessor(addAnnotationTo(annotations), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+        return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
     }
 
     @Override
@@ -394,7 +394,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            return new AnnotationProcessor(addAnnotationTo(annotations), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+            return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
@@ -557,7 +557,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            return new AnnotationProcessor(addAnnotationTo(annotations), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+            return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
@@ -623,31 +623,12 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-    private static TakesAnnotationBuilder addAnnotationTo(final Collection<? super JavaAnnotationBuilder> collection) {
-        return new TakesAnnotationBuilder() {
-            @Override
-            public void add(JavaAnnotationBuilder annotation) {
-                collection.add(annotation);
-            }
-        };
-    }
-
     private static TakesAnnotationBuilder addAnnotationAtIndex(final SetMultimap<Integer, JavaAnnotationBuilder> annotations, final int index) {
-        return new TakesAnnotationBuilder() {
-            @Override
-            public void add(JavaAnnotationBuilder annotation) {
-                annotations.put(index, annotation);
-            }
-        };
+        return annotation -> annotations.put(index, annotation);
     }
 
     private static TakesAnnotationBuilder addAnnotationAsProperty(final String name, final JavaAnnotationBuilder annotationBuilder) {
-        return new TakesAnnotationBuilder() {
-            @Override
-            public void add(JavaAnnotationBuilder builder) {
-                annotationBuilder.addProperty(name, ValueBuilder.fromAnnotationProperty(builder));
-            }
-        };
+        return builder -> annotationBuilder.addProperty(name, ValueBuilder.fromAnnotationProperty(builder));
     }
 
     private interface TakesAnnotationBuilder {
@@ -680,12 +661,11 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public AnnotationVisitor visitAnnotation(String name, String desc) {
             setDerivedComponentType(JavaAnnotation.class);
-            return new AnnotationProcessor(new TakesAnnotationBuilder() {
-                @Override
-                public void add(JavaAnnotationBuilder annotationBuilder) {
-                    values.add(ValueBuilder.fromAnnotationProperty(annotationBuilder));
-                }
-            }, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+            return new AnnotationProcessor(
+                    annotationBuilder -> values.add(ValueBuilder.fromAnnotationProperty(annotationBuilder)),
+                    declarationHandler,
+                    handleAnnotationAnnotationProperty(desc, declarationHandler)
+            );
         }
 
         @Override

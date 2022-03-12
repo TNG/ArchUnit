@@ -911,16 +911,13 @@ public class ClassFileImporterTest {
     }
 
     private ImportOption importOnly(final Class<?>... classes) {
-        return new ImportOption() {
-            @Override
-            public boolean includes(Location location) {
-                for (Class<?> c : classes) {
-                    if (location.contains(urlOf(c).getFile())) {
-                        return true;
-                    }
+        return location -> {
+            for (Class<?> c : classes) {
+                if (location.contains(urlOf(c).getFile())) {
+                    return true;
                 }
-                return false;
             }
+            return false;
         };
     }
 

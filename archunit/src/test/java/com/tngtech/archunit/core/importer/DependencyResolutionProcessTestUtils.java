@@ -2,7 +2,6 @@ package com.tngtech.archunit.core.importer;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
@@ -56,12 +55,9 @@ public class DependencyResolutionProcessTestUtils {
         }
 
         public JavaClasses importClasses(final Class<?>... classes) {
-            return resetConfigurationAround(new Callable<JavaClasses>() {
-                @Override
-                public JavaClasses call() {
-                    ImporterWithAdjustedResolutionRuns.this.setAllIterationsToZeroExcept(propertyNames);
-                    return new ClassFileImporter().importClasses(classes);
-                }
+            return resetConfigurationAround(() -> {
+                ImporterWithAdjustedResolutionRuns.this.setAllIterationsToZeroExcept(propertyNames);
+                return new ClassFileImporter().importClasses(classes);
             });
         }
 

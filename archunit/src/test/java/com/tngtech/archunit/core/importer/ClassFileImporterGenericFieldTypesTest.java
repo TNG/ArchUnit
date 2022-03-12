@@ -6,7 +6,6 @@ import java.lang.ref.Reference;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -357,13 +356,10 @@ public class ClassFileImporterGenericFieldTypesTest {
             }
         }
 
-        JavaType genericFieldType = resetConfigurationAround(new Callable<JavaType>() {
-            @Override
-            public JavaType call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class)
-                        .getField("field").getType();
-            }
+        JavaType genericFieldType = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class)
+                    .getField("field").getType();
         });
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(
@@ -467,13 +463,10 @@ public class ClassFileImporterGenericFieldTypesTest {
             }
         }
 
-        JavaType genericFieldType = resetConfigurationAround(new Callable<JavaType>() {
-            @Override
-            public JavaType call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class, ClassParameterWithSingleTypeParameter.class)
-                        .get(OuterWithTypeParameter.SomeInner.SomeClass.class).getField("field").getType();
-            }
+        JavaType genericFieldType = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class, ClassParameterWithSingleTypeParameter.class)
+                    .get(OuterWithTypeParameter.SomeInner.SomeClass.class).getField("field").getType();
         });
 
         assertThatType(genericFieldType).as("generic field type").hasActualTypeArguments(

@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
@@ -314,12 +313,7 @@ public class ImportTestUtils {
 
     private static ImmutableMap<String, JavaAnnotation<JavaClass>> annotationsFor(Class<?> inputClass, ImportContext importedClasses) {
         return FluentIterable.from(javaAnnotationsFrom(inputClass.getAnnotations(), importedClasses, inputClass))
-                .uniqueIndex(new Function<JavaAnnotation<?>, String>() {
-                    @Override
-                    public String apply(JavaAnnotation<?> input) {
-                        return input.getRawType().getName();
-                    }
-                });
+                .uniqueIndex(annotation -> annotation.getRawType().getName());
     }
 
     public static class ImportedTestClasses extends ImportedClasses {
@@ -338,12 +332,7 @@ public class ImportTestUtils {
                             return Optional.empty();
                         }
                     },
-                    new MethodReturnTypeGetter() {
-                        @Override
-                        public Optional<JavaClass> getReturnType(String declaringClassName, String methodName) {
-                            return Optional.empty();
-                        }
-                    });
+                    (declaringClassName, methodName) -> Optional.empty());
         }
 
         void register(JavaClass clazz) {

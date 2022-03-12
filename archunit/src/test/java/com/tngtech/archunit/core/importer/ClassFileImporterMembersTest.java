@@ -188,7 +188,7 @@ public class ClassFileImporterMembersTest {
         assertThat(javaClass.getField("usage").getSourceCodeLocation())
                 .hasToString("(" + sourceFileName + ":0)");  // the byte code has no line number associated with a field
         assertThat(javaClass.getConstructor().getSourceCodeLocation())
-                .hasToString("(" + sourceFileName + ":3)");  // auto-generated constructor seems to get line of class definition
+                .hasToString("(" + sourceFileName + ":4)");  // auto-generated constructor seems to get line of class definition
         assertThat(javaClass.getStaticInitializer().get().getSourceCodeLocation())
                 .hasToString("(" + sourceFileName + ":5)");  // auto-generated static initializer seems to get line of first static variable definition
         assertThat(javaClass.getMethod("methodDefinedInLine7").getSourceCodeLocation())

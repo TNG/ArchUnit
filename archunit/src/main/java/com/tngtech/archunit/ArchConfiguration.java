@@ -54,12 +54,7 @@ public final class ArchConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ArchConfiguration.class);
 
-    private static final Supplier<ArchConfiguration> INSTANCE = Suppliers.memoize(new Supplier<ArchConfiguration>() {
-        @Override
-        public ArchConfiguration get() {
-            return new ArchConfiguration();
-        }
-    });
+    private static final Supplier<ArchConfiguration> INSTANCE = Suppliers.memoize(ArchConfiguration::new);
 
     @PublicAPI(usage = ACCESS)
     public static ArchConfiguration get() {

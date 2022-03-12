@@ -32,21 +32,11 @@ class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
     }
 
     static Creator forAccessOrigin() {
-        return new Creator(new Function<JavaAccess<?>, String>() {
-            @Override
-            public String apply(JavaAccess<?> input) {
-                return input.getOriginOwner().getPackageName();
-            }
-        });
+        return new Creator(input -> input.getOriginOwner().getPackageName());
     }
 
     static Creator forAccessTarget() {
-        return new Creator(new Function<JavaAccess<?>, String>() {
-            @Override
-            public String apply(JavaAccess<?> input) {
-                return input.getTargetOwner().getPackageName();
-            }
-        });
+        return new Creator(input -> input.getTargetOwner().getPackageName());
     }
 
     @Override

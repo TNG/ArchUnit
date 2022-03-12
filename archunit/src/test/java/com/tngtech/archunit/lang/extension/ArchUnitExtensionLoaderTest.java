@@ -135,11 +135,6 @@ public class ArchUnitExtensionLoaderTest {
     }
 
     private static Comparator<Object> sameInstance() {
-        return new Comparator<Object>() {
-            @Override
-            public int compare(Object o1, Object o2) {
-                return o1 == o2 ? 0 : -1;
-            }
-        };
+        return (o1, o2) -> o1 == o2 ? 0 : -1;
     }
 }

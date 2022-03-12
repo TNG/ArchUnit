@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -29,6 +28,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.base.Optionals;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
@@ -255,12 +255,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Deprecated
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<AccessTarget, Set<JavaMember>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaMember>, Set<JavaMember>>() {
-            @Override
-            public Set<JavaMember> apply(Optional<JavaMember> input) {
-                return asSet(input);
-            }
-        });
+        public static final ChainableFunction<AccessTarget, Set<JavaMember>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
     }
 
     /**
@@ -370,12 +365,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
              */
             @Deprecated
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaField>, Set<JavaField>>() {
-                @Override
-                public Set<JavaField> apply(Optional<JavaField> input) {
-                    return asSet(input);
-                }
-            });
+            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -470,12 +460,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
              */
             @Deprecated
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<CodeUnitAccessTarget, Set<JavaCodeUnit>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaCodeUnit>, Set<JavaCodeUnit>>() {
-                @Override
-                public Set<JavaCodeUnit> apply(Optional<JavaCodeUnit> input) {
-                    return asSet(input);
-                }
-            });
+            public static final ChainableFunction<CodeUnitAccessTarget, Set<JavaCodeUnit>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -583,12 +568,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
              */
             @Deprecated
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaConstructor>, Set<JavaConstructor>>() {
-                @Override
-                public Set<JavaConstructor> apply(Optional<JavaConstructor> input) {
-                    return asSet(input);
-                }
-            });
+            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -735,12 +715,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
              */
             @Deprecated
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaMethod>, Set<JavaMethod>>() {
-                @Override
-                public Set<JavaMethod> apply(Optional<JavaMethod> input) {
-                    return asSet(input);
-                }
-            });
+            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 

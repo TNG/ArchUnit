@@ -9,12 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
@@ -103,6 +101,7 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 
 @RunWith(DataProviderRunner.class)
 public class ClassFileImporterAccessesTest {
@@ -402,7 +401,7 @@ public class ClassFileImporterAccessesTest {
         JavaCodeUnit callSuperclassMethod = classThatCallsMethodOfSuperclass
                 .getCodeUnitWithParameterTypes(CallOfSuperAndSubclassMethod.callSuperclassMethod);
         JavaMethod expectedSuperclassMethod = superclassWithCalledMethod.getMethod(SuperclassWithCalledMethod.method);
-        AccessTarget.MethodCallTarget expectedSuperclassCall = newMethodCallTargetBuilder()
+        MethodCallTarget expectedSuperclassCall = newMethodCallTargetBuilder()
                 .withOwner(subClassWithCalledMethod)
                 .withName(expectedSuperclassMethod.getName())
                 .withParameters(expectedSuperclassMethod.getRawParameterTypes())
@@ -1006,12 +1005,7 @@ public class ClassFileImporterAccessesTest {
     }
 
     private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, final JavaConstructor target) {
-        return getBy(calls, new Predicate<JavaAccess<?>>() {
-            @Override
-            public boolean apply(JavaAccess<?> input) {
-                return targetFrom(target).getFullName().equals(input.getTarget().getFullName());
-            }
-        });
+        return getBy(calls, (Predicate<JavaAccess<?>>) input -> targetFrom(target).getFullName().equals(input.getTarget().getFullName()));
     }
 
     private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, Class<?> targetOwner) {
@@ -1023,34 +1017,19 @@ public class ClassFileImporterAccessesTest {
     }
 
     private Predicate<JavaAccess<?>> targetOwnerNameEquals(final String targetFqn) {
-        return new Predicate<JavaAccess<?>>() {
-            @Override
-            public boolean apply(JavaAccess<?> input) {
-                return targetFqn.equals(input.getTarget().getOwner().getName());
-            }
-        };
+        return input -> targetFqn.equals(input.getTarget().getOwner().getName());
     }
 
     private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, final JavaClass targetOwner) {
-        return getBy(calls, new Predicate<T>() {
-            @Override
-            public boolean apply(T input) {
-                return targetOwner.equals(input.getTarget().getOwner());
-            }
-        });
+        return getBy(calls, input -> targetOwner.equals(input.getTarget().getOwner()));
     }
 
     private <T extends HasOwner<JavaCodeUnit>> Set<T> getByCaller(Set<T> calls, final JavaCodeUnit caller) {
-        return getBy(calls, new Predicate<T>() {
-            @Override
-            public boolean apply(T input) {
-                return caller.equals(input.getOwner());
-            }
-        });
+        return getBy(calls, input -> caller.equals(input.getOwner()));
     }
 
     private <T extends HasOwner<JavaCodeUnit>> Set<T> getBy(Set<T> calls, Predicate<? super T> predicate) {
-        return FluentIterable.from(calls).filter(predicate).toSet();
+        return calls.stream().filter(predicate).collect(toSet());
     }
 
     private Set<FieldAccessTarget> targetsOf(Set<JavaFieldAccess> fieldAccesses) {

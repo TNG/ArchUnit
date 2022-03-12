@@ -177,11 +177,6 @@ class ObjectsShouldInternal<T> implements ArchRule {
     }
 
     static <T> Function<ArchCondition<T>, ArchCondition<T>> prependDescription(final String prefix) {
-        return new Function<ArchCondition<T>, ArchCondition<T>>() {
-            @Override
-            public ArchCondition<T> apply(ArchCondition<T> input) {
-                return input.as(prefix + " " + input.getDescription());
-            }
-        };
+        return input -> input.as(prefix + " " + input.getDescription());
     }
 }

@@ -120,7 +120,7 @@ class ReflectionUtils {
         } catch (IllegalAccessException e) {
             throw new ReflectionException(e);
         } catch (InvocationTargetException e) {
-            ReflectionUtils.<RuntimeException>rethrowUnchecked(e.getTargetException());
+            ReflectionUtils.rethrowUnchecked(e.getTargetException());
             return null; // will never be reached
         }
     }
@@ -142,20 +142,10 @@ class ReflectionUtils {
     }
 
     static Predicate<AnnotatedElement> withAnnotation(final Class<? extends Annotation> annotationType) {
-        return new Predicate<AnnotatedElement>() {
-            @Override
-            public boolean test(AnnotatedElement input) {
-                return input.getAnnotation(annotationType) != null;
-            }
-        };
+        return input -> input.isAnnotationPresent(annotationType);
     }
 
     private static <T> com.google.common.base.Predicate<T> toGuava(final Predicate<T> predicate) {
-        return new com.google.common.base.Predicate<T>() {
-            @Override
-            public boolean apply(T input) {
-                return predicate.test(input);
-            }
-        };
+        return input -> predicate.test(input);
     }
 }

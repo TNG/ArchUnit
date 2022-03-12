@@ -132,32 +132,11 @@ public class ComponentDependencyMetricsTest {
         final ComponentDependencyMetrics metrics = ArchitectureMetrics.componentDependencyMetrics(MetricsComponents.<JavaClass>of());
 
         List<ThrowingCallable> callables = ImmutableList.of(
-                new ThrowingCallable() {
-                    @Override
-                    public void call() {
-                        metrics.getEfferentCoupling("unknown");
-                    }
-                }, new ThrowingCallable() {
-                    @Override
-                    public void call() {
-                        metrics.getAfferentCoupling("unknown");
-                    }
-                }, new ThrowingCallable() {
-                    @Override
-                    public void call() {
-                        metrics.getInstability("unknown");
-                    }
-                }, new ThrowingCallable() {
-                    @Override
-                    public void call() {
-                        metrics.getAbstractness("unknown");
-                    }
-                }, new ThrowingCallable() {
-                    @Override
-                    public void call() {
-                        metrics.getNormalizedDistanceFromMainSequence("unknown");
-                    }
-                });
+                () -> metrics.getEfferentCoupling("unknown"),
+                () -> metrics.getAfferentCoupling("unknown"),
+                () -> metrics.getInstability("unknown"),
+                () -> metrics.getAbstractness("unknown"),
+                () -> metrics.getNormalizedDistanceFromMainSequence("unknown"));
         for (ThrowingCallable callable : callables) {
             assertThatThrownBy(callable).isInstanceOf(IllegalArgumentException.class).hasMessage("Unknown component with identifier 'unknown'");
         }

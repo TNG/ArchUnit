@@ -6,7 +6,6 @@ import java.lang.ref.Reference;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -415,13 +414,10 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = resetConfigurationAround(new Callable<JavaType>() {
-            @Override
-            public JavaType call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class)
-                        .getMethod("method").getReturnType();
-            }
+        JavaType genericReturnType = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class)
+                    .getMethod("method").getReturnType();
         });
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(
@@ -534,14 +530,11 @@ public class ClassFileImporterGenericMethodReturnTypesTest {
             }
         }
 
-        JavaType genericReturnType = resetConfigurationAround(new Callable<JavaType>() {
-            @Override
-            public JavaType call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class, ClassParameterWithSingleTypeParameter.class)
-                        .get(OuterWithTypeParameter.SomeInner.SomeClass.class)
-                        .getMethod("method").getReturnType();
-            }
+        JavaType genericReturnType = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassesWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.SomeClass.class, ClassParameterWithSingleTypeParameter.class)
+                    .get(OuterWithTypeParameter.SomeInner.SomeClass.class)
+                    .getMethod("method").getReturnType();
         });
 
         assertThatType(genericReturnType).as("generic return type").hasActualTypeArguments(

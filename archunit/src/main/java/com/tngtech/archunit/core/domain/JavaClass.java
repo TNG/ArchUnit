@@ -34,6 +34,7 @@ import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
+import com.tngtech.archunit.base.Optionals;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
@@ -51,7 +52,6 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
-import static com.tngtech.archunit.base.Optionals.asSet;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
@@ -86,51 +86,39 @@ public class JavaClass
     private final Supplier<Class<?>> reflectSupplier;
     private JavaClassMembers members = JavaClassMembers.empty(this);
     private Superclass superclass = Superclass.ABSENT;
-    private final Supplier<List<JavaClass>> allRawSuperclasses = Suppliers.memoize(new Supplier<List<JavaClass>>() {
-        @Override
-        public List<JavaClass> get() {
-            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-            JavaClass current = JavaClass.this;
-            while (current.getRawSuperclass().isPresent()) {
-                current = current.getRawSuperclass().get();
-                result.add(current);
-            }
-            return result.build();
+    private final Supplier<List<JavaClass>> allRawSuperclasses = Suppliers.memoize(() -> {
+        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+        JavaClass current = JavaClass.this;
+        while (current.getRawSuperclass().isPresent()) {
+            current = current.getRawSuperclass().get();
+            result.add(current);
         }
+        return result.build();
     });
     private Interfaces interfaces = Interfaces.EMPTY;
-    private final Supplier<Set<JavaClass>> allRawInterfaces = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
-        @Override
-        public Set<JavaClass> get() {
-            ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
-            for (JavaClass i : interfaces.getRaw()) {
-                result.add(i);
-                result.addAll(i.getAllRawInterfaces());
-            }
-            result.addAll(superclass.getAllRawInterfaces());
-            return result.build();
+    private final Supplier<Set<JavaClass>> allRawInterfaces = Suppliers.memoize(() -> {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        for (JavaClass i : interfaces.getRaw()) {
+            result.add(i);
+            result.addAll(i.getAllRawInterfaces());
         }
+        result.addAll(superclass.getAllRawInterfaces());
+        return result.build();
     });
-    private final Supplier<List<JavaClass>> classHierarchy = Suppliers.memoize(new Supplier<List<JavaClass>>() {
-        @Override
-        public List<JavaClass> get() {
-            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-            result.add(JavaClass.this);
-            result.addAll(getAllRawSuperclasses());
-            return result.build();
-        }
+    private final Supplier<List<JavaClass>> classHierarchy = Suppliers.memoize(() -> {
+        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+        result.add(JavaClass.this);
+        result.addAll(getAllRawSuperclasses());
+        return result.build();
     });
     private final Set<JavaClass> subclasses = new HashSet<>();
-    private final Supplier<Set<JavaClass>> allSubclasses = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
-        @Override
-        public Set<JavaClass> get() {
-            Set<JavaClass> result = new HashSet<>();
-            for (JavaClass subclass : subclasses) {
-                result.add(subclass);
-                result.addAll(subclass.getAllSubclasses());
-            }
-            return ImmutableSet.copyOf(result);
+    private final Supplier<Set<JavaClass>> allSubclasses = Suppliers.memoize(() -> {
+        Set<JavaClass> result = new HashSet<>();
+        for (JavaClass subclass : subclasses) {
+            result.add(subclass);
+            result.addAll(subclass.getAllSubclasses());
         }
+        return ImmutableSet.copyOf(result);
     });
     private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
     private Optional<JavaClass> componentType = Optional.empty();
@@ -2457,12 +2445,7 @@ public class JavaClass
             return new ContainAnyMembersThatPredicate<>("static initializers", GET_STATIC_INITIALIZER.then(AS_SET), predicate);
         }
 
-        private static final Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>> AS_SET = new Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>>() {
-            @Override
-            public Set<JavaStaticInitializer> apply(Optional<JavaStaticInitializer> input) {
-                return asSet(input);
-            }
-        };
+        private static final Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>> AS_SET = Optionals::asSet;
 
         private static class BelongToAnyOfPredicate extends DescribedPredicate<JavaClass> {
             private final Class<?>[] classes;

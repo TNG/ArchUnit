@@ -13,8 +13,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -43,6 +41,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
@@ -222,13 +221,10 @@ public class FreezingArchRuleTest {
         ArchRule frozen = freeze(rule("some description")
                 .withViolations("some #now changed# violation", "second #now changed somehow# violation", "and new").create())
                 .persistIn(violationStore)
-                .associateViolationLinesVia(new ViolationLineMatcher() {
-                    @Override
-                    public boolean matches(String lineFromFirstViolation, String lineFromSecondViolation) {
-                        String storedCleanedUp = lineFromFirstViolation.replaceAll("#.*#", "");
-                        String actualCleanedUp = lineFromSecondViolation.replaceAll("#.*#", "");
-                        return storedCleanedUp.equals(actualCleanedUp);
-                    }
+                .associateViolationLinesVia((lineFromFirstViolation, lineFromSecondViolation) -> {
+                    String storedCleanedUp = lineFromFirstViolation.replaceAll("#.*#", "");
+                    String actualCleanedUp = lineFromSecondViolation.replaceAll("#.*#", "");
+                    return storedCleanedUp.equals(actualCleanedUp);
                 });
 
         assertThatRule(frozen)
@@ -246,12 +242,7 @@ public class FreezingArchRuleTest {
         ArchRule frozen = freeze(rule("some description")
                 .withViolations("violation", "equivalent one").create())
                 .persistIn(violationStore)
-                .associateViolationLinesVia(new ViolationLineMatcher() {
-                    @Override
-                    public boolean matches(String lineFromFirstViolation, String lineFromSecondViolation) {
-                        return true;
-                    }
-                });
+                .associateViolationLinesVia((lineFromFirstViolation, lineFromSecondViolation) -> true);
 
         assertThatRule(frozen)
                 .checking(importClasses(getClass()))
@@ -268,12 +259,9 @@ public class FreezingArchRuleTest {
         // Nevertheless this way we'll see a CI failure on some Mac OS environment if this assumption is wrong
         Set<String> lineSeparators = ImmutableSet.of(windowsLineSeparator, unixLineSeparator, System.lineSeparator());
 
-        return FluentIterable.from(cartesianProduct(lineSeparators, lineSeparators)).filter(new Predicate<List<String>>() {
-            @Override
-            public boolean apply(List<String> input) {
-                return !input.get(0).equals(input.get(1));
-            }
-        }).toList();
+        return cartesianProduct(lineSeparators, lineSeparators).stream()
+                .filter(input -> !input.get(0).equals(input.get(1)))
+                .collect(toList());
     }
 
     @Test
@@ -546,12 +534,7 @@ public class FreezingArchRuleTest {
         }
 
         RuleCreator withStringReplace(final String toReplace, final String replaceWith) {
-            return new RuleCreator(description, events, new Function<String, String>() {
-                @Override
-                public String apply(String input) {
-                    return input.replace(toReplace, replaceWith);
-                }
-            });
+            return new RuleCreator(description, events, input -> input.replace(toReplace, replaceWith));
         }
 
         ArchRule create() {

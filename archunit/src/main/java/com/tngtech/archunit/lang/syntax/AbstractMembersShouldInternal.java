@@ -286,12 +286,7 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
 
     @Override
     public ClassesThat<SELF> beDeclaredInClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, SELF>() {
-            @Override
-            public SELF apply(DescribedPredicate<? super JavaClass> predicate) {
-                return addCondition(ArchConditions.beDeclaredInClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> addCondition(ArchConditions.beDeclaredInClassesThat(predicate)));
     }
 
     @Override

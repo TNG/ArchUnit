@@ -25,10 +25,5 @@ class TestElement {
         dependencies.add(element);
     }
 
-    static final Function<TestElement, Collection<TestElement>> GET_DEPENDENCIES = new Function<TestElement, Collection<TestElement>>() {
-        @Override
-        public Collection<TestElement> apply(TestElement element) {
-            return element.dependencies;
-        }
-    };
+    static final Function<TestElement, Collection<TestElement>> GET_DEPENDENCIES = element -> element.dependencies;
 }

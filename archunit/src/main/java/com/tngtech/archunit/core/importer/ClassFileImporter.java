@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
@@ -346,12 +345,6 @@ public final class ClassFileImporter {
     }
 
     private ClassFileSource unify(final List<ClassFileSource> sources) {
-        final Iterable<ClassFileLocation> concatenatedStreams = Iterables.concat(sources);
-        return new ClassFileSource() {
-            @Override
-            public Iterator<ClassFileLocation> iterator() {
-                return concatenatedStreams.iterator();
-            }
-        };
+        return Iterables.concat(sources)::iterator;
     }
 }

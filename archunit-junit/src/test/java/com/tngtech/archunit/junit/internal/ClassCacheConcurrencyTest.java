@@ -70,13 +70,10 @@ public class ClassCacheConcurrencyTest {
     }
 
     private Runnable repeatGetClassesToAnalyze(final int times) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                for (int j = 0; j < times; j++) {
-                    cache.getClassesToAnalyzeFor(TEST_CLASSES.get(j % TEST_CLASSES.size()),
-                            new TestAnalysisRequest().withLocationProviders(LocationOfClass.Provider.class));
-                }
+        return () -> {
+            for (int j = 0; j < times; j++) {
+                cache.getClassesToAnalyzeFor(TEST_CLASSES.get(j % TEST_CLASSES.size()),
+                        new TestAnalysisRequest().withLocationProviders(LocationOfClass.Provider.class));
             }
         };
     }

@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -81,19 +80,9 @@ public interface JavaClassDescriptor {
                     }
                 });
         private static final ImmutableMap<String, Class<?>> primitiveClassesByName =
-                Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
-                    @Override
-                    public String apply(Class<?> input) {
-                        return input.getName();
-                    }
-                });
+                Maps.uniqueIndex(allPrimitiveTypes(), Class::getName);
         private static final ImmutableBiMap<String, Class<?>> primitiveClassesByDescriptor =
-                ImmutableBiMap.copyOf(Maps.uniqueIndex(allPrimitiveTypes(), new Function<Class<?>, String>() {
-                    @Override
-                    public String apply(Class<?> input) {
-                        return Type.getType(input).getDescriptor();
-                    }
-                }));
+                ImmutableBiMap.copyOf(Maps.uniqueIndex(allPrimitiveTypes(), input -> Type.getType(input).getDescriptor()));
         private static final Map<String, Class<?>> primitiveClassesByNameOrDescriptor =
                 ImmutableMap.<String, Class<?>>builder()
                         .putAll(primitiveClassesByName)

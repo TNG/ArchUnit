@@ -11,7 +11,6 @@ import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -94,12 +93,8 @@ public class CompositeArchRuleTest {
 
     @Test
     public void fails_on_empty_should_by_default() {
-        assertThatThrownBy(new ThrowingCallable() {
-            @Override
-            public void call() {
-                compositeRuleWithPartialEmptyShould().check(new ClassFileImporter().importClasses(Object.class));
-            }
-        }).isInstanceOf(AssertionError.class)
+        assertThatThrownBy(() -> compositeRuleWithPartialEmptyShould().check(new ClassFileImporter().importClasses(Object.class)))
+                .isInstanceOf(AssertionError.class)
                 .hasMessageContaining("failed to check any classes");
     }
 

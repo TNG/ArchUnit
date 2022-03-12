@@ -17,8 +17,8 @@ package com.tngtech.archunit.lang;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ForwardingList;
@@ -47,7 +47,7 @@ public class FailureMessages extends ForwardingList<String> {
     FailureMessages filter(Predicate<String> predicate) {
         ImmutableList.Builder<String> filtered = ImmutableList.builder();
         for (String message : failures) {
-            if (predicate.apply(message)) {
+            if (predicate.test(message)) {
                 filtered.add(message);
             }
         }
