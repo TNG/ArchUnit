@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.domain;
 
 import java.util.Map;
-import java.util.Objects;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.PublicAPI;
@@ -46,23 +45,6 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
     @PublicAPI(usage = ACCESS)
     public AccessType getAccessType() {
         return accessType;
-    }
-
-    @Override
-    public int hashCode() {
-        return 31 * super.hashCode() + accessType.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final JavaFieldAccess other = (JavaFieldAccess) obj;
-        return super.equals(other) && Objects.equals(this.accessType, other.accessType);
     }
 
     @Override

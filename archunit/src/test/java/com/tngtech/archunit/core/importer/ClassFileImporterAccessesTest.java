@@ -924,6 +924,28 @@ public class ClassFileImporterAccessesTest {
         assertThat(javaClass.getMethod("keyOf", Object.class).getMethodCallsFromSelf()).isNotEmpty();
     }
 
+    @Test
+    public void imports_multiple_identical_accesses_in_same_line() {
+        class Target {
+            Target callMe() {
+                return this;
+            }
+        }
+        @SuppressWarnings("unused")
+        class Origin {
+            void call(Target target) {
+                target.callMe().callMe();
+            }
+        }
+
+        JavaClass origin = new ClassFileImporter().importClasses(Origin.class, Target.class).get(Origin.class);
+
+        assertThat(origin.getMethodCallsFromSelf()).hasSize(2);
+        for (JavaMethodCall call : origin.getMethodCallsFromSelf()) {
+            assertThatCall(call).isTo("callMe");
+        }
+    }
+
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {
         Set<Dependency> result = new HashSet<>();
         for (Dependency dependency : dependencies) {
