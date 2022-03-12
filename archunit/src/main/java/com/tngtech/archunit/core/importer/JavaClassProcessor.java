@@ -432,7 +432,9 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         private void processLambdaMetafactoryMethodHandleArgument(Handle methodHandle) {
-            if (!isLambdaMethod(methodHandle)) {
+            if (isLambdaMethod(methodHandle)) {
+                accessHandler.handleLambdaInstruction(methodHandle.getOwner(), methodHandle.getName(), methodHandle.getDesc());
+            } else {
                 accessHandler.handleMethodReferenceInstruction(methodHandle.getOwner(), methodHandle.getName(), methodHandle.getDesc());
             }
         }
@@ -536,6 +538,8 @@ class JavaClassProcessor extends ClassVisitor {
 
         void handleMethodReferenceInstruction(String owner, String name, String desc);
 
+        void handleLambdaInstruction(String owner, String name, String desc);
+
         void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType);
 
         void handleTryFinallyBlock(Label start, Label end, Label handler);
@@ -566,6 +570,10 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void handleMethodReferenceInstruction(String owner, String name, String desc) {
+            }
+
+            @Override
+            public void handleLambdaInstruction(String owner, String name, String desc) {
             }
 
             @Override

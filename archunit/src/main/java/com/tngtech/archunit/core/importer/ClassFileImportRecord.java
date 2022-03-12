@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
@@ -40,12 +42,18 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBu
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
+import com.tngtech.archunit.core.importer.RawAccessRecord.MemberSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
 import static java.util.Collections.emptyList;
 
 class ClassFileImportRecord {
+    private static final Logger log = LoggerFactory.getLogger(ClassFileImportRecord.class);
+
     private static final JavaClassTypeParametersBuilder NO_TYPE_PARAMETERS =
             new JavaClassTypeParametersBuilder(emptyList());
 
@@ -70,6 +78,7 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodReferenceRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
+    private final Map<String, RawAccessRecord> rawSyntheticLambdaMethodInvocationRecordsByTarget = new HashMap<>();
 
     void setSuperclass(String ownerName, String superclassName) {
         checkState(!superclassNamesByOwner.containsKey(ownerName),
@@ -220,24 +229,61 @@ class ClassFileImportRecord {
         rawConstructorReferenceRecords.add(record);
     }
 
+    void registerLambdaInvocation(RawAccessRecord record) {
+        rawSyntheticLambdaMethodInvocationRecordsByTarget.put(getMemberKey(record.target), record);
+    }
+
     void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
-        rawFieldAccessRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawFieldAccessRecords, createLambdaFieldAccessWithNewOrigin).forEach(doWithRecord);
     }
 
     void forEachRawMethodCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        rawMethodCallRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawMethodCallRecords, createLambdaAccessWithNewOrigin).forEach(doWithRecord);
     }
 
     void forEachRawConstructorCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        rawConstructorCallRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawConstructorCallRecords, createLambdaAccessWithNewOrigin).forEach(doWithRecord);
     }
 
     void forEachRawMethodReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
-        rawMethodReferenceRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawMethodReferenceRecords, createLambdaAccessWithNewOrigin).forEach(doWithRecord);
     }
 
     void forEachRawConstructorReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
-        rawConstructorReferenceRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawConstructorReferenceRecords, createLambdaAccessWithNewOrigin).forEach(doWithRecord);
+    }
+
+    private <ACCESS extends RawAccessRecord> Stream<ACCESS> fixLambdaOrigins(
+            Set<ACCESS> rawAccessRecordsIncludingSyntheticLambda,
+            BiFunction<ACCESS, CodeUnit, ACCESS> createAccessWithNewOrigin
+    ) {
+        return rawAccessRecordsIncludingSyntheticLambda.stream()
+                .flatMap(access -> isLambdaMethodName(access.caller.getName())
+                        ? replaceOriginByLambdaOrigin(access, createAccessWithNewOrigin)
+                        : Stream.of(access));
+    }
+
+    private <ACCESS extends RawAccessRecord> Stream<ACCESS> replaceOriginByLambdaOrigin(ACCESS accessFromSyntheticLambda, BiFunction<ACCESS, CodeUnit, ACCESS> createAccessWithNewOrigin) {
+        RawAccessRecord lambdaInvocationRecord = findNonSyntheticOriginOf(accessFromSyntheticLambda);
+
+        if (lambdaInvocationRecord != null) {
+            return Stream.of(createAccessWithNewOrigin.apply(accessFromSyntheticLambda, lambdaInvocationRecord.caller));
+        } else {
+            log.warn("Could not find matching dynamic invocation for synthetic lambda method {}.{}|{}",
+                    accessFromSyntheticLambda.target.getDeclaringClassName(),
+                    accessFromSyntheticLambda.target.name,
+                    accessFromSyntheticLambda.target.getDescriptor());
+            return Stream.empty();
+        }
+    }
+
+    private <ACCESS extends RawAccessRecord> RawAccessRecord findNonSyntheticOriginOf(ACCESS accessFromSyntheticLambda) {
+        RawAccessRecord result = accessFromSyntheticLambda;
+        do {
+            result = rawSyntheticLambdaMethodInvocationRecordsByTarget.get(getMemberKey(result.caller));
+        } while (result != null && isLambdaMethodName(result.caller.getName()));
+
+        return result;
     }
 
     void add(JavaClass javaClass) {
@@ -248,12 +294,33 @@ class ClassFileImportRecord {
         return classes;
     }
 
+    private static String getMemberKey(MemberSignature member) {
+        return getMemberKey(member.getDeclaringClassName(), member.getName(), member.getDescriptor());
+    }
+
     private static String getMemberKey(JavaMember member) {
         return getMemberKey(member.getOwner().getName(), member.getName(), member.getDescriptor());
     }
 
     private static String getMemberKey(String declaringClassName, String methodName, String descriptor) {
         return declaringClassName + "|" + methodName + "|" + descriptor;
+    }
+
+    private static final BiFunction<RawAccessRecord, CodeUnit, RawAccessRecord> createLambdaAccessWithNewOrigin =
+            (access, newOrigin) -> fillWithNewOriginDeclaredInLambda(new RawAccessRecord.Builder(), access, newOrigin)
+                    .build();
+
+    private static final BiFunction<RawAccessRecord.ForField, CodeUnit, RawAccessRecord.ForField> createLambdaFieldAccessWithNewOrigin =
+            (access, newOrigin) -> fillWithNewOriginDeclaredInLambda(new RawAccessRecord.ForField.Builder(), access, newOrigin)
+                    .withAccessType(access.accessType)
+                    .build();
+
+    private static <T extends RawAccessRecord.BaseBuilder<T>> T fillWithNewOriginDeclaredInLambda(T builder, RawAccessRecord originalAccess, CodeUnit newOrigin) {
+        return builder
+                .withCaller(newOrigin)
+                .withTarget(originalAccess.target)
+                .withLineNumber(originalAccess.lineNumber)
+                .withDeclaredInLambda();
     }
 
     private static class EnclosingDeclarationsByInnerClasses {

@@ -29,11 +29,13 @@ class RawAccessRecord {
     final CodeUnit caller;
     final TargetInfo target;
     final int lineNumber;
+    public boolean declaredInLambda;
 
-    RawAccessRecord(CodeUnit caller, TargetInfo target, int lineNumber) {
+    RawAccessRecord(CodeUnit caller, TargetInfo target, int lineNumber, boolean declaredInLambda) {
         this.caller = checkNotNull(caller);
         this.target = checkNotNull(target);
         this.lineNumber = lineNumber;
+        this.declaredInLambda = declaredInLambda;
     }
 
     @Override
@@ -45,7 +47,15 @@ class RawAccessRecord {
         return "caller=" + caller + ", target=" + target + ", lineNumber=" + lineNumber;
     }
 
-    static class CodeUnit {
+    interface MemberSignature {
+        String getName();
+
+        String getDescriptor();
+
+        String getDeclaringClassName();
+    }
+
+    static class CodeUnit implements MemberSignature {
         private final String name;
         private final String descriptor;
         private final List<JavaClassDescriptor> rawParameterTypes;
@@ -70,8 +80,14 @@ class RawAccessRecord {
             return result.build();
         }
 
-        String getName() {
+        @Override
+        public String getName() {
             return name;
+        }
+
+        @Override
+        public String getDescriptor() {
+            return descriptor;
         }
 
         List<JavaClassDescriptor> getRawParameterTypes() {
@@ -82,12 +98,9 @@ class RawAccessRecord {
             return rawParameterTypeNames;
         }
 
-        String getDeclaringClassName() {
+        @Override
+        public String getDeclaringClassName() {
             return declaringClassName;
-        }
-
-        String getDescriptor() {
-            return descriptor;
         }
 
         boolean is(JavaCodeUnit method) {
@@ -126,20 +139,38 @@ class RawAccessRecord {
         }
     }
 
-    static final class TargetInfo {
+    static final class TargetInfo implements MemberSignature {
         final JavaClassDescriptor owner;
         final String name;
         final String desc;
+
+        private final int hashCode;
 
         TargetInfo(String owner, String name, String desc) {
             this.owner = JavaClassDescriptorImporter.createFromAsmObjectTypeName(owner);
             this.name = name;
             this.desc = desc;
+            hashCode = Objects.hash(owner, name, desc);
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getDescriptor() {
+            return desc;
+        }
+
+        @Override
+        public String getDeclaringClassName() {
+            return owner.getFullyQualifiedClassName();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(owner, name, desc);
+            return hashCode;
         }
 
         @Override
@@ -169,6 +200,7 @@ class RawAccessRecord {
         CodeUnit caller;
         TargetInfo target;
         int lineNumber = -1;
+        boolean declaredInLambda = false;
 
         SELF withCaller(CodeUnit caller) {
             this.caller = caller;
@@ -185,21 +217,26 @@ class RawAccessRecord {
             return self();
         }
 
+        public SELF withDeclaredInLambda() {
+            declaredInLambda = true;
+            return self();
+        }
+
         @SuppressWarnings("unchecked")
         SELF self() {
             return (SELF) this;
         }
 
         RawAccessRecord build() {
-            return new RawAccessRecord(caller, target, lineNumber);
+            return new RawAccessRecord(caller, target, lineNumber, declaredInLambda);
         }
     }
 
     static class ForField extends RawAccessRecord {
         final AccessType accessType;
 
-        private ForField(CodeUnit caller, TargetInfo target, int lineNumber, AccessType accessType) {
-            super(caller, target, lineNumber);
+        private ForField(CodeUnit caller, TargetInfo target, int lineNumber, AccessType accessType, boolean declaredInLambda) {
+            super(caller, target, lineNumber, declaredInLambda);
             this.accessType = accessType;
         }
 
@@ -213,7 +250,7 @@ class RawAccessRecord {
 
             @Override
             ForField build() {
-                return new ForField(super.caller, super.target, super.lineNumber, accessType);
+                return new ForField(super.caller, super.target, super.lineNumber, accessType, declaredInLambda);
             }
         }
     }

@@ -3,6 +3,7 @@ package com.tngtech.archunit.testutil.assertion;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -25,11 +26,13 @@ import static com.tngtech.archunit.core.domain.JavaModifier.STATIC;
 import static com.tngtech.archunit.core.domain.JavaModifier.SYNCHRONIZED;
 import static com.tngtech.archunit.core.domain.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.domain.JavaModifier.VOLATILE;
+import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporterTestUtils.isLambdaMethodName;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.runtimePropertiesOf;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 
 public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssertion, List<JavaMember>> {
@@ -62,7 +65,7 @@ public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssert
         Set<Member> members = new HashSet<>();
         for (Class<?> clazz : classes) {
             members.addAll(ImmutableSet.copyOf(clazz.getDeclaredFields()));
-            members.addAll(ImmutableSet.copyOf(clazz.getDeclaredMethods()));
+            members.addAll(Arrays.stream(clazz.getDeclaredMethods()).filter(m -> !isLambdaMethodName(m.getName())).collect(toSet()));
             members.addAll(ImmutableSet.copyOf(clazz.getDeclaredConstructors()));
         }
 
@@ -71,7 +74,7 @@ public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssert
 
     // We know this is compatible since every Member also implements AnnotatedElement
     // Unfortunately the Java type system does not make it easy here
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void matchCasted(Set<Member> members) {
         matchInAnyOrder((Set) members);
     }

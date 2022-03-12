@@ -272,6 +272,12 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void handleLambdaInstruction(String owner, String name, String desc) {
+            TargetInfo target = new TargetInfo(owner, name, desc);
+            importRecord.registerLambdaInvocation(filled(new RawAccessRecord.Builder(), target).build());
+        }
+
+        @Override
         public void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType) {
             LOG.trace("Found try/catch block between {} and {} for throwable {}", start, end, throwableType);
             tryCatchRecorder.registerTryCatchBlock(start, end, handler, throwableType);

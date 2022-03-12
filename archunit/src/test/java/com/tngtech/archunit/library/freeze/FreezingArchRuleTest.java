@@ -414,16 +414,14 @@ public class FreezingArchRuleTest {
                 .withViolations(
                         "first violation one in (SomeClass.java:12) and first violation two in (SomeClass.java:13)",
                         "second violation in (SomeClass.java:77)",
-                        "third violation in (OtherClass.java:123)",
-                        "Method <MyClass.lambda$myFunction$2()> has a violation in (MyClass.java:123)"
+                        "third violation in (OtherClass.java:123)"
                 ).create());
 
         String onlyLineNumberChanged = "first violation one in (SomeClass.java:98) and first violation two in (SomeClass.java:99)";
         String locationClassDoesNotMatch = "second violation in (OtherClass.java:77)";
         String descriptionDoesNotMatch = "unknown violation in (SomeClass.java:77)";
-        String lambdaWithDifferentNumber = "Method <MyClass.lambda$myFunction$10()> has a violation in (MyClass.java:123)";
         FreezingArchRule updatedViolations = freeze(rule("some description")
-                .withViolations(onlyLineNumberChanged, locationClassDoesNotMatch, descriptionDoesNotMatch, lambdaWithDifferentNumber).create())
+                .withViolations(onlyLineNumberChanged, locationClassDoesNotMatch, descriptionDoesNotMatch).create())
                 .persistIn(violationStore);
 
         assertThatRule(updatedViolations)
@@ -509,7 +507,7 @@ public class FreezingArchRuleTest {
         private final Function<String, String> textModifier;
 
         private RuleCreator(String description) {
-            this(description, new ArrayList<ViolatedEvent>(), Functions.<String>identity());
+            this(description, new ArrayList<>(), Functions.identity());
         }
 
         private RuleCreator(String description, List<ViolatedEvent> events, Function<String, String> textModifier) {
@@ -519,7 +517,7 @@ public class FreezingArchRuleTest {
         }
 
         RuleCreator withoutViolations() {
-            return new RuleCreator(description, new ArrayList<ViolatedEvent>(), textModifier);
+            return new RuleCreator(description, new ArrayList<>(), textModifier);
         }
 
         RuleCreator withViolations(final String... messages) {

@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -394,8 +395,9 @@ public final class DomainBuilders {
         JavaMethodBuilder() {
         }
 
-        void withAnnotationDefaultValue(Function<JavaMethod, Optional<Object>> createAnnotationDefaultValue) {
+        JavaMethodBuilder withAnnotationDefaultValue(Function<JavaMethod, Optional<Object>> createAnnotationDefaultValue) {
             this.createAnnotationDefaultValue = createAnnotationDefaultValue;
+            return this;
         }
 
         @Override
@@ -907,14 +909,17 @@ public final class DomainBuilders {
                     Set<? extends BuilderWithBuildParameter<PARAMETER, ? extends VALUE>> builders,
                     PARAMETER parameter,
                     ImportedClasses importedClasses) {
+                return build(builders.stream(), parameter, importedClasses);
+            }
+
+            static <PARAMETER, VALUE> Set<VALUE> build(
+                    Stream<? extends BuilderWithBuildParameter<PARAMETER, ? extends VALUE>> builders,
+                    PARAMETER parameter,
+                    ImportedClasses importedClasses) {
                 checkNotNull(builders);
                 checkNotNull(parameter);
 
-                ImmutableSet.Builder<VALUE> result = ImmutableSet.builder();
-                for (BuilderWithBuildParameter<PARAMETER, ? extends VALUE> builder : builders) {
-                    result.add(builder.build(parameter, importedClasses));
-                }
-                return result.build();
+                return builders.map(builder -> builder.build(parameter, importedClasses)).collect(toImmutableSet());
             }
         }
     }
@@ -982,6 +987,7 @@ public final class DomainBuilders {
         private JavaCodeUnit origin;
         private TARGET target;
         private int lineNumber;
+        private boolean declaredInLambda;
 
         private JavaAccessBuilder() {
         }
@@ -1001,6 +1007,11 @@ public final class DomainBuilders {
             return self();
         }
 
+        SELF withDeclaredInLambda(boolean declaredInLambda) {
+            this.declaredInLambda = declaredInLambda;
+            return self();
+        }
+
         public JavaCodeUnit getOrigin() {
             return origin;
         }
@@ -1016,6 +1027,10 @@ public final class DomainBuilders {
         @SuppressWarnings("unchecked")
         private SELF self() {
             return (SELF) this;
+        }
+
+        public boolean isDeclaredInLambda() {
+            return declaredInLambda;
         }
     }
 

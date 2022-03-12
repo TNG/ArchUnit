@@ -25,7 +25,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
-import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAccessBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -38,12 +38,14 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     private final TARGET target;
     private final int lineNumber;
     private final SourceCodeLocation sourceCodeLocation;
+    private final boolean declaredInLambda;
 
-    JavaAccess(DomainBuilders.JavaAccessBuilder<TARGET, ?> builder) {
+    JavaAccess(JavaAccessBuilder<TARGET, ?> builder) {
         this.origin = checkNotNull(builder.getOrigin());
         this.target = checkNotNull(builder.getTarget());
         this.lineNumber = builder.getLineNumber();
         this.sourceCodeLocation = SourceCodeLocation.of(getOriginOwner(), lineNumber);
+        this.declaredInLambda = builder.isDeclaredInLambda();
     }
 
     @Override
@@ -87,6 +89,11 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     @PublicAPI(usage = ACCESS)
     public SourceCodeLocation getSourceCodeLocation() {
         return sourceCodeLocation;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public boolean isDeclaredInLambda() {
+        return declaredInLambda;
     }
 
     @Override

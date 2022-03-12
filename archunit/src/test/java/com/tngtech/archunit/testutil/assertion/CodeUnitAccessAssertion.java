@@ -47,6 +47,10 @@ public class CodeUnitAccessAssertion
         });
     }
 
+    public CodeUnitAccessAssertion isTo(Class<?> targetClass, String codeUnitName, final Class<?>... parameterTypes) {
+        return isTo(targetClass).isTo(codeUnitName, parameterTypes);
+    }
+
     public CodeUnitAccessAssertion isWrappedWithTryCatchFor(Class<? extends Throwable> throwableType) {
         assertThat(access.getContainingTryBlocks())
                 .as("containing try blocks")
