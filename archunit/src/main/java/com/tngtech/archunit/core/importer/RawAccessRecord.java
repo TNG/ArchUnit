@@ -37,25 +37,6 @@ class RawAccessRecord {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(caller, target, lineNumber);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final RawAccessRecord other = (RawAccessRecord) obj;
-        return Objects.equals(this.caller, other.caller) &&
-                Objects.equals(this.target, other.target) &&
-                Objects.equals(this.lineNumber, other.lineNumber);
-    }
-
-    @Override
     public String toString() {
         return getClass().getSimpleName() + "{" + fieldsAsString() + '}';
     }
@@ -222,26 +203,6 @@ class RawAccessRecord {
         private ForField(CodeUnit caller, TargetInfo target, int lineNumber, AccessType accessType) {
             super(caller, target, lineNumber);
             this.accessType = accessType;
-        }
-
-        @Override
-        public int hashCode() {
-            return 31 * super.hashCode() + Objects.hash(accessType);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            if (!super.equals(obj)) {
-                return false;
-            }
-            final ForField other = (ForField) obj;
-            return Objects.equals(this.accessType, other.accessType);
         }
 
         static class Builder extends BaseBuilder<Builder> {

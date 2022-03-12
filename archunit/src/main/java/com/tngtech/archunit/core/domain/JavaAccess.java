@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.Objects;
 import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
@@ -38,14 +37,12 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     private final JavaCodeUnit origin;
     private final TARGET target;
     private final int lineNumber;
-    private final int hashCode;
     private final SourceCodeLocation sourceCodeLocation;
 
     JavaAccess(DomainBuilders.JavaAccessBuilder<TARGET, ?> builder) {
         this.origin = checkNotNull(builder.getOrigin());
         this.target = checkNotNull(builder.getTarget());
         this.lineNumber = builder.getLineNumber();
-        this.hashCode = Objects.hash(origin.getFullName(), target.getFullName(), lineNumber);
         this.sourceCodeLocation = SourceCodeLocation.of(getOriginOwner(), lineNumber);
     }
 
@@ -90,25 +87,6 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     @PublicAPI(usage = ACCESS)
     public SourceCodeLocation getSourceCodeLocation() {
         return sourceCodeLocation;
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final JavaAccess<?> other = (JavaAccess<?>) obj;
-        return Objects.equals(this.origin.getFullName(), other.origin.getFullName()) &&
-                Objects.equals(this.target.getFullName(), other.target.getFullName()) &&
-                Objects.equals(this.lineNumber, other.lineNumber);
     }
 
     @Override

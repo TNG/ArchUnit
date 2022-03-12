@@ -26,45 +26,22 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 @RunWith(DataProviderRunner.class)
 public class JavaFieldAccessTest {
     @Test
-    public void equals_should_work() throws Exception {
+    public void equals_of_JavaAccess_should_be_identity_equals() throws Exception {
         JavaClass clazz = importClassWithContext(SomeClass.class);
         JavaFieldAccess access = stringFieldAccessRecordBuilder(clazz)
                 .withOrigin(accessFieldMethod(clazz))
                 .build();
-        JavaFieldAccess equalAccess = stringFieldAccessRecordBuilder(clazz)
+        JavaFieldAccess samePropertiesAccess = stringFieldAccessRecordBuilder(clazz)
                 .withOrigin(accessFieldMethod(clazz))
                 .build();
 
         assertThat(access).isEqualTo(access);
         assertThat(access.hashCode()).isEqualTo(access.hashCode());
-        assertThat(access).isEqualTo(equalAccess);
-        assertThat(access.hashCode()).isEqualTo(equalAccess.hashCode());
-
-        JavaFieldAccess otherAccessType = stringFieldAccessRecordBuilder(clazz)
-                .withAccessType(SET)
-                .withOrigin(accessFieldMethod(clazz))
-                .build();
-        JavaFieldAccess otherLineNumber = stringFieldAccessRecordBuilder(clazz)
-                .withOrigin(accessFieldMethod(clazz))
-                .withLineNumber(999)
-                .build();
-        JavaFieldAccess otherTarget = stringFieldAccessRecordBuilder(clazz)
-                .withOrigin(accessFieldMethod(clazz))
-                .withTarget(targetFrom(clazz.getField("intField")))
-                .build();
-        JavaFieldAccess otherCaller = stringFieldAccessRecordBuilder(clazz)
-                .withOrigin(clazz.getMethod("accessInt"))
-                .build();
-
-        assertThat(access).isNotEqualTo(otherAccessType);
-        assertThat(access).isNotEqualTo(otherLineNumber);
-        assertThat(access).isNotEqualTo(otherTarget);
-        assertThat(access).isNotEqualTo(otherCaller);
+        assertThat(access).isNotEqualTo(samePropertiesAccess);
     }
 
     @Test
     public void fieldAccess_should_have_same_name_as_target() throws Exception {
-
         JavaClass clazz = importClassWithContext(SomeClass.class);
 
         JavaFieldAccess access = stringFieldAccessRecordBuilder(clazz)
