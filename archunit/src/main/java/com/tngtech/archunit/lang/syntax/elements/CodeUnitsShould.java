@@ -70,6 +70,19 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
     CONJUNCTION notHaveRawParameterTypes(Class<?>... parameterTypes);
 
     /**
+     * Asserts that only certain objects call the code units selected by this rule.
+     * <br><br>
+     * E.g.
+     * <pre><code>
+     * {@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#should() should()}.{@link CodeUnitsShould#onlyBeCalled() onlyBeCalled()}.{@link OnlyBeCalledSpecification#byClassesThat() byClassesThat()}.{@link ClassesThat#belongToAnyOf(Class[]) belongToAnyOf(SomeClass.class)}
+     * </code></pre>
+     *
+     * @return A syntax element that allows restricting how code units can be called
+     */
+    @PublicAPI(usage = ACCESS)
+    OnlyBeCalledSpecification<CONJUNCTION> onlyBeCalled();
+
+    /**
      * Asserts that {@link JavaCodeUnit JavaCodeUnits} have the specified fully qualified raw parameter type names.
      * <br><br>
      * E.g.

@@ -70,6 +70,12 @@ public class JavaMethod extends JavaCodeUnit {
         return annotationDefaultValue;
     }
 
+    @Override
+    @PublicAPI(usage = ACCESS)
+    public boolean isMethod() {
+        return true;
+    }
+
     @PublicAPI(usage = ACCESS)
     public Set<JavaMethodCall> getCallsOfSelf() {
         return getReverseDependencies().getCallsTo(this);

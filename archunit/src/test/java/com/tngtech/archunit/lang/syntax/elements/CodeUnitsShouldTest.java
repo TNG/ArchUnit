@@ -29,12 +29,20 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.union;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeCalledByClassesThat;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeCalledByCodeUnitsThat;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeCalledByConstructorsThat;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeCalledByMethodsThat;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldTest.singleLineFailureReportOf;
+import static com.tngtech.archunit.lang.syntax.elements.CodeUnitsShouldTest.ClassWronglyCallingMethodAndConstructor.METHOD_CALL_WRONGLY;
 import static com.tngtech.archunit.lang.syntax.elements.GivenCodeUnitsTest.ALL_METHOD_DESCRIPTIONS;
 import static com.tngtech.archunit.lang.syntax.elements.GivenCodeUnitsTest.CONSTRUCTOR_FOUR_ARGS;
 import static com.tngtech.archunit.lang.syntax.elements.GivenCodeUnitsTest.CONSTRUCTOR_ONE_ARG;
@@ -47,10 +55,10 @@ import static com.tngtech.archunit.lang.syntax.elements.GivenCodeUnitsTest.onePa
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.ALL_CONSTRUCTOR_DESCRIPTIONS;
 import static com.tngtech.archunit.lang.syntax.elements.GivenMembersTest.assertViolation;
 import static com.tngtech.archunit.lang.syntax.elements.MembersShouldTest.parseMembers;
+import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.regex.Pattern.quote;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
 public class CodeUnitsShouldTest {
@@ -277,6 +285,345 @@ public class CodeUnitsShouldTest {
         assertThat(actualMembers).containsOnlyElementsOf(expectedMembers);
     }
 
+    @DataProvider
+    public static Object[][] restricted_constructor_calls_by_classes_rules() {
+        return $$(
+                $(constructors().should(onlyBeCalledByClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(constructors().should().onlyBeCalled().byClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))),
+                $(constructors().should().onlyBeCalled().byClassesThat().belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_constructor_calls_by_classes_rules")
+    public void restricted_constructor_calls_by_classes_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'constructors should only be called by classes that")
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_method_calls_by_classes_rules() {
+        return $$(
+                $(methods().should(onlyBeCalledByClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(methods().should().onlyBeCalled().byClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))),
+                $(methods().should().onlyBeCalled().byClassesThat().belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_method_calls_by_classes_rules")
+    public void restricted_method_calls_by_classes_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'methods should only be called by classes that")
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_code_unit_calls_by_classes_rules() {
+        return $$(
+                $(codeUnits().should(onlyBeCalledByClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(codeUnits().should().onlyBeCalled().byClassesThat(belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))),
+                $(codeUnits().should().onlyBeCalled().byClassesThat().belongToAnyOf(ClassCorrectlyCallingMethodAndConstructor.class))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_code_unit_calls_by_classes_rules")
+    public void restricted_code_units_calls_by_classes_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'code units should only be called by classes that")
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)))
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_code_unit_calls_by_methods_rules() {
+        return $$(
+                $(codeUnits().should(onlyBeCalledByMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(codeUnits().should().onlyBeCalled().byMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_code_unit_calls_by_methods_rules")
+    public void restricted_code_units_calls_by_methods_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'code units should only be called by methods that")
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)))
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)))
+                .containsPattern(String.format("Constructor <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassCorrectlyCallingMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)))
+                .containsPattern(String.format("Constructor <%s.%s> calls method <%s.%s>",
+                        quote(ClassCorrectlyCallingMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_code_unit_calls_by_constructors_rules() {
+        return $$(
+                $(codeUnits().should(onlyBeCalledByConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(codeUnits().should().onlyBeCalled().byConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_code_unit_calls_by_constructors_rules")
+    public void restricted_code_units_calls_by_constructors_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'code units should only be called by constructors that")
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)))
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)))
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassCorrectlyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)))
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassCorrectlyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_code_unit_calls_by_code_units_rules() {
+        return $$(
+                $(codeUnits().should(onlyBeCalledByCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(codeUnits().should().onlyBeCalled().byCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_code_unit_calls_by_code_units_rules")
+    public void restricted_code_units_calls_by_code_units_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'code units should only be called by code units that")
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)))
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_methods_calls_by_methods_rules() {
+        return $$(
+                $(methods().should(onlyBeCalledByMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(methods().should().onlyBeCalled().byMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_methods_calls_by_methods_rules")
+    public void restricted_methods_calls_by_methods_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'methods should only be called by methods that")
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)))
+                .containsPattern(String.format("Constructor <%s.%s> calls method <%s.%s>",
+                        quote(ClassCorrectlyCallingMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_methods_calls_by_constructors_rules() {
+        return $$(
+                $(methods().should(onlyBeCalledByConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(methods().should().onlyBeCalled().byConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_methods_calls_by_constructors_rules")
+    public void restricted_methods_calls_by_constructors_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'methods should only be called by constructors that")
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)))
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassCorrectlyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_methods_calls_by_code_units_rules() {
+        return $$(
+                $(methods().should(onlyBeCalledByCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(methods().should().onlyBeCalled().byCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_methods_calls_by_code_units_rules")
+    public void restricted_methods_calls_by_code_units_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'methods should only be called by code units that")
+                .containsPattern(String.format("Method <%s.%s> calls method <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_constructors_calls_by_methods_rules() {
+        return $$(
+                $(constructors().should(onlyBeCalledByMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(constructors().should().onlyBeCalled().byMethodsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_constructors_calls_by_methods_rules")
+    public void restricted_constructors_calls_by_methods_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'constructors should only be called by methods that")
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)))
+                .containsPattern(String.format("Constructor <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassCorrectlyCallingMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_constructors_calls_by_constructors_rules() {
+        return $$(
+                $(constructors().should(onlyBeCalledByConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))),
+                $(constructors().should().onlyBeCalled().byConstructorsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class)))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_constructors_calls_by_constructors_rules")
+    public void restricted_constructors_calls_by_constructors_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'constructors should only be called by constructors that")
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)))
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassCorrectlyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_ONE_ARG),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)));
+    }
+
+    @DataProvider
+    public static Object[][] restricted_constructors_calls_by_code_units_rules() {
+        return $$(
+                $(constructors().should().onlyBeCalled().byCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class))),
+                $(constructors().should(onlyBeCalledByCodeUnitsThat(declaredIn(ClassCorrectlyCallingMethodAndConstructor.class))))
+        );
+    }
+
+    @Test
+    @UseDataProvider("restricted_constructors_calls_by_code_units_rules")
+    public void restricted_constructors_calls_by_code_units_predicate(ArchRule rule) {
+        EvaluationResult result = rule.evaluate(importClasses(ClassWithMethodAndConstructor.class, ClassCorrectlyCallingMethodAndConstructor.class,
+                ClassWronglyCallingMethodAndConstructor.class));
+
+        assertThat(singleLineFailureReportOf(result))
+                .contains("Rule 'constructors should only be called by code units that")
+                .containsPattern(String.format("Method <%s.%s> calls constructor <%s.%s>",
+                        quote(ClassWronglyCallingMethodAndConstructor.class.getName()),
+                        quote(METHOD_CALL_WRONGLY),
+                        quote(ClassWithMethodAndConstructor.class.getName()),
+                        quote(CONSTRUCTOR_ONE_ARG)));
+    }
+
     private static DescribedPredicate<JavaCodeUnit> doNotHaveParametersOfType(final Class<?> type) {
         return new DescribedPredicate<JavaCodeUnit>("do not have parameters of type " + type.getSimpleName()) {
             @Override
@@ -296,5 +643,42 @@ public class CodeUnitsShouldTest {
 
     private static Set<String> allCodeUnitsExcept(String... codeUnits) {
         return union(allMethodsExcept(codeUnits), allConstructorsExcept(codeUnits));
+    }
+
+    @SuppressWarnings({"unused"})
+    private static class ClassWithMethodAndConstructor {
+
+        ClassWithMethodAndConstructor(String param) {
+        }
+
+        void method(String param) {
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static class ClassCorrectlyCallingMethodAndConstructor {
+        ClassWithMethodAndConstructor instance;
+
+        ClassCorrectlyCallingMethodAndConstructor(String param) {
+            instance = new ClassWithMethodAndConstructor("param");
+            instance.method("param1");
+        }
+
+        void method(String param) {
+            instance = new ClassWithMethodAndConstructor("param");
+            instance.method("param2");
+        }
+    }
+
+    @SuppressWarnings("unused")
+    static class ClassWronglyCallingMethodAndConstructor {
+        static final String METHOD_CALL_WRONGLY = "callWrongly()";
+
+        ClassWithMethodAndConstructor instance;
+
+        void callWrongly() {
+            ClassWithMethodAndConstructor instance = new ClassWithMethodAndConstructor("param");
+            instance.method("param2");
+        }
     }
 }

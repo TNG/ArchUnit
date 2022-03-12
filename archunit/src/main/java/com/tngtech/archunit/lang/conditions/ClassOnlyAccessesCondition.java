@@ -22,7 +22,7 @@ import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 
-class ClassOnlyAccessesCondition<T extends JavaAccess<?>> extends AllAttributesMatchCondition<T> {
+class ClassOnlyAccessesCondition<T extends JavaAccess<?>> extends AllAttributesMatchCondition<T, JavaClass> {
     private final Function<JavaClass, ? extends Collection<T>> getRelevantAccesses;
 
     ClassOnlyAccessesCondition(DescribedPredicate<? super T> predicate, Function<JavaClass, ? extends Collection<T>> getRelevantAccesses) {

@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 @PublicAPI(usage = ACCESS)
-public final class AllDependenciesCondition extends AllAttributesMatchCondition<Dependency> {
+public final class AllDependenciesCondition extends AllAttributesMatchCondition<Dependency, JavaClass> {
     private final DescribedPredicate<? super Dependency> conditionPredicate;
     private final Function<JavaClass, ? extends Collection<Dependency>> javaClassToRelevantDependencies;
     private final DescribedPredicate<Dependency> ignorePredicate;
