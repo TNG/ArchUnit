@@ -26,11 +26,11 @@ public interface GivenMethodsConjunction extends GivenCodeUnitsConjunction<JavaM
 
     @Override
     @PublicAPI(usage = ACCESS)
-    MethodsThat<?> and();
+    MethodsThat<? extends GivenMethodsConjunction> and();
 
     @Override
     @PublicAPI(usage = ACCESS)
-    MethodsThat<?> or();
+    MethodsThat<? extends GivenMethodsConjunction> or();
 
     @Override
     @PublicAPI(usage = ACCESS)

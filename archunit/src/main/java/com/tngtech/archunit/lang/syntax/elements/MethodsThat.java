@@ -19,7 +19,7 @@ import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface MethodsThat<CONJUNCTION extends GivenMethodsConjunction> extends CodeUnitsThat<CONJUNCTION> {
+public interface MethodsThat<CONJUNCTION> extends CodeUnitsThat<CONJUNCTION> {
 
     /**
      * Matches static methods.

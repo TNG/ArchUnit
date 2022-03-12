@@ -26,11 +26,11 @@ public interface GivenFieldsConjunction extends GivenMembersConjunction<JavaFiel
 
     @Override
     @PublicAPI(usage = ACCESS)
-    FieldsThat<?> and();
+    FieldsThat<? extends GivenFieldsConjunction> and();
 
     @Override
     @PublicAPI(usage = ACCESS)
-    FieldsThat<?> or();
+    FieldsThat<? extends GivenFieldsConjunction> or();
 
     @Override
     @PublicAPI(usage = ACCESS)

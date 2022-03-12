@@ -26,7 +26,7 @@ public interface GivenMethods extends GivenCodeUnits<JavaMethod> {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    MethodsThat<?> that();
+    MethodsThat<? extends GivenMethodsConjunction> that();
 
     @Override
     @PublicAPI(usage = ACCESS)

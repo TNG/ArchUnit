@@ -22,7 +22,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface FieldsThat<CONJUNCTION extends GivenFieldsConjunction> extends MembersThat<CONJUNCTION> {
+public interface FieldsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
 
     /**
      * Matches fields by their raw type. Take for example
