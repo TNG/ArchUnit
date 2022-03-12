@@ -22,9 +22,6 @@ public class PluginLoaderTest {
 
     @Test
     public void loads_correct_plugin_for_version() {
-        System.setProperty("java.version", "1.7.0_55");
-        assertThat(createPluginLoader().load()).isInstanceOf(pluginTypeBeforeJava9);
-
         System.setProperty("java.version", "1.8.0_122");
         assertThat(createPluginLoader().load()).isInstanceOf(pluginTypeBeforeJava9);
 

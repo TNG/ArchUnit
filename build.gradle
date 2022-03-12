@@ -78,7 +78,7 @@ ext {
             joox                : [group: 'org.jooq', name: 'joox-java-6', version: '1.6.0']
     ]
 
-    minSupportedJavaVersion = JavaVersion.VERSION_1_7
+    minSupportedJavaVersion = JavaVersion.VERSION_1_8
     maxSupportedJavaVersion = JavaVersion.VERSION_17
     isTestBuild = project.hasProperty('testJavaVersion')
     configuredTestJavaVersion = project.findProperty('testJavaVersion')?.toString()?.with {JavaVersion.toVersion(it) }
