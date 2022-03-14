@@ -122,24 +122,6 @@ public class ReflectionUtils {
         }
     }
 
-    /*protected void invokeTestMethod(JupiterEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor) {
-        ExtensionContext extensionContext = context.getExtensionContext();
-        ThrowableCollector throwableCollector = context.getThrowableCollector();
-
-        throwableCollector.execute(() -> {
-            try {
-                Method testMethod = getTestMethod();
-                Object instance = extensionContext.getRequiredTestInstance();
-                executableInvoker.invoke(testMethod, instance, extensionContext, context.getExtensionRegistry(),
-                        interceptorCall);
-            }
-            catch (Throwable throwable) {
-                UnrecoverableExceptions.rethrowIfUnrecoverable(throwable);
-                invokeTestExecutionExceptionHandlers(context.getExtensionRegistry(), extensionContext, throwable);
-            }
-        });
-    }*/
-
     @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
     public static <T> T invokeMethod(Object owner, Method method, Object... args) {
         method.setAccessible(true);
