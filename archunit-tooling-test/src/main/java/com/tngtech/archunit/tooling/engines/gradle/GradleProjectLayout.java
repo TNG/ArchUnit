@@ -1,14 +1,12 @@
-package com.tngtech.archunit.tooling.engines.surefire;
+package com.tngtech.archunit.tooling.engines.gradle;
 
 import java.nio.file.Path;
 
-import javax.annotation.Nonnull;
-
 import com.tngtech.archunit.tooling.utils.JavaProjectLayout;
 
-public class MavenProjectLayout extends JavaProjectLayout<MavenProjectLayout.MavenProject> {
+public class GradleProjectLayout extends JavaProjectLayout<GradleProjectLayout.GradleProject> {
 
-    public MavenProjectLayout(
+    public GradleProjectLayout(
             String basePackage,
             String buildManifestLocation,
             String compiledClassesLocation,
@@ -19,34 +17,33 @@ public class MavenProjectLayout extends JavaProjectLayout<MavenProjectLayout.Mav
 
     @Override
     protected String getCompiledTestClassesTargetDirectory() {
-        return "target/test-classes";
+        return "build/classes/java/test";
     }
 
     @Override
     protected String getBuildToolWrapperDirectory() {
-        return ".mvn";
+        return "gradle";
     }
 
     @Override
     public String getTestReportDirectory() {
-        return "target/surefire-reports";
+        return "build/test-results/test";
     }
 
     @Override
-    protected MavenProject buildResult(final Path projectRoot) {
-        return new MavenProject(projectRoot.resolve("pom.xml"));
+    protected GradleProject buildResult(Path projectRoot) {
+        return new GradleProject(projectRoot.resolve("build.gradle"));
     }
 
-    public static class MavenProject {
-        private final Path pomXml;
+    public static class GradleProject {
+        private final Path buildGradle;
 
-        private MavenProject(Path pomXml) {
-            this.pomXml = pomXml;
+        public GradleProject(Path buildGradle) {
+            this.buildGradle = buildGradle;
         }
 
-        @Nonnull
-        public Path getPomXml() {
-            return pomXml;
+        public Path getBuildGradle() {
+            return buildGradle;
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.tngtech.archunit.tooling.examples;
 
+import java.io.Serializable;
+
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -9,8 +11,6 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-
-import java.io.Serializable;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;

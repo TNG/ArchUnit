@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.tooling.engines.gradle.GradleEngine;
 import com.tngtech.archunit.tooling.engines.jupiter.JUnitJupiterEngine;
 import com.tngtech.archunit.tooling.engines.surefire.MavenSurefireEngine;
 import org.junitpioneer.jupiter.cartesian.ArgumentSets;
@@ -27,10 +28,10 @@ public abstract class BaseTest {
         ExecutedTestFile actual = findResult(report, testFile.getFixture());
 
         // then
-        assertThat(actual.getResult("shouldReportSuccess")).isEqualTo(SUCCESS);
-        assertThat(actual.getResult("shouldReportFailure")).isEqualTo(FAILURE);
-        assertThat(actual.getResult("shouldReportError")).isEqualTo(engine.reportsErrors() ? ERROR : FAILURE);
-        assertThat(actual.getResult("shouldBeSkipped")).isEqualTo(SKIPPED);
+        assertThat(actual.getResult("shouldReportSuccess").get()).isEqualTo(SUCCESS);
+        assertThat(actual.getResult("shouldReportFailure").get()).isEqualTo(FAILURE);
+        assertThat(actual.getResult("shouldReportError").get()).isEqualTo(engine.reportsErrors() ? ERROR : FAILURE);
+        assertThat(actual.getResult("shouldBeSkipped").get()).isEqualTo(SKIPPED);
     }
 
     void shouldOnlyExecuteSelectedTests(TestEngine engine, Class<?> fixture) throws Exception {
@@ -42,7 +43,7 @@ public abstract class BaseTest {
         ExecutedTestFile actual = findResult(report, testFile.getFixture());
 
         // then
-        assertThat(actual.getResults()).containsKey("shouldReportSuccess");
+        assertThat(actual.getResult("shouldReportSuccess").isPresent()).isTrue();
         assertThat(actual.getResults()).hasSize(1);
     }
 
@@ -59,7 +60,7 @@ public abstract class BaseTest {
         });
 
         // then
-        assertThat(actual.getResult("shouldBeSkippedConditionally")).isEqualTo(result);
+        assertThat(actual.getResult("shouldBeSkippedConditionally").get()).isEqualTo(result);
     }
 
     private ExecutedTestFile findResult(TestReport report, Class<?> fixture) {
@@ -88,7 +89,8 @@ public abstract class BaseTest {
     static Stream<TestEngine> engines() {
         return Stream.of(
                 JUnitJupiterEngine.INSTANCE,
-                MavenSurefireEngine.FOR_TESTS_LOCATED_IN_EXAMPLES
+                MavenSurefireEngine.FOR_TESTS_LOCATED_IN_EXAMPLES,
+                GradleEngine.FOR_TESTS_LOCATED_IN_EXAMPLES
         );
     }
 }

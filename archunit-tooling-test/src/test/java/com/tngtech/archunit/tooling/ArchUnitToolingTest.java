@@ -1,12 +1,12 @@
 package com.tngtech.archunit.tooling;
 
+import java.util.Map;
+import java.util.stream.Stream;
+
 import com.tngtech.archunit.tooling.examples.ArchJUnit4Test;
 import com.tngtech.archunit.tooling.examples.ArchJUnit5Test;
 import org.junitpioneer.jupiter.cartesian.ArgumentSets;
 import org.junitpioneer.jupiter.cartesian.CartesianTest;
-
-import java.util.Map;
-import java.util.stream.Stream;
 
 public class ArchUnitToolingTest extends BaseTest {
 

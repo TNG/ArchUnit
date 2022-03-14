@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.*;
 import java.util.Objects;
@@ -33,7 +34,11 @@ public abstract class ResourcesUtils {
     }
 
     private static Path getResourceDirectory(String name) throws URISyntaxException {
-        return Paths.get(ResourcesUtils.class.getClassLoader().getResource(name).toURI());
+        return Paths.get(getResourceUri(name));
+    }
+
+    public static URI getResourceUri(String name) throws URISyntaxException {
+        return ResourcesUtils.class.getClassLoader().getResource(name).toURI();
     }
 
     private static void copyResource(Path projectRoot, String resourceName, String target, Path path) throws IOException {

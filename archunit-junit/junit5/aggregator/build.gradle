@@ -3,7 +3,9 @@ plugins {
 }
 
 repositories {
-    mavenLocal()
+    flatDir {
+        dirs "${rootDir}/inlineDeps/"
+    }
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit5'
