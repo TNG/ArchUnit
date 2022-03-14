@@ -7,6 +7,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchIgnore;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.junit.conditions.Conditions;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -42,10 +43,9 @@ public class ArchJUnit5Test {
             .should().implement(Cloneable.class);
 
     @ArchTest
-    @DisabledIfEnvironmentVariable(named = "SKIP_BY_ENV_VARIABLE", matches = "true")
-    public static void shouldBeSkippedConditionally(JavaClasses classes) {
-        assertTrue(classes.that(assignableTo(Cloneable.class)).contain(ImplementingSerializable.class));
-    }
+    @Conditions.DisabledIfEnvironmentVariable(named = "SKIP_BY_ENV_VARIABLE", matches = "true")
+    public static final ArchRule shouldBeSkippedConditionally = classes().that().implement(Cloneable.class)
+            .should().implement(Cloneable.class);
 
     static class ImplementingSerializable implements Serializable, Cloneable {
         @Override

@@ -10,6 +10,7 @@ dependencies {
     api project(path: ':archunit')
     api project(path: ':archunit-junit', configuration: 'archJunitApi')
     api dependency.junitPlatformCommons
+    api dependency.junit5JupiterApi
 }
 
 javadoc {
