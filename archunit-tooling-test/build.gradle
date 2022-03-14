@@ -3,6 +3,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id 'archunit.java-production-conventions'
     id 'org.ajoberstar.grgit' version '5.0.0'
+    id "de.undercouch.download" version "5.0.2"
 }
 
 repositories {
@@ -52,6 +53,7 @@ processTestFixturesResources {
 
 dependencies {
     implementation dependency.junit5JupiterEngine
+    implementation dependency.junit5VintageEngine
     implementation dependency.junitPlatform
     implementation dependency.guava
     implementation 'org.junit.platform:junit-platform-launcher:1.8.2'
@@ -164,6 +166,14 @@ task publishCustomSurefireVersionToMavenLocal(type: Exec) {
     commandLine "./mvnw", "install", "-DskipTests"
 }
 
+task downloadCustomGradleVersion(type: Download) {
+    onlyIf { task ->
+        !(new File(project.sourceSets.main.output.resourcesDir, 'gradle-7.5-bin.zip').exists())
+    }
+    src 'https://filesend.io/8PdZ/gradle-7.5-bin.zip?download_token=6b1236a8b17cefff61063a4d4822f5b3c540a3a0c0d815eb6edcf799c83b11a1'
+    dest new File(project.sourceSets.main.output.resourcesDir, 'gradle-7.5-bin.zip')
+}
+
 gradle.taskGraph.whenReady { graph ->
     if (graph.hasTask(publishJUnitDepsToMavenLocal)) {
         def externalTests = graph.allTasks.findAll { task -> task.name.toLowerCase().endsWith("test") && !task.path.startsWith(":archunit-tooling-test:") }
@@ -176,6 +186,6 @@ clean {
 }
 
 test {
-    dependsOn publishJUnitDepsToMavenLocal, publishCustomSurefireVersionToMavenLocal
+    dependsOn publishJUnitDepsToMavenLocal, publishCustomSurefireVersionToMavenLocal, downloadCustomGradleVersion
     useJUnitPlatform()
 }
