@@ -1,15 +1,21 @@
-import org.apache.tools.ant.filters.*
+import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id 'archunit.java-production-conventions'
+    id 'org.ajoberstar.grgit' version '5.0.0'
 }
 
 repositories {
-    mavenLocal()
+    flatDir {
+        dirs "${rootDir}/inlineDeps/"
+    }
 }
 
+ext.moduleName = 'com.tngtech.archunit.tooling'
+ext.minimumJavaVersion = JavaVersion.VERSION_1_9
+
 sourceSets {
-    examples {
+    testFixtures {
         java {
             compileClasspath += main.compileClasspath
             runtimeClasspath += main.runtimeClasspath
@@ -17,36 +23,27 @@ sourceSets {
     }
     main {
         java {
-            compileClasspath += project.sourceSets.examples.output
-            runtimeClasspath += project.sourceSets.examples.output
+            compileClasspath += project.sourceSets.testFixtures.output
+            runtimeClasspath += project.sourceSets.testFixtures.output
         }
     }
     test {
         java {
-            compileClasspath += project.sourceSets.examples.output
-            runtimeClasspath += project.sourceSets.examples.output
+            compileClasspath += project.sourceSets.testFixtures.output
+            runtimeClasspath += project.sourceSets.testFixtures.output
         }
     }
 }
 
 copy {
-    into new File(project.sourceSets.examples.output.resourcesDir, '@sources')
-    from(project.sourceSets.examples.java) {
+    into new File(project.sourceSets.testFixtures.output.resourcesDir, '@sources')
+    from(project.sourceSets.testFixtures.java) {
         include '**/*.java'
     }
-
 }
 
-ext.moduleName = 'com.tngtech.archunit.tooling'
-
-ext.minimumJavaVersion = JavaVersion.VERSION_1_9
-
-repositories {
-    mavenCentral()
-}
-
-processExamplesResources {
-    filesMatching('**/pom.xml') {
+processTestFixturesResources {
+    filesMatching(['**/pom.xml', '**/build.gradle']) {
         filter ReplaceTokens, tokens: [
                 "junitDependency.version": project.property("archunit.version")
         ]
@@ -58,36 +55,54 @@ dependencies {
     implementation dependency.junitPlatform
     implementation dependency.guava
     implementation 'org.junit.platform:junit-platform-launcher:1.8.2'
-    implementation 'com.github.spotbugs:spotbugs-annotations:4.0.1'
-    testImplementation dependency.assertj
-    implementation project(path: ':archunit-junit5-engine-api')
     implementation project(path: ':archunit-junit5-engine')
-    implementation project(path: ':archunit-junit4')
-    implementation project(path: ':archunit')
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
-    testImplementation 'org.junit-pioneer:junit-pioneer:1.6.1'
-    implementation 'org.junit.vintage:junit-vintage-engine:5.8.2'
     implementation 'com.github.stefanbirkner:system-lambda:1.2.1'
     implementation 'org.apache.maven.shared:maven-invoker:3.1.0'
     implementation 'org.apache.maven.surefire:surefire-report-parser:3.0.0-M5'
     implementation 'commons-io:commons-io:2.11.0'
-    implementation 'org.apache.maven.wrapper:maven-wrapper:3.1.0'
+    implementation 'org.gradle:gradle-tooling-api:7.3-20210825160000+0000'
+
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.5.3'
+
+    testFixturesImplementation dependency.junitPlatform
+    testFixturesImplementation dependency.junit5JupiterEngine
+    testFixturesImplementation dependency.junit5JupiterApi
+    testFixturesImplementation project(path: ':archunit')
+    testFixturesImplementation project(path: ':archunit-junit5-engine-api')
+    testFixturesImplementation project(path: ':archunit-junit5-api')
+    testFixturesImplementation project(path: ':archunit-junit5-engine')
+    testFixturesImplementation project(path: ':archunit-junit4')
+
+    testImplementation dependency.assertj
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
+    testImplementation 'org.junit-pioneer:junit-pioneer:1.6.1'
 }
 
-File getArtifactDirectory(Project project) {
+String getMavenRepoPath(Project project) {
     def pubs = project.publishing.publications.findAll() as Set<MavenPublication>
     def pub = pubs[0]
     if (!pub){
         return null
     }
-    URI repository = repositories.mavenLocal().url
     String groupPath = pub.groupId.replace('.', '/')
-    File f = new File(new File(repository), "$groupPath/$pub.artifactId")
-    return f
+    return "$groupPath/$pub.artifactId"
 }
 
-task('removeFromMavenLocal') {
-    group = 'publishing'
+def resolveAgainstMavenLocal(String path) {
+    new File(new File(repositories.mavenLocal().url), path)
+}
+
+def deleteSafely(File file) {
+    if (file.exists()) {
+        println "Deleting ${file.toURI().toString()}"
+        delete file
+    } else {
+        println "Could not find ${file.toURI().toString()}"
+    }
+}
+
+task removeFromMavenLocal {
+    group = 'other'
     description = 'Remove artifact and all versions/classifiers/flavors from local maven repository.'
     doLast {
         [project(':archunit-junit5-engine-api'),
@@ -96,20 +111,19 @@ task('removeFromMavenLocal') {
          project(':archunit-junit5'),
          project(':archunit-junit4'),
          project(':archunit')].each { project ->
+            File file = resolveAgainstMavenLocal(getMavenRepoPath(project))
+            deleteSafely file
+        }
 
-            File f = getArtifactDirectory(project)
-            if (f.exists()) {
-                println "Deleting ${f.toURI().toString()}"
-                delete f
-            } else {
-                println "Could not find ${f.toURI().toString()}"
-            }
+        ['org/apache/maven/surefire', 'org/apache/maven/plugins/maven-surefire-plugin'].each { path ->
+            File file = resolveAgainstMavenLocal(path)
+            deleteSafely file
         }
     }
 }
 
-task('publishJUnitDepsToMavenLocal') {
-    group = 'publishing'
+task publishJUnitDepsToMavenLocal {
+    group = 'other'
     description = 'Publishes ArchUnit JUnit artifacts to local Maven repo'
     dependsOn ':archunit-junit5-engine-api:publishMavenJavaPublicationToMavenLocal'
     dependsOn ':archunit-junit5-engine:publishMavenJavaPublicationToMavenLocal'
@@ -119,6 +133,37 @@ task('publishJUnitDepsToMavenLocal') {
     dependsOn ':archunit:publishMavenJavaPublicationToMavenLocal'
 }
 
+task chekoutCustomSurefireVersion {
+    group = 'other'
+    description = 'Checks out a custom version of Maven Surefire'
+    onlyIf { task ->
+        !(new File("${buildDir}/custom-github-deps/maven-surefire/pom.xml")).exists()
+    }
+    doLast {
+        grgit.clone(
+                dir: "${buildDir}/custom-github-deps/maven-surefire",
+                uri: 'https://github.com/crizzis/maven-surefire.git',
+                refToCheckout: 'maven-version')
+        copy {
+            into "${buildDir}/custom-github-deps/maven-surefire"
+            from(new File(project.sourceSets.testFixtures.resources.srcDirs[0], "project")) {
+                include '.mvn/wrapper/**'
+                include 'mvnw'
+            }
+        }
+    }
+}
+
+task publishCustomSurefireVersionToMavenLocal(type: Exec) {
+    group = 'other'
+    dependsOn chekoutCustomSurefireVersion
+    onlyIf { task ->
+        !resolveAgainstMavenLocal('org/apache/maven/surefire/surefire/3.0.0-custom').exists()
+    }
+    workingDir "${buildDir}/custom-github-deps/maven-surefire"
+    commandLine "./mvnw", "install", "-DskipTests"
+}
+
 gradle.taskGraph.whenReady { graph ->
     if (graph.hasTask(publishJUnitDepsToMavenLocal)) {
         def externalTests = graph.allTasks.findAll { task -> task.name.toLowerCase().endsWith("test") && !task.path.startsWith(":archunit-tooling-test:") }
@@ -126,7 +171,11 @@ gradle.taskGraph.whenReady { graph ->
     }
 }
 
+clean {
+    dependsOn removeFromMavenLocal
+}
+
 test {
-    dependsOn removeFromMavenLocal, publishJUnitDepsToMavenLocal
+    dependsOn publishJUnitDepsToMavenLocal, publishCustomSurefireVersionToMavenLocal
     useJUnitPlatform()
 }

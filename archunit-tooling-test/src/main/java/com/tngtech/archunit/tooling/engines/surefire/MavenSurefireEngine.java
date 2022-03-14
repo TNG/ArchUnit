@@ -3,28 +3,22 @@ package com.tngtech.archunit.tooling.engines.surefire;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Strings;
-import com.tngtech.archunit.tooling.ExecutedTestFile;
-import com.tngtech.archunit.tooling.ExecutedTestFile.TestResult;
 import com.tngtech.archunit.tooling.TestEngine;
 import com.tngtech.archunit.tooling.TestFile;
 import com.tngtech.archunit.tooling.TestReport;
 import com.tngtech.archunit.tooling.engines.surefire.MavenProjectLayout.MavenProject;
+import com.tngtech.archunit.tooling.utils.AntReportParserAdapter;
+import com.tngtech.archunit.tooling.utils.TemporaryDirectoryUtils;
+import com.tngtech.archunit.tooling.utils.TemporaryDirectoryUtils.ThrowableFunction;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.maven.plugin.surefire.log.api.NullConsoleLogger;
-import org.apache.maven.plugins.surefire.report.ReportTestCase;
-import org.apache.maven.plugins.surefire.report.ReportTestSuite;
-import org.apache.maven.plugins.surefire.report.SurefireReportParser;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationRequest;
@@ -32,7 +26,6 @@ import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.apache.maven.shared.utils.cli.CommandLineException;
-import org.apache.maven.surefire.shared.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +40,7 @@ public enum MavenSurefireEngine implements TestEngine {
 
     private static final Logger LOG = LoggerFactory.getLogger(MavenSurefireEngine.class);
 
+    private final AntReportParserAdapter parser = new AntReportParserAdapter();
     private final MavenProjectLayout projectLayout;
 
     private final Invoker invoker;
@@ -81,9 +75,7 @@ public enum MavenSurefireEngine implements TestEngine {
             InvocationRequest request = prepareInvocationRequest(mavenProject, testFiles);
             LOG.info("Executing request with properties {}", request.getProperties());
             invokeRequest(request);
-            SurefireReportParser parser = createParser(projectRoot);
-            List<ReportTestSuite> reportTestSuites = parser.parseXMLReportFiles();
-            return toTestReport(reportTestSuites);
+            return parser.parseReports(projectRoot, projectLayout.getTestReportDirectory());
         });
     }
 
@@ -94,46 +86,6 @@ public enum MavenSurefireEngine implements TestEngine {
 
     private File getMavenExecutable() throws URISyntaxException {
         return new File(getClass().getClassLoader().getResource(getMavenExecutableName()).toURI());
-    }
-
-    private TestReport toTestReport(List<ReportTestSuite> reportTestSuites) {
-        TestReport result = new TestReport();
-        reportTestSuites.stream()
-                .map(this::toTestFile)
-                .forEach(result::addFile);
-        return result;
-    }
-
-    private ExecutedTestFile toTestFile(ReportTestSuite reportTestSuite) {
-        ExecutedTestFile result = new ExecutedTestFile(reportTestSuite.getFullClassName());
-        reportTestSuite.getTestCases()
-                .stream()
-                .filter(reportTestCase -> !Strings.isNullOrEmpty(reportTestCase.getName()))
-                .forEach(reportTestCase -> result.addResult(reportTestCase.getName(), resolveResult(reportTestCase)));
-        return result;
-    }
-
-    private TestResult resolveResult(ReportTestCase reportTestCase) {
-        if (reportTestCase.isSuccessful()) {
-            return TestResult.SUCCESS;
-        }
-        if (reportTestCase.hasFailure()) {
-            return TestResult.FAILURE;
-        }
-        if (reportTestCase.hasError()) {
-            return TestResult.ERROR;
-        }
-        if (reportTestCase.hasSkipped()) {
-            return TestResult.SKIPPED;
-        }
-        throw new IllegalArgumentException("Cannot determine test result for " + reportTestCase.getFullName());
-    }
-
-    private SurefireReportParser createParser(Path projectRoot) {
-        return new SurefireReportParser(
-                Collections.singletonList(projectRoot.resolve("target/surefire-reports").toFile()),
-                Locale.US,
-                new NullConsoleLogger());
     }
 
     private MavenProject prepareProjectDirectory(Path projectRoot) throws IOException, URISyntaxException {
@@ -178,13 +130,7 @@ public enum MavenSurefireEngine implements TestEngine {
     }
 
     private <R> R withProjectRoot(ThrowableFunction<Path, R> action) throws Exception {
-        Path projectRoot = null;
-        try {
-            projectRoot = Files.createTempDirectory("project-root");
-            return action.apply(projectRoot);
-        } finally {
-            FileUtils.deleteDirectory(Objects.requireNonNull(projectRoot).toFile());
-        }
+        return TemporaryDirectoryUtils.withTemporaryDirectory(action, "project-root");
     }
 
     private String getMavenExecutableName() {
@@ -198,12 +144,5 @@ public enum MavenSurefireEngine implements TestEngine {
     @Override
     public String toString() {
         return "Maven Surefire";
-    }
-
-    @FunctionalInterface
-    private interface ThrowableFunction<T, R> {
-
-        R apply(T t) throws Exception;
-
     }
 }

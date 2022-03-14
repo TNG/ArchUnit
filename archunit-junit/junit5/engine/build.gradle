@@ -3,7 +3,9 @@ plugins {
 }
 
 repositories {
-    mavenLocal()
+    flatDir {
+        dirs "${rootDir}/inlineDeps/"
+    }
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit5.engine'
@@ -18,11 +20,8 @@ dependencies {
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
     implementation dependency.slf4j
     implementation dependency.junit5JupiterApi
-    implementation(group: 'org.apache.maven.surefire', name: 'surefire-junit-platform', version: '3.0.0-M6-SNAPSHOT') {
-        artifact {
-            classifier = 'api'
-        }
-    }
+    implementation ':surefire-junit-platform-3.0.0-custom-api'
+    implementation ':gradle-testing-junit-platform-7.5'
 
     testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation dependency.assertj

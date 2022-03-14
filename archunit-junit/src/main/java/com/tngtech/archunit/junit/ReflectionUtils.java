@@ -37,7 +37,7 @@ import com.tngtech.archunit.base.Function;
 
 import static com.google.common.collect.Collections2.filter;
 
-class ReflectionUtils {
+public class ReflectionUtils {
 
     private static final com.google.common.base.Function<Object, Class<?>> EXTRACTING_CLASS = new com.google.common.base.Function<Object, Class<?>>() {
         @Override

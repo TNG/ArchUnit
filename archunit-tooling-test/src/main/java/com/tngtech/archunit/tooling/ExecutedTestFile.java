@@ -22,17 +22,16 @@ public class ExecutedTestFile {
         return Collections.unmodifiableMap(results);
     }
 
-    public TestResult getResult(String testCase) {
+    public Optional<TestResult> getResult(String testCase) {
         return Optional.ofNullable(results.get(testCase))
-                .orElseGet(() -> results.get(findMatchingParameterizedTestName(testCase)));
+                .or(() -> findMatchingParameterizedTestName(testCase).map(results::get));
     }
 
-    private String findMatchingParameterizedTestName(String testCase) {
-        Pattern parameterizedPattern = Pattern.compile(testCase + "\\(.+\\)");
+    private Optional<String> findMatchingParameterizedTestName(String testCase) {
+        Pattern parameterizedPattern = Pattern.compile(testCase + "\\(.*\\)");
         return results.keySet().stream()
                 .filter(key -> parameterizedPattern.matcher(key).matches())
-                .findAny()
-                .orElse(null);
+                .findAny();
     }
 
     public void addResult(String testCase, TestResult result) {
