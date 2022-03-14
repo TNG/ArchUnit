@@ -15,12 +15,10 @@
  */
 package com.tngtech.archunit.junit;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -32,7 +30,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.Extension;
-import org.junit.platform.commons.support.AnnotationSupport;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.TestTag;
@@ -55,13 +52,13 @@ abstract class AbstractArchUnitTestDescriptor extends AbstractTestDescriptor imp
     }
 
     private boolean shouldBeUnconditionallyIgnored() {
-        return streamAnnotations(annotatedElement, ArchIgnore.class, Disabled.class)
+        return AnnotationUtils.streamAnnotations(annotatedElement, ArchIgnore.class, Disabled.class)
                 .findFirst()
                 .isPresent();
     }
 
     private Set<TestTag> findTagsOn(AnnotatedElementComposite annotatedElement) {
-        return streamRepeatableAnnotations(annotatedElement, ArchTag.class, Tag.class)
+        return AnnotationUtils.streamRepeatableAnnotations(annotatedElement, ArchTag.class, Tag.class)
                 .map(annotation -> TestTag.create(ReflectionUtils.invokeMethod(annotation, "value")))
                 .collect(toSet());
     }
@@ -74,7 +71,7 @@ abstract class AbstractArchUnitTestDescriptor extends AbstractTestDescriptor imp
 
     @SuppressWarnings("unchecked")
     protected Collection<Extension> getExtensionsFromTestSource() {
-        return ((Stream<ExtendWith>) streamRepeatableAnnotations(annotatedElement, ExtendWith.class))
+        return ((Stream<ExtendWith>) AnnotationUtils.streamRepeatableAnnotations(annotatedElement, ExtendWith.class))
                 .map(ExtendWith::value)
                 .flatMap(Arrays::stream)
                 .map(ReflectionUtils::newInstanceOf)
@@ -104,25 +101,6 @@ abstract class AbstractArchUnitTestDescriptor extends AbstractTestDescriptor imp
             return SkipResult.skip(evaluationResult.getReason().orElse("<unknown>"));
         }
         return SkipResult.doNotSkip();
-    }
-
-    @SafeVarargs
-    private static Stream<? extends Annotation> streamRepeatableAnnotations(AnnotatedElementComposite element, Class<? extends Annotation>... annotations) {
-        return Arrays.stream(annotations)
-                .flatMap(annotationType ->
-                        element.getChildren().stream()
-                                .map(child -> AnnotationSupport.findRepeatableAnnotations(child, annotationType)))
-                .flatMap(Collection::stream);
-    }
-
-    @SafeVarargs
-    private static Stream<? extends Annotation> streamAnnotations(AnnotatedElementComposite element, Class<? extends Annotation>... annotations) {
-        return Arrays.stream(annotations)
-                .flatMap(annotationType ->
-                        element.getChildren().stream()
-                                .map(child -> AnnotationSupport.findAnnotation(child, annotationType)))
-                .filter(Optional::isPresent)
-                .map(Optional::get);
     }
 
     AnnotatedElementComposite getAnnotatedElement() {
