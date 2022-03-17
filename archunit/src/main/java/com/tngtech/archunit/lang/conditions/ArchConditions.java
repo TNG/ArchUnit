@@ -50,6 +50,7 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
 import com.tngtech.archunit.core.domain.properties.HasName;
@@ -715,72 +716,108 @@ public final class ArchConditions {
         return new HaveOnlyModifiersCondition<>("private constructors", PRIVATE, GET_CONSTRUCTORS);
     }
 
+    /**
+     * @return a condition matching elements analogously to {@link CanBeAnnotated.Predicates#annotatedWith(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             Class<? extends Annotation> type) {
         return new IsConditionByPredicate<>(annotatedWith(type));
     }
 
+    /**
+     * @return negation of {@link #beAnnotatedWith(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
             Class<? extends Annotation> type) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beAnnotatedWith(type));
     }
 
+    /**
+     * @return a condition matching elements analogously to {@link CanBeAnnotated.Predicates#annotatedWith(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             String typeName) {
         return new IsConditionByPredicate<>(annotatedWith(typeName));
     }
 
+    /**
+     * @return negation of {@link #beAnnotatedWith(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
             String typeName) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beAnnotatedWith(typeName));
     }
 
+    /**
+     * @return a condition matching elements analogously to {@link CanBeAnnotated.Predicates#annotatedWith(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return new IsConditionByPredicate<>(annotatedWith(predicate));
     }
 
+    /**
+     * @return negation of {@link #beAnnotatedWith(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
             DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beAnnotatedWith(predicate));
     }
 
+    /**
+     * @return a condition matching elements analogously to {@link CanBeAnnotated.Predicates#metaAnnotatedWith(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             Class<? extends Annotation> type) {
         return new IsConditionByPredicate<>(metaAnnotatedWith(type));
     }
 
+    /**
+     * @return negation of {@link #beMetaAnnotatedWith(Class)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
             Class<? extends Annotation> type) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beMetaAnnotatedWith(type));
     }
 
+    /**
+     * @return a condition matching elements analogously to {@link CanBeAnnotated.Predicates#metaAnnotatedWith(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             String typeName) {
         return new IsConditionByPredicate<>(metaAnnotatedWith(typeName));
     }
 
+    /**
+     * @return negation of {@link #beMetaAnnotatedWith(String)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
             String typeName) {
         return not(ArchConditions.<HAS_ANNOTATIONS>beMetaAnnotatedWith(typeName));
     }
 
+    /**
+     * @return a condition matching elements analogously to {@link CanBeAnnotated.Predicates#metaAnnotatedWith(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return new IsConditionByPredicate<>(metaAnnotatedWith(predicate));
     }
 
+    /**
+     * @return negation of {@link #beMetaAnnotatedWith(DescribedPredicate)}
+     */
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
             DescribedPredicate<? super JavaAnnotation<?>> predicate) {

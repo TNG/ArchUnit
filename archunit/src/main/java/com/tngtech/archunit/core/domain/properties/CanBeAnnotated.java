@@ -35,21 +35,60 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
 public interface CanBeAnnotated {
+
+    /**
+     * Returns {@code true}, if this element is annotated with the given annotation type.
+     *
+     * @param annotationType The type of the annotation to check for
+     */
     @PublicAPI(usage = ACCESS)
     boolean isAnnotatedWith(Class<? extends Annotation> annotationType);
 
+    /**
+     * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
+     * @see #isAnnotatedWith(Class)
+     */
     @PublicAPI(usage = ACCESS)
     boolean isAnnotatedWith(String annotationTypeName);
 
+    /**
+     * Returns {@code true}, if this element is annotated with an annotation matching the given predicate.
+     *
+     * @param predicate Qualifies matching annotations
+     */
     @PublicAPI(usage = ACCESS)
     boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
+    /**
+     * Returns {@code true}, if this element is meta-annotated with the given annotation type.
+     * A meta-annotation is an annotation that is declared on another annotation.
+     *
+     * <p>
+     * This method also returns {@code true} if this element is directly annotated with the given annotation type.
+     * </p>
+     *
+     * @param annotationType The type of the annotation to check for
+     */
     @PublicAPI(usage = ACCESS)
     boolean isMetaAnnotatedWith(Class<? extends Annotation> annotationType);
 
+    /**
+     * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
+     * @see #isMetaAnnotatedWith(Class)
+     */
     @PublicAPI(usage = ACCESS)
     boolean isMetaAnnotatedWith(String annotationTypeName);
 
+    /**
+     * Returns {@code true}, if this element is meta-annotated with an annotation matching the given predicate.
+     * A meta-annotation is an annotation that is declared on another annotation.
+     *
+     * <p>
+     * This method also returns {@code true} if this element is directly annotated with an annotation matching the given predicate.
+     * </p>
+     *
+     * @param predicate Qualifies matching annotations
+     */
     @PublicAPI(usage = ACCESS)
     boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
@@ -57,6 +96,11 @@ public interface CanBeAnnotated {
         private Predicates() {
         }
 
+        /**
+         * Returns a predicate that matches elements that are annotated with the given annotation type.
+         *
+         * @param annotationType The type of the annotation to check for
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> annotatedWith(final Class<? extends Annotation> annotationType) {
             checkAnnotationHasReasonableRetention(annotationType);
@@ -78,12 +122,21 @@ public interface CanBeAnnotated {
                     && (annotationType.getAnnotation(Retention.class).value() == RetentionPolicy.SOURCE);
         }
 
+        /**
+         * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
+         * @see #annotatedWith(Class)
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> annotatedWith(final String annotationTypeName) {
             DescribedPredicate<HasType> typeNameMatches = GET_RAW_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
             return annotatedWith(typeNameMatches.as("@" + ensureSimpleName(annotationTypeName)));
         }
 
+        /**
+         * Returns a predicate that matches elements that are annotated with an annotation matching the given predicate.
+         *
+         * @param predicate Qualifies matching annotations
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> annotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
             return new AnnotatedPredicate(predicate);
@@ -103,6 +156,16 @@ public interface CanBeAnnotated {
             }
         }
 
+        /**
+         * Returns a predicate that matches elements that are meta-annotated with the given annotation type.
+         * A meta-annotation is an annotation that is declared on another annotation.
+         *
+         * <p>
+         * The returned predicate also matches elements that are directly annotated with the given annotation type.
+         * </p>
+         *
+         * @param annotationType The type of the annotation to check for
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(final Class<? extends Annotation> annotationType) {
             checkAnnotationHasReasonableRetention(annotationType);
@@ -110,12 +173,25 @@ public interface CanBeAnnotated {
             return metaAnnotatedWith(annotationType.getName());
         }
 
+        /**
+         * @see #metaAnnotatedWith(Class)
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(final String annotationTypeName) {
             DescribedPredicate<HasType> typeNameMatches = GET_RAW_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
             return metaAnnotatedWith(typeNameMatches.as("@" + ensureSimpleName(annotationTypeName)));
         }
 
+        /**
+         * Returns a predicate that matches elements that are meta-annotated with an annotation matching the given predicate.
+         * A meta-annotation is an annotation that is declared on another annotation.
+         *
+         * <p>
+         * The returned predicate also matches elements that are directly annotated with the given annotation type.
+         * </p>
+         *
+         * @param predicate Qualifies matching annotations
+         */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<CanBeAnnotated> metaAnnotatedWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
             return new MetaAnnotatedPredicate(predicate);

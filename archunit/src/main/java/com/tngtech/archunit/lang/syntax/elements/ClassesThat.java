@@ -318,6 +318,10 @@ public interface ClassesThat<CONJUNCTION> {
      * Matches classes meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
      *
+     * <p>
+     * This also matches classes that are directly annotated with the supplied annotation type.
+     * </p>
+     *
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -327,6 +331,10 @@ public interface ClassesThat<CONJUNCTION> {
     /**
      * Matches classes not meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
+     *
+     * <p>
+     * Matching classes may also not directly be annotated with the supplied annotation type.
+     * </p>
      *
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -338,6 +346,10 @@ public interface ClassesThat<CONJUNCTION> {
      * Matches classes meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
      *
+     * <p>
+     * This also matches classes that are directly annotated with the supplied annotation type.
+     * </p>
+     *
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -347,6 +359,10 @@ public interface ClassesThat<CONJUNCTION> {
     /**
      * Matches classes not meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
+     *
+     * <p>
+     * Matching classes may also not directly be annotated with the supplied annotation type.
+     * </p>
      *
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -359,6 +375,10 @@ public interface ClassesThat<CONJUNCTION> {
      * determined by the supplied predicate.  A meta-annotation is an annotation that is declared on
      * another annotation.
      *
+     * <p>
+     * This also matches classes where a direct annotation matches the supplied predicate.
+     * </p>
+     *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -369,6 +389,10 @@ public interface ClassesThat<CONJUNCTION> {
      * Matches classes not meta-annotated with a certain annotation, where matching meta-annotations are
      * determined by the supplied predicate.  A meta-annotation is an annotation that is declared on
      * another annotation.
+     *
+     * <p>
+     * Matching classes may also not be annotated with a direct annotation matching the supplied predicate.
+     * </p>
      *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
