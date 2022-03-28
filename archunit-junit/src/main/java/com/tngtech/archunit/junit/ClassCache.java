@@ -16,6 +16,7 @@
 package com.tngtech.archunit.junit;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -154,32 +155,35 @@ class ClassCache {
 
         abstract LocationsKey asKey();
 
-        private static class All extends RequestedLocations {
-            private Class<? extends ImportOption>[] importOptions;
+        private static class AllInTestPackage extends RequestedLocations {
+            private final Class<? extends ImportOption>[] importOptions;
+            private final Set<Location> locationsOfTestPackage;
 
-            private All(Class<? extends ImportOption>[] importOptions) {
+            private AllInTestPackage(Class<? extends ImportOption>[] importOptions, Class<?> testClass) {
                 this.importOptions = importOptions;
+                locationsOfTestPackage = Locations.ofPackage(testClass.getPackage().getName());
             }
 
             @Override
             LocationsKey asKey() {
-                return new LocationsKey(importOptions, Locations.inClassPath());
+                return new LocationsKey(importOptions, locationsOfTestPackage);
             }
         }
 
         private static class Specific extends RequestedLocations {
-            private final ClassAnalysisRequest classAnalysisRequest;
+            private final Class<? extends ImportOption>[] importOptions;
             private final Set<Location> declaredLocations;
 
             private Specific(ClassAnalysisRequest classAnalysisRequest, Class<?> testClass) {
-                this.classAnalysisRequest = classAnalysisRequest;
+                importOptions = classAnalysisRequest.getImportOptions();
                 declaredLocations = ImmutableSet.<Location>builder()
-                        .addAll(getLocationsOfPackages())
-                        .addAll(getLocationsOfProviders(testClass))
+                        .addAll(getLocationsOfPackages(classAnalysisRequest))
+                        .addAll(getLocationsOfProviders(classAnalysisRequest, testClass))
+                        .addAll(classAnalysisRequest.scanWholeClasspath() ? Locations.inClassPath() : Collections.<Location>emptySet())
                         .build();
             }
 
-            private Set<Location> getLocationsOfPackages() {
+            private Set<Location> getLocationsOfPackages(ClassAnalysisRequest classAnalysisRequest) {
                 Set<String> packages = ImmutableSet.<String>builder()
                         .add(classAnalysisRequest.getPackageNames())
                         .addAll(toPackageStrings(classAnalysisRequest.getPackageRoots()))
@@ -187,7 +191,7 @@ class ClassCache {
                 return locationsOf(packages);
             }
 
-            private Set<Location> getLocationsOfProviders(Class<?> testClass) {
+            private Set<Location> getLocationsOfProviders(ClassAnalysisRequest classAnalysisRequest, Class<?> testClass) {
                 Set<Location> result = new HashSet<>();
                 for (Class<? extends LocationProvider> providerClass : classAnalysisRequest.getLocationProviders()) {
                     result.addAll(tryCreate(providerClass).get(testClass));
@@ -224,20 +228,21 @@ class ClassCache {
 
             @Override
             LocationsKey asKey() {
-                return new LocationsKey(classAnalysisRequest.getImportOptions(), declaredLocations);
+                return new LocationsKey(importOptions, declaredLocations);
             }
         }
 
         public static RequestedLocations by(ClassAnalysisRequest classAnalysisRequest, Class<?> testClass) {
             return noSpecificLocationRequested(classAnalysisRequest) ?
-                    new All(classAnalysisRequest.getImportOptions()) :
+                    new AllInTestPackage(classAnalysisRequest.getImportOptions(), testClass) :
                     new Specific(classAnalysisRequest, testClass);
         }
 
         private static boolean noSpecificLocationRequested(ClassAnalysisRequest classAnalysisRequest) {
             return classAnalysisRequest.getPackageNames().length == 0
                     && classAnalysisRequest.getPackageRoots().length == 0
-                    && classAnalysisRequest.getLocationProviders().length == 0;
+                    && classAnalysisRequest.getLocationProviders().length == 0
+                    && !classAnalysisRequest.scanWholeClasspath();
         }
     }
 }

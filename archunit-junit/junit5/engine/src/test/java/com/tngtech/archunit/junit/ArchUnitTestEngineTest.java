@@ -879,6 +879,7 @@ class ArchUnitTestEngineTest {
             assertThat(request.getPackageNames()).isEqualTo(expected.packages());
             assertThat(request.getPackageRoots()).isEqualTo(expected.packagesOf());
             assertThat(request.getLocationProviders()).isEqualTo(expected.locations());
+            assertThat(request.scanWholeClasspath()).as("scan whole classpath").isTrue();
             assertThat(request.getImportOptions()).isEqualTo(expected.importOptions());
         }
 

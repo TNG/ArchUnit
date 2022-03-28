@@ -66,6 +66,7 @@ public class ArchUnitRunnerTest {
         assertThat(analysisRequest.getPackageNames()).isEqualTo(analyzeClasses.packages());
         assertThat(analysisRequest.getPackageRoots()).isEqualTo(analyzeClasses.packagesOf());
         assertThat(analysisRequest.getLocationProviders()).isEqualTo(analyzeClasses.locations());
+        assertThat(analysisRequest.scanWholeClasspath()).as("scan whole classpath").isTrue();
         assertThat(analysisRequest.getImportOptions()).isEqualTo(analyzeClasses.importOptions());
     }
 
@@ -149,6 +150,7 @@ public class ArchUnitRunnerTest {
             packages = {"com.foo", "com.bar"},
             packagesOf = {ArchUnitRunner.class, ArchUnitRunnerTest.class},
             locations = {DummyLocation.class, OtherDummyLocation.class},
+            wholeClasspath = true,
             importOptions = {DummyImportOption.class, OtherDummyImportOption.class}
     )
     public static class MaxAnnotatedTest {

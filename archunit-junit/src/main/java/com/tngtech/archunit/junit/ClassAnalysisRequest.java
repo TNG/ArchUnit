@@ -15,4 +15,6 @@ interface ClassAnalysisRequest {
     Class<? extends ImportOption>[] getImportOptions();
 
     CacheMode getCacheMode();
+
+    boolean scanWholeClasspath();
 }

@@ -217,5 +217,10 @@ public class ArchUnitRunner extends ParentRunner<ArchTestExecution> {
         public CacheMode getCacheMode() {
             return analyzeClasses.cacheMode();
         }
+
+        @Override
+        public boolean scanWholeClasspath() {
+            return analyzeClasses.wholeClasspath();
+        }
     }
 }

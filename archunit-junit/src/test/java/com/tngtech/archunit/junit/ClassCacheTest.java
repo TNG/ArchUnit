@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
@@ -15,6 +16,7 @@ import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.Condition;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,6 +34,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -125,7 +128,6 @@ public class ClassCacheTest {
 
     @Test
     public void rejects_LocationProviders_without_default_constructor() {
-
         thrown.expect(ArchTestExecutionException.class);
         thrown.expectMessage("public default constructor");
         thrown.expectMessage(LocationProvider.class.getSimpleName());
@@ -135,9 +137,37 @@ public class ClassCacheTest {
     }
 
     @Test
+    public void if_no_import_locations_are_specified_and_whole_classpath_is_set_false_then_the_default_is_the_package_of_the_test_class() {
+        TestAnalysisRequest defaultOptions = new TestAnalysisRequest().withWholeClasspath(false);
+
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, defaultOptions);
+
+        assertThatTypes(classes).contain(getClass(), TestAnalysisRequest.class);
+        assertThatTypes(classes).doNotContain(ClassFileImporter.class);
+    }
+
+    @Test
+    public void if_whole_classpath_is_set_true_then_the_whole_classpath_is_imported() {
+        TestAnalysisRequest defaultOptions = new TestAnalysisRequest().withWholeClasspath(true);
+        Class<?>[] expectedImportResult = new Class[]{getClass()};
+        doReturn(new ClassFileImporter().importClasses(expectedImportResult))
+                .when(cacheClassFileImporter).importClasses(any(ImportOptions.class), ArgumentMatchers.<Location>anyCollection());
+
+        JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, defaultOptions);
+
+        assertThatTypes(classes).matchExactly(expectedImportResult);
+        verify(cacheClassFileImporter).importClasses(any(ImportOptions.class), locationCaptor.capture());
+        assertThat(locationCaptor.getValue())
+                .has(locationContaining("archunit"))
+                .has(locationContaining("asm"))
+                .has(locationContaining("google"))
+                .has(locationContaining("mockito"));
+    }
+
+    @Test
     public void filters_urls() {
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class,
-                new TestAnalysisRequest().withImportOptions(TestFilterForJUnitJars.class));
+                new TestAnalysisRequest().withImportOptions(TestFilterForJUnitJars.class).withWholeClasspath(true));
 
         assertThat(classes).isNotEmpty();
         for (JavaClass clazz : classes) {
@@ -216,6 +246,20 @@ public class ClassCacheTest {
     private void verifyNumberOfImports(int number) {
         verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOptions.class), ArgumentMatchers.<Location>anyCollection());
         verifyNoMoreInteractions(cacheClassFileImporter);
+    }
+
+    private static Condition<Iterable<? extends Location>> locationContaining(final String part) {
+        return new Condition<Iterable<? extends Location>>() {
+            @Override
+            public boolean matches(Iterable<? extends Location> locations) {
+                for (Location location : locations) {
+                    if (location.contains(part)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        };
     }
 
     public static class TestClass {

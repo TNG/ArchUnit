@@ -63,6 +63,12 @@ public @interface AnalyzeClasses {
     Class<? extends LocationProvider>[] locations() default {};
 
     /**
+     * @return Whether to import all classes on the classpath.
+     *         Warning: Without any further filtering this can require a lot of resources.
+     */
+    boolean wholeClasspath() default false;
+
+    /**
      * Allows to filter the class import. The supplied types will be instantiated and used to create the
      * {@link ImportOptions} passed to the {@link ClassFileImporter}. Considering caching, compare the notes on
      * {@link ImportOption}.

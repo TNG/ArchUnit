@@ -289,5 +289,10 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         public CacheMode getCacheMode() {
             return analyzeClasses.cacheMode();
         }
+
+        @Override
+        public boolean scanWholeClasspath() {
+            return analyzeClasses.wholeClasspath();
+        }
     }
 }

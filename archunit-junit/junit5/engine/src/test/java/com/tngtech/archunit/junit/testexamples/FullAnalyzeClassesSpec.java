@@ -23,6 +23,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
         packages = {"first.pkg", "second.pkg"},
         packagesOf = {Object.class, File.class},
         locations = {FirstLocationProvider.class, SecondLocationProvider.class},
+        wholeClasspath = true,
         importOptions = {DoNotIncludeTests.class, DoNotIncludeJars.class})
 public class FullAnalyzeClassesSpec {
     @ArchTest
