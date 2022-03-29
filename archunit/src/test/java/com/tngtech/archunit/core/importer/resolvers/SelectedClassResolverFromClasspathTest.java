@@ -1,9 +1,9 @@
 package com.tngtech.archunit.core.importer.resolvers;
 
 import java.net.URI;
+import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImporter;
 import com.tngtech.archunit.core.importer.resolvers.testclasses.firstdependency.FirstDependency;

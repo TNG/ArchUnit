@@ -16,12 +16,12 @@
 package com.tngtech.archunit.lang;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ForwardingList;
-import com.tngtech.archunit.base.Optional;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 

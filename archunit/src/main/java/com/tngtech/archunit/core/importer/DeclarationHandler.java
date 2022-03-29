@@ -17,9 +17,9 @@ package com.tngtech.archunit.core.importer;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 interface DeclarationHandler {

@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.MoreObjects;
@@ -26,13 +27,13 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.Optionals.asSet;
 
 /**
  * Represents a dependency of one Java class on another Java class. Such a dependency can occur by either of the
@@ -79,7 +80,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         JavaClass targetOwner = access.getTargetOwner();
         ImmutableSet.Builder<Dependency> dependencies = ImmutableSet.<Dependency>builder()
                 .addAll(createComponentTypeDependencies(originOwner, access.getOrigin().getDescription(), targetOwner, access.getSourceCodeLocation()));
-        dependencies.addAll(tryCreateDependency(originOwner, targetOwner, access.getDescription(), access.getLineNumber()).asSet());
+        dependencies.addAll(asSet(tryCreateDependency(originOwner, targetOwner, access.getDescription(), access.getLineNumber())));
         return dependencies.build();
     }
 
@@ -212,7 +213,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         String targetDescription = bracketFormat(targetClass.getName());
         String dependencyDescription = originDescription + " " + dependencyType + " " + targetDescription;
         String description = dependencyDescription + " in " + sourceCodeLocation;
-        dependencies.addAll(tryCreateDependency(originClass, targetClass, description, sourceCodeLocation.getLineNumber()).asSet());
+        dependencies.addAll(asSet(tryCreateDependency(originClass, targetClass, description, sourceCodeLocation.getLineNumber())));
         return dependencies.build();
     }
 
@@ -225,7 +226,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
             String componentTypeTargetDescription = bracketFormat(componentType.get().getName());
             String componentTypeDependencyDescription = originDescription + " depends on component type " + componentTypeTargetDescription;
             String componentTypeDescription = componentTypeDependencyDescription + " in " + sourceCodeLocation;
-            result.addAll(tryCreateDependency(originClass, componentType.get(), componentTypeDescription, sourceCodeLocation.getLineNumber()).asSet());
+            result.addAll(asSet(tryCreateDependency(originClass, componentType.get(), componentTypeDescription, sourceCodeLocation.getLineNumber())));
             componentType = componentType.get().tryGetComponentType();
         }
         return result.build();

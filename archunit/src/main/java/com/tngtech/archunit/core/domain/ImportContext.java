@@ -17,10 +17,10 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.tngtech.archunit.Internal;
-import com.tngtech.archunit.base.Optional;
 
 @Internal
 public interface ImportContext {

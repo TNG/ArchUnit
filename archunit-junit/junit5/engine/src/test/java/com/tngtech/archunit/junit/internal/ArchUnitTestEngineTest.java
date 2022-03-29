@@ -101,6 +101,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -724,6 +725,25 @@ class ArchUnitTestEngineTest {
             assertThat(toUniqueIds(rootDescriptor)).containsOnly(
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
                     simpleRulesId(engineId));
+        }
+
+        @Test
+        void without_importing_classes_already() {
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withClass(SimpleRuleField.class)
+                    .withClasspathRoot(uriOfClass(SimpleRuleField.class))
+                    .withField(SimpleRuleField.class, SimpleRuleField.SIMPLE_RULE_FIELD_NAME)
+                    .withPackage(SimpleRuleField.class.getPackage().getName())
+                    .withMethod(SimpleRuleMethod.class, SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME)
+                    .withUniqueId(simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME));
+
+            doThrow(new AssertionError("The cache should not be queried during discovery, "
+                    + "otherwise classes will be imported when tests are possibly skipped afterwards"))
+                    .when(classCache).getClassesToAnalyzeFor(any(), any());
+
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+
+            assertThat(rootDescriptor).isNotNull();
         }
 
         private Set<TestTag> getTagsForIdEndingIn(String suffix, Map<UniqueId, Set<TestTag>> tagsById) {

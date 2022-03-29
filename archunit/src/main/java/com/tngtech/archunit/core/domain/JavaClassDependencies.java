@@ -29,6 +29,7 @@ import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.Iterables.concat;
+import static com.tngtech.archunit.base.Optionals.asSet;
 import static java.util.Collections.emptySet;
 
 class JavaClassDependencies {
@@ -74,7 +75,7 @@ class JavaClassDependencies {
 
     private Set<Dependency> inheritanceDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaClass supertype : FluentIterable.from(javaClass.getRawInterfaces()).append(javaClass.getRawSuperclass().asSet())) {
+        for (JavaClass supertype : FluentIterable.from(javaClass.getRawInterfaces()).append(asSet(javaClass.getRawSuperclass()))) {
             result.add(Dependency.fromInheritance(javaClass, supertype));
         }
         result.addAll(genericSuperclassTypeArgumentDependencies());

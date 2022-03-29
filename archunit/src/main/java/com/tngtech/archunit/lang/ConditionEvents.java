@@ -17,6 +17,7 @@ package com.tngtech.archunit.lang;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Optional;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
@@ -27,7 +28,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Optional;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

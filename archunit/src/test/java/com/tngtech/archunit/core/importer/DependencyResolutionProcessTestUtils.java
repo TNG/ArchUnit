@@ -1,11 +1,11 @@
 package com.tngtech.archunit.core.importer;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 

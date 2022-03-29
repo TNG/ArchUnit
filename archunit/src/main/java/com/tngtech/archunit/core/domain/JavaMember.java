@@ -19,13 +19,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasDescriptor;
@@ -92,7 +92,7 @@ public abstract class JavaMember implements
     @Override
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
+        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type)::apply);
     }
 
     @Override

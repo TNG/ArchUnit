@@ -17,6 +17,7 @@ package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -25,7 +26,6 @@ import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ForwardingCollection;
 import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaPackage;
 

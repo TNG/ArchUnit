@@ -16,11 +16,11 @@
 package com.tngtech.archunit.core.domain.properties;
 
 import java.lang.annotation.Annotation;
+import java.util.Optional;
 import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

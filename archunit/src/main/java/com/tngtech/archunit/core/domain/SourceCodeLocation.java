@@ -16,9 +16,9 @@
 package com.tngtech.archunit.core.domain;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;

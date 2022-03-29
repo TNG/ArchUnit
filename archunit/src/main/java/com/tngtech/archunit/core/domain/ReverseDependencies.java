@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Supplier;
@@ -28,7 +29,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import com.tngtech.archunit.base.Optional;
 
 final class ReverseDependencies {
 

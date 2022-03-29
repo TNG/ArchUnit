@@ -1,12 +1,12 @@
 package com.tngtech.archunit.core.importer;
 
 import java.lang.reflect.Field;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolverFromClasspath;
 import org.junit.Test;

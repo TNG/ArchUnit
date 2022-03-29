@@ -17,6 +17,7 @@ package com.tngtech.archunit.base;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -124,16 +125,16 @@ public final class PackageMatcher {
     /**
      * Returns a matching {@link PackageMatcher.Result Result}
      * against the provided package name. If the package identifier of this {@link PackageMatcher} does not match the
-     * given package name, then {@link Optional#absent()} is returned.
+     * given package name, then {@link Optional#empty()} is returned.
      *
      * @param aPackage The package name to match against
      * @return A {@link PackageMatcher.Result Result} if the package name matches,
-     * otherwise {@link Optional#absent()}
+     * otherwise {@link Optional#empty()}
      */
     @PublicAPI(usage = ACCESS)
     public Optional<Result> match(String aPackage) {
         Matcher matcher = packagePattern.matcher(aPackage);
-        return matcher.matches() ? Optional.of(new Result(matcher)) : Optional.<Result>empty();
+        return matcher.matches() ? Optional.of(new Result(matcher)) : Optional.empty();
     }
 
     @Override

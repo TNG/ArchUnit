@@ -10,7 +10,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -65,7 +64,6 @@ import com.tngtech.archunit.testutil.assertion.JavaTypesAssertion;
 import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Condition;
-import org.assertj.core.api.OptionalAssert;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodSimple;
@@ -84,10 +82,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static ArchRuleAssertion assertThatRule(ArchRule rule) {
         return new ArchRuleAssertion(rule);
-    }
-
-    public static <T> OptionalAssert<T> assertThat(Optional<T> optional) {
-        return assertThat(java.util.Optional.ofNullable(optional.orElse(null)));
     }
 
     public static <T> DescribedPredicateAssertion<T> assertThat(DescribedPredicate<T> predicate) {

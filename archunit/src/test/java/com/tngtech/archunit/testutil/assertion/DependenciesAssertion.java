@@ -3,10 +3,10 @@ package com.tngtech.archunit.testutil.assertion;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
@@ -123,7 +123,7 @@ public class DependenciesAssertion extends AbstractIterableAssert<
 
     public static class ExpectedDependenciesCreator {
         private final ExpectedDependencies expectedDependencies;
-        private Optional<String> descriptionTemplate = Optional.absent();
+        private Optional<String> descriptionTemplate = Optional.empty();
         private final Class<?> origin;
 
         private ExpectedDependenciesCreator(ExpectedDependencies expectedDependencies, Class<?> origin) {
@@ -208,8 +208,8 @@ public class DependenciesAssertion extends AbstractIterableAssert<
     private static class ExpectedDependency {
         private final Class<?> origin;
         private final Class<?> target;
-        private Optional<Pattern> descriptionPattern = Optional.absent();
-        private Optional<String> locationPart = Optional.absent();
+        private Optional<Pattern> descriptionPattern = Optional.empty();
+        private Optional<String> locationPart = Optional.empty();
 
         ExpectedDependency(Class<?> origin, Class<?> target) {
             this.origin = origin;

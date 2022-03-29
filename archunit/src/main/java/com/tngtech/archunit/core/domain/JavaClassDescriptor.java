@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
@@ -30,7 +31,6 @@ import com.google.common.collect.Maps;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import org.objectweb.asm.Type;
 

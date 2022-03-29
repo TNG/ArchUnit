@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Function;
@@ -39,13 +40,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
-import com.tngtech.archunit.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Iterables.concat;
-import static com.tngtech.archunit.core.importer.Location.toURI;
 import static java.util.Collections.emptySet;
 import static java.util.jar.Attributes.Name.CLASS_PATH;
 
@@ -112,7 +111,7 @@ interface UrlSource extends Iterable<URL> {
 
             Set<URI> result = new HashSet<>();
             for (String classpathEntry : Splitter.on(" ").omitEmptyStrings().split(readManifestClasspath(url))) {
-                result.addAll(parseManifestClasspathEntry(jarPath.get(), classpathEntry).asSet());
+                parseManifestClasspathEntry(jarPath.get(), classpathEntry).ifPresent(result::add);
             }
             return result;
         }
@@ -184,7 +183,7 @@ interface UrlSource extends Iterable<URL> {
             String classPathProperty = System.getProperty(propertyName, "");
             List<URL> urls = new ArrayList<>();
             for (String path : Splitter.on(File.pathSeparator).omitEmptyStrings().split(classPathProperty)) {
-                urls.addAll(parseClassPathEntry(path).asSet());
+                parseClassPathEntry(path).ifPresent(urls::add);
             }
             LOG.debug("Found URLs on {}: {}", propertyName, urls);
             return urls;

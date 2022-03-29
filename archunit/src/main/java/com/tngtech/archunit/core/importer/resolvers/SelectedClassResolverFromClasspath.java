@@ -16,11 +16,11 @@
 package com.tngtech.archunit.core.importer.resolvers;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

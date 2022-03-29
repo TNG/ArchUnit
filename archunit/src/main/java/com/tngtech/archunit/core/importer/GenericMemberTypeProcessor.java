@@ -15,8 +15,9 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.Optional;
+
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess.JavaTypeFinisher;

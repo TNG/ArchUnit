@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
@@ -37,7 +38,6 @@ import com.google.common.primitives.Shorts;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -63,6 +63,7 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.tngtech.archunit.base.Optionals.asSet;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
@@ -741,7 +742,7 @@ class JavaClassProcessor extends ClassVisitor {
             private <T extends HasDescription> List<Object> buildValues(T owner, ImportedClasses importContext) {
                 List<Object> result = new ArrayList<>();
                 for (ValueBuilder value : values) {
-                    result.addAll(value.build(owner, importContext).asSet());
+                    result.addAll(asSet(value.build(owner, importContext)));
                 }
                 return result;
             }

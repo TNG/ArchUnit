@@ -15,9 +15,10 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
+import java.util.Optional;
+
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Optional;
 
 @Internal
 public final class PredicateAggregator<T> {

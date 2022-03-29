@@ -15,12 +15,12 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
@@ -279,10 +278,8 @@ class ClassFileImportRecord {
         rawConstructorReferenceRecords.forEach(doWithRecord);
     }
 
-    void addAll(Collection<JavaClass> javaClasses) {
-        for (JavaClass javaClass : javaClasses) {
-            classes.put(javaClass.getName(), javaClass);
-        }
+    void add(JavaClass javaClass) {
+        classes.put(javaClass.getName(), javaClass);
     }
 
     Map<String, JavaClass> getClasses() {

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Splitter;
@@ -34,7 +35,6 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasName;
@@ -136,7 +136,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation<JavaPackage>> tryGetAnnotationOfType(String typeName) {
         if (packageInfo.isPresent()) {
-            return packageInfo.get().tryGetAnnotationOfType(typeName).map(withSelfAsOwner);
+            return packageInfo.get().tryGetAnnotationOfType(typeName).map(withSelfAsOwner::apply);
         }
         return Optional.empty();
     }

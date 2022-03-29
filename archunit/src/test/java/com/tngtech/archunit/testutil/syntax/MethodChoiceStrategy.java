@@ -7,12 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -55,8 +55,13 @@ public class MethodChoiceStrategy {
         }
 
         return tryToTerminate
-                ? findMethodWithReturnType(methods, ArchRule.class).or(Optional.of(methods.iterator().next()))
+                ? tryToChooseTerminationMethod(methods)
                 : Optional.of(methods.get(random.nextInt(methods.size())));
+    }
+
+    private Optional<Method> tryToChooseTerminationMethod(List<Method> methods) {
+        Optional<Method> terminationMethod = findMethodWithReturnType(methods, ArchRule.class);
+        return terminationMethod.isPresent() ? terminationMethod : Optional.of(methods.iterator().next());
     }
 
     private Optional<Method> findMethodWithReturnType(List<Method> methods, Class<ArchRule> returnType) {

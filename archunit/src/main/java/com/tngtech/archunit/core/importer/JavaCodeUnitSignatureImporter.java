@@ -18,8 +18,8 @@ package com.tngtech.archunit.core.importer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;

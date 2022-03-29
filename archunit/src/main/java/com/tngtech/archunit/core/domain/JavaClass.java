@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
@@ -33,7 +34,6 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
@@ -51,6 +51,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.base.Optionals.asSet;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
@@ -631,7 +632,7 @@ public class JavaClass
     @Override
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
+        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type)::apply);
     }
 
     /**
@@ -885,7 +886,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name) {
-        return members.getMethod(name, Collections.<String>emptyList());
+        return members.getMethod(name, Collections.emptyList());
     }
 
     /**
@@ -911,7 +912,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name) {
-        return members.tryGetMethod(name, Collections.<String>emptyList());
+        return members.tryGetMethod(name, Collections.emptyList());
     }
 
     /**
@@ -947,7 +948,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor() {
-        return members.getConstructor(Collections.<String>emptyList());
+        return members.getConstructor(Collections.emptyList());
     }
 
     /**
@@ -978,7 +979,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaConstructor> tryGetConstructor() {
-        return members.tryGetConstructor(Collections.<String>emptyList());
+        return members.tryGetConstructor(Collections.emptyList());
     }
 
     /**
@@ -1469,9 +1470,8 @@ public class JavaClass
 
     private EnclosingDeclaration createEnclosingDeclaration(ImportContext context) {
         Optional<JavaCodeUnit> enclosingCodeUnit = context.createEnclosingCodeUnit(this);
-        return enclosingCodeUnit.isPresent()
-                ? EnclosingDeclaration.ofCodeUnit(enclosingCodeUnit.get())
-                : EnclosingDeclaration.ofClass(context.createEnclosingClass(this));
+        return enclosingCodeUnit.map(EnclosingDeclaration::ofCodeUnit)
+                .orElseGet(() -> EnclosingDeclaration.ofClass(context.createEnclosingClass(this)));
     }
 
     void completeTypeParametersFrom(ImportContext context) {
@@ -1481,17 +1481,13 @@ public class JavaClass
 
     void completeGenericSuperclassFrom(ImportContext context) {
         Optional<JavaType> genericSuperclass = context.createGenericSuperclass(this);
-        if (genericSuperclass.isPresent()) {
-            superclass = superclass.withGenericType(genericSuperclass.get());
-        }
+        genericSuperclass.ifPresent(javaType -> superclass = superclass.withGenericType(javaType));
         completionProcess.markGenericSuperclassComplete();
     }
 
     void completeGenericInterfacesFrom(ImportContext context) {
         Optional<List<JavaType>> genericInterfaces = context.createGenericInterfaces(this);
-        if (genericInterfaces.isPresent()) {
-            interfaces = interfaces.withGenericTypes(genericInterfaces.get());
-        }
+        genericInterfaces.ifPresent(javaTypes -> interfaces = interfaces.withGenericTypes(javaTypes));
         completionProcess.markGenericInterfacesComplete();
     }
 
@@ -1565,7 +1561,7 @@ public class JavaClass
     }
 
     private static class Superclass {
-        private static final Superclass ABSENT = new Superclass(Optional.<JavaType>empty());
+        private static final Superclass ABSENT = new Superclass(Optional.empty());
 
         private final Optional<JavaClass> rawType;
         private final Optional<JavaType> type;
@@ -1575,7 +1571,7 @@ public class JavaClass
         }
 
         private Superclass(Optional<JavaType> type) {
-            this.rawType = type.map(TO_ERASURE);
+            this.rawType = type.map(TO_ERASURE::apply);
             this.type = type;
         }
 
@@ -1584,11 +1580,11 @@ public class JavaClass
         }
 
         Optional<JavaType> get() {
-            return type.or(rawType);
+            return Optional.ofNullable(type.orElse(rawType.orElse(null)));
         }
 
         Set<JavaClass> getAllRawInterfaces() {
-            return rawType.isPresent() ? rawType.get().getAllRawInterfaces() : Collections.<JavaClass>emptySet();
+            return rawType.isPresent() ? rawType.get().getAllRawInterfaces() : Collections.emptySet();
         }
 
         Superclass withRawType(JavaClass newRawType) {
@@ -1601,7 +1597,7 @@ public class JavaClass
     }
 
     private static class Interfaces {
-        static final Interfaces EMPTY = new Interfaces(ImmutableSet.<JavaClass>of(), ImmutableSet.<JavaType>of());
+        static final Interfaces EMPTY = new Interfaces(ImmutableSet.of(), ImmutableSet.of());
 
         private final ImmutableSet<JavaClass> rawTypes;
         private final ImmutableSet<JavaType> types;
@@ -1634,7 +1630,7 @@ public class JavaClass
     }
 
     private static class EnclosingDeclaration {
-        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.<JavaCodeUnit>empty(), Optional.<JavaClass>empty());
+        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.empty(), Optional.empty());
 
         private final Optional<JavaCodeUnit> enclosingCodeUnit;
         private final Optional<JavaClass> enclosingClass;
@@ -1661,7 +1657,7 @@ public class JavaClass
         }
 
         static EnclosingDeclaration ofClass(Optional<JavaClass> clazz) {
-            return new EnclosingDeclaration(Optional.<JavaCodeUnit>empty(), clazz);
+            return new EnclosingDeclaration(Optional.empty(), clazz);
         }
     }
 
@@ -2464,7 +2460,7 @@ public class JavaClass
         private static final Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>> AS_SET = new Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>>() {
             @Override
             public Set<JavaStaticInitializer> apply(Optional<JavaStaticInitializer> input) {
-                return input.asSet();
+                return asSet(input);
             }
         };
 

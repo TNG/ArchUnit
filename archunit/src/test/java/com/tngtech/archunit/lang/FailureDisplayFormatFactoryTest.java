@@ -1,9 +1,10 @@
 package com.tngtech.archunit.lang;
 
+import java.util.Optional;
+
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
 import org.junit.Test;

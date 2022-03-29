@@ -19,10 +19,10 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
@@ -63,7 +63,7 @@ class ClassFileProcessor {
                 JavaClassProcessor javaClassProcessor =
                         new JavaClassProcessor(new SourceDescriptor(location.getUri(), md5InClassSourcesEnabled), classDetailsRecorder, accessHandler);
                 new ClassReader(s).accept(javaClassProcessor, 0);
-                importRecord.addAll(javaClassProcessor.createJavaClass().asSet());
+                javaClassProcessor.createJavaClass().ifPresent(importRecord::add);
             } catch (Exception e) {
                 LOG.warn(String.format("Couldn't import class from %s", location.getUri()), e);
             }

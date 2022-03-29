@@ -18,6 +18,7 @@ package com.tngtech.archunit.lang;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -25,7 +26,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;

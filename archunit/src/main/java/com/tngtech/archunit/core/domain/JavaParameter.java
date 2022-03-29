@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Function;
@@ -25,7 +26,6 @@ import com.google.common.collect.Maps;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasType;
@@ -142,7 +142,7 @@ public final class JavaParameter implements HasType, HasOwner<JavaCodeUnit>, Has
 
     @Override
     public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
-        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type));
+        return tryGetAnnotationOfType(type.getName()).map(toAnnotationOfType(type)::apply);
     }
 
     @Override

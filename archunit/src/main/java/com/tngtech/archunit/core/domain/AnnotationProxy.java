@@ -23,6 +23,7 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
@@ -30,7 +31,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.InitialConfiguration;
 
 import static com.google.common.base.Preconditions.checkArgument;

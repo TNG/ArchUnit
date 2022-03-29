@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -28,10 +29,10 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.Optionals.asSet;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
@@ -66,7 +67,7 @@ class JavaClassMembers {
         this.constructors = constructors;
         this.staticInitializer = staticInitializer;
         this.codeUnits = ImmutableSet.<JavaCodeUnit>builder()
-                .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
+                .addAll(methods).addAll(constructors).addAll(asSet(staticInitializer))
                 .build();
         this.members = ImmutableSet.<JavaMember>builder()
                 .addAll(fields)
