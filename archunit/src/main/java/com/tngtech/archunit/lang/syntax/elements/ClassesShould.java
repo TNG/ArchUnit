@@ -342,6 +342,10 @@ public interface ClassesShould {
      * Asserts that classes are meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
      *
+     * <p>
+     * The assertion is also successful if classes are directly annotated with the supplied annotation type.
+     * </p>
+     *
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
@@ -351,6 +355,10 @@ public interface ClassesShould {
     /**
      * Asserts that classes are not meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
+     *
+     * <p>
+     * The assertion also fails if classes are directly annotated with the supplied annotation type.
+     * </p>
      *
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -362,6 +370,10 @@ public interface ClassesShould {
      * Asserts that classes are meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
      *
+     * <p>
+     * The assertion is also successful if classes are directly annotated with the supplied annotation type.
+     * </p>
+     *
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
@@ -371,6 +383,10 @@ public interface ClassesShould {
     /**
      * Asserts that classes are not meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
+     *
+     * <p>
+     * The assertion also fails if classes are directly annotated with the supplied annotation type.
+     * </p>
      *
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -382,6 +398,10 @@ public interface ClassesShould {
      * Asserts that classes are meta-annotated with a certain annotation, where matching meta-annotations are
      * determined by the supplied predicate. A meta-annotation is an annotation that is declared on another annotation.
      *
+     * <p>
+     * The assertion is also successful if classes are directly annotated with an annotation matching the supplied predicate.
+     * </p>
+     *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
@@ -391,6 +411,10 @@ public interface ClassesShould {
     /**
      * Asserts that classes are not meta-annotated with a certain annotation, where matching meta-annotations are
      * determined by the supplied predicate. A meta-annotation is an annotation that is declared on another annotation.
+     *
+     * <p>
+     * The assertion also fails if classes are directly annotated with an annotation matching the supplied predicate.
+     * </p>
      *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule

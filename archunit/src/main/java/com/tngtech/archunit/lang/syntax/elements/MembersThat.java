@@ -297,6 +297,10 @@ public interface MembersThat<CONJUNCTION> {
      * Matches members meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
      *
+     * <p>
+     * This also matches members that are directly annotated with the supplied annotation type.
+     * </p>
+     *
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -306,6 +310,10 @@ public interface MembersThat<CONJUNCTION> {
     /**
      * Matches members not meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
+     *
+     * <p>
+     * Matching members may also not directly be annotated with the supplied annotation type.
+     * </p>
      *
      * @param annotationType Specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -317,6 +325,10 @@ public interface MembersThat<CONJUNCTION> {
      * Matches members meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
      *
+     * <p>
+     * This also matches members that are directly annotated with the supplied annotation type.
+     * </p>
+     *
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -326,6 +338,10 @@ public interface MembersThat<CONJUNCTION> {
     /**
      * Matches members not meta-annotated with a certain type of annotation. A meta-annotation is
      * an annotation that is declared on another annotation.
+     *
+     * <p>
+     * Matching members may also not directly be annotated with the supplied annotation type.
+     * </p>
      *
      * @param annotationTypeName Fully qualified class name of a specific type of {@link Annotation}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -338,6 +354,10 @@ public interface MembersThat<CONJUNCTION> {
      * determined by the supplied predicate.  A meta-annotation is an annotation that is declared on
      * another annotation.
      *
+     * <p>
+     * This also matches members where a direct annotation matches the supplied predicate.
+     * </p>
+     *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -348,6 +368,10 @@ public interface MembersThat<CONJUNCTION> {
      * Matches members not meta-annotated with a certain annotation, where matching meta-annotations are
      * determined by the supplied predicate.  A meta-annotation is an annotation that is declared on
      * another annotation.
+     *
+     * <p>
+     * Matching members may also not be annotated with a direct annotation matching the supplied predicate.
+     * </p>
      *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
