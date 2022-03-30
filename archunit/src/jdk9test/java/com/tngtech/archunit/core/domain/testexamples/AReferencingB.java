@@ -1,8 +1,7 @@
 package com.tngtech.archunit.core.domain.testexamples;
 
 import java.util.function.Function;
-
-import com.tngtech.archunit.base.Supplier;
+import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public class AReferencingB {
