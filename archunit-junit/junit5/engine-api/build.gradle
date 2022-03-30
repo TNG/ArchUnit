@@ -11,12 +11,12 @@ dependencies {
     implementation project(path: ':archunit')
     dependency.addGuava { dependencyNotation, config -> implementation(dependencyNotation, config) }
     implementation dependency.slf4j
+    implementation dependency.junit5JupiterApi
 
     testImplementation project(path: ':archunit-junit5-api')
     testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation dependency.assertj
     testImplementation dependency.mockito
-    testImplementation dependency.junit5JupiterApi
 
     testRuntimeOnly dependency.junit5JupiterEngine
 }

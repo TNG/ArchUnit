@@ -2,6 +2,12 @@ plugins {
     id 'archunit.java-examples-conventions'
 }
 
+repositories {
+    flatDir {
+        dirs "${rootDir}/inlineDeps/"
+    }
+}
+
 ext.moduleName = 'com.tngtech.archunit.example.junit5'
 ext.minimumJavaVersion = JavaVersion.VERSION_1_8
 

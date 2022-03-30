@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import org.junit.AssumptionViolatedException;
 import org.junit.runner.Description;
 
 import static com.tngtech.archunit.junit.DisplayNameResolver.determineDisplayName;
@@ -37,6 +38,8 @@ class ArchTestMethodExecution extends ArchTestExecution {
         try {
             executeTestMethod(classes);
             return new PositiveResult();
+        } catch (AssumptionViolatedException failedAssumption) {
+            return new AbortedResult(describeSelf(), failedAssumption);
         } catch (Throwable failure) {
             return new NegativeResult(describeSelf(), failure);
         }

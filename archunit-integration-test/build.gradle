@@ -2,6 +2,12 @@ plugins {
     id 'archunit.java-conventions'
 }
 
+repositories {
+    flatDir {
+        dirs "${rootDir}/inlineDeps/"
+    }
+}
+
 ext.moduleName = 'com.tngtech.archunit.integrationtest'
 
 ext.minimumJavaVersion = JavaVersion.VERSION_1_8
