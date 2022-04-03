@@ -163,7 +163,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
             }
 
             @Override
-            public boolean apply(JavaAccess<?> input) {
+            public boolean test(JavaAccess<?> input) {
                 return input.getOriginOwner().equals(input.getTargetOwner());
             }
         }
@@ -177,8 +177,8 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
             }
 
             @Override
-            public boolean apply(ACCESS input) {
-                return predicate.apply(input.getTarget());
+            public boolean test(ACCESS input) {
+                return predicate.test(input.getTarget());
             }
         }
     }

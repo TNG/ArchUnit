@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
@@ -35,7 +36,6 @@ import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
@@ -368,7 +368,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     private Set<JavaClass> getClassesWith(Predicate<? super JavaClass> predicate) {
         Set<JavaClass> result = new HashSet<>();
         for (JavaClass javaClass : classes) {
-            if (predicate.apply(javaClass)) {
+            if (predicate.test(javaClass)) {
                 result.add(javaClass);
             }
         }
@@ -499,7 +499,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
      */
     @PublicAPI(usage = ACCESS)
     public void accept(Predicate<? super JavaPackage> predicate, PackageVisitor visitor) {
-        if (predicate.apply(this)) {
+        if (predicate.test(this)) {
             visitor.visit(this);
         }
         for (JavaPackage subpackage : getSubpackages()) {

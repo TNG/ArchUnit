@@ -90,7 +90,7 @@ public class TestUtils {
         final List<String> classNames = formatNamesOf(classes);
         return importedHierarchy.that(new DescribedPredicate<JavaClass>("") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return classNames.contains(input.getName());
             }
         }).as(importedHierarchy.getDescription());

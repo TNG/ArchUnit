@@ -357,7 +357,7 @@ public abstract class JavaCodeUnit
         public static DescribedPredicate<JavaCodeUnit> constructor() {
             return new DescribedPredicate<JavaCodeUnit>("constructor") {
                 @Override
-                public boolean apply(JavaCodeUnit input) {
+                public boolean test(JavaCodeUnit input) {
                     return input.isConstructor();
                 }
             };
@@ -367,7 +367,7 @@ public abstract class JavaCodeUnit
         public static DescribedPredicate<JavaCodeUnit> method() {
             return new DescribedPredicate<JavaCodeUnit>("method") {
                 @Override
-                public boolean apply(JavaCodeUnit input) {
+                public boolean test(JavaCodeUnit input) {
                     return input.isMethod();
                 }
             };

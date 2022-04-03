@@ -18,10 +18,10 @@ package com.tngtech.archunit.lang;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
@@ -91,7 +91,7 @@ public final class EvaluationResult {
      * Filters all recorded {@link ConditionEvent ConditionEvents} by their textual description.
      * I.e. the lines of the description of an event are passed to the supplied predicate to
      * decide if the event is relevant.
-     * @param linePredicate A predicate to determine which lines of events match. Predicate.apply(..) == true will imply the violation will be preserved.
+     * @param linePredicate A predicate to determine which lines of events match. Predicate.test(..) == true will imply the violation will be preserved.
      * @return A new {@link EvaluationResult} containing only matching events
      */
     @PublicAPI(usage = ACCESS)
@@ -126,7 +126,7 @@ public final class EvaluationResult {
         public List<String> getDescriptionLines() {
             List<String> result = new ArrayList<>();
             for (String line : delegate.getDescriptionLines()) {
-                if (linePredicate.apply(line)) {
+                if (linePredicate.test(line)) {
                     result.add(line);
                 }
             }
@@ -150,7 +150,7 @@ public final class EvaluationResult {
 
         @Override
         public void handle(Collection<?> correspondingObjects, String message) {
-            if (linePredicate.apply(message)) {
+            if (linePredicate.test(message)) {
                 delegate.handle(correspondingObjects, message);
             }
         }

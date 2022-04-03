@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Predicate;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaPackage.ClassVisitor;
 import com.tngtech.archunit.core.domain.JavaPackage.PackageVisitor;
 import com.tngtech.archunit.core.domain.packageexamples.annotated.PackageLevelAnnotation;
@@ -518,7 +518,7 @@ public class JavaPackageTest {
     private DescribedPredicate<JavaClass> startsWith(final String prefix) {
         return GET_SIMPLE_NAME.is(new DescribedPredicate<String>("starts with '%s'", prefix) {
             @Override
-            public boolean apply(String input) {
+            public boolean test(String input) {
                 return input.startsWith(prefix);
             }
         });

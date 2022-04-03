@@ -151,7 +151,7 @@ public interface CanBeAnnotated {
             }
 
             @Override
-            public boolean apply(CanBeAnnotated input) {
+            public boolean test(CanBeAnnotated input) {
                 return input.isAnnotatedWith(predicate);
             }
         }
@@ -206,7 +206,7 @@ public interface CanBeAnnotated {
             }
 
             @Override
-            public boolean apply(CanBeAnnotated input) {
+            public boolean test(CanBeAnnotated input) {
                 return input.isMetaAnnotatedWith(predicate);
             }
         }
@@ -222,7 +222,7 @@ public interface CanBeAnnotated {
                 DescribedPredicate<? super JavaAnnotation<?>> predicate) {
 
             for (JavaAnnotation<?> annotation : annotations) {
-                if (predicate.apply(annotation)) {
+                if (predicate.test(annotation)) {
                     return true;
                 }
             }
@@ -251,7 +251,7 @@ public interface CanBeAnnotated {
                 return false;
             }
 
-            if (predicate.apply(annotation)) {
+            if (predicate.test(annotation)) {
                 return true;
             }
 

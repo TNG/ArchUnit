@@ -35,7 +35,7 @@ public class JavaMethodsAssertion
 
     private boolean contains(Class<?> owner, String name, Class<?>[] parameterTypes) {
         for (JavaMethod method : actual) {
-            if (method.getOwner().isEquivalentTo(owner) && method.getName().equals(name) && rawParameterTypes(parameterTypes).apply(method)) {
+            if (method.getOwner().isEquivalentTo(owner) && method.getName().equals(name) && rawParameterTypes(parameterTypes).test(method)) {
                 return true;
             }
         }

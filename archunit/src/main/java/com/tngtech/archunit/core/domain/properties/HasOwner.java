@@ -63,8 +63,8 @@ public interface HasOwner<T> {
             }
 
             @Override
-            public boolean apply(HasOwner<T> input) {
-                return predicate.apply(input.getOwner());
+            public boolean test(HasOwner<T> input) {
+                return predicate.test(input.getOwner());
             }
         }
     }

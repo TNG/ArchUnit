@@ -103,7 +103,7 @@ public final class JavaParameter implements HasType, HasOwner<JavaCodeUnit>, Has
 
     @Override
     public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return anyElementThat(predicate).apply(annotations.values());
+        return anyElementThat(predicate).test(annotations.values());
     }
 
     @Override

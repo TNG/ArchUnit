@@ -2,6 +2,7 @@ package com.tngtech.archunit.base;
 
 import java.util.Collections;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -129,7 +130,7 @@ public class DescribedPredicateTest {
     public void describe_works() {
         Predicate<Integer> isEven = new Predicate<Integer>() {
             @Override
-            public boolean apply(Integer input) {
+            public boolean test(Integer input) {
                 return input % 2 == 0;
             }
         };

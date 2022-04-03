@@ -23,7 +23,7 @@ public class DescribedPredicateAssertion<T> extends AbstractObjectAssert<Describ
     }
 
     private AbstractBooleanAssert<?> assertThatPredicateAppliesTo(T value) {
-        return assertThat(actual.apply(value)).as("predicate <%s> matches <%s>", actual, value);
+        return assertThat(actual.test(value)).as("predicate <%s> matches <%s>", actual, value);
     }
 
     public DescribedPredicateAssertion<T> hasSameDescriptionAs(DescribedPredicate<T> otherPredicate) {

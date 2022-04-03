@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Predicate;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -59,7 +59,7 @@ public class EvaluationResultTest {
 
         EvaluationResult filtered = result.filterDescriptionsMatching(new Predicate<String>() {
             @Override
-            public boolean apply(String input) {
+            public boolean test(String input) {
                 return input.contains("keep");
             }
         });

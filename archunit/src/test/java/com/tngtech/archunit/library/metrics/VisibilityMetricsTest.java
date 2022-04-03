@@ -2,9 +2,9 @@ package com.tngtech.archunit.library.metrics;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -96,7 +96,7 @@ public class VisibilityMetricsTest {
 
     private static final Predicate<TestElement> visibleIfNameContainsIsVisible = new Predicate<TestElement>() {
         @Override
-        public boolean apply(TestElement input) {
+        public boolean test(TestElement input) {
             return input.getName().contains("isVisible");
         }
     };

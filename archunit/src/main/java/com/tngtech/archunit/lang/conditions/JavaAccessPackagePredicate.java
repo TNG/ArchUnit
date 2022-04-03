@@ -50,8 +50,8 @@ class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
     }
 
     @Override
-    public boolean apply(JavaAccess<?> input) {
-        return packageMatchers.apply(getPackageName.apply(input));
+    public boolean test(JavaAccess<?> input) {
+        return packageMatchers.test(getPackageName.apply(input));
     }
 
     static class Creator {

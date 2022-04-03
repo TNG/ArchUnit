@@ -1812,7 +1812,7 @@ public class ClassesShouldTest {
     private static DescribedPredicate<JavaAnnotation<?>> annotation(final Class<? extends Annotation> type) {
         return new DescribedPredicate<JavaAnnotation<?>>("@" + type.getSimpleName()) {
             @Override
-            public boolean apply(JavaAnnotation<?> input) {
+            public boolean test(JavaAnnotation<?> input) {
                 return input.getRawType().getName().equals(type.getName());
             }
         };

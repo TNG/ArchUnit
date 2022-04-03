@@ -271,7 +271,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             }
 
             @Override
-            public boolean apply(Dependency input) {
+            public boolean test(Dependency input) {
                 return !javaClassDiagramAssociation.contains(input.getTargetClass());
             }
         }
@@ -285,8 +285,8 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             }
 
             @Override
-            public boolean apply(Dependency input) {
-                return !PackageMatchers.of(packageIdentifiers).apply(input.getTargetClass().getPackageName());
+            public boolean test(Dependency input) {
+                return !PackageMatchers.of(packageIdentifiers).test(input.getTargetClass().getPackageName());
             }
         }
     }

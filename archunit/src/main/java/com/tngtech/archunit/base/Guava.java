@@ -32,7 +32,7 @@ public final class Guava {
         return new Predicate<T>() {
             @Override
             public boolean apply(T input) {
-                return predicate.apply(input);
+                return predicate.test(input);
             }
         };
     }

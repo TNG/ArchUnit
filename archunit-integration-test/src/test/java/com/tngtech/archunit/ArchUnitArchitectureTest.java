@@ -90,7 +90,7 @@ public class ArchUnitArchitectureTest {
     private static DescribedPredicate<JavaClass> withAnnotation(final Class<? extends Annotation> annotationType) {
         return new DescribedPredicate<JavaClass>("annotated with @" + annotationType.getName()) {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isAnnotatedWith(annotationType)
                         || enclosingClassIsAnnotated(input);
             }

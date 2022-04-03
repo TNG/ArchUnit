@@ -560,7 +560,7 @@ public class GivenMembersTest {
     static DescribedPredicate<JavaMember> areNoFieldsWithType(final Class<?> type) {
         return new DescribedPredicate<JavaMember>("are no fields with type " + type.getSimpleName()) {
             @Override
-            public boolean apply(JavaMember member) {
+            public boolean test(JavaMember member) {
                 return !(member instanceof JavaField) || !((JavaField) member).getRawType().isEquivalentTo(type);
             }
         };

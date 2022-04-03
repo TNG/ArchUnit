@@ -75,7 +75,7 @@ public final class AnyDependencyCondition extends AnyAttributeMatchesCondition<D
     Collection<Dependency> relevantAttributes(JavaClass javaClass) {
         Collection<Dependency> result = new HashSet<>();
         for (Dependency dependency : javaClassToRelevantDependencies.apply(javaClass)) {
-            if (!ignorePredicate.apply(dependency)) {
+            if (!ignorePredicate.test(dependency)) {
                 result.add(dependency);
             }
         }

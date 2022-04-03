@@ -112,7 +112,7 @@ public class SlicesShouldTest {
     private DescribedPredicate<JavaClass> classIn(final String packageRegex) {
         return new DescribedPredicate<JavaClass>("class in " + packageRegex) {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getName().matches(packageRegex);
             }
         };

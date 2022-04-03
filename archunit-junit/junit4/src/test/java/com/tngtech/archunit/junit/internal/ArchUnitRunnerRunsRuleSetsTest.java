@@ -2,6 +2,7 @@ package com.tngtech.archunit.junit.internal;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -73,7 +74,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @InjectMocks
     private ArchUnitRunnerInternal runnerForIgnoredRuleLibrary = newRunnerFor(ArchTestWithIgnoredRuleLibrary.class);
 
-    private JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsRuleSetsTest.class);
+    private final JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsRuleSetsTest.class);
 
     @Before
     public void setUp() {
@@ -212,9 +213,9 @@ public class ArchUnitRunnerRunsRuleSetsTest {
         return new Extractor<Object, Object>() {
             @Override
             public Object extract(Object input) {
-                Collection<Method> candidates = ReflectionUtils.getAllMethods(input.getClass(), new ReflectionUtils.Predicate<Method>() {
+                Collection<Method> candidates = ReflectionUtils.getAllMethods(input.getClass(), new Predicate<Method>() {
                     @Override
-                    public boolean apply(Method input) {
+                    public boolean test(Method input) {
                         return input.getName().equals(methodName);
                     }
                 });

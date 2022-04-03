@@ -31,6 +31,6 @@ class JavaAccessCondition<T extends JavaAccess<?>> extends ArchCondition<T> {
 
     @Override
     public void check(T item, ConditionEvents events) {
-        events.add(new SimpleConditionEvent(item, predicate.apply(item), item.getDescription()));
+        events.add(new SimpleConditionEvent(item, predicate.test(item), item.getDescription()));
     }
 }

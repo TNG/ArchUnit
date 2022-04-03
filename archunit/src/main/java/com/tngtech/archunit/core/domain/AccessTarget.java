@@ -829,7 +829,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         public static DescribedPredicate<AccessTarget> constructor() {
             return new DescribedPredicate<AccessTarget>("constructor") {
                 @Override
-                public boolean apply(AccessTarget input) {
+                public boolean test(AccessTarget input) {
                     return CONSTRUCTOR_NAME.equals(input.getName()); // The constructor name is sufficiently unique
                 }
             };

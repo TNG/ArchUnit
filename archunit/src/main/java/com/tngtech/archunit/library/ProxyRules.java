@@ -167,7 +167,7 @@ public final class ProxyRules {
             @Override
             public void check(JavaClass javaClass, ConditionEvents events) {
                 for (JavaMethodCall call : javaClass.getMethodCallsFromSelf()) {
-                    boolean satisfied = call.getOriginOwner().equals(call.getTargetOwner()) && predicate.apply(call.getTarget());
+                    boolean satisfied = call.getOriginOwner().equals(call.getTargetOwner()) && predicate.test(call.getTarget());
                     events.add(new SimpleConditionEvent(call, satisfied, call.getDescription()));
                 }
             }

@@ -49,7 +49,7 @@ public final class PackageMatchers extends DescribedPredicate<String> {
 
     @Override
     @PublicAPI(usage = ACCESS)
-    public boolean apply(String aPackage) {
+    public boolean test(String aPackage) {
         boolean matches = false;
         for (PackageMatcher matcher : packageMatchers) {
             matches = matches || matcher.matches(aPackage);

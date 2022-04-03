@@ -76,7 +76,7 @@ public class GivenSlicesTest {
     private DescribedPredicate<Slice> descriptionMatching(final String regex) {
         return new DescribedPredicate<Slice>("description matching '%s'", regex) {
             @Override
-            public boolean apply(Slice input) {
+            public boolean test(Slice input) {
                 return input.getDescription().matches(regex);
             }
         };

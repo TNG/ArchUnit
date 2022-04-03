@@ -16,10 +16,10 @@
 package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Predicate;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -128,7 +128,7 @@ public final class VisibilityMetrics {
         <T> ComponentVisibility(MetricsComponent<T> component, Predicate<? super T> isVisible) {
             int numberOfVisibleElements = 0;
             for (T element : component) {
-                if (isVisible.apply(element)) {
+                if (isVisible.test(element)) {
                     numberOfVisibleElements++;
                 }
             }

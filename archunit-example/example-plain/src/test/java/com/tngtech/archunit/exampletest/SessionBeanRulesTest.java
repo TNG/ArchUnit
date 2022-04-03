@@ -64,7 +64,7 @@ public class SessionBeanRulesTest {
     private static final DescribedPredicate<JavaClass> HAVE_LOCAL_BEAN_SUBCLASS =
             new DescribedPredicate<JavaClass>("have subclass that is a local bean") {
                 @Override
-                public boolean apply(JavaClass input) {
+                public boolean test(JavaClass input) {
                     for (JavaClass subclass : input.getAllSubclasses()) {
                         if (isLocalBeanImplementation(subclass, input)) {
                             return true;

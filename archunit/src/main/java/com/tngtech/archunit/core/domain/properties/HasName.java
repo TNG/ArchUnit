@@ -63,7 +63,7 @@ public interface HasName {
                 }
 
                 @Override
-                public boolean apply(HasName.AndFullName input) {
+                public boolean test(HasName.AndFullName input) {
                     return input.getFullName().equals(fullName);
                 }
             }
@@ -77,7 +77,7 @@ public interface HasName {
                 }
 
                 @Override
-                public boolean apply(HasName.AndFullName input) {
+                public boolean test(HasName.AndFullName input) {
                     return pattern.matcher(input.getFullName()).matches();
                 }
             }
@@ -138,7 +138,7 @@ public interface HasName {
             }
 
             @Override
-            public boolean apply(HasName input) {
+            public boolean test(HasName input) {
                 return input.getName().equals(name);
             }
         }
@@ -152,7 +152,7 @@ public interface HasName {
             }
 
             @Override
-            public boolean apply(HasName input) {
+            public boolean test(HasName input) {
                 return pattern.matcher(input.getName()).matches();
             }
         }
@@ -166,7 +166,7 @@ public interface HasName {
             }
 
             @Override
-            public boolean apply(HasName input) {
+            public boolean test(HasName input) {
                 return input.getName().startsWith(prefix);
             }
 
@@ -181,7 +181,7 @@ public interface HasName {
             }
 
             @Override
-            public boolean apply(HasName input) {
+            public boolean test(HasName input) {
                 return input.getName().contains(infix);
             }
         }
@@ -195,7 +195,7 @@ public interface HasName {
             }
 
             @Override
-            public boolean apply(HasName input) {
+            public boolean test(HasName input) {
                 return input.getName().endsWith(suffix);
             }
         }

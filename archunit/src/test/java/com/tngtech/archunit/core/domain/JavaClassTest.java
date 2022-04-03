@@ -1896,7 +1896,7 @@ public class JavaClassTest {
     private JavaClass getOnlyClassSettingField(JavaClasses classes, final String fieldName) {
         return getOnlyElement(classes.that(new DescribedPredicate<JavaClass>("") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 for (JavaFieldAccess access : input.getFieldAccessesFromSelf()) {
                     if (access.getTarget().getName().equals(fieldName) && access.getAccessType() == SET) {
                         return true;
@@ -2096,7 +2096,7 @@ public class JavaClassTest {
             message = String.format("assignableFrom(%s) matches ", type.getSimpleName());
             assignable = ImmutableSet.of(new DescribedPredicate<JavaClass>("direct assignable from") {
                 @Override
-                public boolean apply(JavaClass input) {
+                public boolean test(JavaClass input) {
                     return input.isAssignableFrom(type) && input.isAssignableFrom(type.getName());
                 }
             }, assignableFrom(type), assignableFrom(type.getName()));
@@ -2108,7 +2108,7 @@ public class JavaClassTest {
             message = String.format("assignableTo(%s) matches ", type.getSimpleName());
             assignable = ImmutableSet.of(new DescribedPredicate<JavaClass>("direct assignable to") {
                 @Override
-                public boolean apply(JavaClass input) {
+                public boolean test(JavaClass input) {
                     return input.isAssignableTo(type) && input.isAssignableTo(type.getName());
                 }
             }, assignableTo(type), assignableTo(type.getName()));
@@ -2149,7 +2149,7 @@ public class JavaClassTest {
                         .build().toArray(new Class<?>[0]);
                 JavaClass javaClass = importClassesWithContext(types).get(secondType);
                 for (DescribedPredicate<JavaClass> predicate : assignable) {
-                    assignableAssertion.add(assertThat(predicate.apply(javaClass))
+                    assignableAssertion.add(assertThat(predicate.test(javaClass))
                             .as(message + secondType.getSimpleName()));
                 }
                 return self();

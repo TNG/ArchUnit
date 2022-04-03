@@ -81,7 +81,7 @@ public class AbstractClassesTransformerTest {
     private DescribedPredicate<String> endInTest() {
         return new DescribedPredicate<String>("changeMe") {
             @Override
-            public boolean apply(String input) {
+            public boolean test(String input) {
                 return input.endsWith("Test");
             }
         };

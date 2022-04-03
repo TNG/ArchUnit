@@ -66,7 +66,7 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
     @PublicAPI(usage = ACCESS)
     public boolean containsType(DescribedPredicate<? super JavaClass> predicate) {
         for (ThrowsDeclaration<?> throwsDeclaration : throwsDeclarations) {
-            if (predicate.apply(throwsDeclaration.getRawType())) {
+            if (predicate.test(throwsDeclaration.getRawType())) {
                 return true;
             }
         }

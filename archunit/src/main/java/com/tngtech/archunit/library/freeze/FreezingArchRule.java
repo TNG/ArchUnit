@@ -21,10 +21,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -158,7 +158,7 @@ public final class FreezingArchRule implements ArchRule {
         log.debug("Filtering out known violations: {}", knownActualViolations);
         return result.filterDescriptionsMatching(new Predicate<String>() {
             @Override
-            public boolean apply(String violation) {
+            public boolean test(String violation) {
                 return !knownActualViolations.contains(violation);
             }
         });
@@ -304,8 +304,8 @@ public final class FreezingArchRule implements ArchRule {
         EvaluationResult filterDescriptionsMatching(final Predicate<String> predicate) {
             return result.filterDescriptionsMatching(new Predicate<String>() {
                 @Override
-                public boolean apply(String input) {
-                    return predicate.apply(ensureUnixLineBreaks(input));
+                public boolean test(String input) {
+                    return predicate.test(ensureUnixLineBreaks(input));
                 }
             });
         }

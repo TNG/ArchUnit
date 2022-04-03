@@ -1421,7 +1421,7 @@ public class JavaClass
 
     private boolean anyMatches(List<JavaClass> possibleTargets, DescribedPredicate<? super JavaClass> predicate) {
         for (JavaClass javaClass : possibleTargets) {
-            if (predicate.apply(javaClass)) {
+            if (predicate.test(javaClass)) {
                 return true;
             }
         }
@@ -2092,7 +2092,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("interfaces") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isInterface();
             }
         };
@@ -2100,7 +2100,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> ENUMS = new DescribedPredicate<JavaClass>("enums") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isEnum();
             }
         };
@@ -2108,7 +2108,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> ANNOTATIONS = new DescribedPredicate<JavaClass>("annotations") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isAnnotation();
             }
         };
@@ -2116,7 +2116,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> RECORDS = new DescribedPredicate<JavaClass>("records") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isRecord();
             }
         };
@@ -2124,7 +2124,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> TOP_LEVEL_CLASSES = new DescribedPredicate<JavaClass>("top level classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isTopLevelClass();
             }
         };
@@ -2132,7 +2132,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> NESTED_CLASSES = new DescribedPredicate<JavaClass>("nested classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isNestedClass();
             }
         };
@@ -2140,7 +2140,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> MEMBER_CLASSES = new DescribedPredicate<JavaClass>("member classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isMemberClass();
             }
         };
@@ -2148,7 +2148,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> INNER_CLASSES = new DescribedPredicate<JavaClass>("inner classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isInnerClass();
             }
         };
@@ -2156,7 +2156,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> LOCAL_CLASSES = new DescribedPredicate<JavaClass>("local classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isLocalClass();
             }
         };
@@ -2164,7 +2164,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> ANONYMOUS_CLASSES = new DescribedPredicate<JavaClass>("anonymous classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isAnonymousClass();
             }
         };
@@ -2473,7 +2473,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 for (Class<?> clazz : classes) {
                     if (belongsTo(input, clazz)) {
                         return true;
@@ -2500,7 +2500,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getSimpleName().startsWith(prefix);
             }
         }
@@ -2514,7 +2514,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getSimpleName().contains(infix);
             }
         }
@@ -2528,7 +2528,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getSimpleName().endsWith(suffix);
             }
         }
@@ -2542,7 +2542,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isAssignableTo(predicate);
             }
         }
@@ -2556,7 +2556,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isAssignableFrom(predicate);
             }
         }
@@ -2570,7 +2570,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 for (PackageMatcher matcher : packageMatchers) {
                     if (matcher.matches(input.getPackageName())) {
                         return true;
@@ -2589,7 +2589,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isEquivalentTo(clazz);
             }
         }
@@ -2605,9 +2605,9 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 for (T member : getMembers.apply(input)) {
-                    if (predicate.apply(member)) {
+                    if (predicate.test(member)) {
                         return true;
                     }
                 }

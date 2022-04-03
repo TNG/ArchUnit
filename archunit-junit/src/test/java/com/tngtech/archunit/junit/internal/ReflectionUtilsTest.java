@@ -4,8 +4,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.function.Predicate;
 
-import com.tngtech.archunit.junit.internal.ReflectionUtils.Predicate;
 import org.junit.Test;
 
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
@@ -56,7 +56,7 @@ public class ReflectionUtilsTest {
     private <T> Predicate<T> always(final boolean bool) {
         return new Predicate<T>() {
             @Override
-            public boolean apply(T input) {
+            public boolean test(T input) {
                 return bool;
             }
         };
@@ -73,7 +73,7 @@ public class ReflectionUtilsTest {
     private Predicate<Member> named(final String name) {
         return new Predicate<Member>() {
             @Override
-            public boolean apply(Member input) {
+            public boolean test(Member input) {
                 return input.getName().equals(name);
             }
         };

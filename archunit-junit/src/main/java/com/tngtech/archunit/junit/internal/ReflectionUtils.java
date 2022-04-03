@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -143,21 +144,17 @@ class ReflectionUtils {
     static Predicate<AnnotatedElement> withAnnotation(final Class<? extends Annotation> annotationType) {
         return new Predicate<AnnotatedElement>() {
             @Override
-            public boolean apply(AnnotatedElement input) {
+            public boolean test(AnnotatedElement input) {
                 return input.getAnnotation(annotationType) != null;
             }
         };
-    }
-
-    interface Predicate<T> {
-        boolean apply(T input);
     }
 
     private static <T> com.google.common.base.Predicate<T> toGuava(final Predicate<T> predicate) {
         return new com.google.common.base.Predicate<T>() {
             @Override
             public boolean apply(T input) {
-                return predicate.apply(input);
+                return predicate.test(input);
             }
         };
     }
