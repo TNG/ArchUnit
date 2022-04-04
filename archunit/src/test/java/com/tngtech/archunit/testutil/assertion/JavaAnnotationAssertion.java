@@ -90,7 +90,7 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
         assertThat(actual.hasExplicitlyDeclaredProperty(propertyName))
                 .as(description + " has explicitly declared value")
                 .isFalse();
-        assertThat(actual.tryGetExplicitlyDeclaredProperty(propertyName)).as(description).isAbsent();
+        assertThat(actual.tryGetExplicitlyDeclaredProperty(propertyName)).as(description).isEmpty();
         assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
             @Override
             public void call() {

@@ -96,4 +96,11 @@ public class ConditionEventsAssertion
     protected ObjectAssert<ConditionEvent> toAssert(ConditionEvent value, String description) {
         return new ObjectAssertFactory<ConditionEvent>().createAssert(value).as(description);
     }
+
+    @Override
+    protected ConditionEventsAssertion newAbstractIterableAssert(Iterable<? extends ConditionEvent> iterable) {
+        ConditionEvents actual = new ConditionEvents();
+        iterable.forEach(actual::add);
+        return new ConditionEventsAssertion(actual);
+    }
 }

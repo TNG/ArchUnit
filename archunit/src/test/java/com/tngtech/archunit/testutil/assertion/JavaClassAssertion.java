@@ -41,8 +41,8 @@ public class JavaClassAssertion extends AbstractObjectAssert<JavaClassAssertion,
     }
 
     public JavaClassAssertion hasNoSuperclass() {
-        assertThat(actual.getRawSuperclass()).as(describeAssertion("raw superclass")).isAbsent();
-        assertThat(actual.getSuperclass()).as(describeAssertion("superclass")).isAbsent();
+        assertThat(actual.getRawSuperclass()).as(describeAssertion("raw superclass")).isEmpty();
+        assertThat(actual.getSuperclass()).as(describeAssertion("superclass")).isEmpty();
         return this;
     }
 
@@ -93,7 +93,7 @@ public class JavaClassAssertion extends AbstractObjectAssert<JavaClassAssertion,
     }
 
     public JavaClassAssertion hasNoEnclosingClass() {
-        assertThat(actual.getEnclosingClass()).as(describeAssertion("enclosing class")).isAbsent();
+        assertThat(actual.getEnclosingClass()).as(describeAssertion("enclosing class")).isEmpty();
         return this;
     }
 

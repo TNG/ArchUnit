@@ -44,7 +44,7 @@ public class SourceTest {
         assertThat(source.getFileName()).as("source file name").contains("SomeClass.java");
 
         source = new Source(uriOf(Object.class), Optional.<String>empty(), false);
-        assertThat(source.getFileName()).as("source file name").isAbsent();
+        assertThat(source.getFileName()).as("source file name").isEmpty();
     }
 
     @DataProvider

@@ -60,7 +60,7 @@ public class ClassResolverFromClassPathTest {
     public void is_resilient_if_URI_cant_be_located() {
         Optional<JavaClass> result = resolver.tryResolve("sooo.Wrong");
 
-        assertThat(result).isAbsent();
+        assertThat(result).isEmpty();
         verifyNoMoreInteractions(uriImporter);
     }
 

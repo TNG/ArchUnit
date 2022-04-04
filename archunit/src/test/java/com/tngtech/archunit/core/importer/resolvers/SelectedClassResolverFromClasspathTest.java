@@ -40,7 +40,7 @@ public class SelectedClassResolverFromClasspathTest {
 
         assertResolved(resolver.tryResolve(FirstDependency.class.getName()), FirstDependency.class);
         assertResolved(resolver.tryResolve(SecondDependency.class.getName()), SecondDependency.class);
-        assertThat(resolver.tryResolve(ThirdDependency.class.getName())).isAbsent();
+        assertThat(resolver.tryResolve(ThirdDependency.class.getName())).isEmpty();
         verifyNoMoreInteractions(classUriImporter);
     }
 

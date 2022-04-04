@@ -9,6 +9,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
@@ -31,6 +32,11 @@ public class DependenciesAssertion extends AbstractIterableAssert<
     @Override
     protected DependencyAssertion toAssert(Dependency value, String description) {
         return new DependencyAssertion(value).as(description);
+    }
+
+    @Override
+    protected DependenciesAssertion newAbstractIterableAssert(Iterable<? extends Dependency> iterable) {
+        return new DependenciesAssertion(ImmutableSet.copyOf(iterable));
     }
 
     public DependenciesAssertion contain(Class<?> expectedOrigin, Class<?> expectedTarget) {

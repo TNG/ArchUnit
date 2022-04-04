@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractObjectAssert;
@@ -19,6 +20,11 @@ public class ReferencedClassObjectsAssertion extends AbstractIterableAssert<Refe
     @Override
     protected ReferencedClassObjectAssertion toAssert(ReferencedClassObject value, String description) {
         return new ReferencedClassObjectAssertion(value).as(description);
+    }
+
+    @Override
+    protected ReferencedClassObjectsAssertion newAbstractIterableAssert(Iterable<? extends ReferencedClassObject> iterable) {
+        return new ReferencedClassObjectsAssertion(ImmutableSet.copyOf(iterable));
     }
 
     public void containReferencedClassObjects(Iterable<ExpectedReferencedClassObject> expectedReferencedClassObjects) {

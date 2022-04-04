@@ -299,10 +299,10 @@ public class JavaCodeUnitTest {
                 .getMethod("method", String.class).getParameters().get(0);
 
         assertThat(parameter.tryGetAnnotationOfType(SomeParameterAnnotation.class).get()).isInstanceOf(SomeParameterAnnotation.class);
-        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class)).isEmpty();
 
         assertThatAnnotation(parameter.tryGetAnnotationOfType(SomeParameterAnnotation.class.getName()).get()).hasType(SomeParameterAnnotation.class);
-        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class.getName())).isAbsent();
+        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class.getName())).isEmpty();
     }
 
     @SuppressWarnings("unused")

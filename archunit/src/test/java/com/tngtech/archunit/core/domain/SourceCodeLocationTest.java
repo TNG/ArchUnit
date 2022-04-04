@@ -25,7 +25,7 @@ public class SourceCodeLocationTest {
 
         JavaClass classWithoutSource = getClassWithoutSource();
 
-        assertThat(classWithoutSource.getSource()).as("source").isAbsent();
+        assertThat(classWithoutSource.getSource()).as("source").isEmpty();
         Assertions.assertThat(SourceCodeLocation.of(classWithoutSource, 7).toString()).isEqualTo(String.format("(%s.java:7)", classWithoutSource.getSimpleName()));
     }
 

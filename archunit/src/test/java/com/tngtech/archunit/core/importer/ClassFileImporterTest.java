@@ -675,7 +675,7 @@ public class ClassFileImporterTest {
         JavaClass anonymousClass = classes.get(anonymousClassName);
 
         assertThat(anonymousClass.getEnclosingClass()).contains(enclosingClass);
-        assertThat(anonymousClass.getEnclosingCodeUnit()).isAbsent();
+        assertThat(anonymousClass.getEnclosingCodeUnit()).isEmpty();
     }
 
     @Test

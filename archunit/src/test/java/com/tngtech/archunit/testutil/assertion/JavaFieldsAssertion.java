@@ -1,5 +1,6 @@
 package com.tngtech.archunit.testutil.assertion;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaField;
 import org.assertj.core.api.AbstractIterableAssert;
 
@@ -13,6 +14,11 @@ public class JavaFieldsAssertion
     @Override
     protected JavaFieldAssertion toAssert(JavaField value, String description) {
         return new JavaFieldAssertion(value).as(description);
+    }
+
+    @Override
+    protected JavaFieldsAssertion newAbstractIterableAssert(Iterable<? extends JavaField> iterable) {
+        return new JavaFieldsAssertion(ImmutableSet.copyOf(iterable));
     }
 
     public JavaFieldsAssertion contain(Class<?> owner, String fieldName) {

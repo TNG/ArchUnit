@@ -21,7 +21,7 @@ public class ClassFileProcessorTest {
         Optional<JavaClass> resolved = new ClassResolverFromClasspath()
                 .tryResolve("not.There");
 
-        assertThat(resolved).isAbsent();
+        assertThat(resolved).isEmpty();
     }
 
     @Test

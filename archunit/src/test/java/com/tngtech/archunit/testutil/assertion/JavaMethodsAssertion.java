@@ -1,5 +1,6 @@
 package com.tngtech.archunit.testutil.assertion;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import org.assertj.core.api.AbstractIterableAssert;
 
@@ -17,6 +18,11 @@ public class JavaMethodsAssertion
     @Override
     protected JavaMethodAssertion toAssert(JavaMethod value, String description) {
         return new JavaMethodAssertion(value).as(description);
+    }
+
+    @Override
+    protected JavaMethodsAssertion newAbstractIterableAssert(Iterable<? extends JavaMethod> iterable) {
+        return new JavaMethodsAssertion(ImmutableSet.copyOf(iterable));
     }
 
     public JavaMethodsAssertion contain(Class<?> owner, String name, Class<?>... parameterTypes) {

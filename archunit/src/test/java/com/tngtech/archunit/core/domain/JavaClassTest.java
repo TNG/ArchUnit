@@ -146,7 +146,7 @@ public class JavaClassTest {
         final JavaClass nonArrayType = method.getRawReturnType();
 
         assertThat(nonArrayType.isArray()).isFalse();
-        assertThat(nonArrayType.tryGetComponentType()).isAbsent();
+        assertThat(nonArrayType.tryGetComponentType()).isEmpty();
         assertThatThrownBy(new ThrowingCallable() {
             public void call() {
                 nonArrayType.getComponentType();
@@ -236,13 +236,13 @@ public class JavaClassTest {
     public void reports_non_existing_members_as_absent() {
         JavaClass javaClass = importClassWithContext(ParentWithFieldAndMethod.class);
 
-        assertThat(javaClass.tryGetField("notthere")).isAbsent();
-        assertThat(javaClass.tryGetMethod("notthere")).isAbsent();
-        assertThat(javaClass.tryGetMethod("notthere", Object.class)).isAbsent();
-        assertThat(javaClass.tryGetMethod("notthere", Object.class.getName())).isAbsent();
-        assertThat(javaClass.tryGetConstructor()).isAbsent();
-        assertThat(javaClass.tryGetConstructor(String.class)).isAbsent();
-        assertThat(javaClass.tryGetConstructor(String.class.getName())).isAbsent();
+        assertThat(javaClass.tryGetField("notthere")).isEmpty();
+        assertThat(javaClass.tryGetMethod("notthere")).isEmpty();
+        assertThat(javaClass.tryGetMethod("notthere", Object.class)).isEmpty();
+        assertThat(javaClass.tryGetMethod("notthere", Object.class.getName())).isEmpty();
+        assertThat(javaClass.tryGetConstructor()).isEmpty();
+        assertThat(javaClass.tryGetConstructor(String.class)).isEmpty();
+        assertThat(javaClass.tryGetConstructor(String.class.getName())).isEmpty();
     }
 
     @Test
@@ -464,10 +464,10 @@ public class JavaClassTest {
         assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, singletonList(Object.class.getName())).get())
                 .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
 
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>emptyList())).isAbsent();
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isAbsent();
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isAbsent();
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isAbsent();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isEmpty();
     }
 
     @Test

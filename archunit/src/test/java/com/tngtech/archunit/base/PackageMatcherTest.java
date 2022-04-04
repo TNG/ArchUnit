@@ -134,6 +134,6 @@ public class PackageMatcherTest {
     public void transform_mismatch_to_absent() {
         Optional<Result> result = PackageMatcher.of("com.(*)..").match("mycompany");
 
-        assertThat(result).isAbsent();
+        assertThat(result).isEmpty();
     }
 }

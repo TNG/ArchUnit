@@ -104,7 +104,7 @@ public class SlicesTest {
         assertThatTypes(getSliceOf(List.class, slices)).contain(Collection.class);
         Assertions.assertThat(tryGetSliceOf(File.class, slices))
                 .as("Slice of class java.io.File (which should be missing from the assignment)")
-                .isAbsent();
+                .isEmpty();
     }
 
     private Slice getSliceOf(Class<?> clazz, Slices slices) {

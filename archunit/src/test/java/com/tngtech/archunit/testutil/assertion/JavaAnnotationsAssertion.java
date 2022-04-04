@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import org.assertj.core.api.AbstractIterableAssert;
 
@@ -54,5 +55,10 @@ public class JavaAnnotationsAssertion extends AbstractIterableAssert<JavaAnnotat
     @Override
     protected JavaAnnotationAssertion toAssert(JavaAnnotation<?> value, String description) {
         return assertThatAnnotation(value).as(description);
+    }
+
+    @Override
+    protected JavaAnnotationsAssertion newAbstractIterableAssert(Iterable<? extends JavaAnnotation<?>> iterable) {
+        return new JavaAnnotationsAssertion(ImmutableSet.copyOf(iterable));
     }
 }

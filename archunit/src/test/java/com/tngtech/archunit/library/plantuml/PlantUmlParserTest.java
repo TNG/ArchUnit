@@ -114,7 +114,7 @@ public class PlantUmlParserTest {
         assertThat(target.getDependencies()).as("dependency component's dependencies").isEmpty();
         assertThat(getOnlyElement(target.getStereotypes())).as("dependency component's stereotype")
                 .isEqualTo(new Stereotype("..target.."));
-        assertThat(target.getAlias()).as("dependency component's alias is present").isAbsent();
+        assertThat(target.getAlias()).as("dependency component's alias is present").isEmpty();
     }
 
     @DataProvider

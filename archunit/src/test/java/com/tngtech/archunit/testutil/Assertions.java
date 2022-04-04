@@ -63,11 +63,9 @@ import com.tngtech.archunit.testutil.assertion.JavaTypeAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypesAssertion;
 import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion;
-import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Condition;
-import org.assertj.core.api.ObjectAssert;
-import org.assertj.core.api.ObjectAssertFactory;
+import org.assertj.core.api.OptionalAssert;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethodSimple;
@@ -88,8 +86,8 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new ArchRuleAssertion(rule);
     }
 
-    public static <T> org.assertj.guava.api.OptionalAssert<T> assertThat(Optional<T> optional) {
-        return org.assertj.guava.api.Assertions.assertThat(com.google.common.base.Optional.fromNullable(optional.orElse(null)));
+    public static <T> OptionalAssert<T> assertThat(Optional<T> optional) {
+        return assertThat(java.util.Optional.ofNullable(optional.orElse(null)));
     }
 
     public static <T> DescribedPredicateAssertion<T> assertThat(DescribedPredicate<T> predicate) {
@@ -332,22 +330,20 @@ public class Assertions extends org.assertj.core.api.Assertions {
         }
     }
 
-    public static class ThrowsClauseAssertion extends
-            AbstractIterableAssert<ThrowsClauseAssertion, ThrowsClause<?>, ThrowsDeclaration<?>, ObjectAssert<ThrowsDeclaration<?>>> {
+    public static class ThrowsClauseAssertion extends AbstractObjectAssert<ThrowsClauseAssertion, ThrowsClause<?>> {
         private ThrowsClauseAssertion(ThrowsClause<?> throwsClause) {
             super(throwsClause, ThrowsClauseAssertion.class);
         }
 
         public void matches(Class<?>... classes) {
-            assertThatThrowsClause(actual).as("ThrowsClause").hasSize(classes.length);
+            assertThat(actual).as("ThrowsClause").hasSize(classes.length);
             for (int i = 0; i < actual.size(); i++) {
                 assertThat(Iterables.get(actual, i)).as("Element %d", i).matches(classes[i]);
             }
         }
 
-        @Override
-        protected ObjectAssert<ThrowsDeclaration<?>> toAssert(ThrowsDeclaration<?> value, String description) {
-            return new ObjectAssertFactory<ThrowsDeclaration<?>>().createAssert(value).as(description);
+        public void isEmpty() {
+            assertThat(actual).as("ThrowsClause").isEmpty();
         }
     }
 

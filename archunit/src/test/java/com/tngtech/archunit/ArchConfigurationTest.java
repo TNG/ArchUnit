@@ -65,7 +65,7 @@ public class ArchConfigurationTest {
 
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
         assertThat(configuration.md5InClassSourcesEnabled()).isTrue();
-        assertThat(configuration.getClassResolver()).isAbsent();
+        assertThat(configuration.getClassResolver()).isEmpty();
         assertThat(configuration.getClassResolverArguments()).isEmpty();
     }
 

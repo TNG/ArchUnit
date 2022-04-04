@@ -176,7 +176,7 @@ public class JavaPackageTest {
     @Test
     public void creates_parent_packages() {
         JavaPackage defaultPackage = importDefaultPackage(Object.class);
-        assertThat(defaultPackage.getParent()).as("parent of default package").isAbsent();
+        assertThat(defaultPackage.getParent()).as("parent of default package").isEmpty();
 
         JavaPackage javaLang = defaultPackage.getPackage("java.lang");
 
@@ -355,7 +355,7 @@ public class JavaPackageTest {
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThat(annotatedPackage.tryGetPackageInfo()).isPresent();
-        assertThat(nonAnnotatedPackage.tryGetPackageInfo()).isAbsent();
+        assertThat(nonAnnotatedPackage.tryGetPackageInfo()).isEmpty();
     }
 
     @Test
@@ -423,9 +423,9 @@ public class JavaPackageTest {
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThat(annotatedPackage.tryGetAnnotationOfType(PackageLevelAnnotation.class)).isPresent();
-        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isEmpty();
 
-        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isEmpty();
     }
 
     @Test
@@ -434,9 +434,9 @@ public class JavaPackageTest {
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThat(annotatedPackage.tryGetAnnotationOfType(PackageLevelAnnotation.class.getName())).isPresent();
-        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isAbsent();
+        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isEmpty();
 
-        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isAbsent();
+        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isEmpty();
     }
 
     @Test

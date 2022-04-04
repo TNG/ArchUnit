@@ -61,8 +61,8 @@ ext {
             hamcrest            : [group: 'org.hamcrest', name: 'hamcrest-core', version: '1.3'],
             junit_dataprovider  : [group: 'com.tngtech.java', name: 'junit-dataprovider', version: '1.11.0'],
             mockito             : [group: 'org.mockito', name: 'mockito-core', version: '4.4.0'],
-            assertj             : [group: 'org.assertj', name: 'assertj-core', version: '2.9.1'],   // version 3 requires Java 8.
-            assertj_guava       : [group: 'org.assertj', name: 'assertj-guava', version: '2.0.1'],  // version 3 requires Java 8.
+            assertj             : [group: 'org.assertj', name: 'assertj-core', version: '3.22.0'],
+            assertj_guava       : [group: 'org.assertj', name: 'assertj-guava', version: '3.4.0'],
 
             // Dependencies for example projects / tests
             javaxAnnotationApi  : [group: 'javax.annotation', name: 'javax.annotation-api', version: '1.3.2'],
