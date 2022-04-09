@@ -91,8 +91,7 @@ public final class VisibilityMetrics {
      */
     @PublicAPI(usage = ACCESS)
     public double getRelativeVisibility(String componentIdentifier) {
-        checkComponentExists(componentIdentifier);
-        return relativeVisibilityByComponentIdentifier.get(componentIdentifier).relativeVisibility;
+        return getComponentVisibility(componentIdentifier).relativeVisibility;
     }
 
     /**
@@ -115,9 +114,10 @@ public final class VisibilityMetrics {
         return globalRelativeVisibility;
     }
 
-    private void checkComponentExists(String componentIdentifier) {
-        checkArgument(relativeVisibilityByComponentIdentifier.containsKey(componentIdentifier),
-                "Unknown component with identifier '" + componentIdentifier + "'");
+    private ComponentVisibility getComponentVisibility(String componentIdentifier) {
+        ComponentVisibility result = relativeVisibilityByComponentIdentifier.get(componentIdentifier);
+        checkArgument(result != null, "Unknown component with identifier '" + componentIdentifier + "'");
+        return result;
     }
 
     private static class ComponentVisibility {

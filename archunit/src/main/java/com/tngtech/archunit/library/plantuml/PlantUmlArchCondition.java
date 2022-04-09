@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
@@ -138,10 +139,10 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             return;
         }
 
-        String[] allAllowedTargets = FluentIterable
-                .from(javaClassDiagramAssociation.getPackageIdentifiersFromComponentOf(item))
-                .append(javaClassDiagramAssociation.getTargetPackageIdentifiers(item))
-                .toArray(String.class);
+        String[] allAllowedTargets = Sets.union(
+                javaClassDiagramAssociation.getPackageIdentifiersFromComponentOf(item),
+                javaClassDiagramAssociation.getTargetPackageIdentifiers(item)
+        ).toArray(new String[0]);
 
         ArchCondition<JavaClass> delegate = onlyHaveDependenciesInAnyPackage(allAllowedTargets)
                 .ignoreDependency(ignorePredicate);

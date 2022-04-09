@@ -406,11 +406,8 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         }
 
         String next = packageParts.poll();
-        if (!subpackages.containsKey(next)) {
-            return Optional.empty();
-        }
         JavaPackage child = subpackages.get(next);
-        return child.tryGetPackage(child, packageParts);
+        return child != null ? child.tryGetPackage(child, packageParts) : Optional.empty();
     }
 
     private <T> T getValue(Optional<T> optional, String errorMessageTemplate, Object... messageParams) {

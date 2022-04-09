@@ -95,9 +95,9 @@ class AnnotationProxy {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) {
-            MethodKey key = MethodKey.of(method);
-            if (handlersByMethod.containsKey(key)) {
-                return handlersByMethod.get(key).handle(proxy, method, args);
+            SpecificHandler handler = handlersByMethod.get(MethodKey.of(method));
+            if (handler != null) {
+                return handler.handle(proxy, method, args);
             }
 
             Object result = toProxy.get(method.getName()).orElse(method.getDefaultValue());
