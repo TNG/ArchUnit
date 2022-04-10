@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
@@ -112,6 +111,8 @@ import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.Assume.assumeTrue;
 
 @RunWith(DataProviderRunner.class)
@@ -700,12 +701,10 @@ public class ClassFileImporterTest {
     public void imports_urls_of_files() {
         Set<URL> urls = newHashSet(urlOf(ClassToImportOne.class), urlOf(ClassWithNestedClass.class));
 
-        Set<JavaClass> classesFoundAtUrls = new HashSet<>();
-        for (JavaClass javaClass : new ClassFileImporter().importUrls(urls)) {
-            if (!Object.class.getName().equals(javaClass.getName())) {
-                classesFoundAtUrls.add(javaClass);
-            }
-        }
+        Set<JavaClass> classesFoundAtUrls = new ClassFileImporter().importUrls(urls).stream()
+                .filter(javaClass -> !Object.class.getName().equals(javaClass.getName()))
+                .collect(toSet());
+
         assertThat(classesFoundAtUrls).as("Number of classes at the given URLs").hasSize(2);
     }
 
@@ -911,14 +910,7 @@ public class ClassFileImporterTest {
     }
 
     private ImportOption importOnly(final Class<?>... classes) {
-        return location -> {
-            for (Class<?> c : classes) {
-                if (location.contains(urlOf(c).getFile())) {
-                    return true;
-                }
-            }
-            return false;
-        };
+        return location -> stream(classes).anyMatch(c -> location.contains(urlOf(c).getFile()));
     }
 
     private Condition<CodeUnitAccessTarget> targetWithFullName(final String name) {

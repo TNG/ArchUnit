@@ -58,11 +58,10 @@ public final class LakosMetrics {
     private final double normalizedCumulativeComponentDependency;
 
     <T> LakosMetrics(Collection<MetricsComponent<T>> components, Function<T, Collection<T>> getDependencies) {
-        int cumulativeComponentDependency = 0;
         MetricsComponentDependencyGraph<T> graph = MetricsComponentDependencyGraph.of(components, getDependencies);
-        for (MetricsComponent<T> component : components) {
-            cumulativeComponentDependency += 1 + getNumberOfTransitiveDependencies(graph, component);
-        }
+        int cumulativeComponentDependency = components.stream()
+                .mapToInt(component -> 1 + getNumberOfTransitiveDependencies(graph, component))
+                .sum();
         this.cumulativeComponentDependency = cumulativeComponentDependency;
         this.averageComponentDependency = ((double) cumulativeComponentDependency) / components.size();
         this.relativeAverageComponentDependency = averageComponentDependency / components.size();

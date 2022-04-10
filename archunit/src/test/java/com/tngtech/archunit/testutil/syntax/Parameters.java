@@ -29,11 +29,7 @@ class Parameters extends ForwardingList<Parameter> {
     }
 
     Object[] getValues() {
-        Object[] params = new Object[parameters.size()];
-        for (int i = 0; i < parameters.size(); i++) {
-            params[i] = parameters.get(i).getValue();
-        }
-        return params;
+        return parameters.stream().map(Parameter::getValue).toArray();
     }
 
     String getDescription() {

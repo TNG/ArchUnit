@@ -50,11 +50,7 @@ class ModuleLocationResolver implements LocationResolver {
     private Path[] modulepath() {
         String modulepathProperty = nullToEmpty(System.getProperty("jdk.module.path"));
         List<String> modulepath = Splitter.on(File.pathSeparatorChar).omitEmptyStrings().splitToList(modulepathProperty);
-        Path[] result = new Path[modulepath.size()];
-        for (int i = 0; i < modulepath.size(); i++) {
-            result[i] = Paths.get(modulepath.get(i));
-        }
-        return result;
+        return modulepath.stream().map(Paths::get).toArray(Path[]::new);
     }
 
     private URL toUrl(URI uri) {

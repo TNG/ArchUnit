@@ -1,8 +1,9 @@
 package com.tngtech.archunit.library.metrics;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -13,6 +14,7 @@ import com.tngtech.archunit.library.metrics.testobjects.visibility.two.VisibleTw
 import org.junit.Test;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
 
@@ -83,13 +85,10 @@ public class VisibilityMetricsTest {
     }
 
     private MetricsComponent<TestElement> componentWithVisibilityDistribution(int numberOfVisibleElements, int numberOfInvisibleElements) {
-        Set<TestElement> elements = new HashSet<>();
-        for (int i = 0; i < numberOfVisibleElements; i++) {
-            elements.add(new TestElement("isVisible"));
-        }
-        for (int i = 0; i < numberOfInvisibleElements; i++) {
-            elements.add(new TestElement("isNotVisible"));
-        }
+        Set<TestElement> elements = Stream.concat(
+                IntStream.range(0, numberOfVisibleElements).mapToObj(i -> new TestElement("isVisible")),
+                IntStream.range(0, numberOfInvisibleElements).mapToObj(i -> new TestElement("isNotVisible"))
+        ).collect(toSet());
 
         return MetricsComponent.of("Visible(" + numberOfVisibleElements + ")/Invisible(" + numberOfInvisibleElements + ")", elements);
     }

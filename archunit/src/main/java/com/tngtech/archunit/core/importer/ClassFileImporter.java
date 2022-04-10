@@ -40,7 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * The central API to import {@link JavaClasses} from compiled Java class files.
@@ -125,11 +127,7 @@ public final class ClassFileImporter {
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPaths(String... paths) {
-        Set<Path> pathSet = new HashSet<>();
-        for (String path : paths) {
-            pathSet.add(Paths.get(path));
-        }
-        return importPaths(pathSet);
+        return importPaths(stream(paths).map(Paths::get).collect(toSet()));
     }
 
     /**
@@ -150,11 +148,7 @@ public final class ClassFileImporter {
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPaths(Collection<Path> paths) {
-        Set<Location> locations = new HashSet<>();
-        for (Path path : paths) {
-            locations.add(Location.of(path));
-        }
-        return importLocations(locations);
+        return importLocations(paths.stream().map(Location::of).collect(toSet()));
     }
 
     /**
@@ -201,10 +195,9 @@ public final class ClassFileImporter {
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPackages(Collection<String> packages) {
-        Set<Location> locations = new HashSet<>();
-        for (String pkg : packages) {
-            locations.addAll(Locations.ofPackage(pkg));
-        }
+        Set<Location> locations = packages.stream()
+                .flatMap(pkg -> Locations.ofPackage(pkg).stream())
+                .collect(toSet());
         return importLocations(locations);
     }
 
@@ -232,11 +225,7 @@ public final class ClassFileImporter {
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importPackagesOf(Collection<Class<?>> classes) {
-        Set<String> pkgs = new HashSet<>();
-        for (Class<?> clazz : classes) {
-            pkgs.add(clazz.getPackage().getName());
-        }
-        return importPackages(pkgs);
+        return importPackages(classes.stream().map(clazz -> clazz.getPackage().getName()).collect(toSet()));
     }
 
     /**
@@ -287,10 +276,9 @@ public final class ClassFileImporter {
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importClasses(Collection<Class<?>> classes) {
-        Set<Location> locations = new HashSet<>();
-        for (Class<?> clazz : classes) {
-            locations.addAll(Locations.ofClass(clazz));
-        }
+        Set<Location> locations = classes.stream()
+                .flatMap(clazz -> Locations.ofClass(clazz).stream())
+                .collect(toSet());
         return importLocations(locations);
     }
 

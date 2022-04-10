@@ -4,8 +4,8 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,6 +26,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotationAssertion, JavaAnnotation<?>> {
@@ -111,14 +112,17 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
 
     @SuppressWarnings("rawtypes")
     public static Set<Map<String, Object>> runtimePropertiesOf(Set<? extends JavaAnnotation<?>> annotations) {
-        List<Annotation> converted = new ArrayList<>();
-        for (JavaAnnotation<?> annotation : annotations) {
-            Annotation reflectionAnnotation = annotation.as((Class) annotation.getRawType().reflect());
-            if (isRetentionRuntime(reflectionAnnotation)) {
-                converted.add(reflectionAnnotation);
-            }
-        }
-        return propertiesOf(converted.toArray(new Annotation[0]));
+        return propertiesOf(
+                annotations.stream()
+                        .map(annotation -> reflect(annotation))
+                        .filter(JavaAnnotationAssertion::isRetentionRuntime)
+                        .toArray(Annotation[]::new)
+        );
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Annotation reflect(JavaAnnotation<?> annotation) {
+        return annotation.as((Class) annotation.getRawType().reflect());
     }
 
     private static boolean isRetentionRuntime(Annotation annotation) {
@@ -127,11 +131,7 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
     }
 
     public static Set<Map<String, Object>> propertiesOf(Annotation[] annotations) {
-        Set<Map<String, Object>> result = new HashSet<>();
-        for (Annotation annotation : annotations) {
-            result.add(propertiesOf(annotation));
-        }
-        return result;
+        return Arrays.stream(annotations).map(JavaAnnotationAssertion::propertiesOf).collect(toSet());
     }
 
     private static Map<String, Object> propertiesOf(Annotation annotation) {

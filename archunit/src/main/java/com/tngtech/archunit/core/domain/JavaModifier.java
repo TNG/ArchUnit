@@ -17,7 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
@@ -25,6 +24,8 @@ import com.tngtech.archunit.PublicAPI;
 import org.objectweb.asm.Opcodes;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 
 public enum JavaModifier {
     @PublicAPI(usage = ACCESS)
@@ -78,12 +79,10 @@ public enum JavaModifier {
     }
 
     private static Set<JavaModifier> getModifiersFor(ApplicableType type, int asmAccess) {
-        Set<JavaModifier> result = new HashSet<>();
-        for (JavaModifier modifier : JavaModifier.values()) {
-            if (modifier.applicableTo.contains(type) && modifierPresent(modifier, asmAccess)) {
-                result.add(modifier);
-            }
-        }
+        Set<JavaModifier> result = stream(JavaModifier.values())
+                .filter(modifier -> modifier.applicableTo.contains(type))
+                .filter(modifier -> modifierPresent(modifier, asmAccess))
+                .collect(toSet());
         return result.isEmpty() ? Collections.<JavaModifier>emptySet() : Sets.immutableEnumSet(result);
     }
 

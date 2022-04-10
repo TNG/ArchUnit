@@ -2,6 +2,7 @@ package com.tngtech.archunit.library.dependencies;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import com.google.common.base.Splitter;
 import com.tngtech.archunit.ArchConfiguration;
@@ -232,10 +233,8 @@ public class SliceRuleTest {
      * SUM(k=2, n) (n k) * (k-1)! = SUM(k=2, n) n! / ((n-k)! * k)
      */
     static int getNumberOfCyclesInCompleteGraph(int numberOfNodes) {
-        int numberOfCycles = 0;
-        for (int k = 2; k <= numberOfNodes; k++) {
-            numberOfCycles += factorial(numberOfNodes) / (factorial(numberOfNodes - k) * k);
-        }
-        return numberOfCycles;
+        return IntStream.rangeClosed(2, numberOfNodes)
+                .map(k -> factorial(numberOfNodes) / (factorial(numberOfNodes - k) * k))
+                .sum();
     }
 }

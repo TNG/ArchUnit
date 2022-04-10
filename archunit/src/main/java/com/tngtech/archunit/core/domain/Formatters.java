@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Joiner;
@@ -25,6 +24,7 @@ import com.tngtech.archunit.PublicAPI;
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.stream.Collectors.toList;
 
 public final class Formatters {
     private Formatters() {
@@ -43,10 +43,7 @@ public final class Formatters {
      */
     @PublicAPI(usage = ACCESS)
     public static String formatMethodSimple(String ownerName, String methodName, List<String> parameters) {
-        List<String> simpleParams = new ArrayList<>();
-        for (String parameter : parameters) {
-            simpleParams.add(ensureSimpleName(parameter));
-        }
+        List<String> simpleParams = parameters.stream().map(Formatters::ensureSimpleName).collect(toList());
         return formatMethod(ensureSimpleName(ownerName), methodName, simpleParams);
     }
 

@@ -1,18 +1,5 @@
 package com.tngtech.archunit.core.importer;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.InitialConfigurationTest;
-import com.tngtech.archunit.core.importer.resolvers.ClassResolverFactoryTest;
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.assertj.core.api.Condition;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,14 +15,26 @@ import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Functions.toStringFunction;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.tngtech.archunit.ArchConfiguration;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.InitialConfigurationTest;
+import com.tngtech.archunit.core.importer.resolvers.ClassResolverFactoryTest;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.assertj.core.api.Condition;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Iterables.transform;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.primitives.Bytes.asList;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -68,7 +67,7 @@ public class LocationTest {
 
         Location location = Location.of(jarFile);
 
-        assertThat(location.iterateEntries())
+        assertThat(location.streamEntries())
                 .as("entries of JAR")
                 .containsOnlyElementsOf(Sets.difference(entries, singleton(packageEntry(DescribedPredicate.class))));
     }
@@ -85,19 +84,19 @@ public class LocationTest {
 
         Location location = Location.of(jarUriOfEntry(jarFile, packageEntry(ArchConfiguration.class)));
 
-        assertThat(location.iterateEntries())
+        assertThat(location.streamEntries())
                 .as("entries of JAR")
                 .containsOnlyElementsOf(Sets.difference(entries, singleton(packageEntry(DescribedPredicate.class))));
 
         location = Location.of(jarUriOfEntry(jarFile, packageEntry(getClass())));
 
-        assertThat(location.iterateEntries())
+        assertThat(location.streamEntries())
                 .as("entries of JAR")
                 .containsOnly(classFileEntry(getClass()));
 
         location = Location.of(jarUriOfEntry(jarFile, classFileResource(getClass())));
 
-        assertThat(location.iterateEntries())
+        assertThat(location.streamEntries())
                 .as("entries of JAR")
                 .containsOnly(classFileEntry(getClass()));
     }
@@ -108,7 +107,7 @@ public class LocationTest {
 
         Location location = Location.of(URI.create("jar:" + nonExistingJar.toURI() + "!/"));
 
-        assertThat(location.iterateEntries())
+        assertThat(location.streamEntries())
                 .as("entries of JAR")
                 .isEmpty();
     }
@@ -117,12 +116,13 @@ public class LocationTest {
     public void iterate_entries_of_file_url() throws Exception {
         Location location = Location.of(getClass().getResource(packageResource(getClass())));
 
-        assertThat(location.iterateEntries())
+        assertThat(location.streamEntries())
                 .as("entries of DIR")
                 .contains(sameLevel(getClass()))
                 .contains(oneLevelBelow(ClassResolverFactoryTest.class));
 
-        assertThat(transform(location.iterateEntries(), toStringFunction()))
+        List<String> entriesAsString = location.streamEntries().map(Object::toString).collect(toList());
+        assertThat(entriesAsString)
                 .as("entries of DIR")
                 .doNotHave(elementWithSubstring(InitialConfigurationTest.class.getSimpleName()));
     }
@@ -131,7 +131,7 @@ public class LocationTest {
     public void iterate_entries_of_non_existing_file_url() {
         Location location = Location.of(createNonExistingFolder().toURI());
 
-        assertThat(location.iterateEntries())
+        assertThat(location.streamEntries())
                 .as("entries of DIR")
                 .isEmpty();
     }

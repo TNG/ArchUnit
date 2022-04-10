@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.library.freeze.ViolationStoreFactory.FREEZE_STORE_PROPERTY_NAME;
+import static java.util.stream.Collectors.toList;
 
 /**
  * A decorator around an existing {@link ArchRule} that "freezes" the state of all violations on the first call instead of failing the test.
@@ -215,11 +216,7 @@ public final class FreezingArchRule implements ArchRule {
     }
 
     private static List<String> ensureUnixLineBreaks(List<String> strings) {
-        List<String> result = new ArrayList<>();
-        for (String string : strings) {
-            result.add(ensureUnixLineBreaks(string));
-        }
-        return result;
+        return strings.stream().map(FreezingArchRule::ensureUnixLineBreaks).collect(toList());
     }
 
     private static class CategorizedViolations {

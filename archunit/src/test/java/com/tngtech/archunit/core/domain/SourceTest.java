@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -30,6 +31,7 @@ import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 
 @RunWith(DataProviderRunner.class)
 public class SourceTest {
@@ -129,11 +131,9 @@ public class SourceTest {
     }
 
     private static List<List<?>> zip(List<?> first, List<?> second) {
-        List<List<?>> result = new ArrayList<>();
-        for (int i = 0; i < first.size(); i++) {
-            result.add(ImmutableList.of(first.get(i), second.get(i)));
-        }
-        return result;
+        return IntStream.range(0, first.size())
+                .mapToObj(i -> ImmutableList.of(first.get(i), second.get(i)))
+                .collect(toList());
     }
 
     @Test

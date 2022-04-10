@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 import static com.google.common.collect.Ordering.natural;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public class TestMetricsComponentDependencyGraph {
     private final Set<TestDependency> dependencies;
@@ -23,10 +24,9 @@ public class TestMetricsComponentDependencyGraph {
         for (TestDependency dependency : dependencies) {
             getElement(elements, dependency.origin).addDependency(getElement(elements, dependency.target));
         }
-        Set<MetricsComponent<TestElement>> components = new HashSet<>();
-        for (Map.Entry<String, TestElement> nameToElement : elements.entrySet()) {
-            components.add(MetricsComponent.of(nameToElement.getKey(), nameToElement.getValue()));
-        }
+        Set<MetricsComponent<TestElement>> components = elements.entrySet().stream()
+                .map(nameToElement -> MetricsComponent.of(nameToElement.getKey(), nameToElement.getValue()))
+                .collect(toSet());
         this.components = MetricsComponents.of(components);
     }
 

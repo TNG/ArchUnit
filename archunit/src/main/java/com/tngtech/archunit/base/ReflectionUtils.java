@@ -16,6 +16,7 @@
 package com.tngtech.archunit.base;
 
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
 
 import com.tngtech.archunit.Internal;
 
@@ -35,10 +36,6 @@ public final class ReflectionUtils {
     }
 
     private static Class<?>[] typesOf(Object[] parameters) {
-        Class<?>[] result = new Class[parameters.length];
-        for (int i = 0; i < parameters.length; i++) {
-            result[i] = parameters[i].getClass();
-        }
-        return result;
+        return Arrays.stream(parameters).map(Object::getClass).toArray(Class<?>[]::new);
     }
 }

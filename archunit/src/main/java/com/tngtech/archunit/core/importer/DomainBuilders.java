@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -85,6 +84,7 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.creat
 import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static java.util.stream.Collectors.joining;
 
 @Internal
 public final class DomainBuilders {
@@ -1196,11 +1196,9 @@ public final class DomainBuilders {
         }
 
         private String formatTypeArguments() {
-            List<String> formatted = new ArrayList<>();
-            for (JavaType typeArgument : typeArguments) {
-                formatted.add(ensureCanonicalArrayTypeName(typeArgument.getName()));
-            }
-            return "<" + Joiner.on(", ").join(formatted) + ">";
+            return typeArguments.stream()
+                    .map(typeArgument -> ensureCanonicalArrayTypeName(typeArgument.getName()))
+                    .collect(joining(", ", "<", ">"));
         }
     }
 }

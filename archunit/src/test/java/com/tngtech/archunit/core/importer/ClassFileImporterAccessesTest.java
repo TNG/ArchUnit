@@ -4,7 +4,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -634,10 +633,9 @@ public class ClassFileImporterAccessesTest {
                 classes.get(InterfaceOfClassX.class)
         );
 
-        Set<JavaClass> targetClasses = new HashSet<>();
-        for (Dependency dependency : withoutJavaLangTargets(javaClass.getDirectDependenciesFromSelf())) {
-            targetClasses.add(dependency.getTargetClass());
-        }
+        Set<JavaClass> targetClasses = withoutJavaLangTargets(javaClass.getDirectDependenciesFromSelf()).stream()
+                .map(Dependency::getTargetClass)
+                .collect(toSet());
 
         assertThat(targetClasses).isEqualTo(expectedTargetClasses);
     }
@@ -648,12 +646,10 @@ public class ClassFileImporterAccessesTest {
         JavaClass javaClass = classes.get(ClassCDependingOnClassB_SuperclassOfX.class);
         JavaClass expectedTargetClass = classes.get(ClassBDependingOnClassA.class);
 
-        Set<JavaClass> targetClasses = new HashSet<>();
-        for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
-            if (dependency.getTargetClass().getPackageName().contains("testexamples")) {
-                targetClasses.add(dependency.getTargetClass());
-            }
-        }
+        Set<JavaClass> targetClasses = javaClass.getDirectDependenciesFromSelf().stream()
+                .map(Dependency::getTargetClass)
+                .filter(targetClass -> targetClass.getPackageName().contains("testexamples"))
+                .collect(toSet());
 
         assertThat(targetClasses).containsOnly(expectedTargetClass);
     }
@@ -923,13 +919,9 @@ public class ClassFileImporterAccessesTest {
     }
 
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {
-        Set<Dependency> result = new HashSet<>();
-        for (Dependency dependency : dependencies) {
-            if (!dependency.getTargetClass().getPackageName().startsWith("java.lang")) {
-                result.add(dependency);
-            }
-        }
-        return result;
+        return dependencies.stream()
+                .filter(dependency -> !dependency.getTargetClass().getPackageName().startsWith("java.lang"))
+                .collect(toSet());
     }
 
     // only temporary to make sure resolveMember() and resolve() are in sync. Inline again when we throw out resolve()
@@ -990,13 +982,10 @@ public class ClassFileImporterAccessesTest {
     }
 
     private Set<JavaFieldAccess> getByNameAndAccessType(Set<JavaFieldAccess> fieldAccesses, String name, JavaFieldAccess.AccessType accessType) {
-        Set<JavaFieldAccess> result = new HashSet<>();
-        for (JavaFieldAccess access : fieldAccesses) {
-            if (name.equals(access.getName()) && access.getAccessType() == accessType) {
-                result.add(access);
-            }
-        }
-        return result;
+        return fieldAccesses.stream()
+                .filter(access -> name.equals(access.getName()))
+                .filter(access -> access.getAccessType() == accessType)
+                .collect(toSet());
     }
 
     private <T extends HasOwner<JavaCodeUnit>> T getOnlyByCaller(Set<T> calls, JavaCodeUnit caller) {
@@ -1032,18 +1021,10 @@ public class ClassFileImporterAccessesTest {
     }
 
     private Set<FieldAccessTarget> targetsOf(Set<JavaFieldAccess> fieldAccesses) {
-        Set<FieldAccessTarget> result = new HashSet<>();
-        for (JavaFieldAccess access : fieldAccesses) {
-            result.add(access.getTarget());
-        }
-        return result;
+        return fieldAccesses.stream().map(JavaAccess::getTarget).collect(toSet());
     }
 
     private Set<Integer> lineNumbersOf(Set<JavaFieldAccess> fieldAccesses) {
-        Set<Integer> result = new HashSet<>();
-        for (JavaFieldAccess access : fieldAccesses) {
-            result.add(access.getLineNumber());
-        }
-        return result;
+        return fieldAccesses.stream().map(JavaAccess::getLineNumber).collect(toSet());
     }
 }

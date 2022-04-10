@@ -3,6 +3,7 @@ package com.tngtech.archunit.library.freeze;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -10,8 +11,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
-import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -522,10 +523,7 @@ public class FreezingArchRuleTest {
         }
 
         RuleCreator withViolations(final String... messages) {
-            List<ViolatedEvent> newEvents = new ArrayList<>();
-            for (String message : messages) {
-                newEvents.add(new ViolatedEvent(message));
-            }
+            List<ViolatedEvent> newEvents = Arrays.stream(messages).map(ViolatedEvent::new).collect(toList());
             return new RuleCreator(description, newEvents, textModifier);
         }
 
@@ -648,11 +646,7 @@ public class FreezingArchRuleTest {
         }
 
         ViolatedEvent apply(Function<String, String> textModifier) {
-            List<String> result = new ArrayList<>();
-            for (String line : descriptionLines) {
-                result.add(textModifier.apply(line));
-            }
-            return new ViolatedEvent(result);
+            return new ViolatedEvent(descriptionLines.stream().map(textModifier).collect(toList()));
         }
     }
 }

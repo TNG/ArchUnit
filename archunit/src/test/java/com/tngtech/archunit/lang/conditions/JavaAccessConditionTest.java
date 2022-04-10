@@ -1,6 +1,5 @@
 package com.tngtech.archunit.lang.conditions;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaAccess;
@@ -14,6 +13,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static java.util.stream.Collectors.toSet;
 
 public class JavaAccessConditionTest {
     @Test
@@ -68,13 +68,7 @@ public class JavaAccessConditionTest {
     }
 
     private <T extends JavaAccess<?>> Set<T> filterByTarget(Set<T> accesses, Class<?> targetOwner) {
-        Set<T> result = new HashSet<>();
-        for (T access : accesses) {
-            if (access.getTargetOwner().isEquivalentTo(targetOwner)) {
-                result.add(access);
-            }
-        }
-        return result;
+        return accesses.stream().filter(access -> access.getTargetOwner().isEquivalentTo(targetOwner)).collect(toSet());
     }
 
     private JavaClass importToCheck(Class<?> clazz) {

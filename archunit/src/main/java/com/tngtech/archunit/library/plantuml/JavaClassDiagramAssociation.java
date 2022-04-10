@@ -25,6 +25,7 @@ import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static java.util.stream.Collectors.toCollection;
 
 class JavaClassDiagramAssociation {
     private final Set<AssociatedComponent> components;
@@ -100,11 +101,9 @@ class JavaClassDiagramAssociation {
     }
 
     private Set<String> getComponentNames(Set<PlantUmlComponent> associatedComponents) {
-        Set<String> associatedComponentNames = new TreeSet<>();
-        for (PlantUmlComponent associatedComponent : associatedComponents) {
-            associatedComponentNames.add(associatedComponent.getComponentName().asString());
-        }
-        return associatedComponentNames;
+        return associatedComponents.stream()
+                .map(associatedComponent -> associatedComponent.getComponentName().asString())
+                .collect(toCollection(TreeSet::new));
     }
 
     private static class AssociatedComponent {
@@ -121,12 +120,7 @@ class JavaClassDiagramAssociation {
         }
 
         private boolean contains(JavaClass javaClass) {
-            for (PackageMatcher packageMatcher : packageMatchers) {
-                if (packageMatcher.matches(javaClass.getPackageName())) {
-                    return true;
-                }
-            }
-            return false;
+            return packageMatchers.stream().anyMatch(packageMatcher -> packageMatcher.matches(javaClass.getPackageName()));
         }
 
         PlantUmlComponent asPlantUmlComponent() {

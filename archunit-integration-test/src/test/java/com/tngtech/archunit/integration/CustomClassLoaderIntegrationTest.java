@@ -82,7 +82,7 @@ class CustomClassLoaderIntegrationTest {
 
         @SuppressWarnings({"unchecked", "SameParameterValue"}) // Access through Reflection can never be typesafe, the caller needs to decide
         private <T> T invoke(Object owner, String methodName, Object... params) throws Exception {
-            Class<?>[] parameterTypes = Arrays.stream(params).map(Object::getClass).toArray(Class[]::new);
+            Class<?>[] parameterTypes = Arrays.stream(params).map(Object::getClass).toArray(Class<?>[]::new);
             Method runMethod = owner.getClass().getDeclaredMethod(methodName, parameterTypes);
             return (T) accessible(runMethod).invoke(owner, params);
         }

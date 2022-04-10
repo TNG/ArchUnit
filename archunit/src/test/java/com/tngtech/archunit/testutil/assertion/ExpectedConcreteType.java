@@ -20,6 +20,7 @@ import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTy
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,11 +42,7 @@ public interface ExpectedConcreteType {
         }
 
         static ExpectedConcreteType[] wrap(Class<?>[] classes) {
-            ExpectedConcreteType[] result = new ExpectedConcreteType[classes.length];
-            for (int i = 0; i < classes.length; i++) {
-                result[i] = new ExpectedConcreteClass(classes[i]);
-            }
-            return result;
+            return stream(classes).map(ExpectedConcreteClass::new).toArray(ExpectedConcreteType[]::new);
         }
 
         public static ExpectedConcreteClass concreteClass(Class<?> expectedType) {

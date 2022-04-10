@@ -67,11 +67,10 @@ public final class VisibilityMetrics {
     }
 
     private static double calculateAverageRelativeVisibility(Collection<ComponentVisibility> componentVisibilities) {
-        double sum = 0;
-        for (ComponentVisibility componentVisibility : componentVisibilities) {
-            sum += componentVisibility.relativeVisibility;
-        }
-        return sum / componentVisibilities.size();
+        double relativeVisibilitySum = componentVisibilities.stream()
+                .mapToDouble(componentVisibility -> componentVisibility.relativeVisibility)
+                .sum();
+        return relativeVisibilitySum / componentVisibilities.size();
     }
 
     private static double calculateGlobalRelativeVisibility(Collection<ComponentVisibility> componentVisibilities) {
@@ -126,13 +125,7 @@ public final class VisibilityMetrics {
         final double relativeVisibility;
 
         <T> ComponentVisibility(MetricsComponent<T> component, Predicate<? super T> isVisible) {
-            int numberOfVisibleElements = 0;
-            for (T element : component) {
-                if (isVisible.test(element)) {
-                    numberOfVisibleElements++;
-                }
-            }
-            this.numberOfVisibleElements = numberOfVisibleElements;
+            this.numberOfVisibleElements = (int) component.stream().filter(isVisible).count();
             this.numberOfAllElements = component.size();
             this.relativeVisibility = ((double) numberOfVisibleElements) / numberOfAllElements;
         }

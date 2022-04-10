@@ -18,10 +18,12 @@ package com.tngtech.archunit.core.importer;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -63,7 +65,6 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.tngtech.archunit.base.Optionals.asSet;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaStaticInitializer.STATIC_INITIALIZER_NAME;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
@@ -71,6 +72,8 @@ import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isA
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMetafactory;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethod;
 import static com.tngtech.archunit.core.importer.RawInstanceofCheck.from;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 
 class JavaClassProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassProcessor.class);
@@ -283,13 +286,9 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private List<JavaClassDescriptor> typesFrom(String[] throwsDeclarations) {
-        List<JavaClassDescriptor> result = new ArrayList<>();
-        if (throwsDeclarations != null) {
-            for (String throwsDeclaration : throwsDeclarations) {
-                result.add(JavaClassDescriptorImporter.createFromAsmObjectTypeName(throwsDeclaration));
-            }
-        }
-        return result;
+        return throwsDeclarations != null
+                ? stream(throwsDeclarations).map(JavaClassDescriptorImporter::createFromAsmObjectTypeName).collect(toList())
+                : Collections.emptyList();
     }
 
     private DomainBuilders.JavaCodeUnitBuilder<?, ?> addCodeUnitBuilder(String name, Collection<String> rawParameterTypeNames, String rawReturnTypeName) {
@@ -724,11 +723,9 @@ class JavaClassProcessor extends ClassVisitor {
             }
 
             private <T extends HasDescription> List<Object> buildValues(T owner, ImportedClasses importContext) {
-                List<Object> result = new ArrayList<>();
-                for (ValueBuilder value : values) {
-                    result.addAll(asSet(value.build(owner, importContext)));
-                }
-                return result;
+                return values.stream()
+                        .flatMap(value -> value.build(owner, importContext).map(Stream::of).orElse(Stream.empty()))
+                        .collect(toList());
             }
 
             private Optional<Class<?>> determineComponentType(ImportedClasses importContext) {

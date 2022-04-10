@@ -1,10 +1,9 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -92,6 +91,8 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.emptySet;
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -619,21 +620,16 @@ public class MembersShouldTest {
     }
 
     static Set<String> parseMembers(List<Class<?>> possibleOwners, List<String> details) {
-        List<String> classNamePatterns = new ArrayList<>();
-        for (String className : formatNamesOf(possibleOwners)) {
-            classNamePatterns.add(quote(className));
-        }
+        List<String> classNamePatterns = formatNamesOf(possibleOwners).stream().map(Pattern::quote).collect(toList());
         String classesWithMembersRegex = String.format("(?:%s)", Joiner.on("|").join(classNamePatterns));
-        Set<String> result = new HashSet<>();
-        for (String detail : details) {
-            result.add(detail
-                    .replaceAll(
-                            String.format("Field <%s\\.([^:]+)> .*", classesWithMembersRegex),
-                            "$1")
-                    .replaceAll(
-                            String.format("(?:Method|Constructor) <%s\\.([^:]+\\))> .*", classesWithMembersRegex),
-                            "$1"));
-        }
-        return result;
+        return details.stream()
+                .map(detail -> detail
+                        .replaceAll(
+                                String.format("Field <%s\\.([^:]+)> .*", classesWithMembersRegex),
+                                "$1")
+                        .replaceAll(
+                                String.format("(?:Method|Constructor) <%s\\.([^:]+\\))> .*", classesWithMembersRegex),
+                                "$1"))
+                .collect(toSet());
     }
 }

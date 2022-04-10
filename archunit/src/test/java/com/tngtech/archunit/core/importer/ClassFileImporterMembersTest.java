@@ -9,12 +9,10 @@ import java.nio.Buffer;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
@@ -69,6 +67,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
+import static java.util.stream.Collectors.toSet;
 
 public class ClassFileImporterMembersTest {
 
@@ -345,10 +344,10 @@ public class ClassFileImporterMembersTest {
     public void classes_know_which_instanceof_checks_check_their_type() {
         JavaClass clazz = new ClassFileImporter().importPackagesOf(InstanceofChecked.class).get(InstanceofChecked.class);
 
-        Set<JavaClass> origins = new HashSet<>();
-        for (InstanceofCheck instanceofCheck : clazz.getInstanceofChecksWithTypeOfSelf()) {
-            origins.add(instanceofCheck.getOwner().getOwner());
-        }
+        Set<JavaClass> origins = clazz.getInstanceofChecksWithTypeOfSelf().stream()
+                .map(instanceofCheck -> instanceofCheck.getOwner().getOwner())
+                .collect(toSet());
+
         assertThatTypes(origins).matchInAnyOrder(ChecksInstanceofInMethod.class, ChecksInstanceofInConstructor.class, ChecksInstanceofInStaticInitializer.class);
     }
 }

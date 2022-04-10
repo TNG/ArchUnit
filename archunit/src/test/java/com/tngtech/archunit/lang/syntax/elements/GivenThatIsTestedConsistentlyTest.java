@@ -1,7 +1,6 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
 import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaAccess;
@@ -12,6 +11,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GivenThatIsTestedConsistentlyTest {
@@ -42,20 +43,9 @@ public class GivenThatIsTestedConsistentlyTest {
     }
 
     private Set<String> getAllTestMethodNames(Class<?> testClass) {
-        Set<Method> methods = new HashSet<>();
-        for (Method method : testClass.getMethods()) {
-            if (method.isAnnotationPresent(Test.class)) {
-                methods.add(method);
-            }
-        }
-        return getNames(methods);
-    }
-
-    private Set<String> getNames(Set<Method> methods) {
-        Set<String> result = new HashSet<>();
-        for (Method method : methods) {
-            result.add(method.getName());
-        }
-        return result;
+        return stream(testClass.getMethods())
+                .filter(method -> method.isAnnotationPresent(Test.class))
+                .map(Method::getName)
+                .collect(toSet());
     }
 }

@@ -27,15 +27,16 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -67,8 +68,7 @@ public abstract class Location {
         ImportPlugin.Loader.loadForCurrentPlatform().plugInLocationFactories(factories);
     }
 
-    private static final Cache<NormalizedUri, Iterable<NormalizedResourceName>> ENTRY_CACHE = CacheBuilder.newBuilder().build();
-    private final Callable<Iterable<NormalizedResourceName>> readResourceEntries = this::iterateEntriesInternal;
+    private static final Cache<NormalizedUri, Collection<NormalizedResourceName>> ENTRY_CACHE = CacheBuilder.newBuilder().build();
 
     final NormalizedUri uri;
 
@@ -142,17 +142,17 @@ public abstract class Location {
     }
 
     /**
-     * @return An iterable containing all class file names under this location, e.g. relative file names, Jar entry names, ...
+     * @return A Stream containing all class file names under this location, e.g. relative file names, Jar entry names, ...
      */
-    final Iterable<NormalizedResourceName> iterateEntries() {
+    final Stream<NormalizedResourceName> streamEntries() {
         try {
-            return ENTRY_CACHE.get(uri, readResourceEntries);
+            return ENTRY_CACHE.get(uri, this::readResourceEntries).stream();
         } catch (ExecutionException e) {
             throw new LocationException(e);
         }
     }
 
-    abstract Iterable<NormalizedResourceName> iterateEntriesInternal();
+    abstract Collection<NormalizedResourceName> readResourceEntries();
 
     @Override
     public int hashCode() {
@@ -286,13 +286,13 @@ public abstract class Location {
         }
 
         @Override
-        Iterable<NormalizedResourceName> iterateEntriesInternal() {
+        Collection<NormalizedResourceName> readResourceEntries() {
             File file = getFileOfJar();
             if (!file.exists()) {
                 return emptySet();
             }
 
-            return iterateJarFile(file);
+            return readJarFileContent(file);
         }
 
         private File getFileOfJar() {
@@ -301,7 +301,7 @@ public abstract class Location {
                     .replaceAll("!/.*", "")));
         }
 
-        private Iterable<NormalizedResourceName> iterateJarFile(File fileOfJar) {
+        private Collection<NormalizedResourceName> readJarFileContent(File fileOfJar) {
             ImmutableList.Builder<NormalizedResourceName> result = ImmutableList.builder();
             String prefix = uri.toString().replaceAll(".*!/", "");
             try (JarFile jarFile = new JarFile(fileOfJar)) {
@@ -357,7 +357,7 @@ public abstract class Location {
         }
 
         @Override
-        Iterable<NormalizedResourceName> iterateEntriesInternal() {
+        Collection<NormalizedResourceName> readResourceEntries() {
             try {
                 return getAllFilesBeneath(uri);
             } catch (IOException e) {

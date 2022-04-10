@@ -1,7 +1,6 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.HashMultiset;
@@ -9,6 +8,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import org.junit.Test;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -35,13 +36,10 @@ public class ClassesThatTestsExistTest {
     }
 
     private Set<Method> getMethodsStartingWith(String prefix, Class<?> testClass) {
-        Set<Method> result = new HashSet<>();
-        for (Method method : testClass.getDeclaredMethods()) {
-            if (method.getAnnotation(Test.class) != null && method.getName().startsWith(prefix)) {
-                result.add(method);
-            }
-        }
-        return result;
+        return stream(testClass.getDeclaredMethods())
+                .filter(method -> method.getAnnotation(Test.class) != null)
+                .filter(method -> method.getName().startsWith(prefix))
+                .collect(toSet());
     }
 
     private Multiset<String> getSyntaxElements() {

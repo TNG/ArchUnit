@@ -17,7 +17,6 @@ package com.tngtech.archunit.junit.internal;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -40,6 +39,8 @@ import com.tngtech.archunit.junit.LocationProvider;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.junit.CacheMode.FOREVER;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.newInstanceOf;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * The {@link ClassCache} takes care of caching {@link JavaClasses} between test runs. On the one hand,
@@ -194,11 +195,9 @@ class ClassCache {
             }
 
             private Set<Location> getLocationsOfProviders(ClassAnalysisRequest classAnalysisRequest, Class<?> testClass) {
-                Set<Location> result = new HashSet<>();
-                for (Class<? extends LocationProvider> providerClass : classAnalysisRequest.getLocationProviders()) {
-                    result.addAll(tryCreate(providerClass).get(testClass));
-                }
-                return result;
+                return stream(classAnalysisRequest.getLocationProviders())
+                        .flatMap(providerClass -> tryCreate(providerClass).get(testClass).stream())
+                        .collect(toSet());
             }
 
             private LocationProvider tryCreate(Class<? extends LocationProvider> providerClass) {
@@ -221,11 +220,7 @@ class ClassCache {
             }
 
             private Set<Location> locationsOf(Set<String> packages) {
-                Set<Location> result = new HashSet<>();
-                for (String pkg : packages) {
-                    result.addAll(Locations.ofPackage(pkg));
-                }
-                return result;
+                return packages.stream().flatMap(pkg -> Locations.ofPackage(pkg).stream()).collect(toSet());
             }
 
             @Override

@@ -65,8 +65,10 @@ import static com.tngtech.archunit.core.domain.JavaType.Functions.TO_ERASURE;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toSet;
 
 public class JavaClass
         implements JavaType, HasName.AndFullName, HasTypeParameters<JavaClass>, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
@@ -1408,12 +1410,7 @@ public class JavaClass
     }
 
     private boolean anyMatches(List<JavaClass> possibleTargets, DescribedPredicate<? super JavaClass> predicate) {
-        for (JavaClass javaClass : possibleTargets) {
-            if (predicate.test(javaClass)) {
-                return true;
-            }
-        }
-        return false;
+        return possibleTargets.stream().anyMatch(predicate);
     }
 
     /**
@@ -2333,10 +2330,7 @@ public class JavaClass
         }
 
         private static DescribedPredicate<JavaClass> resideInAnyPackage(final String[] packageIdentifiers, final String description) {
-            final Set<PackageMatcher> packageMatchers = new HashSet<>();
-            for (String identifier : packageIdentifiers) {
-                packageMatchers.add(PackageMatcher.of(identifier));
-            }
+            final Set<PackageMatcher> packageMatchers = stream(packageIdentifiers).map(PackageMatcher::of).collect(toSet());
             return new PackageMatchesPredicate(packageMatchers, description);
         }
 
@@ -2457,12 +2451,7 @@ public class JavaClass
 
             @Override
             public boolean test(JavaClass input) {
-                for (Class<?> clazz : classes) {
-                    if (belongsTo(input, clazz)) {
-                        return true;
-                    }
-                }
-                return false;
+                return stream(classes).anyMatch(clazz -> belongsTo(input, clazz));
             }
 
             private boolean belongsTo(JavaClass input, Class<?> clazz) {
@@ -2554,12 +2543,7 @@ public class JavaClass
 
             @Override
             public boolean test(JavaClass input) {
-                for (PackageMatcher matcher : packageMatchers) {
-                    if (matcher.matches(input.getPackageName())) {
-                        return true;
-                    }
-                }
-                return false;
+                return packageMatchers.stream().anyMatch(matcher -> matcher.matches(input.getPackageName()));
             }
         }
 
@@ -2589,12 +2573,7 @@ public class JavaClass
 
             @Override
             public boolean test(JavaClass input) {
-                for (T member : getMembers.apply(input)) {
-                    if (predicate.test(member)) {
-                        return true;
-                    }
-                }
-                return false;
+                return getMembers.apply(input).stream().anyMatch(predicate);
             }
         }
     }

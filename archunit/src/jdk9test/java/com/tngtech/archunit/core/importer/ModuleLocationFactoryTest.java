@@ -24,7 +24,7 @@ public class ModuleLocationFactoryTest {
         URI jrtJavaIoFile = uriOf(File.class);
         Location jrtJavaIo = locationFactory.create(jrtJavaIoFile);
 
-        assertThat(jrtJavaIo.iterateEntries())
+        assertThat(jrtJavaIo.streamEntries())
                 .containsOnly(NormalizedResourceName.from(File.class.getName().replace('.', '/') + ".class"));
     }
 
@@ -33,7 +33,7 @@ public class ModuleLocationFactoryTest {
         URI jrtJavaIoFile = uriOf(File.class);
         Location jrtJavaIo = locationFactory.create(parentOf(jrtJavaIoFile));
 
-        assertThat(jrtJavaIo.iterateEntries())
+        assertThat(jrtJavaIo.streamEntries())
                 .contains(NormalizedResourceName.from(File.class.getName().replace('.', '/') + ".class"));
     }
 
@@ -41,7 +41,7 @@ public class ModuleLocationFactoryTest {
     public void iterates_entire_jrt() {
         Location jrtContainingFile = locationFactory.create(createModuleUriContaining(File.class));
 
-        assertThat(jrtContainingFile.iterateEntries())
+        assertThat(jrtContainingFile.streamEntries())
                 .contains(NormalizedResourceName.from(File.class.getName().replace('.', '/') + ".class"));
     }
 

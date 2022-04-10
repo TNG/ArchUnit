@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.lang;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
@@ -26,6 +25,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Represents the result of evaluating an {@link ArchRule} against some {@link JavaClasses}.
@@ -124,13 +124,7 @@ public final class EvaluationResult {
 
         @Override
         public List<String> getDescriptionLines() {
-            List<String> result = new ArrayList<>();
-            for (String line : delegate.getDescriptionLines()) {
-                if (linePredicate.test(line)) {
-                    result.add(line);
-                }
-            }
-            return result;
+            return delegate.getDescriptionLines().stream().filter(linePredicate).collect(toList());
         }
 
         @Override

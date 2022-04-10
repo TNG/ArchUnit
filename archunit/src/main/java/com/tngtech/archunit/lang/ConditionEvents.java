@@ -125,12 +125,7 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     }
 
     private boolean allElementTypesMatch(Collection<?> violatingObjects, Class<?> supportedElementType) {
-        for (Object violatingObject : violatingObjects) {
-            if (!supportedElementType.isInstance(violatingObject)) {
-                return false;
-            }
-        }
-        return true;
+        return violatingObjects.stream().allMatch(supportedElementType::isInstance);
     }
 
     @Override

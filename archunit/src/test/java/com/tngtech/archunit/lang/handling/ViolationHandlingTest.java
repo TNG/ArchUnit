@@ -2,7 +2,6 @@ package com.tngtech.archunit.lang.handling;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -29,6 +28,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccesses;
 import static com.tngtech.archunit.testutil.Assertions.expectedAccess;
+import static java.util.stream.Collectors.toSet;
 
 public class ViolationHandlingTest {
     @Test
@@ -191,11 +191,7 @@ public class ViolationHandlingTest {
         }
 
         Set<T> getAccesses() {
-            Set<T> result = new HashSet<>();
-            for (ReportedViolation<T> violation : reportedViolations) {
-                result.addAll(violation.accesses);
-            }
-            return result;
+            return reportedViolations.stream().flatMap(violation -> violation.accesses.stream()).collect(toSet());
         }
     }
 

@@ -51,11 +51,6 @@ public final class ImportOptions {
     }
 
     boolean include(Location location) {
-        for (ImportOption option : options) {
-            if (!option.includes(location)) {
-                return false;
-            }
-        }
-        return true;
+        return options.stream().allMatch(option -> option.includes(location));
     }
 }

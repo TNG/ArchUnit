@@ -1,8 +1,5 @@
 package com.tngtech.archunit.lang;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -10,6 +7,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AbstractClassesTransformerTest {
@@ -69,11 +67,7 @@ public class AbstractClassesTransformerTest {
         return new AbstractClassesTransformer<String>("changeMe") {
             @Override
             public Iterable<String> doTransform(JavaClasses collection) {
-                Set<String> names = new HashSet<>();
-                for (JavaClass javaClass : collection) {
-                    names.add(javaClass.getName());
-                }
-                return names;
+                return collection.stream().map(JavaClass::getName).collect(toSet());
             }
         };
     }

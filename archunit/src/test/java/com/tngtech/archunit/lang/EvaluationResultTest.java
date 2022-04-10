@@ -11,6 +11,7 @@ import com.tngtech.archunit.base.HasDescription;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EvaluationResultTest {
@@ -68,11 +69,10 @@ public class EvaluationResultTest {
     }
 
     private ConditionEvents events(String... messages) {
-        Set<ConditionEvent> events = new HashSet<>();
-        for (String message : messages) {
-            events.add(new SimpleConditionEvent(new Object(), false, message));
-        }
-        return events(events.toArray(new ConditionEvent[0]));
+        return events(stream(messages)
+                .map(message -> new SimpleConditionEvent(new Object(), false, message))
+                .distinct()
+                .toArray(ConditionEvent[]::new));
     }
 
     private ConditionEvents events(ConditionEvent... events) {

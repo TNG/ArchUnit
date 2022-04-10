@@ -15,18 +15,19 @@
  */
 package com.tngtech.archunit.base;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Matches packages with a syntax similar to AspectJ. In particular '*' stands for any sequence of
@@ -162,11 +163,8 @@ public final class PackageMatcher {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static final Function<Result, List<String>> TO_GROUPS = input -> {
-        List<String> result = new ArrayList<>();
-        for (int i = 0; i < input.getNumberOfGroups(); i++) {
-            result.add(input.getGroup(i + 1));
-        }
-        return result;
-    };
+    public static final Function<Result, List<String>> TO_GROUPS = input ->
+            IntStream.rangeClosed(1, input.getNumberOfGroups())
+                    .mapToObj(i -> input.getGroup(i))
+                    .collect(toList());
 }

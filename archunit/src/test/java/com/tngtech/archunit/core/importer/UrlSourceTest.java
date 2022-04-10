@@ -6,10 +6,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.jar.JarFile;
+import java.util.stream.IntStream;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -181,12 +181,10 @@ public class UrlSourceTest {
     }
 
     private Set<ManifestClasspathEntry> createManifestClasspathEntries(String infix) {
-        Set<ManifestClasspathEntry> result = new HashSet<>();
-        for (int i = 0; i < 10; i++) {
-            result.add(ManifestClasspathEntry
-                    .absolutePath(Paths.get(File.separator + subpath("some", "path", "parent", infix + i, "")).toAbsolutePath()));
-        }
-        return result;
+        return IntStream.range(0, 10)
+                .mapToObj(i -> ManifestClasspathEntry.absolutePath(
+                        Paths.get(File.separator + subpath("some", "path", "parent", infix + i, "")).toAbsolutePath()))
+                .collect(toSet());
     }
 
     private String createClassPathProperty(String... paths) {

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
@@ -36,6 +35,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.ArchConfigurationRule.FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME;
 import static com.tngtech.archunit.testutil.TestUtils.toUri;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toCollection;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArchRuleTest {
@@ -215,11 +215,7 @@ public class ArchRuleTest {
         return new AbstractClassesTransformer<String>("strings") {
             @Override
             public Iterable<String> doTransform(JavaClasses collection) {
-                SortedSet<String> result = new TreeSet<>();
-                for (JavaClass javaClass : collection) {
-                    result.add(javaClass.getName());
-                }
-                return result;
+                return collection.stream().map(JavaClass::getName).collect(toCollection(TreeSet::new));
             }
         };
     }

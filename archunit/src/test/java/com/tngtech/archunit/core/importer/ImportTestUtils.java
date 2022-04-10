@@ -1,13 +1,9 @@
 package com.tngtech.archunit.core.importer;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,7 +13,6 @@ import java.util.function.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
@@ -40,16 +35,20 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import org.objectweb.asm.Type;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.importer.DomainBuilders.newConstructorCallTargetBuilder;
 import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public class ImportTestUtils {
 
@@ -65,57 +64,47 @@ public class ImportTestUtils {
         return finish(fieldBuildersFor(inputClass), owner, importedClasses);
     }
 
-    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuildersFor(Class<?> inputClass) {
-        final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuilders = new HashSet<>();
-        for (Field field : inputClass.getDeclaredFields()) {
-            fieldBuilders.add(new DomainBuilders.JavaFieldBuilder()
-                    .withName(field.getName())
-                    .withDescriptor(Type.getDescriptor(field.getType()))
-                    .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
-                    .withType(Optional.<JavaTypeCreationProcess<JavaField>>empty(), JavaClassDescriptor.From.name(field.getType().getName())));
-        }
-        return fieldBuilders;
+    private static Set<BuilderWithBuildParameter<JavaClass, JavaField>> fieldBuildersFor(Class<?> inputClass) {
+        return stream(inputClass.getDeclaredFields())
+                .map(field -> new DomainBuilders.JavaFieldBuilder()
+                        .withName(field.getName())
+                        .withDescriptor(Type.getDescriptor(field.getType()))
+                        .withModifiers(JavaModifier.getModifiersForField(field.getModifiers()))
+                        .withType(Optional.empty(), JavaClassDescriptor.From.name(field.getType().getName())))
+                .collect(toSet());
     }
 
-    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuildersFor(Class<?> inputClass) {
-        final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuilders = new HashSet<>();
-        for (Method method : inputClass.getDeclaredMethods()) {
-            methodBuilders.add(new DomainBuilders.JavaMethodBuilder()
-                    .withReturnType(
-                            Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty(),
-                            JavaClassDescriptor.From.name(method.getReturnType().getName()))
-                    .withParameterTypes(Collections.<JavaTypeCreationProcess<JavaCodeUnit>>emptyList(), typesFrom(method.getParameterTypes()))
-                    .withName(method.getName())
-                    .withDescriptor(Type.getMethodDescriptor(method))
-                    .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers()))
-                    .withThrowsClause(typesFrom(method.getExceptionTypes())));
-        }
-        return methodBuilders;
+    private static Set<BuilderWithBuildParameter<JavaClass, JavaMethod>> methodBuildersFor(Class<?> inputClass) {
+        return stream(inputClass.getDeclaredMethods())
+                .map(method -> new DomainBuilders.JavaMethodBuilder()
+                        .withReturnType(
+                                Optional.empty(),
+                                JavaClassDescriptor.From.name(method.getReturnType().getName()))
+                        .withParameterTypes(Collections.emptyList(), typesFrom(method.getParameterTypes()))
+                        .withName(method.getName())
+                        .withDescriptor(Type.getMethodDescriptor(method))
+                        .withModifiers(JavaModifier.getModifiersForMethod(method.getModifiers()))
+                        .withThrowsClause(typesFrom(method.getExceptionTypes())))
+                .collect(toSet());
     }
 
-    private static Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuildersFor(Class<?> inputClass) {
-        final Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuilders = new HashSet<>();
-        for (Constructor<?> constructor : inputClass.getDeclaredConstructors()) {
-            constructorBuilders.add(new DomainBuilders.JavaConstructorBuilder()
-                    .withReturnType(
-                            Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty(),
-                            JavaClassDescriptor.From.name(void.class.getName()))
-                    .withParameterTypes(Collections.<JavaTypeCreationProcess<JavaCodeUnit>>emptyList(), typesFrom(constructor.getParameterTypes()))
-                    .withName(CONSTRUCTOR_NAME)
-                    .withDescriptor(Type.getConstructorDescriptor(constructor))
-                    .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers()))
-                    .withThrowsClause(typesFrom(constructor.getExceptionTypes())));
-        }
-        return constructorBuilders;
+    private static Set<BuilderWithBuildParameter<JavaClass, JavaConstructor>> constructorBuildersFor(Class<?> inputClass) {
+        return stream(inputClass.getDeclaredConstructors())
+                .map(constructor -> new DomainBuilders.JavaConstructorBuilder()
+                        .withReturnType(
+                                Optional.empty(),
+                                JavaClassDescriptor.From.name(void.class.getName()))
+                        .withParameterTypes(Collections.emptyList(), typesFrom(constructor.getParameterTypes()))
+                        .withName(CONSTRUCTOR_NAME)
+                        .withDescriptor(Type.getConstructorDescriptor(constructor))
+                        .withModifiers(JavaModifier.getModifiersForMethod(constructor.getModifiers()))
+                        .withThrowsClause(typesFrom(constructor.getExceptionTypes())))
+                .collect(toSet());
     }
 
-    private static <T> Set<T> finish(Set<DomainBuilders.BuilderWithBuildParameter<JavaClass, T>> builders, JavaClass owner,
+    private static <T> Set<T> finish(Set<BuilderWithBuildParameter<JavaClass, T>> builders, JavaClass owner,
             ImportedClasses importedClasses) {
-        ImmutableSet.Builder<T> result = ImmutableSet.builder();
-        for (DomainBuilders.BuilderWithBuildParameter<JavaClass, T> builder : builders) {
-            result.add(builder.build(owner, importedClasses));
-        }
-        return result.build();
+        return builders.stream().map(b -> b.build(owner, importedClasses)).collect(toImmutableSet());
     }
 
     private static JavaClass javaClassFor(Class<?> owner) {
@@ -173,11 +162,7 @@ public class ImportTestUtils {
     }
 
     private static JavaEnumConstant[] enumConstants(Enum<?>[] enums) {
-        List<JavaEnumConstant> result = new ArrayList<>();
-        for (Enum<?> e : enums) {
-            result.add(ImportTestUtils.enumConstant(e));
-        }
-        return result.toArray(new JavaEnumConstant[0]);
+        return stream(enums).map(ImportTestUtils::enumConstant).toArray(JavaEnumConstant[]::new);
     }
 
     private static List<? extends JavaAnnotation<?>> javaAnnotationsFrom(Annotation[] annotations, Class<?> owner) {
@@ -185,11 +170,7 @@ public class ImportTestUtils {
     }
 
     private static List<JavaAnnotation<JavaClass>> javaAnnotationsFrom(Annotation[] annotations, ImportContext importContext, Class<?> owner) {
-        List<JavaAnnotation<JavaClass>> result = new ArrayList<>();
-        for (Annotation a : annotations) {
-            result.add(ImportTestUtils.javaAnnotationFrom(a, owner, importContext));
-        }
-        return result;
+        return stream(annotations).map(a -> javaAnnotationFrom(a, owner, importContext)).collect(toList());
     }
 
     public static JavaMethodCall newMethodCall(JavaMethod origin, MethodCallTarget target, int lineNumber) {
@@ -213,11 +194,7 @@ public class ImportTestUtils {
     }
 
     private static List<JavaClassDescriptor> typesFrom(Class<?>[] classes) {
-        List<JavaClassDescriptor> result = new ArrayList<>();
-        for (Class<?> clazz : classes) {
-            result.add(JavaClassDescriptor.From.name(clazz.getName()));
-        }
-        return result;
+        return stream(classes).map(clazz -> JavaClassDescriptor.From.name(clazz.getName())).collect(toList());
     }
 
     private static <E extends Enum<?>> JavaEnumConstant enumConstant(E value) {

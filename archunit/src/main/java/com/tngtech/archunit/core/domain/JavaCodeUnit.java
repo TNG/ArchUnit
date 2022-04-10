@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -272,11 +271,7 @@ public abstract class JavaCodeUnit
     @ResolvesTypesViaReflection
     @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
     static Class<?>[] reflect(List<JavaClass> parameters) {
-        List<Class<?>> result = new ArrayList<>();
-        for (JavaClass parameter : parameters) {
-            result.add(parameter.reflect());
-        }
-        return result.toArray(new Class<?>[0]);
+        return parameters.stream().map(JavaClass::reflect).toArray(Class<?>[]::new);
     }
 
     private static class Parameters extends ForwardingList<JavaParameter> {

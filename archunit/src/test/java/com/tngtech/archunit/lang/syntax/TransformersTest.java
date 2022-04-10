@@ -18,6 +18,8 @@ import org.junit.runner.RunWith;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -68,11 +70,7 @@ public class TransformersTest {
     }
 
     private static Set<String> createMemberStrings(Class<?> clazz, String... simpleMembers) {
-        Set<String> result = new HashSet<>();
-        for (String simpleMember : simpleMembers) {
-            result.add(clazz.getName() + "." + simpleMember);
-        }
-        return result;
+        return stream(simpleMembers).map(simpleMember -> clazz.getName() + "." + simpleMember).collect(toSet());
     }
 
     private static Set<String> createMemberStrings(Iterable<JavaMember> members) {

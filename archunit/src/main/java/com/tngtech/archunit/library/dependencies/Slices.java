@@ -18,7 +18,6 @@ package com.tngtech.archunit.library.dependencies;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Basic collection of {@link Slice} for tests of dependencies between different domain packages, e.g. to avoid cycles.
@@ -313,11 +313,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         }
 
         Set<Slice> build() {
-            Set<Slice> result = new HashSet<>();
-            for (Slice.Builder builder : sliceBuilders.values()) {
-                result.add(builder.build());
-            }
-            return result;
+            return sliceBuilders.values().stream().map(Slice.Builder::build).collect(toSet());
         }
     }
 

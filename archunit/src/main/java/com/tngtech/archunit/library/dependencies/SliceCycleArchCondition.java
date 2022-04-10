@@ -47,6 +47,7 @@ import static com.google.common.collect.MultimapBuilder.hashKeys;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
 import static java.lang.System.lineSeparator;
+import static java.util.stream.Collectors.toCollection;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static final Logger log = LoggerFactory.getLogger(SliceCycleArchCondition.class);
@@ -143,12 +144,12 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
         private SortedSetMultimap<Slice, Dependency> targetsOf(Slice slice,
                 ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
+
             SortedSetMultimap<Slice, Dependency> result = hashKeys().treeSetValues().build();
-            for (Dependency dependency : Guava.Iterables.filter(slice.getDependenciesFromSelf(), predicate)) {
-                if (classesToSlicesMapping.containsKey(dependency.getTargetClass())) {
-                    result.put(classesToSlicesMapping.get(dependency.getTargetClass()), dependency);
-                }
-            }
+            slice.getDependenciesFromSelf().stream()
+                    .filter(predicate)
+                    .filter(dependency -> classesToSlicesMapping.containsKey(dependency.getTargetClass()))
+                    .forEach(dependency -> result.put(classesToSlicesMapping.get(dependency.getTargetClass()), dependency));
             return result;
         }
 
@@ -225,14 +226,14 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         }
 
         private List<String> dependenciesDescription(Edge<Slice, Dependency> edge) {
-            List<String> result = new ArrayList<>();
             int maxDependencies = cycleConfiguration.getMaxNumberOfDependenciesToShowPerEdge();
             List<Dependency> allDependencies = edge.getAttachments();
             boolean tooManyDependenciesToDisplay = allDependencies.size() > maxDependencies;
             List<Dependency> dependenciesToDisplay = tooManyDependenciesToDisplay ? allDependencies.subList(0, maxDependencies) : allDependencies;
-            for (Dependency dependency : dependenciesToDisplay) {
-                result.add(DEPENDENCY_DETAILS_INDENT + "- " + dependency.getDescription());
-            }
+
+            List<String> result = dependenciesToDisplay.stream()
+                    .map(dependency -> DEPENDENCY_DETAILS_INDENT + "- " + dependency.getDescription())
+                    .collect(toCollection(ArrayList::new));
             if (tooManyDependenciesToDisplay) {
                 result.add(DEPENDENCY_DETAILS_INDENT + String.format("(%d further dependencies have been omitted...)",
                         allDependencies.size() - dependenciesToDisplay.size()));

@@ -110,12 +110,8 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
 
         private static Predicate<String> notMatchedByAny(final Set<Pattern> patterns) {
             return message -> {
-                for (Pattern pattern : patterns) {
-                    if (pattern.matcher(message.replaceAll("\r*\n", " ")).matches()) {
-                        return false;
-                    }
-                }
-                return true;
+                String normalizedMessage = message.replaceAll("\r*\n", " ");
+                return patterns.stream().noneMatch(pattern -> pattern.matcher(normalizedMessage).matches());
             };
         }
 

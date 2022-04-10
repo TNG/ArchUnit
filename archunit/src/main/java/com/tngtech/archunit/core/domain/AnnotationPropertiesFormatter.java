@@ -16,17 +16,17 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import com.google.common.base.Joiner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 class AnnotationPropertiesFormatter {
     private final Function<List<String>, String> arrayFormatter;
@@ -47,11 +47,9 @@ class AnnotationPropertiesFormatter {
             return formatValue(properties.get("value"));
         }
 
-        Set<String> formattedProperties = new HashSet<>();
-        for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            formattedProperties.add(entry.getKey() + "=" + formatValue(entry.getValue()));
-        }
-        return Joiner.on(", ").join(formattedProperties);
+        return properties.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + formatValue(entry.getValue()))
+                .collect(joining(", "));
     }
 
     String formatValue(Object input) {
@@ -65,10 +63,9 @@ class AnnotationPropertiesFormatter {
             return String.valueOf(input);
         }
 
-        List<String> elemToString = new ArrayList<>();
-        for (int i = 0; i < Array.getLength(input); i++) {
-            elemToString.add(formatValue(Array.get(input, i)));
-        }
+        List<String> elemToString = IntStream.range(0, Array.getLength(input))
+                .mapToObj(i -> formatValue(Array.get(input, i)))
+                .collect(toList());
         return arrayFormatter.apply(elemToString);
     }
 

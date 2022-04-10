@@ -3,11 +3,11 @@ package com.tngtech.archunit.testutil.syntax;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Joiner;
@@ -33,6 +33,8 @@ import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -52,12 +54,10 @@ public abstract class RandomSyntaxTestBase {
     public static List<List<?>> createRandomRules(RandomSyntaxSeed<?> seed,
             MethodChoiceStrategy methodChoiceStrategy,
             DescriptionReplacement... replacements) {
-        List<List<?>> result = new ArrayList<>();
-        for (int i = 0; i < NUMBER_OF_RULES_TO_BUILD; i++) {
-            SyntaxSpec<?> spec = new SyntaxSpec<>(seed, methodChoiceStrategy, ExpectedDescription.from(seed, replacements));
-            result.add(ImmutableList.of(spec.getActualArchRule(), spec.getExpectedDescription()));
-        }
-        return result;
+        return IntStream.range(0, NUMBER_OF_RULES_TO_BUILD)
+                .mapToObj(i -> new SyntaxSpec<>(seed, methodChoiceStrategy, ExpectedDescription.from(seed, replacements)))
+                .map(spec -> ImmutableList.of(spec.getActualArchRule(), spec.getExpectedDescription()))
+                .collect(toList());
     }
 
     @Test
@@ -209,10 +209,7 @@ public abstract class RandomSyntaxTestBase {
         }
 
         private static Parameters getParametersFor(Method method) {
-            List<TypeToken<?>> tokens = new ArrayList<>();
-            for (Type type : method.getGenericParameterTypes()) {
-                tokens.add(TypeToken.of(type));
-            }
+            List<TypeToken<?>> tokens = stream(method.getGenericParameterTypes()).map(TypeToken::of).collect(toList());
             return parameterProvider.get(method.getName(), tokens);
         }
 
@@ -544,10 +541,9 @@ public abstract class RandomSyntaxTestBase {
         }
 
         private String createCallDetailsForClassArrayAtIndex(int index, Object callTargetName, Parameters parameters) {
-            List<String> simpleParamTypeNames = new ArrayList<>();
-            for (Class<?> param : (Class<?>[]) parameters.get(index).getValue()) {
-                simpleParamTypeNames.add(param.getSimpleName());
-            }
+            List<String> simpleParamTypeNames = stream((Class<?>[]) parameters.get(index).getValue())
+                    .map(Class::getSimpleName)
+                    .collect(toList());
             return createCallDetails(callTargetName, simpleParamTypeNames, parameters);
         }
 
@@ -571,11 +567,11 @@ public abstract class RandomSyntaxTestBase {
 
             @Override
             Parameters get(String methodName, List<TypeToken<?>> parameterTypes) {
-                List<Parameter> params = new ArrayList<>();
-                for (TypeToken<?> type : parameterTypes) {
-                    params.add(ParameterProvider.this.get(methodName, type));
-                }
-                return new Parameters(params);
+                return new Parameters(
+                        parameterTypes.stream()
+                                .map(type -> ParameterProvider.this.get(methodName, type))
+                                .collect(toList())
+                );
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.tngtech.archunit.testutil.syntax;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +16,7 @@ import com.tngtech.archunit.lang.ArchRule;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Predicates.or;
+import static java.util.stream.Collectors.toList;
 
 public class MethodChoiceStrategy {
     private final Random random = new Random();
@@ -69,13 +69,7 @@ public class MethodChoiceStrategy {
     }
 
     private List<Method> getPossibleMethodCandidates(Class<?> clazz) {
-        List<Method> result = new ArrayList<>();
-        for (Method method : getInvocableMethods(clazz)) {
-            if (isCandidate(method)) {
-                result.add(method);
-            }
-        }
-        return result;
+        return getInvocableMethods(clazz).stream().filter(this::isCandidate).collect(toList());
     }
 
     private Collection<Method> getInvocableMethods(Class<?> clazz) {

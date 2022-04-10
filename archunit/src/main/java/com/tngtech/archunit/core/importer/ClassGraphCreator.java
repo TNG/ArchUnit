@@ -50,7 +50,6 @@ import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorReferenceBuilder;
@@ -250,10 +249,11 @@ class ClassGraphCreator implements ImportContext {
         Set<DomainBuilders.JavaMethodBuilder> methodBuilders = importRecord.getMethodBuildersFor(owner.getName());
         if (owner.isAnnotation()) {
             for (DomainBuilders.JavaMethodBuilder methodBuilder : methodBuilders) {
-                methodBuilder.withAnnotationDefaultValue(method -> {
-                    Optional<ValueBuilder> defaultValueBuilder = importRecord.getAnnotationDefaultValueBuilderFor(method);
-                    return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, classes) : Optional.empty();
-                });
+                methodBuilder.withAnnotationDefaultValue(method ->
+                        importRecord.getAnnotationDefaultValueBuilderFor(method)
+                                .map(builder -> builder.build(method, classes))
+                                .orElseGet(() -> Optional.empty())
+                );
             }
         }
         return build(methodBuilders, owner, classes);

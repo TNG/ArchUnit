@@ -19,6 +19,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
+import static com.google.common.base.Strings.repeat;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.GET_COMPONENT_NAME;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
@@ -26,6 +27,8 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.rangeClosed;
 
 @RunWith(DataProviderRunner.class)
 public class PlantUmlParserTest {
@@ -119,13 +122,12 @@ public class PlantUmlParserTest {
 
     @DataProvider
     public static Object[][] dependency_arrow_testcases() {
-        List<String> arrowCenters = new ArrayList<>();
-        for (int i = 1; i <= 10; i++) {
-            arrowCenters.add(Strings.repeat("-", i));
-        }
+        List<String> arrowCenters = rangeClosed(1, 10)
+                .mapToObj(i -> repeat("-", i))
+                .collect(toList());
         for (int i = 2; i <= 10; i++) {
             for (String infix : ImmutableList.of("left", "right", "up", "down", "[#green]")) {
-                arrowCenters.add(Strings.repeat("-", i - 1) + infix + "-");
+                arrowCenters.add(repeat("-", i - 1) + infix + "-");
             }
         }
         List<String> testCase = new ArrayList<>();

@@ -113,9 +113,7 @@ class PropagatedType {
             }
 
             TypeVariable<?> typeVariable = (TypeVariable<?>) type;
-            return typeVariables.containsKey(typeVariable.getName())
-                    ? typeVariables.get(typeVariable.getName())
-                    : type;
+            return typeVariables.getOrDefault(typeVariable.getName(), type);
         }
     }
 }

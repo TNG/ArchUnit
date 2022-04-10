@@ -15,11 +15,11 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
@@ -33,6 +33,7 @@ import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.stream.Collectors.toList;
 
 /**
  * A collection of {@link JavaClass JavaClasses} modelling some domain aspect of a code basis. This is conceptually
@@ -71,11 +72,9 @@ public final class Slice extends ForwardingSet<JavaClass> implements HasDescript
     }
 
     private static List<String> ascendingCaptures(List<String> matchingGroups) {
-        List<String> result = new ArrayList<>();
-        for (int i = 1; i <= matchingGroups.size(); i++) {
-            result.add("$" + i);
-        }
-        return result;
+        return IntStream.rangeClosed(1, matchingGroups.size())
+                .mapToObj(i -> "$" + i)
+                .collect(toList());
     }
 
     @Override

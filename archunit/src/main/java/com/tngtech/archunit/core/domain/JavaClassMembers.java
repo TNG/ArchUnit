@@ -17,7 +17,6 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -37,6 +36,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static java.util.stream.Collectors.toSet;
 
 class JavaClassMembers {
     private final JavaClass owner;
@@ -306,13 +306,10 @@ class JavaClassMembers {
     }
 
     private <T extends JavaCodeUnit> Set<T> findCodeUnitsWithMatchingNameAndParameters(Set<T> codeUnits, String name, List<String> parameters) {
-        Set<T> matching = new HashSet<>();
-        for (T codeUnit : codeUnits) {
-            if (name.equals(codeUnit.getName()) && parameters.equals(namesOf(codeUnit.getRawParameterTypes()))) {
-                matching.add(codeUnit);
-            }
-        }
-        return matching;
+        return codeUnits.stream()
+                .filter(codeUnit -> name.equals(codeUnit.getName()))
+                .filter(codeUnit -> parameters.equals(namesOf(codeUnit.getRawParameterTypes())))
+                .collect(toSet());
     }
 
     void completeAnnotations(ImportContext context) {

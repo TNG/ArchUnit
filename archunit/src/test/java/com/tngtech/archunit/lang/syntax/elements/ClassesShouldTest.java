@@ -74,6 +74,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static java.util.Arrays.stream;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -1863,12 +1864,7 @@ public class ClassesShouldTest {
     }
 
     private boolean packageMatches(Class<?> c, String[] packages) {
-        for (String p : packages) {
-            if (c.getPackage().getName().equals(p)) {
-                return true;
-            }
-        }
-        return false;
+        return stream(packages).anyMatch(p -> c.getPackage().getName().equals(p));
     }
 
     private void checkTestStillValid(String thePackage,

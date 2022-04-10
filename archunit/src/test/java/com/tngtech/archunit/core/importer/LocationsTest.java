@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
@@ -14,6 +13,7 @@ import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.core.importer.LocationTest.urlOfClass;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LocationsTest {
@@ -105,11 +105,7 @@ public class LocationsTest {
     }
 
     private Iterable<URI> urisOf(Collection<Location> locations) {
-        Set<URI> result = new HashSet<>();
-        for (Location location : locations) {
-            result.add(location.asURI());
-        }
-        return result;
+        return locations.stream().map(Location::asURI).collect(toSet());
     }
 
     private URI resolvedUri(Class<?> base, String part) {

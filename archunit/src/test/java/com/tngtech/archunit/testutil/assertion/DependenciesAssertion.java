@@ -18,6 +18,7 @@ import org.assertj.core.api.AbstractIterableAssert;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getLast;
 import static java.lang.System.lineSeparator;
+import static java.util.Arrays.stream;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -132,11 +133,8 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         }
 
         public ExpectedDependencies to(JavaClass... targets) {
-            List<Class<?>> reflectedTargets = new ArrayList<>();
-            for (JavaClass target : targets) {
-                reflectedTargets.add(target.reflect());
-            }
-            return to(reflectedTargets.toArray(new Class[0]));
+            Class<?>[] reflectedTargets = stream(targets).map(JavaClass::reflect).toArray(Class<?>[]::new);
+            return to(reflectedTargets);
         }
 
         public ExpectedDependencies to(Class<?>... targets) {
@@ -180,11 +178,8 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         }
 
         public ExpectedDependencies withDescriptionMatching(String regexTemplate, Object... args) {
-            List<String> quotedArgs = new ArrayList<>();
-            for (Object arg : args) {
-                quotedArgs.add(quote(String.valueOf(arg)));
-            }
-            String regex = String.format(regexTemplate, quotedArgs.toArray());
+            Object[] quotedArgs = stream(args).map(arg -> quote(String.valueOf(arg))).toArray();
+            String regex = String.format(regexTemplate, quotedArgs);
             getLast(expectedDependencies).descriptionMatching(regex);
             return this;
         }
