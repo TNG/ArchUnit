@@ -28,7 +28,7 @@ import com.tngtech.archunit.library.dependencies.syntax.GivenSlicesConjunction;
 import com.tngtech.archunit.library.dependencies.syntax.SlicesShould;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.base.Guava.Iterables.filter;
+import static java.util.stream.Collectors.toList;
 
 class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConjunction {
     private final Priority priority;
@@ -103,7 +103,7 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
 
         @Override
         public void check(Slice slice, ConditionEvents events) {
-            Iterable<Dependency> relevantDependencies = filter(slice.getDependenciesFromSelf(), predicate);
+            Iterable<Dependency> relevantDependencies = slice.getDependenciesFromSelf().stream().filter(predicate).collect(toList());
             Slices dependencySlices = inputTransformer.transform(relevantDependencies);
             for (Slice dependencySlice : dependencySlices) {
                 SliceDependency dependency = SliceDependency.of(slice, relevantDependencies, dependencySlice);

@@ -9,7 +9,6 @@ import java.nio.file.FileSystem;
 import java.util.Set;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithArrayDependencies;
 import com.tngtech.archunit.core.domain.testobjects.ClassWithDependencyOnInstanceofCheck;
@@ -26,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.base.Guava.toGuava;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
@@ -478,9 +477,9 @@ public class DependencyTest {
         JavaMethod origin = new ClassFileImporter()
                 .importClass(DependenciesOnClassObjects.class)
                 .getMethod("referencedClassObjectsInMethod");
-        ReferencedClassObject referencedClassObject = getOnlyElement(FluentIterable.from(origin.getReferencedClassObjects())
-                .filter(toGuava(rawType(FileSystem.class)))
-                .toSet());
+        ReferencedClassObject referencedClassObject = origin.getReferencedClassObjects().stream()
+                .filter(rawType(FileSystem.class))
+                .collect(onlyElement());
 
         Dependency dependency = getOnlyElement(Dependency.tryCreateFromReferencedClassObject(referencedClassObject));
 

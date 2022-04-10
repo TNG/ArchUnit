@@ -30,10 +30,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 
-import com.google.common.base.Predicate;
 import com.tngtech.archunit.Internal;
 
 import static java.util.stream.Collectors.toList;

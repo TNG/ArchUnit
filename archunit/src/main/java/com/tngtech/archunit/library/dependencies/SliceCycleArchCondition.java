@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SortedSetMultimap;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -47,6 +46,7 @@ import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_N
 import static java.lang.System.lineSeparator;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static final Logger log = LoggerFactory.getLogger(SliceCycleArchCondition.class);

@@ -36,7 +36,6 @@ import com.tngtech.archunit.lang.ConditionEvents;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
@@ -151,7 +150,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     }
 
     private boolean allDependenciesAreIgnored(JavaClass item) {
-        return FluentIterable.from(item.getDirectDependenciesFromSelf()).allMatch(toGuava(ignorePredicate));
+        return item.getDirectDependenciesFromSelf().stream().allMatch(ignorePredicate);
     }
 
     /**

@@ -17,7 +17,6 @@ package com.tngtech.archunit.base;
 
 import java.util.Map;
 
-import com.google.common.base.Predicate;
 import com.tngtech.archunit.Internal;
 
 /**
@@ -27,21 +26,11 @@ import com.tngtech.archunit.Internal;
  */
 @Internal
 public final class Guava {
-    public static <T> Predicate<T> toGuava(final DescribedPredicate<T> predicate) {
-        return input -> predicate.test(input);
-    }
 
     @Internal
     public static final class Maps {
         public static <K, V> Map<K, V> filterValues(Map<K, V> map, DescribedPredicate<? super V> predicate) {
-            return com.google.common.collect.Maps.filterValues(map, toGuava(predicate));
-        }
-    }
-
-    @Internal
-    public static final class Iterables {
-        public static <T> Iterable<T> filter(Iterable<T> iterable, DescribedPredicate<? super T> predicate) {
-            return com.google.common.collect.Iterables.filter(iterable, toGuava(predicate));
+            return com.google.common.collect.Maps.filterValues(map, predicate::test);
         }
     }
 }

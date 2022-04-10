@@ -15,13 +15,11 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Predicate;
 import com.tngtech.archunit.PublicAPI;
 
-import static com.google.common.base.Predicates.not;
-import static com.google.common.base.Predicates.or;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.NO_TEST_LOCATION;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.TEST_LOCATION;
@@ -92,8 +90,8 @@ public interface ImportOption {
         static final PatternPredicate MAVEN_TEST_PATTERN = new PatternPredicate(".*/target/test-classes/.*");
         static final PatternPredicate GRADLE_TEST_PATTERN = new PatternPredicate(".*/build/classes/([^/]+/)?test/.*");
         static final PatternPredicate INTELLIJ_TEST_PATTERN = new PatternPredicate(".*/out/test/.*");
-        static final Predicate<Location> TEST_LOCATION = or(MAVEN_TEST_PATTERN, GRADLE_TEST_PATTERN, INTELLIJ_TEST_PATTERN);
-        static final Predicate<Location> NO_TEST_LOCATION = not(TEST_LOCATION);
+        static final Predicate<Location> TEST_LOCATION = MAVEN_TEST_PATTERN.or(GRADLE_TEST_PATTERN).or(INTELLIJ_TEST_PATTERN);
+        static final Predicate<Location> NO_TEST_LOCATION = TEST_LOCATION.negate();
 
         private static class PatternPredicate implements Predicate<Location> {
             private final Pattern pattern;
@@ -103,8 +101,7 @@ public interface ImportOption {
             }
 
             @Override
-            @SuppressWarnings("ConstantConditions") // ArchUnit never uses null as a valid parameter
-            public boolean apply(Location input) {
+            public boolean test(Location input) {
                 return input.matches(pattern);
             }
         }
@@ -120,7 +117,7 @@ public interface ImportOption {
     final class DoNotIncludeTests implements ImportOption {
         @Override
         public boolean includes(Location location) {
-            return NO_TEST_LOCATION.apply(location);
+            return NO_TEST_LOCATION.test(location);
         }
     }
 
@@ -131,7 +128,7 @@ public interface ImportOption {
     final class OnlyIncludeTests implements ImportOption {
         @Override
         public boolean includes(Location location) {
-            return TEST_LOCATION.apply(location);
+            return TEST_LOCATION.test(location);
         }
     }
 

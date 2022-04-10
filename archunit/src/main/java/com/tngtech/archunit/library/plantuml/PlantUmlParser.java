@@ -33,6 +33,7 @@ import static com.google.common.base.Predicates.containsPattern;
 import static com.google.common.base.Predicates.not;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 class PlantUmlParser {
     private final PlantUmlPatterns plantUmlPatterns = new PlantUmlPatterns();
@@ -68,8 +69,8 @@ class PlantUmlParser {
 
     private Set<PlantUmlComponent> parseComponents(List<String> plantUmlDiagramLines) {
         return plantUmlPatterns.filterComponents(plantUmlDiagramLines)
-                .transform(this::createNewComponent)
-                .toSet();
+                .map(this::createNewComponent)
+                .collect(toSet());
     }
 
     private ImmutableList<ParsedDependency> parseDependencies(PlantUmlComponents plantUmlComponents, List<String> plantUmlDiagramLines) {

@@ -8,14 +8,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Predicate;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Predicates.or;
 import static java.util.stream.Collectors.toList;
 
 public class MethodChoiceStrategy {
@@ -24,7 +22,7 @@ public class MethodChoiceStrategy {
     private final Predicate<Method> ignorePredicate;
 
     private MethodChoiceStrategy() {
-        this(Predicates.<Method>alwaysFalse());
+        this((__) -> false);
     }
 
     private MethodChoiceStrategy(Predicate<Method> ignorePredicate) {
@@ -36,7 +34,7 @@ public class MethodChoiceStrategy {
     }
 
     public MethodChoiceStrategy exceptMethodsWithName(String string) {
-        return new MethodChoiceStrategy(or(ignorePredicate, methodWithName(string)));
+        return new MethodChoiceStrategy(ignorePredicate.or(methodWithName(string)));
     }
 
     private Predicate<Method> methodWithName(final String methodName) {
@@ -93,7 +91,7 @@ public class MethodChoiceStrategy {
     }
 
     private boolean isCandidate(Method method) {
-        return belongsToArchUnit(method) && isNoArchRuleMethod(method) && !ignorePredicate.apply(method);
+        return belongsToArchUnit(method) && isNoArchRuleMethod(method) && !ignorePredicate.test(method);
     }
 
     private boolean belongsToArchUnit(Method method) {
