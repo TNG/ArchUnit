@@ -29,11 +29,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.Internal;
 

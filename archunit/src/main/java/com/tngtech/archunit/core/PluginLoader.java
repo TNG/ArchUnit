@@ -19,10 +19,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.Ordering;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Suppliers.memoize;
+import static com.tngtech.archunit.base.Suppliers.memoize;
 
 @Internal
 public class PluginLoader<T> {

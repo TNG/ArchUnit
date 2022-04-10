@@ -24,12 +24,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
+import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

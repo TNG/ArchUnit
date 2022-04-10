@@ -17,9 +17,9 @@ package com.tngtech.archunit.lang.syntax;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
+import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;

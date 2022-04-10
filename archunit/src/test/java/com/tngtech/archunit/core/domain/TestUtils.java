@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -109,11 +108,11 @@ public class TestUtils {
     }
 
     public static MethodCallTarget resolvedTargetFrom(JavaMethod target) {
-        return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Optional.of(target)));
+        return ImportTestUtils.targetFrom(target, () -> Optional.of(target));
     }
 
     private static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
-        return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Optional.<JavaMethod>empty()));
+        return ImportTestUtils.targetFrom(target, Optional::<JavaMethod>empty);
     }
 
     public static Class<?>[] asClasses(List<JavaClass> parameters) {

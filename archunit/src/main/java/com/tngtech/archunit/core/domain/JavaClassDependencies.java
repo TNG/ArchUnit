@@ -18,8 +18,8 @@ package com.tngtech.archunit.core.domain;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.HasDescription;
@@ -27,9 +27,9 @@ import com.tngtech.archunit.core.domain.JavaAnnotation.DefaultParameterVisitor;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 
 import static com.google.common.base.Predicates.instanceOf;
-import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.collect.Iterables.concat;
 import static com.tngtech.archunit.base.Optionals.asSet;
+import static com.tngtech.archunit.base.Suppliers.memoize;
 import static java.util.Collections.emptySet;
 
 class JavaClassDependencies {

@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
@@ -345,7 +344,7 @@ public class ClassFileImporterAccessesTest {
                 .withOwner(subClassWithAccessedField)
                 .withName(field.getName())
                 .withType(field.getRawType())
-                .withMember(Suppliers.ofInstance(Optional.of(field)))
+                .withMember(() -> Optional.of(field))
                 .build();
         assertThatAccess(getOnly(accesses, "field", GET))
                 .isFrom("accessSuperclassField")
@@ -406,7 +405,7 @@ public class ClassFileImporterAccessesTest {
                 .withName(expectedSuperclassMethod.getName())
                 .withParameters(expectedSuperclassMethod.getRawParameterTypes())
                 .withReturnType(expectedSuperclassMethod.getRawReturnType())
-                .withMember(Suppliers.ofInstance(Optional.of(expectedSuperclassMethod)))
+                .withMember(() -> Optional.of(expectedSuperclassMethod))
                 .build();
         assertThatCall(getOnlyByCaller(calls, callSuperclassMethod))
                 .isFrom(callSuperclassMethod)

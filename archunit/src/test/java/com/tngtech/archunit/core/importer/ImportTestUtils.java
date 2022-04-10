@@ -12,9 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -233,7 +232,7 @@ public class ImportTestUtils {
                 .withOwner(target.getOwner())
                 .withParameters(target.getRawParameterTypes())
                 .withReturnType(target.getRawReturnType())
-                .withMember(Suppliers.ofInstance(Optional.of(target)))
+                .withMember(() -> Optional.of(target))
                 .build();
     }
 
@@ -242,7 +241,7 @@ public class ImportTestUtils {
                 .withOwner(field.getOwner())
                 .withName(field.getName())
                 .withType(field.getRawType())
-                .withMember(Suppliers.ofInstance(Optional.of(field)))
+                .withMember(() -> Optional.of(field))
                 .build();
     }
 

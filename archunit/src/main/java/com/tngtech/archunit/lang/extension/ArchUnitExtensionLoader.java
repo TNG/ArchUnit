@@ -18,12 +18,12 @@ package com.tngtech.archunit.lang.extension;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.function.Supplier;
 
-import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Suppliers.memoize;
+import static com.tngtech.archunit.base.Suppliers.memoize;
 
 class ArchUnitExtensionLoader {
     private static final Logger LOG = LoggerFactory.getLogger(ArchUnitExtensionLoader.class);
