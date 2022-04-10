@@ -117,24 +117,16 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void completeAccesses() {
-        for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
-            tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
-        }
-        for (RawAccessRecord methodCallRecord : importRecord.getRawMethodCallRecords()) {
-            tryProcess(methodCallRecord, AccessRecord.Factory.forMethodCallRecord(), processedMethodCallRecords);
-        }
-        for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
-            tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(),
-                    processedConstructorCallRecords);
-        }
-        for (RawAccessRecord methodReferenceCallRecord : importRecord.getRawMethodReferenceRecords()) {
-            tryProcess(methodReferenceCallRecord, AccessRecord.Factory.forMethodReferenceRecord(),
-                    processedMethodReferenceRecords);
-        }
-        for (RawAccessRecord constructorReferenceCallRecord : importRecord.getRawConstructorReferenceRecords()) {
-            tryProcess(constructorReferenceCallRecord, AccessRecord.Factory.forConstructorReferenceRecord(),
-                    processedConstructorReferenceRecords);
-        }
+        importRecord.forEachRawFieldAccessRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords));
+        importRecord.forEachRawMethodCallRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forMethodCallRecord(), processedMethodCallRecords));
+        importRecord.forEachRawConstructorCallRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords));
+        importRecord.forEachRawMethodReferenceRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forMethodReferenceRecord(), processedMethodReferenceRecords));
+        importRecord.forEachRawConstructorReferenceRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forConstructorReferenceRecord(), processedConstructorReferenceRecords));
     }
 
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
