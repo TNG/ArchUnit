@@ -29,13 +29,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.Internal;
+
+import static java.util.stream.Collectors.toList;
 
 @Internal
 interface ClassFileSource extends Iterable<ClassFileLocation> {
@@ -87,7 +88,7 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
 
     @Internal
     class FromJar implements ClassFileSource {
-        private final FluentIterable<ClassFileLocation> classFileLocations;
+        private final Iterable<ClassFileLocation> classFileLocations;
 
         FromJar(URL jarUrl, String path, ImportOptions importOptions) {
             this(jarUrl, NormalizedResourceName.from(path), importOptions);
@@ -96,11 +97,12 @@ interface ClassFileSource extends Iterable<ClassFileLocation> {
         FromJar(URL jarUrl, NormalizedResourceName path, ImportOptions importOptions) {
             try {
                 JarURLConnection connection = (JarURLConnection) jarUrl.openConnection();
-                classFileLocations = FluentIterable.from(Collections.list(connection.getJarFile().entries()))
+                classFileLocations = Collections.list(connection.getJarFile().entries()).stream()
                         .filter(classFilesBeneath(path))
-                        .transform(toClassFilesInJarOf(connection))
+                        .map(toClassFilesInJarOf(connection))
                         .filter(by(importOptions))
-                        .transform(toInputStreamSupplier());
+                        .map(toInputStreamSupplier())
+                        .collect(toList());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.tngtech.archunit.PublicAPI;
@@ -34,7 +33,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.anyElementThat;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
@@ -47,7 +45,6 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 @PublicAPI(usage = ACCESS)
 public final class JavaParameter implements HasType, HasOwner<JavaCodeUnit>, HasAnnotations<JavaParameter> {
     private static final ChainableFunction<HasType, String> GET_ANNOTATION_TYPE_NAME = GET_RAW_TYPE.then(GET_NAME);
-    private static final Function<HasType, String> GUAVA_GET_ANNOTATION_TYPE_NAME = toGuava(GET_ANNOTATION_TYPE_NAME);
 
     private final JavaCodeUnit owner;
     private final int index;
@@ -65,7 +62,7 @@ public final class JavaParameter implements HasType, HasOwner<JavaCodeUnit>, Has
 
     private Map<String, JavaAnnotation<JavaParameter>> buildIndexedByTypeName(DomainBuilders.JavaCodeUnitBuilder.ParameterAnnotationsBuilder builder) {
         Set<JavaAnnotation<JavaParameter>> annotations = builder.build(this);
-        return Maps.uniqueIndex(annotations, GUAVA_GET_ANNOTATION_TYPE_NAME);
+        return Maps.uniqueIndex(annotations, GET_ANNOTATION_TYPE_NAME::apply);
     }
 
     @Override

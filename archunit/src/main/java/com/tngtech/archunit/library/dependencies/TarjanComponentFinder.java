@@ -18,12 +18,11 @@ package com.tngtech.archunit.library.dependencies;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Ordering;
 import com.google.common.primitives.Ints;
 
 import static com.tngtech.archunit.library.dependencies.TarjanGraph.LESS_THAN_TWO_VALUES;
 import static java.util.Arrays.sort;
+import static java.util.Comparator.comparing;
 
 /**
  * An implementation of Tarjan's algorithm to find strongly connected components
@@ -124,7 +123,7 @@ class TarjanComponentFinder {
     }
 
     private int[] findComponentWithLowestNode(List<int[]> component) {
-        int[] componentWithLowestNodeIndex = Ordering.natural().onResultOf((Function<int[], Integer>) Ints::min).min(component);
+        int[] componentWithLowestNodeIndex = component.stream().min(comparing(Ints::min)).get();
         sort(componentWithLowestNodeIndex);
         return componentWithLowestNodeIndex;
     }

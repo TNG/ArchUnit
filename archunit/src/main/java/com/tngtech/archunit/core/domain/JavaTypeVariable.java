@@ -18,8 +18,6 @@ package com.tngtech.archunit.core.domain;
 import java.lang.reflect.TypeVariable;
 import java.util.List;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
@@ -27,9 +25,9 @@ import com.tngtech.archunit.core.domain.properties.HasUpperBounds;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.joining;
 
 /**
  * Represents a type variable used by generic types and members.<br>
@@ -138,6 +136,6 @@ public final class JavaTypeVariable<OWNER extends HasDescription> implements Jav
     }
 
     private String joinTypeNames(List<JavaType> types) {
-        return FluentIterable.from(types).transform(toGuava(GET_NAME)).join(Joiner.on(" & "));
+        return types.stream().map(GET_NAME).collect(joining(" & "));
     }
 }

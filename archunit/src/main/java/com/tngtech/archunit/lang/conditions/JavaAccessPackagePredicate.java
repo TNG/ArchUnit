@@ -15,7 +15,8 @@
  */
 package com.tngtech.archunit.lang.conditions;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
+
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatchers;

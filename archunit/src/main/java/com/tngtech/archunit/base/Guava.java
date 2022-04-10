@@ -17,7 +17,6 @@ package com.tngtech.archunit.base;
 
 import java.util.Map;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.tngtech.archunit.Internal;
 
@@ -30,10 +29,6 @@ import com.tngtech.archunit.Internal;
 public final class Guava {
     public static <T> Predicate<T> toGuava(final DescribedPredicate<T> predicate) {
         return input -> predicate.test(input);
-    }
-
-    public static <F, T> Function<F, T> toGuava(final java.util.function.Function<F, T> function) {
-        return input -> function.apply(input);
     }
 
     @Internal

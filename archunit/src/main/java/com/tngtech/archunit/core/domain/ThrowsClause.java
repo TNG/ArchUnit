@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
@@ -34,9 +33,9 @@ import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static java.util.stream.Collectors.toList;
 
 public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>>
         implements HasOwner<LOCATION>, Iterable<ThrowsDeclaration<LOCATION>> {
@@ -65,17 +64,12 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
 
     @PublicAPI(usage = ACCESS)
     public boolean containsType(DescribedPredicate<? super JavaClass> predicate) {
-        for (ThrowsDeclaration<?> throwsDeclaration : throwsDeclarations) {
-            if (predicate.test(throwsDeclaration.getRawType())) {
-                return true;
-            }
-        }
-        return false;
+        return throwsDeclarations.stream().map(ThrowsDeclaration::getRawType).anyMatch(predicate);
     }
 
     @PublicAPI(usage = ACCESS)
     public List<JavaClass> getTypes() {
-        return FluentIterable.from(throwsDeclarations).transform(toGuava(GET_RAW_TYPE)).toList();
+        return throwsDeclarations.stream().map(GET_RAW_TYPE).collect(toList());
     }
 
     @Override

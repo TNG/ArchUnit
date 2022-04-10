@@ -28,7 +28,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -45,11 +44,11 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 
 public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     private final String name;
@@ -102,7 +101,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @PublicAPI(usage = ACCESS)
     public Set<? extends JavaAnnotation<JavaPackage>> getAnnotations() {
         if (packageInfo.isPresent()) {
-            return FluentIterable.from(packageInfo.get().getAnnotations()).transform(toGuava(withSelfAsOwner)).toSet();
+            return packageInfo.get().getAnnotations().stream().map(withSelfAsOwner).collect(toSet());
         }
         return emptySet();
     }
@@ -366,13 +365,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     private Set<JavaClass> getClassesWith(Predicate<? super JavaClass> predicate) {
-        Set<JavaClass> result = new HashSet<>();
-        for (JavaClass javaClass : classes) {
-            if (predicate.test(javaClass)) {
-                result.add(javaClass);
-            }
-        }
-        return result;
+        return classes.stream().filter(predicate).collect(toSet());
     }
 
     /**

@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -50,7 +49,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
@@ -103,6 +101,7 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -921,8 +920,7 @@ public class JavaClassTest {
     public void direct_dependencies_from_self_finds_correct_set_of_target_types() {
         JavaClass javaClass = importPackagesOf(getClass()).get(ClassWithAnnotationDependencies.class);
 
-        Set<JavaClass> targets = FluentIterable.from(javaClass.getDirectDependenciesFromSelf())
-                .transform(toGuava(GET_TARGET_CLASS)).toSet();
+        Set<JavaClass> targets = javaClass.getDirectDependenciesFromSelf().stream().map(GET_TARGET_CLASS).collect(toSet());
 
         assertThatTypes(targets).matchInAnyOrder(
                 B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
@@ -1449,8 +1447,7 @@ public class JavaClassTest {
     }
 
     private Set<JavaClass> getOriginsOfDependenciesTo(JavaClass withType) {
-        return FluentIterable.from(withType.getDirectDependenciesToSelf())
-                .transform(toGuava(GET_ORIGIN_CLASS)).toSet();
+        return withType.getDirectDependenciesToSelf().stream().map(GET_ORIGIN_CLASS).collect(toSet());
     }
 
     @Test
@@ -1877,12 +1874,8 @@ public class JavaClassTest {
         return getOnlyElement(classes.that(new DescribedPredicate<JavaClass>("") {
             @Override
             public boolean test(JavaClass input) {
-                for (JavaFieldAccess access : input.getFieldAccessesFromSelf()) {
-                    if (access.getTarget().getName().equals(fieldName) && access.getAccessType() == SET) {
-                        return true;
-                    }
-                }
-                return false;
+                return input.getFieldAccessesFromSelf().stream()
+                        .anyMatch(access -> access.getTarget().getName().equals(fieldName) && access.getAccessType() == SET);
             }
         }));
     }

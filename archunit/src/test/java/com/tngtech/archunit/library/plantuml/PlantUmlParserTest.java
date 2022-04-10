@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -21,8 +19,7 @@ import org.junit.runner.RunWith;
 
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.GET_COMPONENT_NAME;
-import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -428,14 +425,17 @@ public class PlantUmlParserTest {
     }
 
     private PlantUmlComponent getComponentWithName(String componentName, PlantUmlDiagram diagram) {
-        PlantUmlComponent component = FluentIterable.from(diagram.getAllComponents())
-                .uniqueIndex(GET_COMPONENT_NAME).get(new ComponentName(componentName));
+        PlantUmlComponent component = diagram.getAllComponents().stream()
+                .filter(c -> c.getComponentName().asString().equals(componentName))
+                .collect(onlyElement());
         assertThat(component).as("Component with name " + componentName).isNotNull();
         return component;
     }
 
     private PlantUmlComponent getComponentWithAlias(Alias alias, PlantUmlDiagram diagram) {
-        PlantUmlComponent component = FluentIterable.from(diagram.getComponentsWithAlias()).uniqueIndex(TO_EXISTING_ALIAS).get(alias);
+        PlantUmlComponent component = diagram.getComponentsWithAlias()
+                .stream().filter(a -> a.getAlias().get().equals(alias))
+                .collect(onlyElement());
         assertThat(component).as("Component with alias " + alias.asString()).isNotNull();
         return component;
     }

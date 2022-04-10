@@ -24,13 +24,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.Guava;
@@ -47,6 +45,7 @@ import static com.google.common.collect.MultimapBuilder.hashKeys;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
 import static java.lang.System.lineSeparator;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
@@ -172,7 +171,6 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static class EventRecorder {
         private static final String CYCLE_DETECTED_SECTION_INTRO = "Cycle detected: ";
         private static final String DEPENDENCY_DETAILS_INDENT = Strings.repeat(" ", 4);
-        private static final Function<Edge<Slice, Dependency>, String> GET_FROM_NODE_DESCRIPTION = input -> input.getFrom().getDescription();
 
         private final CycleConfiguration cycleConfiguration = new CycleConfiguration();
 
@@ -197,7 +195,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
         private Map<String, Edge<Slice, Dependency>> sortEdgesByDescription(Cycle<Slice, Dependency> cycle) {
             LinkedList<Edge<Slice, Dependency>> edges = new LinkedList<>(cycle.getEdges());
-            Edge<Slice, Dependency> startEdge = Ordering.natural().onResultOf(GET_FROM_NODE_DESCRIPTION).min(edges);
+            Edge<Slice, Dependency> startEdge = cycle.getEdges().stream().min(comparing(input -> input.getFrom().getDescription())).get();
             while (!edges.getFirst().equals(startEdge)) {
                 edges.addLast(edges.pollFirst());
             }

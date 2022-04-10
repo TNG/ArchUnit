@@ -31,12 +31,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
 import org.slf4j.Logger;
@@ -44,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Sets.difference;
 import static java.util.Collections.emptySet;
 import static java.util.jar.Attributes.Name.CLASS_PATH;
 import static java.util.stream.Collectors.toList;
@@ -97,15 +97,14 @@ interface UrlSource extends Iterable<URL> {
         }
 
         // Use URI because of better equals / hashcode
-        private static void readClasspathUriEntriesFromManifests(Set<URI> result, Iterable<URI> urls) {
-            for (URI url : urls) {
-                if (url.getScheme().equals("jar")) {
-                    Set<URI> manifestUris = readClasspathEntriesFromManifest(url);
-                    Set<URI> unknownSoFar = ImmutableSet.copyOf(Sets.difference(manifestUris, result));
-                    result.addAll(unknownSoFar);
-                    readClasspathUriEntriesFromManifests(result, unknownSoFar);
-                }
-            }
+        private static void readClasspathUriEntriesFromManifests(Set<URI> result, Set<URI> uris) {
+            uris.stream().filter(url -> url.getScheme().equals("jar"))
+                    .map(From::readClasspathEntriesFromManifest)
+                    .map(manifestUris -> ImmutableSet.copyOf(difference(manifestUris, result))) // difference returns a dynamic SetView -> safe-copy
+                    .forEach(unknownSoFar -> {
+                        result.addAll(unknownSoFar);
+                        readClasspathUriEntriesFromManifests(result, unknownSoFar);
+                    });
         }
 
         private static Set<URI> readClasspathEntriesFromManifest(URI url) {

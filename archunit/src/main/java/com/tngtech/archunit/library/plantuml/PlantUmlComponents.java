@@ -22,7 +22,6 @@ import java.util.Set;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 
-import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.GET_COMPONENT_NAME;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
 
 class PlantUmlComponents {
@@ -30,8 +29,8 @@ class PlantUmlComponents {
     private final Map<Alias, PlantUmlComponent> componentsByAlias;
 
     PlantUmlComponents(Set<PlantUmlComponent> components) {
-        componentsByName = FluentIterable.from(components).uniqueIndex(GET_COMPONENT_NAME);
-        componentsByAlias = FluentIterable.from(components).filter(WITH_ALIAS).uniqueIndex(TO_EXISTING_ALIAS);
+        componentsByName = FluentIterable.from(components).uniqueIndex(PlantUmlComponent::getComponentName);
+        componentsByAlias = FluentIterable.from(components).filter(WITH_ALIAS).uniqueIndex(TO_EXISTING_ALIAS::apply);
     }
 
     Collection<PlantUmlComponent> getAllComponents() {

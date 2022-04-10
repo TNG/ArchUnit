@@ -20,14 +20,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 class PlantUmlComponent {
     private final ComponentName componentName;
@@ -42,7 +42,7 @@ class PlantUmlComponent {
     }
 
     List<PlantUmlComponent> getDependencies() {
-        return FluentIterable.from(dependencies).transform(PlantUmlComponentDependency::getTarget).toList();
+        return dependencies.stream().map(PlantUmlComponentDependency::getTarget).collect(toList());
     }
 
     ComponentName getComponentName() {
@@ -97,8 +97,6 @@ class PlantUmlComponent {
     }
 
     static class Functions {
-        static final Function<PlantUmlComponent, ComponentName> GET_COMPONENT_NAME = PlantUmlComponent::getComponentName;
-
         static final Function<PlantUmlComponent, Alias> TO_EXISTING_ALIAS =
                 input -> {
                     checkState(input.getAlias().isPresent(), "Alias does not exist");
