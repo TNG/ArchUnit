@@ -3,9 +3,7 @@ package com.tngtech.archunit.testutil.assertion;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,7 +15,6 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.api.AbstractObjectAssert;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.core.domain.JavaModifier.ABSTRACT;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
 import static com.tngtech.archunit.core.domain.JavaModifier.NATIVE;
@@ -32,6 +29,8 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.runtimePropertiesOf;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 
 public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssertion, List<JavaMember>> {
     public JavaMembersAssertion(Iterable<? extends JavaMember> javaMembers) {
@@ -39,9 +38,9 @@ public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssert
     }
 
     private static List<JavaMember> sort(Iterable<? extends JavaMember> actual) {
-        List<JavaMember> result = newArrayList(actual);
-        Collections.sort(result, comparing(HasName.AndFullName::getFullName));
-        return result;
+        return stream(actual.spliterator(), false)
+                .sorted(comparing(HasName.AndFullName::getFullName))
+                .collect(toList());
     }
 
     public <M extends Member & AnnotatedElement> void matchInAnyOrder(Collection<M> expectedMembers) {
@@ -54,9 +53,9 @@ public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssert
     }
 
     private <M extends Member & AnnotatedElement> List<M> sort(Collection<M> expectedMembers) {
-        List<M> sorted = new ArrayList<>(expectedMembers);
-        Collections.sort(sorted, comparing(JavaMemberAssertion::getExpectedFullNameOf));
-        return sorted;
+        return expectedMembers.stream()
+                .sorted(comparing(JavaMemberAssertion::getExpectedFullNameOf))
+                .collect(toList());
     }
 
     public void matchInAnyOrderMembersOf(Class<?>... classes) {
