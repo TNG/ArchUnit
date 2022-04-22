@@ -62,3 +62,7 @@ def configureDependencies = { deps ->
     }
 }
 this.with project(':archunit-junit').configureJUnitArchive(configureDependencies)
+
+singlePackageExport {
+    exportedPackage = 'com.tngtech.archunit.junit.internal'
+}
