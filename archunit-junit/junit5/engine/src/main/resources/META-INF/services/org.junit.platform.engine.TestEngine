@@ -1,1 +1,1 @@
-com.tngtech.archunit.junit.ArchUnitTestEngine
+com.tngtech.archunit.junit.internal.ArchUnitTestEngine
