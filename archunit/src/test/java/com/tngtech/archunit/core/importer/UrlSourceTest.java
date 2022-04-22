@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.jar.JarFile;
 import java.util.stream.IntStream;
 
 import com.google.common.base.Joiner;
@@ -150,18 +149,18 @@ public class UrlSourceTest {
         File folder = temporaryFolder.newFolder();
         File jarOnePath = new File(folder, "one.jar");
         File jarTwoPath = new File(folder, "two.jar");
-        JarFile jarOne = new TestJarFile()
+        String jarOneName = new TestJarFile()
                 .withManifestAttribute(CLASS_PATH, jarTwoPath.getAbsolutePath())
-                .create(jarOnePath);
-        JarFile jarTwo = new TestJarFile()
+                .createAndReturnName(jarOnePath);
+        String jarTwoName = new TestJarFile()
                 .withManifestAttribute(CLASS_PATH, jarOnePath.getAbsolutePath())
-                .create(jarTwoPath);
+                .createAndReturnName(jarTwoPath);
 
-        System.setProperty(JAVA_CLASS_PATH_PROP, jarOne.getName());
+        System.setProperty(JAVA_CLASS_PATH_PROP, jarOneName);
         System.clearProperty(JAVA_BOOT_PATH_PROP);
         UrlSource urls = UrlSource.From.classPathSystemProperties();
 
-        assertThat(urls).containsOnly(toUrl(Paths.get(jarOne.getName())), toUrl(Paths.get(jarTwo.getName())));
+        assertThat(urls).containsOnly(toUrl(Paths.get(jarOneName)), toUrl(Paths.get(jarTwoName)));
     }
 
     private String subpath(String... parts) {
@@ -170,10 +169,10 @@ public class UrlSourceTest {
 
     private WrittenJarFile writeJarWithManifestClasspathAttribute(final File folder, String identifier, ManifestClasspathEntry... additionalClasspathManifestClasspathEntries) {
         Set<ManifestClasspathEntry> classpathManifestEntries = union(createManifestClasspathEntries(identifier), ImmutableSet.copyOf(additionalClasspathManifestClasspathEntries));
-        JarFile jarFile = new TestJarFile()
+        String jarFileName = new TestJarFile()
                 .withManifestAttribute(CLASS_PATH, Joiner.on(" ").join(classpathManifestEntries.stream().map(resolveTo(folder)).collect(toSet())))
-                .create(new File(folder, identifier.replace(File.separator, "-") + ".jar"));
-        return new WrittenJarFile(Paths.get(jarFile.getName()), classpathManifestEntries);
+                .createAndReturnName(new File(folder, identifier.replace(File.separator, "-") + ".jar"));
+        return new WrittenJarFile(Paths.get(jarFileName), classpathManifestEntries);
     }
 
     private Function<ManifestClasspathEntry, String> resolveTo(final File folder) {

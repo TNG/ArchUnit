@@ -197,10 +197,10 @@ public class LocationTest {
 
     @DataProvider
     public static Object[][] file_locations_pointing_to_jar() throws MalformedURLException {
-        JarFile jarFile = new TestJarFile().withEntry(classFileResource(LocationTest.class)).create();
+        String jarFileName = new TestJarFile().withEntry(classFileResource(LocationTest.class)).createAndReturnName();
         return $$(
-                $(Location.of(new File(jarFile.getName()).toURI().toURL())),
-                $(Location.of(new File(jarFile.getName()).toURI())));
+                $(Location.of(new File(jarFileName).toURI().toURL())),
+                $(Location.of(new File(jarFileName).toURI())));
     }
 
     @Test
@@ -229,11 +229,11 @@ public class LocationTest {
     @Test
     @SuppressWarnings("unchecked")
     public void JAR_location_as_ClassFileSource() throws IOException {
-        JarFile jar = new TestJarFile()
+        String jarFileName = new TestJarFile()
                 .withEntry(classFileResource(getClass()))
                 .withEntry(classFileResource(Location.class))
-                .create();
-        ClassFileSource source = Location.of(new File(jar.getName()).toURI()).asClassFileSource(new ImportOptions());
+                .createAndReturnName();
+        ClassFileSource source = Location.of(new File(jarFileName).toURI()).asClassFileSource(new ImportOptions());
 
         List<List<Byte>> importedFiles = new ArrayList<>();
         for (ClassFileLocation location : source) {
@@ -314,12 +314,12 @@ public class LocationTest {
 
     @Test
     public void append_path_with_white_space() {
-        JarFile jarFile = new TestJarFile()
+        String jarFileName = new TestJarFile()
                 .withEntry("path with spaces")
                 .withEntry("path with spaces/like kotlin does.class")
-                .create();
+                .createAndReturnName();
 
-        URI dirInJar = Paths.get(jarFile.getName()).toUri();
+        URI dirInJar = Paths.get(jarFileName).toUri();
 
         Location location = Location.of(dirInJar).append("path with spaces/like kotlin does.class");
 

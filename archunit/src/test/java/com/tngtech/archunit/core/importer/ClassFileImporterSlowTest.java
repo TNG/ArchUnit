@@ -115,8 +115,7 @@ public class ClassFileImporterSlowTest {
         String manifestClasspath = testClassFile.getClasspathRoot().getAbsolutePath();
         String jarPath = new TestJarFile()
                 .withManifestAttribute(CLASS_PATH, manifestClasspath)
-                .create()
-                .getName();
+                .createAndReturnName();
 
         verifyCantLoadWithCurrentClasspath(testClassFile);
         System.setProperty(JAVA_CLASS_PATH_PROP, jarPath);
