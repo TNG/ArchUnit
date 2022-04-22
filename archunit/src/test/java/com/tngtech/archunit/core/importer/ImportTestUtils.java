@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.core.domain.AccessTarget;
@@ -47,7 +46,9 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.importer.DomainBuilders.newConstructorCallTargetBuilder;
 import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
 import static java.util.Arrays.stream;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 public class ImportTestUtils {
@@ -287,9 +288,9 @@ public class ImportTestUtils {
         };
     }
 
-    private static ImmutableMap<String, JavaAnnotation<JavaClass>> annotationsFor(Class<?> inputClass, ImportContext importedClasses) {
-        return FluentIterable.from(javaAnnotationsFrom(inputClass.getAnnotations(), importedClasses, inputClass))
-                .uniqueIndex(annotation -> annotation.getRawType().getName());
+    private static Map<String, JavaAnnotation<JavaClass>> annotationsFor(Class<?> inputClass, ImportContext importedClasses) {
+        return javaAnnotationsFrom(inputClass.getAnnotations(), importedClasses, inputClass).stream()
+                .collect(toMap(annotation -> annotation.getRawType().getName(), identity()));
     }
 
     public static class ImportedTestClasses extends ImportedClasses {

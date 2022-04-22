@@ -21,19 +21,18 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 
-import static com.google.common.collect.Collections2.filter;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 
 class ReflectionUtils {
     private ReflectionUtils() {
@@ -54,28 +53,19 @@ class ReflectionUtils {
     }
 
     static Collection<Field> getAllFields(Class<?> owner, Predicate<? super Field> predicate) {
-        return filter(getAll(owner, new Collector<Field>() {
-            @Override
-            protected Collection<? extends Field> extractFrom(Class<?> type) {
-                return ImmutableList.copyOf(type.getDeclaredFields());
-            }
-        }), toGuava(predicate));
+        return getAll(owner, Class::getDeclaredFields).filter(predicate).collect(toList());
     }
 
     static Collection<Method> getAllMethods(Class<?> owner, Predicate<? super Method> predicate) {
-        return filter(getAll(owner, new Collector<Method>() {
-            @Override
-            protected Collection<? extends Method> extractFrom(Class<?> type) {
-                return ImmutableList.copyOf(type.getDeclaredMethods());
-            }
-        }), toGuava(predicate));
+        return getAll(owner, Class::getDeclaredMethods).filter(predicate).collect(toList());
     }
 
-    private static <T> List<T> getAll(Class<?> type, Collector<T> collector) {
+    private static <T> Stream<T> getAll(Class<?> type, Function<Class<?>, T[]> collector) {
+        Stream.Builder<T> result = Stream.builder();
         for (Class<?> t : getAllSupertypes(type)) {
-            collector.collectFrom(t);
+            stream(collector.apply(t)).forEach(result);
         }
-        return collector.collected;
+        return result.build();
     }
 
     static <T> T newInstanceOf(Class<T> type) {
@@ -131,21 +121,7 @@ class ReflectionUtils {
         throw (T) throwable;
     }
 
-    private abstract static class Collector<T> {
-        private final List<T> collected = new ArrayList<>();
-
-        void collectFrom(Class<?> type) {
-            collected.addAll(extractFrom(type));
-        }
-
-        protected abstract Collection<? extends T> extractFrom(Class<?> type);
-    }
-
     static Predicate<AnnotatedElement> withAnnotation(final Class<? extends Annotation> annotationType) {
         return input -> input.isAnnotationPresent(annotationType);
-    }
-
-    private static <T> com.google.common.base.Predicate<T> toGuava(final Predicate<T> predicate) {
-        return input -> predicate.test(input);
     }
 }

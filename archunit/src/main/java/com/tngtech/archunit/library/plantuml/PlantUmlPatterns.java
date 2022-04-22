@@ -20,13 +20,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -109,7 +109,7 @@ class PlantUmlPatterns {
         }
 
         Optional<String> matchAlias() {
-            return Optional.fromNullable(componentMatcher.group(ALIAS_GROUP_NAME));
+            return Optional.ofNullable(componentMatcher.group(ALIAS_GROUP_NAME));
         }
     }
 

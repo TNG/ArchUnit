@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.HasDescription;
@@ -15,11 +14,12 @@ import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import org.assertj.core.api.AbstractIterableAssert;
 
-import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getLast;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.stream;
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DependenciesAssertion extends AbstractIterableAssert<
@@ -82,15 +82,15 @@ public class DependenciesAssertion extends AbstractIterableAssert<
     }
 
     private ExpectedDependenciesMatchResult matchExpectedDependencies(ExpectedDependencies expectedDependencies) {
-        FluentIterable<Dependency> rest = FluentIterable.from(actual);
+        List<Dependency> rest = newArrayList(actual);
         List<ExpectedDependency> missingDependencies = new ArrayList<>();
         for (final ExpectedDependency expectedDependency : expectedDependencies) {
-            if (!rest.anyMatch(expectedDependency::matches)) {
+            if (!rest.stream().anyMatch(expectedDependency::matches)) {
                 missingDependencies.add(expectedDependency);
             }
-            rest = rest.filter(not(expectedDependency::matches));
+            rest = rest.stream().filter(dependency -> !expectedDependency.matches(dependency)).collect(toList());
         }
-        return new ExpectedDependenciesMatchResult(missingDependencies, rest.toList());
+        return new ExpectedDependenciesMatchResult(missingDependencies, rest);
     }
 
     public DependenciesAssertion containOnly(Class<?> expectedOrigin, Class<?> expectedTarget) {

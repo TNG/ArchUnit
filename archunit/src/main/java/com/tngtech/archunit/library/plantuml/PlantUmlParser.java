@@ -21,6 +21,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -29,8 +30,6 @@ import com.tngtech.archunit.library.plantuml.PlantUmlPatterns.PlantUmlComponentM
 import com.tngtech.archunit.library.plantuml.PlantUmlPatterns.PlantUmlDependencyMatcher;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Predicates.containsPattern;
-import static com.google.common.base.Predicates.not;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -56,7 +55,10 @@ class PlantUmlParser {
     }
 
     private List<String> filterOutComments(List<String> lines) {
-        return lines.stream().filter(not(containsPattern("^\\s*'"))).collect(toList());
+        Pattern commentPattern = Pattern.compile("^\\s*'");
+        return lines.stream()
+                .filter(line -> !commentPattern.matcher(line).find())
+                .collect(toList());
     }
 
     private List<String> readLines(URL url) {
@@ -88,7 +90,7 @@ class PlantUmlParser {
 
         ComponentName componentName = new ComponentName(matcher.matchComponentName());
         ImmutableSet<Stereotype> immutableStereotypes = identifyStereotypes(matcher, componentName);
-        Optional<Alias> alias = Optional.ofNullable(matcher.matchAlias().transform(Alias::new).orNull());
+        Optional<Alias> alias = matcher.matchAlias().map(Alias::new);
 
         return new PlantUmlComponent.Builder()
                 .withComponentName(componentName)

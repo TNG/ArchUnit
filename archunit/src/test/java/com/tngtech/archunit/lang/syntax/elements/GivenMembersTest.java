@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -450,11 +449,11 @@ public class GivenMembersTest {
 
     @SafeVarargs
     private static <T> Set<T> union(Set<T>... sets) {
-        FluentIterable<T> result = FluentIterable.of();
+        ImmutableSet.Builder<T> result = ImmutableSet.builder();
         for (Set<T> set : sets) {
-            result = result.append(set);
+            result = result.addAll(set);
         }
-        return result.toSet();
+        return result.build();
     }
 
     static DescribedPredicate<JavaMember> areNoFieldsWithType(final Class<?> type) {

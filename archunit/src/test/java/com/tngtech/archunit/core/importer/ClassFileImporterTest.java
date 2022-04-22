@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -84,8 +85,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
-import static com.google.common.base.Predicates.containsPattern;
-import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
@@ -731,8 +730,9 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_classes_outside_of_the_classpath() throws IOException {
+        Pattern missingPattern = Pattern.compile("^Missing.*");
         Path targetDir = outsideOfClassPath
-                .onlyKeep(not(containsPattern("^Missing.*")))
+                .onlyKeep(fileName -> !missingPattern.matcher(fileName).find())
                 .setUp(getClass().getResource("testexamples/outsideofclasspath"));
 
         JavaClasses classes = new ClassFileImporter().importPath(targetDir);
