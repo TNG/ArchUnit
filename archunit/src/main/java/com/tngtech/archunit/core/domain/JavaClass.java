@@ -659,6 +659,11 @@ public class JavaClass
         return members.getReferencedClassObjects();
     }
 
+    @PublicAPI(usage = ACCESS)
+    public Set<TypeCast> getypeCasts() {
+        return members.getTypeCast();
+    }
+
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass toErasure() {

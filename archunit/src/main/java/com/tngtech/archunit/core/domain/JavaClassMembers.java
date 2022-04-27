@@ -212,6 +212,14 @@ class JavaClassMembers {
         return result.build();
     }
 
+    Set<TypeCast> getTypeCast() {
+        ImmutableSet.Builder<TypeCast> result = ImmutableSet.builder();
+        for (JavaCodeUnit codeUnit : codeUnits) {
+            result.addAll(codeUnit.getTypeCast());
+        }
+        return result.build();
+    }
+
     Set<JavaFieldAccess> getFieldAccessesFromSelf() {
         ImmutableSet.Builder<JavaFieldAccess> result = ImmutableSet.builder();
         for (JavaCodeUnit codeUnit : codeUnits) {
