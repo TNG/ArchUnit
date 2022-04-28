@@ -116,7 +116,6 @@ import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Pred
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
 import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predicates.throwsClauseContainingType;
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static java.util.Arrays.asList;
 
 public final class ArchConditions {
@@ -500,7 +499,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveSimpleName(final String name) {
-        final DescribedPredicate<JavaClass> haveSimpleName = have(simpleName(name));
+        final DescribedPredicate<JavaClass> haveSimpleName = ArchPredicates.have(simpleName(name));
         return new SimpleNameCondition(haveSimpleName, name);
     }
 
@@ -511,7 +510,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveSimpleNameStartingWith(final String prefix) {
-        final DescribedPredicate<JavaClass> predicate = have(simpleNameStartingWith(prefix));
+        final DescribedPredicate<JavaClass> predicate = ArchPredicates.have(simpleNameStartingWith(prefix));
 
         return new SimpleNameStartingWithCondition(predicate, prefix);
     }
@@ -523,7 +522,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveSimpleNameContaining(final String infix) {
-        final DescribedPredicate<JavaClass> predicate = have(simpleNameContaining(infix));
+        final DescribedPredicate<JavaClass> predicate = ArchPredicates.have(simpleNameContaining(infix));
 
         return new SimpleNameContainingCondition(predicate, infix);
     }
@@ -535,7 +534,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> haveSimpleNameEndingWith(final String suffix) {
-        final DescribedPredicate<JavaClass> predicate = have(simpleNameEndingWith(suffix));
+        final DescribedPredicate<JavaClass> predicate = ArchPredicates.have(simpleNameEndingWith(suffix));
 
         return new SimpleNameEndingWithCondition(predicate, suffix);
     }
@@ -547,7 +546,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> haveNameMatching(final String regex) {
-        final DescribedPredicate<HAS_NAME> haveNameMatching = have(nameMatching(regex)).forSubtype();
+        final DescribedPredicate<HAS_NAME> haveNameMatching = ArchPredicates.have(nameMatching(regex)).forSubtype();
         return new MatchingCondition<>(haveNameMatching, regex);
     }
 
@@ -559,7 +558,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation>
     ArchCondition<HAS_FULL_NAME> haveFullNameMatching(String regex) {
-        final DescribedPredicate<HAS_FULL_NAME> haveFullNameMatching = have(fullNameMatching(regex)).forSubtype();
+        final DescribedPredicate<HAS_FULL_NAME> haveFullNameMatching = ArchPredicates.have(fullNameMatching(regex)).forSubtype();
         return new MatchingCondition<>(haveFullNameMatching, regex);
     }
 
@@ -572,42 +571,42 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameStartingWith(String prefix) {
-        final DescribedPredicate<HAS_NAME> haveNameStartingWith = have(nameStartingWith(prefix)).forSubtype();
+        final DescribedPredicate<HAS_NAME> haveNameStartingWith = ArchPredicates.have(nameStartingWith(prefix)).forSubtype();
         return new StartingCondition<>(haveNameStartingWith, prefix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameNotStartingWith(String prefix) {
-        final DescribedPredicate<HAS_NAME> haveNameStartingWith = have(nameStartingWith(prefix)).forSubtype();
+        final DescribedPredicate<HAS_NAME> haveNameStartingWith = ArchPredicates.have(nameStartingWith(prefix)).forSubtype();
         return not(new StartingCondition<>(haveNameStartingWith, prefix)).as("have name not starting with '%s'", prefix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameContaining(String infix) {
-        final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubtype();
+        final DescribedPredicate<HAS_NAME> haveNameContaining = ArchPredicates.have(nameContaining(infix)).forSubtype();
         return new ContainingCondition<>(haveNameContaining, infix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameNotContaining(String infix) {
-        final DescribedPredicate<HAS_NAME> haveNameContaining = have(nameContaining(infix)).forSubtype();
+        final DescribedPredicate<HAS_NAME> haveNameContaining = ArchPredicates.have(nameContaining(infix)).forSubtype();
         return not(new ContainingCondition<>(haveNameContaining, infix)).as("have name not containing '%s'", infix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameEndingWith(String suffix) {
-        final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubtype();
+        final DescribedPredicate<HAS_NAME> haveNameEndingWith = ArchPredicates.have(nameEndingWith(suffix)).forSubtype();
         return new EndingCondition<>(haveNameEndingWith, suffix);
     }
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME>
     haveNameNotEndingWith(String suffix) {
-        final DescribedPredicate<HAS_NAME> haveNameEndingWith = have(nameEndingWith(suffix)).forSubtype();
+        final DescribedPredicate<HAS_NAME> haveNameEndingWith = ArchPredicates.have(nameEndingWith(suffix)).forSubtype();
         return not(new EndingCondition<>(haveNameEndingWith, suffix)).as("have name not ending with '%s'", suffix);
     }
 
@@ -1273,6 +1272,16 @@ public final class ArchConditions {
         ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by constructors that " + predicate.getDescription(),
                 origin.is(constructor().and(predicate)), GET_CALLS_OF_SELF);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <T extends HasDescription & HasSourceCodeLocation> ArchCondition<T> have( DescribedPredicate<T> predicate ) {
+        return new HaveConditionByPredicate<>(predicate);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <T extends HasDescription & HasSourceCodeLocation> ArchCondition<T> be( DescribedPredicate<T> predicate ) {
+        return new IsConditionByPredicate<>(predicate);
     }
 
     private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
