@@ -5,17 +5,25 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.lang.ArchCondition.ConditionByPredicate;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -224,6 +232,41 @@ public class ArchConditionTest {
         events = ConditionEvents.Factory.create();
         condition.check(8, events);
         assertThat(events.containViolation()).as("Events contain violation").isFalse();
+    }
+
+    @Test
+    public void from_predicate() {
+        JavaClass object = new ClassFileImporter().importClass(Object.class);
+
+        assertThat(ArchCondition.from(alwaysFalse().as("some description")))
+                .hasDescription("some description")
+                .checking(object)
+                .containViolations(String.format("Class <%s> does not satisfy some description in (%s.java:0)", Object.class.getName(), Object.class.getSimpleName()));
+
+        assertThat(ArchCondition.from(alwaysTrue()))
+                .checking(object).containNoViolation();
+
+        assertThat(not(ArchCondition.from(alwaysTrue().as("some description")).as("overwritten")))
+                .hasDescription("not overwritten")
+                .checking(object)
+                .containViolations(String.format("Class <%s> satisfies some description in (%s.java:0)", Object.class.getName(), Object.class.getSimpleName()));
+    }
+
+    @Test
+    public void from_predicate_describing_events() {
+        JavaClass object = new ClassFileImporter().importClass(Object.class);
+
+        Function<DescribedPredicate<JavaClass>, ConditionByPredicate<JavaClass>> conditionFromPredicate =
+                predicate -> ArchCondition.from(predicate.as("some description"))
+                        .describeEventsBy((predicateDescription, satisfied) -> satisfied + " " + predicateDescription).forSubtype();
+
+        assertThat(conditionFromPredicate.apply(alwaysFalse()))
+                .checking(object)
+                .haveOneViolationMessageContaining(String.format("Class <%s> false some description", Object.class.getName()));
+
+        assertThat(not(conditionFromPredicate.apply(alwaysTrue())))
+                .checking(object)
+                .haveOneViolationMessageContaining(String.format("Class <%s> true some description", Object.class.getName()));
     }
 
     private ArchCondition<Integer> greaterThan(final int... numbers) {

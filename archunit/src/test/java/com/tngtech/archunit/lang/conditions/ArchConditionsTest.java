@@ -15,6 +15,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
@@ -29,12 +30,15 @@ import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.Wi
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideInAnyPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.be;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.declareThrowableOfType;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.have;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsInAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsWhere;
@@ -100,6 +104,48 @@ public class ArchConditionsTest {
 
         assertThat(containOnlyElementsThat(conditionWithDescription("something")))
                 .hasDescription("contain only elements that something");
+    }
+
+    @Test
+    public void have_predicate() {
+        JavaClass object = importClasses(Object.class).get(Object.class);
+
+        assertThat(have(alwaysTrue().as("some description"))).hasDescription("have some description");
+
+        assertThat(have(DescribedPredicate.<JavaClass>alwaysFalse().as("some description")))
+                .checking(object)
+                .haveOneViolationMessageContaining("Class <" + Object.class.getName() + "> does not have some description");
+
+        assertThat(have(DescribedPredicate.<JavaClass>alwaysFalse()).describeEventsBy((_1, _2) -> "overwritten"))
+                .checking(object)
+                .haveOneViolationMessageContaining("Class <" + Object.class.getName() + "> overwritten");
+
+        assertThat(have(DescribedPredicate.<JavaClass>alwaysTrue())).checking(object).containNoViolation();
+
+        assertThat(not(have(DescribedPredicate.<JavaClass>alwaysTrue().as("some description"))))
+                .checking(object)
+                .haveOneViolationMessageContaining("Class <" + Object.class.getName() + "> has some description");
+    }
+
+    @Test
+    public void be_predicate() {
+        JavaClass object = importClasses(Object.class).get(Object.class);
+
+        assertThat(be(alwaysTrue().as("some description"))).hasDescription("be some description");
+
+        assertThat(be(DescribedPredicate.<JavaClass>alwaysFalse().as("some description")))
+                .checking(object)
+                .haveOneViolationMessageContaining("Class <" + Object.class.getName() + "> is not some description");
+
+        assertThat(be(DescribedPredicate.<JavaClass>alwaysFalse()).describeEventsBy((_1, _2) -> "overwritten"))
+                .checking(object)
+                .haveOneViolationMessageContaining("Class <" + Object.class.getName() + "> overwritten");
+
+        assertThat(be(DescribedPredicate.<JavaClass>alwaysTrue())).checking(object).containNoViolation();
+
+        assertThat(not(be(DescribedPredicate.<JavaClass>alwaysTrue().as("some description"))))
+                .checking(object)
+                .haveOneViolationMessageContaining("Class <" + Object.class.getName() + "> is some description");
     }
 
     @Test

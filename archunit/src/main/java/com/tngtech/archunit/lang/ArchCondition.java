@@ -18,9 +18,15 @@ package com.tngtech.archunit.lang;
 import java.util.Collection;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import static com.tngtech.archunit.lang.ConditionEvent.createMessage;
 
 @PublicAPI(usage = INHERITANCE)
 public abstract class ArchCondition<T> {
@@ -115,5 +121,110 @@ public abstract class ArchCondition<T> {
     @SuppressWarnings("unchecked") // Cast is safe since input parameter is contravariant
     public <U extends T> ArchCondition<U> forSubtype() {
         return (ArchCondition<U>) this;
+    }
+
+    /**
+     * Creates an {@link ArchCondition} from a {@link DescribedPredicate}.
+     * For more information see {@link ConditionByPredicate ConditionByPredicate}.
+     * For more convenient versions of this method compare {@link ArchConditions#have(DescribedPredicate)} and {@link ArchConditions#be(DescribedPredicate)}.
+     *
+     * @param predicate Specifies which objects satisfy the condition.
+     * @return A {@link ConditionByPredicate ConditionByPredicate} derived from the supplied {@link DescribedPredicate predicate}
+     * @param <T> The type of object the {@link ArchCondition condition} will check
+     *
+     * @see ArchConditions#have(DescribedPredicate)
+     * @see ArchConditions#be(DescribedPredicate)
+     */
+    @PublicAPI(usage = ACCESS)
+    public static <T extends HasDescription & HasSourceCodeLocation> ConditionByPredicate<T> from(DescribedPredicate<? super T> predicate) {
+        return new ConditionByPredicate<>(predicate);
+    }
+
+    /**
+     * An {@link ArchCondition} that derives which objects satisfy/violate the condition from a {@link DescribedPredicate}.
+     * The description is taken from the defining {@link DescribedPredicate predicate} but can be overridden via {@link #as(String, Object...)}.
+     * How the message of each single {@link ConditionEvent event} is derived can be customized by {@link #describeEventsBy(EventDescriber)}.
+     *
+     * @param <T> The type of object the condition will test
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final class ConditionByPredicate<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
+        private final DescribedPredicate<T> predicate;
+        private final EventDescriber eventDescriber;
+
+        private ConditionByPredicate(DescribedPredicate<? super T> predicate) {
+            this(predicate, predicate.getDescription(), ((predicateDescription, satisfied) -> (satisfied ? "satisfies " : "does not satisfy ") + predicateDescription));
+        }
+
+        private ConditionByPredicate(
+                DescribedPredicate<? super T> predicate,
+                String description,
+                EventDescriber eventDescriber
+        ) {
+            super(description);
+            this.predicate = predicate.forSubtype();
+            this.eventDescriber = eventDescriber;
+        }
+
+        /**
+         * Adjusts how this {@link ConditionByPredicate condition} will create the description of the {@link ConditionEvent events}.
+         * E.g. assume the {@link DescribedPredicate predicate} of this condition is {@link JavaClass.Predicates#simpleName(String) simpleName(name)},
+         * then this method could be used to adjust the event description as
+         *
+         * <pre><code>
+         * condition.describeEventsBy((predicateDescription, satisfied) ->
+         *     (satisfied ? "has " : "does not have ") + predicateDescription
+         * )</code></pre>
+         *
+         * @param eventDescriber Specifies how to create the description of the {@link ConditionEvent}
+         *                       whenever the predicate is evaluated against an object.
+         * @return A {@link ConditionByPredicate ConditionByPredicate} that describes its {@link ConditionEvent events} with the given {@link EventDescriber EventDescriber}
+         */
+        @PublicAPI(usage = ACCESS)
+        public ConditionByPredicate<T> describeEventsBy(EventDescriber eventDescriber) {
+            return new ConditionByPredicate<>(
+                    predicate,
+                    getDescription(),
+                    eventDescriber
+            );
+        }
+
+        @Override
+        public ConditionByPredicate<T> as(String description, Object... args) {
+            return new ConditionByPredicate<>(predicate, String.format(description, args), eventDescriber);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked") // Cast is safe since input parameter is contravariant
+        public <U extends T> ConditionByPredicate<U> forSubtype() {
+            return (ConditionByPredicate<U>) this;
+        }
+
+        @Override
+        public void check(T object, ConditionEvents events) {
+            boolean satisfied = predicate.test(object);
+            String message = createMessage(object, eventDescriber.describe(predicate.getDescription(), satisfied));
+            events.add(new SimpleConditionEvent(object, satisfied, message));
+        }
+
+        /**
+         * Defines how to describe a single {@link ConditionEvent}. E.g. how to describe the concrete violation of some class
+         * {@code com.Example} that violates the {@link ConditionByPredicate}.
+         */
+        @FunctionalInterface
+        @PublicAPI(usage = INHERITANCE)
+        public interface EventDescriber {
+            /**
+             * Describes a {@link ConditionEvent} created by {@link ConditionByPredicate ConditionByPredicate},
+             * given the description of the defining predicate and whether the predicate was satisfied.<br>
+             * For example, if the defining {@link DescribedPredicate} would be {@link JavaClass.Predicates#simpleName(String)}, then
+             * the created description could be {@code (satisfied ? "has " : "does not have ") + predicateDescription}.
+             *
+             * @param predicateDescription The description of the {@link DescribedPredicate} defining the {@link ConditionByPredicate ConditionByPredicate}
+             * @param satisfied Whether the object tested by the {@link ConditionByPredicate ConditionByPredicate} satisfied the condition
+             * @return The description of the {@link ConditionEvent} to be created
+             */
+            String describe(String predicateDescription, boolean satisfied);
+        }
     }
 }

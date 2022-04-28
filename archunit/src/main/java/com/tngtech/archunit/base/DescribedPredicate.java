@@ -84,7 +84,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
      * Convenience method to downcast the predicate. {@link DescribedPredicate DescribedPredicates} are contravariant by nature,
      * i.e. an {@code DescribedPredicate<T>} is an instance of {@code DescribedPredicate<V>}, if and only if {@code V} is an instance of {@code T}.
      * <br>
-     * Take for example {@code Object > String}. Obviously an {@code DescribedPredicate<Object>} is also a {@code DescribedPredicate<String>}.
+     * Take for example {@code Object > String}. Obviously a {@code DescribedPredicate<Object>} is also a {@code DescribedPredicate<String>}.
      * <br>
      * Unfortunately, the Java type system does not allow us to express this property of the type parameter of {@code DescribedPredicate}.
      * So to avoid forcing users to cast everywhere it is possible to use this method which also documents the intention and reasoning.

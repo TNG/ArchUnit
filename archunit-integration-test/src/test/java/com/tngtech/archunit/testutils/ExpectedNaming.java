@@ -19,20 +19,20 @@ public class ExpectedNaming {
         }
 
         public ExpectedMessage notStartingWith(String prefix) {
-            return expectedSimpleName(String.format("does not start with '%s'", prefix));
+            return expectedClassViolation(String.format("does not have simple name starting with '%s'", prefix));
         }
 
         public ExpectedMessage notEndingWith(String suffix) {
-            return expectedSimpleName(String.format("does not end with '%s'", suffix));
+            return expectedClassViolation(String.format("does not have simple name ending with '%s'", suffix));
         }
 
         public ExpectedMessage containing(String infix) {
-            return expectedSimpleName(String.format("contains '%s'", infix));
+            return expectedClassViolation(String.format("has simple name containing '%s'", infix));
         }
 
-        private ExpectedMessage expectedSimpleName(String suffix) {
-            return new ExpectedMessage(String.format("simple name of %s %s in (%s.java:0)",
-                    className, suffix, simpleName));
+        private ExpectedMessage expectedClassViolation(String description) {
+            return new ExpectedMessage(String.format("Class <%s> %s in (%s.java:0)",
+                    className, description, simpleName));
         }
     }
 }
