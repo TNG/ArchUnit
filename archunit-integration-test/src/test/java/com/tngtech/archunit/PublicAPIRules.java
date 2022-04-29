@@ -128,6 +128,7 @@ public class PublicAPIRules {
                     .and(are(declaredIn(modifier(PUBLIC))))
                     .and(are(not(declaredIn(annotatedWith(Internal.class)))))
                     .and(have(modifier(PUBLIC)))
+                    .and(not(have(HasReturnType.Predicates.rawReturnType(is(assignableTo(ArchCondition.class))))))
                     .should(haveContravariantPredicateParameterTypes())
                     .as(String.format(
                             "Public API methods that take a %s<PARAM> should declare the type parameter contravariantly (i.e. %s<? super PARAM>)",
