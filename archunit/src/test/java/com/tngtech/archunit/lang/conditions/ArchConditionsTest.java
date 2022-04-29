@@ -28,11 +28,13 @@ import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.Wi
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideIn;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessClassesThatResideInAnyPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.be;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWhere;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containAnyElementThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.declareThrowableOfType;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.have;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyBeAccessedByAnyPackage;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependentsInAnyPackage;
@@ -100,6 +102,25 @@ public class ArchConditionsTest {
         assertThat(containOnlyElementsThat(conditionWithDescription("something")))
                 .hasDescription("contain only elements that something");
     }
+
+    @Test
+    public void descriptionsOfWrappedHavePredicates() {
+        JavaClass accessedClass = importClasses( SomeClass.class ).get( SomeClass.class );
+
+        assertThat( have( JavaClass.Predicates.simpleName( "SimpleName" ) ) )
+                .hasDescription( "have simple name 'SimpleName'" );
+
+        assertThat( have( DescribedPredicate.<JavaClass>alwaysFalse() ) )
+                .checking( accessedClass )
+                .haveOneViolationMessageContaining( "SomeClass> does not have always false" );
+
+        assertThat( be( JavaClass.Predicates.assignableTo( "AnotherClass" ) ) )
+                .hasDescription( "be assignable to AnotherClass" );
+
+        assertThat( be( DescribedPredicate.<JavaClass>alwaysFalse() ) )
+                .checking( accessedClass )
+                .haveOneViolationMessageContaining( "SomeClass> is not always false" );
+   }
 
     @Test
     public void only_have_dependents_where() {
