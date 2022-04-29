@@ -4,7 +4,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -15,6 +17,7 @@ import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -22,6 +25,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.CompositeArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.google.common.collect.Iterables.getLast;
@@ -120,6 +124,22 @@ public class PublicAPIRules {
                     .and().arePublic()
                     .and().doNotHaveName("adhereToPlantUmlDiagram")
                     .should().haveRawParameterTypes(thatArePublic());
+
+    @ArchTest
+    public static final ArchRule methods_converting_from_described_predicate_to_arch_condition_should_not_be_contravariant =
+          codeUnits()
+                  .that().haveRawParameterTypes(anyElementThat(is(assignableTo(DescribedPredicate.class))))
+                  .and(are(declaredIn(modifier(PUBLIC))))
+                  .and(are(not(declaredIn(annotatedWith(Internal.class)))))
+                  .and(are(declaredIn( ArchConditions.class )))
+                  .and(have(modifier(PUBLIC)))
+                  .and(have(HasReturnType.Predicates.rawReturnType(is(assignableTo(ArchCondition.class)))))
+                  .should(ArchConditions.not((haveContravariantPredicateParameterTypes())))
+                  .as(String.format(
+                          "Public API methods that take a %s<PARAM> and convert it to a %s should not declare the type parameter contravariantly (i.e. %s<? super PARAM>)",
+                          DescribedPredicate.class.getSimpleName(), ArchCondition.class.getSimpleName(), DescribedPredicate.class.getSimpleName()))
+                  .because(String.format(
+                          "%ss are already treated contravariantly in the API", ArchCondition.class.getSimpleName()));
 
     @ArchTest
     public static final ArchRule predicate_parameters_of_public_API_code_units_should_be_contravariant =
@@ -363,6 +383,29 @@ public class PublicAPIRules {
                 Type[] parameterTypes = javaCodeUnit.isConstructor()
                         ? ((JavaConstructor) javaCodeUnit).reflect().getGenericParameterTypes()
                         : ((JavaMethod) javaCodeUnit).reflect().getGenericParameterTypes();
+                if ("be".equals( javaCodeUnit.getName())) {
+                    stream(parameterTypes)
+                          .peek( t -> System.out.println("All: " + t))
+                          .filter(type -> type instanceof ParameterizedType)
+                          .map(type -> (ParameterizedType) type)
+                          .peek( t -> System.out.println("Parameterized: " + t))
+                          .filter(type -> type.getRawType().equals(DescribedPredicate.class))
+                          .peek( t -> System.out.println("Rawtype is DescribedPredicate: " + t))
+                          .map(predicateType -> predicateType.getActualTypeArguments()[0])
+                          .peek( t -> System.out.println("ActualTypeParameter: " + t + ":" + t.getClass()
+                                + "\n !(predicateTypeParameter instanceof WildcardType:" + !(t instanceof WildcardType)
+                                + "\n lower bounds of WildcardType:" + ((t instanceof WildcardType)
+                                ? Arrays.stream( ((WildcardType) t ).getLowerBounds()).map( boundingType -> boundingType.getTypeName() ).collect( Collectors.joining(","))
+                                : "")
+                          ))
+                          .filter(predicateTypeParameter -> !(predicateTypeParameter instanceof WildcardType)
+                                || ((WildcardType) predicateTypeParameter).getLowerBounds().length == 0)
+                          .forEach(type -> {
+                              String message = String.format("%s has a parameter %s<%s> instead of a contravariant type parameter in %s",
+                                    javaCodeUnit.getDescription(), DescribedPredicate.class.getSimpleName(), type.getTypeName(), javaCodeUnit.getSourceCodeLocation());
+                              System.out.println("Adding event: " + message);
+                          });
+                }
 
                 stream(parameterTypes)
                         .filter(type -> type instanceof ParameterizedType)
