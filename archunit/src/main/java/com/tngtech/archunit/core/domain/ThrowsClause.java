@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.ForwardingList;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
@@ -38,7 +39,8 @@ import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_
 import static java.util.stream.Collectors.toList;
 
 public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>>
-        implements HasOwner<LOCATION>, Iterable<ThrowsDeclaration<LOCATION>> {
+        extends ForwardingList<ThrowsDeclaration<LOCATION>>
+        implements HasOwner<LOCATION> {
 
     private final LOCATION location;
     private final List<ThrowsDeclaration<LOCATION>> throwsDeclarations;
@@ -124,7 +126,12 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
 
     static <LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>>
     ThrowsClause<LOCATION> empty(LOCATION location) {
-        return new ThrowsClause<>(location, Collections.<JavaClass>emptyList());
+        return new ThrowsClause<>(location, Collections.emptyList());
+    }
+
+    @Override
+    protected List<ThrowsDeclaration<LOCATION>> delegate() {
+        return throwsDeclarations;
     }
 
     public static final class Functions {

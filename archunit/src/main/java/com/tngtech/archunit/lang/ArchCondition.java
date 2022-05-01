@@ -45,7 +45,7 @@ public abstract class ArchCondition<T> {
      *
      * @param allObjectsToTest All objects that {@link #check(Object, ConditionEvents)} will be called against
      */
-    public void init(Iterable<T> allObjectsToTest) {
+    public void init(Collection<T> allObjectsToTest) {
     }
 
     public abstract void check(T item, ConditionEvents events);
@@ -74,7 +74,7 @@ public abstract class ArchCondition<T> {
     public ArchCondition<T> as(String description, Object... args) {
         return new ArchCondition<T>(description, args) {
             @Override
-            public void init(Iterable<T> allObjectsToTest) {
+            public void init(Collection<T> allObjectsToTest) {
                 ArchCondition.this.init(allObjectsToTest);
             }
 
@@ -113,7 +113,7 @@ public abstract class ArchCondition<T> {
         }
 
         @Override
-        public void init(Iterable<T> allObjectsToTest) {
+        public void init(Collection<T> allObjectsToTest) {
             for (ArchCondition<T> condition : conditions) {
                 condition.init(allObjectsToTest);
             }

@@ -46,7 +46,6 @@ import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_N
 import static java.lang.System.lineSeparator;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static final Logger log = LoggerFactory.getLogger(SliceCycleArchCondition.class);
@@ -62,7 +61,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     }
 
     @Override
-    public void init(Iterable<Slice> allSlices) {
+    public void init(Collection<Slice> allSlices) {
         initializeResources(allSlices);
         graph.addNodes(allSlices);
     }

@@ -17,15 +17,18 @@ package com.tngtech.archunit.lang;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
@@ -220,7 +223,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
 
             @Override
             public EvaluationResult evaluate(JavaClasses classes) {
-                Iterable<T> allObjects = classesTransformer.transform(classes);
+                Collection<T> allObjects = toCollection(classesTransformer.transform(classes));
                 verifyNoEmptyShouldIfEnabled(allObjects);
 
                 condition.init(allObjects);
@@ -230,6 +233,13 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
                 }
                 condition.finish(events);
                 return new EvaluationResult(this, events, priority);
+            }
+
+            @SuppressWarnings("unchecked")
+            private Collection<T> toCollection(DescribedIterable<T> iterable) {
+                return iterable instanceof Collection
+                        ? (Collection<T>) iterable
+                        : ImmutableList.copyOf(iterable);
             }
 
             private void verifyNoEmptyShouldIfEnabled(Iterable<T> allObjects) {

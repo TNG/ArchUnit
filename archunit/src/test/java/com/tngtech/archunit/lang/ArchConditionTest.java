@@ -264,7 +264,7 @@ public class ArchConditionTest {
         }
 
         @Override
-        public void init(Iterable<String> allObjectsToTest) {
+        public void init(Collection<String> allObjectsToTest) {
             this.allObjectsToTest = allObjectsToTest;
         }
 
