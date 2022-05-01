@@ -20,13 +20,17 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.engine_api.FieldSelector;
@@ -144,11 +148,21 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
     }
 
     private Stream<JavaClass> getContainedClasses(String[] packages) {
-        return new ClassFileImporter().importPackages(packages).stream();
+        if (packages.length == 0) {
+            return Stream.empty();
+        }
+        return discoverClasses(importer -> importer.importPackages(packages));
     }
 
     private Stream<JavaClass> getContainedClasses(ClasspathRootSelector selector) {
-        return new ClassFileImporter().importUrl(toUrl(selector.getClasspathRoot())).stream();
+        return discoverClasses(importer -> importer.importUrl(toUrl(selector.getClasspathRoot())));
+    }
+
+    private Stream<JavaClass> discoverClasses(Function<ClassFileImporter, JavaClasses> importClasses) {
+        return ArchConfiguration.withThreadLocalScope(configuration -> {
+            configuration.setClassResolver(NoOpClassResolver.class);
+            return importClasses.apply(new ClassFileImporter()).stream();
+        });
     }
 
     private Predicate<JavaClass> isAllowedBy(EngineDiscoveryRequest discoveryRequest) {
@@ -201,6 +215,17 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
 
         ClassCache get() {
             return cache;
+        }
+    }
+
+    static class NoOpClassResolver implements ClassResolver {
+        @Override
+        public void setClassUriImporter(ClassUriImporter classUriImporter) {
+        }
+
+        @Override
+        public Optional<JavaClass> tryResolve(String typeName) {
+            return Optional.empty();
         }
     }
 }

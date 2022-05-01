@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.base.Joiner;
@@ -55,31 +57,36 @@ public final class ArchConfiguration {
     private static final Logger LOG = LoggerFactory.getLogger(ArchConfiguration.class);
 
     private static final Supplier<ArchConfiguration> INSTANCE = Suppliers.memoize(ArchConfiguration::new);
+    private static final ThreadLocal<ArchConfiguration> threadLocalConfiguration = new ThreadLocal<>();
 
     @PublicAPI(usage = ACCESS)
     public static ArchConfiguration get() {
-        return INSTANCE.get();
+        return threadLocalConfiguration.get() != null ? threadLocalConfiguration.get() : INSTANCE.get();
     }
 
     private final String propertiesResourceName;
-    private final PropertiesOverwritableBySystemProperties properties = new PropertiesOverwritableBySystemProperties();
+    private PropertiesOverwritableBySystemProperties properties;
 
     private ArchConfiguration() {
         this(ARCHUNIT_PROPERTIES_RESOURCE_NAME);
     }
 
     private ArchConfiguration(String propertiesResourceName) {
-        this.propertiesResourceName = propertiesResourceName;
-        readProperties(propertiesResourceName);
+        this(propertiesResourceName, readProperties(propertiesResourceName));
     }
 
-    private void readProperties(String propertiesResourceName) {
-        properties.clear();
+    private ArchConfiguration(String propertiesResourceName, PropertiesOverwritableBySystemProperties properties) {
+        this.propertiesResourceName = propertiesResourceName;
+        this.properties = properties;
+    }
 
-        URL archUnitPropertiesUrl = getCurrentClassLoader(getClass()).getResource(propertiesResourceName);
+    private static PropertiesOverwritableBySystemProperties readProperties(String propertiesResourceName) {
+        PropertiesOverwritableBySystemProperties properties = new PropertiesOverwritableBySystemProperties();
+
+        URL archUnitPropertiesUrl = getCurrentClassLoader(ArchConfiguration.class).getResource(propertiesResourceName);
         if (archUnitPropertiesUrl == null) {
             LOG.debug("No configuration found in classpath at {} => Using default configuration", propertiesResourceName);
-            return;
+            return properties;
         }
 
         try (InputStream inputStream = archUnitPropertiesUrl.openStream()) {
@@ -88,11 +95,12 @@ public final class ArchConfiguration {
         } catch (IOException e) {
             LOG.warn("Error reading ArchUnit properties from " + archUnitPropertiesUrl, e);
         }
+        return properties;
     }
 
     @PublicAPI(usage = ACCESS)
     public void reset() {
-        readProperties(propertiesResourceName);
+        properties = readProperties(propertiesResourceName);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -262,18 +270,76 @@ public final class ArchConfiguration {
         return properties.getProperty(propertyName, defaultValue);
     }
 
+    /**
+     * Same as {@link #withThreadLocalScope(Function)} but does not return a value.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static void withThreadLocalScope(Consumer<ArchConfiguration> doWithThreadLocalConfiguration) {
+        withThreadLocalScope(configuration -> {
+            doWithThreadLocalConfiguration.accept(configuration);
+            return null;
+        });
+    }
+
+    /**
+     * Sets up a thread local copy of the current {@link ArchConfiguration} to be freely modified.
+     * Within the current thread and the scope of {@code doWithThreadLocalConfiguration}
+     * {@link ArchConfiguration#get() ArchConfiguration.get()} will return the thread local configuration,
+     * i.e. adjustments to the configuration passed to {@code doWithThreadLocalConfiguration} will be
+     * picked up by ArchUnit while executing from this thread within the scope of
+     * {@code doWithThreadLocalConfiguration}.<br><br>
+     * For example:
+     *
+     * <pre><code>
+     * ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(true);
+     *
+     * JavaClasses classesWithoutResolvingFromClasspath =
+     *   ArchConfiguration.withThreadLocalScope((ArchConfiguration configuration) -> {
+     *     configuration.setResolveMissingDependenciesFromClassPath(false);
+     *     return new ClassFileImporter().importPackages(..) // will now not resolve from classpath
+     *   });
+     *
+     * JavaClasses classesWithResolvingFromClasspath =
+     *   new ClassFileImporter().importPackages(..) // will now see the original value and resolve from classpath
+     * </code></pre>
+     *
+     * @param doWithThreadLocalConfiguration A lambda that allows to execute code that will see the thread
+     *                                       local {@link ArchConfiguration} instead of the global one. Once
+     *                                       the lambda has been executed the thread local configuration
+     *                                       is cleaned up and all threads will see the global configuration
+     *                                       again.
+     */
+    @PublicAPI(usage = ACCESS)
+    public static <T> T withThreadLocalScope(Function<ArchConfiguration, T> doWithThreadLocalConfiguration) {
+        ArchConfiguration configuration = INSTANCE.get().copy();
+        ArchConfiguration.threadLocalConfiguration.set(configuration);
+        try {
+            return doWithThreadLocalConfiguration.apply(configuration);
+        } finally {
+            ArchConfiguration.threadLocalConfiguration.set(null);
+        }
+    }
+
+    private ArchConfiguration copy() {
+        return new ArchConfiguration(propertiesResourceName, properties.copy());
+    }
+
     private static class PropertiesOverwritableBySystemProperties {
         private static final Properties PROPERTY_DEFAULTS = createProperties(ImmutableMap.of(
                 RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH, Boolean.TRUE.toString(),
                 ENABLE_MD5_IN_CLASS_SOURCES, Boolean.FALSE.toString()
         ));
 
-        private final Properties baseProperties = createProperties(PROPERTY_DEFAULTS);
-        private final Properties overwrittenProperties = new Properties();
+        private final Properties baseProperties;
+        private final Properties overwrittenProperties;
 
-        void clear() {
-            replaceProperties(baseProperties, PROPERTY_DEFAULTS);
-            overwrittenProperties.clear();
+        PropertiesOverwritableBySystemProperties() {
+            this(createProperties(PROPERTY_DEFAULTS), new Properties());
+        }
+
+        PropertiesOverwritableBySystemProperties(Properties baseProperties, Properties overwrittenProperties) {
+            this.baseProperties = baseProperties;
+            this.overwrittenProperties = overwrittenProperties;
         }
 
         void load(InputStream inputStream) throws IOException {
@@ -328,6 +394,14 @@ public final class ArchConfiguration {
             Properties result = new Properties();
             result.putAll(entries);
             return result;
+        }
+
+        PropertiesOverwritableBySystemProperties copy() {
+            return new PropertiesOverwritableBySystemProperties(copy(baseProperties), copy(overwrittenProperties));
+        }
+
+        private Properties copy(Properties properties) {
+            return (Properties) properties.clone();
         }
     }
 

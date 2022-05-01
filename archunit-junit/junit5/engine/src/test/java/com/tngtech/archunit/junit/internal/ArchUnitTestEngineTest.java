@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.junit.engine_api.FieldSelector;
@@ -49,7 +50,10 @@ import com.tngtech.archunit.junit.internal.testexamples.subone.SimpleRuleMethod;
 import com.tngtech.archunit.junit.internal.testexamples.subtwo.SimpleRules;
 import com.tngtech.archunit.junit.internal.testexamples.wrong.WrongRuleMethodNotStatic;
 import com.tngtech.archunit.junit.internal.testexamples.wrong.WrongRuleMethodWrongParameters;
+import com.tngtech.archunit.junit.internal.testutil.LogCaptor;
 import com.tngtech.archunit.junit.internal.testutil.MockitoExtension;
+import com.tngtech.archunit.junit.internal.testutil.TestLogExtension;
+import com.tngtech.archunit.testutil.TestLogRecorder.RecordedLogEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -89,6 +93,7 @@ import static java.util.Collections.singleton;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.logging.log4j.Level.DEBUG;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.platform.engine.TestDescriptor.Type.CONTAINER;
@@ -729,13 +734,7 @@ class ArchUnitTestEngineTest {
 
         @Test
         void without_importing_classes_already() {
-            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
-                    .withClass(SimpleRuleField.class)
-                    .withClasspathRoot(uriOfClass(SimpleRuleField.class))
-                    .withField(SimpleRuleField.class, SimpleRuleField.SIMPLE_RULE_FIELD_NAME)
-                    .withPackage(SimpleRuleField.class.getPackage().getName())
-                    .withMethod(SimpleRuleMethod.class, SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME)
-                    .withUniqueId(simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME));
+            EngineDiscoveryTestRequest discoveryRequest = discoveryRequestUsingAllMethodsOfDiscovery();
 
             doThrow(new AssertionError("The cache should not be queried during discovery, "
                     + "otherwise classes will be imported when tests are possibly skipped afterwards"))
@@ -744,6 +743,39 @@ class ArchUnitTestEngineTest {
             TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
 
             assertThat(rootDescriptor).isNotNull();
+        }
+
+        @Test
+        @ExtendWith(TestLogExtension.class)
+        void without_scanning_unnecessary_classes_for_tests(LogCaptor logCaptor) {
+            EngineDiscoveryTestRequest discoveryRequest = discoveryRequestUsingAllMethodsOfDiscovery();
+
+            logCaptor.watch(ClassFileImporter.class, DEBUG);
+            testEngine.discover(discoveryRequest, engineId);
+
+            // since we discover the classes from the classpath with ArchUnit we expect DEBUG log entries for the test classes
+            assertThat(logCaptor.getEvents(DEBUG).stream())
+                    .extracting(RecordedLogEvent::getMessage)
+                    .as("messages of log events with level " + DEBUG)
+                    .anySatisfy(message -> assertThat(message)
+                            .matches(".*Processing class '.*" + SimpleRuleField.class.getSimpleName() + "'"));
+
+            // but we do not want to transitively resolve dependencies of those classes like java.lang.Object
+            assertThat(logCaptor.getEvents(DEBUG).stream())
+                    .extracting(RecordedLogEvent::getMessage)
+                    .as("messages of log events with level " + DEBUG)
+                    .noneSatisfy(message -> assertThat(message)
+                            .matches(".*Processing class '.*" + Object.class.getSimpleName() + "'"));
+        }
+
+        private EngineDiscoveryTestRequest discoveryRequestUsingAllMethodsOfDiscovery() {
+            return new EngineDiscoveryTestRequest()
+                    .withClass(SimpleRuleField.class)
+                    .withClasspathRoot(uriOfClass(SimpleRuleField.class))
+                    .withField(SimpleRuleField.class, SimpleRuleField.SIMPLE_RULE_FIELD_NAME)
+                    .withPackage(SimpleRuleField.class.getPackage().getName())
+                    .withMethod(SimpleRuleMethod.class, SimpleRuleMethod.SIMPLE_RULE_METHOD_NAME)
+                    .withUniqueId(simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME));
         }
 
         private Set<TestTag> getTagsForIdEndingIn(String suffix, Map<UniqueId, Set<TestTag>> tagsById) {

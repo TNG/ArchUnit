@@ -6,6 +6,7 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Properties;
 
+import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.archunit.testutil.SystemPropertiesRule;
 import org.junit.After;
 import org.junit.Before;
@@ -31,6 +32,9 @@ public class ArchConfigurationTest {
 
     @Rule
     public final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
+
+    @Rule
+    public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @Before
     public void setUp() {
@@ -259,6 +263,68 @@ public class ArchConfigurationTest {
         ArchConfiguration configuration = testConfiguration(PROPERTIES_FILE_NAME);
 
         assertThat(configuration.getPropertyOrDefault("unconfigured.property", "default")).isEqualTo("default");
+    }
+
+    @Test
+    public void overrides_property_thread_locally_using_function() {
+        String propertyName = "some.property";
+        String globalValue = "global.value";
+        String globalValueFromOtherThread = "from.other.thread";
+        ArchConfiguration.get().setProperty(propertyName, globalValue);
+
+        String result = ArchConfiguration.withThreadLocalScope((ArchConfiguration configuration) -> {
+            // originally the thread local configuration has the same values as the global one
+            assertThat(ArchConfiguration.get().getProperty(propertyName)).isEqualTo(globalValue);
+
+            String localValue = "local.value";
+            configuration.setProperty(propertyName, localValue);
+
+            waitForOtherThreadToExecute(() -> {
+                ArchConfiguration.get().setProperty(propertyName, globalValueFromOtherThread);
+                // within the other thread the configuration update is visible
+                assertThat(ArchConfiguration.get().getProperty(propertyName)).isEqualTo(globalValueFromOtherThread);
+            });
+
+            // within the scope of this thread and lambda the thread local value remained unchanged
+            assertThat(ArchConfiguration.get().getProperty(propertyName)).isEqualTo(localValue);
+            return "success";
+        });
+        assertThat(result).as("result from lambda").isEqualTo("success");
+
+        // the update from the other thread has been made to the global configuration
+        assertThat(ArchConfiguration.get().getProperty(propertyName)).isEqualTo(globalValueFromOtherThread);
+    }
+
+    @Test
+    public void overrides_property_thread_locally_using_consumer() {
+        String propertyName = "some.property";
+        String globalValue = "global.value";
+        ArchConfiguration.get().setProperty(propertyName, globalValue);
+
+        ArchConfiguration.withThreadLocalScope((ArchConfiguration configuration) -> {
+            String localValue = "local.value";
+            configuration.setProperty(propertyName, localValue);
+            // within the scope of this thread and lambda the value can be changed
+            assertThat(ArchConfiguration.get().getProperty(propertyName)).isEqualTo(localValue);
+        });
+
+        ArchConfiguration.withThreadLocalScope((ArchConfiguration configuration) -> {
+            // at the end of the last lambda the configuration has been cleaned up
+            assertThat(ArchConfiguration.get().getProperty(propertyName)).isEqualTo(globalValue);
+        });
+
+        // the global configuration has been unchanged
+        assertThat(ArchConfiguration.get().getProperty(propertyName)).isEqualTo(globalValue);
+    }
+
+    private void waitForOtherThreadToExecute(Runnable runnable) {
+        Thread thread = new Thread(runnable);
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String subPropertyKeyOf(String customPropertyName) {
