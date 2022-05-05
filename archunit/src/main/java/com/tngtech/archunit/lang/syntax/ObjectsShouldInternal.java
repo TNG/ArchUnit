@@ -15,11 +15,11 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
-import com.tngtech.archunit.base.Optional;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
@@ -150,7 +150,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
 
     private abstract static class AddMode<T> {
         static <T> AddMode<T> and() {
-            return and(Functions.<ArchCondition<T>>identity());
+            return and(Function.identity());
         }
 
         static <T> AddMode<T> and(final Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
@@ -177,11 +177,6 @@ class ObjectsShouldInternal<T> implements ArchRule {
     }
 
     static <T> Function<ArchCondition<T>, ArchCondition<T>> prependDescription(final String prefix) {
-        return new Function<ArchCondition<T>, ArchCondition<T>>() {
-            @Override
-            public ArchCondition<T> apply(ArchCondition<T> input) {
-                return input.as(prefix + " " + input.getDescription());
-            }
-        };
+        return input -> input.as(prefix + " " + input.getDescription());
     }
 }

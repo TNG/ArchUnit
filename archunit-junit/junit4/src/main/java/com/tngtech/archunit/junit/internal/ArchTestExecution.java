@@ -22,7 +22,6 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
-import static com.tngtech.archunit.junit.internal.ArchTestInitializationException.WRAP_CAUSE;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getValueOrThrowException;
 
 abstract class ArchTestExecution {
@@ -50,7 +49,7 @@ abstract class ArchTestExecution {
     }
 
     static <T> T getValue(Field field, Class<?> fieldOwner) {
-        return getValueOrThrowException(field, fieldOwner, WRAP_CAUSE);
+        return getValueOrThrowException(field, fieldOwner, ArchTestInitializationException::new);
     }
 
     abstract static class Result {

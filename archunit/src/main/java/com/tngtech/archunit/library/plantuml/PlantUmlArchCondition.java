@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.PackageMatcher;
@@ -35,7 +36,6 @@ import com.tngtech.archunit.lang.ConditionEvents;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
@@ -138,10 +138,10 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             return;
         }
 
-        String[] allAllowedTargets = FluentIterable
-                .from(javaClassDiagramAssociation.getPackageIdentifiersFromComponentOf(item))
-                .append(javaClassDiagramAssociation.getTargetPackageIdentifiers(item))
-                .toArray(String.class);
+        String[] allAllowedTargets = Sets.union(
+                javaClassDiagramAssociation.getPackageIdentifiersFromComponentOf(item),
+                javaClassDiagramAssociation.getTargetPackageIdentifiers(item)
+        ).toArray(new String[0]);
 
         ArchCondition<JavaClass> delegate = onlyHaveDependenciesInAnyPackage(allAllowedTargets)
                 .ignoreDependency(ignorePredicate);
@@ -150,7 +150,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     }
 
     private boolean allDependenciesAreIgnored(JavaClass item) {
-        return FluentIterable.from(item.getDirectDependenciesFromSelf()).allMatch(toGuava(ignorePredicate));
+        return item.getDirectDependenciesFromSelf().stream().allMatch(ignorePredicate);
     }
 
     /**
@@ -219,12 +219,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
          */
         @PublicAPI(usage = ACCESS)
         public static Configuration consideringAllDependencies() {
-            return new Configuration() {
-                @Override
-                public DescribedPredicate<Dependency> asIgnorePredicate(JavaClassDiagramAssociation javaClassDiagramAssociation) {
-                    return DescribedPredicate.<Dependency>alwaysFalse().as("");
-                }
-            };
+            return javaClassDiagramAssociation -> DescribedPredicate.<Dependency>alwaysFalse().as("");
         }
 
         /**
@@ -234,12 +229,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
          */
         @PublicAPI(usage = ACCESS)
         public static Configuration consideringOnlyDependenciesInDiagram() {
-            return new Configuration() {
-                @Override
-                public DescribedPredicate<Dependency> asIgnorePredicate(final JavaClassDiagramAssociation javaClassDiagramAssociation) {
-                    return new NotContainedInDiagramPredicate(javaClassDiagramAssociation);
-                }
-            };
+            return NotContainedInDiagramPredicate::new;
         }
 
         /**
@@ -253,12 +243,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
                     .append(furtherPackageIdentifiers)
                     .toList();
 
-            return new Configuration() {
-                @Override
-                public DescribedPredicate<Dependency> asIgnorePredicate(final JavaClassDiagramAssociation javaClassDiagramAssociation) {
-                    return new NotContainedInPackagesPredicate(packageIdentifiers);
-                }
-            };
+            return javaClassDiagramAssociation -> new NotContainedInPackagesPredicate(packageIdentifiers);
         }
 
         private static class NotContainedInDiagramPredicate extends DescribedPredicate<Dependency> {
@@ -270,7 +255,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             }
 
             @Override
-            public boolean apply(Dependency input) {
+            public boolean test(Dependency input) {
                 return !javaClassDiagramAssociation.contains(input.getTargetClass());
             }
         }
@@ -284,8 +269,8 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             }
 
             @Override
-            public boolean apply(Dependency input) {
-                return !PackageMatchers.of(packageIdentifiers).apply(input.getTargetClass().getPackageName());
+            public boolean test(Dependency input) {
+                return !PackageMatchers.of(packageIdentifiers).test(input.getTargetClass().getPackageName());
             }
         }
     }

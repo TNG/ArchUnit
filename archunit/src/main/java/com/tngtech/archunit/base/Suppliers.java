@@ -15,27 +15,13 @@
  */
 package com.tngtech.archunit.base;
 
-import com.tngtech.archunit.PublicAPI;
+import java.util.function.Supplier;
 
-import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import com.tngtech.archunit.Internal;
 
-@PublicAPI(usage = INHERITANCE)
-public interface Function<F, T> {
-    T apply(F input);
-
-    final class Functions {
-        private Functions() {
-        }
-
-        @PublicAPI(usage = ACCESS)
-        public static <T> Function<T, T> identity() {
-            return new Function<T, T>() {
-                @Override
-                public T apply(T input) {
-                    return input;
-                }
-            };
-        }
+@Internal
+public class Suppliers {
+    public static <T> Supplier<T> memoize(Supplier<T> supplier) {
+        return com.google.common.base.Suppliers.memoize(supplier::get);
     }
 }

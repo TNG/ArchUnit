@@ -156,12 +156,7 @@ public class ClassesShouldConjunctionTest {
     }
 
     private Comparator<String> matchesRegex() {
-        return new Comparator<String>() {
-            @Override
-            public int compare(String element, String assertAgainst) {
-                return element.matches(assertAgainst) ? 0 : element.compareTo(assertAgainst);
-            }
-        };
+        return (element, assertAgainst) -> element.matches(assertAgainst) ? 0 : element.compareTo(assertAgainst);
     }
 
     private static class RightOne {

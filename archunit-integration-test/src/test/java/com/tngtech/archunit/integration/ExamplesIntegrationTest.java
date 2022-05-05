@@ -197,6 +197,7 @@ import static com.tngtech.archunit.testutils.ExpectedViolation.clazz;
 import static com.tngtech.archunit.testutils.ExpectedViolation.javaPackageOf;
 import static com.tngtech.archunit.testutils.SliceDependencyErrorMatcher.sliceDependency;
 import static java.lang.System.lineSeparator;
+import static java.util.stream.Collectors.toList;
 
 class ExamplesIntegrationTest {
 
@@ -1265,12 +1266,7 @@ class ExamplesIntegrationTest {
         return new MessageAssertionChain.Link() {
             @Override
             public Result filterMatching(List<String> lines) {
-                List<String> rest = new ArrayList<>();
-                for (String line : lines) {
-                    if (!line.equals(expectedLine)) {
-                        rest.add(line);
-                    }
-                }
+                List<String> rest = lines.stream().filter(line -> !line.equals(expectedLine)).collect(toList());
                 boolean matches = (rest.size() == lines.size() - 1);
                 return new Result(matches, rest, String.format("No line matched '%s'", expectedLine));
             }

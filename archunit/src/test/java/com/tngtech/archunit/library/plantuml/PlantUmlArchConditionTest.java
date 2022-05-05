@@ -245,12 +245,7 @@ public class PlantUmlArchConditionTest {
         return new Condition<List<? extends String>>(String.format("line matching '%s'", pattern)) {
             @Override
             public boolean matches(List<? extends String> lines) {
-                for (String line : lines) {
-                    if (line.matches(pattern)) {
-                        return true;
-                    }
-                }
-                return false;
+                return lines.stream().anyMatch(line -> line.matches(pattern));
             }
         };
     }

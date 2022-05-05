@@ -627,7 +627,7 @@ public class CodeUnitsShouldTest {
     private static DescribedPredicate<JavaCodeUnit> doNotHaveParametersOfType(final Class<?> type) {
         return new DescribedPredicate<JavaCodeUnit>("do not have parameters of type " + type.getSimpleName()) {
             @Override
-            public boolean apply(JavaCodeUnit codeUnit) {
+            public boolean test(JavaCodeUnit codeUnit) {
                 return !namesOf(codeUnit.getRawParameterTypes()).contains(type.getName());
             }
         };

@@ -1,15 +1,14 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
@@ -92,6 +91,8 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.emptySet;
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -288,84 +289,24 @@ public class MembersShouldTest {
                 $(constructors().should().notHaveModifier(PRIVATE), ImmutableSet.of(CONSTRUCTOR_PRIVATE)));
 
         data.add(annotatedWithDataPoints(
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.beAnnotatedWith(A.class);
-                    }
-                },
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.notBeAnnotatedWith(A.class);
-                    }
-                }));
+                membersShould -> membersShould.beAnnotatedWith(A.class),
+                membersShould -> membersShould.notBeAnnotatedWith(A.class)));
         data.add(annotatedWithDataPoints(
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.beAnnotatedWith(A.class.getName());
-                    }
-                },
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.notBeAnnotatedWith(A.class.getName());
-                    }
-                }));
+                membersShould -> membersShould.beAnnotatedWith(A.class.getName()),
+                membersShould -> membersShould.notBeAnnotatedWith(A.class.getName())));
         data.add(annotatedWithDataPoints(
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.beAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class)));
-                    }
-                },
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.notBeAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class)));
-                    }
-                }));
+                membersShould -> membersShould.beAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class))),
+                membersShould -> membersShould.notBeAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(A.class)))));
 
         data.add(annotatedWithDataPoints(
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.beMetaAnnotatedWith(MetaAnnotation.class);
-                    }
-                },
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.notBeMetaAnnotatedWith(MetaAnnotation.class);
-                    }
-                }));
+                membersShould -> membersShould.beMetaAnnotatedWith(MetaAnnotation.class),
+                membersShould -> membersShould.notBeMetaAnnotatedWith(MetaAnnotation.class)));
         data.add(annotatedWithDataPoints(
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.beMetaAnnotatedWith(MetaAnnotation.class.getName());
-                    }
-                },
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.notBeMetaAnnotatedWith(MetaAnnotation.class.getName());
-                    }
-                }));
+                membersShould -> membersShould.beMetaAnnotatedWith(MetaAnnotation.class.getName()),
+                membersShould -> membersShould.notBeMetaAnnotatedWith(MetaAnnotation.class.getName())));
         data.add(annotatedWithDataPoints(
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.beMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class)));
-                    }
-                },
-                new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                    @Override
-                    public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                        return membersShould.notBeMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class)));
-                    }
-                }));
+                membersShould -> membersShould.beMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class))),
+                membersShould -> membersShould.notBeMetaAnnotatedWith(GET_RAW_TYPE.is(equivalentTo(MetaAnnotation.class)))));
         return data.build().toArray(new Object[0][]);
     }
 
@@ -408,60 +349,20 @@ public class MembersShouldTest {
     public static Object[][] restricted_declaration_rule_ends() {
         return ImmutableList.<Object[]>builder().add(
                 declaredInDataPoints(
-                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                            @Override
-                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                                return membersShould.beDeclaredIn(ClassWithVariousMembers.class);
-                            }
-                        },
-                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                            @Override
-                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                                return membersShould.notBeDeclaredIn(ClassWithVariousMembers.class);
-                            }
-                        }
+                        membersShould -> membersShould.beDeclaredIn(ClassWithVariousMembers.class),
+                        membersShould -> membersShould.notBeDeclaredIn(ClassWithVariousMembers.class)
                 )).add(
                 declaredInDataPoints(
-                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                            @Override
-                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                                return membersShould.beDeclaredIn(ClassWithVariousMembers.class.getName());
-                            }
-                        },
-                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                            @Override
-                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                                return membersShould.notBeDeclaredIn(ClassWithVariousMembers.class.getName());
-                            }
-                        }
+                        membersShould -> membersShould.beDeclaredIn(ClassWithVariousMembers.class.getName()),
+                        membersShould -> membersShould.notBeDeclaredIn(ClassWithVariousMembers.class.getName())
                 )).add(
                 declaredInDataPoints(
-                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                            @Override
-                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                                return membersShould.beDeclaredInClassesThat(equivalentTo(ClassWithVariousMembers.class));
-                            }
-                        },
-                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                            @Override
-                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                                return membersShould.beDeclaredInClassesThat(not(equivalentTo(ClassWithVariousMembers.class)));
-                            }
-                        }
+                        membersShould -> membersShould.beDeclaredInClassesThat(equivalentTo(ClassWithVariousMembers.class)),
+                        membersShould -> membersShould.beDeclaredInClassesThat(not(equivalentTo(ClassWithVariousMembers.class)))
                 )).add(
                 declaredInDataPoints(
-                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                            @Override
-                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                                return membersShould.beDeclaredInClassesThat().areAssignableTo(ClassWithVariousMembers.class);
-                            }
-                        },
-                        new Function<MembersShould<MembersShouldConjunction<?>>, MembersShouldConjunction<?>>() {
-                            @Override
-                            public MembersShouldConjunction<?> apply(MembersShould<MembersShouldConjunction<?>> membersShould) {
-                                return membersShould.beDeclaredInClassesThat().areNotAssignableTo(ClassWithVariousMembers.class);
-                            }
-                        }
+                        membersShould -> membersShould.beDeclaredInClassesThat().areAssignableTo(ClassWithVariousMembers.class),
+                        membersShould -> membersShould.beDeclaredInClassesThat().areNotAssignableTo(ClassWithVariousMembers.class)
                 )).build().toArray(new Object[0][]);
     }
 
@@ -719,21 +620,16 @@ public class MembersShouldTest {
     }
 
     static Set<String> parseMembers(List<Class<?>> possibleOwners, List<String> details) {
-        List<String> classNamePatterns = new ArrayList<>();
-        for (String className : formatNamesOf(possibleOwners)) {
-            classNamePatterns.add(quote(className));
-        }
+        List<String> classNamePatterns = formatNamesOf(possibleOwners).stream().map(Pattern::quote).collect(toList());
         String classesWithMembersRegex = String.format("(?:%s)", Joiner.on("|").join(classNamePatterns));
-        Set<String> result = new HashSet<>();
-        for (String detail : details) {
-            result.add(detail
-                    .replaceAll(
-                            String.format("Field <%s\\.([^:]+)> .*", classesWithMembersRegex),
-                            "$1")
-                    .replaceAll(
-                            String.format("(?:Method|Constructor) <%s\\.([^:]+\\))> .*", classesWithMembersRegex),
-                            "$1"));
-        }
-        return result;
+        return details.stream()
+                .map(detail -> detail
+                        .replaceAll(
+                                String.format("Field <%s\\.([^:]+)> .*", classesWithMembersRegex),
+                                "$1")
+                        .replaceAll(
+                                String.format("(?:Method|Constructor) <%s\\.([^:]+\\))> .*", classesWithMembersRegex),
+                                "$1"))
+                .collect(toSet());
     }
 }

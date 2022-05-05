@@ -141,11 +141,6 @@ public final class Locations {
     }
 
     private static boolean containsEntryWithPrefix(Location location, NormalizedResourceName searchedJarEntryPrefix) {
-        for (NormalizedResourceName name : location.iterateEntries()) {
-            if (name.startsWith(searchedJarEntryPrefix)) {
-                return true;
-            }
-        }
-        return false;
+        return location.streamEntries().anyMatch(name -> name.startsWith(searchedJarEntryPrefix));
     }
 }

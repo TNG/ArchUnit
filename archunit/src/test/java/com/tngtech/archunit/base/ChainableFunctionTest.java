@@ -29,7 +29,7 @@ public class ChainableFunctionTest {
     private DescribedPredicate<Integer> greaterThan(final int number) {
         return new DescribedPredicate<Integer>("greater than " + number) {
             @Override
-            public boolean apply(Integer input) {
+            public boolean test(Integer input) {
                 return input > number;
             }
         };

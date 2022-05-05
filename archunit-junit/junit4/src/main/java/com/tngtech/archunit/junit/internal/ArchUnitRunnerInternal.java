@@ -43,6 +43,7 @@ import org.junit.runners.model.Statement;
 import static com.tngtech.archunit.junit.internal.ArchRuleDeclaration.elementShouldBeIgnored;
 import static com.tngtech.archunit.junit.internal.ArchRuleDeclaration.toDeclarations;
 import static com.tngtech.archunit.junit.internal.ArchTestExecution.getValue;
+import static java.util.stream.Collectors.toList;
 
 final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> implements ArchUnitRunner.InternalRunner<ArchTestExecution> {
     @SuppressWarnings("FieldMayBeFinal")
@@ -85,11 +86,9 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
     }
 
     private Collection<ArchTestExecution> findArchRuleFields() {
-        List<ArchTestExecution> result = new ArrayList<>();
-        for (FrameworkField ruleField : getTestClass().getAnnotatedFields(ArchTest.class)) {
-            result.addAll(findArchRulesIn(ruleField));
-        }
-        return result;
+        return getTestClass().getAnnotatedFields(ArchTest.class).stream()
+                .flatMap(ruleField -> findArchRulesIn(ruleField).stream())
+                .collect(toList());
     }
 
     private Set<ArchTestExecution> findArchRulesIn(FrameworkField ruleField) {

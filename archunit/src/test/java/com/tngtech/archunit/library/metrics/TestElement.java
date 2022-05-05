@@ -3,8 +3,7 @@ package com.tngtech.archunit.library.metrics;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.tngtech.archunit.base.Function;
+import java.util.function.Function;
 
 class TestElement {
     private final String name;
@@ -26,10 +25,5 @@ class TestElement {
         dependencies.add(element);
     }
 
-    static final Function<TestElement, Collection<TestElement>> GET_DEPENDENCIES = new Function<TestElement, Collection<TestElement>>() {
-        @Override
-        public Collection<TestElement> apply(TestElement element) {
-            return element.dependencies;
-        }
-    };
+    static final Function<TestElement, Collection<TestElement>> GET_DEPENDENCIES = element -> element.dependencies;
 }

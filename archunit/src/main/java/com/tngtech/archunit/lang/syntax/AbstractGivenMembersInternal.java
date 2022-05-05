@@ -15,9 +15,9 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
-import com.tngtech.archunit.base.Optional;
+import java.util.Optional;
+import java.util.function.Function;
+
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -61,7 +61,7 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
     static class GivenMembersInternal extends AbstractGivenMembersInternal<JavaMember, GivenMembersInternal> {
 
         GivenMembersInternal(Priority priority, ClassesTransformer<JavaMember> classesTransformer) {
-            this(priority, classesTransformer, Functions.<ArchCondition<JavaMember>>identity());
+            this(priority, classesTransformer, Function.identity());
         }
 
         GivenMembersInternal(

@@ -17,6 +17,7 @@ import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.api.ObjectAssertFactory;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static java.util.stream.Collectors.toList;
 
 public class ConditionEventsAssertion
         extends AbstractIterableAssert<ConditionEventsAssertion, ConditionEvents, ConditionEvent, ObjectAssert<ConditionEvent>> {
@@ -44,11 +45,7 @@ public class ConditionEventsAssertion
     }
 
     private List<String> messagesOf(Collection<? extends ConditionEvent> events) {
-        final List<String> result = new ArrayList<>();
-        for (ConditionEvent event : events) {
-            result.addAll(event.getDescriptionLines());
-        }
-        return result;
+        return events.stream().flatMap(event -> event.getDescriptionLines().stream()).collect(toList());
     }
 
     private List<String> concat(String violation, String[] additional) {
@@ -95,5 +92,12 @@ public class ConditionEventsAssertion
     @Override
     protected ObjectAssert<ConditionEvent> toAssert(ConditionEvent value, String description) {
         return new ObjectAssertFactory<ConditionEvent>().createAssert(value).as(description);
+    }
+
+    @Override
+    protected ConditionEventsAssertion newAbstractIterableAssert(Iterable<? extends ConditionEvent> iterable) {
+        ConditionEvents actual = new ConditionEvents();
+        iterable.forEach(actual::add);
+        return new ConditionEventsAssertion(actual);
     }
 }

@@ -1,9 +1,9 @@
 package com.tngtech.archunit.core.importer.resolvers;
 
 import java.net.URI;
+import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImporter;
 import com.tngtech.archunit.core.importer.resolvers.testclasses.firstdependency.FirstDependency;
@@ -11,7 +11,6 @@ import com.tngtech.archunit.core.importer.resolvers.testclasses.seconddependency
 import com.tngtech.archunit.core.importer.resolvers.testclasses.thirddependency.ThirdDependency;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -40,7 +39,7 @@ public class SelectedClassResolverFromClasspathTest {
 
         assertResolved(resolver.tryResolve(FirstDependency.class.getName()), FirstDependency.class);
         assertResolved(resolver.tryResolve(SecondDependency.class.getName()), SecondDependency.class);
-        assertThat(resolver.tryResolve(ThirdDependency.class.getName())).isAbsent();
+        assertThat(resolver.tryResolve(ThirdDependency.class.getName())).isEmpty();
         verifyNoMoreInteractions(classUriImporter);
     }
 
@@ -60,12 +59,7 @@ public class SelectedClassResolverFromClasspathTest {
     }
 
     private URI uriFor(final Class<?> clazz) {
-        return argThat(new ArgumentMatcher<URI>() {
-            @Override
-            public boolean matches(URI argument) {
-                return argument.toString().contains(clazz.getSimpleName());
-            }
-        });
+        return argThat(argument -> argument.toString().contains(clazz.getSimpleName()));
     }
 
     private ImmutableList<String> packages(String... subpackages) {

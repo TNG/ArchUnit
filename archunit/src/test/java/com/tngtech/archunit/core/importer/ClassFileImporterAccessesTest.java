@@ -4,17 +4,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
@@ -103,6 +99,7 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 
 @RunWith(DataProviderRunner.class)
 public class ClassFileImporterAccessesTest {
@@ -346,7 +343,7 @@ public class ClassFileImporterAccessesTest {
                 .withOwner(subClassWithAccessedField)
                 .withName(field.getName())
                 .withType(field.getRawType())
-                .withMember(Suppliers.ofInstance(Optional.of(field)))
+                .withMember(() -> Optional.of(field))
                 .build();
         assertThatAccess(getOnly(accesses, "field", GET))
                 .isFrom("accessSuperclassField")
@@ -402,12 +399,12 @@ public class ClassFileImporterAccessesTest {
         JavaCodeUnit callSuperclassMethod = classThatCallsMethodOfSuperclass
                 .getCodeUnitWithParameterTypes(CallOfSuperAndSubclassMethod.callSuperclassMethod);
         JavaMethod expectedSuperclassMethod = superclassWithCalledMethod.getMethod(SuperclassWithCalledMethod.method);
-        AccessTarget.MethodCallTarget expectedSuperclassCall = newMethodCallTargetBuilder()
+        MethodCallTarget expectedSuperclassCall = newMethodCallTargetBuilder()
                 .withOwner(subClassWithCalledMethod)
                 .withName(expectedSuperclassMethod.getName())
                 .withParameters(expectedSuperclassMethod.getRawParameterTypes())
                 .withReturnType(expectedSuperclassMethod.getRawReturnType())
-                .withMember(Suppliers.ofInstance(Optional.of(expectedSuperclassMethod)))
+                .withMember(() -> Optional.of(expectedSuperclassMethod))
                 .build();
         assertThatCall(getOnlyByCaller(calls, callSuperclassMethod))
                 .isFrom(callSuperclassMethod)
@@ -636,10 +633,9 @@ public class ClassFileImporterAccessesTest {
                 classes.get(InterfaceOfClassX.class)
         );
 
-        Set<JavaClass> targetClasses = new HashSet<>();
-        for (Dependency dependency : withoutJavaLangTargets(javaClass.getDirectDependenciesFromSelf())) {
-            targetClasses.add(dependency.getTargetClass());
-        }
+        Set<JavaClass> targetClasses = withoutJavaLangTargets(javaClass.getDirectDependenciesFromSelf()).stream()
+                .map(Dependency::getTargetClass)
+                .collect(toSet());
 
         assertThat(targetClasses).isEqualTo(expectedTargetClasses);
     }
@@ -650,12 +646,10 @@ public class ClassFileImporterAccessesTest {
         JavaClass javaClass = classes.get(ClassCDependingOnClassB_SuperclassOfX.class);
         JavaClass expectedTargetClass = classes.get(ClassBDependingOnClassA.class);
 
-        Set<JavaClass> targetClasses = new HashSet<>();
-        for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
-            if (dependency.getTargetClass().getPackageName().contains("testexamples")) {
-                targetClasses.add(dependency.getTargetClass());
-            }
-        }
+        Set<JavaClass> targetClasses = javaClass.getDirectDependenciesFromSelf().stream()
+                .map(Dependency::getTargetClass)
+                .filter(targetClass -> targetClass.getPackageName().contains("testexamples"))
+                .collect(toSet());
 
         assertThat(targetClasses).containsOnly(expectedTargetClass);
     }
@@ -925,13 +919,9 @@ public class ClassFileImporterAccessesTest {
     }
 
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {
-        Set<Dependency> result = new HashSet<>();
-        for (Dependency dependency : dependencies) {
-            if (!dependency.getTargetClass().getPackageName().startsWith("java.lang")) {
-                result.add(dependency);
-            }
-        }
-        return result;
+        return dependencies.stream()
+                .filter(dependency -> !dependency.getTargetClass().getPackageName().startsWith("java.lang"))
+                .collect(toSet());
     }
 
     // only temporary to make sure resolveMember() and resolve() are in sync. Inline again when we throw out resolve()
@@ -992,13 +982,10 @@ public class ClassFileImporterAccessesTest {
     }
 
     private Set<JavaFieldAccess> getByNameAndAccessType(Set<JavaFieldAccess> fieldAccesses, String name, JavaFieldAccess.AccessType accessType) {
-        Set<JavaFieldAccess> result = new HashSet<>();
-        for (JavaFieldAccess access : fieldAccesses) {
-            if (name.equals(access.getName()) && access.getAccessType() == accessType) {
-                result.add(access);
-            }
-        }
-        return result;
+        return fieldAccesses.stream()
+                .filter(access -> name.equals(access.getName()))
+                .filter(access -> access.getAccessType() == accessType)
+                .collect(toSet());
     }
 
     private <T extends HasOwner<JavaCodeUnit>> T getOnlyByCaller(Set<T> calls, JavaCodeUnit caller) {
@@ -1006,12 +993,7 @@ public class ClassFileImporterAccessesTest {
     }
 
     private <T extends JavaAccess<?>> Set<T> getByTarget(Set<T> calls, final JavaConstructor target) {
-        return getBy(calls, new Predicate<JavaAccess<?>>() {
-            @Override
-            public boolean apply(JavaAccess<?> input) {
-                return targetFrom(target).getFullName().equals(input.getTarget().getFullName());
-            }
-        });
+        return getBy(calls, (Predicate<JavaAccess<?>>) input -> targetFrom(target).getFullName().equals(input.getTarget().getFullName()));
     }
 
     private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, Class<?> targetOwner) {
@@ -1023,49 +1005,26 @@ public class ClassFileImporterAccessesTest {
     }
 
     private Predicate<JavaAccess<?>> targetOwnerNameEquals(final String targetFqn) {
-        return new Predicate<JavaAccess<?>>() {
-            @Override
-            public boolean apply(JavaAccess<?> input) {
-                return targetFqn.equals(input.getTarget().getOwner().getName());
-            }
-        };
+        return input -> targetFqn.equals(input.getTarget().getOwner().getName());
     }
 
     private <T extends JavaAccess<?>> Set<T> getByTargetOwner(Set<T> calls, final JavaClass targetOwner) {
-        return getBy(calls, new Predicate<T>() {
-            @Override
-            public boolean apply(T input) {
-                return targetOwner.equals(input.getTarget().getOwner());
-            }
-        });
+        return getBy(calls, input -> targetOwner.equals(input.getTarget().getOwner()));
     }
 
     private <T extends HasOwner<JavaCodeUnit>> Set<T> getByCaller(Set<T> calls, final JavaCodeUnit caller) {
-        return getBy(calls, new Predicate<T>() {
-            @Override
-            public boolean apply(T input) {
-                return caller.equals(input.getOwner());
-            }
-        });
+        return getBy(calls, input -> caller.equals(input.getOwner()));
     }
 
     private <T extends HasOwner<JavaCodeUnit>> Set<T> getBy(Set<T> calls, Predicate<? super T> predicate) {
-        return FluentIterable.from(calls).filter(predicate).toSet();
+        return calls.stream().filter(predicate).collect(toSet());
     }
 
     private Set<FieldAccessTarget> targetsOf(Set<JavaFieldAccess> fieldAccesses) {
-        Set<FieldAccessTarget> result = new HashSet<>();
-        for (JavaFieldAccess access : fieldAccesses) {
-            result.add(access.getTarget());
-        }
-        return result;
+        return fieldAccesses.stream().map(JavaAccess::getTarget).collect(toSet());
     }
 
     private Set<Integer> lineNumbersOf(Set<JavaFieldAccess> fieldAccesses) {
-        Set<Integer> result = new HashSet<>();
-        for (JavaFieldAccess access : fieldAccesses) {
-            result.add(access.getLineNumber());
-        }
-        return result;
+        return fieldAccesses.stream().map(JavaAccess::getLineNumber).collect(toSet());
     }
 }

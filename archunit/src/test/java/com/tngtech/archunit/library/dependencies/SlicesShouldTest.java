@@ -112,7 +112,7 @@ public class SlicesShouldTest {
     private DescribedPredicate<JavaClass> classIn(final String packageRegex) {
         return new DescribedPredicate<JavaClass>("class in " + packageRegex) {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getName().matches(packageRegex);
             }
         };
@@ -141,12 +141,7 @@ public class SlicesShouldTest {
 
         private boolean containsMessage(Class<?> from, Class<?> to) {
             Pattern pattern = Pattern.compile(String.format("%s.*%s", quote(from.getName()), quote(to.getName())));
-            for (String message : failureMessages) {
-                if (pattern.matcher(message).find()) {
-                    return true;
-                }
-            }
-            return false;
+            return failureMessages.stream().anyMatch(pattern.asPredicate());
         }
     }
 }

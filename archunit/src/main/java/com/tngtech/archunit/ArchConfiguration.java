@@ -21,15 +21,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,12 +54,7 @@ public final class ArchConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(ArchConfiguration.class);
 
-    private static final Supplier<ArchConfiguration> INSTANCE = Suppliers.memoize(new Supplier<ArchConfiguration>() {
-        @Override
-        public ArchConfiguration get() {
-            return new ArchConfiguration();
-        }
-    });
+    private static final Supplier<ArchConfiguration> INSTANCE = Suppliers.memoize(ArchConfiguration::new);
 
     @PublicAPI(usage = ACCESS)
     public static ArchConfiguration get() {

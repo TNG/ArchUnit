@@ -4,16 +4,15 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Optional;
+import java.util.function.Function;
 
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImporter;
 import com.tngtech.archunit.testutil.TestUtils;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -60,7 +59,7 @@ public class ClassResolverFromClassPathTest {
     public void is_resilient_if_URI_cant_be_located() {
         Optional<JavaClass> result = resolver.tryResolve("sooo.Wrong");
 
-        assertThat(result).isAbsent();
+        assertThat(result).isEmpty();
         verifyNoMoreInteractions(uriImporter);
     }
 
@@ -82,15 +81,12 @@ public class ClassResolverFromClassPathTest {
         final JavaClass expectedJavaClass = importClassWithContext(Object.class);
         when(uriImporter.tryImport(expectedUriDerivedFromUrl)).thenReturn(Optional.of(expectedJavaClass));
 
-        Optional<JavaClass> resolvedClass = withMockedContextClassLoader(new Function<ClassLoader, Optional<JavaClass>>() {
-            @Override
-            public Optional<JavaClass> apply(ClassLoader classLoaderMock) {
-                String typeNameFromUrlWithSpaces = "some.TypeFromUrlWithSpaces";
-                String typeResourceFromUrlWithSpaces = typeNameFromUrlWithSpaces.replace(".", "/") + ".class";
-                when(classLoaderMock.getResource(typeResourceFromUrlWithSpaces)).thenReturn(urlReturnedByClassLoader);
+        Optional<JavaClass> resolvedClass = withMockedContextClassLoader(classLoaderMock -> {
+            String typeNameFromUrlWithSpaces = "some.TypeFromUrlWithSpaces";
+            String typeResourceFromUrlWithSpaces = typeNameFromUrlWithSpaces.replace(".", "/") + ".class";
+            when(classLoaderMock.getResource(typeResourceFromUrlWithSpaces)).thenReturn(urlReturnedByClassLoader);
 
-                return resolver.tryResolve(typeNameFromUrlWithSpaces);
-            }
+            return resolver.tryResolve(typeNameFromUrlWithSpaces);
         });
 
         assertThat(resolvedClass).contains(expectedJavaClass);
@@ -108,11 +104,6 @@ public class ClassResolverFromClassPathTest {
     }
 
     private void verifyUrlCannotBeConvertedToUriInTheCurrentForm(final URL url) {
-        assertThatThrownBy(new ThrowingCallable() {
-            @Override
-            public void call() throws Throwable {
-                url.toURI();
-            }
-        }).isInstanceOf(URISyntaxException.class);
+        assertThatThrownBy(url::toURI).isInstanceOf(URISyntaxException.class);
     }
 }

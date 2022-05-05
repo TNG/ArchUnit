@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -14,6 +15,8 @@ import com.tngtech.archunit.Internal;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 public class MessageAssertionChain {
     private final List<Link> links;
@@ -32,11 +35,7 @@ public class MessageAssertionChain {
 
     @Override
     public String toString() {
-        List<String> descriptions = new ArrayList<>();
-        for (Link link : links) {
-            descriptions.add(link.getDescription());
-        }
-        return Joiner.on(lineSeparator()).join(descriptions);
+        return links.stream().map(Link::getDescription).collect(joining(lineSeparator()));
     }
 
     static Link matchesLine(final String pattern) {
@@ -99,13 +98,10 @@ public class MessageAssertionChain {
             }
 
             private <T> List<Integer> findElementIndexes(List<T> list, T element) {
-                List<Integer> result = new ArrayList<>();
-                for (int i = 0; i < list.size(); i++) {
-                    if (element.equals(list.get(i))) {
-                        result.add(i);
-                    }
-                }
-                return result;
+                return IntStream.range(0, list.size())
+                        .filter(i -> element.equals(list.get(i)))
+                        .boxed()
+                        .collect(toList());
             }
 
             @Override

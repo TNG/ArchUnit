@@ -22,11 +22,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

@@ -20,13 +20,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.PackageMatchers;
@@ -1334,7 +1334,7 @@ public final class ArchConditions {
 
         @Override
         public void check(JavaClass javaClass, ConditionEvents events) {
-            boolean satisfied = implement.apply(javaClass);
+            boolean satisfied = implement.test(javaClass);
             String description = satisfied
                     ? implement.getDescription().replace("implement", "implements")
                     : implement.getDescription().replace("implement", "does not implement");
@@ -1408,7 +1408,7 @@ public final class ArchConditions {
         @Override
         public void finish(ConditionEvents events) {
             int size = allElementNames.size();
-            boolean conditionSatisfied = predicate.apply(size);
+            boolean conditionSatisfied = predicate.test(size);
             String message = String.format("there is/are %d element(s) in %s", size, join(allElementNames));
             events.add(new SimpleConditionEvent(size, conditionSatisfied, message));
         }
@@ -1447,7 +1447,7 @@ public final class ArchConditions {
 
         @Override
         public void check(JavaClass javaClass, ConditionEvents events) {
-            boolean satisfied = haveSimpleName.apply(javaClass);
+            boolean satisfied = haveSimpleName.test(javaClass);
             String message = createMessage(javaClass,
                     String.format("%s simple name '%s'", satisfied ? "has" : "does not have", name));
             events.add(new SimpleConditionEvent(javaClass, satisfied, message));
@@ -1466,7 +1466,7 @@ public final class ArchConditions {
 
         @Override
         public void check(JavaClass javaClass, ConditionEvents events) {
-            boolean satisfied = predicate.apply(javaClass);
+            boolean satisfied = predicate.test(javaClass);
             String message = String.format("simple name of %s %s with '%s' in %s",
                     javaClass.getName(),
                     satisfied ? "starts" : "does not start",
@@ -1488,7 +1488,7 @@ public final class ArchConditions {
 
         @Override
         public void check(JavaClass javaClass, ConditionEvents events) {
-            boolean satisfied = predicate.apply(javaClass);
+            boolean satisfied = predicate.test(javaClass);
             String message = String.format("simple name of %s %s '%s' in %s",
                     javaClass.getName(),
                     satisfied ? "contains" : "does not contain",
@@ -1510,7 +1510,7 @@ public final class ArchConditions {
 
         @Override
         public void check(JavaClass javaClass, ConditionEvents events) {
-            boolean satisfied = predicate.apply(javaClass);
+            boolean satisfied = predicate.test(javaClass);
             String message = String.format("simple name of %s %s with '%s' in %s",
                     javaClass.getName(),
                     satisfied ? "ends" : "does not end",
@@ -1532,7 +1532,7 @@ public final class ArchConditions {
 
         @Override
         public void check(T item, ConditionEvents events) {
-            boolean satisfied = matcher.apply(item);
+            boolean satisfied = matcher.test(item);
             String message = createMessage(item,
                     String.format("%s '%s'", satisfied ? "matches" : "does not match", regex));
             events.add(new SimpleConditionEvent(item, satisfied, message));
@@ -1551,7 +1551,7 @@ public final class ArchConditions {
 
         @Override
         public void check(T item, ConditionEvents events) {
-            boolean satisfied = startingWith.apply(item);
+            boolean satisfied = startingWith.test(item);
             String message = createMessage(item,
                     String.format("name %s '%s'", satisfied ? "starts with" : "does not start with", prefix));
             events.add(new SimpleConditionEvent(item, satisfied, message));
@@ -1570,7 +1570,7 @@ public final class ArchConditions {
 
         @Override
         public void check(T item, ConditionEvents events) {
-            boolean satisfied = containing.apply(item);
+            boolean satisfied = containing.test(item);
             String message = createMessage(item,
                     String.format("name %s '%s'", satisfied ? "contains" : "does not contain", infix));
             events.add(new SimpleConditionEvent(item, satisfied, message));
@@ -1589,7 +1589,7 @@ public final class ArchConditions {
 
         @Override
         public void check(T item, ConditionEvents events) {
-            boolean satisfied = endingWith.apply(item);
+            boolean satisfied = endingWith.test(item);
             String message = createMessage(item,
                     String.format("name %s '%s'", satisfied ? "ends with" : "does not end with", suffix));
             events.add(new SimpleConditionEvent(item, satisfied, message));
@@ -1607,7 +1607,7 @@ public final class ArchConditions {
 
         @Override
         public void check(T item, ConditionEvents events) {
-            boolean satisfied = predicate.apply(item);
+            boolean satisfied = predicate.test(item);
             String message = createMessage(item,
                     (satisfied ? "does " : "does not ") + predicate.getDescription());
             events.add(new SimpleConditionEvent(item, satisfied, message));
@@ -1630,7 +1630,7 @@ public final class ArchConditions {
 
         @Override
         public void check(T member, ConditionEvents events) {
-            boolean satisfied = predicate.apply(member);
+            boolean satisfied = predicate.test(member);
             String message = createMessage(member,
                     (satisfied ? "is " : "is not ") + eventDescription);
             events.add(new SimpleConditionEvent(member, satisfied, message));
@@ -1647,7 +1647,7 @@ public final class ArchConditions {
 
         @Override
         public void check(T object, ConditionEvents events) {
-            boolean satisfied = rawType.apply(object);
+            boolean satisfied = rawType.test(object);
             String message = createMessage(object, (satisfied ? "has " : "does not have ") + rawType.getDescription());
             events.add(new SimpleConditionEvent(object, satisfied, message));
         }

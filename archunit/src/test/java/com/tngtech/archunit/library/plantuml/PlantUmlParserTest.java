@@ -5,11 +5,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
@@ -19,13 +17,15 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
+import static com.google.common.base.Strings.repeat;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.GET_COMPONENT_NAME;
-import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.rangeClosed;
 
 @RunWith(DataProviderRunner.class)
 public class PlantUmlParserTest {
@@ -114,18 +114,17 @@ public class PlantUmlParserTest {
         assertThat(target.getDependencies()).as("dependency component's dependencies").isEmpty();
         assertThat(getOnlyElement(target.getStereotypes())).as("dependency component's stereotype")
                 .isEqualTo(new Stereotype("..target.."));
-        assertThat(target.getAlias()).as("dependency component's alias is present").isAbsent();
+        assertThat(target.getAlias()).as("dependency component's alias is present").isEmpty();
     }
 
     @DataProvider
     public static Object[][] dependency_arrow_testcases() {
-        List<String> arrowCenters = new ArrayList<>();
-        for (int i = 1; i <= 10; i++) {
-            arrowCenters.add(Strings.repeat("-", i));
-        }
+        List<String> arrowCenters = rangeClosed(1, 10)
+                .mapToObj(i -> repeat("-", i))
+                .collect(toList());
         for (int i = 2; i <= 10; i++) {
             for (String infix : ImmutableList.of("left", "right", "up", "down", "[#green]")) {
-                arrowCenters.add(Strings.repeat("-", i - 1) + infix + "-");
+                arrowCenters.add(repeat("-", i - 1) + infix + "-");
             }
         }
         List<String> testCase = new ArrayList<>();
@@ -426,14 +425,17 @@ public class PlantUmlParserTest {
     }
 
     private PlantUmlComponent getComponentWithName(String componentName, PlantUmlDiagram diagram) {
-        PlantUmlComponent component = FluentIterable.from(diagram.getAllComponents())
-                .uniqueIndex(GET_COMPONENT_NAME).get(new ComponentName(componentName));
+        PlantUmlComponent component = diagram.getAllComponents().stream()
+                .filter(c -> c.getComponentName().asString().equals(componentName))
+                .collect(onlyElement());
         assertThat(component).as("Component with name " + componentName).isNotNull();
         return component;
     }
 
     private PlantUmlComponent getComponentWithAlias(Alias alias, PlantUmlDiagram diagram) {
-        PlantUmlComponent component = FluentIterable.from(diagram.getComponentsWithAlias()).uniqueIndex(TO_EXISTING_ALIAS).get(alias);
+        PlantUmlComponent component = diagram.getComponentsWithAlias()
+                .stream().filter(a -> a.getAlias().get().equals(alias))
+                .collect(onlyElement());
         assertThat(component).as("Component with alias " + alias.asString()).isNotNull();
         return component;
     }

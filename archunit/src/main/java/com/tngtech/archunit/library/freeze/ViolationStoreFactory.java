@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -41,6 +40,7 @@ import static com.google.common.io.Files.toByteArray;
 import static com.tngtech.archunit.base.ReflectionUtils.newInstanceOf;
 import static com.tngtech.archunit.library.freeze.FreezingArchRule.ensureUnixLineBreaks;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 
 class ViolationStoreFactory {
     static final String FREEZE_STORE_PROPERTY_NAME = "freeze.store";
@@ -148,11 +148,7 @@ class ViolationStoreFactory {
         }
 
         private List<String> replaceCharacter(List<String> violations, String characterToReplace, String replacement) {
-            List<String> result = new ArrayList<>();
-            for (String violation : violations) {
-                result.add(violation.replace(characterToReplace, replacement));
-            }
-            return result;
+            return violations.stream().map(violation -> violation.replace(characterToReplace, replacement)).collect(toList());
         }
 
         private String ensureRuleFileName(ArchRule rule) {

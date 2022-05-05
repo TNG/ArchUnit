@@ -20,14 +20,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -64,9 +64,8 @@ class PlantUmlPatterns {
         return "[^" + charsJoined + "]+";
     }
 
-    FluentIterable<String> filterComponents(List<String> lines) {
-        return FluentIterable.from(lines)
-                .filter(matches(PLANTUML_COMPONENT_PATTERN));
+    Stream<String> filterComponents(List<String> lines) {
+        return lines.stream().filter(matches(PLANTUML_COMPONENT_PATTERN));
     }
 
     PlantUmlComponentMatcher matchComponent(String input) {
@@ -74,12 +73,7 @@ class PlantUmlPatterns {
     }
 
     private Predicate<String> matches(final Pattern pattern) {
-        return new Predicate<String>() {
-            @Override
-            public boolean apply(String input) {
-                return pattern.matcher(input).matches();
-            }
-        };
+        return input -> pattern.matcher(input).matches();
     }
 
     Iterable<PlantUmlDependencyMatcher> matchDependencies(List<String> diagramLines) {
@@ -115,7 +109,7 @@ class PlantUmlPatterns {
         }
 
         Optional<String> matchAlias() {
-            return Optional.fromNullable(componentMatcher.group(ALIAS_GROUP_NAME));
+            return Optional.ofNullable(componentMatcher.group(ALIAS_GROUP_NAME));
         }
     }
 

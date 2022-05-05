@@ -35,17 +35,17 @@ public class DependencyAssertion extends AbstractObjectAssert<DependencyAssertio
 
     private List<AbstractBooleanAssert<?>> dependencyMatches(Class<?> originClass, Class<?> targetClass) {
         return ImmutableList.of(
-                assertThat(dependency(originClass, targetClass).apply(actual))
+                assertThat(dependency(originClass, targetClass).test(actual))
                         .as("Dependency [%s -> %s] matches [%s -> %s]",
                                 actual.getOriginClass().getName(), actual.getTargetClass().getName(),
                                 originClass.getName(), targetClass.getName()),
-                assertThat(dependency(originClass.getName(), targetClass.getName()).apply(actual))
+                assertThat(dependency(originClass.getName(), targetClass.getName()).test(actual))
                         .as("Dependency [%s -> %s] matches [%s -> %s]",
                                 actual.getOriginClass().getName(), actual.getTargetClass().getName(),
                                 originClass.getName(), targetClass.getName()),
                 assertThat(dependency(
                         HasName.Predicates.name(originClass.getName()),
-                        HasName.Predicates.name(targetClass.getName())).apply(actual))
+                        HasName.Predicates.name(targetClass.getName())).test(actual))
                         .as("Dependency [%s -> %s] matches [%s -> %s]",
                                 actual.getOriginClass().getName(), actual.getTargetClass().getName(),
                                 originClass.getName(), targetClass.getName()));
@@ -66,11 +66,11 @@ public class DependencyAssertion extends AbstractObjectAssert<DependencyAssertio
 
     private List<AbstractBooleanAssert<?>> dependencyMatchesOrigin(Class<?> originClass) {
         return ImmutableList.of(
-                assertThat(dependencyOrigin(originClass).apply(actual))
+                assertThat(dependencyOrigin(originClass).test(actual))
                         .as("Dependency origin matches '%s.class'", originClass.getSimpleName()),
-                assertThat(dependencyOrigin(originClass.getName()).apply(actual))
+                assertThat(dependencyOrigin(originClass.getName()).test(actual))
                         .as("Dependency origin matches '%s.class'", originClass.getSimpleName()),
-                assertThat(dependencyOrigin(HasName.Predicates.name(originClass.getName())).apply(actual))
+                assertThat(dependencyOrigin(HasName.Predicates.name(originClass.getName())).test(actual))
                         .as("Dependency origin matches '%s.class'", originClass.getSimpleName()));
     }
 
@@ -89,11 +89,11 @@ public class DependencyAssertion extends AbstractObjectAssert<DependencyAssertio
 
     private List<AbstractBooleanAssert<?>> dependencyMatchesTarget(Class<?> targetClass) {
         return ImmutableList.of(
-                assertThat(dependencyTarget(targetClass).apply(actual))
+                assertThat(dependencyTarget(targetClass).test(actual))
                         .as("Dependency target matches '%s.class'", targetClass.getSimpleName()),
-                assertThat(dependencyTarget(targetClass.getName()).apply(actual))
+                assertThat(dependencyTarget(targetClass.getName()).test(actual))
                         .as("Dependency target matches '%s.class'", targetClass.getSimpleName()),
-                assertThat(dependencyTarget(HasName.Predicates.name(targetClass.getName())).apply(actual))
+                assertThat(dependencyTarget(HasName.Predicates.name(targetClass.getName())).test(actual))
                         .as("Dependency target matches '%s.class'", targetClass.getSimpleName()));
     }
 

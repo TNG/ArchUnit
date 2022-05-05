@@ -18,9 +18,12 @@ package com.tngtech.archunit.core.importer;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -37,7 +40,6 @@ import com.google.common.primitives.Shorts;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -70,6 +72,8 @@ import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isA
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMetafactory;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethod;
 import static com.tngtech.archunit.core.importer.RawInstanceofCheck.from;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 
 class JavaClassProcessor extends ClassVisitor {
     private static final Logger LOG = LoggerFactory.getLogger(JavaClassProcessor.class);
@@ -282,13 +286,9 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     private List<JavaClassDescriptor> typesFrom(String[] throwsDeclarations) {
-        List<JavaClassDescriptor> result = new ArrayList<>();
-        if (throwsDeclarations != null) {
-            for (String throwsDeclaration : throwsDeclarations) {
-                result.add(JavaClassDescriptorImporter.createFromAsmObjectTypeName(throwsDeclaration));
-            }
-        }
-        return result;
+        return throwsDeclarations != null
+                ? stream(throwsDeclarations).map(JavaClassDescriptorImporter::createFromAsmObjectTypeName).collect(toList())
+                : Collections.emptyList();
     }
 
     private DomainBuilders.JavaCodeUnitBuilder<?, ?> addCodeUnitBuilder(String name, Collection<String> rawParameterTypeNames, String rawReturnTypeName) {
@@ -313,7 +313,7 @@ class JavaClassProcessor extends ClassVisitor {
             return super.visitAnnotation(desc, visible);
         }
 
-        return new AnnotationProcessor(addAnnotationTo(annotations), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+        return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
     }
 
     @Override
@@ -393,7 +393,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            return new AnnotationProcessor(addAnnotationTo(annotations), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+            return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
@@ -461,7 +461,11 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public AnnotationVisitor visitAnnotation(String name, String desc) {
-                return new AnnotationProcessor(new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+                return new AnnotationProcessor(
+                        new SetAsAnnotationDefault(annotationTypeName, methodBuilder, declarationHandler),
+                        declarationHandler,
+                        handleAnnotationAnnotationProperty(desc, declarationHandler)
+                );
             }
 
             @Override
@@ -552,7 +556,7 @@ class JavaClassProcessor extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            return new AnnotationProcessor(addAnnotationTo(annotations), declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+            return new AnnotationProcessor(annotations::add, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
         }
 
         @Override
@@ -618,31 +622,12 @@ class JavaClassProcessor extends ClassVisitor {
         }
     }
 
-    private static TakesAnnotationBuilder addAnnotationTo(final Collection<? super JavaAnnotationBuilder> collection) {
-        return new TakesAnnotationBuilder() {
-            @Override
-            public void add(JavaAnnotationBuilder annotation) {
-                collection.add(annotation);
-            }
-        };
-    }
-
     private static TakesAnnotationBuilder addAnnotationAtIndex(final SetMultimap<Integer, JavaAnnotationBuilder> annotations, final int index) {
-        return new TakesAnnotationBuilder() {
-            @Override
-            public void add(JavaAnnotationBuilder annotation) {
-                annotations.put(index, annotation);
-            }
-        };
+        return annotation -> annotations.put(index, annotation);
     }
 
     private static TakesAnnotationBuilder addAnnotationAsProperty(final String name, final JavaAnnotationBuilder annotationBuilder) {
-        return new TakesAnnotationBuilder() {
-            @Override
-            public void add(JavaAnnotationBuilder builder) {
-                annotationBuilder.addProperty(name, ValueBuilder.fromAnnotationProperty(builder));
-            }
-        };
+        return builder -> annotationBuilder.addProperty(name, ValueBuilder.fromAnnotationProperty(builder));
     }
 
     private interface TakesAnnotationBuilder {
@@ -675,12 +660,11 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public AnnotationVisitor visitAnnotation(String name, String desc) {
             setDerivedComponentType(JavaAnnotation.class);
-            return new AnnotationProcessor(new TakesAnnotationBuilder() {
-                @Override
-                public void add(JavaAnnotationBuilder annotationBuilder) {
-                    values.add(ValueBuilder.fromAnnotationProperty(annotationBuilder));
-                }
-            }, declarationHandler, handleAnnotationAnnotationProperty(desc, declarationHandler));
+            return new AnnotationProcessor(
+                    annotationBuilder -> values.add(ValueBuilder.fromAnnotationProperty(annotationBuilder)),
+                    declarationHandler,
+                    handleAnnotationAnnotationProperty(desc, declarationHandler)
+            );
         }
 
         @Override
@@ -739,11 +723,9 @@ class JavaClassProcessor extends ClassVisitor {
             }
 
             private <T extends HasDescription> List<Object> buildValues(T owner, ImportedClasses importContext) {
-                List<Object> result = new ArrayList<>();
-                for (ValueBuilder value : values) {
-                    result.addAll(value.build(owner, importContext).asSet());
-                }
-                return result;
+                return values.stream()
+                        .flatMap(value -> value.build(owner, importContext).map(Stream::of).orElse(Stream.empty()))
+                        .collect(toList());
             }
 
             private Optional<Class<?>> determineComponentType(ImportedClasses importContext) {

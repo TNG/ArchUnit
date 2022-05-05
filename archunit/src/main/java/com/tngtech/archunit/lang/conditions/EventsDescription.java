@@ -17,23 +17,15 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.tngtech.archunit.lang.ConditionEvent;
 
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Iterables.transform;
+import static java.lang.System.lineSeparator;
+import static java.util.stream.Collectors.joining;
 
 class EventsDescription {
     static String describe(Collection<? extends ConditionEvent> violating) {
-        Iterable<String> lines = concat(transform(violating, TO_MESSAGES));
-        return Joiner.on(System.lineSeparator()).join(lines);
+        return violating.stream()
+                .flatMap(input -> input.getDescriptionLines().stream())
+                .collect(joining(lineSeparator()));
     }
-
-    private static final Function<ConditionEvent, Iterable<String>> TO_MESSAGES = new Function<ConditionEvent, Iterable<String>>() {
-        @Override
-        public Iterable<String> apply(ConditionEvent input) {
-            return input.getDescriptionLines();
-        }
-    };
 }

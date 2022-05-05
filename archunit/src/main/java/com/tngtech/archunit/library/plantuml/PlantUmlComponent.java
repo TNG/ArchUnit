@@ -18,17 +18,16 @@ package com.tngtech.archunit.library.plantuml;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.tngtech.archunit.library.plantuml.PlantUmlComponentDependency.GET_TARGET;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 
 class PlantUmlComponent {
     private final ComponentName componentName;
@@ -43,7 +42,7 @@ class PlantUmlComponent {
     }
 
     List<PlantUmlComponent> getDependencies() {
-        return FluentIterable.from(dependencies).transform(GET_TARGET).toList();
+        return dependencies.stream().map(PlantUmlComponentDependency::getTarget).collect(toList());
     }
 
     ComponentName getComponentName() {
@@ -98,21 +97,10 @@ class PlantUmlComponent {
     }
 
     static class Functions {
-        static final Function<PlantUmlComponent, ComponentName> GET_COMPONENT_NAME =
-                new Function<PlantUmlComponent, ComponentName>() {
-                    @Override
-                    public ComponentName apply(PlantUmlComponent input) {
-                        return input.getComponentName();
-                    }
-                };
-
         static final Function<PlantUmlComponent, Alias> TO_EXISTING_ALIAS =
-                new Function<PlantUmlComponent, Alias>() {
-                    @Override
-                    public Alias apply(PlantUmlComponent input) {
-                        checkState(input.getAlias().isPresent(), "Alias does not exist");
-                        return input.getAlias().get();
-                    }
+                input -> {
+                    checkState(input.getAlias().isPresent(), "Alias does not exist");
+                    return input.getAlias().get();
                 };
     }
 

@@ -18,15 +18,15 @@ package com.tngtech.archunit.core.importer.resolvers;
 import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.ClassResolverConfigurationException;
 import com.tngtech.archunit.base.ClassLoaders;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 
@@ -141,12 +141,7 @@ public interface ClassResolver {
         private Function<Exception, ClassResolverConfigurationException> instantiationException(
                 final Constructor<?> constructor, final List<String> args) {
 
-            return new Function<Exception, ClassResolverConfigurationException>() {
-                @Override
-                public ClassResolverConfigurationException apply(Exception cause) {
-                    return ClassResolverConfigurationException.onInstantiation(constructor, args, cause);
-                }
-            };
+            return cause -> ClassResolverConfigurationException.onInstantiation(constructor, args, cause);
         }
 
         private Optional<Constructor<?>> tryGetListConstructor(Class<?> resolverClass) {

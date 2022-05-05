@@ -4,10 +4,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.function.Predicate;
 
-import com.tngtech.archunit.junit.internal.ReflectionUtils.Predicate;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.Predicates.alwaysTrue;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,38 +48,25 @@ public class ReflectionUtilsTest {
 
     @Test
     public void getAllMethods_of_interface() {
-        assertThat(ReflectionUtils.getAllMethods(Subinterface.class, always(true)))
+        assertThat(ReflectionUtils.getAllMethods(Subinterface.class, alwaysTrue()))
                 .containsOnly(
                         method(SomeInterface.class, "foo"),
                         method(OtherInterface.class, "bar"));
     }
 
-    private <T> Predicate<T> always(final boolean bool) {
-        return new Predicate<T>() {
-            @Override
-            public boolean apply(T input) {
-                return bool;
-            }
-        };
-    }
-
     @Test
     public void getAllFields_of_interface() {
-        assertThat(ReflectionUtils.getAllFields(Subinterface.class, always(true)))
+        assertThat(ReflectionUtils.getAllFields(Subinterface.class, alwaysTrue()))
                 .containsOnly(
                         field(SomeInterface.class, "SOME_CONSTANT"),
                         field(OtherInterface.class, "OTHER_CONSTANT"));
     }
 
     private Predicate<Member> named(final String name) {
-        return new Predicate<Member>() {
-            @Override
-            public boolean apply(Member input) {
-                return input.getName().equals(name);
-            }
-        };
+        return input -> input.getName().equals(name);
     }
 
+    @SuppressWarnings("unused")
     private static class Parent {
         private int field;
         private String other;
@@ -94,6 +82,7 @@ public class ReflectionUtilsTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class LowerMiddle extends Parent implements SomeInterface {
         private int field;
 
@@ -109,6 +98,7 @@ public class ReflectionUtilsTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class UpperMiddle extends LowerMiddle implements OtherInterface {
         private int field;
         private String other;
@@ -130,6 +120,7 @@ public class ReflectionUtilsTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class Child extends UpperMiddle implements ChildInterface {
         private int field;
         private String another;
@@ -150,12 +141,14 @@ public class ReflectionUtilsTest {
         void child();
     }
 
+    @SuppressWarnings("unused")
     private interface SomeInterface {
         String SOME_CONSTANT = "SOME";
 
         void foo();
     }
 
+    @SuppressWarnings("unused")
     private interface OtherInterface {
         String OTHER_CONSTANT = "OTHER";
 

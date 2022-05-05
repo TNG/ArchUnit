@@ -1,7 +1,5 @@
 package com.tngtech.archunit.library.dependencies;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -41,12 +39,9 @@ public class SliceRulePerformanceTest {
 
         FailureReport failureReport = cycleFree.evaluate(classesFormingCompleteDependencyGraph).getFailureReport();
 
-        int numberOfDetectedCycles = FluentIterable.from(failureReport.getDetails()).filter(new Predicate<String>() {
-            @Override
-            public boolean apply(String input) {
-                return input.contains("Cycle detected: ");
-            }
-        }).size();
+        long numberOfDetectedCycles = failureReport.getDetails().stream()
+                .filter(input -> input.contains("Cycle detected: "))
+                .count();
         assertThat(numberOfDetectedCycles).as("number of cycles detected").isEqualTo(expectedNumberOfCycles);
     }
 }

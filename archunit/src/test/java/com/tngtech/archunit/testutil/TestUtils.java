@@ -6,7 +6,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Properties;
 import java.util.Random;
 
@@ -14,6 +13,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.util.Files;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.util.Files.temporaryFolderPath;
 import static org.assertj.core.util.Strings.concat;
@@ -60,12 +60,7 @@ public class TestUtils {
     }
 
     public static <T extends HasName> void sortByName(T[] result) {
-        Arrays.sort(result, new Comparator<HasName>() {
-            @Override
-            public int compare(HasName o1, HasName o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        Arrays.sort(result, comparing(HasName::getName));
     }
 
     public static URI toUri(URL url) {

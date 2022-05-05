@@ -15,8 +15,9 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
+import java.util.function.Function;
+
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.lang.ArchCondition;

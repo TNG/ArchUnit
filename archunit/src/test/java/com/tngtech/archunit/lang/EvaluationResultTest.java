@@ -8,10 +8,10 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Predicate;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EvaluationResultTest {
@@ -31,6 +31,7 @@ public class EvaluationResultTest {
     }
 
     @Test
+    @SuppressWarnings("Convert2Lambda") // to retrieve the type information ViolationHandler may not be converted to a Lambda
     public void allows_clients_to_handle_violations() {
         EvaluationResult result = evaluationResultWith(
                 new SimpleConditionEvent(ImmutableSet.of("message"), false, "expected"),
@@ -57,12 +58,7 @@ public class EvaluationResultTest {
                 new TestEvent(true, "drop first line3", "drop second line3"),
                 new TestEvent(false, "keep first line4", "keep second line4"));
 
-        EvaluationResult filtered = result.filterDescriptionsMatching(new Predicate<String>() {
-            @Override
-            public boolean apply(String input) {
-                return input.contains("keep");
-            }
-        });
+        EvaluationResult filtered = result.filterDescriptionsMatching(input -> input.contains("keep"));
 
         assertThat(filtered.hasViolation()).as("filtered has violation").isTrue();
         assertThat(filtered.getFailureReport().getDetails()).containsOnly("keep first line1", "keep second line1", "keep second line2");
@@ -73,11 +69,10 @@ public class EvaluationResultTest {
     }
 
     private ConditionEvents events(String... messages) {
-        Set<ConditionEvent> events = new HashSet<>();
-        for (String message : messages) {
-            events.add(new SimpleConditionEvent(new Object(), false, message));
-        }
-        return events(events.toArray(new ConditionEvent[0]));
+        return events(stream(messages)
+                .map(message -> new SimpleConditionEvent(new Object(), false, message))
+                .distinct()
+                .toArray(ConditionEvent[]::new));
     }
 
     private ConditionEvents events(ConditionEvent... events) {
@@ -89,12 +84,7 @@ public class EvaluationResultTest {
     }
 
     private HasDescription hasDescription(final String description) {
-        return new HasDescription() {
-            @Override
-            public String getDescription() {
-                return description;
-            }
-        };
+        return () -> description;
     }
 
     private static class TestEvent implements ConditionEvent {

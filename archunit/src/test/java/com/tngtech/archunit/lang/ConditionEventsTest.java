@@ -35,6 +35,7 @@ public class ConditionEventsTest {
     }
 
     @Test
+    @SuppressWarnings("Convert2Lambda") // to retrieve the type information ViolationHandler may not be converted to a Lambda
     public void handleViolations_reports_only_violations_referring_to_the_correct_type() {
         ConditionEvents events = events(
                 SimpleConditionEvent.satisfied(new CorrectType("do not handle"), "I'm not violated"),
@@ -80,6 +81,7 @@ public class ConditionEventsTest {
         assertThat(handledFailureMessages).containsOnly("correct", "wrong");
     }
 
+    @SuppressWarnings("Convert2Lambda") // to retrieve the type information ViolationHandler may not be converted to a Lambda
     private <T extends CorrectType> ViolationHandler<?> genericBoundByCorrectType(final Set<String> handledFailureMessages) {
         return new ViolationHandler<T>() {
             @Override
@@ -89,6 +91,7 @@ public class ConditionEventsTest {
         };
     }
 
+    @SuppressWarnings("Convert2Lambda") // to retrieve the type information ViolationHandler may not be converted to a Lambda
     private <T> ViolationHandler<?> unboundGeneric(final Set<String> handledFailureMessages) {
         return new ViolationHandler<T>() {
             @Override

@@ -16,9 +16,9 @@
 package com.tngtech.archunit.lang.syntax;
 
 import java.lang.annotation.Annotation;
+import java.util.function.Function;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
@@ -286,12 +286,7 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
 
     @Override
     public ClassesThat<SELF> beDeclaredInClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, SELF>() {
-            @Override
-            public SELF apply(DescribedPredicate<? super JavaClass> predicate) {
-                return addCondition(ArchConditions.beDeclaredInClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> addCondition(ArchConditions.beDeclaredInClassesThat(predicate)));
     }
 
     @Override

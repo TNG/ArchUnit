@@ -16,8 +16,8 @@
 package com.tngtech.archunit.lang;
 
 import java.util.List;
+import java.util.function.Predicate;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;

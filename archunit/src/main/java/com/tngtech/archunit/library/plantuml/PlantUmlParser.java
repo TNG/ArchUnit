@@ -19,21 +19,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.library.plantuml.PlantUmlPatterns.PlantUmlComponentMatcher;
 import com.tngtech.archunit.library.plantuml.PlantUmlPatterns.PlantUmlDependencyMatcher;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Predicates.containsPattern;
-import static com.google.common.base.Predicates.not;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 class PlantUmlParser {
     private final PlantUmlPatterns plantUmlPatterns = new PlantUmlPatterns();
@@ -56,7 +55,10 @@ class PlantUmlParser {
     }
 
     private List<String> filterOutComments(List<String> lines) {
-        return FluentIterable.from(lines).filter(not(containsPattern("^\\s*'"))).toList();
+        Pattern commentPattern = Pattern.compile("^\\s*'");
+        return lines.stream()
+                .filter(line -> !commentPattern.matcher(line).find())
+                .collect(toList());
     }
 
     private List<String> readLines(URL url) {
@@ -69,8 +71,8 @@ class PlantUmlParser {
 
     private Set<PlantUmlComponent> parseComponents(List<String> plantUmlDiagramLines) {
         return plantUmlPatterns.filterComponents(plantUmlDiagramLines)
-                .transform(toPlantUmlComponent())
-                .toSet();
+                .map(this::createNewComponent)
+                .collect(toSet());
     }
 
     private ImmutableList<ParsedDependency> parseDependencies(PlantUmlComponents plantUmlComponents, List<String> plantUmlDiagramLines) {
@@ -83,21 +85,12 @@ class PlantUmlParser {
         return result.build();
     }
 
-    private Function<String, PlantUmlComponent> toPlantUmlComponent() {
-        return new Function<String, PlantUmlComponent>() {
-            @Override
-            public PlantUmlComponent apply(String input) {
-                return createNewComponent(input);
-            }
-        };
-    }
-
     private PlantUmlComponent createNewComponent(String input) {
         PlantUmlComponentMatcher matcher = plantUmlPatterns.matchComponent(input);
 
         ComponentName componentName = new ComponentName(matcher.matchComponentName());
         ImmutableSet<Stereotype> immutableStereotypes = identifyStereotypes(matcher, componentName);
-        Optional<Alias> alias = Optional.ofNullable(matcher.matchAlias().transform(TO_ALIAS).orNull());
+        Optional<Alias> alias = matcher.matchAlias().map(Alias::new);
 
         return new PlantUmlComponent.Builder()
                 .withComponentName(componentName)
@@ -127,11 +120,4 @@ class PlantUmlParser {
 
         return plantUmlComponents.findComponentWith(originOrTargetString);
     }
-
-    private static final Function<String, Alias> TO_ALIAS = new Function<String, Alias>() {
-        @Override
-        public Alias apply(String value) {
-            return new Alias(value);
-        }
-    };
 }

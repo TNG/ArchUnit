@@ -16,17 +16,17 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import com.google.common.base.Joiner;
-import com.tngtech.archunit.base.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.base.Function.Functions.identity;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 class AnnotationPropertiesFormatter {
     private final Function<List<String>, String> arrayFormatter;
@@ -47,11 +47,9 @@ class AnnotationPropertiesFormatter {
             return formatValue(properties.get("value"));
         }
 
-        Set<String> formattedProperties = new HashSet<>();
-        for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            formattedProperties.add(entry.getKey() + "=" + formatValue(entry.getValue()));
-        }
-        return Joiner.on(", ").join(formattedProperties);
+        return properties.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + formatValue(entry.getValue()))
+                .collect(joining(", "));
     }
 
     String formatValue(Object input) {
@@ -65,10 +63,9 @@ class AnnotationPropertiesFormatter {
             return String.valueOf(input);
         }
 
-        List<String> elemToString = new ArrayList<>();
-        for (int i = 0; i < Array.getLength(input); i++) {
-            elemToString.add(formatValue(Array.get(input, i)));
-        }
+        List<String> elemToString = IntStream.range(0, Array.getLength(input))
+                .mapToObj(i -> formatValue(Array.get(input, i)))
+                .collect(toList());
         return arrayFormatter.apply(elemToString);
     }
 
@@ -83,52 +80,27 @@ class AnnotationPropertiesFormatter {
         private boolean omitOptionalIdentifierForSingleElementAnnotations = false;
 
         Builder formattingArraysWithSquareBrackets() {
-            arrayFormatter = new Function<List<String>, String>() {
-                @Override
-                public String apply(List<String> input) {
-                    return "[" + Joiner.on(", ").join(input) + "]";
-                }
-            };
+            arrayFormatter = input -> "[" + Joiner.on(", ").join(input) + "]";
             return this;
         }
 
         Builder formattingArraysWithCurlyBrackets() {
-            arrayFormatter = new Function<List<String>, String>() {
-                @Override
-                public String apply(List<String> input) {
-                    return "{" + Joiner.on(", ").join(input) + "}";
-                }
-            };
+            arrayFormatter = input -> "{" + Joiner.on(", ").join(input) + "}";
             return this;
         }
 
         Builder formattingTypesToString() {
-            typeFormatter = new Function<Class<?>, String>() {
-                @Override
-                public String apply(Class<?> input) {
-                    return String.valueOf(input);
-                }
-            };
+            typeFormatter = String::valueOf;
             return this;
         }
 
         Builder formattingTypesAsClassNames() {
-            typeFormatter = new Function<Class<?>, String>() {
-                @Override
-                public String apply(Class<?> input) {
-                    return input.getName() + ".class";
-                }
-            };
+            typeFormatter = input -> input.getName() + ".class";
             return this;
         }
 
         Builder quotingStrings() {
-            stringFormatter = new Function<String, String>() {
-                @Override
-                public String apply(String input) {
-                    return "\"" + input + "\"";
-                }
-            };
+            stringFormatter = input -> "\"" + input + "\"";
             return this;
         }
 

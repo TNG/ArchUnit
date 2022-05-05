@@ -1,6 +1,8 @@
 package com.tngtech.archunit.base;
 
 import java.util.Collections;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -126,12 +128,7 @@ public class DescribedPredicateTest {
 
     @Test
     public void describe_works() {
-        Predicate<Integer> isEven = new Predicate<Integer>() {
-            @Override
-            public boolean apply(Integer input) {
-                return input % 2 == 0;
-            }
-        };
+        Predicate<Integer> isEven = input -> input % 2 == 0;
 
         assertThat(describe("is even", isEven))
                 .accepts(8)
@@ -213,16 +210,11 @@ public class DescribedPredicateTest {
                 .accepts(ImmutableList.of(5, 5, 5))
                 .rejects(ImmutableList.of(5, 5, 6))
                 .rejects(ImmutableList.of(-1, 0, 5, 6))
-                .accepts(ImmutableList.<Integer>of());
+                .accepts(ImmutableList.of());
     }
 
     private Function<Object, Integer> constant(final int integer) {
-        return new Function<Object, Integer>() {
-            @Override
-            public Integer apply(Object input) {
-                return integer;
-            }
-        };
+        return input -> integer;
     }
 
     private abstract static class NotScenario {

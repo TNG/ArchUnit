@@ -15,10 +15,9 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
-import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
-import com.tngtech.archunit.base.Optional;
+import java.util.Optional;
+import java.util.function.Function;
+
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -33,7 +32,7 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
         implements GivenClasses, GivenClassesConjunction {
 
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer) {
-        this(priority, classesTransformer, Functions.<ArchCondition<JavaClass>>identity());
+        this(priority, classesTransformer, Function.identity());
     }
 
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer,
@@ -60,32 +59,17 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
 
     @Override
     public ClassesThat<GivenClassesConjunction> and() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, GivenClassesConjunction>() {
-            @Override
-            public GivenClassesConjunction apply(DescribedPredicate<? super JavaClass> input) {
-                return with(currentPredicate().thatANDs().add(input));
-            }
-        });
+        return new ClassesThatInternal<>(input -> with(currentPredicate().thatANDs().add(input)));
     }
 
     @Override
     public ClassesThat<GivenClassesConjunction> or() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, GivenClassesConjunction>() {
-            @Override
-            public GivenClassesConjunction apply(DescribedPredicate<? super JavaClass> input) {
-                return with(currentPredicate().thatORs().add(input));
-            }
-        });
+        return new ClassesThatInternal<>(input -> with(currentPredicate().thatORs().add(input)));
     }
 
     @Override
     public ClassesThat<GivenClassesConjunction> that() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, GivenClassesConjunction>() {
-            @Override
-            public GivenClassesConjunction apply(DescribedPredicate<? super JavaClass> input) {
-                return with(currentPredicate().add(input));
-            }
-        });
+        return new ClassesThatInternal<>(input -> with(currentPredicate().add(input)));
     }
 
     @Override

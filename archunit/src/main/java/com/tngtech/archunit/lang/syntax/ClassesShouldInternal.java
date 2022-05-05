@@ -16,9 +16,9 @@
 package com.tngtech.archunit.lang.syntax;
 
 import java.lang.annotation.Annotation;
+import java.util.function.Function;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
@@ -486,12 +486,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> accessClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, ClassesShouldConjunction>() {
-            @Override
-            public ClassesShouldConjunction apply(DescribedPredicate<? super JavaClass> predicate) {
-                return addCondition(ArchConditions.accessClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> addCondition(ArchConditions.accessClassesThat(predicate)));
     }
 
     @Override
@@ -501,12 +496,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> onlyAccessClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, ClassesShouldConjunction>() {
-            @Override
-            public ClassesShouldConjunction apply(DescribedPredicate<? super JavaClass> predicate) {
-                return addCondition(ArchConditions.onlyAccessClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> addCondition(ArchConditions.onlyAccessClassesThat(predicate)));
     }
 
     @Override
@@ -516,12 +506,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> dependOnClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, ClassesShouldConjunction>() {
-            @Override
-            public ClassesShouldConjunction apply(DescribedPredicate<? super JavaClass> predicate) {
-                return addCondition(ArchConditions.dependOnClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> addCondition(ArchConditions.dependOnClassesThat(predicate)));
     }
 
     @Override
@@ -531,12 +516,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> onlyDependOnClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, ClassesShouldConjunction>() {
-            @Override
-            public ClassesShouldConjunction apply(DescribedPredicate<? super JavaClass> predicate) {
-                return addCondition(ArchConditions.onlyDependOnClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> addCondition(ArchConditions.onlyDependOnClassesThat(predicate)));
     }
 
     @Override
@@ -546,12 +526,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> transitivelyDependOnClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, ClassesShouldConjunction>() {
-            @Override
-            public ClassesShouldConjunction apply(DescribedPredicate<? super JavaClass> predicate) {
-                return addCondition(ArchConditions.transitivelyDependOnClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> addCondition(ArchConditions.transitivelyDependOnClassesThat(predicate)));
     }
 
     @Override
@@ -566,12 +541,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesThat<ClassesShouldConjunction> onlyHaveDependentClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, ClassesShouldConjunction>() {
-            @Override
-            public ClassesShouldConjunction apply(DescribedPredicate<? super JavaClass> predicate) {
-                return addCondition(ArchConditions.onlyHaveDependentClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> addCondition(ArchConditions.onlyHaveDependentClassesThat(predicate)));
     }
 
     @Override

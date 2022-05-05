@@ -16,18 +16,17 @@
 package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
+import static java.util.stream.Collectors.toSet;
 
 @PublicAPI(usage = ACCESS)
 public final class ArchitectureMetrics {
@@ -94,10 +93,6 @@ public final class ArchitectureMetrics {
         return new VisibilityMetrics(components, isVisible);
     }
 
-    private static final Function<JavaClass, Collection<JavaClass>> GET_JAVA_CLASS_DEPENDENCIES = new Function<JavaClass, Collection<JavaClass>>() {
-        @Override
-        public Collection<JavaClass> apply(JavaClass javaClass) {
-            return FluentIterable.from(javaClass.getDirectDependenciesFromSelf()).transform(toGuava(GET_TARGET_CLASS)).toSet();
-        }
-    };
+    private static final Function<JavaClass, Collection<JavaClass>> GET_JAVA_CLASS_DEPENDENCIES =
+            javaClass -> javaClass.getDirectDependenciesFromSelf().stream().map(GET_TARGET_CLASS).collect(toSet());
 }

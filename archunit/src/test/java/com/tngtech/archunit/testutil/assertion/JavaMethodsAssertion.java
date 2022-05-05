@@ -1,5 +1,6 @@
 package com.tngtech.archunit.testutil.assertion;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import org.assertj.core.api.AbstractIterableAssert;
 
@@ -19,6 +20,11 @@ public class JavaMethodsAssertion
         return new JavaMethodAssertion(value).as(description);
     }
 
+    @Override
+    protected JavaMethodsAssertion newAbstractIterableAssert(Iterable<? extends JavaMethod> iterable) {
+        return new JavaMethodsAssertion(ImmutableSet.copyOf(iterable));
+    }
+
     public JavaMethodsAssertion contain(Class<?> owner, String name, Class<?>... parameterTypes) {
         if (!contains(owner, name, parameterTypes)) {
             throw new AssertionError(String.format("There is no method %s contained in %s",
@@ -29,7 +35,7 @@ public class JavaMethodsAssertion
 
     private boolean contains(Class<?> owner, String name, Class<?>[] parameterTypes) {
         for (JavaMethod method : actual) {
-            if (method.getOwner().isEquivalentTo(owner) && method.getName().equals(name) && rawParameterTypes(parameterTypes).apply(method)) {
+            if (method.getOwner().isEquivalentTo(owner) && method.getName().equals(name) && rawParameterTypes(parameterTypes).test(method)) {
                 return true;
             }
         }

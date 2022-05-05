@@ -88,8 +88,8 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
             }
 
             @Override
-            public boolean apply(HasThrowsClause<?> input) {
-                return predicate.apply(input.getThrowsClause());
+            public boolean test(HasThrowsClause<?> input) {
+                return predicate.test(input.getThrowsClause());
             }
         }
     }

@@ -2,8 +2,7 @@ package com.tngtech.archunit.testutil.syntax;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-
-import com.tngtech.archunit.base.Optional;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;

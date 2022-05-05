@@ -15,9 +15,9 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
+import java.util.function.Function;
+
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
@@ -270,7 +270,7 @@ public final class ArchRuleDefinition {
         @PublicAPI(usage = ACCESS)
         public GivenClass theClass(final String className) {
             ClassesTransformer<JavaClass> theClass = theClassTransformer(className);
-            return new GivenClassInternal(priority, theClass, Functions.<ArchCondition<JavaClass>>identity());
+            return new GivenClassInternal(priority, theClass, Function.identity());
         }
 
         @PublicAPI(usage = ACCESS)
@@ -295,11 +295,6 @@ public final class ArchRuleDefinition {
     }
 
     private static <T> Function<ArchCondition<T>, ArchCondition<T>> negateCondition() {
-        return new Function<ArchCondition<T>, ArchCondition<T>>() {
-            @Override
-            public ArchCondition<T> apply(ArchCondition<T> condition) {
-                return never(condition).as(condition.getDescription());
-            }
-        };
+        return condition -> never(condition).as(condition.getDescription());
     }
 }

@@ -18,10 +18,11 @@ package com.tngtech.archunit.lang;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 
 /**
  * Default base implementation of {@link ClassesTransformer}, where only {@link #doTransform(JavaClasses)}
@@ -48,7 +49,7 @@ public abstract class AbstractClassesTransformer<T> implements ClassesTransforme
             @Override
             public Iterable<T> doTransform(JavaClasses collection) {
                 Iterable<T> transformed = AbstractClassesTransformer.this.doTransform(collection);
-                return Guava.Iterables.filter(transformed, predicate);
+                return stream(transformed.spliterator(), false).filter(predicate).collect(toList());
             }
         };
     }

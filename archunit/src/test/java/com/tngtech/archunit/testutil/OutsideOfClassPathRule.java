@@ -10,10 +10,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
+import com.tngtech.archunit.base.Predicates;
 import org.junit.Assert;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
@@ -87,7 +87,7 @@ public class OutsideOfClassPathRule extends ExternalResource {
 
     private void moveMatchingFilesDeleteRest(File sourceDir, Path targetDir, Predicate<String> predicate) throws IOException {
         for (File file : sourceDir.listFiles()) {
-            if (predicate.apply(file.getName())) {
+            if (predicate.test(file.getName())) {
                 Files.move(file.toPath(), targetDir.resolve(file.getName()));
             } else {
                 checkState(file.delete());
@@ -118,7 +118,7 @@ public class OutsideOfClassPathRule extends ExternalResource {
     protected void after() {
         if (backup != null) {
             try {
-                moveMatchingFilesDeleteRest(backup.toFile(), originFolder, Predicates.<String>alwaysTrue());
+                moveMatchingFilesDeleteRest(backup.toFile(), originFolder, (__) -> true);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

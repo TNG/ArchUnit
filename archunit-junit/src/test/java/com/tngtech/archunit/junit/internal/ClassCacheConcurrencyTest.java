@@ -1,11 +1,11 @@
 package com.tngtech.archunit.junit.internal;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 
 import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.importer.ImportOptions;
@@ -23,6 +23,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.stream.Collectors.toList;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.verify;
@@ -58,10 +59,9 @@ public class ClassCacheConcurrencyTest {
 
     @Test
     public void concurrent_access() throws Exception {
-        List<Future<?>> futures = new ArrayList<>();
-        for (int i = 0; i < NUM_THREADS; i++) {
-            futures.add(executorService.submit(repeatGetClassesToAnalyze(1000)));
-        }
+        List<Future<?>> futures = IntStream.range(0, NUM_THREADS)
+                .mapToObj(i -> executorService.submit(repeatGetClassesToAnalyze(1000)))
+                .collect(toList());
         for (Future<?> future : futures) {
             future.get(1, MINUTES);
         }
@@ -70,13 +70,10 @@ public class ClassCacheConcurrencyTest {
     }
 
     private Runnable repeatGetClassesToAnalyze(final int times) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                for (int j = 0; j < times; j++) {
-                    cache.getClassesToAnalyzeFor(TEST_CLASSES.get(j % TEST_CLASSES.size()),
-                            new TestAnalysisRequest().withLocationProviders(LocationOfClass.Provider.class));
-                }
+        return () -> {
+            for (int j = 0; j < times; j++) {
+                cache.getClassesToAnalyzeFor(TEST_CLASSES.get(j % TEST_CLASSES.size()),
+                        new TestAnalysisRequest().withLocationProviders(LocationOfClass.Provider.class));
             }
         };
     }

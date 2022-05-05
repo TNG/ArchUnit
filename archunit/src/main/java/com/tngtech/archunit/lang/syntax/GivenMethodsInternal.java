@@ -15,9 +15,9 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
-import com.tngtech.archunit.base.Optional;
+import java.util.Optional;
+import java.util.function.Function;
+
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -30,7 +30,7 @@ class GivenMethodsInternal
         implements GivenMethods, GivenMethodsConjunction {
 
     GivenMethodsInternal(Priority priority, ClassesTransformer<JavaMethod> classesTransformer) {
-        this(priority, classesTransformer, Functions.<ArchCondition<JavaMethod>>identity());
+        this(priority, classesTransformer, Function.identity());
     }
 
     GivenMethodsInternal(

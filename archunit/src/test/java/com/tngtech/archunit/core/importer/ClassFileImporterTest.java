@@ -11,8 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -85,8 +85,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
-import static com.google.common.base.Predicates.containsPattern;
-import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
@@ -112,6 +110,8 @@ import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static com.tngtech.archunit.testutil.assertion.ExpectedConcreteType.ExpectedConcreteParameterizedType.parameterizedType;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.Assume.assumeTrue;
 
 @RunWith(DataProviderRunner.class)
@@ -675,7 +675,7 @@ public class ClassFileImporterTest {
         JavaClass anonymousClass = classes.get(anonymousClassName);
 
         assertThat(anonymousClass.getEnclosingClass()).contains(enclosingClass);
-        assertThat(anonymousClass.getEnclosingCodeUnit()).isAbsent();
+        assertThat(anonymousClass.getEnclosingCodeUnit()).isEmpty();
     }
 
     @Test
@@ -700,12 +700,10 @@ public class ClassFileImporterTest {
     public void imports_urls_of_files() {
         Set<URL> urls = newHashSet(urlOf(ClassToImportOne.class), urlOf(ClassWithNestedClass.class));
 
-        Set<JavaClass> classesFoundAtUrls = new HashSet<>();
-        for (JavaClass javaClass : new ClassFileImporter().importUrls(urls)) {
-            if (!Object.class.getName().equals(javaClass.getName())) {
-                classesFoundAtUrls.add(javaClass);
-            }
-        }
+        Set<JavaClass> classesFoundAtUrls = new ClassFileImporter().importUrls(urls).stream()
+                .filter(javaClass -> !Object.class.getName().equals(javaClass.getName()))
+                .collect(toSet());
+
         assertThat(classesFoundAtUrls).as("Number of classes at the given URLs").hasSize(2);
     }
 
@@ -732,8 +730,9 @@ public class ClassFileImporterTest {
 
     @Test
     public void imports_classes_outside_of_the_classpath() throws IOException {
+        Pattern missingPattern = Pattern.compile("^Missing.*");
         Path targetDir = outsideOfClassPath
-                .onlyKeep(not(containsPattern("^Missing.*")))
+                .onlyKeep(fileName -> !missingPattern.matcher(fileName).find())
                 .setUp(getClass().getResource("testexamples/outsideofclasspath"));
 
         JavaClasses classes = new ClassFileImporter().importPath(targetDir);
@@ -911,17 +910,7 @@ public class ClassFileImporterTest {
     }
 
     private ImportOption importOnly(final Class<?>... classes) {
-        return new ImportOption() {
-            @Override
-            public boolean includes(Location location) {
-                for (Class<?> c : classes) {
-                    if (location.contains(urlOf(c).getFile())) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        };
+        return location -> stream(classes).anyMatch(c -> location.contains(urlOf(c).getFile()));
     }
 
     private Condition<CodeUnitAccessTarget> targetWithFullName(final String name) {

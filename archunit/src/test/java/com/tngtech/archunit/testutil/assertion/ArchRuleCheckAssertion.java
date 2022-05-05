@@ -1,14 +1,14 @@
 package com.tngtech.archunit.testutil.assertion;
 
+import java.util.Optional;
+
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.guava.api.Assertions.assertThat;
 
 public class ArchRuleCheckAssertion {
     private final EvaluationResult evaluationResult;
@@ -22,7 +22,7 @@ public class ArchRuleCheckAssertion {
     private Optional<AssertionError> checkRule(ArchRule rule, JavaClasses classes) {
         try {
             rule.check(classes);
-            return Optional.absent();
+            return Optional.empty();
         } catch (AssertionError error) {
             return Optional.of(error);
         }
@@ -76,6 +76,6 @@ public class ArchRuleCheckAssertion {
 
     public void hasNoViolation() {
         assertThat(evaluationResult.hasViolation()).as("result has violation").isFalse();
-        assertThat(error).as("error").isAbsent();
+        assertThat(error).as("error").isEmpty();
     }
 }

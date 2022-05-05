@@ -21,7 +21,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public interface MethodsShouldConjunction  extends CodeUnitsShouldConjunction<JavaMethod> {
+public interface MethodsShouldConjunction extends CodeUnitsShouldConjunction<JavaMethod> {
 
     @Override
     @PublicAPI(usage = ACCESS)

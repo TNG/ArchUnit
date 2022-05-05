@@ -39,6 +39,7 @@ import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerRunsRuleSetsTest.Rules.someMethodRuleName;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerTestUtils.getRule;
 import static com.tngtech.archunit.junit.internal.ArchUnitRunnerTestUtils.newRunnerFor;
+import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllMethods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,7 +74,7 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     @InjectMocks
     private ArchUnitRunnerInternal runnerForIgnoredRuleLibrary = newRunnerFor(ArchTestWithIgnoredRuleLibrary.class);
 
-    private JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsRuleSetsTest.class);
+    private final JavaClasses cachedClasses = importClassesWithContext(ArchUnitRunnerRunsRuleSetsTest.class);
 
     @Before
     public void setUp() {
@@ -189,40 +190,24 @@ public class ArchUnitRunnerRunsRuleSetsTest {
     }
 
     private Runnable verifyTestIgnored() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                verify(runNotifier).fireTestIgnored(descriptionCaptor.capture());
-            }
-        };
+        return () -> verify(runNotifier).fireTestIgnored(descriptionCaptor.capture());
     }
 
     private Runnable verifyTestRan() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                verify(runNotifier).fireTestStarted(any(Description.class));
-                verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
-            }
+        return () -> {
+            verify(runNotifier).fireTestStarted(any(Description.class));
+            verify(runNotifier).fireTestFinished(descriptionCaptor.capture());
         };
     }
 
     // extractingResultOf(..) only looks for public methods
     private Extractor<Object, Object> resultOf(final String methodName) {
-        return new Extractor<Object, Object>() {
-            @Override
-            public Object extract(Object input) {
-                Collection<Method> candidates = ReflectionUtils.getAllMethods(input.getClass(), new ReflectionUtils.Predicate<Method>() {
-                    @Override
-                    public boolean apply(Method input) {
-                        return input.getName().equals(methodName);
-                    }
-                });
-                checkState(!candidates.isEmpty(),
-                        "Couldn't find any method named '%s' with hierarchy of %s",
-                        methodName, input.getClass().getName());
-                return invoke(candidates.iterator().next(), input);
-            }
+        return input -> {
+            Collection<Method> candidates = getAllMethods(input.getClass(), method -> method.getName().equals(methodName));
+            checkState(!candidates.isEmpty(),
+                    "Couldn't find any method named '%s' with hierarchy of %s",
+                    methodName, input.getClass().getName());
+            return invoke(candidates.iterator().next(), input);
         };
     }
 

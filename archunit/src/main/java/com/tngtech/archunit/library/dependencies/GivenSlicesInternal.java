@@ -28,7 +28,7 @@ import com.tngtech.archunit.library.dependencies.syntax.GivenSlicesConjunction;
 import com.tngtech.archunit.library.dependencies.syntax.SlicesShould;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.base.Guava.Iterables.filter;
+import static java.util.stream.Collectors.toList;
 
 class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConjunction {
     private final Priority priority;
@@ -83,22 +83,12 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
 
     @Override
     public SliceRule beFreeOfCycles() {
-        return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
-            @Override
-            public ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate) {
-                return new SliceCycleArchCondition(predicate);
-            }
-        });
+        return new SliceRule(classesTransformer, priority, (transformer, predicate) -> new SliceCycleArchCondition(predicate));
     }
 
     @Override
     public SliceRule notDependOnEachOther() {
-        return new SliceRule(classesTransformer, priority, new SliceRule.ConditionFactory() {
-            @Override
-            public ArchCondition<Slice> create(Slices.Transformer transformer, DescribedPredicate<Dependency> predicate) {
-                return new NotDependOnEachOtherCondition(predicate, transformer);
-            }
-        });
+        return new SliceRule(classesTransformer, priority, (transformer, predicate) -> new NotDependOnEachOtherCondition(predicate, transformer));
     }
 
     private static class NotDependOnEachOtherCondition extends ArchCondition<Slice> {
@@ -113,7 +103,7 @@ class GivenSlicesInternal implements GivenSlices, SlicesShould, GivenSlicesConju
 
         @Override
         public void check(Slice slice, ConditionEvents events) {
-            Iterable<Dependency> relevantDependencies = filter(slice.getDependenciesFromSelf(), predicate);
+            Iterable<Dependency> relevantDependencies = slice.getDependenciesFromSelf().stream().filter(predicate).collect(toList());
             Slices dependencySlices = inputTransformer.transform(relevantDependencies);
             for (Slice dependencySlice : dependencySlices) {
                 SliceDependency dependency = SliceDependency.of(slice, relevantDependencies, dependencySlice);

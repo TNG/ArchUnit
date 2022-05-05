@@ -18,18 +18,18 @@ package com.tngtech.archunit.library.dependencies;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Guava;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -43,6 +43,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Basic collection of {@link Slice} for tests of dependencies between different domain packages, e.g. to avoid cycles.
@@ -64,6 +66,11 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
     @Override
     public Iterator<Slice> iterator() {
         return slices.iterator();
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public Stream<Slice> stream() {
+        return StreamSupport.stream(slices.spliterator(), false);
     }
 
     @Override
@@ -219,7 +226,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
                 slices = slices.namingSlices(namingPattern.get());
             }
             if (predicate.isPresent()) {
-                slices = new Slices(Guava.Iterables.filter(slices, predicate.get()));
+                slices = new Slices(slices.stream().filter(predicate.get()).collect(toList()));
             }
             return slices.as(getDescription());
         }
@@ -313,11 +320,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         }
 
         Set<Slice> build() {
-            Set<Slice> result = new HashSet<>();
-            for (Slice.Builder builder : sliceBuilders.values()) {
-                result.add(builder.build());
-            }
-            return result;
+            return sliceBuilders.values().stream().map(Slice.Builder::build).collect(toSet());
         }
     }
 

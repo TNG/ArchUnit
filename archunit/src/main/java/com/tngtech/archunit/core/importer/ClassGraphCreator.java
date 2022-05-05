@@ -17,6 +17,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
@@ -25,9 +26,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
@@ -51,7 +50,6 @@ import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.importer.AccessRecord.FieldAccessRecord;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorReferenceBuilder;
@@ -59,7 +57,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldAccessBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodReferenceBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
-import com.tngtech.archunit.core.importer.ImportedClasses.MethodReturnTypeGetter;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 
@@ -89,12 +86,7 @@ class ClassGraphCreator implements ImportContext {
     ClassGraphCreator(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess, ClassResolver classResolver) {
         this.importRecord = importRecord;
         this.dependencyResolutionProcess = dependencyResolutionProcess;
-        classes = new ImportedClasses(importRecord.getClasses(), classResolver, new MethodReturnTypeGetter() {
-            @Override
-            public Optional<JavaClass> getReturnType(String declaringClassName, String methodName) {
-                return getMethodReturnType(declaringClassName, methodName);
-            }
-        });
+        classes = new ImportedClasses(importRecord.getClasses(), classResolver, this::getMethodReturnType);
     }
 
     JavaClasses complete() {
@@ -117,24 +109,16 @@ class ClassGraphCreator implements ImportContext {
     }
 
     private void completeAccesses() {
-        for (RawAccessRecord.ForField fieldAccessRecord : importRecord.getRawFieldAccessRecords()) {
-            tryProcess(fieldAccessRecord, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords);
-        }
-        for (RawAccessRecord methodCallRecord : importRecord.getRawMethodCallRecords()) {
-            tryProcess(methodCallRecord, AccessRecord.Factory.forMethodCallRecord(), processedMethodCallRecords);
-        }
-        for (RawAccessRecord constructorCallRecord : importRecord.getRawConstructorCallRecords()) {
-            tryProcess(constructorCallRecord, AccessRecord.Factory.forConstructorCallRecord(),
-                    processedConstructorCallRecords);
-        }
-        for (RawAccessRecord methodReferenceCallRecord : importRecord.getRawMethodReferenceRecords()) {
-            tryProcess(methodReferenceCallRecord, AccessRecord.Factory.forMethodReferenceRecord(),
-                    processedMethodReferenceRecords);
-        }
-        for (RawAccessRecord constructorReferenceCallRecord : importRecord.getRawConstructorReferenceRecords()) {
-            tryProcess(constructorReferenceCallRecord, AccessRecord.Factory.forConstructorReferenceRecord(),
-                    processedConstructorReferenceRecords);
-        }
+        importRecord.forEachRawFieldAccessRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forFieldAccessRecord(), processedFieldAccessRecords));
+        importRecord.forEachRawMethodCallRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forMethodCallRecord(), processedMethodCallRecords));
+        importRecord.forEachRawConstructorCallRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forConstructorCallRecord(), processedConstructorCallRecords));
+        importRecord.forEachRawMethodReferenceRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forMethodReferenceRecord(), processedMethodReferenceRecords));
+        importRecord.forEachRawConstructorReferenceRecord(record ->
+                tryProcess(record, AccessRecord.Factory.forConstructorReferenceRecord(), processedConstructorReferenceRecords));
     }
 
     private <T extends AccessRecord<?>, B extends RawAccessRecord> void tryProcess(
@@ -265,13 +249,11 @@ class ClassGraphCreator implements ImportContext {
         Set<DomainBuilders.JavaMethodBuilder> methodBuilders = importRecord.getMethodBuildersFor(owner.getName());
         if (owner.isAnnotation()) {
             for (DomainBuilders.JavaMethodBuilder methodBuilder : methodBuilders) {
-                methodBuilder.withAnnotationDefaultValue(new Function<JavaMethod, Optional<Object>>() {
-                    @Override
-                    public Optional<Object> apply(JavaMethod method) {
-                        Optional<ValueBuilder> defaultValueBuilder = importRecord.getAnnotationDefaultValueBuilderFor(method);
-                        return defaultValueBuilder.isPresent() ? defaultValueBuilder.get().build(method, classes) : Optional.empty();
-                    }
-                });
+                methodBuilder.withAnnotationDefaultValue(method ->
+                        importRecord.getAnnotationDefaultValueBuilderFor(method)
+                                .map(builder -> builder.build(method, classes))
+                                .orElseGet(() -> Optional.empty())
+                );
             }
         }
         return build(methodBuilders, owner, classes);

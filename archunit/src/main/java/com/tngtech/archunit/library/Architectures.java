@@ -18,18 +18,17 @@ package com.tngtech.archunit.library;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -61,6 +60,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Offers convenience to assert typical architectures:
@@ -388,11 +388,7 @@ public final class Architectures {
             }
 
             private Iterable<LayerDefinition> get(Collection<String> layerNames) {
-                Set<LayerDefinition> result = new HashSet<>();
-                for (String layerName : layerNames) {
-                    result.add(layerDefinitions.get(layerName));
-                }
-                return result;
+                return layerNames.stream().map(layerDefinitions::get).collect(toSet());
             }
 
             @Override
@@ -632,11 +628,7 @@ public final class Architectures {
         }
 
         private String[] concatenateAll(Collection<String[]> arrays) {
-            List<String> resultList = new ArrayList<>();
-            for (String[] array : arrays) {
-                resultList.addAll(Arrays.asList(array));
-            }
-            return resultList.toArray(new String[0]);
+            return arrays.stream().flatMap(Arrays::stream).toArray(String[]::new);
         }
 
         private String getAdapterLayer(String name) {

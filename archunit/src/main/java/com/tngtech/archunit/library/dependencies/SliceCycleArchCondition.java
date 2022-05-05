@@ -24,16 +24,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -47,6 +44,8 @@ import static com.google.common.collect.MultimapBuilder.hashKeys;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_DEPENDENCIES_TO_SHOW_PER_EDGE_PROPERTY_NAME;
 import static java.lang.System.lineSeparator;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toCollection;
 
 class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static final Logger log = LoggerFactory.getLogger(SliceCycleArchCondition.class);
@@ -62,7 +61,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     }
 
     @Override
-    public void init(Iterable<Slice> allSlices) {
+    public void init(Collection<Slice> allSlices) {
         initializeResources(allSlices);
         graph.addNodes(allSlices);
     }
@@ -143,12 +142,12 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
         private SortedSetMultimap<Slice, Dependency> targetsOf(Slice slice,
                 ClassesToSlicesMapping classesToSlicesMapping, DescribedPredicate<Dependency> predicate) {
+
             SortedSetMultimap<Slice, Dependency> result = hashKeys().treeSetValues().build();
-            for (Dependency dependency : Guava.Iterables.filter(slice.getDependenciesFromSelf(), predicate)) {
-                if (classesToSlicesMapping.containsKey(dependency.getTargetClass())) {
-                    result.put(classesToSlicesMapping.get(dependency.getTargetClass()), dependency);
-                }
-            }
+            slice.getDependenciesFromSelf().stream()
+                    .filter(predicate)
+                    .filter(dependency -> classesToSlicesMapping.containsKey(dependency.getTargetClass()))
+                    .forEach(dependency -> result.put(classesToSlicesMapping.get(dependency.getTargetClass()), dependency));
             return result;
         }
 
@@ -171,12 +170,6 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
     private static class EventRecorder {
         private static final String CYCLE_DETECTED_SECTION_INTRO = "Cycle detected: ";
         private static final String DEPENDENCY_DETAILS_INDENT = Strings.repeat(" ", 4);
-        private static final Function<Edge<Slice, Dependency>, String> GET_FROM_NODE_DESCRIPTION = new Function<Edge<Slice, Dependency>, String>() {
-            @Override
-            public String apply(Edge<Slice, Dependency> input) {
-                return input.getFrom().getDescription();
-            }
-        };
 
         private final CycleConfiguration cycleConfiguration = new CycleConfiguration();
 
@@ -201,7 +194,7 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
 
         private Map<String, Edge<Slice, Dependency>> sortEdgesByDescription(Cycle<Slice, Dependency> cycle) {
             LinkedList<Edge<Slice, Dependency>> edges = new LinkedList<>(cycle.getEdges());
-            Edge<Slice, Dependency> startEdge = Ordering.natural().onResultOf(GET_FROM_NODE_DESCRIPTION).min(edges);
+            Edge<Slice, Dependency> startEdge = cycle.getEdges().stream().min(comparing(input -> input.getFrom().getDescription())).get();
             while (!edges.getFirst().equals(startEdge)) {
                 edges.addLast(edges.pollFirst());
             }
@@ -230,14 +223,14 @@ class SliceCycleArchCondition extends ArchCondition<Slice> {
         }
 
         private List<String> dependenciesDescription(Edge<Slice, Dependency> edge) {
-            List<String> result = new ArrayList<>();
             int maxDependencies = cycleConfiguration.getMaxNumberOfDependenciesToShowPerEdge();
             List<Dependency> allDependencies = edge.getAttachments();
             boolean tooManyDependenciesToDisplay = allDependencies.size() > maxDependencies;
             List<Dependency> dependenciesToDisplay = tooManyDependenciesToDisplay ? allDependencies.subList(0, maxDependencies) : allDependencies;
-            for (Dependency dependency : dependenciesToDisplay) {
-                result.add(DEPENDENCY_DETAILS_INDENT + "- " + dependency.getDescription());
-            }
+
+            List<String> result = dependenciesToDisplay.stream()
+                    .map(dependency -> DEPENDENCY_DETAILS_INDENT + "- " + dependency.getDescription())
+                    .collect(toCollection(ArrayList::new));
             if (tooManyDependenciesToDisplay) {
                 result.add(DEPENDENCY_DETAILS_INDENT + String.format("(%d further dependencies have been omitted...)",
                         allDependencies.size() - dependenciesToDisplay.size()));

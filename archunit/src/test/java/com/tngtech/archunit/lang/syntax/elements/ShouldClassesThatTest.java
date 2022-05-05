@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.HasName;
@@ -1670,15 +1670,10 @@ public class ShouldClassesThatTest {
 
     @Test
     public void dependOnClassesThat_reports_all_dependencies() {
-        Function<ArchRule, Set<JavaClass>> filterClassesInFailureReport = new Function<ArchRule, Set<JavaClass>>() {
-            @Override
-            public Set<JavaClass> apply(ArchRule rule) {
-                return filterClassesAppearingInFailureReport(rule)
-                        .on(ClassHavingFieldOfTypeList.class, ClassHavingMethodParameterOfTypeString.class,
-                                ClassHavingConstructorParameterOfTypeCollection.class, ClassImplementingSerializable.class,
-                                ClassHavingReturnTypeArrayList.class);
-            }
-        };
+        Function<ArchRule, Set<JavaClass>> filterClassesInFailureReport = rule -> filterClassesAppearingInFailureReport(rule)
+                .on(ClassHavingFieldOfTypeList.class, ClassHavingMethodParameterOfTypeString.class,
+                        ClassHavingConstructorParameterOfTypeCollection.class, ClassImplementingSerializable.class,
+                        ClassHavingReturnTypeArrayList.class);
 
         Set<JavaClass> classes = filterClassesInFailureReport.apply(
                 noClasses().should().dependOnClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))));
@@ -1695,15 +1690,10 @@ public class ShouldClassesThatTest {
 
     @Test
     public void onlyDependOnClassesThat_reports_all_dependencies() {
-        Function<ArchRule, Set<JavaClass>> filterClassesInFailureReport = new Function<ArchRule, Set<JavaClass>>() {
-            @Override
-            public Set<JavaClass> apply(ArchRule rule) {
-                return filterClassesAppearingInFailureReport(rule)
-                        .on(ClassHavingFieldOfTypeList.class, ClassHavingMethodParameterOfTypeString.class,
-                                ClassHavingConstructorParameterOfTypeCollection.class, ClassImplementingSerializable.class,
-                                ClassHavingReturnTypeArrayList.class);
-            }
-        };
+        Function<ArchRule, Set<JavaClass>> filterClassesInFailureReport = rule -> filterClassesAppearingInFailureReport(rule)
+                .on(ClassHavingFieldOfTypeList.class, ClassHavingMethodParameterOfTypeString.class,
+                        ClassHavingConstructorParameterOfTypeCollection.class, ClassImplementingSerializable.class,
+                        ClassHavingReturnTypeArrayList.class);
 
         Set<JavaClass> classes = filterClassesInFailureReport.apply(
                 classes().should().onlyDependOnClassesThat(are(not(assignableFrom(classWithNameOf(Collection.class))))));
@@ -1739,7 +1729,7 @@ public class ShouldClassesThatTest {
     }
 
     @Test
-    @DataProvider(value={"true", "false"})
+    @DataProvider(value = {"true", "false"})
     public void transitivelyDependOnClassesThat_reports_all_transitive_dependencies(boolean viaPredicate) {
         Class<?> testClass = TransitivelyDependOnClassesThatTestCases.TestClass.class;
         Class<?> directlyDependentClass1 = TransitivelyDependOnClassesThatTestCases.DirectlyDependentClass1.class;
@@ -1750,7 +1740,7 @@ public class ShouldClassesThatTest {
         );
 
         ClassesShould noClassesShould = noClasses().that().haveFullyQualifiedName(testClass.getName()).should();
-        ArchRule rule =  viaPredicate
+        ArchRule rule = viaPredicate
                 ? noClassesShould.transitivelyDependOnClassesThat(have(fullyQualifiedName(transitivelyDependentClass.getName())))
                 : noClassesShould.transitivelyDependOnClassesThat().haveFullyQualifiedName(transitivelyDependentClass.getName());
 

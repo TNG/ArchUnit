@@ -17,10 +17,10 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.Suppliers;
 
 final class ReverseDependencies {
 
@@ -67,17 +67,14 @@ final class ReverseDependencies {
     }
 
     private static Supplier<SetMultimap<JavaClass, Dependency>> createDirectDependenciesToClassSupplier(final List<JavaClassDependencies> allDependencies) {
-        return Suppliers.memoize(new Supplier<SetMultimap<JavaClass, Dependency>>() {
-            @Override
-            public SetMultimap<JavaClass, Dependency> get() {
-                ImmutableSetMultimap.Builder<JavaClass, Dependency> result = ImmutableSetMultimap.builder();
-                for (JavaClassDependencies dependencies : allDependencies) {
-                    for (Dependency dependency : dependencies.getDirectDependenciesFromClass()) {
-                        result.put(dependency.getTargetClass(), dependency);
-                    }
+        return Suppliers.memoize(() -> {
+            ImmutableSetMultimap.Builder<JavaClass, Dependency> result = ImmutableSetMultimap.builder();
+            for (JavaClassDependencies dependencies : allDependencies) {
+                for (Dependency dependency : dependencies.getDirectDependenciesFromClass()) {
+                    result.put(dependency.getTargetClass(), dependency);
                 }
-                return result.build();
             }
+            return result.build();
         });
     }
 

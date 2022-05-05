@@ -15,16 +15,19 @@
  */
 package com.tngtech.archunit.base;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Matches packages with a syntax similar to AspectJ. In particular '*' stands for any sequence of
@@ -124,16 +127,16 @@ public final class PackageMatcher {
     /**
      * Returns a matching {@link PackageMatcher.Result Result}
      * against the provided package name. If the package identifier of this {@link PackageMatcher} does not match the
-     * given package name, then {@link Optional#absent()} is returned.
+     * given package name, then {@link Optional#empty()} is returned.
      *
      * @param aPackage The package name to match against
      * @return A {@link PackageMatcher.Result Result} if the package name matches,
-     * otherwise {@link Optional#absent()}
+     * otherwise {@link Optional#empty()}
      */
     @PublicAPI(usage = ACCESS)
     public Optional<Result> match(String aPackage) {
         Matcher matcher = packagePattern.matcher(aPackage);
-        return matcher.matches() ? Optional.of(new Result(matcher)) : Optional.<Result>empty();
+        return matcher.matches() ? Optional.of(new Result(matcher)) : Optional.empty();
     }
 
     @Override
@@ -160,14 +163,8 @@ public final class PackageMatcher {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static final Function<Result, List<String>> TO_GROUPS = new Function<Result, List<String>>() {
-        @Override
-        public List<String> apply(Result input) {
-            List<String> result = new ArrayList<>();
-            for (int i = 0; i < input.getNumberOfGroups(); i++) {
-                result.add(input.getGroup(i + 1));
-            }
-            return result;
-        }
-    };
+    public static final Function<Result, List<String>> TO_GROUPS = input ->
+            IntStream.rangeClosed(1, input.getNumberOfGroups())
+                    .mapToObj(i -> input.getGroup(i))
+                    .collect(toList());
 }

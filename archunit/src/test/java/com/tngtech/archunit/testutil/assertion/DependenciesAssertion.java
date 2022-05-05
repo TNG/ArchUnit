@@ -3,22 +3,23 @@ package com.tngtech.archunit.testutil.assertion;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import org.assertj.core.api.AbstractIterableAssert;
 
-import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getLast;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.System.lineSeparator;
+import static java.util.Arrays.stream;
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DependenciesAssertion extends AbstractIterableAssert<
@@ -31,6 +32,11 @@ public class DependenciesAssertion extends AbstractIterableAssert<
     @Override
     protected DependencyAssertion toAssert(Dependency value, String description) {
         return new DependencyAssertion(value).as(description);
+    }
+
+    @Override
+    protected DependenciesAssertion newAbstractIterableAssert(Iterable<? extends Dependency> iterable) {
+        return new DependenciesAssertion(ImmutableSet.copyOf(iterable));
     }
 
     public DependenciesAssertion contain(Class<?> expectedOrigin, Class<?> expectedTarget) {
@@ -76,24 +82,15 @@ public class DependenciesAssertion extends AbstractIterableAssert<
     }
 
     private ExpectedDependenciesMatchResult matchExpectedDependencies(ExpectedDependencies expectedDependencies) {
-        FluentIterable<Dependency> rest = FluentIterable.from(actual);
+        List<Dependency> rest = newArrayList(actual);
         List<ExpectedDependency> missingDependencies = new ArrayList<>();
         for (final ExpectedDependency expectedDependency : expectedDependencies) {
-            if (!rest.anyMatch(matches(expectedDependency))) {
+            if (!rest.stream().anyMatch(expectedDependency::matches)) {
                 missingDependencies.add(expectedDependency);
             }
-            rest = rest.filter(not(matches(expectedDependency)));
+            rest = rest.stream().filter(dependency -> !expectedDependency.matches(dependency)).collect(toList());
         }
-        return new ExpectedDependenciesMatchResult(missingDependencies, rest.toList());
-    }
-
-    private Predicate<Dependency> matches(final ExpectedDependency expectedDependency) {
-        return new Predicate<Dependency>() {
-            @Override
-            public boolean apply(Dependency input) {
-                return expectedDependency.matches(input);
-            }
-        };
+        return new ExpectedDependenciesMatchResult(missingDependencies, rest);
     }
 
     public DependenciesAssertion containOnly(Class<?> expectedOrigin, Class<?> expectedTarget) {
@@ -117,7 +114,7 @@ public class DependenciesAssertion extends AbstractIterableAssert<
 
     public static class ExpectedDependenciesCreator {
         private final ExpectedDependencies expectedDependencies;
-        private Optional<String> descriptionTemplate = Optional.absent();
+        private Optional<String> descriptionTemplate = Optional.empty();
         private final Class<?> origin;
 
         private ExpectedDependenciesCreator(ExpectedDependencies expectedDependencies, Class<?> origin) {
@@ -136,11 +133,8 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         }
 
         public ExpectedDependencies to(JavaClass... targets) {
-            List<Class<?>> reflectedTargets = new ArrayList<>();
-            for (JavaClass target : targets) {
-                reflectedTargets.add(target.reflect());
-            }
-            return to(reflectedTargets.toArray(new Class[0]));
+            Class<?>[] reflectedTargets = stream(targets).map(JavaClass::reflect).toArray(Class<?>[]::new);
+            return to(reflectedTargets);
         }
 
         public ExpectedDependencies to(Class<?>... targets) {
@@ -184,11 +178,8 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         }
 
         public ExpectedDependencies withDescriptionMatching(String regexTemplate, Object... args) {
-            List<String> quotedArgs = new ArrayList<>();
-            for (Object arg : args) {
-                quotedArgs.add(quote(String.valueOf(arg)));
-            }
-            String regex = String.format(regexTemplate, quotedArgs.toArray());
+            Object[] quotedArgs = stream(args).map(arg -> quote(String.valueOf(arg))).toArray();
+            String regex = String.format(regexTemplate, quotedArgs);
             getLast(expectedDependencies).descriptionMatching(regex);
             return this;
         }
@@ -202,8 +193,8 @@ public class DependenciesAssertion extends AbstractIterableAssert<
     private static class ExpectedDependency {
         private final Class<?> origin;
         private final Class<?> target;
-        private Optional<Pattern> descriptionPattern = Optional.absent();
-        private Optional<String> locationPart = Optional.absent();
+        private Optional<Pattern> descriptionPattern = Optional.empty();
+        private Optional<String> locationPart = Optional.empty();
 
         ExpectedDependency(Class<?> origin, Class<?> target) {
             this.origin = origin;

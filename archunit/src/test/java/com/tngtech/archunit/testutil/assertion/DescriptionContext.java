@@ -1,10 +1,8 @@
 package com.tngtech.archunit.testutil.assertion;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
+import java.util.stream.Stream;
 
-import static com.google.common.collect.Iterables.cycle;
-import static com.google.common.collect.Iterables.limit;
+import static java.util.stream.Collectors.joining;
 
 class DescriptionContext {
     private static final String MARKER = "##MARKER##";
@@ -55,7 +53,7 @@ class DescriptionContext {
     }
 
     private String joinedPlaceHolders(int number) {
-        return FluentIterable.from(limit(cycle(PLACEHOLDER), number)).join(Joiner.on(joinString));
+        return Stream.generate(() -> PLACEHOLDER).limit(number).collect(joining(joinString));
     }
 
     public DescriptionContext step(String description) {

@@ -2,10 +2,9 @@ package com.tngtech.archunit.library.dependencies;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -28,6 +27,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.lang.System.lineSeparator;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -179,13 +179,9 @@ public class SliceRuleTest {
     }
 
     private List<String> filterLinesMatching(String text, final String regex) {
-        return FluentIterable.from(Splitter.on(lineSeparator()).split(text))
-                .filter(new Predicate<String>() {
-                    @Override
-                    public boolean apply(String input) {
-                        return input.matches(".*(" + regex + ").*");
-                    }
-                }).toList();
+        return Splitter.on(lineSeparator()).splitToList(text).stream()
+                .filter(input -> input.matches(".*(" + regex + ").*"))
+                .collect(toList());
     }
 
     private Condition<List<? extends String>> subStringsPerLine(final String... substrings) {
@@ -237,10 +233,8 @@ public class SliceRuleTest {
      * SUM(k=2, n) (n k) * (k-1)! = SUM(k=2, n) n! / ((n-k)! * k)
      */
     static int getNumberOfCyclesInCompleteGraph(int numberOfNodes) {
-        int numberOfCycles = 0;
-        for (int k = 2; k <= numberOfNodes; k++) {
-            numberOfCycles += factorial(numberOfNodes) / (factorial(numberOfNodes - k) * k);
-        }
-        return numberOfCycles;
+        return IntStream.rangeClosed(2, numberOfNodes)
+                .map(k -> factorial(numberOfNodes) / (factorial(numberOfNodes - k) * k))
+                .sum();
     }
 }

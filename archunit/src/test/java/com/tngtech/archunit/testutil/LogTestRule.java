@@ -3,8 +3,6 @@ package com.tngtech.archunit.testutil;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
@@ -15,6 +13,8 @@ import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.junit.Assert;
 import org.junit.rules.ExternalResource;
+
+import static java.util.stream.Collectors.toList;
 
 public class LogTestRule extends ExternalResource {
     private static final String APPENDER_NAME = "test_appender";
@@ -82,12 +82,7 @@ public class LogTestRule extends ExternalResource {
     }
 
     private Iterable<RecordedLogEvent> filterByLevel(List<RecordedLogEvent> events, final Level level) {
-        return FluentIterable.from(events).filter(new Predicate<RecordedLogEvent>() {
-            @Override
-            public boolean apply(RecordedLogEvent input) {
-                return input.getLevel().equals(level);
-            }
-        });
+        return events.stream().filter(input -> input.getLevel().equals(level)).collect(toList());
     }
 
     private static class RecordedLogEvent {

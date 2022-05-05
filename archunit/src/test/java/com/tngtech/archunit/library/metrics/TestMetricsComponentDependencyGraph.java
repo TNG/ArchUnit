@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
 
-import static com.google.common.base.Functions.toStringFunction;
+import static com.google.common.collect.Ordering.natural;
 import static java.lang.System.lineSeparator;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public class TestMetricsComponentDependencyGraph {
     private final Set<TestDependency> dependencies;
@@ -25,10 +24,9 @@ public class TestMetricsComponentDependencyGraph {
         for (TestDependency dependency : dependencies) {
             getElement(elements, dependency.origin).addDependency(getElement(elements, dependency.target));
         }
-        Set<MetricsComponent<TestElement>> components = new HashSet<>();
-        for (Map.Entry<String, TestElement> nameToElement : elements.entrySet()) {
-            components.add(MetricsComponent.of(nameToElement.getKey(), nameToElement.getValue()));
-        }
+        Set<MetricsComponent<TestElement>> components = elements.entrySet().stream()
+                .map(nameToElement -> MetricsComponent.of(nameToElement.getKey(), nameToElement.getValue()))
+                .collect(toSet());
         this.components = MetricsComponents.of(components);
     }
 
@@ -37,17 +35,15 @@ public class TestMetricsComponentDependencyGraph {
     }
 
     public Map<String, MetricsComponent<TestElement>> toComponentsByIdentifier() {
-        return Maps.uniqueIndex(components, new Function<MetricsComponent<TestElement>, String>() {
-            @Override
-            public String apply(MetricsComponent<TestElement> input) {
-                return input.getIdentifier();
-            }
-        });
+        return Maps.uniqueIndex(components, MetricsComponent::getIdentifier);
     }
 
     @Override
     public String toString() {
-        List<String> formattedDependencies = FluentIterable.from(dependencies).transform(toStringFunction()).toSortedList(Ordering.<String>natural());
+        List<String> formattedDependencies = dependencies.stream()
+                .map(Object::toString)
+                .sorted(natural())
+                .collect(toList());
         return String.format("graph {%n%s%n}", Joiner.on(lineSeparator()).join(formattedDependencies));
     }
 

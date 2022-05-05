@@ -16,8 +16,7 @@
 package com.tngtech.archunit.library.plantuml;
 
 import java.util.Objects;
-
-import com.tngtech.archunit.base.Optional;
+import java.util.Optional;
 
 class ComponentIdentifier {
     private final ComponentName componentName;

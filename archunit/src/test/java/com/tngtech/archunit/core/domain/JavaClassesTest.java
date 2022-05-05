@@ -118,7 +118,7 @@ public class JavaClassesTest {
     private DescribedPredicate<JavaClass> haveTheNameOf(final Class<?> clazz) {
         return new DescribedPredicate<JavaClass>("have the name " + clazz.getSimpleName()) {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getName().equals(clazz.getName());
             }
         };
@@ -126,7 +126,7 @@ public class JavaClassesTest {
 
     private static final DescribedPredicate<JavaClass> EXIST = new DescribedPredicate<JavaClass>("exist") {
         @Override
-        public boolean apply(JavaClass input) {
+        public boolean test(JavaClass input) {
             return true;
         }
     };

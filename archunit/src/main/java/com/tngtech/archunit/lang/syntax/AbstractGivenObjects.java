@@ -15,9 +15,10 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
+import java.util.Optional;
+import java.util.function.Function;
+
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;

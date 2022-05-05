@@ -17,6 +17,8 @@ package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -24,8 +26,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ForwardingCollection;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaPackage;
 
@@ -45,12 +45,7 @@ public final class MetricsComponents<T> extends ForwardingCollection<MetricsComp
     private final Map<String, MetricsComponent<T>> componentsByIdentifier;
 
     private MetricsComponents(Collection<MetricsComponent<T>> components) {
-        this.componentsByIdentifier = Maps.uniqueIndex(components, new com.google.common.base.Function<MetricsComponent<T>, String>() {
-            @Override
-            public String apply(MetricsComponent<T> input) {
-                return input.getIdentifier();
-            }
-        });
+        this.componentsByIdentifier = Maps.uniqueIndex(components, MetricsComponent::getIdentifier);
     }
 
     /**

@@ -46,7 +46,7 @@ public interface HasModifiers {
             }
 
             @Override
-            public boolean apply(HasModifiers input) {
+            public boolean test(HasModifiers input) {
                 return input.getModifiers().contains(modifier);
             }
         }

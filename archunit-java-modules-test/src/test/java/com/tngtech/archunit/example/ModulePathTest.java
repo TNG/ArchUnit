@@ -30,8 +30,7 @@ public class ModulePathTest {
         classPathSystemProperties.setAccessible(true);
         Iterable<URL> classpathUrls = (Iterable<URL>) classPathSystemProperties.invoke(null);
         URL[] classpath = stream(classpathUrls.spliterator(), false).toArray(URL[]::new);
-        URLClassLoader classpathClassLoader = new URLClassLoader(classpath, null);
-        try {
+        try (URLClassLoader classpathClassLoader = new URLClassLoader(classpath, null)) {
             classpathClassLoader.loadClass(clazz.getName());
             fail("Class " + clazz.getName() + " can be loaded from the classpath -> the test can't reliably show us, if this class can be found on the modulepath. "
                     + "The reason for this might be a wrongly configured test environment, like IntelliJ does "

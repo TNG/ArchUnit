@@ -211,23 +211,20 @@ List<IntegrationTestConfig> integrationTestConfigs = [
         )
 ]
 
-if (integrationTestJavaVersion > JavaVersion.VERSION_1_7) {
-    // JUnit 5 needs at least Java 8
-    def vintageEngine = dependency.junit5VintageEngine
-    integrationTestConfigs << new IntegrationTestConfig(
-            javaVersion: integrationTestJavaVersion,
-            testType: TestType.JUNIT5,
-            surefireExampleConfiguration: '<groups>example</groups>',
-            archunitTestArtifact: 'archunit-junit5',
-            additionalDependencies: """
-                <dependency>
-                    <groupId>${vintageEngine.group}</groupId>
-                    <artifactId>${vintageEngine.name}</artifactId>
-                    <version>${vintageEngine.version}</version>
-                    <scope>test</scope>
-                </dependency>"""
-    )
-}
+def vintageEngine = dependency.junit5VintageEngine
+integrationTestConfigs << new IntegrationTestConfig(
+        javaVersion: integrationTestJavaVersion,
+        testType: TestType.JUNIT5,
+        surefireExampleConfiguration: '<groups>example</groups>',
+        archunitTestArtifact: 'archunit-junit5',
+        additionalDependencies: """
+            <dependency>
+                <groupId>${vintageEngine.group}</groupId>
+                <artifactId>${vintageEngine.name}</artifactId>
+                <version>${vintageEngine.version}</version>
+                <scope>test</scope>
+            </dependency>"""
+)
 
 integrationTestConfigs.each { config -> project.with(addMavenTest(config)) }
 

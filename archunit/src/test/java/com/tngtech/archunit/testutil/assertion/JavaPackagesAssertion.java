@@ -1,18 +1,16 @@
 package com.tngtech.archunit.testutil.assertion;
 
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Set;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.testutil.TestUtils;
 import org.assertj.core.api.AbstractObjectAssert;
 
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.JavaPackage.Functions.GET_RELATIVE_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class JavaPackagesAssertion extends AbstractObjectAssert<JavaPackagesAssertion, JavaPackage[]> {
@@ -32,11 +30,7 @@ public class JavaPackagesAssertion extends AbstractObjectAssert<JavaPackagesAsse
     }
 
     private Set<String> getExpectedNames(Class<?>[] classes) {
-        Set<String> expectedNames = new HashSet<>();
-        for (Class<?> clazz : classes) {
-            expectedNames.add(clazz.getPackage().getName());
-        }
-        return expectedNames;
+        return Arrays.stream(classes).map(clazz -> clazz.getPackage().getName()).collect(toSet());
     }
 
     public void containRelativeNames(String... relativeNames) {
@@ -51,11 +45,11 @@ public class JavaPackagesAssertion extends AbstractObjectAssert<JavaPackagesAsse
         assertThat(getActualNames()).containsOnly(names);
     }
 
-    private ImmutableSet<String> getActualNames() {
-        return FluentIterable.from(actual).transform(toGuava(GET_NAME)).toSet();
+    private Set<String> getActualNames() {
+        return Arrays.stream(actual).map(GET_NAME).collect(toSet());
     }
 
-    private ImmutableSet<String> getActualRelativeNames() {
-        return FluentIterable.from(actual).transform(toGuava(GET_RELATIVE_NAME)).toSet();
+    private Set<String> getActualRelativeNames() {
+        return Arrays.stream(actual).map(GET_RELATIVE_NAME).collect(toSet());
     }
 }

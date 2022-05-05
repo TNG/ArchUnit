@@ -1,7 +1,5 @@
 package com.tngtech.archunit.core.domain.properties;
 
-import java.util.Set;
-
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import org.junit.Test;
@@ -19,11 +17,6 @@ public class HasModifiersTest {
     }
 
     private static HasModifiers hasModifiers(final JavaModifier... modifiers) {
-        return new HasModifiers() {
-            @Override
-            public Set<JavaModifier> getModifiers() {
-                return ImmutableSet.copyOf(modifiers);
-            }
-        };
+        return () -> ImmutableSet.copyOf(modifiers);
     }
 }

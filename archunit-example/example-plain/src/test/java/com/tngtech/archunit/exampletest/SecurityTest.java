@@ -2,9 +2,7 @@ package com.tngtech.archunit.exampletest;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.ImportOptions;
-import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -35,13 +33,9 @@ public class SecurityTest {
     }
 
     private ImportOptions onlyAppAndRuntime() {
-        return new ImportOptions().with(new ImportOption() {
-            @Override
-            public boolean includes(Location location) {
-                return location.contains("archunit")
+        return new ImportOptions().with(location ->
+                location.contains("archunit")
                         || location.contains("/rt.jar")
-                        || location.contains("java.base");
-            }
-        });
+                        || location.contains("java.base"));
     }
 }

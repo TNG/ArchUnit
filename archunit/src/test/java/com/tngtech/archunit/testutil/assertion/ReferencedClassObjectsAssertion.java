@@ -1,14 +1,16 @@
 package com.tngtech.archunit.testutil.assertion;
 
 import java.util.Set;
+import java.util.function.Predicate;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.assertj.core.api.AbstractObjectAssert;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReferencedClassObjectsAssertion extends AbstractIterableAssert<ReferencedClassObjectsAssertion, Set<ReferencedClassObject>, ReferencedClassObject, ReferencedClassObjectsAssertion.ReferencedClassObjectAssertion> {
@@ -21,15 +23,15 @@ public class ReferencedClassObjectsAssertion extends AbstractIterableAssert<Refe
         return new ReferencedClassObjectAssertion(value).as(description);
     }
 
+    @Override
+    protected ReferencedClassObjectsAssertion newAbstractIterableAssert(Iterable<? extends ReferencedClassObject> iterable) {
+        return new ReferencedClassObjectsAssertion(ImmutableSet.copyOf(iterable));
+    }
+
     public void containReferencedClassObjects(Iterable<ExpectedReferencedClassObject> expectedReferencedClassObjects) {
-        final FluentIterable<ReferencedClassObject> actualReferencedClassObjects = FluentIterable.from(actual);
-        Set<ExpectedReferencedClassObject> unmatchedClassObjects = FluentIterable.from(expectedReferencedClassObjects)
-                .filter(new Predicate<ExpectedReferencedClassObject>() {
-                    @Override
-                    public boolean apply(ExpectedReferencedClassObject expectedReferencedClassObject) {
-                        return !actualReferencedClassObjects.anyMatch(expectedReferencedClassObject);
-                    }
-                }).toSet();
+        Set<ExpectedReferencedClassObject> unmatchedClassObjects = stream(expectedReferencedClassObjects.spliterator(), false)
+                .filter(expected -> actual.stream().noneMatch(expected))
+                .collect(toSet());
         assertThat(unmatchedClassObjects).as("Referenced class objects not contained in " + actual).isEmpty();
     }
 
@@ -53,8 +55,7 @@ public class ReferencedClassObjectsAssertion extends AbstractIterableAssert<Refe
         }
 
         @Override
-        @SuppressWarnings("ConstantConditions")
-        public boolean apply(ReferencedClassObject input) {
+        public boolean test(ReferencedClassObject input) {
             return input.getValue().isEquivalentTo(type) && input.getLineNumber() == lineNumber;
         }
 

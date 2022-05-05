@@ -15,13 +15,14 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
@@ -29,7 +30,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
@@ -258,30 +258,28 @@ class ClassFileImportRecord {
         rawConstructorReferenceRecords.add(record);
     }
 
-    Set<RawAccessRecord.ForField> getRawFieldAccessRecords() {
-        return ImmutableSet.copyOf(rawFieldAccessRecords);
+    void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
+        rawFieldAccessRecords.forEach(doWithRecord);
     }
 
-    Set<RawAccessRecord> getRawMethodCallRecords() {
-        return ImmutableSet.copyOf(rawMethodCallRecords);
+    void forEachRawMethodCallRecord(Consumer<RawAccessRecord> doWithRecord) {
+        rawMethodCallRecords.forEach(doWithRecord);
     }
 
-    Set<RawAccessRecord> getRawConstructorCallRecords() {
-        return ImmutableSet.copyOf(rawConstructorCallRecords);
+    void forEachRawConstructorCallRecord(Consumer<RawAccessRecord> doWithRecord) {
+        rawConstructorCallRecords.forEach(doWithRecord);
     }
 
-    Set<RawAccessRecord> getRawMethodReferenceRecords() {
-        return ImmutableSet.copyOf(rawMethodReferenceRecords);
+    void forEachRawMethodReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
+        rawMethodReferenceRecords.forEach(doWithRecord);
     }
 
-    Set<RawAccessRecord> getRawConstructorReferenceRecords() {
-        return ImmutableSet.copyOf(rawConstructorReferenceRecords);
+    void forEachRawConstructorReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
+        rawConstructorReferenceRecords.forEach(doWithRecord);
     }
 
-    void addAll(Collection<JavaClass> javaClasses) {
-        for (JavaClass javaClass : javaClasses) {
-            classes.put(javaClass.getName(), javaClass);
-        }
+    void add(JavaClass javaClass) {
+        classes.put(javaClass.getName(), javaClass);
     }
 
     Map<String, JavaClass> getClasses() {

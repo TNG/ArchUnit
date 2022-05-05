@@ -21,6 +21,7 @@ import java.lang.module.ModuleFinder;
 import java.lang.module.ModuleReader;
 import java.lang.module.ModuleReference;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
@@ -100,7 +101,7 @@ class ModuleLocationFactory implements Location.Factory {
         }
 
         @Override
-        Iterable<NormalizedResourceName> iterateEntriesInternal() {
+        Collection<NormalizedResourceName> readResourceEntries() {
             return doWithModuleReader(moduleReference, moduleReader -> moduleReader.list()
                     .filter(resourceName::isStartOf)
                     .map(NormalizedResourceName::from)

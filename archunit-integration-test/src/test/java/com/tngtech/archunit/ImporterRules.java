@@ -34,7 +34,7 @@ public class ImporterRules {
     private static DescribedPredicate<JavaClass> belong_to_the_import_context() {
         return new DescribedPredicate<JavaClass>("belong to the import context") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getPackageName().startsWith(ClassFileImporter.class.getPackage().getName())
                         && !input.getName().contains(DomainBuilders.class.getSimpleName());
             }

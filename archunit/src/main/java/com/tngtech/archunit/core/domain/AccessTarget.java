@@ -18,17 +18,17 @@ package com.tngtech.archunit.core.domain;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.Optionals;
+import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
@@ -44,6 +44,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilde
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
+import static com.tngtech.archunit.base.Optionals.asSet;
 import static com.tngtech.archunit.core.domain.JavaCodeUnit.Functions.Get.throwsClause;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
@@ -254,12 +255,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
          */
         @Deprecated
         @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<AccessTarget, Set<JavaMember>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaMember>, Set<JavaMember>>() {
-            @Override
-            public Set<JavaMember> apply(Optional<JavaMember> input) {
-                return input.asSet();
-            }
-        });
+        public static final ChainableFunction<AccessTarget, Set<JavaMember>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
     }
 
     /**
@@ -302,7 +298,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Deprecated
         @PublicAPI(usage = ACCESS)
         public Set<JavaField> resolve() {
-            return resolveMember().asSet();
+            return asSet(resolveMember());
         }
 
         /**
@@ -369,12 +365,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
              */
             @Deprecated
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaField>, Set<JavaField>>() {
-                @Override
-                public Set<JavaField> apply(Optional<JavaField> input) {
-                    return input.asSet();
-                }
-            });
+            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -469,12 +460,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
              */
             @Deprecated
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<CodeUnitAccessTarget, Set<JavaCodeUnit>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaCodeUnit>, Set<JavaCodeUnit>>() {
-                @Override
-                public Set<JavaCodeUnit> apply(Optional<JavaCodeUnit> input) {
-                    return input.asSet();
-                }
-            });
+            public static final ChainableFunction<CodeUnitAccessTarget, Set<JavaCodeUnit>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -544,7 +530,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Deprecated
         @PublicAPI(usage = ACCESS)
         public Set<JavaConstructor> resolve() {
-            return resolveMember().asSet();
+            return asSet(resolveMember());
         }
 
         /**
@@ -582,12 +568,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
              */
             @Deprecated
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaConstructor>, Set<JavaConstructor>>() {
-                @Override
-                public Set<JavaConstructor> apply(Optional<JavaConstructor> input) {
-                    return input.asSet();
-                }
-            });
+            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -614,7 +595,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Deprecated
         @PublicAPI(usage = ACCESS)
         public Set<JavaConstructor> resolve() {
-            return resolveMember().asSet();
+            return asSet(resolveMember());
         }
 
         /**
@@ -707,7 +688,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Deprecated
         @PublicAPI(usage = ACCESS)
         public Set<JavaMethod> resolve() {
-            return resolveMember().asSet();
+            return asSet(resolveMember());
         }
 
         @Override
@@ -734,12 +715,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
              */
             @Deprecated
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE = RESOLVE_MEMBER.then(new Function<Optional<JavaMethod>, Set<JavaMethod>>() {
-                @Override
-                public Set<JavaMethod> apply(Optional<JavaMethod> input) {
-                    return input.asSet();
-                }
-            });
+            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -779,7 +755,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @Deprecated
         @PublicAPI(usage = ACCESS)
         public Set<JavaMethod> resolve() {
-            return resolveMember().asSet();
+            return asSet(resolveMember());
         }
 
         @Override
@@ -828,7 +804,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         public static DescribedPredicate<AccessTarget> constructor() {
             return new DescribedPredicate<AccessTarget>("constructor") {
                 @Override
-                public boolean apply(AccessTarget input) {
+                public boolean test(AccessTarget input) {
                     return CONSTRUCTOR_NAME.equals(input.getName()); // The constructor name is sufficiently unique
                 }
             };

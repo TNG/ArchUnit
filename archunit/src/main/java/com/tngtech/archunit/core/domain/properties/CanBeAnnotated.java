@@ -21,11 +21,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -151,7 +151,7 @@ public interface CanBeAnnotated {
             }
 
             @Override
-            public boolean apply(CanBeAnnotated input) {
+            public boolean test(CanBeAnnotated input) {
                 return input.isAnnotatedWith(predicate);
             }
         }
@@ -206,7 +206,7 @@ public interface CanBeAnnotated {
             }
 
             @Override
-            public boolean apply(CanBeAnnotated input) {
+            public boolean test(CanBeAnnotated input) {
                 return input.isMetaAnnotatedWith(predicate);
             }
         }
@@ -221,12 +221,7 @@ public interface CanBeAnnotated {
                 Collection<? extends JavaAnnotation<?>> annotations,
                 DescribedPredicate<? super JavaAnnotation<?>> predicate) {
 
-            for (JavaAnnotation<?> annotation : annotations) {
-                if (predicate.apply(annotation)) {
-                    return true;
-                }
-            }
-            return false;
+            return annotations.stream().anyMatch(predicate);
         }
 
         @PublicAPI(usage = ACCESS)
@@ -234,12 +229,7 @@ public interface CanBeAnnotated {
                 Collection<? extends JavaAnnotation<?>> annotations,
                 DescribedPredicate<? super JavaAnnotation<?>> predicate) {
 
-            for (JavaAnnotation<?> annotation : annotations) {
-                if (isMetaAnnotatedWith(annotation, predicate, new HashSet<String>())) {
-                    return true;
-                }
-            }
-            return false;
+            return annotations.stream().anyMatch(annotation -> isMetaAnnotatedWith(annotation, predicate, new HashSet<>()));
         }
 
         private static boolean isMetaAnnotatedWith(
@@ -251,26 +241,17 @@ public interface CanBeAnnotated {
                 return false;
             }
 
-            if (predicate.apply(annotation)) {
+            if (predicate.test(annotation)) {
                 return true;
             }
 
-            for (JavaAnnotation<?> metaAnnotation : annotation.getRawType().getAnnotations()) {
-                if (isMetaAnnotatedWith(metaAnnotation, predicate, visitedAnnotations)) {
-                    return true;
-                }
-            }
-            return false;
+            return annotation.getRawType().getAnnotations().stream()
+                    .anyMatch(metaAnnotation -> isMetaAnnotatedWith(metaAnnotation, predicate, visitedAnnotations));
         }
 
         @PublicAPI(usage = ACCESS)
         public static <A extends Annotation> Function<JavaAnnotation<?>, A> toAnnotationOfType(final Class<A> type) {
-            return new Function<JavaAnnotation<?>, A>() {
-                @Override
-                public A apply(JavaAnnotation<?> input) {
-                    return input.as(type);
-                }
-            };
+            return input -> input.as(type);
         }
     }
 }

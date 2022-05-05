@@ -93,8 +93,8 @@ public interface HasParameterTypes {
             }
 
             @Override
-            public boolean apply(HasParameterTypes input) {
-                return predicate.apply(input.getRawParameterTypes());
+            public boolean test(HasParameterTypes input) {
+                return predicate.test(input.getRawParameterTypes());
             }
         }
     }

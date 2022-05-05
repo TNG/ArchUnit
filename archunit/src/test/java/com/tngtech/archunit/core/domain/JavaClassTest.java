@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -42,7 +41,6 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.Condition;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -51,7 +49,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
@@ -104,6 +101,7 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -146,12 +144,8 @@ public class JavaClassTest {
         final JavaClass nonArrayType = method.getRawReturnType();
 
         assertThat(nonArrayType.isArray()).isFalse();
-        assertThat(nonArrayType.tryGetComponentType()).isAbsent();
-        assertThatThrownBy(new ThrowingCallable() {
-            public void call() {
-                nonArrayType.getComponentType();
-            }
-        }).isInstanceOf(IllegalStateException.class);
+        assertThat(nonArrayType.tryGetComponentType()).isEmpty();
+        assertThatThrownBy(nonArrayType::getComponentType).isInstanceOf(IllegalStateException.class);
         assertThat(nonArrayType.getBaseComponentType()).isSameAs(nonArrayType);
     }
 
@@ -236,13 +230,13 @@ public class JavaClassTest {
     public void reports_non_existing_members_as_absent() {
         JavaClass javaClass = importClassWithContext(ParentWithFieldAndMethod.class);
 
-        assertThat(javaClass.tryGetField("notthere")).isAbsent();
-        assertThat(javaClass.tryGetMethod("notthere")).isAbsent();
-        assertThat(javaClass.tryGetMethod("notthere", Object.class)).isAbsent();
-        assertThat(javaClass.tryGetMethod("notthere", Object.class.getName())).isAbsent();
-        assertThat(javaClass.tryGetConstructor()).isAbsent();
-        assertThat(javaClass.tryGetConstructor(String.class)).isAbsent();
-        assertThat(javaClass.tryGetConstructor(String.class.getName())).isAbsent();
+        assertThat(javaClass.tryGetField("notthere")).isEmpty();
+        assertThat(javaClass.tryGetMethod("notthere")).isEmpty();
+        assertThat(javaClass.tryGetMethod("notthere", Object.class)).isEmpty();
+        assertThat(javaClass.tryGetMethod("notthere", Object.class.getName())).isEmpty();
+        assertThat(javaClass.tryGetConstructor()).isEmpty();
+        assertThat(javaClass.tryGetConstructor(String.class)).isEmpty();
+        assertThat(javaClass.tryGetConstructor(String.class.getName())).isEmpty();
     }
 
     @Test
@@ -422,24 +416,9 @@ public class JavaClassTest {
     public void getCodeUnitWithParameterTypes() {
         final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
 
-        assertIllegalArgumentException("childMethod", new Runnable() {
-            @Override
-            public void run() {
-                clazz.getCodeUnitWithParameterTypes("childMethod");
-            }
-        });
-        assertIllegalArgumentException("childMethod", new Runnable() {
-            @Override
-            public void run() {
-                clazz.getCodeUnitWithParameterTypes("childMethod", Object.class);
-            }
-        });
-        assertIllegalArgumentException("wrong", new Runnable() {
-            @Override
-            public void run() {
-                clazz.getCodeUnitWithParameterTypes("wrong", String.class);
-            }
-        });
+        assertIllegalArgumentException("childMethod", () -> clazz.getCodeUnitWithParameterTypes("childMethod"));
+        assertIllegalArgumentException("childMethod", () -> clazz.getCodeUnitWithParameterTypes("childMethod", Object.class));
+        assertIllegalArgumentException("wrong", () -> clazz.getCodeUnitWithParameterTypes("wrong", String.class));
 
         assertThatCodeUnit(clazz.getCodeUnitWithParameterTypes("childMethod", String.class))
                 .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
@@ -464,10 +443,10 @@ public class JavaClassTest {
         assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, singletonList(Object.class.getName())).get())
                 .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
 
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>emptyList())).isAbsent();
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isAbsent();
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isAbsent();
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isAbsent();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isEmpty();
     }
 
     @Test
@@ -941,8 +920,7 @@ public class JavaClassTest {
     public void direct_dependencies_from_self_finds_correct_set_of_target_types() {
         JavaClass javaClass = importPackagesOf(getClass()).get(ClassWithAnnotationDependencies.class);
 
-        Set<JavaClass> targets = FluentIterable.from(javaClass.getDirectDependenciesFromSelf())
-                .transform(toGuava(GET_TARGET_CLASS)).toSet();
+        Set<JavaClass> targets = javaClass.getDirectDependenciesFromSelf().stream().map(GET_TARGET_CLASS).collect(toSet());
 
         assertThatTypes(targets).matchInAnyOrder(
                 B.class, AhavingMembersOfTypeB.class, Object.class, String.class,
@@ -1469,8 +1447,7 @@ public class JavaClassTest {
     }
 
     private Set<JavaClass> getOriginsOfDependenciesTo(JavaClass withType) {
-        return FluentIterable.from(withType.getDirectDependenciesToSelf())
-                .transform(toGuava(GET_ORIGIN_CLASS)).toSet();
+        return withType.getDirectDependenciesToSelf().stream().map(GET_ORIGIN_CLASS).collect(toSet());
     }
 
     @Test
@@ -1896,13 +1873,9 @@ public class JavaClassTest {
     private JavaClass getOnlyClassSettingField(JavaClasses classes, final String fieldName) {
         return getOnlyElement(classes.that(new DescribedPredicate<JavaClass>("") {
             @Override
-            public boolean apply(JavaClass input) {
-                for (JavaFieldAccess access : input.getFieldAccessesFromSelf()) {
-                    if (access.getTarget().getName().equals(fieldName) && access.getAccessType() == SET) {
-                        return true;
-                    }
-                }
-                return false;
+            public boolean test(JavaClass input) {
+                return input.getFieldAccessesFromSelf().stream()
+                        .anyMatch(access -> access.getTarget().getName().equals(fieldName) && access.getAccessType() == SET);
             }
         }));
     }
@@ -2059,12 +2032,7 @@ public class JavaClassTest {
     }
 
     private Extractor<JavaMember, String> memberIdentifier() {
-        return new Extractor<JavaMember, String>() {
-            @Override
-            public String extract(JavaMember input) {
-                return input.getOwner().getSimpleName() + "#" + input.getName();
-            }
-        };
+        return input -> input.getOwner().getSimpleName() + "#" + input.getName();
     }
 
     private Condition<JavaMember> isNotObject() {
@@ -2096,7 +2064,7 @@ public class JavaClassTest {
             message = String.format("assignableFrom(%s) matches ", type.getSimpleName());
             assignable = ImmutableSet.of(new DescribedPredicate<JavaClass>("direct assignable from") {
                 @Override
-                public boolean apply(JavaClass input) {
+                public boolean test(JavaClass input) {
                     return input.isAssignableFrom(type) && input.isAssignableFrom(type.getName());
                 }
             }, assignableFrom(type), assignableFrom(type.getName()));
@@ -2108,7 +2076,7 @@ public class JavaClassTest {
             message = String.format("assignableTo(%s) matches ", type.getSimpleName());
             assignable = ImmutableSet.of(new DescribedPredicate<JavaClass>("direct assignable to") {
                 @Override
-                public boolean apply(JavaClass input) {
+                public boolean test(JavaClass input) {
                     return input.isAssignableTo(type) && input.isAssignableTo(type.getName());
                 }
             }, assignableTo(type), assignableTo(type.getName()));
@@ -2149,7 +2117,7 @@ public class JavaClassTest {
                         .build().toArray(new Class<?>[0]);
                 JavaClass javaClass = importClassesWithContext(types).get(secondType);
                 for (DescribedPredicate<JavaClass> predicate : assignable) {
-                    assignableAssertion.add(assertThat(predicate.apply(javaClass))
+                    assignableAssertion.add(assertThat(predicate.test(javaClass))
                             .as(message + secondType.getSimpleName()));
                 }
                 return self();

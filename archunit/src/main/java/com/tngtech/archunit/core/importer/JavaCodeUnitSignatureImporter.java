@@ -18,8 +18,9 @@ package com.tngtech.archunit.core.importer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
+import static java.util.stream.Collectors.toList;
 
 class JavaCodeUnitSignatureImporter {
     private static final Logger log = LoggerFactory.getLogger(JavaCodeUnitSignatureImporter.class);
@@ -88,12 +90,9 @@ class JavaCodeUnitSignatureImporter {
         }
 
         public JavaCodeUnitSignature getParsedSignature() {
-            List<JavaTypeCreationProcess<JavaCodeUnit>> parameterTypes = new ArrayList<>();
-            for (GenericMemberTypeProcessor<JavaCodeUnit> parameterTypeProcessor : genericMethodParameterTypeProcessors) {
-                if (parameterTypeProcessor.getType().isPresent()) {
-                    parameterTypes.add(parameterTypeProcessor.getType().get());
-                }
-            }
+            List<JavaTypeCreationProcess<JavaCodeUnit>> parameterTypes = genericMethodParameterTypeProcessors.stream()
+                    .flatMap(parameterTypeProcessor -> parameterTypeProcessor.getType().map(Stream::of).orElse(Stream.empty()))
+                    .collect(toList());
 
             return new JavaCodeUnitSignature(
                     typeParameterProcessor.getTypeParameterBuilders(),

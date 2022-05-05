@@ -6,13 +6,11 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.jar.JarFile;
+import java.util.function.Function;
+import java.util.stream.IntStream;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.testutil.SystemPropertiesRule;
@@ -24,6 +22,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.union;
 import static java.util.jar.Attributes.Name.CLASS_PATH;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class UrlSourceTest {
@@ -149,18 +149,18 @@ public class UrlSourceTest {
         File folder = temporaryFolder.newFolder();
         File jarOnePath = new File(folder, "one.jar");
         File jarTwoPath = new File(folder, "two.jar");
-        JarFile jarOne = new TestJarFile()
+        String jarOneName = new TestJarFile()
                 .withManifestAttribute(CLASS_PATH, jarTwoPath.getAbsolutePath())
-                .create(jarOnePath);
-        JarFile jarTwo = new TestJarFile()
+                .createAndReturnName(jarOnePath);
+        String jarTwoName = new TestJarFile()
                 .withManifestAttribute(CLASS_PATH, jarOnePath.getAbsolutePath())
-                .create(jarTwoPath);
+                .createAndReturnName(jarTwoPath);
 
-        System.setProperty(JAVA_CLASS_PATH_PROP, jarOne.getName());
+        System.setProperty(JAVA_CLASS_PATH_PROP, jarOneName);
         System.clearProperty(JAVA_BOOT_PATH_PROP);
         UrlSource urls = UrlSource.From.classPathSystemProperties();
 
-        assertThat(urls).containsOnly(toUrl(Paths.get(jarOne.getName())), toUrl(Paths.get(jarTwo.getName())));
+        assertThat(urls).containsOnly(toUrl(Paths.get(jarOneName)), toUrl(Paths.get(jarTwoName)));
     }
 
     private String subpath(String... parts) {
@@ -169,28 +169,21 @@ public class UrlSourceTest {
 
     private WrittenJarFile writeJarWithManifestClasspathAttribute(final File folder, String identifier, ManifestClasspathEntry... additionalClasspathManifestClasspathEntries) {
         Set<ManifestClasspathEntry> classpathManifestEntries = union(createManifestClasspathEntries(identifier), ImmutableSet.copyOf(additionalClasspathManifestClasspathEntries));
-        JarFile jarFile = new TestJarFile()
-                .withManifestAttribute(CLASS_PATH, Joiner.on(" ").join(FluentIterable.from(classpathManifestEntries).transform(resolveTo(folder)).toSet()))
-                .create(new File(folder, identifier.replace(File.separator, "-") + ".jar"));
-        return new WrittenJarFile(Paths.get(jarFile.getName()), classpathManifestEntries);
+        String jarFileName = new TestJarFile()
+                .withManifestAttribute(CLASS_PATH, Joiner.on(" ").join(classpathManifestEntries.stream().map(resolveTo(folder)).collect(toSet())))
+                .createAndReturnName(new File(folder, identifier.replace(File.separator, "-") + ".jar"));
+        return new WrittenJarFile(Paths.get(jarFileName), classpathManifestEntries);
     }
 
     private Function<ManifestClasspathEntry, String> resolveTo(final File folder) {
-        return new Function<ManifestClasspathEntry, String>() {
-            @Override
-            public String apply(ManifestClasspathEntry manifestClasspathEntry) {
-                return manifestClasspathEntry.create(folder);
-            }
-        };
+        return manifestClasspathEntry -> manifestClasspathEntry.create(folder);
     }
 
     private Set<ManifestClasspathEntry> createManifestClasspathEntries(String infix) {
-        Set<ManifestClasspathEntry> result = new HashSet<>();
-        for (int i = 0; i < 10; i++) {
-            result.add(ManifestClasspathEntry
-                    .absolutePath(Paths.get(File.separator + subpath("some", "path", "parent", infix + i, "")).toAbsolutePath()));
-        }
-        return result;
+        return IntStream.range(0, 10)
+                .mapToObj(i -> ManifestClasspathEntry.absolutePath(
+                        Paths.get(File.separator + subpath("some", "path", "parent", infix + i, "")).toAbsolutePath()))
+                .collect(toSet());
     }
 
     private String createClassPathProperty(String... paths) {
@@ -211,13 +204,7 @@ public class UrlSourceTest {
         }
 
         public Iterable<URL> getExpectedClasspathUrls() {
-            return FluentIterable.from(classpathManifestEntries)
-                    .transform(new Function<ManifestClasspathEntry, URL>() {
-                        @Override
-                        public URL apply(ManifestClasspathEntry input) {
-                            return input.toExpectedClasspathUrl();
-                        }
-                    });
+            return classpathManifestEntries.stream().map(ManifestClasspathEntry::toExpectedClasspathUrl).collect(toList());
         }
     }
 

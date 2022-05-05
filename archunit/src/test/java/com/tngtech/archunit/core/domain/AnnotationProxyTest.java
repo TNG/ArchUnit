@@ -5,9 +5,7 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +18,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnnotationProxyTest {
@@ -382,10 +383,9 @@ public class AnnotationProxyTest {
     }
 
     private void ensureInSync(TestAnnotation annotation, Map<String, String> result) {
-        Set<String> necessaryKeysAsSanityCheck = new HashSet<>();
-        for (Method method : annotation.annotationType().getDeclaredMethods()) {
-            necessaryKeysAsSanityCheck.add(method.getName());
-        }
+        Set<String> necessaryKeysAsSanityCheck = stream(annotation.annotationType().getDeclaredMethods())
+                .map(Method::getName)
+                .collect(toSet());
         assertThat(result.keySet()).as("Specified expected keys").isEqualTo(necessaryKeysAsSanityCheck);
         for (String v : result.values()) {
             assertThat(annotation.toString()).contains(v);
@@ -393,11 +393,7 @@ public class AnnotationProxyTest {
     }
 
     private List<String> valuesOf(SubAnnotation[] subAnnotations) {
-        List<String> result = new ArrayList<>();
-        for (SubAnnotation annotation : subAnnotations) {
-            result.add(annotation.value());
-        }
-        return result;
+        return stream(subAnnotations).map(SubAnnotation::value).collect(toList());
     }
 
     private Condition<String> matching(final Class<?> annotationType, final Map<String, String> properties) {

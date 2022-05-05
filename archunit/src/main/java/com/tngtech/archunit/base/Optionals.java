@@ -15,27 +15,20 @@
  */
 package com.tngtech.archunit.base;
 
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 
 import com.tngtech.archunit.Internal;
 
+import static java.util.Collections.emptySet;
+
 @Internal
-public final class ReflectionUtils {
-    private ReflectionUtils() {
+public final class Optionals {
+    private Optionals() {
     }
 
-    public static <T> T newInstanceOf(Class<T> type, Object... parameters) {
-        try {
-            Constructor<T> constructor = type.getDeclaredConstructor(typesOf(parameters));
-            constructor.setAccessible(true);
-            return constructor.newInstance(parameters);
-        } catch (Exception e) {
-            throw new ArchUnitException.ReflectionException(e);
-        }
-    }
-
-    private static Class<?>[] typesOf(Object[] parameters) {
-        return Arrays.stream(parameters).map(Object::getClass).toArray(Class<?>[]::new);
+    public static <T> Set<T> asSet(Optional<T> input) {
+        return input.map(Collections::singleton).orElse(emptySet());
     }
 }

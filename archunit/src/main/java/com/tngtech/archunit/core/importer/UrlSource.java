@@ -29,25 +29,26 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.base.ArchUnitException.LocationException;
-import com.tngtech.archunit.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Iterables.concat;
-import static com.tngtech.archunit.core.importer.Location.toURI;
+import static com.google.common.collect.Sets.difference;
 import static java.util.Collections.emptySet;
 import static java.util.jar.Attributes.Name.CLASS_PATH;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.StreamSupport.stream;
 
 interface UrlSource extends Iterable<URL> {
     @Internal
@@ -73,8 +74,11 @@ interface UrlSource extends Iterable<URL> {
         }
 
         private static Iterable<URL> unique(Iterable<URL> urls) {
-            Set<URI> unique = FluentIterable.from(urls).transform(URL_TO_URI).toSet();
-            return FluentIterable.from(unique).transform(URI_TO_URL);
+            return stream(urls.spliterator(), false)
+                    .map(Location::toURI)
+                    .distinct() // use URI because of better equals / hashcode
+                    .map(URI_TO_URL)
+                    .collect(toList());
         }
 
         static UrlSource classPathSystemProperties() {
@@ -88,20 +92,19 @@ interface UrlSource extends Iterable<URL> {
 
         private static Iterable<URL> readClasspathEntriesFromManifests(List<URL> urls) {
             Set<URI> result = new HashSet<>();
-            readClasspathUriEntriesFromManifests(result, FluentIterable.from(urls).transform(URL_TO_URI));
-            return FluentIterable.from(result).transform(URI_TO_URL);
+            readClasspathUriEntriesFromManifests(result, urls.stream().map(Location::toURI).collect(toSet()));
+            return result.stream().map(URI_TO_URL).collect(toList());
         }
 
         // Use URI because of better equals / hashcode
-        private static void readClasspathUriEntriesFromManifests(Set<URI> result, Iterable<URI> urls) {
-            for (URI url : urls) {
-                if (url.getScheme().equals("jar")) {
-                    Set<URI> manifestUris = readClasspathEntriesFromManifest(url);
-                    Set<URI> unknownSoFar = ImmutableSet.copyOf(Sets.difference(manifestUris, result));
-                    result.addAll(unknownSoFar);
-                    readClasspathUriEntriesFromManifests(result, unknownSoFar);
-                }
-            }
+        private static void readClasspathUriEntriesFromManifests(Set<URI> result, Set<URI> uris) {
+            uris.stream().filter(url -> url.getScheme().equals("jar"))
+                    .map(From::readClasspathEntriesFromManifest)
+                    .map(manifestUris -> ImmutableSet.copyOf(difference(manifestUris, result))) // difference returns a dynamic SetView -> safe-copy
+                    .forEach(unknownSoFar -> {
+                        result.addAll(unknownSoFar);
+                        readClasspathUriEntriesFromManifests(result, unknownSoFar);
+                    });
         }
 
         private static Set<URI> readClasspathEntriesFromManifest(URI url) {
@@ -112,7 +115,7 @@ interface UrlSource extends Iterable<URL> {
 
             Set<URI> result = new HashSet<>();
             for (String classpathEntry : Splitter.on(" ").omitEmptyStrings().split(readManifestClasspath(url))) {
-                result.addAll(parseManifestClasspathEntry(jarPath.get(), classpathEntry).asSet());
+                parseManifestClasspathEntry(jarPath.get(), classpathEntry).ifPresent(result::add);
             }
             return result;
         }
@@ -184,7 +187,7 @@ interface UrlSource extends Iterable<URL> {
             String classPathProperty = System.getProperty(propertyName, "");
             List<URL> urls = new ArrayList<>();
             for (String path : Splitter.on(File.pathSeparator).omitEmptyStrings().split(classPathProperty)) {
-                urls.addAll(parseClassPathEntry(path).asSet());
+                parseClassPathEntry(path).ifPresent(urls::add);
             }
             LOG.debug("Found URLs on {}: {}", propertyName, urls);
             return urls;
@@ -235,21 +238,11 @@ interface UrlSource extends Iterable<URL> {
             }
         }
 
-        private static final Function<URL, URI> URL_TO_URI = new Function<URL, URI>() {
-            @Override
-            public URI apply(URL input) {
-                return toURI(input);
-            }
-        };
-
-        private static final Function<URI, URL> URI_TO_URL = new Function<URI, URL>() {
-            @Override
-            public URL apply(URI input) {
-                try {
-                    return input.toURL();
-                } catch (MalformedURLException e) {
-                    throw new LocationException(e);
-                }
+        private static final Function<URI, URL> URI_TO_URL = input -> {
+            try {
+                return input.toURL();
+            } catch (MalformedURLException e) {
+                throw new LocationException(e);
             }
         };
     }

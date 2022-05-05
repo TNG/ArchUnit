@@ -70,7 +70,7 @@ public class HasNameTest {
     }
 
     private AbstractBooleanAssert<?> assertNameMatches(String input, String regex) {
-        return assertThat(nameMatching(regex).apply(newHasName(input)))
+        return assertThat(nameMatching(regex).test(newHasName(input)))
                 .as(input + " =~ " + regex);
     }
 

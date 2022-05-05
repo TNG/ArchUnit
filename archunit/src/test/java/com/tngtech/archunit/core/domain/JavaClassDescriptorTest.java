@@ -27,7 +27,7 @@ public class JavaClassDescriptorTest {
         JavaClassDescriptor primitiveType = JavaClassDescriptor.From.name(name);
         assertThat(primitiveType.isPrimitive()).isTrue();
         assertThat(primitiveType.isArray()).isFalse();
-        assertThat(primitiveType.tryGetComponentType()).isAbsent();
+        assertThat(primitiveType.tryGetComponentType()).isEmpty();
 
         assertThat(primitiveType).isEquivalentTo(expected);
     }
@@ -48,7 +48,7 @@ public class JavaClassDescriptorTest {
         JavaClassDescriptor objectType = JavaClassDescriptor.From.name(Object.class.getName());
         assertThat(objectType.isPrimitive()).isFalse();
         assertThat(objectType.isArray()).isFalse();
-        assertThat(objectType.tryGetComponentType()).isAbsent();
+        assertThat(objectType.tryGetComponentType()).isEmpty();
 
         assertThat(objectType).isEquivalentTo(Object.class);
     }

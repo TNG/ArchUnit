@@ -73,14 +73,14 @@ public class GivenCodeUnitsTest {
                 // we can use the super type JavaMember
                 .that(new DescribedPredicate<JavaMember>("are there") {
                     @Override
-                    public boolean apply(JavaMember input) {
+                    public boolean test(JavaMember input) {
                         return true;
                     }
                 })
                 // and have preserved our type so we can filter JavaMethod later on
                 .and(new DescribedPredicate<JavaMethod>("are there") {
                     @Override
-                    public boolean apply(JavaMethod input) {
+                    public boolean test(JavaMethod input) {
                         return true;
                     }
                 })
@@ -101,14 +101,14 @@ public class GivenCodeUnitsTest {
                 // we can use the super type JavaMember
                 .that(new DescribedPredicate<JavaMember>("are there") {
                     @Override
-                    public boolean apply(JavaMember input) {
+                    public boolean test(JavaMember input) {
                         return true;
                     }
                 })
                 // and have preserved our type so we can filter JavaConstructor later on
                 .and(new DescribedPredicate<JavaConstructor>("are there") {
                     @Override
-                    public boolean apply(JavaConstructor input) {
+                    public boolean test(JavaConstructor input) {
                         return true;
                     }
                 })
@@ -281,7 +281,7 @@ public class GivenCodeUnitsTest {
     static DescribedPredicate<List<JavaClass>> oneParameterOfType(final Class<?> type) {
         return new DescribedPredicate<List<JavaClass>>("one parameter of type " + type.getName()) {
             @Override
-            public boolean apply(List<JavaClass> input) {
+            public boolean test(List<JavaClass> input) {
                 return input.size() == 1 && input.get(0).isEquivalentTo(type);
             }
         };
@@ -315,7 +315,7 @@ public class GivenCodeUnitsTest {
     private DescribedPredicate<List<JavaClass>> lessThanTwo() {
         return new DescribedPredicate<List<JavaClass>>("less than two") {
             @Override
-            public boolean apply(List<JavaClass> input) {
+            public boolean test(List<JavaClass> input) {
                 return input.size() < 2;
             }
         };

@@ -15,6 +15,8 @@
  */
 package com.tngtech.archunit.lang.conditions;
 
+import java.util.Collection;
+
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -28,7 +30,7 @@ class NeverCondition<T> extends ArchCondition<T> {
     }
 
     @Override
-    public void init(Iterable<T> allObjectsToTest) {
+    public void init(Collection<T> allObjectsToTest) {
         condition.init(allObjectsToTest);
     }
 

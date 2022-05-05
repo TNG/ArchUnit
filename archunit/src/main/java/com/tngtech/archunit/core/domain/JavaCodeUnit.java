@@ -16,9 +16,9 @@
 package com.tngtech.archunit.core.domain;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
@@ -28,7 +28,6 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.ForwardingList;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
@@ -272,11 +271,7 @@ public abstract class JavaCodeUnit
     @ResolvesTypesViaReflection
     @MayResolveTypesViaReflection(reason = "Just part of a bigger resolution process")
     static Class<?>[] reflect(List<JavaClass> parameters) {
-        List<Class<?>> result = new ArrayList<>();
-        for (JavaClass parameter : parameters) {
-            result.add(parameter.reflect());
-        }
-        return result.toArray(new Class<?>[0]);
+        return parameters.stream().map(JavaClass::reflect).toArray(Class<?>[]::new);
     }
 
     private static class Parameters extends ForwardingList<JavaParameter> {
@@ -357,7 +352,7 @@ public abstract class JavaCodeUnit
         public static DescribedPredicate<JavaCodeUnit> constructor() {
             return new DescribedPredicate<JavaCodeUnit>("constructor") {
                 @Override
-                public boolean apply(JavaCodeUnit input) {
+                public boolean test(JavaCodeUnit input) {
                     return input.isConstructor();
                 }
             };
@@ -367,7 +362,7 @@ public abstract class JavaCodeUnit
         public static DescribedPredicate<JavaCodeUnit> method() {
             return new DescribedPredicate<JavaCodeUnit>("method") {
                 @Override
-                public boolean apply(JavaCodeUnit input) {
+                public boolean test(JavaCodeUnit input) {
                     return input.isMethod();
                 }
             };

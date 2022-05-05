@@ -17,15 +17,18 @@ package com.tngtech.archunit.lang;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
@@ -109,16 +112,9 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
         }
 
         private static Predicate<String> notMatchedByAny(final Set<Pattern> patterns) {
-            return new Predicate<String>() {
-                @Override
-                public boolean apply(String message) {
-                    for (Pattern pattern : patterns) {
-                        if (pattern.matcher(message.replaceAll("\r*\n", " ")).matches()) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
+            return message -> {
+                String normalizedMessage = message.replaceAll("\r*\n", " ");
+                return patterns.stream().noneMatch(pattern -> pattern.matcher(normalizedMessage).matches());
             };
         }
 
@@ -176,7 +172,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
     @Internal
     class Factory {
         public static <T> ArchRule create(final ClassesTransformer<T> classesTransformer, final ArchCondition<T> condition, final Priority priority) {
-            return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.<String>empty(), AllowEmptyShould.AS_CONFIGURED);
+            return new SimpleArchRule<>(priority, classesTransformer, condition, Optional.empty(), AllowEmptyShould.AS_CONFIGURED);
         }
 
         public static ArchRule withBecause(ArchRule rule, String reason) {
@@ -227,7 +223,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
 
             @Override
             public EvaluationResult evaluate(JavaClasses classes) {
-                Iterable<T> allObjects = classesTransformer.transform(classes);
+                Collection<T> allObjects = toCollection(classesTransformer.transform(classes));
                 verifyNoEmptyShouldIfEnabled(allObjects);
 
                 condition.init(allObjects);
@@ -237,6 +233,13 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
                 }
                 condition.finish(events);
                 return new EvaluationResult(this, events, priority);
+            }
+
+            @SuppressWarnings("unchecked")
+            private Collection<T> toCollection(DescribedIterable<T> iterable) {
+                return iterable instanceof Collection
+                        ? (Collection<T>) iterable
+                        : ImmutableList.copyOf(iterable);
             }
 
             private void verifyNoEmptyShouldIfEnabled(Iterable<T> allObjects) {
@@ -254,9 +257,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
 
             @Override
             public String getDescription() {
-                return overriddenDescription.isPresent() ?
-                        overriddenDescription.get() :
-                        classesTransformer.getDescription() + " should " + condition.getDescription();
+                return overriddenDescription.orElseGet(() -> classesTransformer.getDescription() + " should " + condition.getDescription());
             }
 
             @Override

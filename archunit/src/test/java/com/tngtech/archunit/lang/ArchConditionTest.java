@@ -68,12 +68,7 @@ public class ArchConditionTest {
         ConditionEvents events = new ConditionEvents();
         condition.check(2, events);
         final List<HandledViolation> handledViolations = new ArrayList<>();
-        events.handleViolations(new ViolationHandler<Integer>() {
-            @Override
-            public void handle(Collection<Integer> violatingObjects, String message) {
-                handledViolations.add(new HandledViolation(violatingObjects, message));
-            }
-        });
+        events.handleViolations((ViolationHandler<Integer>) (violatingObjects, message) -> handledViolations.add(new HandledViolation(violatingObjects, message)));
 
         assertThat(handledViolations).containsOnly(
                 new HandledViolation(2, "2 is not greater than 2"),
@@ -116,12 +111,7 @@ public class ArchConditionTest {
         ConditionEvents events = new ConditionEvents();
         condition.check(1, events);
         final List<HandledViolation> handledViolations = new ArrayList<>();
-        events.handleViolations(new ViolationHandler<Integer>() {
-            @Override
-            public void handle(Collection<Integer> violatingObjects, String message) {
-                handledViolations.add(new HandledViolation(violatingObjects, message));
-            }
-        });
+        events.handleViolations((ViolationHandler<Integer>) (violatingObjects, message) -> handledViolations.add(new HandledViolation(violatingObjects, message)));
 
         assertThat(handledViolations).containsOnly(new HandledViolation(
                 1, "1 is not greater than 1 and 1 is not greater than 2 and 1 is not greater than 3"));
@@ -274,7 +264,7 @@ public class ArchConditionTest {
         }
 
         @Override
-        public void init(Iterable<String> allObjectsToTest) {
+        public void init(Collection<String> allObjectsToTest) {
             this.allObjectsToTest = allObjectsToTest;
         }
 

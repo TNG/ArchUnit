@@ -15,11 +15,30 @@
  */
 package com.tngtech.archunit.base;
 
+import java.util.function.Predicate;
+
 import com.tngtech.archunit.PublicAPI;
 
-import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-@PublicAPI(usage = INHERITANCE)
-public interface Supplier<T> {
-    T get();
+@PublicAPI(usage = ACCESS)
+public final class Predicates {
+    private Predicates() {
+    }
+
+    @PublicAPI(usage = ACCESS)
+    @SuppressWarnings("unchecked")
+    public static <T> Predicate<T> alwaysTrue() {
+        return (Predicate<T>) ALWAYS_TRUE;
+    }
+
+    @PublicAPI(usage = ACCESS)
+    @SuppressWarnings("unchecked")
+    public static <T> Predicate<T> alwaysFalse() {
+        return (Predicate<T>) ALWAYS_FALSE;
+    }
+
+    private static final Predicate<Object> ALWAYS_TRUE = input -> true;
+
+    private static final Predicate<Object> ALWAYS_FALSE = input -> false;
 }

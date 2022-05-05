@@ -49,7 +49,7 @@ class PlantUmlDiagram {
         }
 
         Builder withDependencies(List<ParsedDependency> dependencies) {
-            originToParsedDependency = FluentIterable.from(dependencies).index(ParsedDependency.GET_ORIGIN);
+            originToParsedDependency = FluentIterable.from(dependencies).index(ParsedDependency::getOrigin);
             return this;
         }
 

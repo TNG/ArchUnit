@@ -20,11 +20,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
-import com.tngtech.archunit.base.Function;
 
 class MetricsComponentDependencyGraph<T> {
     private final SetMultimap<MetricsComponent<T>, MetricsComponent<T>> outgoingComponentDependencies;

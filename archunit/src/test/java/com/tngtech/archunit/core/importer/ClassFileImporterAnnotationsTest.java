@@ -6,10 +6,10 @@ import java.lang.reflect.Array;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -140,7 +140,7 @@ public class ClassFileImporterAnnotationsTest {
                 .get(ClassWithOneAnnotation.class);
 
         assertThat(clazz.tryGetAnnotationOfType(SimpleAnnotation.class)).isPresent();
-        assertThat(clazz.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+        assertThat(clazz.tryGetAnnotationOfType(Deprecated.class)).isEmpty();
     }
 
     @Test
@@ -215,12 +215,12 @@ public class ClassFileImporterAnnotationsTest {
                 .get(ClassWithAnnotatedFields.class).getField("stringAnnotatedField");
 
         assertThat(field.tryGetAnnotationOfType(ClassWithAnnotatedFields.FieldAnnotationWithStringValue.class)).isPresent();
-        assertThat(field.tryGetAnnotationOfType(ClassWithAnnotatedFields.FieldAnnotationWithEnumClassAndArrayValue.class)).isAbsent();
+        assertThat(field.tryGetAnnotationOfType(ClassWithAnnotatedFields.FieldAnnotationWithEnumClassAndArrayValue.class)).isEmpty();
 
         Optional<JavaAnnotation<JavaField>> optionalAnnotation = field.tryGetAnnotationOfType(ClassWithAnnotatedFields.FieldAnnotationWithStringValue.class.getName());
         assertThat(optionalAnnotation.get().getOwner()).as("owner of optional annotation").isEqualTo(field);
         assertThat(field.tryGetAnnotationOfType(ClassWithAnnotatedFields.FieldAnnotationWithEnumClassAndArrayValue.class.getName()))
-                .as("optional annotation").isAbsent();
+                .as("optional annotation").isEmpty();
     }
 
     @Test
@@ -313,11 +313,11 @@ public class ClassFileImporterAnnotationsTest {
                 .get(ClassWithAnnotatedMethods.class).getMethod(stringAnnotatedMethod);
 
         assertThat(method.tryGetAnnotationOfType(ClassWithAnnotatedMethods.MethodAnnotationWithStringValue.class)).isPresent();
-        assertThat(method.tryGetAnnotationOfType(ClassWithAnnotatedMethods.MethodAnnotationWithEnumAndArrayValue.class)).isAbsent();
+        assertThat(method.tryGetAnnotationOfType(ClassWithAnnotatedMethods.MethodAnnotationWithEnumAndArrayValue.class)).isEmpty();
 
         Optional<JavaAnnotation<JavaMethod>> optionalAnnotation = method.tryGetAnnotationOfType(ClassWithAnnotatedMethods.MethodAnnotationWithStringValue.class.getName());
         assertThat(optionalAnnotation.get().getOwner()).as("owner of optional annotation").isEqualTo(method);
-        assertThat(method.tryGetAnnotationOfType(ClassWithAnnotatedMethods.MethodAnnotationWithEnumAndArrayValue.class.getName())).isAbsent();
+        assertThat(method.tryGetAnnotationOfType(ClassWithAnnotatedMethods.MethodAnnotationWithEnumAndArrayValue.class.getName())).isEmpty();
     }
 
     @Test

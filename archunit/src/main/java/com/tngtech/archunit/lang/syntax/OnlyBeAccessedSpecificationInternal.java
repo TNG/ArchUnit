@@ -16,7 +16,6 @@
 package com.tngtech.archunit.lang.syntax;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction;
@@ -40,12 +39,7 @@ class OnlyBeAccessedSpecificationInternal implements OnlyBeAccessedSpecification
 
     @Override
     public ClassesThat<ClassesShouldConjunction> byClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, ClassesShouldConjunction>() {
-            @Override
-            public ClassesShouldConjunction apply(DescribedPredicate<? super JavaClass> predicate) {
-                return classesShould.addCondition(ArchConditions.onlyBeAccessedByClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> classesShould.addCondition(ArchConditions.onlyBeAccessedByClassesThat(predicate)));
     }
 
     @Override

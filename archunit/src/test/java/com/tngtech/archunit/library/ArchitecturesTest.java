@@ -1,6 +1,6 @@
 package com.tngtech.archunit.library;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -52,6 +52,7 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -73,14 +74,14 @@ public class ArchitecturesTest {
                         .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two"),
                 layeredArchitecture()
                         .layer("One").definedBy(
-                        resideInAnyPackage("..library.testclasses.some.pkg..")
-                                .as("'..library.testclasses.some.pkg..'"))
+                                resideInAnyPackage("..library.testclasses.some.pkg..")
+                                        .as("'..library.testclasses.some.pkg..'"))
                         .layer("Two").definedBy(
-                        resideInAnyPackage("..library.testclasses.first.any.pkg..", "..library.testclasses.second.any.pkg..")
-                                .as("'..library.testclasses.first.any.pkg..', '..library.testclasses.second.any.pkg..'"))
+                                resideInAnyPackage("..library.testclasses.first.any.pkg..", "..library.testclasses.second.any.pkg..")
+                                        .as("'..library.testclasses.first.any.pkg..', '..library.testclasses.second.any.pkg..'"))
                         .optionalLayer("Three").definedBy(
-                        resideInAnyPackage("..library.testclasses..three..")
-                                .as("'..library.testclasses..three..'"))
+                                resideInAnyPackage("..library.testclasses..three..")
+                                        .as("'..library.testclasses..three..'"))
                         .whereLayer("One").mayNotBeAccessedByAnyLayer()
                         .whereLayer("Two").mayOnlyBeAccessedByLayers("One")
                         .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two"));
@@ -544,12 +545,10 @@ public class ArchitecturesTest {
     }
 
     private static String[] absolute(String... pkgSuffix) {
-        List<String> result = new ArrayList<>();
-        for (String s : pkgSuffix) {
-            String absolute = ArchitecturesTest.class.getPackage().getName() + ".testclasses." + s;
-            result.add(absolute.replaceAll("\\.\\.\\.+", ".."));
-        }
-        return result.toArray(new String[0]);
+        return Arrays.stream(pkgSuffix)
+                .map(s -> ArchitecturesTest.class.getPackage().getName() + ".testclasses." + s)
+                .map(absolute -> absolute.replaceAll("\\.\\.\\.+", ".."))
+                .toArray(String[]::new);
     }
 
     private static class RuleWithIgnore {
@@ -588,13 +587,9 @@ public class ArchitecturesTest {
         }
 
         public ExpectedOnionViolations withoutViolationsWithOrigin(Class<?> clazz) {
-            Set<ExpectedOnionViolation> filtered = new HashSet<>();
-            for (ExpectedOnionViolation expectedViolation : expected) {
-                if (!expectedViolation.from.equals(clazz)) {
-                    filtered.add(expectedViolation);
-                }
-            }
-            return new ExpectedOnionViolations(filtered);
+            return new ExpectedOnionViolations(expected.stream()
+                    .filter(expectedViolation -> !expectedViolation.from.equals(clazz))
+                    .collect(toSet()));
         }
 
         Set<String> toPatterns() {

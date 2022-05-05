@@ -17,11 +17,11 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasType;
@@ -255,7 +255,7 @@ public final class JavaAnnotation<OWNER extends HasDescription> implements HasTy
     /**
      * @param propertyName The name of the annotation property, i.e. the declared method name
      * @return the same value as {@link #get(String)}, if the property is explicitly declared
-     *         (compare {@link #hasExplicitlyDeclaredProperty(String)}), otherwise {@link Optional#absent()}
+     *         (compare {@link #hasExplicitlyDeclaredProperty(String)}), otherwise {@link Optional#empty()}
      */
     @PublicAPI(usage = ACCESS)
     public Optional<Object> tryGetExplicitlyDeclaredProperty(String propertyName) {

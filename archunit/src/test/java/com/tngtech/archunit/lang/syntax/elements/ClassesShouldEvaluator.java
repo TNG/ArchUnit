@@ -1,8 +1,6 @@
 package com.tngtech.archunit.lang.syntax.elements;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +14,8 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.FailureReport;
 
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 class ClassesShouldEvaluator {
     private static final String OPTIONAL_ARGS_REGEX = "(?:\\([^)]*\\))?";
@@ -43,32 +43,19 @@ class ClassesShouldEvaluator {
     Set<JavaClass> on(Class<?>... toCheck) {
         JavaClasses classes = importClasses(toCheck);
         List<String> relevantFailures = getRelevantFailures(classes);
-        Set<JavaClass> result = new HashSet<>();
-        for (JavaClass clazz : classes) {
-            if (anyLineMatches(relevantFailures, clazz)) {
-                result.add(clazz);
-            }
-        }
-        return result;
+        return classes.stream().filter(clazz -> anyLineMatches(relevantFailures, clazz)).collect(toSet());
     }
 
     private boolean anyLineMatches(List<String> relevantFailures, JavaClass clazz) {
-        for (String line : relevantFailures) {
-            if (reportLineMatcher.matches(line, clazz)) {
-                return true;
-            }
-        }
-        return false;
+        return relevantFailures.stream().anyMatch(line -> reportLineMatcher.matches(line, clazz));
     }
 
     private List<String> getRelevantFailures(JavaClasses classes) {
-        List<String> relevant = new ArrayList<>();
-        for (String line : linesIn(rule.evaluate(classes).getFailureReport())) {
-            if (!isDefaultConstructor(line) && !isSelfReference(line) && !isExtendsJavaLangAnnotation(line)) {
-                relevant.add(line);
-            }
-        }
-        return relevant;
+        return linesIn(rule.evaluate(classes).getFailureReport()).stream()
+                .filter(line -> !isDefaultConstructor(line))
+                .filter(line -> !isSelfReference(line))
+                .filter(line -> !isExtendsJavaLangAnnotation(line))
+                .collect(toList());
     }
 
     private boolean isDefaultConstructor(String line) {
@@ -84,11 +71,9 @@ class ClassesShouldEvaluator {
     }
 
     private List<String> linesIn(FailureReport failureReport) {
-        List<String> result = new ArrayList<>();
-        for (String details : failureReport.getDetails()) {
-            result.addAll(Splitter.on(System.lineSeparator()).splitToList(details));
-        }
-        return result;
+        return failureReport.getDetails().stream()
+                .flatMap(details -> Splitter.on(System.lineSeparator()).splitToStream(details))
+                .collect(toList());
     }
 
     private JavaClasses importClasses(Class<?>... classes) {

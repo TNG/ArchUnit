@@ -9,11 +9,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Predicate;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Predicate;
-import com.tngtech.archunit.core.domain.JavaPackage.ClassVisitor;
-import com.tngtech.archunit.core.domain.JavaPackage.PackageVisitor;
 import com.tngtech.archunit.core.domain.packageexamples.annotated.PackageLevelAnnotation;
 import com.tngtech.archunit.core.domain.packageexamples.first.First1;
 import com.tngtech.archunit.core.domain.packageexamples.first.First2;
@@ -24,7 +22,6 @@ import com.tngtech.archunit.core.domain.packageexamples.third.sub.ThirdSub1;
 import com.tngtech.archunit.core.domain.packageexamples.unrelated.AnyClass;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -176,7 +173,7 @@ public class JavaPackageTest {
     @Test
     public void creates_parent_packages() {
         JavaPackage defaultPackage = importDefaultPackage(Object.class);
-        assertThat(defaultPackage.getParent()).as("parent of default package").isAbsent();
+        assertThat(defaultPackage.getParent()).as("parent of default package").isEmpty();
 
         JavaPackage javaLang = defaultPackage.getPackage("java.lang");
 
@@ -226,12 +223,7 @@ public class JavaPackageTest {
         JavaPackage defaultPackage = importDefaultPackage(Object.class, String.class, File.class, Serializable.class, Security.class);
 
         final List<JavaClass> visitedClasses = new ArrayList<>();
-        defaultPackage.accept(startsWith("S"), new ClassVisitor() {
-            @Override
-            public void visit(JavaClass javaClass) {
-                visitedClasses.add(javaClass);
-            }
-        });
+        defaultPackage.accept(startsWith("S"), visitedClasses::add);
 
         assertThatTypes(visitedClasses).contain(String.class, Serializable.class, Security.class);
         for (JavaClass visitedClass : visitedClasses) {
@@ -244,12 +236,7 @@ public class JavaPackageTest {
         JavaPackage defaultPackage = importDefaultPackage(Object.class, Annotation.class, File.class, Security.class);
 
         final List<JavaPackage> visitedPackages = new ArrayList<>();
-        defaultPackage.accept(nameContains(".lang"), new PackageVisitor() {
-            @Override
-            public void visit(JavaPackage javaPackage) {
-                visitedPackages.add(javaPackage);
-            }
-        });
+        defaultPackage.accept(nameContains(".lang"), visitedPackages::add);
 
         assertThatPackages(visitedPackages).containPackagesOf(Object.class, Annotation.class);
         for (JavaPackage visitedPackage : visitedPackages) {
@@ -339,12 +326,7 @@ public class JavaPackageTest {
 
         assertThat(annotatedPackage.getPackageInfo()).isNotNull();
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            @Override
-            public void call() {
-                nonAnnotatedPackage.getPackageInfo();
-            }
-        })
+        assertThatThrownBy(nonAnnotatedPackage::getPackageInfo)
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(nonAnnotatedPackage.getDescription() + " does not contain a package-info.java");
     }
@@ -355,7 +337,7 @@ public class JavaPackageTest {
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThat(annotatedPackage.tryGetPackageInfo()).isPresent();
-        assertThat(nonAnnotatedPackage.tryGetPackageInfo()).isAbsent();
+        assertThat(nonAnnotatedPackage.tryGetPackageInfo()).isEmpty();
     }
 
     @Test
@@ -377,20 +359,10 @@ public class JavaPackageTest {
 
         assertThat(annotatedPackage.getAnnotationOfType(PackageLevelAnnotation.class)).isInstanceOf(PackageLevelAnnotation.class);
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            @Override
-            public void call() {
-                annotatedPackage.getAnnotationOfType(Deprecated.class);
-            }
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> annotatedPackage.getAnnotationOfType(Deprecated.class)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(annotatedPackage.getDescription() + " is not annotated with @" + Deprecated.class.getName());
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            @Override
-            public void call() {
-                nonAnnotatedPackage.getAnnotationOfType(Deprecated.class);
-            }
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThatThrownBy(() -> nonAnnotatedPackage.getAnnotationOfType(Deprecated.class)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(nonAnnotatedPackage.getDescription() + " is not annotated with @" + Deprecated.class.getName());
     }
 
@@ -402,19 +374,11 @@ public class JavaPackageTest {
         assertThatType(annotatedPackage.getAnnotationOfType(PackageLevelAnnotation.class.getName())
                 .getRawType()).matches(PackageLevelAnnotation.class);
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            @Override
-            public void call() {
-                annotatedPackage.getAnnotationOfType("not.There");
-            }
-        }).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(annotatedPackage.getDescription() + " is not annotated with @not.There");
+        assertThatThrownBy(() -> annotatedPackage.getAnnotationOfType("not.There")).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(annotatedPackage.getDescription() + " is not annotated with @not.There");
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            @Override
-            public void call() {
-                nonAnnotatedPackage.getAnnotationOfType("not.There");
-            }
-        }).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(nonAnnotatedPackage.getDescription() + " is not annotated with @not.There");
+        assertThatThrownBy(() -> nonAnnotatedPackage.getAnnotationOfType("not.There")).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(nonAnnotatedPackage.getDescription() + " is not annotated with @not.There");
     }
 
     @Test
@@ -423,9 +387,9 @@ public class JavaPackageTest {
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThat(annotatedPackage.tryGetAnnotationOfType(PackageLevelAnnotation.class)).isPresent();
-        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isEmpty();
 
-        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class)).isEmpty();
     }
 
     @Test
@@ -434,9 +398,9 @@ public class JavaPackageTest {
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
         assertThat(annotatedPackage.tryGetAnnotationOfType(PackageLevelAnnotation.class.getName())).isPresent();
-        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isAbsent();
+        assertThat(annotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isEmpty();
 
-        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isAbsent();
+        assertThat(nonAnnotatedPackage.tryGetAnnotationOfType(Deprecated.class.getName())).isEmpty();
     }
 
     @Test
@@ -518,7 +482,7 @@ public class JavaPackageTest {
     private DescribedPredicate<JavaClass> startsWith(final String prefix) {
         return GET_SIMPLE_NAME.is(new DescribedPredicate<String>("starts with '%s'", prefix) {
             @Override
-            public boolean apply(String input) {
+            public boolean test(String input) {
                 return input.startsWith(prefix);
             }
         });

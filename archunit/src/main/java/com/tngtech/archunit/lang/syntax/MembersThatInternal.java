@@ -18,7 +18,6 @@ package com.tngtech.archunit.lang.syntax;
 import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMember;
@@ -283,12 +282,7 @@ class MembersThatInternal<
 
     @Override
     public ClassesThat<CONJUNCTION> areDeclaredInClassesThat() {
-        return new MembersDeclaredInClassesThat<>(new Function<DescribedPredicate<? super JavaClass>, CONJUNCTION>() {
-            @Override
-            public CONJUNCTION apply(DescribedPredicate<? super JavaClass> predicate) {
-                return givenWith(are(declaredInClassesThat(predicate)));
-            }
-        });
+        return new MembersDeclaredInClassesThat<>(predicate -> givenWith(are(declaredInClassesThat(predicate))));
     }
 
     private DescribedPredicate<JavaMember> declaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {

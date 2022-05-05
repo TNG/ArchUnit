@@ -15,7 +15,8 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import com.tngtech.archunit.base.Optional;
+import java.util.Optional;
+
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeCreationProcess;
 import org.objectweb.asm.signature.SignatureReader;

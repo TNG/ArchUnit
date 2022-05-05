@@ -28,18 +28,13 @@ public class HasOwnerTest {
     private DescribedPredicate<String> startsWith(final String prefix) {
         return new DescribedPredicate<String>("starts with " + prefix) {
             @Override
-            public boolean apply(String input) {
+            public boolean test(String input) {
                 return input.startsWith(prefix);
             }
         };
     }
 
     private <T> HasOwner<T> hasOwner(final T owner) {
-        return new HasOwner<T>() {
-            @Override
-            public T getOwner() {
-                return owner;
-            }
-        };
+        return () -> owner;
     }
 }

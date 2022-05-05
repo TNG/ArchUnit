@@ -9,7 +9,6 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -269,22 +268,12 @@ public class JavaCodeUnitTest {
         SomeParameterAnnotation annotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class);
         assertThat(annotation).isInstanceOf(SomeParameterAnnotation.class);
         assertThat(annotation.value()).isEqualTo("test");
-        assertThatThrownBy(new ThrowingCallable() {
-            @Override
-            public void call() {
-                parameter.getAnnotationOfType(Deprecated.class);
-            }
-        }).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> parameter.getAnnotationOfType(Deprecated.class)).isInstanceOf(IllegalArgumentException.class);
 
         JavaAnnotation<JavaParameter> javaAnnotation = parameter.getAnnotationOfType(SomeParameterAnnotation.class.getName());
         assertThatAnnotation(javaAnnotation).hasType(SomeParameterAnnotation.class);
         assertThat(javaAnnotation.get("value")).contains("test");
-        assertThatThrownBy(new ThrowingCallable() {
-            @Override
-            public void call() {
-                parameter.getAnnotationOfType(Deprecated.class.getName());
-            }
-        }).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> parameter.getAnnotationOfType(Deprecated.class.getName())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -299,10 +288,10 @@ public class JavaCodeUnitTest {
                 .getMethod("method", String.class).getParameters().get(0);
 
         assertThat(parameter.tryGetAnnotationOfType(SomeParameterAnnotation.class).get()).isInstanceOf(SomeParameterAnnotation.class);
-        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class)).isAbsent();
+        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class)).isEmpty();
 
         assertThatAnnotation(parameter.tryGetAnnotationOfType(SomeParameterAnnotation.class.getName()).get()).hasType(SomeParameterAnnotation.class);
-        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class.getName())).isAbsent();
+        assertThat(parameter.tryGetAnnotationOfType(Deprecated.class.getName())).isEmpty();
     }
 
     @SuppressWarnings("unused")

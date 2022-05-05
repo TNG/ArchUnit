@@ -2,16 +2,14 @@ package com.tngtech.archunit.core.domain;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
@@ -22,6 +20,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 import com.tngtech.archunit.core.importer.ImportTestUtils;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -29,6 +28,9 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newFieldAccess;
 import static com.tngtech.archunit.core.importer.ImportTestUtils.newMethodCall;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.getHierarchy;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.util.Files.newTemporaryFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,10 +41,7 @@ public class TestUtils {
     @SafeVarargs
     public static ThrowsClause<?> throwsClause(Class<? extends Throwable>... types) {
         JavaClasses classes = importClassesWithContext(types);
-        List<JavaClass> importedTypes = new ArrayList<>();
-        for (Class<? extends Throwable> type : types) {
-            importedTypes.add(classes.get(type));
-        }
+        List<JavaClass> importedTypes = stream(types).map(classes::get).collect(toList());
         JavaMethod irrelevantOwner = importClassWithContext(Object.class).getMethod("toString");
         return ThrowsClause.from(irrelevantOwner, importedTypes);
     }
@@ -60,10 +59,7 @@ public class TestUtils {
     }
 
     public static JavaClasses importHierarchies(Class<?>... classes) {
-        Set<Class<?>> hierarchies = new HashSet<>();
-        for (Class<?> clazz : classes) {
-            hierarchies.addAll(getHierarchy(clazz));
-        }
+        Set<Class<?>> hierarchies = stream(classes).flatMap(clazz -> getHierarchy(clazz).stream()).collect(toSet());
         return new ClassFileImporter().importClasses(hierarchies);
     }
 
@@ -90,7 +86,7 @@ public class TestUtils {
         final List<String> classNames = formatNamesOf(classes);
         return importedHierarchy.that(new DescribedPredicate<JavaClass>("") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return classNames.contains(input.getName());
             }
         }).as(importedHierarchy.getDescription());
@@ -109,19 +105,15 @@ public class TestUtils {
     }
 
     public static MethodCallTarget resolvedTargetFrom(JavaMethod target) {
-        return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Optional.of(target)));
+        return ImportTestUtils.targetFrom(target, () -> Optional.of(target));
     }
 
     private static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
-        return ImportTestUtils.targetFrom(target, Suppliers.ofInstance(Optional.<JavaMethod>empty()));
+        return ImportTestUtils.targetFrom(target, Optional::<JavaMethod>empty);
     }
 
     public static Class<?>[] asClasses(List<JavaClass> parameters) {
-        List<Class<?>> result = new ArrayList<>();
-        for (JavaClass javaClass : parameters) {
-            result.add(javaClass.reflect());
-        }
-        return result.toArray(new Class<?>[0]);
+        return parameters.stream().map(JavaClass::reflect).toArray(Class<?>[]::new);
     }
 
     public static FieldAccessTarget targetFrom(JavaField javaField) {
@@ -170,10 +162,7 @@ public class TestUtils {
         private JavaMethodCall to(MethodCallTarget methodCallTarget) {
             targets.add(methodCallTarget);
             ImportContext context = mock(ImportContext.class);
-            Set<JavaMethodCall> calls = new HashSet<>();
-            for (MethodCallTarget target : targets) {
-                calls.add(newMethodCall(method, target, lineNumber));
-            }
+            Set<JavaMethodCall> calls = targets.stream().map(target -> newMethodCall(method, target, lineNumber)).collect(toSet());
             when(context.createMethodCallsFor(method)).thenReturn(ImmutableSet.copyOf(calls));
             method.completeAccessesFrom(context);
             return getCallToTarget(methodCallTarget);
@@ -188,13 +177,9 @@ public class TestUtils {
         }
 
         private JavaMethodCall getCallToTarget(MethodCallTarget callTarget) {
-            Set<JavaMethodCall> matchingCalls = new HashSet<>();
-            for (JavaMethodCall call : method.getMethodCallsFromSelf()) {
-                if (call.getTarget().equals(callTarget)) {
-                    matchingCalls.add(call);
-                }
-            }
-            return getOnlyElement(matchingCalls);
+            return method.getMethodCallsFromSelf().stream()
+                    .filter(call -> call.getTarget().equals(callTarget))
+                    .collect(onlyElement());
         }
 
         public void to(JavaField target, AccessType accessType) {

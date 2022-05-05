@@ -17,25 +17,26 @@ package com.tngtech.archunit.core.domain;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.Suppliers;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.Optionals.asSet;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static java.util.stream.Collectors.toSet;
 
 class JavaClassMembers {
     private final JavaClass owner;
@@ -48,16 +49,11 @@ class JavaClassMembers {
     private final Supplier<Set<JavaMethod>> allMethods;
     private final Supplier<Set<JavaConstructor>> allConstructors;
     private final Supplier<Set<JavaField>> allFields;
-    private final Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(new Supplier<Set<JavaMember>>() {
-        @Override
-        public Set<JavaMember> get() {
-            return ImmutableSet.<JavaMember>builder()
-                    .addAll(getAllFields())
-                    .addAll(getAllMethods())
-                    .addAll(getAllConstructors())
-                    .build();
-        }
-    });
+    private final Supplier<Set<JavaMember>> allMembers = Suppliers.memoize(() -> ImmutableSet.<JavaMember>builder()
+            .addAll(getAllFields())
+            .addAll(getAllMethods())
+            .addAll(getAllConstructors())
+            .build());
 
     JavaClassMembers(final JavaClass owner, Set<JavaField> fields, Set<JavaMethod> methods, Set<JavaConstructor> constructors, Optional<JavaStaticInitializer> staticInitializer) {
         this.owner = owner;
@@ -66,42 +62,33 @@ class JavaClassMembers {
         this.constructors = constructors;
         this.staticInitializer = staticInitializer;
         this.codeUnits = ImmutableSet.<JavaCodeUnit>builder()
-                .addAll(methods).addAll(constructors).addAll(staticInitializer.asSet())
+                .addAll(methods).addAll(constructors).addAll(asSet(staticInitializer))
                 .build();
         this.members = ImmutableSet.<JavaMember>builder()
                 .addAll(fields)
                 .addAll(methods)
                 .addAll(constructors)
                 .build();
-        allFields = Suppliers.memoize(new Supplier<Set<JavaField>>() {
-            @Override
-            public Set<JavaField> get() {
-                ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
-                for (JavaClass javaClass : concat(owner.getClassHierarchy(), owner.getAllRawInterfaces())) {
-                    result.addAll(javaClass.getFields());
-                }
-                return result.build();
+        allFields = Suppliers.memoize(() -> {
+            ImmutableSet.Builder<JavaField> result = ImmutableSet.builder();
+            for (JavaClass javaClass : concat(owner.getClassHierarchy(), owner.getAllRawInterfaces())) {
+                result.addAll(javaClass.getFields());
             }
+            return result.build();
         });
-        allMethods = Suppliers.memoize(new Supplier<Set<JavaMethod>>() {
-            @Override
-            public Set<JavaMethod> get() {
-                ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
-                for (JavaClass javaClass : concat(owner.getClassHierarchy(), owner.getAllRawInterfaces())) {
-                    result.addAll(javaClass.getMethods());
-                }
-                return result.build();
+        allMethods = Suppliers.memoize(() -> {
+            ImmutableSet.Builder<JavaMethod> result = ImmutableSet.builder();
+            for (JavaClass javaClass : concat(owner.getClassHierarchy(), owner.getAllRawInterfaces())) {
+                result.addAll(javaClass.getMethods());
             }
+            return result.build();
         });
-        allConstructors = Suppliers.memoize(new Supplier<Set<JavaConstructor>>() {
-            @Override
-            public Set<JavaConstructor> get() {
-                ImmutableSet.Builder<JavaConstructor> result = ImmutableSet.builder();
-                for (JavaClass javaClass : owner.getClassHierarchy()) {
-                    result.addAll(javaClass.getConstructors());
-                }
-                return result.build();
+        allConstructors = Suppliers.memoize(() -> {
+            ImmutableSet.Builder<JavaConstructor> result = ImmutableSet.builder();
+            for (JavaClass javaClass : owner.getClassHierarchy()) {
+                result.addAll(javaClass.getConstructors());
             }
+            return result.build();
         });
     }
 
@@ -319,13 +306,10 @@ class JavaClassMembers {
     }
 
     private <T extends JavaCodeUnit> Set<T> findCodeUnitsWithMatchingNameAndParameters(Set<T> codeUnits, String name, List<String> parameters) {
-        Set<T> matching = new HashSet<>();
-        for (T codeUnit : codeUnits) {
-            if (name.equals(codeUnit.getName()) && parameters.equals(namesOf(codeUnit.getRawParameterTypes()))) {
-                matching.add(codeUnit);
-            }
-        }
-        return matching;
+        return codeUnits.stream()
+                .filter(codeUnit -> name.equals(codeUnit.getName()))
+                .filter(codeUnit -> parameters.equals(namesOf(codeUnit.getRawParameterTypes())))
+                .collect(toSet());
     }
 
     void completeAnnotations(ImportContext context) {
@@ -346,15 +330,11 @@ class JavaClassMembers {
         }
     }
 
-    private static final Comparator<JavaCodeUnit> SORTED_BY_SYNTHETIC_LAST_THEN_FULL_NAME = new Comparator<JavaCodeUnit>() {
-        @Override
-        public int compare(JavaCodeUnit codeUnit1, JavaCodeUnit codeUnit2) {
-            return ComparisonChain.start()
+    private static final Comparator<JavaCodeUnit> SORTED_BY_SYNTHETIC_LAST_THEN_FULL_NAME =
+            (codeUnit1, codeUnit2) -> ComparisonChain.start()
                     .compareTrueFirst(!codeUnit1.getModifiers().contains(SYNTHETIC), !codeUnit2.getModifiers().contains(SYNTHETIC))
                     .compare(codeUnit1.getFullName(), codeUnit2.getFullName())
                     .result();
-        }
-    };
 
     static JavaClassMembers empty(JavaClass owner) {
         return new JavaClassMembers(

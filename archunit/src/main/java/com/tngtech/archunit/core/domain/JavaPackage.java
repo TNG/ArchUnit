@@ -22,10 +22,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -33,9 +35,6 @@ import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Optional;
-import com.tngtech.archunit.base.Predicate;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasName;
 
@@ -45,11 +44,11 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.base.Guava.toGuava;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 
 public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     private final String name;
@@ -102,7 +101,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @PublicAPI(usage = ACCESS)
     public Set<? extends JavaAnnotation<JavaPackage>> getAnnotations() {
         if (packageInfo.isPresent()) {
-            return FluentIterable.from(packageInfo.get().getAnnotations()).transform(toGuava(withSelfAsOwner)).toSet();
+            return packageInfo.get().getAnnotations().stream().map(withSelfAsOwner).collect(toSet());
         }
         return emptySet();
     }
@@ -366,13 +365,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     private Set<JavaClass> getClassesWith(Predicate<? super JavaClass> predicate) {
-        Set<JavaClass> result = new HashSet<>();
-        for (JavaClass javaClass : classes) {
-            if (predicate.apply(javaClass)) {
-                result.add(javaClass);
-            }
-        }
-        return result;
+        return classes.stream().filter(predicate).collect(toSet());
     }
 
     /**
@@ -406,11 +399,8 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         }
 
         String next = packageParts.poll();
-        if (!subpackages.containsKey(next)) {
-            return Optional.empty();
-        }
         JavaPackage child = subpackages.get(next);
-        return child.tryGetPackage(child, packageParts);
+        return child != null ? child.tryGetPackage(child, packageParts) : Optional.empty();
     }
 
     private <T> T getValue(Optional<T> optional, String errorMessageTemplate, Object... messageParams) {
@@ -502,7 +492,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
      */
     @PublicAPI(usage = ACCESS)
     public void accept(Predicate<? super JavaPackage> predicate, PackageVisitor visitor) {
-        if (predicate.apply(this)) {
+        if (predicate.test(this)) {
             visitor.visit(this);
         }
         for (JavaPackage subpackage : getSubpackages()) {
@@ -520,13 +510,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         return getClass().getSimpleName() + "[" + getName() + "]";
     }
 
-    private final Function<? super JavaAnnotation<JavaClass>, JavaAnnotation<JavaPackage>> withSelfAsOwner =
-            new Function<JavaAnnotation<JavaClass>, JavaAnnotation<JavaPackage>>() {
-                @Override
-                public JavaAnnotation<JavaPackage> apply(JavaAnnotation<JavaClass> input) {
-                    return input.withOwner(JavaPackage.this);
-                }
-            };
+    private final Function<? super JavaAnnotation<JavaClass>, JavaAnnotation<JavaPackage>> withSelfAsOwner = input -> input.withOwner(JavaPackage.this);
 
     static JavaPackage simple(JavaClass javaClass) {
         String packageName = javaClass.getPackageName();

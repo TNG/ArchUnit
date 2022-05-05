@@ -4,21 +4,20 @@ import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaEnumConstant;
 import org.assertj.core.api.AbstractObjectAssert;
-import org.assertj.core.api.ThrowableAssert;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -27,6 +26,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.TestUtils.invoke;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotationAssertion, JavaAnnotation<?>> {
@@ -90,13 +90,9 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
         assertThat(actual.hasExplicitlyDeclaredProperty(propertyName))
                 .as(description + " has explicitly declared value")
                 .isFalse();
-        assertThat(actual.tryGetExplicitlyDeclaredProperty(propertyName)).as(description).isAbsent();
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            @Override
-            public void call() {
-                actual.getExplicitlyDeclaredProperty(propertyName);
-            }
-        }).isInstanceOf(IllegalArgumentException.class)
+        assertThat(actual.tryGetExplicitlyDeclaredProperty(propertyName)).as(description).isEmpty();
+        assertThatThrownBy(() -> actual.getExplicitlyDeclaredProperty(propertyName))
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("%s has no explicitly declared property '%s'", actual.getDescription(), propertyName);
         return this;
     }
@@ -116,14 +112,17 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
 
     @SuppressWarnings("rawtypes")
     public static Set<Map<String, Object>> runtimePropertiesOf(Set<? extends JavaAnnotation<?>> annotations) {
-        List<Annotation> converted = new ArrayList<>();
-        for (JavaAnnotation<?> annotation : annotations) {
-            Annotation reflectionAnnotation = annotation.as((Class) annotation.getRawType().reflect());
-            if (isRetentionRuntime(reflectionAnnotation)) {
-                converted.add(reflectionAnnotation);
-            }
-        }
-        return propertiesOf(converted.toArray(new Annotation[0]));
+        return propertiesOf(
+                annotations.stream()
+                        .map(annotation -> reflect(annotation))
+                        .filter(JavaAnnotationAssertion::isRetentionRuntime)
+                        .toArray(Annotation[]::new)
+        );
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Annotation reflect(JavaAnnotation<?> annotation) {
+        return annotation.as((Class) annotation.getRawType().reflect());
     }
 
     private static boolean isRetentionRuntime(Annotation annotation) {
@@ -132,11 +131,7 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
     }
 
     public static Set<Map<String, Object>> propertiesOf(Annotation[] annotations) {
-        Set<Map<String, Object>> result = new HashSet<>();
-        for (Annotation annotation : annotations) {
-            result.add(propertiesOf(annotation));
-        }
-        return result;
+        return Arrays.stream(annotations).map(JavaAnnotationAssertion::propertiesOf).collect(toSet());
     }
 
     private static Map<String, Object> propertiesOf(Annotation annotation) {
@@ -272,22 +267,12 @@ public class JavaAnnotationAssertion extends AbstractObjectAssert<JavaAnnotation
         private final List<Consumer<JavaAnnotationAssertion>> executeAssertions = new ArrayList<>();
 
         public AnnotationPropertyAssertion withAnnotationType(final Class<? extends Annotation> annotationType) {
-            executeAssertions.add(new Consumer<JavaAnnotationAssertion>() {
-                @Override
-                public void accept(JavaAnnotationAssertion assertion) {
-                    assertion.hasType(annotationType);
-                }
-            });
+            executeAssertions.add(assertion -> assertion.hasType(annotationType));
             return this;
         }
 
         public AnnotationPropertyAssertion withClassProperty(final String propertyName, final Class<?> propertyValue) {
-            executeAssertions.add(new Consumer<JavaAnnotationAssertion>() {
-                @Override
-                public void accept(JavaAnnotationAssertion assertion) {
-                    assertion.hasClassProperty(propertyName, propertyValue);
-                }
-            });
+            executeAssertions.add(assertion -> assertion.hasClassProperty(propertyName, propertyValue));
             return this;
         }
 

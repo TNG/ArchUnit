@@ -1,9 +1,10 @@
 package com.tngtech.archunit.lang;
 
+import java.util.Optional;
+
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class FailureDisplayFormatFactoryTest {
         assertThat(failureDisplayFormat).isInstanceOf(TestFailureDisplayFormat.class);
 
         String message = failureDisplayFormat.formatFailure(hasDescription("some-rule"),
-                new FailureMessages(ImmutableList.of("some-failure"), Optional.<String>empty()),
+                new FailureMessages(ImmutableList.of("some-failure"), Optional.empty()),
                 Priority.LOW);
 
         assertThat(message).isEqualTo("test-format: some-rule has [some-failure] with priority LOW");
@@ -40,11 +41,6 @@ public class FailureDisplayFormatFactoryTest {
 
     @SuppressWarnings("SameParameterValue")
     private HasDescription hasDescription(final String description) {
-        return new HasDescription() {
-            @Override
-            public String getDescription() {
-                return description;
-            }
-        };
+        return () -> description;
     }
 }

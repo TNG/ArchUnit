@@ -29,7 +29,7 @@ class NormalizedUri {
 
     private NormalizedUri(URI uri) {
         String uriString = uri.normalize().toString();
-        uriString = uriString.replaceAll("://*", ":/"); // this is how getClass().getResource(..) returns URLs
+        uriString = uriString.replaceAll(":/+", ":/"); // this is how getClass().getResource(..) returns URLs
         uriString = !uriString.endsWith("/") && !uriString.endsWith(".class") ? uriString + "/" : uriString; // we always want folders to end in '/'
         this.uri = URI.create(uriString);
         List<String> path = Splitter.on("/").omitEmptyStrings().splitToList(this.uri.toString().replaceAll("^.*:", ""));

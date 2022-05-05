@@ -1,22 +1,20 @@
 package com.tngtech.archunit.testutil.syntax;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
+import java.util.function.Predicate;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Predicates.or;
+import static java.util.stream.Collectors.toList;
 
 public class MethodChoiceStrategy {
     private final Random random = new Random();
@@ -24,7 +22,7 @@ public class MethodChoiceStrategy {
     private final Predicate<Method> ignorePredicate;
 
     private MethodChoiceStrategy() {
-        this(Predicates.<Method>alwaysFalse());
+        this((__) -> false);
     }
 
     private MethodChoiceStrategy(Predicate<Method> ignorePredicate) {
@@ -36,16 +34,11 @@ public class MethodChoiceStrategy {
     }
 
     public MethodChoiceStrategy exceptMethodsWithName(String string) {
-        return new MethodChoiceStrategy(or(ignorePredicate, methodWithName(string)));
+        return new MethodChoiceStrategy(ignorePredicate.or(methodWithName(string)));
     }
 
     private Predicate<Method> methodWithName(final String methodName) {
-        return new Predicate<Method>() {
-            @Override
-            public boolean apply(Method input) {
-                return input.getName().equals(methodName);
-            }
-        };
+        return input -> input.getName().equals(methodName);
     }
 
     Optional<Method> choose(PropagatedType type, boolean tryToTerminate) {
@@ -55,8 +48,13 @@ public class MethodChoiceStrategy {
         }
 
         return tryToTerminate
-                ? findMethodWithReturnType(methods, ArchRule.class).or(Optional.of(methods.iterator().next()))
+                ? tryToChooseTerminationMethod(methods)
                 : Optional.of(methods.get(random.nextInt(methods.size())));
+    }
+
+    private Optional<Method> tryToChooseTerminationMethod(List<Method> methods) {
+        Optional<Method> terminationMethod = findMethodWithReturnType(methods, ArchRule.class);
+        return terminationMethod.isPresent() ? terminationMethod : Optional.of(methods.iterator().next());
     }
 
     private Optional<Method> findMethodWithReturnType(List<Method> methods, Class<ArchRule> returnType) {
@@ -69,13 +67,7 @@ public class MethodChoiceStrategy {
     }
 
     private List<Method> getPossibleMethodCandidates(Class<?> clazz) {
-        List<Method> result = new ArrayList<>();
-        for (Method method : getInvocableMethods(clazz)) {
-            if (isCandidate(method)) {
-                result.add(method);
-            }
-        }
-        return result;
+        return getInvocableMethods(clazz).stream().filter(this::isCandidate).collect(toList());
     }
 
     private Collection<Method> getInvocableMethods(Class<?> clazz) {
@@ -99,7 +91,7 @@ public class MethodChoiceStrategy {
     }
 
     private boolean isCandidate(Method method) {
-        return belongsToArchUnit(method) && isNoArchRuleMethod(method) && !ignorePredicate.apply(method);
+        return belongsToArchUnit(method) && isNoArchRuleMethod(method) && !ignorePredicate.test(method);
     }
 
     private boolean belongsToArchUnit(Method method) {

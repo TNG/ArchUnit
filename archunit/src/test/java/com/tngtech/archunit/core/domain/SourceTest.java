@@ -9,12 +9,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.base.Optional;
 import com.tngtech.archunit.core.domain.Source.Md5sum;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -30,6 +31,7 @@ import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 
 @RunWith(DataProviderRunner.class)
 public class SourceTest {
@@ -44,7 +46,7 @@ public class SourceTest {
         assertThat(source.getFileName()).as("source file name").contains("SomeClass.java");
 
         source = new Source(uriOf(Object.class), Optional.<String>empty(), false);
-        assertThat(source.getFileName()).as("source file name").isAbsent();
+        assertThat(source.getFileName()).as("source file name").isEmpty();
     }
 
     @DataProvider
@@ -129,11 +131,9 @@ public class SourceTest {
     }
 
     private static List<List<?>> zip(List<?> first, List<?> second) {
-        List<List<?>> result = new ArrayList<>();
-        for (int i = 0; i < first.size(); i++) {
-            result.add(ImmutableList.of(first.get(i), second.get(i)));
-        }
-        return result;
+        return IntStream.range(0, first.size())
+                .mapToObj(i -> ImmutableList.of(first.get(i), second.get(i)))
+                .collect(toList());
     }
 
     @Test

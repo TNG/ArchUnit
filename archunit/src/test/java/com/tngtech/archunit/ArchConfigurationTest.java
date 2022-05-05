@@ -1,5 +1,11 @@
 package com.tngtech.archunit;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.Properties;
+
 import com.tngtech.archunit.testutil.SystemPropertiesRule;
 import org.junit.After;
 import org.junit.Before;
@@ -7,17 +13,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.Properties;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
-import static com.tngtech.archunit.testutil.TestUtils.*;
+import static com.tngtech.archunit.testutil.TestUtils.properties;
+import static com.tngtech.archunit.testutil.TestUtils.singleProperty;
+import static com.tngtech.archunit.testutil.TestUtils.toUri;
 import static org.assertj.core.api.Assertions.entry;
 
 public class ArchConfigurationTest {
@@ -65,7 +67,7 @@ public class ArchConfigurationTest {
 
         assertThat(configuration.resolveMissingDependenciesFromClassPath()).isTrue();
         assertThat(configuration.md5InClassSourcesEnabled()).isTrue();
-        assertThat(configuration.getClassResolver()).isAbsent();
+        assertThat(configuration.getClassResolver()).isEmpty();
         assertThat(configuration.getClassResolverArguments()).isEmpty();
     }
 

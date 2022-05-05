@@ -17,10 +17,10 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.function.Function;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 
@@ -75,7 +75,7 @@ public final class AnyDependencyCondition extends AnyAttributeMatchesCondition<D
     Collection<Dependency> relevantAttributes(JavaClass javaClass) {
         Collection<Dependency> result = new HashSet<>();
         for (Dependency dependency : javaClassToRelevantDependencies.apply(javaClass)) {
-            if (!ignorePredicate.apply(dependency)) {
+            if (!ignorePredicate.test(dependency)) {
                 result.add(dependency);
             }
         }

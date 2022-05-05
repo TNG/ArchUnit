@@ -138,8 +138,8 @@ public class PublicAPIRules {
 
     @ArchTest
     public static final ArchRule Guava_should_not_leak_into_public_API =
-            CompositeArchRule.of(
-                    classes().that(publicAPI()).should().notBeAssignableTo(guavaClass()))
+            CompositeArchRule
+                    .of(classes().that(publicAPI()).should().notBeAssignableTo(guavaClass()))
                     .and(codeUnits()
                             .that().arePublic()
                             .and().areDeclaredInClassesThat(are(publicAPI()))
@@ -160,7 +160,7 @@ public class PublicAPIRules {
     private static DescribedPredicate<JavaClass> enclosedInANonPublicClass() {
         return new DescribedPredicate<JavaClass>("enclosed in a non-public class") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getEnclosingClass().isPresent() &&
                         !input.getEnclosingClass().get().getModifiers().contains(PUBLIC);
             }
@@ -172,7 +172,7 @@ public class PublicAPIRules {
                 Object.class.getName(), Enum.class.getName()) {
 
             @Override
-            public boolean apply(JavaMember input) {
+            public boolean test(JavaMember input) {
                 if (!(input instanceof JavaMethod)) {
                     return false;
                 }
@@ -243,15 +243,13 @@ public class PublicAPIRules {
     private static DescribedPredicate<JavaClass> haveAPublicConstructor() {
         return new DescribedPredicate<JavaClass>("have a public constructor") {
             @Override
-            public boolean apply(JavaClass input) {
-                for (JavaConstructor constructor : input.getConstructors()) {
-                    if (constructor.getModifiers().contains(PUBLIC)) {
-                        return true;
-                    }
+            public boolean test(JavaClass input) {
+                if (input.getConstructors().stream().anyMatch(constructor -> constructor.getModifiers().contains(PUBLIC))) {
+                    return true;
                 }
-                return input.getConstructors().isEmpty() &&
-                        input.getRawSuperclass().isPresent() &&
-                        haveAPublicConstructor().apply(input.getRawSuperclass().get());
+                return input.getConstructors().isEmpty()
+                        && input.getRawSuperclass().isPresent()
+                        && test(input.getRawSuperclass().get());
             }
         };
     }
@@ -259,13 +257,8 @@ public class PublicAPIRules {
     private static DescribedPredicate<JavaClass> haveMemberThatBelongsToPublicApi() {
         return new DescribedPredicate<JavaClass>("have member that belongs to public API") {
             @Override
-            public boolean apply(JavaClass input) {
-                for (JavaMember member : input.getAllMembers()) {
-                    if (member.isAnnotatedWith(PublicAPI.class)) {
-                        return true;
-                    }
-                }
-                return false;
+            public boolean test(JavaClass input) {
+                return input.getAllMembers().stream().anyMatch(member -> member.isAnnotatedWith(PublicAPI.class));
             }
         };
     }
@@ -280,8 +273,8 @@ public class PublicAPIRules {
     private static DescribedPredicate<JavaMember> inheritPublicAPI() {
         return new DescribedPredicate<JavaMember>("inherit public API") {
             @Override
-            public boolean apply(JavaMember input) {
-                return declaredIn(markedAsPublicAPIForInheritance()).apply(input) ||
+            public boolean test(JavaMember input) {
+                return declaredIn(markedAsPublicAPIForInheritance()).test(input) ||
                         inheritsFromSuperMethod(input);
             }
 
@@ -291,12 +284,7 @@ public class PublicAPIRules {
                 }
 
                 JavaMethod methodToCheck = (JavaMethod) input;
-                for (JavaMethod candidate : input.getOwner().getAllMethods()) {
-                    if (isPublicAPISuperMethod(candidate, methodToCheck)) {
-                        return true;
-                    }
-                }
-                return false;
+                return input.getOwner().getAllMethods().stream().anyMatch(candidate -> isPublicAPISuperMethod(candidate, methodToCheck));
             }
 
             private boolean isPublicAPISuperMethod(JavaMethod candidate, JavaMethod methodToCheck) {
@@ -319,13 +307,8 @@ public class PublicAPIRules {
     private static DescribedPredicate<JavaClass> markedAsPublicAPIForInheritance() {
         return new DescribedPredicate<JavaClass>("inherit public API") {
             @Override
-            public boolean apply(JavaClass input) {
-                for (JavaClass clazz : input.getAllClassesSelfIsAssignableTo()) {
-                    if (clazz.isAnnotatedWith(publicApiForInheritance())) {
-                        return true;
-                    }
-                }
-                return false;
+            public boolean test(JavaClass input) {
+                return input.getAllClassesSelfIsAssignableTo().stream().anyMatch(clazz -> clazz.isAnnotatedWith(publicApiForInheritance()));
             }
         };
     }
@@ -333,7 +316,7 @@ public class PublicAPIRules {
     private static DescribedPredicate<JavaAnnotation<?>> publicApiForInheritance() {
         return new DescribedPredicate<JavaAnnotation<?>>("@%s(usage = %s)", PublicAPI.class.getSimpleName(), INHERITANCE) {
             @Override
-            public boolean apply(JavaAnnotation<?> input) {
+            public boolean test(JavaAnnotation<?> input) {
                 return input.getRawType().isEquivalentTo(PublicAPI.class) &&
                         input.as(PublicAPI.class).usage() == INHERITANCE;
             }
@@ -356,7 +339,7 @@ public class PublicAPIRules {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
                 boolean satisfied = item.isAnnotatedWith(publicApiForInheritance()) ||
-                        markedAsPublicAPIForInheritance().apply(item);
+                        markedAsPublicAPIForInheritance().test(item);
                 events.add(new SimpleConditionEvent(item, satisfied,
                         String.format("class %s is %smeant for inheritance", item.getName(), satisfied ? "" : "not ")));
             }
@@ -366,13 +349,8 @@ public class PublicAPIRules {
     private static DescribedPredicate<List<JavaClass>> thatArePublic() {
         return new DescribedPredicate<List<JavaClass>>("that are public") {
             @Override
-            public boolean apply(List<JavaClass> input) {
-                for (JavaClass parameterType : input) {
-                    if (!parameterType.getModifiers().contains(PUBLIC)) {
-                        return false;
-                    }
-                }
-                return true;
+            public boolean test(List<JavaClass> input) {
+                return input.stream().allMatch(parameterType -> parameterType.getModifiers().contains(PUBLIC));
             }
         };
     }
@@ -392,11 +370,10 @@ public class PublicAPIRules {
                         .map(predicateType -> predicateType.getActualTypeArguments()[0])
                         .filter(predicateTypeParameter -> !(predicateTypeParameter instanceof WildcardType)
                                 || ((WildcardType) predicateTypeParameter).getLowerBounds().length == 0)
-                        .forEach(type -> {
-                            String message = String.format("%s has a parameter %s<%s> instead of a contravariant type parameter in %s",
-                                    javaCodeUnit.getDescription(), DescribedPredicate.class.getSimpleName(), type.getTypeName(), javaCodeUnit.getSourceCodeLocation());
-                            events.add(violated(javaCodeUnit, message));
-                        });
+                        .map(type -> String.format("%s has a parameter %s<%s> instead of a contravariant type parameter in %s",
+                                javaCodeUnit.getDescription(), DescribedPredicate.class.getSimpleName(), type.getTypeName(), javaCodeUnit.getSourceCodeLocation()))
+                        .map(message -> violated(javaCodeUnit, message))
+                        .forEach(events::add);
             }
         };
     }
@@ -405,7 +382,7 @@ public class PublicAPIRules {
         return JavaClass.Functions.GET_PACKAGE_NAME.is(
                 new DescribedPredicate<String>("") {
                     @Override
-                    public boolean apply(String input) {
+                    public boolean test(String input) {
                         return input.contains(".google.");
                     }
                 }).as("Guava Class");
@@ -414,13 +391,8 @@ public class PublicAPIRules {
     private static DescribedPredicate<List<JavaClass>> withoutGuava() {
         return new DescribedPredicate<List<JavaClass>>("without Guava") {
             @Override
-            public boolean apply(List<JavaClass> input) {
-                for (JavaClass parameterType : input) {
-                    if (guavaClass().apply(parameterType)) {
-                        return false;
-                    }
-                }
-                return true;
+            public boolean test(List<JavaClass> input) {
+                return input.stream().noneMatch(parameterType -> guavaClass().test(parameterType));
             }
         };
     }

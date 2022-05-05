@@ -15,6 +15,10 @@
  */
 package com.tngtech.archunit.base;
 
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.PublicAPI;
 
@@ -76,7 +80,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
     private static final DescribedPredicate<Object> ALWAYS_TRUE = new DescribedPredicate<Object>("always true") {
         @Override
-        public boolean apply(Object input) {
+        public boolean test(Object input) {
             return true;
         }
     };
@@ -88,7 +92,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
     private static final DescribedPredicate<Object> ALWAYS_FALSE = new DescribedPredicate<Object>("always false") {
         @Override
-        public boolean apply(Object input) {
+        public boolean test(Object input) {
             return false;
         }
     };
@@ -153,13 +157,13 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
 
     private static final DescribedPredicate<Iterable<?>> EMPTY = new DescribedPredicate<Iterable<?>>("empty") {
         @Override
-        public boolean apply(Iterable<?> input) {
+        public boolean test(Iterable<?> input) {
             return Iterables.isEmpty(input);
         }
     };
     private static final DescribedPredicate<Optional<?>> OPTIONAL_EMPTY = new DescribedPredicate<Optional<?>>("empty") {
         @Override
-        public boolean apply(Optional<?> input) {
+        public boolean test(Optional<?> input) {
             return !input.isPresent();
         }
     };
@@ -173,8 +177,8 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
-            return current.apply(input);
+        public boolean test(T input) {
+            return current.test(input);
         }
     }
 
@@ -189,8 +193,8 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
-            return current.apply(input) && other.apply(input);
+        public boolean test(T input) {
+            return current.test(input) && other.test(input);
         }
     }
 
@@ -205,8 +209,8 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
-            return current.apply(input) || other.apply(input);
+        public boolean test(T input) {
+            return current.test(input) || other.test(input);
         }
     }
 
@@ -221,8 +225,8 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(F input) {
-            return current.apply(function.apply(input));
+        public boolean test(F input) {
+            return current.test(function.apply(input));
         }
     }
 
@@ -235,8 +239,8 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
-            return !predicate.apply(input);
+        public boolean test(T input) {
+            return !predicate.test(input);
         }
     }
 
@@ -249,7 +253,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
+        public boolean test(T input) {
             return value.equals(input);
         }
     }
@@ -263,7 +267,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
+        public boolean test(T input) {
             return input.compareTo(value) < 0;
         }
     }
@@ -277,7 +281,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
+        public boolean test(T input) {
             return input.compareTo(value) > 0;
         }
     }
@@ -291,7 +295,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
+        public boolean test(T input) {
             return input.compareTo(value) <= 0;
         }
     }
@@ -305,7 +309,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
+        public boolean test(T input) {
             return input.compareTo(value) >= 0;
         }
     }
@@ -319,8 +323,8 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(T input) {
-            return delegate.apply(input);
+        public boolean test(T input) {
+            return delegate.test(input);
         }
     }
 
@@ -333,9 +337,9 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(Iterable<? extends T> iterable) {
+        public boolean test(Iterable<? extends T> iterable) {
             for (T javaClass : iterable) {
-                if (predicate.apply(javaClass)) {
+                if (predicate.test(javaClass)) {
                     return true;
                 }
             }
@@ -352,9 +356,9 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(Iterable<T> iterable) {
+        public boolean test(Iterable<T> iterable) {
             for (T javaClass : iterable) {
-                if (!predicate.apply(javaClass)) {
+                if (!predicate.test(javaClass)) {
                     return false;
                 }
             }
@@ -371,8 +375,8 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
 
         @Override
-        public boolean apply(Optional<T> optional) {
-            return optional.isPresent() && predicate.apply(optional.get());
+        public boolean test(Optional<T> optional) {
+            return optional.isPresent() && predicate.test(optional.get());
         }
     }
 }

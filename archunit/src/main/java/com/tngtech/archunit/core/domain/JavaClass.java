@@ -20,22 +20,23 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
-import com.tngtech.archunit.base.Optional;
+import com.tngtech.archunit.base.Optionals;
 import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
+import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasAnnotations;
 import com.tngtech.archunit.core.domain.properties.HasModifiers;
@@ -64,8 +65,10 @@ import static com.tngtech.archunit.core.domain.JavaType.Functions.TO_ERASURE;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.toAnnotationOfType;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toSet;
 
 public class JavaClass
         implements JavaType, HasName.AndFullName, HasTypeParameters<JavaClass>, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
@@ -85,51 +88,39 @@ public class JavaClass
     private final Supplier<Class<?>> reflectSupplier;
     private JavaClassMembers members = JavaClassMembers.empty(this);
     private Superclass superclass = Superclass.ABSENT;
-    private final Supplier<List<JavaClass>> allRawSuperclasses = Suppliers.memoize(new Supplier<List<JavaClass>>() {
-        @Override
-        public List<JavaClass> get() {
-            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-            JavaClass current = JavaClass.this;
-            while (current.getRawSuperclass().isPresent()) {
-                current = current.getRawSuperclass().get();
-                result.add(current);
-            }
-            return result.build();
+    private final Supplier<List<JavaClass>> allRawSuperclasses = Suppliers.memoize(() -> {
+        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+        JavaClass current = JavaClass.this;
+        while (current.getRawSuperclass().isPresent()) {
+            current = current.getRawSuperclass().get();
+            result.add(current);
         }
+        return result.build();
     });
     private Interfaces interfaces = Interfaces.EMPTY;
-    private final Supplier<Set<JavaClass>> allRawInterfaces = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
-        @Override
-        public Set<JavaClass> get() {
-            ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
-            for (JavaClass i : interfaces.getRaw()) {
-                result.add(i);
-                result.addAll(i.getAllRawInterfaces());
-            }
-            result.addAll(superclass.getAllRawInterfaces());
-            return result.build();
+    private final Supplier<Set<JavaClass>> allRawInterfaces = Suppliers.memoize(() -> {
+        ImmutableSet.Builder<JavaClass> result = ImmutableSet.builder();
+        for (JavaClass i : interfaces.getRaw()) {
+            result.add(i);
+            result.addAll(i.getAllRawInterfaces());
         }
+        result.addAll(superclass.getAllRawInterfaces());
+        return result.build();
     });
-    private final Supplier<List<JavaClass>> classHierarchy = Suppliers.memoize(new Supplier<List<JavaClass>>() {
-        @Override
-        public List<JavaClass> get() {
-            ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
-            result.add(JavaClass.this);
-            result.addAll(getAllRawSuperclasses());
-            return result.build();
-        }
+    private final Supplier<List<JavaClass>> classHierarchy = Suppliers.memoize(() -> {
+        ImmutableList.Builder<JavaClass> result = ImmutableList.builder();
+        result.add(JavaClass.this);
+        result.addAll(getAllRawSuperclasses());
+        return result.build();
     });
     private final Set<JavaClass> subclasses = new HashSet<>();
-    private final Supplier<Set<JavaClass>> allSubclasses = Suppliers.memoize(new Supplier<Set<JavaClass>>() {
-        @Override
-        public Set<JavaClass> get() {
-            Set<JavaClass> result = new HashSet<>();
-            for (JavaClass subclass : subclasses) {
-                result.add(subclass);
-                result.addAll(subclass.getAllSubclasses());
-            }
-            return ImmutableSet.copyOf(result);
+    private final Supplier<Set<JavaClass>> allSubclasses = Suppliers.memoize(() -> {
+        Set<JavaClass> result = new HashSet<>();
+        for (JavaClass subclass : subclasses) {
+            result.add(subclass);
+            result.addAll(subclass.getAllSubclasses());
         }
+        return ImmutableSet.copyOf(result);
     });
     private EnclosingDeclaration enclosingDeclaration = EnclosingDeclaration.ABSENT;
     private Optional<JavaClass> componentType = Optional.empty();
@@ -885,7 +876,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaMethod getMethod(String name) {
-        return members.getMethod(name, Collections.<String>emptyList());
+        return members.getMethod(name, Collections.emptyList());
     }
 
     /**
@@ -911,7 +902,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaMethod> tryGetMethod(String name) {
-        return members.tryGetMethod(name, Collections.<String>emptyList());
+        return members.tryGetMethod(name, Collections.emptyList());
     }
 
     /**
@@ -947,7 +938,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public JavaConstructor getConstructor() {
-        return members.getConstructor(Collections.<String>emptyList());
+        return members.getConstructor(Collections.emptyList());
     }
 
     /**
@@ -978,7 +969,7 @@ public class JavaClass
      */
     @PublicAPI(usage = ACCESS)
     public Optional<JavaConstructor> tryGetConstructor() {
-        return members.tryGetConstructor(Collections.<String>emptyList());
+        return members.tryGetConstructor(Collections.emptyList());
     }
 
     /**
@@ -1419,12 +1410,7 @@ public class JavaClass
     }
 
     private boolean anyMatches(List<JavaClass> possibleTargets, DescribedPredicate<? super JavaClass> predicate) {
-        for (JavaClass javaClass : possibleTargets) {
-            if (predicate.apply(javaClass)) {
-                return true;
-            }
-        }
-        return false;
+        return possibleTargets.stream().anyMatch(predicate);
     }
 
     /**
@@ -1469,9 +1455,8 @@ public class JavaClass
 
     private EnclosingDeclaration createEnclosingDeclaration(ImportContext context) {
         Optional<JavaCodeUnit> enclosingCodeUnit = context.createEnclosingCodeUnit(this);
-        return enclosingCodeUnit.isPresent()
-                ? EnclosingDeclaration.ofCodeUnit(enclosingCodeUnit.get())
-                : EnclosingDeclaration.ofClass(context.createEnclosingClass(this));
+        return enclosingCodeUnit.map(EnclosingDeclaration::ofCodeUnit)
+                .orElseGet(() -> EnclosingDeclaration.ofClass(context.createEnclosingClass(this)));
     }
 
     void completeTypeParametersFrom(ImportContext context) {
@@ -1481,17 +1466,13 @@ public class JavaClass
 
     void completeGenericSuperclassFrom(ImportContext context) {
         Optional<JavaType> genericSuperclass = context.createGenericSuperclass(this);
-        if (genericSuperclass.isPresent()) {
-            superclass = superclass.withGenericType(genericSuperclass.get());
-        }
+        genericSuperclass.ifPresent(javaType -> superclass = superclass.withGenericType(javaType));
         completionProcess.markGenericSuperclassComplete();
     }
 
     void completeGenericInterfacesFrom(ImportContext context) {
         Optional<List<JavaType>> genericInterfaces = context.createGenericInterfaces(this);
-        if (genericInterfaces.isPresent()) {
-            interfaces = interfaces.withGenericTypes(genericInterfaces.get());
-        }
+        genericInterfaces.ifPresent(javaTypes -> interfaces = interfaces.withGenericTypes(javaTypes));
         completionProcess.markGenericInterfacesComplete();
     }
 
@@ -1565,7 +1546,7 @@ public class JavaClass
     }
 
     private static class Superclass {
-        private static final Superclass ABSENT = new Superclass(Optional.<JavaType>empty());
+        private static final Superclass ABSENT = new Superclass(Optional.empty());
 
         private final Optional<JavaClass> rawType;
         private final Optional<JavaType> type;
@@ -1584,11 +1565,11 @@ public class JavaClass
         }
 
         Optional<JavaType> get() {
-            return type.or(rawType);
+            return Optional.ofNullable(type.orElse(rawType.orElse(null)));
         }
 
         Set<JavaClass> getAllRawInterfaces() {
-            return rawType.isPresent() ? rawType.get().getAllRawInterfaces() : Collections.<JavaClass>emptySet();
+            return rawType.isPresent() ? rawType.get().getAllRawInterfaces() : Collections.emptySet();
         }
 
         Superclass withRawType(JavaClass newRawType) {
@@ -1601,7 +1582,7 @@ public class JavaClass
     }
 
     private static class Interfaces {
-        static final Interfaces EMPTY = new Interfaces(ImmutableSet.<JavaClass>of(), ImmutableSet.<JavaType>of());
+        static final Interfaces EMPTY = new Interfaces(ImmutableSet.of(), ImmutableSet.of());
 
         private final ImmutableSet<JavaClass> rawTypes;
         private final ImmutableSet<JavaType> types;
@@ -1634,7 +1615,7 @@ public class JavaClass
     }
 
     private static class EnclosingDeclaration {
-        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.<JavaCodeUnit>empty(), Optional.<JavaClass>empty());
+        static final EnclosingDeclaration ABSENT = new EnclosingDeclaration(Optional.empty(), Optional.empty());
 
         private final Optional<JavaCodeUnit> enclosingCodeUnit;
         private final Optional<JavaClass> enclosingClass;
@@ -1661,7 +1642,7 @@ public class JavaClass
         }
 
         static EnclosingDeclaration ofClass(Optional<JavaClass> clazz) {
-            return new EnclosingDeclaration(Optional.<JavaCodeUnit>empty(), clazz);
+            return new EnclosingDeclaration(Optional.empty(), clazz);
         }
     }
 
@@ -2096,7 +2077,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> INTERFACES = new DescribedPredicate<JavaClass>("interfaces") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isInterface();
             }
         };
@@ -2104,7 +2085,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> ENUMS = new DescribedPredicate<JavaClass>("enums") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isEnum();
             }
         };
@@ -2112,7 +2093,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> ANNOTATIONS = new DescribedPredicate<JavaClass>("annotations") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isAnnotation();
             }
         };
@@ -2120,7 +2101,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> RECORDS = new DescribedPredicate<JavaClass>("records") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isRecord();
             }
         };
@@ -2128,7 +2109,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> TOP_LEVEL_CLASSES = new DescribedPredicate<JavaClass>("top level classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isTopLevelClass();
             }
         };
@@ -2136,7 +2117,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> NESTED_CLASSES = new DescribedPredicate<JavaClass>("nested classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isNestedClass();
             }
         };
@@ -2144,7 +2125,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> MEMBER_CLASSES = new DescribedPredicate<JavaClass>("member classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isMemberClass();
             }
         };
@@ -2152,7 +2133,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> INNER_CLASSES = new DescribedPredicate<JavaClass>("inner classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isInnerClass();
             }
         };
@@ -2160,7 +2141,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> LOCAL_CLASSES = new DescribedPredicate<JavaClass>("local classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isLocalClass();
             }
         };
@@ -2168,7 +2149,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static final DescribedPredicate<JavaClass> ANONYMOUS_CLASSES = new DescribedPredicate<JavaClass>("anonymous classes") {
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isAnonymousClass();
             }
         };
@@ -2349,10 +2330,7 @@ public class JavaClass
         }
 
         private static DescribedPredicate<JavaClass> resideInAnyPackage(final String[] packageIdentifiers, final String description) {
-            final Set<PackageMatcher> packageMatchers = new HashSet<>();
-            for (String identifier : packageIdentifiers) {
-                packageMatchers.add(PackageMatcher.of(identifier));
-            }
+            final Set<PackageMatcher> packageMatchers = stream(packageIdentifiers).map(PackageMatcher::of).collect(toSet());
             return new PackageMatchesPredicate(packageMatchers, description);
         }
 
@@ -2461,12 +2439,7 @@ public class JavaClass
             return new ContainAnyMembersThatPredicate<>("static initializers", GET_STATIC_INITIALIZER.then(AS_SET), predicate);
         }
 
-        private static final Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>> AS_SET = new Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>>() {
-            @Override
-            public Set<JavaStaticInitializer> apply(Optional<JavaStaticInitializer> input) {
-                return input.asSet();
-            }
-        };
+        private static final Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>> AS_SET = Optionals::asSet;
 
         private static class BelongToAnyOfPredicate extends DescribedPredicate<JavaClass> {
             private final Class<?>[] classes;
@@ -2477,13 +2450,8 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
-                for (Class<?> clazz : classes) {
-                    if (belongsTo(input, clazz)) {
-                        return true;
-                    }
-                }
-                return false;
+            public boolean test(JavaClass input) {
+                return stream(classes).anyMatch(clazz -> belongsTo(input, clazz));
             }
 
             private boolean belongsTo(JavaClass input, Class<?> clazz) {
@@ -2504,7 +2472,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getSimpleName().startsWith(prefix);
             }
         }
@@ -2518,7 +2486,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getSimpleName().contains(infix);
             }
         }
@@ -2532,7 +2500,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.getSimpleName().endsWith(suffix);
             }
         }
@@ -2546,7 +2514,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isAssignableTo(predicate);
             }
         }
@@ -2560,7 +2528,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isAssignableFrom(predicate);
             }
         }
@@ -2574,13 +2542,8 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
-                for (PackageMatcher matcher : packageMatchers) {
-                    if (matcher.matches(input.getPackageName())) {
-                        return true;
-                    }
-                }
-                return false;
+            public boolean test(JavaClass input) {
+                return packageMatchers.stream().anyMatch(matcher -> matcher.matches(input.getPackageName()));
             }
         }
 
@@ -2593,7 +2556,7 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
+            public boolean test(JavaClass input) {
                 return input.isEquivalentTo(clazz);
             }
         }
@@ -2609,13 +2572,8 @@ public class JavaClass
             }
 
             @Override
-            public boolean apply(JavaClass input) {
-                for (T member : getMembers.apply(input)) {
-                    if (predicate.apply(member)) {
-                        return true;
-                    }
-                }
-                return false;
+            public boolean test(JavaClass input) {
+                return getMembers.apply(input).stream().anyMatch(predicate);
             }
         }
     }

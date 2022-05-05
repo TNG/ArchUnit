@@ -15,9 +15,9 @@
  */
 package com.tngtech.archunit.lang.syntax;
 
-import com.tngtech.archunit.base.Function;
-import com.tngtech.archunit.base.Function.Functions;
-import com.tngtech.archunit.base.Optional;
+import java.util.Optional;
+import java.util.function.Function;
+
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -29,7 +29,7 @@ class GivenConstructorsInternal extends AbstractGivenCodeUnitsInternal<JavaConst
         implements GivenConstructors, GivenConstructorsConjunction {
 
     GivenConstructorsInternal(Priority priority, ClassesTransformer<JavaConstructor> classesTransformer) {
-        this(priority, classesTransformer, Functions.<ArchCondition<JavaConstructor>>identity());
+        this(priority, classesTransformer, Function.identity());
     }
 
     GivenConstructorsInternal(

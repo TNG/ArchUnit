@@ -18,20 +18,21 @@ package com.tngtech.archunit.library.plantuml;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 
-import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.GET_COMPONENT_NAME;
 import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 class PlantUmlComponents {
     private final Map<ComponentName, PlantUmlComponent> componentsByName;
     private final Map<Alias, PlantUmlComponent> componentsByAlias;
 
     PlantUmlComponents(Set<PlantUmlComponent> components) {
-        componentsByName = FluentIterable.from(components).uniqueIndex(GET_COMPONENT_NAME);
-        componentsByAlias = FluentIterable.from(components).filter(WITH_ALIAS).uniqueIndex(TO_EXISTING_ALIAS);
+        componentsByName = FluentIterable.from(components).uniqueIndex(PlantUmlComponent::getComponentName);
+        componentsByAlias = components.stream().filter(WITH_ALIAS).collect(toMap(TO_EXISTING_ALIAS, identity()));
     }
 
     Collection<PlantUmlComponent> getAllComponents() {
@@ -57,10 +58,5 @@ class PlantUmlComponents {
         return componentsByName.get(identifier.getComponentName());
     }
 
-    private static final Predicate<PlantUmlComponent> WITH_ALIAS = new Predicate<PlantUmlComponent>() {
-        @Override
-        public boolean apply(PlantUmlComponent input) {
-            return input.getAlias().isPresent();
-        }
-    };
+    private static final Predicate<PlantUmlComponent> WITH_ALIAS = input -> input.getAlias().isPresent();
 }

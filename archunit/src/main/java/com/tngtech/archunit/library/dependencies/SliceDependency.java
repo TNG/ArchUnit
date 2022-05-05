@@ -19,16 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Ordering;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.Dependency;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.StreamSupport.stream;
 
 public final class SliceDependency implements HasDescription {
     private final Slice origin;
@@ -46,12 +46,9 @@ public final class SliceDependency implements HasDescription {
     }
 
     private SortedSet<Dependency> filterTarget(Iterable<Dependency> dependenciesToConsider, final Slice target) {
-        return FluentIterable.from(dependenciesToConsider).filter(new Predicate<Dependency>() {
-            @Override
-            public boolean apply(Dependency input) {
-                return target.contains(input.getTargetClass());
-            }
-        }).toSortedSet(Ordering.<Dependency>natural());
+        return stream(dependenciesToConsider.spliterator(), false)
+                .filter(input -> target.contains(input.getTargetClass()))
+                .collect(toCollection(TreeSet::new));
     }
 
     @PublicAPI(usage = ACCESS)

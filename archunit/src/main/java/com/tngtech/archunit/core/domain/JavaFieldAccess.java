@@ -122,7 +122,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
             }
 
             @Override
-            public boolean apply(JavaFieldAccess input) {
+            public boolean test(JavaFieldAccess input) {
                 return accessType == input.getAccessType();
             }
         }

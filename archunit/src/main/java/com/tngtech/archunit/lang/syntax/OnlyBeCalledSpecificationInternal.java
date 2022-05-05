@@ -16,7 +16,6 @@
 package com.tngtech.archunit.lang.syntax;
 
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaMember;
@@ -38,12 +37,7 @@ class OnlyBeCalledSpecificationInternal<SHOULD extends AbstractMembersShouldInte
 
     @Override
     public ClassesThat<SHOULD> byClassesThat() {
-        return new ClassesThatInternal<>(new Function<DescribedPredicate<? super JavaClass>, SHOULD>() {
-            @Override
-            public SHOULD apply(DescribedPredicate<? super JavaClass> predicate) {
-                return codeUnitsShould.addCondition(ArchConditions.onlyBeCalledByClassesThat(predicate));
-            }
-        });
+        return new ClassesThatInternal<>(predicate -> codeUnitsShould.addCondition(ArchConditions.onlyBeCalledByClassesThat(predicate)));
     }
 
     @Override

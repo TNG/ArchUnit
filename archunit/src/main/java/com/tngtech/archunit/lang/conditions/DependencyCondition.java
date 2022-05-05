@@ -31,6 +31,6 @@ class DependencyCondition extends ArchCondition<Dependency> {
 
     @Override
     public void check(Dependency item, ConditionEvents events) {
-        events.add(new SimpleConditionEvent(item, conditionPredicate.apply(item), item.getDescription()));
+        events.add(new SimpleConditionEvent(item, conditionPredicate.test(item), item.getDescription()));
     }
 }

@@ -26,12 +26,12 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.ForwardingCollection;
-import com.tngtech.archunit.base.Guava;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.stream.Collectors.toMap;
 
 public final class JavaClasses extends ForwardingCollection<JavaClass> implements DescribedIterable<JavaClass>, CanOverrideDescription<JavaClasses> {
     private final ImmutableMap<String, JavaClass> classes;
@@ -54,7 +54,9 @@ public final class JavaClasses extends ForwardingCollection<JavaClass> implement
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses that(DescribedPredicate<? super JavaClass> predicate) {
-        Map<String, JavaClass> matchingElements = Guava.Maps.filterValues(classes, predicate);
+        Map<String, JavaClass> matchingElements = classes.entrySet().stream()
+                .filter(e -> predicate.test(e.getValue()))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
         String newDescription = String.format("%s that %s", description, predicate.getDescription());
         return new JavaClasses(defaultPackage, matchingElements, newDescription);
     }

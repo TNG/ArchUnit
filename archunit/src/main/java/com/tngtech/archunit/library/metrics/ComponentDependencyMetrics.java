@@ -17,10 +17,10 @@ package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -80,8 +80,7 @@ public final class ComponentDependencyMetrics {
      */
     @PublicAPI(usage = ACCESS)
     public int getEfferentCoupling(String componentIdentifier) {
-        checkComponentExists(componentIdentifier);
-        return metricsByComponentIdentifier.get(componentIdentifier).getEfferentCoupling();
+        return getComponentMetrics(componentIdentifier).getEfferentCoupling();
     }
 
     /**
@@ -91,8 +90,7 @@ public final class ComponentDependencyMetrics {
      */
     @PublicAPI(usage = ACCESS)
     public int getAfferentCoupling(String componentIdentifier) {
-        checkComponentExists(componentIdentifier);
-        return metricsByComponentIdentifier.get(componentIdentifier).getAfferentCoupling();
+        return getComponentMetrics(componentIdentifier).getAfferentCoupling();
     }
 
     /**
@@ -102,8 +100,7 @@ public final class ComponentDependencyMetrics {
      */
     @PublicAPI(usage = ACCESS)
     public double getInstability(String componentIdentifier) {
-        checkComponentExists(componentIdentifier);
-        return metricsByComponentIdentifier.get(componentIdentifier).getInstability();
+        return getComponentMetrics(componentIdentifier).getInstability();
     }
 
     /**
@@ -113,8 +110,7 @@ public final class ComponentDependencyMetrics {
      */
     @PublicAPI(usage = ACCESS)
     public double getAbstractness(String componentIdentifier) {
-        checkComponentExists(componentIdentifier);
-        return metricsByComponentIdentifier.get(componentIdentifier).getAbstractness();
+        return getComponentMetrics(componentIdentifier).getAbstractness();
     }
 
     /**
@@ -124,13 +120,13 @@ public final class ComponentDependencyMetrics {
      */
     @PublicAPI(usage = ACCESS)
     public double getNormalizedDistanceFromMainSequence(String componentIdentifier) {
-        checkComponentExists(componentIdentifier);
-        return metricsByComponentIdentifier.get(componentIdentifier).getNormalizedDistanceFromMainSequence();
+        return getComponentMetrics(componentIdentifier).getNormalizedDistanceFromMainSequence();
     }
 
-    private void checkComponentExists(String componentIdentifier) {
-        checkArgument(metricsByComponentIdentifier.containsKey(componentIdentifier),
-                "Unknown component with identifier '" + componentIdentifier + "'");
+    private SingleComponentMetrics getComponentMetrics(String componentIdentifier) {
+        SingleComponentMetrics result = metricsByComponentIdentifier.get(componentIdentifier);
+        checkArgument(result != null, "Unknown component with identifier '" + componentIdentifier + "'");
+        return result;
     }
 
     private static class SingleComponentMetrics {

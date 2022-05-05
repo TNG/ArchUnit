@@ -1,7 +1,8 @@
 package com.tngtech.archunit.testutils;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 class ExpectedMessage implements MessageAssertionChain.Link {
     private final String expectedMessage;
@@ -12,12 +13,7 @@ class ExpectedMessage implements MessageAssertionChain.Link {
 
     @Override
     public Result filterMatching(List<String> lines) {
-        List<String> rest = new ArrayList<>();
-        for (String line : lines) {
-            if (!expectedMessage.equals(line)) {
-                rest.add(line);
-            }
-        }
+        List<String> rest = lines.stream().filter(line -> !expectedMessage.equals(line)).collect(toList());
         boolean matches = !lines.equals(rest);
         return new Result(matches, rest);
     }

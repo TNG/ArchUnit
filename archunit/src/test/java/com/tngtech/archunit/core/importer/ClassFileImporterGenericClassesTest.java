@@ -7,10 +7,9 @@ import java.lang.ref.Reference;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 import com.tngtech.archunit.ArchConfiguration;
-import com.tngtech.archunit.base.Function;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -371,13 +370,10 @@ public class ClassFileImporterGenericClassesTest {
             }
         }
 
-        JavaClass javaClass = resetConfigurationAround(new Callable<JavaClass>() {
-            @Override
-            public JavaClass call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassWithOnlyGenericTypeResolution(
-                        ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class);
-            }
+        JavaClass javaClass = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassWithOnlyGenericTypeResolution(
+                    ClassWithTypeParameterWithInnerClassesWithTypeVariableBound.SomeInner.EvenMoreInnerDeclaringOwn.AndEvenMoreInner.class);
         });
 
         assertThatType(javaClass).hasTypeParameters("MOST_INNER1", "MOST_INNER2")
@@ -475,13 +471,10 @@ public class ClassFileImporterGenericClassesTest {
             }
         }
 
-        JavaClass javaClass = resetConfigurationAround(new Callable<JavaClass>() {
-            @Override
-            public JavaClass call() {
-                ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
-                return importClassesWithOnlyGenericTypeResolution(ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class, List.class)
-                        .get(ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class);
-            }
+        JavaClass javaClass = resetConfigurationAround(() -> {
+            ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
+            return importClassesWithOnlyGenericTypeResolution(ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class, List.class)
+                    .get(ClassWithWildcardWithTypeVariableBounds.Inner.MoreInner.class);
         });
 
         assertThatType(javaClass).hasTypeParameters("MOST_INNER1", "MOST_INNER2")

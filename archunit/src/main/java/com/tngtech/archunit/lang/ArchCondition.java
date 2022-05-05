@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.lang;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +27,8 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 @PublicAPI(usage = INHERITANCE)
 public abstract class ArchCondition<T> {
@@ -44,14 +45,14 @@ public abstract class ArchCondition<T> {
      *
      * @param allObjectsToTest All objects that {@link #check(Object, ConditionEvents)} will be called against
      */
-    public void init(Iterable<T> allObjectsToTest) {
+    public void init(Collection<T> allObjectsToTest) {
     }
 
     public abstract void check(T item, ConditionEvents events);
 
     /**
      * Can be used/overridden to finish the evaluation of this condition.<br>
-     * ArchUnit will call this method once after every single item was checked (by {@link #check(Object, ConditionEvents)}.<br>
+     * ArchUnit will call this method once after every single item was checked (by {@link #check(Object, ConditionEvents)}).<br>
      * This method can be used, if violations are dependent on multiple/all {@link #check(Object, ConditionEvents)} calls,
      * on the contrary to the default case, where each single {@link #check(Object, ConditionEvents)} stands for itself.
      */
@@ -59,11 +60,11 @@ public abstract class ArchCondition<T> {
     }
 
     public ArchCondition<T> and(ArchCondition<? super T> condition) {
-        return new AndCondition<>(this, condition.<T>forSubtype());
+        return new AndCondition<>(this, condition.forSubtype());
     }
 
     public ArchCondition<T> or(ArchCondition<? super T> condition) {
-        return new OrCondition<>(this, condition.<T>forSubtype());
+        return new OrCondition<>(this, condition.forSubtype());
     }
 
     public String getDescription() {
@@ -73,7 +74,7 @@ public abstract class ArchCondition<T> {
     public ArchCondition<T> as(String description, Object... args) {
         return new ArchCondition<T>(description, args) {
             @Override
-            public void init(Iterable<T> allObjectsToTest) {
+            public void init(Collection<T> allObjectsToTest) {
                 ArchCondition.this.init(allObjectsToTest);
             }
 
@@ -108,15 +109,11 @@ public abstract class ArchCondition<T> {
         }
 
         private static <T> String joinDescriptionsOf(String infix, Collection<ArchCondition<T>> conditions) {
-            List<String> descriptions = new ArrayList<>();
-            for (ArchCondition<T> condition : conditions) {
-                descriptions.add(condition.getDescription());
-            }
-            return Joiner.on(" " + infix + " ").join(descriptions);
+            return conditions.stream().map(ArchCondition::getDescription).collect(joining(" " + infix + " "));
         }
 
         @Override
-        public void init(Iterable<T> allObjectsToTest) {
+        public void init(Collection<T> allObjectsToTest) {
             for (ArchCondition<T> condition : conditions) {
                 condition.init(allObjectsToTest);
             }
@@ -130,11 +127,7 @@ public abstract class ArchCondition<T> {
         }
 
         List<ConditionWithEvents<T>> evaluateConditions(T item) {
-            List<ConditionWithEvents<T>> evaluate = new ArrayList<>();
-            for (ArchCondition<T> condition : conditions) {
-                evaluate.add(new ConditionWithEvents<>(condition, item));
-            }
-            return evaluate;
+            return conditions.stream().map(condition -> new ConditionWithEvents<>(condition, item)).collect(toList());
         }
 
         @Override
@@ -200,14 +193,10 @@ public abstract class ArchCondition<T> {
         }
 
         List<ConditionWithEvents<T>> invert(List<ConditionWithEvents<T>> evaluatedConditions) {
-            List<ConditionWithEvents<T>> inverted = new ArrayList<>();
-            for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
-                inverted.add(invert(evaluation));
-            }
-            return inverted;
+            return evaluatedConditions.stream().map(this::invert).collect(toList());
         }
 
-        ConditionWithEvents<T> invert(ConditionWithEvents<T> evaluation) {
+        private ConditionWithEvents<T> invert(ConditionWithEvents<T> evaluation) {
             ConditionEvents invertedEvents = new ConditionEvents();
             for (ConditionEvent event : evaluation.events) {
                 event.addInvertedTo(invertedEvents);
@@ -245,12 +234,7 @@ public abstract class ArchCondition<T> {
 
         @Override
         public boolean isViolation() {
-            for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
-                if (evaluation.events.containViolation()) {
-                    return true;
-                }
-            }
-            return false;
+            return evaluatedConditions.stream().anyMatch(evaluation -> evaluation.events.containViolation());
         }
 
         @Override
@@ -266,12 +250,7 @@ public abstract class ArchCondition<T> {
         @Override
         public void handleWith(final Handler handler) {
             for (ConditionWithEvents<T> condition : evaluatedConditions) {
-                condition.events.handleViolations(new ViolationHandler<Object>() {
-                    @Override
-                    public void handle(Collection<Object> violatingObjects, String message) {
-                        handler.handle(violatingObjects, message);
-                    }
-                });
+                condition.events.handleViolations(handler::handle);
             }
         }
     }
@@ -283,12 +262,7 @@ public abstract class ArchCondition<T> {
 
         @Override
         public boolean isViolation() {
-            for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
-                if (!evaluation.events.containViolation()) {
-                    return false;
-                }
-            }
-            return true;
+            return evaluatedConditions.stream().allMatch(evaluation -> evaluation.events.containViolation());
         }
 
         @Override

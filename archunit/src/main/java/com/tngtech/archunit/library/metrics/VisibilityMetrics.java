@@ -16,10 +16,10 @@
 package com.tngtech.archunit.library.metrics;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.PublicAPI;
-import com.tngtech.archunit.base.Predicate;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -67,11 +67,10 @@ public final class VisibilityMetrics {
     }
 
     private static double calculateAverageRelativeVisibility(Collection<ComponentVisibility> componentVisibilities) {
-        double sum = 0;
-        for (ComponentVisibility componentVisibility : componentVisibilities) {
-            sum += componentVisibility.relativeVisibility;
-        }
-        return sum / componentVisibilities.size();
+        double relativeVisibilitySum = componentVisibilities.stream()
+                .mapToDouble(componentVisibility -> componentVisibility.relativeVisibility)
+                .sum();
+        return relativeVisibilitySum / componentVisibilities.size();
     }
 
     private static double calculateGlobalRelativeVisibility(Collection<ComponentVisibility> componentVisibilities) {
@@ -91,8 +90,7 @@ public final class VisibilityMetrics {
      */
     @PublicAPI(usage = ACCESS)
     public double getRelativeVisibility(String componentIdentifier) {
-        checkComponentExists(componentIdentifier);
-        return relativeVisibilityByComponentIdentifier.get(componentIdentifier).relativeVisibility;
+        return getComponentVisibility(componentIdentifier).relativeVisibility;
     }
 
     /**
@@ -115,9 +113,10 @@ public final class VisibilityMetrics {
         return globalRelativeVisibility;
     }
 
-    private void checkComponentExists(String componentIdentifier) {
-        checkArgument(relativeVisibilityByComponentIdentifier.containsKey(componentIdentifier),
-                "Unknown component with identifier '" + componentIdentifier + "'");
+    private ComponentVisibility getComponentVisibility(String componentIdentifier) {
+        ComponentVisibility result = relativeVisibilityByComponentIdentifier.get(componentIdentifier);
+        checkArgument(result != null, "Unknown component with identifier '" + componentIdentifier + "'");
+        return result;
     }
 
     private static class ComponentVisibility {
@@ -126,13 +125,7 @@ public final class VisibilityMetrics {
         final double relativeVisibility;
 
         <T> ComponentVisibility(MetricsComponent<T> component, Predicate<? super T> isVisible) {
-            int numberOfVisibleElements = 0;
-            for (T element : component) {
-                if (isVisible.apply(element)) {
-                    numberOfVisibleElements++;
-                }
-            }
-            this.numberOfVisibleElements = numberOfVisibleElements;
+            this.numberOfVisibleElements = (int) component.stream().filter(isVisible).count();
             this.numberOfAllElements = component.size();
             this.relativeVisibility = ((double) numberOfVisibleElements) / numberOfAllElements;
         }

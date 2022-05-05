@@ -6,10 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
@@ -25,6 +22,7 @@ import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_N
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GraphTest {
@@ -168,19 +166,10 @@ public class GraphTest {
         ContiguousSet<Integer> integers = ContiguousSet.create(Range.closedOpen(0, n), integers());
         Graph<Integer, Integer> graph = new Graph<>();
         graph.addNodes(integers);
-        graph.addEdges(FluentIterable.from(cartesianProduct(integers, integers))
-                .filter(new Predicate<List<Integer>>() {
-                    @Override
-                    public boolean apply(List<Integer> input) {
-                        return !input.get(0).equals(input.get(1));
-                    }
-                })
-                .transform(new Function<List<Integer>, Edge<Integer, Integer>>() {
-                    @Override
-                    public Edge<Integer, Integer> apply(List<Integer> input) {
-                        return integerEdge(input.get(0), input.get(1));
-                    }
-                }).toSet());
+        graph.addEdges(cartesianProduct(integers, integers).stream()
+                .filter(input -> !input.get(0).equals(input.get(1)))
+                .map(input -> integerEdge(input.get(0), input.get(1)))
+                .collect(toSet()));
         return graph;
     }
 
