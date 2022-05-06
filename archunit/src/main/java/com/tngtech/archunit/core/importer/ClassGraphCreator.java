@@ -204,17 +204,14 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public Optional<JavaClass> createSuperclass(JavaClass owner) {
         Optional<String> superclassName = importRecord.getSuperclassFor(owner.getName());
-        return superclassName.isPresent() ?
-                Optional.of(classes.getOrResolve(superclassName.get())) :
-                Optional.<JavaClass>empty();
+        return superclassName.map(classes::getOrResolve);
     }
 
     @Override
     public Optional<JavaType> createGenericSuperclass(JavaClass owner) {
         Optional<JavaParameterizedTypeBuilder<JavaClass>> genericSuperclassBuilder = importRecord.getGenericSuperclassFor(owner);
-        return genericSuperclassBuilder.isPresent()
-                ? Optional.of(genericSuperclassBuilder.get().build(owner, getTypeParametersInContextOf(owner), classes))
-                : Optional.<JavaType>empty();
+        return genericSuperclassBuilder.map(javaClassJavaParameterizedTypeBuilder ->
+                javaClassJavaParameterizedTypeBuilder.build(owner, getTypeParametersInContextOf(owner), classes));
     }
 
     @Override
@@ -228,11 +225,11 @@ class ClassGraphCreator implements ImportContext {
         for (JavaParameterizedTypeBuilder<JavaClass> builder : genericInterfaceBuilders.get()) {
             result.add(builder.build(owner, getTypeParametersInContextOf(owner), classes));
         }
-        return Optional.<List<JavaType>>of(result.build());
+        return Optional.of(result.build());
     }
 
     private static Iterable<JavaTypeVariable<?>> getTypeParametersInContextOf(JavaClass javaClass) {
-        Set<JavaTypeVariable<?>> result = Sets.<JavaTypeVariable<?>>newHashSet(javaClass.getTypeParameters());
+        Set<JavaTypeVariable<?>> result = Sets.newHashSet(javaClass.getTypeParameters());
         while (javaClass.getEnclosingClass().isPresent()) {
             javaClass = javaClass.getEnclosingClass().get();
             result.addAll(javaClass.getTypeParameters());
@@ -266,9 +263,7 @@ class ClassGraphCreator implements ImportContext {
         if (owner.isAnnotation()) {
             for (DomainBuilders.JavaMethodBuilder methodBuilder : methodBuilders) {
                 methodBuilder.withAnnotationDefaultValue(method ->
-                        importRecord.getAnnotationDefaultValueBuilderFor(method)
-                                .map(builder -> builder.build(method, classes))
-                                .orElseGet(() -> Optional.empty())
+                        importRecord.getAnnotationDefaultValueBuilderFor(method).flatMap(builder -> builder.build(method, classes))
                 );
             }
         }
@@ -307,9 +302,7 @@ class ClassGraphCreator implements ImportContext {
     @Override
     public Optional<JavaClass> createEnclosingClass(JavaClass owner) {
         Optional<String> enclosingClassName = importRecord.getEnclosingClassFor(owner.getName());
-        return enclosingClassName.isPresent() ?
-                Optional.of(classes.getOrResolve(enclosingClassName.get())) :
-                Optional.<JavaClass>empty();
+        return enclosingClassName.map(classes::getOrResolve);
     }
 
     @Override

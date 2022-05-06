@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,8 +25,6 @@ import java.util.function.Consumer;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -36,23 +33,21 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaMemberBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.Collections.emptyList;
 
 class ClassFileImportRecord {
     private static final JavaClassTypeParametersBuilder NO_TYPE_PARAMETERS =
-            new JavaClassTypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptyList());
+            new JavaClassTypeParametersBuilder(emptyList());
 
     private final Map<String, JavaClass> classes = new HashMap<>();
 
@@ -181,52 +176,8 @@ class ClassFileImportRecord {
         return Optional.ofNullable(staticInitializerBuildersByOwner.get(ownerName));
     }
 
-    Set<String> getAnnotationTypeNamesFor(JavaClass owner) {
-        ImmutableSet.Builder<String> result = ImmutableSet.builder();
-        for (JavaAnnotationBuilder annotationBuilder : annotationsByOwner.get(owner.getName())) {
-            result.add(annotationBuilder.getFullyQualifiedClassName());
-        }
-        return result.build();
-    }
-
     Set<JavaAnnotationBuilder> getAnnotationsFor(JavaClass owner) {
         return annotationsByOwner.get(owner.getName());
-    }
-
-    Set<String> getMemberAnnotationTypeNamesFor(JavaClass owner) {
-        Iterable<JavaMemberBuilder<?, ?>> memberBuilders = Iterables.concat(
-                fieldBuildersByOwner.get(owner.getName()),
-                methodBuildersByOwner.get(owner.getName()),
-                constructorBuildersByOwner.get(owner.getName()),
-                nullToEmpty(staticInitializerBuildersByOwner.get(owner.getName())));
-
-        ImmutableSet.Builder<String> result = ImmutableSet.builder();
-        for (JavaMemberBuilder<?, ?> memberBuilder : memberBuilders) {
-            for (JavaAnnotationBuilder annotationBuilder : annotationsByOwner.get(getMemberKey(owner.getName(), memberBuilder.getName(), memberBuilder.getDescriptor()))) {
-                result.add(annotationBuilder.getFullyQualifiedClassName());
-            }
-        }
-        return result.build();
-    }
-
-    Set<String> getParameterAnnotationTypeNamesFor(JavaClass owner) {
-        Iterable<JavaCodeUnitBuilder<?, ?>> codeUnitBuilders = Iterables.<JavaCodeUnitBuilder<?, ?>>concat(
-                methodBuildersByOwner.get(owner.getName()),
-                constructorBuildersByOwner.get(owner.getName()));
-
-        ImmutableSet.Builder<String> result = ImmutableSet.builder();
-        for (JavaCodeUnitBuilder<?, ?> codeUnitBuilder : codeUnitBuilders) {
-            for (JavaAnnotationBuilder annotationBuilder : codeUnitBuilder.getParameterAnnotationBuilders()) {
-                result.add(annotationBuilder.getFullyQualifiedClassName());
-            }
-        }
-        return result.build();
-    }
-
-    private Iterable<JavaMemberBuilder<?, ?>> nullToEmpty(JavaStaticInitializerBuilder staticInitializerBuilder) {
-        return staticInitializerBuilder != null
-                ? Collections.<JavaMemberBuilder<?, ?>>singleton(staticInitializerBuilder)
-                : Collections.<JavaMemberBuilder<?, ?>>emptySet();
     }
 
     Set<JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {
@@ -295,14 +246,6 @@ class ClassFileImportRecord {
 
     Map<String, JavaClass> getClasses() {
         return classes;
-    }
-
-    Set<String> getAllSuperclassNames() {
-        return ImmutableSet.copyOf(superclassNamesByOwner.values());
-    }
-
-    Set<String> getAllSuperinterfaceNames() {
-        return ImmutableSet.copyOf(interfaceNamesByOwner.values());
     }
 
     private static String getMemberKey(JavaMember member) {

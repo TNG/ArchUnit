@@ -49,7 +49,6 @@ class RawAccessRecord {
         private final String name;
         private final String descriptor;
         private final List<JavaClassDescriptor> rawParameterTypes;
-        private final JavaClassDescriptor returnType;
         private final List<String> rawParameterTypeNames;
         private final String declaringClassName;
         private final int hashCode;
@@ -58,7 +57,6 @@ class RawAccessRecord {
             this.name = name;
             this.descriptor = descriptor;
             this.rawParameterTypes = JavaClassDescriptorImporter.importAsmMethodArgumentTypes(descriptor);
-            this.returnType = JavaClassDescriptorImporter.importAsmMethodReturnType(descriptor);
             this.rawParameterTypeNames = namesOf(rawParameterTypes);
             this.declaringClassName = declaringClassName;
             this.hashCode = Objects.hash(name, descriptor, declaringClassName);
