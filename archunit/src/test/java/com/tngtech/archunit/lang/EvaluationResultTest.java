@@ -1,6 +1,5 @@
 package com.tngtech.archunit.lang;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -9,7 +8,6 @@ import java.util.Set;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.HasDescription;
 import org.junit.Test;
 
@@ -48,7 +46,6 @@ public class EvaluationResultTest {
     }
 
     @Test
-    @SuppressWarnings("Convert2Lambda") // to retrieve the type information ViolationHandler may not be converted to a Lambda
     public void allows_clients_to_handle_violations() {
         EvaluationResult result = evaluationResultWith(
                 new SimpleConditionEvent(ImmutableSet.of("message"), false, "expected"),
@@ -57,12 +54,8 @@ public class EvaluationResultTest {
                 new SimpleConditionEvent(ImmutableSet.of("second message"), false, "also expected"));
 
         final Set<String> actual = new HashSet<>();
-        result.handleViolations(new ViolationHandler<Set<?>>() {
-            @Override
-            public void handle(Collection<Set<?>> violatingObject, String message) {
-                actual.add(getOnlyElement(getOnlyElement(violatingObject)) + ": " + message);
-            }
-        });
+        result.handleViolations((Collection<Set<String>> violatingObject, String message) ->
+                actual.add(getOnlyElement(getOnlyElement(violatingObject)) + ": " + message));
 
         assertThat(actual).containsOnly("message: expected", "second message: also expected");
     }
@@ -82,7 +75,6 @@ public class EvaluationResultTest {
     }
 
     @Test
-    @SuppressWarnings("Convert2Lambda") // We need the reified type here, so we cannot convert it to a lambda
     public void handleViolations_reports_only_violations_referring_to_the_correct_type() {
         EvaluationResult result = evaluationResultWith(
                 SimpleConditionEvent.satisfied(new CorrectType("do not handle"), "I'm not violated"),
@@ -92,65 +84,12 @@ public class EvaluationResultTest {
                 SimpleConditionEvent.violated(new CorrectSubtype("handle sub type"), "I'm violated and correct sub type"));
 
         final Set<String> handledFailures = new HashSet<>();
-        result.handleViolations(new ViolationHandler<CorrectType>() {
-            @Override
-            public void handle(Collection<CorrectType> violatingObjects, String message) {
-                handledFailures.add(Joiner.on(", ").join(violatingObjects) + ": " + message);
-            }
-        });
+        result.handleViolations((Collection<CorrectType> violatingObjects, String message) ->
+                handledFailures.add(Joiner.on(", ").join(violatingObjects) + ": " + message));
 
         assertThat(handledFailures).containsOnly(
                 "handle type: I'm violated and correct type",
                 "handle sub type: I'm violated and correct sub type");
-    }
-
-    @Test
-    public void handles_erased_generics_as_upper_bound() {
-        EvaluationResult result = evaluationResultWith(
-                SimpleConditionEvent.violated(new CorrectType("ignore"), "correct"),
-                SimpleConditionEvent.violated(new WrongType(), "wrong"));
-
-        Set<String> handledFailureMessages = new HashSet<>();
-        result.handleViolations(genericBoundByCorrectType(handledFailureMessages));
-
-        assertThat(handledFailureMessages).containsOnly("correct");
-
-        handledFailureMessages = new HashSet<>();
-        result.handleViolations(unboundGeneric(handledFailureMessages));
-
-        assertThat(handledFailureMessages).containsOnly("correct", "wrong");
-    }
-
-    @SuppressWarnings("Convert2Lambda") // to retrieve the type information ViolationHandler may not be converted to a Lambda
-    private <T extends CorrectType> ViolationHandler<?> genericBoundByCorrectType(final Set<String> handledFailureMessages) {
-        return new ViolationHandler<T>() {
-            @Override
-            public void handle(Collection<T> violatingObjects, String message) {
-                handledFailureMessages.add(message);
-            }
-        };
-    }
-
-    @SuppressWarnings("Convert2Lambda") // to retrieve the type information ViolationHandler may not be converted to a Lambda
-    private <T> ViolationHandler<?> unboundGeneric(final Set<String> handledFailureMessages) {
-        return new ViolationHandler<T>() {
-            @Override
-            public void handle(Collection<T> violatingObjects, String message) {
-                handledFailureMessages.add(message);
-            }
-        };
-    }
-
-    @Test
-    public void can_handle_with_generic_superclasses() {
-        EvaluationResult result = evaluationResultWith(
-                SimpleConditionEvent.violated(new Object(), "ignore"),
-                SimpleConditionEvent.violated("correct", "ignore"));
-
-        StringHandler handler = new StringHandler();
-        result.handleViolations(handler);
-
-        assertThat(handler.getRecorded()).containsOnly("correct");
     }
 
     private EvaluationResult evaluationResultWith(ConditionEvent... events) {
@@ -174,23 +113,6 @@ public class EvaluationResultTest {
 
     private HasDescription hasDescription(final String description) {
         return () -> description;
-    }
-
-
-    private static class BaseHandler<T> implements ViolationHandler<T> {
-        private final List<T> recorded = new ArrayList<>();
-
-        @Override
-        public void handle(Collection<T> violatingObjects, String message) {
-            recorded.add(Iterables.getOnlyElement(violatingObjects));
-        }
-
-        List<T> getRecorded() {
-            return recorded;
-        }
-    }
-
-    private static class StringHandler extends BaseHandler<String> {
     }
 
     private static class CorrectSubtype extends CorrectType {

@@ -121,6 +121,7 @@ public class ViolationHandlingTest {
                 .to(Target.class, fieldOne);
     }
 
+    @SuppressWarnings("unused")
     private static class Origin {
         Target target;
 
@@ -141,6 +142,7 @@ public class ViolationHandlingTest {
         }
     }
 
+    @SuppressWarnings("unused")
     private static class Target {
         String fieldOne;
         Object fieldTwo;

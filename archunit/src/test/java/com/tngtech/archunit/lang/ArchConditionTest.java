@@ -69,7 +69,7 @@ public class ArchConditionTest {
         ConditionEvents events = new ConditionEvents();
         condition.check(2, events);
         final List<HandledViolation> handledViolations = new ArrayList<>();
-        evaluationResultOf(events).handleViolations((ViolationHandler<Integer>) (violatingObjects, message) ->
+        evaluationResultOf(events).handleViolations((Collection<Integer> violatingObjects, String message) ->
                 handledViolations.add(new HandledViolation(violatingObjects, message)));
 
         assertThat(handledViolations).containsOnly(
@@ -113,7 +113,7 @@ public class ArchConditionTest {
         ConditionEvents events = new ConditionEvents();
         condition.check(1, events);
         final List<HandledViolation> handledViolations = new ArrayList<>();
-        evaluationResultOf(events).handleViolations((ViolationHandler<Integer>) (violatingObjects, message) ->
+        evaluationResultOf(events).handleViolations((Collection<Integer> violatingObjects, String message) ->
                 handledViolations.add(new HandledViolation(violatingObjects, message)));
 
         assertThat(handledViolations).containsOnly(new HandledViolation(

@@ -20,10 +20,10 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaMethod;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Ordering.natural;
@@ -33,14 +33,11 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Represents the result of evaluating an {@link ArchRule} against some {@link JavaClasses}.
- * To react to failures during evaluation of the rule, one can use {@link #handleViolations(ViolationHandler)}:
+ * To react to failures during evaluation of the rule, one can use {@link #handleViolations(ViolationHandler, Object[])}:
  * <br><br>
  * <pre><code>
- * result.handleViolations(new ViolationHandler&lt;JavaAccess&lt;?&gt;&gt;() {
- *     {@literal @}Override
- *     public void handle(Collection&lt;JavaAccess&lt;?&gt;&gt; violatingObjects, String message) {
- *         // do some reporting or react in any way to violation
- *     }
+ * result.handleViolations((Collection&lt;JavaAccess&lt;?&gt;&gt; violatingObjects, String message) -> {
+ *     // do some reporting or react in any way to violation
  * });
  * </code></pre>
  */
@@ -82,31 +79,48 @@ public final class EvaluationResult {
      * Passes violations to the supplied {@link ViolationHandler}. The passed violations will automatically
      * be filtered by the type of the given {@link ViolationHandler}. That is, when a
      * <code>ViolationHandler&lt;SomeClass&gt;</code> is passed, only violations by objects assignable to
-     * <code>SomeClass</code> will be reported. The term 'reified' means that the type parameter
-     * was not erased, i.e. ArchUnit can still determine the actual type parameter of the passed violation handler,
-     * otherwise the upper bound, in extreme cases {@link Object}, will be used (i.e. all violations will be passed).
+     * <code>SomeClass</code> will be reported. Note that this will be unsafe for generics, i.e. ArchUnit
+     * cannot filter to match the full generic type signature. E.g.
+     * <pre><code>
+     * handleViolations((Collection&lt;Optional&lt;String&gt;&gt; objects, String message) ->
+     *     assertType(objects.iterator().next().get(), String.class)
+     * )
+     * </code></pre>
+     * might throw an exception if there are also {@code Optional<Integer>} violations.
+     * So, in general it is safer to use the wildcard {@code ?} for generic types, unless it is absolutely
+     * certain from the context what the type parameter will be
+     * (for example when only analyzing methods it might be clear that the type parameter will be {@link JavaMethod}).
      *
+     * @param <T> Type of the relevant objects causing violations. E.g. {@code JavaAccess<?>}
      * @param violationHandler The violation handler that is supposed to handle all violations matching the
      *                         respective type parameter
+     * @param __ignored_parameter_to_reify_type__ This parameter will be ignored; its only use is to make the
+     *                                            generic type reified, so we can retrieve it at runtime.
+     *                                            Without this parameter, the generic type would be erased.
      */
+    @SafeVarargs
+    @SuppressWarnings("unused")
     @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
-    public void handleViolations(ViolationHandler<?> violationHandler) {
-        ConditionEvent.Handler eventHandler = convertToEventHandler(violationHandler);
+    public final <T> void handleViolations(ViolationHandler<T> violationHandler, T... __ignored_parameter_to_reify_type__) {
+        Class<T> correspondingObjectType = componentTypeOf(__ignored_parameter_to_reify_type__);
+        ConditionEvent.Handler eventHandler = convertToEventHandler(correspondingObjectType, violationHandler);
         for (final ConditionEvent event : events.getViolating()) {
             event.handleWith(eventHandler);
         }
     }
 
-    private <T> ConditionEvent.Handler convertToEventHandler(final ViolationHandler<T> handler) {
-        final Class<?> supportedElementType = TypeToken.of(handler.getClass())
-                .resolveType(ViolationHandler.class.getTypeParameters()[0]).getRawType();
+    @SuppressWarnings("unchecked") // The cast is safe, since the component type of T[] will be type T
+    private <T> Class<T> componentTypeOf(T[] array) {
+        return (Class<T>) array.getClass().getComponentType();
+    }
 
+    private <ITEM> ConditionEvent.Handler convertToEventHandler(Class<? extends ITEM> correspondingObjectType, ViolationHandler<ITEM> violationHandler) {
         return (correspondingObjects, message) -> {
-            if (allElementTypesMatch(correspondingObjects, supportedElementType)) {
-                // If all elements are assignable to T (= supportedElementType), covariance of Collection allows this cast
+            if (allElementTypesMatch(correspondingObjects, correspondingObjectType)) {
+                // If all elements are assignable to ITEM, covariance of ImmutableList allows this cast
                 @SuppressWarnings("unchecked")
-                Collection<T> collection = (Collection<T>) correspondingObjects;
-                handler.handle(collection, message);
+                Collection<ITEM> collection = ImmutableList.copyOf((Collection<ITEM>) correspondingObjects);
+                violationHandler.handle(collection, message);
             }
         };
     }
