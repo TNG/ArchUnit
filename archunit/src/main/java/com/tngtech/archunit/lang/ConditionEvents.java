@@ -72,11 +72,6 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
         return !getViolating().isEmpty();
     }
 
-    @PublicAPI(usage = ACCESS)
-    public boolean isEmpty() {
-        return getAllowed().isEmpty() && getViolating().isEmpty();
-    }
-
     @Override
     @PublicAPI(usage = ACCESS)
     public Iterator<ConditionEvent> iterator() {

@@ -39,7 +39,7 @@ class ContainAnyCondition<T> extends ArchCondition<Collection<? extends T>> {
         for (T element : collection) {
             condition.check(element, subEvents);
         }
-        if (!subEvents.isEmpty()) {
+        if (!subEvents.getAllowed().isEmpty() || !subEvents.getViolating().isEmpty()) {
             events.add(new AnyConditionEvent(collection, subEvents));
         }
     }

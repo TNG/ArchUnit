@@ -46,6 +46,7 @@ public class ContainAnyConditionTest {
     public void if_there_are_no_input_events_no_ContainsAnyEvent_is_added() {
         ConditionEvents events = new ConditionEvents();
         containOnlyElementsThat(IS_SERIALIZABLE).check(emptyList(), events);
-        assertThat(events.isEmpty()).as("events are empty").isTrue();
+        assertThat(events.getAllowed()).as("allowed events").isEmpty();
+        assertThat(events.getViolating()).as("violated events").isEmpty();
     }
 }
