@@ -11,10 +11,24 @@ import com.tngtech.archunit.base.HasDescription;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EvaluationResultTest {
+
+    @Test
+    public void reports_description_lines_of_events() {
+        List<String> expectedLinesAlphabetically = ImmutableList.of("another event message", "some event message");
+
+        EvaluationResult result = new EvaluationResult(
+                hasDescription("irrelevant"),
+                events(expectedLinesAlphabetically.get(1), expectedLinesAlphabetically.get(0)),
+                MEDIUM);
+
+        assertThat(result.getFailureReport().getDetails()).containsExactlyElementsOf(expectedLinesAlphabetically);
+    }
+
     @Test
     public void properties_are_passed_to_FailureReport() {
         EvaluationResult result = new EvaluationResult(
@@ -65,7 +79,7 @@ public class EvaluationResultTest {
     }
 
     private EvaluationResult evaluationResultWith(ConditionEvent... events) {
-        return new EvaluationResult(hasDescription("unimportant"), events(events), Priority.MEDIUM);
+        return new EvaluationResult(hasDescription("unimportant"), events(events), MEDIUM);
     }
 
     private ConditionEvents events(String... messages) {
@@ -88,8 +102,8 @@ public class EvaluationResultTest {
     }
 
     private static class TestEvent implements ConditionEvent {
-        private boolean violation;
-        private List<String> descriptionLines;
+        private final boolean violation;
+        private final List<String> descriptionLines;
 
         private TestEvent(boolean violation, String... descriptionLines) {
             this.violation = violation;

@@ -26,8 +26,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.Ordering.natural;
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -43,6 +41,10 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     @PublicAPI(usage = ACCESS)
     public void add(ConditionEvent event) {
         eventsByViolation.get(Type.from(event.isViolation())).add(event);
+    }
+
+    Optional<String> getInformationAboutNumberOfViolations() {
+        return informationAboutNumberOfViolations;
     }
 
     /**
@@ -76,19 +78,6 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     @PublicAPI(usage = ACCESS)
     public boolean isEmpty() {
         return getAllowed().isEmpty() && getViolating().isEmpty();
-    }
-
-    /**
-     * @return Sorted failure messages describing the contained failures of these events.
-     *         Also offers information about the number of violations contained in these events.
-     */
-    @PublicAPI(usage = ACCESS)
-    public FailureMessages getFailureMessages() {
-        ImmutableList<String> result = getViolating().stream()
-                .flatMap(event -> event.getDescriptionLines().stream())
-                .sorted(natural())
-                .collect(toImmutableList());
-        return new FailureMessages(result, informationAboutNumberOfViolations);
     }
 
     /**

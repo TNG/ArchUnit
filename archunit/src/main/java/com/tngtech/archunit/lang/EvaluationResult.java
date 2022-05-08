@@ -19,10 +19,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClasses;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.Ordering.natural;
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.stream.Collectors.toList;
@@ -59,7 +62,12 @@ public final class EvaluationResult {
 
     @PublicAPI(usage = ACCESS)
     public FailureReport getFailureReport() {
-        return new FailureReport(rule, priority, events.getFailureMessages());
+        ImmutableList<String> result = events.getViolating().stream()
+                .flatMap(event -> event.getDescriptionLines().stream())
+                .sorted(natural())
+                .collect(toImmutableList());
+        FailureMessages failureMessages = new FailureMessages(result, events.getInformationAboutNumberOfViolations());
+        return new FailureReport(rule, priority, failureMessages);
     }
 
     @PublicAPI(usage = ACCESS)
