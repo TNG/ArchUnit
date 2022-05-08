@@ -14,6 +14,7 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -68,7 +69,8 @@ public class ArchConditionTest {
         ConditionEvents events = new ConditionEvents();
         condition.check(2, events);
         final List<HandledViolation> handledViolations = new ArrayList<>();
-        events.handleViolations((ViolationHandler<Integer>) (violatingObjects, message) -> handledViolations.add(new HandledViolation(violatingObjects, message)));
+        evaluationResultOf(events).handleViolations((ViolationHandler<Integer>) (violatingObjects, message) ->
+                handledViolations.add(new HandledViolation(violatingObjects, message)));
 
         assertThat(handledViolations).containsOnly(
                 new HandledViolation(2, "2 is not greater than 2"),
@@ -111,7 +113,8 @@ public class ArchConditionTest {
         ConditionEvents events = new ConditionEvents();
         condition.check(1, events);
         final List<HandledViolation> handledViolations = new ArrayList<>();
-        events.handleViolations((ViolationHandler<Integer>) (violatingObjects, message) -> handledViolations.add(new HandledViolation(violatingObjects, message)));
+        evaluationResultOf(events).handleViolations((ViolationHandler<Integer>) (violatingObjects, message) ->
+                handledViolations.add(new HandledViolation(violatingObjects, message)));
 
         assertThat(handledViolations).containsOnly(new HandledViolation(
                 1, "1 is not greater than 1 and 1 is not greater than 2 and 1 is not greater than 3"));
@@ -232,6 +235,10 @@ public class ArchConditionTest {
                 }
             }
         };
+    }
+
+    private EvaluationResult evaluationResultOf(ConditionEvents events) {
+        return new EvaluationResult(() -> "irrelevant", events, MEDIUM);
     }
 
     private ArchCondition<Integer> endsWith(final int number) {

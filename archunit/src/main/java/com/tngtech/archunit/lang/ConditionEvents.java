@@ -20,13 +20,10 @@ import java.util.Iterator;
 import java.util.Optional;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 
-import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public final class ConditionEvents implements Iterable<ConditionEvent> {
@@ -78,43 +75,6 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
     @PublicAPI(usage = ACCESS)
     public boolean isEmpty() {
         return getAllowed().isEmpty() && getViolating().isEmpty();
-    }
-
-    /**
-     * Passes violations to the supplied {@link ViolationHandler}. The passed violations will automatically
-     * be filtered by the reified type of the given {@link ViolationHandler}. That is, if a
-     * <code>ViolationHandler&lt;SomeClass&gt;</code> is passed, only violations by objects assignable to
-     * <code>SomeClass</code> will be reported. The term 'reified' means that the type parameter
-     * was not erased, i.e. ArchUnit can still determine the actual type parameter of the passed violation handler,
-     * otherwise the upper bound, in extreme cases {@link Object}, will be used (i.e. all violations will be passed).
-     *
-     * @param violationHandler The violation handler that is supposed to handle all violations matching the
-     *                         respective type parameter
-     */
-    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
-    public void handleViolations(ViolationHandler<?> violationHandler) {
-        ConditionEvent.Handler eventHandler = convertToEventHandler(violationHandler);
-        for (final ConditionEvent event : eventsByViolation.get(Type.VIOLATION)) {
-            event.handleWith(eventHandler);
-        }
-    }
-
-    private <T> ConditionEvent.Handler convertToEventHandler(final ViolationHandler<T> handler) {
-        final Class<?> supportedElementType = TypeToken.of(handler.getClass())
-                .resolveType(ViolationHandler.class.getTypeParameters()[0]).getRawType();
-
-        return (correspondingObjects, message) -> {
-            if (allElementTypesMatch(correspondingObjects, supportedElementType)) {
-                // If all elements are assignable to T (= supportedElementType), covariance of Collection allows this cast
-                @SuppressWarnings("unchecked")
-                Collection<T> collection = (Collection<T>) correspondingObjects;
-                handler.handle(collection, message);
-            }
-        };
-    }
-
-    private boolean allElementTypesMatch(Collection<?> violatingObjects, Class<?> supportedElementType) {
-        return violatingObjects.stream().allMatch(supportedElementType::isInstance);
     }
 
     @Override

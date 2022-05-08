@@ -16,7 +16,6 @@
 package com.tngtech.archunit.lang;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -27,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -250,7 +250,7 @@ public abstract class ArchCondition<T> {
         @Override
         public void handleWith(final Handler handler) {
             for (ConditionWithEvents<T> condition : evaluatedConditions) {
-                condition.events.handleViolations(handler::handle);
+                condition.events.getViolating().forEach(event -> event.handleWith(handler));
             }
         }
     }
@@ -281,7 +281,7 @@ public abstract class ArchCondition<T> {
 
         @Override
         public void handleWith(final Handler handler) {
-            handler.handle(Collections.singleton(correspondingObject), createMessage());
+            handler.handle(singleton(correspondingObject), createMessage());
         }
     }
 }

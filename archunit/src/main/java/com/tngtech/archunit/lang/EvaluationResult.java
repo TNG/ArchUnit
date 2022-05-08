@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -78,11 +79,40 @@ public final class EvaluationResult {
     }
 
     /**
-     * @see ConditionEvents#handleViolations(ViolationHandler)
+     * Passes violations to the supplied {@link ViolationHandler}. The passed violations will automatically
+     * be filtered by the type of the given {@link ViolationHandler}. That is, when a
+     * <code>ViolationHandler&lt;SomeClass&gt;</code> is passed, only violations by objects assignable to
+     * <code>SomeClass</code> will be reported. The term 'reified' means that the type parameter
+     * was not erased, i.e. ArchUnit can still determine the actual type parameter of the passed violation handler,
+     * otherwise the upper bound, in extreme cases {@link Object}, will be used (i.e. all violations will be passed).
+     *
+     * @param violationHandler The violation handler that is supposed to handle all violations matching the
+     *                         respective type parameter
      */
     @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     public void handleViolations(ViolationHandler<?> violationHandler) {
-        events.handleViolations(violationHandler);
+        ConditionEvent.Handler eventHandler = convertToEventHandler(violationHandler);
+        for (final ConditionEvent event : events.getViolating()) {
+            event.handleWith(eventHandler);
+        }
+    }
+
+    private <T> ConditionEvent.Handler convertToEventHandler(final ViolationHandler<T> handler) {
+        final Class<?> supportedElementType = TypeToken.of(handler.getClass())
+                .resolveType(ViolationHandler.class.getTypeParameters()[0]).getRawType();
+
+        return (correspondingObjects, message) -> {
+            if (allElementTypesMatch(correspondingObjects, supportedElementType)) {
+                // If all elements are assignable to T (= supportedElementType), covariance of Collection allows this cast
+                @SuppressWarnings("unchecked")
+                Collection<T> collection = (Collection<T>) correspondingObjects;
+                handler.handle(collection, message);
+            }
+        };
+    }
+
+    private boolean allElementTypesMatch(Collection<?> violatingObjects, Class<?> supportedElementType) {
+        return violatingObjects.stream().allMatch(supportedElementType::isInstance);
     }
 
     @PublicAPI(usage = ACCESS)
