@@ -75,6 +75,20 @@ public class EvaluationResultTest {
     }
 
     @Test
+    public void filtering_lines_resets_information_about_number_of_violations() {
+        ConditionEvents events = events(new TestEvent(true, "drop first line1", "keep second line1"));
+        String informationAboutNumberOfViolations = "test number";
+        events.setInformationAboutNumberOfViolations(informationAboutNumberOfViolations);
+        EvaluationResult result = new EvaluationResult(hasDescription("unimportant"), events, MEDIUM);
+
+        EvaluationResult filtered = result.filterDescriptionsMatching(input -> input.contains("keep"));
+
+        assertThat(filtered.getFailureReport().toString()).contains("(1 times)");
+        assertThat(filtered.getFailureReport().toString()).doesNotContain(informationAboutNumberOfViolations);
+        assertThat(filtered.getFailureReport().getDetails()).containsOnly("keep second line1");
+    }
+
+    @Test
     public void handleViolations_reports_only_violations_referring_to_the_correct_type() {
         EvaluationResult result = evaluationResultWith(
                 SimpleConditionEvent.satisfied(new CorrectType("do not handle"), "I'm not violated"),
