@@ -44,14 +44,14 @@ public class ContainsOnlyConditionTest {
     }
 
     @Test
-    public void inverting_works() throws Exception {
+    public void inverting_works() {
         ConditionEvents events = ConditionEvents.Factory.create();
         containOnlyElementsThat(IS_SERIALIZABLE).check(TWO_SERIALIZABLE_OBJECTS, events);
 
         assertThat(events).containNoViolation();
         assertThat(events.getAllowed()).as("Exactly one allowed event occurred").hasSize(1);
 
-        assertThat(getInverted(events)).containViolations(messageForTwoTimes(isSerializableMessageFor(SerializableObject.class)));
+        assertThat(getAllowedInverted(events)).containViolations(messageForTwoTimes(isSerializableMessageFor(SerializableObject.class)));
     }
 
     @Test
@@ -62,9 +62,9 @@ public class ContainsOnlyConditionTest {
         assertThat(events.getViolating()).as("violated events").isEmpty();
     }
 
-    static ConditionEvents getInverted(ConditionEvents events) {
+    static ConditionEvents getAllowedInverted(ConditionEvents events) {
         ConditionEvents inverted = ConditionEvents.Factory.create();
-        for (ConditionEvent event : events) {
+        for (ConditionEvent event : events.getAllowed()) {
             event.addInvertedTo(inverted);
         }
         return inverted;

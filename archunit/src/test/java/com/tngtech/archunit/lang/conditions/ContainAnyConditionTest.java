@@ -10,7 +10,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyEle
 import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.IS_SERIALIZABLE;
 import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.ONE_SERIALIZABLE_AND_ONE_NON_SERIALIZABLE_OBJECT;
 import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.SerializableObject;
-import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.getInverted;
+import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.getAllowedInverted;
 import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.isSerializableMessageFor;
 import static com.tngtech.archunit.lang.conditions.ContainsOnlyConditionTest.messageForTwoTimes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -39,7 +39,7 @@ public class ContainAnyConditionTest {
         assertThat(events).containNoViolation();
         assertThat(events.getAllowed()).as("Exactly one allowed event occurred").hasSize(1);
 
-        assertThat(getInverted(events)).containViolations(isSerializableMessageFor(SerializableObject.class));
+        assertThat(getAllowedInverted(events)).containViolations(isSerializableMessageFor(SerializableObject.class));
     }
 
     @Test

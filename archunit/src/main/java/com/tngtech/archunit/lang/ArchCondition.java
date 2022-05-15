@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -176,10 +177,8 @@ public abstract class ArchCondition<T> {
         List<String> getUniqueLinesOfViolations() { // TODO: Sort by line number, then lexicographically
             final Set<String> result = new TreeSet<>();
             for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
-                for (ConditionEvent event : evaluation.events) {
-                    if (event.isViolation()) {
-                        result.addAll(event.getDescriptionLines());
-                    }
+                for (ConditionEvent event : evaluation.events.getViolating()) {
+                    result.addAll(event.getDescriptionLines());
                 }
             }
             return ImmutableList.copyOf(result);
@@ -198,9 +197,10 @@ public abstract class ArchCondition<T> {
 
         private ConditionWithEvents<T> invert(ConditionWithEvents<T> evaluation) {
             ConditionEvents invertedEvents = ConditionEvents.Factory.create();
-            for (ConditionEvent event : evaluation.events) {
-                event.addInvertedTo(invertedEvents);
-            }
+            Stream.concat(
+                    evaluation.events.getAllowed().stream(),
+                    evaluation.events.getViolating().stream()
+            ).forEach(event -> event.addInvertedTo(invertedEvents));
             return new ConditionWithEvents<>(evaluation.condition, invertedEvents);
         }
     }

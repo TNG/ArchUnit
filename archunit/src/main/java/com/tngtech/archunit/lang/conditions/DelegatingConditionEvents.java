@@ -16,7 +16,6 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Optional;
 
 import com.tngtech.archunit.lang.ConditionEvent;
@@ -52,10 +51,5 @@ abstract class DelegatingConditionEvents implements ConditionEvents {
     @Override
     public boolean containViolation() {
         return delegate.containViolation();
-    }
-
-    @Override
-    public Iterator<ConditionEvent> iterator() {
-        return delegate.iterator();
     }
 }

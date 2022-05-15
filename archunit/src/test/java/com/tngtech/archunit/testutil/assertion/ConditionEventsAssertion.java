@@ -11,16 +11,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
-import org.assertj.core.api.AbstractIterableAssert;
+import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.ObjectAssert;
-import org.assertj.core.api.ObjectAssertFactory;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static java.util.stream.Collectors.toList;
 
-public class ConditionEventsAssertion
-        extends AbstractIterableAssert<ConditionEventsAssertion, ConditionEvents, ConditionEvent, ObjectAssert<ConditionEvent>> {
+public class ConditionEventsAssertion extends AbstractObjectAssert<ConditionEventsAssertion, ConditionEvents> {
 
     public ConditionEventsAssertion(ConditionEvents actual) {
         super(actual, ConditionEventsAssertion.class);
@@ -87,17 +84,5 @@ public class ConditionEventsAssertion
             }
         }
         throw new AssertionError(String.format("No message matches pattern '%s'", regex));
-    }
-
-    @Override
-    protected ObjectAssert<ConditionEvent> toAssert(ConditionEvent value, String description) {
-        return new ObjectAssertFactory<ConditionEvent>().createAssert(value).as(description);
-    }
-
-    @Override
-    protected ConditionEventsAssertion newAbstractIterableAssert(Iterable<? extends ConditionEvent> iterable) {
-        ConditionEvents actual = ConditionEvents.Factory.create();
-        iterable.forEach(actual::add);
-        return new ConditionEventsAssertion(actual);
     }
 }

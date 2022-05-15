@@ -27,7 +27,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  * Collects {@link ConditionEvent events} that occur when checking {@link ArchCondition ArchConditions}.
  */
 @PublicAPI(usage = INHERITANCE)
-public interface ConditionEvents extends Iterable<ConditionEvent> {
+public interface ConditionEvents {
 
     /**
      * Adds a {@link ConditionEvent} to these events.

@@ -16,11 +16,9 @@
 package com.tngtech.archunit.lang;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Optional;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 final class SimpleConditionEvents implements ConditionEvents {
@@ -58,11 +56,6 @@ final class SimpleConditionEvents implements ConditionEvents {
     @Override
     public boolean containViolation() {
         return !getViolating().isEmpty();
-    }
-
-    @Override
-    public Iterator<ConditionEvent> iterator() {
-        return ImmutableSet.copyOf(eventsByViolation.values()).iterator();
     }
 
     @Override
