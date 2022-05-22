@@ -16,20 +16,11 @@
 package com.tngtech.archunit.lang;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Stream;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
-import static java.util.Collections.singleton;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 @PublicAPI(usage = INHERITANCE)
 public abstract class ArchCondition<T> {
@@ -61,11 +52,11 @@ public abstract class ArchCondition<T> {
     }
 
     public ArchCondition<T> and(ArchCondition<? super T> condition) {
-        return new AndCondition<>(this, condition.forSubtype());
+        return ArchConditions.and(this, condition.forSubtype());
     }
 
     public ArchCondition<T> or(ArchCondition<? super T> condition) {
-        return new OrCondition<>(this, condition.forSubtype());
+        return ArchConditions.or(this, condition.forSubtype());
     }
 
     public String getDescription() {
@@ -99,189 +90,5 @@ public abstract class ArchCondition<T> {
     @SuppressWarnings("unchecked") // Cast is safe since input parameter is contravariant
     public <U extends T> ArchCondition<U> forSubtype() {
         return (ArchCondition<U>) this;
-    }
-
-    private abstract static class JoinCondition<T> extends ArchCondition<T> {
-        private final Collection<ArchCondition<T>> conditions;
-
-        private JoinCondition(String infix, Collection<ArchCondition<T>> conditions) {
-            super(joinDescriptionsOf(infix, conditions));
-            this.conditions = conditions;
-        }
-
-        private static <T> String joinDescriptionsOf(String infix, Collection<ArchCondition<T>> conditions) {
-            return conditions.stream().map(ArchCondition::getDescription).collect(joining(" " + infix + " "));
-        }
-
-        @Override
-        public void init(Collection<T> allObjectsToTest) {
-            for (ArchCondition<T> condition : conditions) {
-                condition.init(allObjectsToTest);
-            }
-        }
-
-        @Override
-        public void finish(ConditionEvents events) {
-            for (ArchCondition<T> condition : conditions) {
-                condition.finish(events);
-            }
-        }
-
-        List<ConditionWithEvents<T>> evaluateConditions(T item) {
-            return conditions.stream().map(condition -> new ConditionWithEvents<>(condition, item)).collect(toList());
-        }
-
-        @Override
-        public String toString() {
-            return getClass().getSimpleName() + "{" + conditions + "}";
-        }
-    }
-
-    private static class ConditionWithEvents<T> {
-        private final ArchCondition<T> condition;
-        private final ConditionEvents events;
-
-        ConditionWithEvents(ArchCondition<T> condition, T item) {
-            this(condition, check(condition, item));
-        }
-
-        ConditionWithEvents(ArchCondition<T> condition, ConditionEvents events) {
-            this.condition = condition;
-            this.events = events;
-        }
-
-        private static <T> ConditionEvents check(ArchCondition<T> condition, T item) {
-            ConditionEvents events = ConditionEvents.Factory.create();
-            condition.check(item, events);
-            return events;
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("condition", condition)
-                    .add("events", events)
-                    .toString();
-        }
-    }
-
-    private abstract static class JoinConditionEvent<T> implements ConditionEvent {
-        final T correspondingObject;
-        final List<ConditionWithEvents<T>> evaluatedConditions;
-
-        JoinConditionEvent(T correspondingObject, List<ConditionWithEvents<T>> evaluatedConditions) {
-            this.correspondingObject = correspondingObject;
-            this.evaluatedConditions = evaluatedConditions;
-        }
-
-        List<String> getUniqueLinesOfViolations() { // TODO: Sort by line number, then lexicographically
-            final Set<String> result = new TreeSet<>();
-            for (ConditionWithEvents<T> evaluation : evaluatedConditions) {
-                for (ConditionEvent event : evaluation.events.getViolating()) {
-                    result.addAll(event.getDescriptionLines());
-                }
-            }
-            return ImmutableList.copyOf(result);
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("evaluatedConditions", evaluatedConditions)
-                    .toString();
-        }
-
-        List<ConditionWithEvents<T>> invert(List<ConditionWithEvents<T>> evaluatedConditions) {
-            return evaluatedConditions.stream().map(this::invert).collect(toList());
-        }
-
-        private ConditionWithEvents<T> invert(ConditionWithEvents<T> evaluation) {
-            ConditionEvents invertedEvents = ConditionEvents.Factory.create();
-            Stream.concat(
-                    evaluation.events.getAllowed().stream(),
-                    evaluation.events.getViolating().stream()
-            ).forEach(event -> event.addInvertedTo(invertedEvents));
-            return new ConditionWithEvents<>(evaluation.condition, invertedEvents);
-        }
-    }
-
-    private static class AndCondition<T> extends JoinCondition<T> {
-        private AndCondition(ArchCondition<T> first, ArchCondition<T> second) {
-            super("and", ImmutableList.of(first, second));
-        }
-
-        @Override
-        public void check(T item, ConditionEvents events) {
-            events.add(new AndConditionEvent<>(item, evaluateConditions(item)));
-        }
-    }
-
-    private static class OrCondition<T> extends JoinCondition<T> {
-        private OrCondition(ArchCondition<T> first, ArchCondition<T> second) {
-            super("or", ImmutableList.of(first, second));
-        }
-
-        @Override
-        public void check(T item, ConditionEvents events) {
-            events.add(new OrConditionEvent<>(item, evaluateConditions(item)));
-        }
-    }
-
-    private static class AndConditionEvent<T> extends JoinConditionEvent<T> {
-        AndConditionEvent(T item, List<ConditionWithEvents<T>> evaluatedConditions) {
-            super(item, evaluatedConditions);
-        }
-
-        @Override
-        public boolean isViolation() {
-            return evaluatedConditions.stream().anyMatch(evaluation -> evaluation.events.containViolation());
-        }
-
-        @Override
-        public void addInvertedTo(ConditionEvents events) {
-            events.add(new OrConditionEvent<>(correspondingObject, invert(evaluatedConditions)));
-        }
-
-        @Override
-        public List<String> getDescriptionLines() {
-            return getUniqueLinesOfViolations();
-        }
-
-        @Override
-        public void handleWith(final Handler handler) {
-            for (ConditionWithEvents<T> condition : evaluatedConditions) {
-                condition.events.getViolating().forEach(event -> event.handleWith(handler));
-            }
-        }
-    }
-
-    private static class OrConditionEvent<T> extends JoinConditionEvent<T> {
-        OrConditionEvent(T item, List<ConditionWithEvents<T>> evaluatedConditions) {
-            super(item, evaluatedConditions);
-        }
-
-        @Override
-        public boolean isViolation() {
-            return evaluatedConditions.stream().allMatch(evaluation -> evaluation.events.containViolation());
-        }
-
-        @Override
-        public void addInvertedTo(ConditionEvents events) {
-            events.add(new AndConditionEvent<>(correspondingObject, invert(evaluatedConditions)));
-        }
-
-        @Override
-        public List<String> getDescriptionLines() {
-            return ImmutableList.of(createMessage());
-        }
-
-        private String createMessage() {
-            return Joiner.on(" and ").join(getUniqueLinesOfViolations());
-        }
-
-        @Override
-        public void handleWith(final Handler handler) {
-            handler.handle(singleton(correspondingObject), createMessage());
-        }
     }
 }
