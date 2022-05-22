@@ -67,13 +67,13 @@ abstract class JoinCondition<T> extends ArchCondition<T> {
 
     static class ConditionWithEvents<T> {
         private final ArchCondition<T> condition;
-        private final ConditionEvents events;
+        private final ViolatedAndSatisfiedConditionEvents events;
 
         ConditionWithEvents(ArchCondition<T> condition, T item) {
             this(condition, check(condition, item));
         }
 
-        ConditionWithEvents(ArchCondition<T> condition, ConditionEvents events) {
+        ConditionWithEvents(ArchCondition<T> condition, ViolatedAndSatisfiedConditionEvents events) {
             this.condition = condition;
             this.events = events;
         }
@@ -82,8 +82,8 @@ abstract class JoinCondition<T> extends ArchCondition<T> {
             return events;
         }
 
-        private static <T> ConditionEvents check(ArchCondition<T> condition, T item) {
-            ConditionEvents events = ConditionEvents.Factory.create();
+        private static <T> ViolatedAndSatisfiedConditionEvents check(ArchCondition<T> condition, T item) {
+            ViolatedAndSatisfiedConditionEvents events = new ViolatedAndSatisfiedConditionEvents();
             condition.check(item, events);
             return events;
         }
@@ -128,7 +128,7 @@ abstract class JoinCondition<T> extends ArchCondition<T> {
         }
 
         private ConditionWithEvents<T> invert(ConditionWithEvents<T> evaluation) {
-            ConditionEvents invertedEvents = ConditionEvents.Factory.create();
+            ViolatedAndSatisfiedConditionEvents invertedEvents = new ViolatedAndSatisfiedConditionEvents();
             Stream.concat(
                     evaluation.events.getAllowed().stream(),
                     evaluation.events.getViolating().stream()

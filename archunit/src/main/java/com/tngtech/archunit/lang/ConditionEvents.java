@@ -53,11 +53,6 @@ public interface ConditionEvents {
     Collection<ConditionEvent> getViolating();
 
     /**
-     * @return All {@link ConditionEvent events} that correspond to non-violating elements.
-     */
-    Collection<ConditionEvent> getAllowed();
-
-    /**
      * @return {@code true}, if these events contain any {@link #getViolating() violating} event, otherwise {@code false}
      */
     boolean containViolation();

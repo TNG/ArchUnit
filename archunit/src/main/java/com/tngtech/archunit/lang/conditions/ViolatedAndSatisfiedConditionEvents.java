@@ -13,26 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.lang;
+package com.tngtech.archunit.lang.conditions;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ConditionEvent;
+import com.tngtech.archunit.lang.ConditionEvents;
 
-final class SimpleConditionEvents implements ConditionEvents {
-    private final List<ConditionEvent> violations = new ArrayList<>();
+/**
+ * A version of {@link ConditionEvents} that tracks both violated and satisfied {@link ConditionEvent events},
+ * so specific {@link ArchCondition ArchConditions} can use them to create composite events.<br>
+ * E.g. {@link ContainAnyCondition} needs to track satisfied events to be able to invert the event
+ * if it is used in the context of {@link NeverCondition}.
+ */
+final class ViolatedAndSatisfiedConditionEvents implements ConditionEvents {
+    private final List<ConditionEvent> allowedEvents = new ArrayList<>();
+    private final List<ConditionEvent> violatingEvents = new ArrayList<>();
     private Optional<String> informationAboutNumberOfViolations = Optional.empty();
-
-    SimpleConditionEvents() {
-    }
 
     @Override
     public void add(ConditionEvent event) {
         if (event.isViolation()) {
-            violations.add(event);
+            violatingEvents.add(event);
+        } else {
+            allowedEvents.add(event);
         }
     }
 
@@ -48,16 +56,23 @@ final class SimpleConditionEvents implements ConditionEvents {
 
     @Override
     public Collection<ConditionEvent> getViolating() {
-        return ImmutableList.copyOf(violations);
+        return violatingEvents;
+    }
+
+    Collection<ConditionEvent> getAllowed() {
+        return allowedEvents;
     }
 
     @Override
     public boolean containViolation() {
-        return !violations.isEmpty();
+        return !getViolating().isEmpty();
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{" + violations + '}';
+        return getClass().getSimpleName() + "{" +
+                "Allowed Events: " + getAllowed() +
+                "; Violating Events: " + getViolating() +
+                '}';
     }
 }

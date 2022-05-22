@@ -25,7 +25,7 @@ public class FieldAccessConditionTest {
         JavaFieldAccess getAccess = accessFromCallerToTargetWithType(GET);
         FieldGetAccessCondition getFieldCondition = new FieldGetAccessCondition(
                 target(name(getAccess.getTarget().getName())));
-        assertSatisfiedWithMessage(getFieldCondition, getAccess, "gets");
+        assertSatisfied(getFieldCondition, getAccess);
 
         JavaFieldAccess setAccess = accessFromCallerToTargetWithType(SET);
         getFieldCondition = new FieldGetAccessCondition(
@@ -38,7 +38,7 @@ public class FieldAccessConditionTest {
         JavaFieldAccess setAccess = accessFromCallerToTargetWithType(SET);
         FieldSetAccessCondition setFieldCondition = new FieldSetAccessCondition(
                 target(name(setAccess.getTarget().getName())));
-        assertSatisfiedWithMessage(setFieldCondition, setAccess, "sets");
+        assertSatisfied(setFieldCondition, setAccess);
 
         JavaFieldAccess getAccess = accessFromCallerToTargetWithType(GET);
         setFieldCondition = new FieldSetAccessCondition(
@@ -51,31 +51,28 @@ public class FieldAccessConditionTest {
         JavaFieldAccess setAccess = accessFromCallerToTargetWithType(SET);
         FieldAccessCondition setFieldCondition = new FieldAccessCondition(
                 target(name(setAccess.getTarget().getName())));
-        assertSatisfiedWithMessage(setFieldCondition, setAccess, "sets");
+        assertSatisfied(setFieldCondition, setAccess);
 
         JavaFieldAccess getAccess = accessFromCallerToTargetWithType(GET);
         setFieldCondition = new FieldAccessCondition(
                 target(name(getAccess.getTarget().getName())));
-        assertSatisfiedWithMessage(setFieldCondition, getAccess, "gets");
+        assertSatisfied(setFieldCondition, getAccess);
     }
 
-    private void assertSatisfiedWithMessage(FieldAccessCondition getFieldCondition, JavaFieldAccess access,
-            String accessDescription) {
+    private void assertSatisfied(FieldAccessCondition getFieldCondition, JavaFieldAccess access) {
         ConditionEvents events = checkCondition(getFieldCondition, access);
-        boolean satisfied = !events.containViolation();
-
-        assertThat(satisfied).as("Events are satisfied").isTrue();
+        assertThat(events.containViolation()).as("Events contain violation").isFalse();
         assertThat(events.getViolating()).isEmpty();
-        assertDescription(access, accessDescription, messageOf(events.getAllowed()));
     }
 
-    private void assertViolatedWithMessage(FieldAccessCondition getFieldCondition, JavaFieldAccess access,
-            String accessDescription) {
+    private void assertViolatedWithMessage(
+            FieldAccessCondition getFieldCondition,
+            JavaFieldAccess access,
+            String accessDescription
+    ) {
         ConditionEvents events = checkCondition(getFieldCondition, access);
-        boolean satisfied = !events.containViolation();
 
-        assertThat(satisfied).as("Events are satisfied").isFalse();
-        assertThat(events.getAllowed()).isEmpty();
+        assertThat(events.containViolation()).as("Events contain violation").isTrue();
         assertDescription(access, accessDescription, messageOf(events.getViolating()));
     }
 

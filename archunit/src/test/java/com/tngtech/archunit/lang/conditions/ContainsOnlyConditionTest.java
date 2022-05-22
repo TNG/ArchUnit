@@ -1,15 +1,16 @@
 package com.tngtech.archunit.lang.conditions;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 import com.tngtech.archunit.lang.ArchCondition;
-import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import org.junit.Test;
 
 import static com.tngtech.archunit.lang.conditions.ArchConditions.containOnlyElementsThat;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -46,28 +47,22 @@ public class ContainsOnlyConditionTest {
     @Test
     public void inverting_works() {
         ConditionEvents events = ConditionEvents.Factory.create();
-        containOnlyElementsThat(IS_SERIALIZABLE).check(TWO_SERIALIZABLE_OBJECTS, events);
+        ArchCondition<Collection<?>> condition = containOnlyElementsThat(IS_SERIALIZABLE);
 
+        condition.check(TWO_SERIALIZABLE_OBJECTS, events);
         assertThat(events).containNoViolation();
-        assertThat(events.getAllowed()).as("Exactly one allowed event occurred").hasSize(1);
 
-        assertThat(getAllowedInverted(events)).containViolations(messageForTwoTimes(isSerializableMessageFor(SerializableObject.class)));
+        events = ConditionEvents.Factory.create();
+        never(condition).check(TWO_SERIALIZABLE_OBJECTS, events);
+        assertThat(events).containViolations(messageForTwoTimes(isSerializableMessageFor(SerializableObject.class)));
     }
 
     @Test
     public void if_there_are_no_input_events_no_ContainsOnlyEvent_is_added() {
-        ConditionEvents events = ConditionEvents.Factory.create();
+        ViolatedAndSatisfiedConditionEvents events = new ViolatedAndSatisfiedConditionEvents();
         containOnlyElementsThat(IS_SERIALIZABLE).check(emptyList(), events);
         assertThat(events.getAllowed()).as("allowed events").isEmpty();
         assertThat(events.getViolating()).as("violated events").isEmpty();
-    }
-
-    static ConditionEvents getAllowedInverted(ConditionEvents events) {
-        ConditionEvents inverted = ConditionEvents.Factory.create();
-        for (ConditionEvent event : events.getAllowed()) {
-            event.addInvertedTo(inverted);
-        }
-        return inverted;
     }
 
     static String messageForTwoTimes(String message) {

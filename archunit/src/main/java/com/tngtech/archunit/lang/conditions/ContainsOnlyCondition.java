@@ -34,7 +34,7 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
 
     @Override
     public void check(Collection<? extends T> collection, ConditionEvents events) {
-        ConditionEvents subEvents = ConditionEvents.Factory.create();
+        ViolatedAndSatisfiedConditionEvents subEvents = new ViolatedAndSatisfiedConditionEvents();
         for (T item : collection) {
             condition.check(item, subEvents);
         }
@@ -53,7 +53,7 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
         private final Collection<ConditionEvent> allowed;
         private final Collection<ConditionEvent> violating;
 
-        private OnlyConditionEvent(Collection<?> correspondingObjects, ConditionEvents events) {
+        private OnlyConditionEvent(Collection<?> correspondingObjects, ViolatedAndSatisfiedConditionEvents events) {
             this(correspondingObjects, events.getAllowed(), events.getViolating());
         }
 

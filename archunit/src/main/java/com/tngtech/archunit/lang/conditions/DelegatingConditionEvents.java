@@ -44,11 +44,6 @@ abstract class DelegatingConditionEvents implements ConditionEvents {
     }
 
     @Override
-    public Collection<ConditionEvent> getAllowed() {
-        return delegate.getAllowed();
-    }
-
-    @Override
     public boolean containViolation() {
         return delegate.containViolation();
     }

@@ -32,15 +32,6 @@ public class ConditionEventsAssertion extends AbstractObjectAssert<ConditionEven
         }
     }
 
-    public void containAllowed(String message, String... additional) {
-        Assertions.assertThat(actual.getAllowed()).as("Allowed events").isNotEmpty();
-
-        List<String> expected = concat(message, additional);
-        if (!sorted(messagesOf(actual.getAllowed())).equals(sorted(expected))) {
-            failWithMessage("Expected %s to contain only allowed events %s", actual, expected);
-        }
-    }
-
     private List<String> messagesOf(Collection<? extends ConditionEvent> events) {
         return events.stream().flatMap(event -> event.getDescriptionLines().stream()).collect(toList());
     }
