@@ -1,4 +1,4 @@
-package com.tngtech.archunit.core.domain.testexamples;
+package com.tngtech.archunit.core.domain.testobjects;
 
 public class BReferencedByA {
     String someField;

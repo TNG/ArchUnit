@@ -221,31 +221,6 @@ public class ClassFileImporterCodeUnitReferencesTest {
                 .isTo(targetClass.getConstructor());
     }
 
-    /**
-     * A local class constructor obtains extra parameters from the outer scope that the compiler transparently adds
-     * to the byte code. A reference to this local constructor will then always be translated to a lambda call.
-     * Thus, in this case we do not expect a constructor reference.
-     */
-    @Test
-    public void does_not_import_local_constructor_references() {
-        @SuppressWarnings("unused")
-        class ReferencedTarget {
-            ReferencedTarget() {
-            }
-        }
-        @SuppressWarnings("unused")
-        class Origin {
-            void referencesConstructor() {
-                Supplier<ReferencedTarget> a = ReferencedTarget::new;
-            }
-        }
-
-        JavaClasses javaClasses = new ClassFileImporter().importClasses(Origin.class, ReferencedTarget.class);
-
-        assertThat(javaClasses.get(Origin.class).getMethod("referencesConstructor").getConstructorReferencesFromSelf()).isEmpty();
-        assertThat(javaClasses.get(ReferencedTarget.class).getConstructor(ClassFileImporterCodeUnitReferencesTest.class).getReferencesToSelf()).isEmpty();
-    }
-
     @Test
     public void does_not_import_lambdas_as_method_or_constructor_references() {
         @SuppressWarnings("unused")
