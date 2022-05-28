@@ -27,8 +27,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 /**
  * An event that occurred while checking an {@link ArchCondition}. This can either be a {@link #isViolation() violation}
- * or be allowed. An event that is allowed will turn into a violation if it is
- * {@link #addInvertedTo(ConditionEvents) added inverted} to {@link ConditionEvents} (e.g. for negation of the rule).
+ * or be allowed. An event that is allowed will turn into a violation if it is {@link #invert() inverted}
+ * (e.g. for negation of the rule).
  */
 @PublicAPI(usage = INHERITANCE)
 public interface ConditionEvent {
@@ -38,15 +38,13 @@ public interface ConditionEvent {
     boolean isViolation();
 
     /**
-     * Adds the 'opposite' of the event. <br>
-     * E.g. <i>The event is a violation, if some conditions A and B are both true?</i>
-     * <br> {@literal ->} <i>The 'inverted' event is a violation if either A or B (or both) are not true</i><br>
-     * In the most simple case, this is just an equivalent event evaluating {@link #isViolation()}
-     * inverted.
-     *
-     * @param events The events to add the 'inverted self' to
+     * @return the 'opposite' of the event. <br>
+     *         Assume e.g. <i>The event is a violation, if some conditions A and B are both true</i>
+     *         <br> {@literal =>} <i>The 'inverted' event is a violation if either A or B (or both) are not true</i><br>
+     *         In the most simple case, this is just an equivalent event evaluating {@link #isViolation()}
+     *         inverted.
      */
-    void addInvertedTo(ConditionEvents events);
+    ConditionEvent invert();
 
     /**
      * @return A textual description of this event as a list of lines

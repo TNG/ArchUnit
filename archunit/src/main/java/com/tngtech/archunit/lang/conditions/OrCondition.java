@@ -20,7 +20,9 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.conditions.AndCondition.AndConditionEvent;
 
 import static java.util.Collections.singleton;
 
@@ -45,8 +47,8 @@ class OrCondition<T> extends JoinCondition<T> {
         }
 
         @Override
-        public void addInvertedTo(ConditionEvents events) {
-            events.add(new AndCondition.AndConditionEvent<>(correspondingObject, invert(evaluatedConditions)));
+        public ConditionEvent invert() {
+            return new AndConditionEvent<>(correspondingObject, invert(evaluatedConditions));
         }
 
         @Override

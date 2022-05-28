@@ -56,7 +56,7 @@ class NeverCondition<T> extends ArchCondition<T> {
 
         @Override
         public void add(ConditionEvent event) {
-            event.addInvertedTo(delegate);
+            delegate.add(event.invert());
         }
     }
 }

@@ -132,7 +132,7 @@ abstract class JoinCondition<T> extends ArchCondition<T> {
             Stream.concat(
                     evaluation.events.getAllowed().stream(),
                     evaluation.events.getViolating().stream()
-            ).forEach(event -> event.addInvertedTo(invertedEvents));
+            ).forEach(event -> invertedEvents.add(event.invert()));
             return new ConditionWithEvents<>(evaluation.condition, invertedEvents);
         }
     }

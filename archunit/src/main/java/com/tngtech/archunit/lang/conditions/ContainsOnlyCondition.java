@@ -71,8 +71,8 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
         }
 
         @Override
-        public void addInvertedTo(ConditionEvents events) {
-            events.add(new AnyConditionEvent(correspondingObjects, violating, allowed));
+        public ConditionEvent invert() {
+            return new AnyConditionEvent(correspondingObjects, violating, allowed);
         }
 
         @Override

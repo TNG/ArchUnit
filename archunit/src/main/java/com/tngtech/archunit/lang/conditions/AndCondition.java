@@ -44,8 +44,8 @@ class AndCondition<T> extends JoinCondition<T> {
         }
 
         @Override
-        public void addInvertedTo(ConditionEvents events) {
-            events.add(new OrConditionEvent<>(correspondingObject, invert(evaluatedConditions)));
+        public ConditionEvent invert() {
+            return new OrConditionEvent<>(correspondingObject, invert(evaluatedConditions));
         }
 
         @Override

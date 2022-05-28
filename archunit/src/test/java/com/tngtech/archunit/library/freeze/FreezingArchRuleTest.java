@@ -629,7 +629,7 @@ public class FreezingArchRuleTest {
         }
 
         @Override
-        public void addInvertedTo(ConditionEvents events) {
+        public ConditionEvent invert() {
             throw new UnsupportedOperationException("Implement me");
         }
 
