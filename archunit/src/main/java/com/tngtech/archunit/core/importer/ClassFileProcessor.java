@@ -24,6 +24,7 @@ import java.util.Set;
 
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClassDescriptor;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
@@ -33,12 +34,15 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.JavaClassProcessor.AccessHandler;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 import com.tngtech.archunit.core.importer.RawAccessRecord.TargetInfo;
+import com.tngtech.archunit.core.importer.TryCatchRecorder.TryCatchBlocksFinishedListener;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver.ClassUriImporter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -196,13 +200,14 @@ class ClassFileProcessor {
         }
     }
 
-    private static class RecordAccessHandler implements AccessHandler {
+    private static class RecordAccessHandler implements AccessHandler, TryCatchBlocksFinishedListener {
         private static final Logger LOG = LoggerFactory.getLogger(RecordAccessHandler.class);
 
         private final ClassFileImportRecord importRecord;
         private final DependencyResolutionProcess dependencyResolutionProcess;
         private CodeUnit codeUnit;
         private int lineNumber;
+        private final TryCatchRecorder tryCatchRecorder = new TryCatchRecorder(this);
 
         private RecordAccessHandler(ClassFileImportRecord importRecord, DependencyResolutionProcess dependencyResolutionProcess) {
             this.importRecord = importRecord;
@@ -215,8 +220,14 @@ class ClassFileProcessor {
         }
 
         @Override
-        public void setLineNumber(int lineNumber) {
+        public void onLineNumber(int lineNumber, Label label) {
             this.lineNumber = lineNumber;
+            tryCatchRecorder.onEncounteredLabel(label, lineNumber);
+        }
+
+        @Override
+        public void onLabel(Label label) {
+            tryCatchRecorder.onEncounteredLabel(label);
         }
 
         @Override
@@ -224,9 +235,11 @@ class ClassFileProcessor {
             AccessType accessType = AccessType.forOpCode(opcode);
             LOG.trace("Found {} access to field {}.{}:{} in line {}", accessType, owner, name, desc, lineNumber);
             TargetInfo target = new TargetInfo(owner, name, desc);
-            importRecord.registerFieldAccess(filled(new RawAccessRecord.ForField.Builder(), target)
+            RawAccessRecord.ForField accessRecord = filled(new RawAccessRecord.ForField.Builder(), target)
                     .withAccessType(accessType)
-                    .build());
+                    .build();
+            importRecord.registerFieldAccess(accessRecord);
+            tryCatchRecorder.registerAccess(accessRecord);
             dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
@@ -234,11 +247,13 @@ class ClassFileProcessor {
         public void handleMethodInstruction(String owner, String name, String desc) {
             LOG.trace("Found call of method {}.{}:{} in line {}", owner, name, desc, lineNumber);
             TargetInfo target = new TargetInfo(owner, name, desc);
+            RawAccessRecord accessRecord = filled(new RawAccessRecord.Builder(), target).build();
             if (CONSTRUCTOR_NAME.equals(name)) {
-                importRecord.registerConstructorCall(filled(new RawAccessRecord.Builder(), target).build());
+                importRecord.registerConstructorCall(accessRecord);
             } else {
-                importRecord.registerMethodCall(filled(new RawAccessRecord.Builder(), target).build());
+                importRecord.registerMethodCall(accessRecord);
             }
+            tryCatchRecorder.registerAccess(accessRecord);
             dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
         }
 
@@ -246,12 +261,36 @@ class ClassFileProcessor {
         public void handleMethodReferenceInstruction(String owner, String name, String desc) {
             LOG.trace("Found method reference {}.{}:{} in line {}", owner, name, desc, lineNumber);
             TargetInfo target = new TargetInfo(owner, name, desc);
+            RawAccessRecord accessRecord = filled(new RawAccessRecord.Builder(), target).build();
             if (CONSTRUCTOR_NAME.equals(name)) {
-                importRecord.registerConstructorReference(filled(new RawAccessRecord.Builder(), target).build());
+                importRecord.registerConstructorReference(accessRecord);
             } else {
-                importRecord.registerMethodReference(filled(new RawAccessRecord.Builder(), target).build());
+                importRecord.registerMethodReference(accessRecord);
             }
+            tryCatchRecorder.registerAccess(accessRecord);
             dependencyResolutionProcess.registerAccessToType(target.owner.getFullyQualifiedClassName());
+        }
+
+        @Override
+        public void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType) {
+            LOG.trace("Found try/catch block between {} and {} for throwable {}", start, end, throwableType);
+            tryCatchRecorder.registerTryCatchBlock(start, end, handler, throwableType);
+        }
+
+        @Override
+        public void handleTryFinallyBlock(Label start, Label end, Label handler) {
+            LOG.trace("Found try/finally block between {} and {}", start, end);
+            tryCatchRecorder.registerTryFinallyBlock(start, end, handler);
+        }
+
+        @Override
+        public void onMethodEnd() {
+            tryCatchRecorder.onEncounteredMethodEnd();
+        }
+
+        @Override
+        public void onTryCatchBlocksFinished(Set<TryCatchBlockBuilder> tryCatchBlocks) {
+            importRecord.addTryCatchBlocks(codeUnit.getDeclaringClassName(), codeUnit.getName(), codeUnit.getDescriptor(), tryCatchBlocks);
         }
 
         private <BUILDER extends RawAccessRecord.BaseBuilder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {

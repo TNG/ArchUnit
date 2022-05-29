@@ -356,11 +356,17 @@ class JavaClassProcessor extends ClassVisitor {
 
         // NOTE: ASM does not reliably visit this method, so if this method is skipped, line number 0 is recorded
         @Override
-        public void visitLineNumber(int line, Label start) {
-            LOG.trace("Examining line number {}", line);
+        public void visitLineNumber(int line, Label label) {
+            LOG.trace("Examining line number {} at label {}", line, label);
             codeUnitBuilder.recordLineNumber(line);
             actualLineNumber = line;
-            accessHandler.setLineNumber(actualLineNumber);
+            accessHandler.onLineNumber(actualLineNumber, label);
+        }
+
+        @Override
+        public void visitLabel(Label label) {
+            LOG.trace("Examining label {}", label);
+            accessHandler.onLabel(label);
         }
 
         @Override
@@ -369,6 +375,15 @@ class JavaClassProcessor extends ClassVisitor {
                 JavaClassDescriptor type = JavaClassDescriptorImporter.importAsmType(value);
                 codeUnitBuilder.addReferencedClassObject(RawReferencedClassObject.from(type, actualLineNumber));
                 declarationHandler.onDeclaredClassObject(type.getFullyQualifiedClassName());
+            }
+        }
+
+        @Override
+        public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
+            if (type != null) {
+                accessHandler.handleTryCatchBlock(start, end, handler, JavaClassDescriptorImporter.createFromAsmObjectTypeName(type));
+            } else {
+                accessHandler.handleTryFinallyBlock(start, end, handler);
             }
         }
 
@@ -425,6 +440,7 @@ class JavaClassProcessor extends ClassVisitor {
         @Override
         public void visitEnd() {
             declarationHandler.onDeclaredMemberAnnotations(codeUnitBuilder.getName(), codeUnitBuilder.getDescriptor(), annotations);
+            accessHandler.onMethodEnd();
         }
 
         private static class AnnotationDefaultProcessor extends ClassAndPrimitiveDistinguishingAnnotationVisitor {
@@ -512,11 +528,19 @@ class JavaClassProcessor extends ClassVisitor {
 
         void setContext(CodeUnit codeUnit);
 
-        void setLineNumber(int lineNumber);
+        void onLineNumber(int lineNumber, Label label);
+
+        void onLabel(Label label);
 
         void handleMethodInstruction(String owner, String name, String desc);
 
         void handleMethodReferenceInstruction(String owner, String name, String desc);
+
+        void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType);
+
+        void handleTryFinallyBlock(Label start, Label end, Label handler);
+
+        void onMethodEnd();
 
         @Internal
         class NoOp implements AccessHandler {
@@ -529,7 +553,11 @@ class JavaClassProcessor extends ClassVisitor {
             }
 
             @Override
-            public void setLineNumber(int lineNumber) {
+            public void onLineNumber(int lineNumber, Label label) {
+            }
+
+            @Override
+            public void onLabel(Label label) {
             }
 
             @Override
@@ -538,6 +566,18 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void handleMethodReferenceInstruction(String owner, String name, String desc) {
+            }
+
+            @Override
+            public void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType) {
+            }
+
+            @Override
+            public void handleTryFinallyBlock(Label start, Label end, Label handler) {
+            }
+
+            @Override
+            public void onMethodEnd() {
             }
         }
     }

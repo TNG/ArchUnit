@@ -54,6 +54,8 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
     int getLineNumber();
 
+    RawAccessRecord getRaw();
+
     @Internal
     interface FieldAccessRecord extends AccessRecord<FieldAccessTarget> {
         AccessType getAccessType();
@@ -259,6 +261,11 @@ interface AccessRecord<TARGET extends AccessTarget> {
             @Override
             public int getLineNumber() {
                 return record.lineNumber;
+            }
+
+            @Override
+            public RawAccessRecord getRaw() {
+                return record;
             }
         }
 

@@ -42,7 +42,9 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
+import com.tngtech.archunit.core.domain.ImportContext;
 import com.tngtech.archunit.core.domain.InstanceofCheck;
+import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
@@ -67,11 +69,14 @@ import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.Source;
+import com.tngtech.archunit.core.domain.SourceCodeLocation;
 import com.tngtech.archunit.core.domain.ThrowsClause;
+import com.tngtech.archunit.core.domain.TryCatchBlock;
 import com.tngtech.archunit.core.domain.properties.HasTypeParameters;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
@@ -79,6 +84,7 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.creat
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createReferencedClassObject;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
+import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTryCatchBlock;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTypeVariable;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createWildcardType;
 import static com.tngtech.archunit.core.domain.Formatters.ensureCanonicalArrayTypeName;
@@ -934,6 +940,64 @@ public final class DomainBuilders {
                 }
                 return result.build();
             }
+        }
+    }
+
+    @Internal
+    public static class TryCatchBlockBuilder {
+        private Set<JavaClassDescriptor> caughtThrowables;
+        private int lineNumber;
+        private JavaCodeUnit owner;
+        private ImportContext context;
+        private final Set<JavaAccess<?>> accessesContainedInTryBlock = new HashSet<>();
+        private Set<RawAccessRecord> rawAccessesContainedInTryBlock;
+
+        TryCatchBlockBuilder() {
+        }
+
+        TryCatchBlockBuilder withCaughtThrowables(Set<JavaClassDescriptor> caughtThrowables) {
+            this.caughtThrowables = caughtThrowables;
+            return this;
+        }
+
+        TryCatchBlockBuilder withLineNumber(int lineNumber) {
+            this.lineNumber = lineNumber;
+            return this;
+        }
+
+        TryCatchBlockBuilder withRawAccessesInTryBlock(Set<RawAccessRecord> accessRecords) {
+            this.rawAccessesContainedInTryBlock = accessRecords;
+            return this;
+        }
+
+        void addIfContainedInTryBlock(RawAccessRecord rawRecord, JavaAccess<?> access) {
+            if (rawAccessesContainedInTryBlock.contains(rawRecord)) {
+                accessesContainedInTryBlock.add(access);
+            }
+        }
+
+        public TryCatchBlock build(JavaCodeUnit owner, ImportContext context) {
+            this.owner = owner;
+            this.context = context;
+            return createTryCatchBlock(this);
+        }
+
+        public JavaCodeUnit getOwner() {
+            return owner;
+        }
+
+        public Set<JavaAccess<?>> getAccessesContainedInTryBlock() {
+            return accessesContainedInTryBlock;
+        }
+
+        public Set<JavaClass> getCaughtThrowables() {
+            return caughtThrowables.stream()
+                    .map(throwable -> context.resolveClass(throwable.getFullyQualifiedClassName()))
+                    .collect(toImmutableSet());
+        }
+
+        public SourceCodeLocation getSourceCodeLocation() {
+            return SourceCodeLocation.of(owner.getOwner(), lineNumber);
         }
     }
 

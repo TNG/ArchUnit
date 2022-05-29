@@ -38,6 +38,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParamet
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
+import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.resolvers.ClassResolver;
 import org.objectweb.asm.Type;
 
@@ -398,27 +399,32 @@ public class ImportTestUtils {
         }
 
         @Override
-        public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit) {
+        public Set<JavaFieldAccess> createFieldAccessesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit) {
+        public Set<JavaMethodCall> createMethodCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit) {
+        public Set<JavaConstructorCall> createConstructorCallsFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit) {
+        public Set<JavaMethodReference> createMethodReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
             return Collections.emptySet();
         }
 
         @Override
-        public Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit) {
+        public Set<JavaConstructorReference> createConstructorReferencesFor(JavaCodeUnit codeUnit, Set<TryCatchBlockBuilder> tryCatchBlockBuilders) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }
 

@@ -1,18 +1,10 @@
 package com.tngtech.archunit.testutil;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.AccessTarget;
-import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitAccessTarget;
-import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAccess;
@@ -35,22 +27,28 @@ import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.ThrowsClause;
 import com.tngtech.archunit.core.domain.ThrowsDeclaration;
-import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.TryCatchBlock;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.testutil.assertion.AccessToFieldAssertion;
+import com.tngtech.archunit.testutil.assertion.AccessesAssertion;
 import com.tngtech.archunit.testutil.assertion.ArchConditionAssertion;
 import com.tngtech.archunit.testutil.assertion.ArchRuleAssertion;
+import com.tngtech.archunit.testutil.assertion.CodeUnitAccessAssertion;
 import com.tngtech.archunit.testutil.assertion.ConditionEventsAssertion;
 import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
+import com.tngtech.archunit.testutil.assertion.ExpectedAccessCreation;
 import com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaAnnotationsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaClassAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaClassDescriptorAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaCodeUnitAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaConstructorAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaEnumConstantAssertion;
+import com.tngtech.archunit.testutil.assertion.JavaEnumConstantsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaFieldsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaMemberAssertion;
@@ -62,14 +60,10 @@ import com.tngtech.archunit.testutil.assertion.JavaTypeAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypeVariableAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaTypesAssertion;
 import com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion;
-import org.assertj.core.api.AbstractObjectAssert;
-import org.assertj.core.api.Condition;
-
-import static com.google.common.base.Strings.emptyToNull;
-import static com.tngtech.archunit.core.domain.Formatters.formatMethodSimple;
-import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
-import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
-import static com.tngtech.archunit.core.domain.TestUtils.targetFrom;
+import com.tngtech.archunit.testutil.assertion.ThrowsClauseAssertion;
+import com.tngtech.archunit.testutil.assertion.ThrowsDeclarationAssertion;
+import com.tngtech.archunit.testutil.assertion.TryCatchBlockAssertion;
+import com.tngtech.archunit.testutil.assertion.TryCatchBlocksAssertion;
 
 public class Assertions extends org.assertj.core.api.Assertions {
     public static <T> ArchConditionAssertion<T> assertThat(ArchCondition<T> archCondition) {
@@ -209,61 +203,6 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return new ExpectedAccessCreation();
     }
 
-    public static class ExpectedAccessCreation {
-        private ExpectedAccessCreation() {
-        }
-
-        public Step2 from(Class<?> originClass, String codeUnitName) {
-            return new Step2(originClass, codeUnitName);
-        }
-
-        public static class Step2 {
-            private final Class<?> originClass;
-            private final String originCodeUnitName;
-
-            private Step2(Class<?> originClass, String originCodeUnitName) {
-                this.originClass = originClass;
-                this.originCodeUnitName = originCodeUnitName;
-            }
-
-            public Condition<JavaAccess<?>> to(final Class<?> targetClass, final String targetName) {
-                return new Condition<JavaAccess<?>>(
-                        String.format("%s from %s.%s to %s.%s",
-                                JavaAccess.class.getSimpleName(),
-                                originClass.getName(), originCodeUnitName,
-                                targetClass.getSimpleName(), targetName)) {
-                    @Override
-                    public boolean matches(JavaAccess<?> access) {
-                        return access.getOriginOwner().isEquivalentTo(originClass) &&
-                                access.getOrigin().getName().equals(originCodeUnitName) &&
-                                access.getTargetOwner().isEquivalentTo(targetClass) &&
-                                access.getTarget().getName().equals(targetName);
-                    }
-                };
-            }
-
-            public Condition<JavaAccess<?>> toConstructor(final Class<?> targetClass, final Class<?>... paramTypes) {
-                final List<String> paramTypeNames = formatNamesOf(paramTypes);
-                return new Condition<JavaAccess<?>>(
-                        String.format("%s from %s.%s to %s",
-                                JavaAccess.class.getSimpleName(),
-                                originClass.getName(), originCodeUnitName,
-                                formatMethodSimple(targetClass.getSimpleName(), CONSTRUCTOR_NAME, paramTypeNames))) {
-                    @Override
-                    public boolean matches(JavaAccess<?> access) {
-                        return to(targetClass, CONSTRUCTOR_NAME).matches(access) &&
-                                rawParameterTypeNamesOf(access).equals(paramTypeNames);
-                    }
-
-                    private List<String> rawParameterTypeNamesOf(JavaAccess<?> access) {
-                        ConstructorCallTarget target = (ConstructorCallTarget) access.getTarget();
-                        return HasName.Utils.namesOf(target.getRawParameterTypes());
-                    }
-                };
-            }
-        }
-    }
-
     public static AccessToFieldAssertion assertThatAccess(JavaFieldAccess access) {
         return new AccessToFieldAssertion(access);
     }
@@ -280,207 +219,11 @@ public class Assertions extends org.assertj.core.api.Assertions {
         return assertThatAccess(call);
     }
 
-    public static class JavaEnumConstantAssertion extends AbstractObjectAssert<JavaEnumConstantAssertion, JavaEnumConstant> {
-        private JavaEnumConstantAssertion(JavaEnumConstant enumConstant) {
-            super(enumConstant, JavaEnumConstantAssertion.class);
-        }
-
-        public void isEquivalentTo(Enum<?> enumConstant) {
-            assertThat(actual).as(describePartialAssertion()).isNotNull();
-            assertThat(actual.getDeclaringClass().getName()).as(describePartialAssertion("type")).isEqualTo(enumConstant.getDeclaringClass().getName());
-            assertThat(actual.name()).as(describePartialAssertion("name")).isEqualTo(enumConstant.name());
-        }
-
-        private String describePartialAssertion() {
-            return describePartialAssertion("");
-        }
-
-        private String describePartialAssertion(String partialAssertionDescription) {
-            return Joiner.on(": ").skipNulls().join(emptyToNull(descriptionText()), emptyToNull(partialAssertionDescription));
-        }
+    public static TryCatchBlockAssertion assertThatTryCatchBlock(TryCatchBlock tryCatchBlock) {
+        return new TryCatchBlockAssertion(tryCatchBlock);
     }
 
-    public static class JavaEnumConstantsAssertion extends AbstractObjectAssert<JavaEnumConstantsAssertion, JavaEnumConstant[]> {
-        private JavaEnumConstantsAssertion(JavaEnumConstant[] enumConstants) {
-            super(enumConstants, JavaEnumConstantsAssertion.class);
-        }
-
-        public void matches(Enum<?>... enumConstants) {
-            assertThat((Object[]) actual).as("Enum constants").hasSize(enumConstants.length);
-            for (int i = 0; i < actual.length; i++) {
-                assertThat(actual[i]).as("Element %d", i).isEquivalentTo(enumConstants[i]);
-            }
-        }
-    }
-
-    public static class ThrowsDeclarationAssertion extends AbstractObjectAssert<ThrowsDeclarationAssertion, ThrowsDeclaration<?>> {
-        private ThrowsDeclarationAssertion(ThrowsDeclaration<?> throwsDeclaration) {
-            super(throwsDeclaration, ThrowsDeclarationAssertion.class);
-        }
-
-        public void matches(Class<?> clazz) {
-            assertThatType(actual.getRawType()).as("Type of " + actual)
-                    .matches(clazz);
-        }
-    }
-
-    public static class ThrowsClauseAssertion extends AbstractObjectAssert<ThrowsClauseAssertion, ThrowsClause<?>> {
-        private ThrowsClauseAssertion(ThrowsClause<?> throwsClause) {
-            super(throwsClause, ThrowsClauseAssertion.class);
-        }
-
-        public void matches(Class<?>... classes) {
-            assertThat(actual).as("ThrowsClause").hasSize(classes.length);
-            for (int i = 0; i < actual.size(); i++) {
-                assertThat(Iterables.get(actual, i)).as("Element %d", i).matches(classes[i]);
-            }
-        }
-
-        public void isEmpty() {
-            assertThat(actual).as("ThrowsClause").isEmpty();
-        }
-    }
-
-    public static class AccessesAssertion {
-        private final Set<JavaAccess<?>> actualRemaining;
-
-        AccessesAssertion(Collection<JavaAccess<?>> accesses) {
-            this.actualRemaining = new HashSet<>(accesses);
-        }
-
-        public AccessesAssertion contain(Condition<? super JavaAccess<?>> condition) {
-            for (Iterator<JavaAccess<?>> iterator = actualRemaining.iterator(); iterator.hasNext(); ) {
-                if (condition.matches(iterator.next())) {
-                    iterator.remove();
-                    return this;
-                }
-            }
-            throw new AssertionError("No access matches " + condition);
-        }
-
-        @SafeVarargs
-        public final AccessesAssertion containOnly(Condition<? super JavaAccess<?>>... conditions) {
-            for (Condition<? super JavaAccess<?>> condition : conditions) {
-                contain(condition);
-            }
-            assertThat(actualRemaining).as("Unexpected " + JavaAccess.class.getSimpleName()).isEmpty();
-            return this;
-        }
-    }
-
-    protected abstract static class BaseAccessAssertion<
-            SELF extends BaseAccessAssertion<SELF, ACCESS, TARGET>,
-            ACCESS extends JavaAccess<TARGET>,
-            TARGET extends AccessTarget> {
-
-        ACCESS access;
-
-        BaseAccessAssertion(ACCESS access) {
-            this.access = access;
-        }
-
-        public SELF isFrom(String name, Class<?>... parameterTypes) {
-            return isFrom(access.getOrigin().getOwner().getCodeUnitWithParameterTypes(name, parameterTypes));
-        }
-
-        public SELF isFrom(Class<?> originClass, String name, Class<?>... parameterTypes) {
-            assertThatType(access.getOriginOwner()).matches(originClass);
-            return isFrom(name, parameterTypes);
-        }
-
-        public SELF isFrom(JavaCodeUnit codeUnit) {
-            assertThat(access.getOrigin()).as("Origin of access").isEqualTo(codeUnit);
-            return newAssertion(access);
-        }
-
-        public SELF isTo(TARGET target) {
-            assertThat(access.getTarget()).as("Target of " + access.getName()).isEqualTo(target);
-            return newAssertion(access);
-        }
-
-        public SELF isTo(Condition<TARGET> target) {
-            assertThat(access.getTarget()).as("Target of " + access.getName()).is(target);
-            return newAssertion(access);
-        }
-
-        public void inLineNumber(int number) {
-            assertThat(access.getLineNumber())
-                    .as("Line number of access to " + access.getName())
-                    .isEqualTo(number);
-        }
-
-        protected abstract SELF newAssertion(ACCESS access);
-    }
-
-    public static class AccessToFieldAssertion extends BaseAccessAssertion<AccessToFieldAssertion, JavaFieldAccess, FieldAccessTarget> {
-        private AccessToFieldAssertion(JavaFieldAccess access) {
-            super(access);
-        }
-
-        @Override
-        protected AccessToFieldAssertion newAssertion(JavaFieldAccess access) {
-            return new AccessToFieldAssertion(access);
-        }
-
-        public AccessToFieldAssertion isTo(final String name) {
-            return isTo(new Condition<FieldAccessTarget>("field with name '" + name + "'") {
-                @Override
-                public boolean matches(FieldAccessTarget fieldAccessTarget) {
-                    return fieldAccessTarget.getName().equals(name);
-                }
-            });
-        }
-
-        public AccessToFieldAssertion isTo(JavaField field) {
-            return isTo(targetFrom(field));
-        }
-
-        public AccessToFieldAssertion isOfType(JavaFieldAccess.AccessType type) {
-            assertThat(access.getAccessType()).isEqualTo(type);
-            return newAssertion(access);
-        }
-    }
-
-    public static class CodeUnitAccessAssertion
-            extends BaseAccessAssertion<CodeUnitAccessAssertion, JavaCodeUnitAccess<CodeUnitAccessTarget>, CodeUnitAccessTarget> {
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        private CodeUnitAccessAssertion(JavaCodeUnitAccess<? extends CodeUnitAccessTarget> call) {
-            super((JavaCodeUnitAccess) call);
-        }
-
-        public CodeUnitAccessAssertion isTo(final JavaCodeUnit target) {
-            return isTo(new Condition<CodeUnitAccessTarget>("method " + target.getFullName()) {
-                @Override
-                public boolean matches(CodeUnitAccessTarget codeUnitAccessTarget) {
-                    return codeUnitAccessTarget.getOwner().equals(target.getOwner())
-                            && codeUnitAccessTarget.getName().equals(target.getName())
-                            && codeUnitAccessTarget.getRawParameterTypes().equals(target.getRawParameterTypes());
-                }
-            });
-        }
-
-        public CodeUnitAccessAssertion isTo(final Class<?> codeUnitOwner) {
-            return isTo(new Condition<CodeUnitAccessTarget>() {
-                @Override
-                public boolean matches(CodeUnitAccessTarget target) {
-                    return target.getOwner().isEquivalentTo(codeUnitOwner);
-                }
-            });
-        }
-
-        public CodeUnitAccessAssertion isTo(final String codeUnitName, final Class<?>... parameterTypes) {
-            return isTo(new Condition<CodeUnitAccessTarget>("code unit " + codeUnitName + "(" + formatNamesOf(parameterTypes) + ")") {
-                @Override
-                public boolean matches(CodeUnitAccessTarget target) {
-                    return target.getName().equals(codeUnitName)
-                            && HasName.Utils.namesOf(target.getRawParameterTypes()).equals(formatNamesOf(parameterTypes));
-                }
-            });
-        }
-
-        @Override
-        protected CodeUnitAccessAssertion newAssertion(JavaCodeUnitAccess<CodeUnitAccessTarget> reference) {
-            return new CodeUnitAccessAssertion(reference);
-        }
+    public static TryCatchBlocksAssertion assertThatTryCatchBlocks(Set<TryCatchBlock> tryCatchBlocks) {
+        return new TryCatchBlocksAssertion(tryCatchBlocks);
     }
 }

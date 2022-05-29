@@ -91,20 +91,30 @@ class RawAccessRecord {
             return result.build();
         }
 
-        public String getName() {
+        String getName() {
             return name;
         }
 
-        public List<JavaClassDescriptor> getRawParameterTypes() {
+        List<JavaClassDescriptor> getRawParameterTypes() {
             return rawParameterTypes;
         }
 
-        public List<String> getRawParameterTypeNames() {
+        List<String> getRawParameterTypeNames() {
             return rawParameterTypeNames;
         }
 
         String getDeclaringClassName() {
             return declaringClassName;
+        }
+
+        String getDescriptor() {
+            return descriptor;
+        }
+
+        boolean is(JavaCodeUnit method) {
+            return getName().equals(method.getName())
+                    && descriptor.equals(method.getDescriptor())
+                    && getDeclaringClassName().equals(method.getOwner().getName());
         }
 
         @Override
@@ -134,12 +144,6 @@ class RawAccessRecord {
                     ", descriptor=" + descriptor +
                     ", declaringClassName='" + declaringClassName + '\'' +
                     '}';
-        }
-
-        public boolean is(JavaCodeUnit method) {
-            return getName().equals(method.getName())
-                    && descriptor.equals(method.getDescriptor())
-                    && getDeclaringClassName().equals(method.getOwner().getName());
         }
     }
 
