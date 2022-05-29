@@ -1,5 +1,6 @@
 package com.tngtech.archunit.core.domain;
 
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +42,10 @@ public class FormattersTest {
 
         assertThat(Formatters.formatNamesOf(of(List.class, Iterable.class, String.class)))
                 .containsExactly(List.class.getName(), Iterable.class.getName(), String.class.getName());
+
+        // special case because the inferred type of the list is List<Class<? extends Serializable>>
+        assertThat(Formatters.formatNamesOf(of(String.class, Serializable.class)))
+                .containsExactly(String.class.getName(), Serializable.class.getName());
     }
 
     @Test

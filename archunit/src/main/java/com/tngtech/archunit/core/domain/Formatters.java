@@ -89,7 +89,7 @@ public final class Formatters {
      * @return A {@link List} of fully qualified class names of the passed {@link Class} objects
      */
     @PublicAPI(usage = ACCESS)
-    public static List<String> formatNamesOf(Iterable<Class<?>> paramTypes) {
+    public static List<String> formatNamesOf(Iterable<? extends Class<?>> paramTypes) {
         ImmutableList.Builder<String> result = ImmutableList.builder();
         for (Class<?> paramType : paramTypes) {
             result.add(paramType.getName());
