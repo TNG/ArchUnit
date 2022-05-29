@@ -55,6 +55,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: test -PallTests -PtestJavaVersion=${{ matrix.test_java_version }}
+          cache-disabled: true
 
   integration-test:
     strategy:
