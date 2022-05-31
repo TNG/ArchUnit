@@ -20,11 +20,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 import static java.util.stream.Collectors.joining;
@@ -88,6 +92,46 @@ public abstract class ArchCondition<T> {
                 ArchCondition.this.finish(events);
             }
         };
+    }
+
+    public static <T extends HasDescription & HasSourceCodeLocation> ArchConditionBuilder<T> from( DescribedPredicate<T> predicate ) {
+       return new ArchConditionBuilder( predicate );
+    }
+
+    public static class ArchConditionBuilder<T extends HasDescription & HasSourceCodeLocation> {
+       private final DescribedPredicate predicate;
+
+       private ArchConditionBuilder(DescribedPredicate predicate) {
+          this.predicate = predicate;
+       }
+
+       public ArchCondition<T> describeViolatedAs(Function<T, String> singleFailureTextDescriptor) {
+          return new ConditionByPredicate<T>( predicate, singleFailureTextDescriptor );
+          //TODO: decide whether to return instantly or allow further customizations
+       }
+
+       public ArchCondition<T> withViolationString(final String singularViolation) {
+          return new ConditionByPredicate<T>(predicate, c -> c.getDescription() + " " + singularViolation + " " + predicate.getDescription() );
+          //TODO: decide whether to return instantly or allow further customizations
+       }
+
+       private static class ConditionByPredicate<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
+          private final DescribedPredicate<T> predicate;
+          private final Function<T, String> singleFailureTextDescriptor;
+
+          ConditionByPredicate(DescribedPredicate<? super T> predicate, Function<T, String> singleFailureTextDescriptor) {
+             super(predicate.getDescription());
+             this.predicate = predicate.forSubtype();
+             this.singleFailureTextDescriptor = singleFailureTextDescriptor;
+          }
+
+          @Override
+          public void check(T object, ConditionEvents events) {
+             boolean satisfied = predicate.test(object);
+             String message = singleFailureTextDescriptor.apply(object) + " in " + object.getSourceCodeLocation();
+             events.add(new SimpleConditionEvent(object, satisfied, message));
+          }
+       }
     }
 
     @Override

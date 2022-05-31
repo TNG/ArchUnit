@@ -114,6 +114,10 @@ public class ArchConditionsTest {
                 .checking( accessedClass )
                 .haveOneViolationMessageContaining( "SomeClass> does not have always false" );
 
+        assertThat (ArchCondition.from( JavaClass.Predicates.simpleName( "SimpleName" ) ).withViolationString( "does not have" ) )
+              .checking( accessedClass )
+              .haveOneViolationMessageContaining( "SomeClass> does not have simple name 'SimpleName'" );
+
         assertThat( be( JavaClass.Predicates.assignableTo( "AnotherClass" ) ) )
                 .hasDescription( "be assignable to AnotherClass" );
 
