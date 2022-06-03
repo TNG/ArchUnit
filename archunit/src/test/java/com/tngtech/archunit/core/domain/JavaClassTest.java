@@ -17,6 +17,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.ArchUnitException.InvalidSyntaxUsageException;
@@ -24,10 +27,12 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.testobjects.AAccessingB;
 import com.tngtech.archunit.core.domain.testobjects.AExtendingSuperAImplementingInterfaceForA;
+import com.tngtech.archunit.core.domain.testobjects.AReferencingB;
 import com.tngtech.archunit.core.domain.testobjects.AhavingMembersOfTypeB;
 import com.tngtech.archunit.core.domain.testobjects.AllPrimitiveDependencies;
 import com.tngtech.archunit.core.domain.testobjects.ArrayComponentTypeDependencies;
 import com.tngtech.archunit.core.domain.testobjects.B;
+import com.tngtech.archunit.core.domain.testobjects.BReferencedByA;
 import com.tngtech.archunit.core.domain.testobjects.ComponentTypeDependency;
 import com.tngtech.archunit.core.domain.testobjects.DependenciesOnClassObjects;
 import com.tngtech.archunit.core.domain.testobjects.InterfaceForA;
@@ -41,7 +46,6 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.Condition;
-import org.assertj.core.api.iterable.Extractor;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -316,10 +320,10 @@ public class JavaClassTest {
     @Test
     public void isAnnotatedWith_predicate() {
         assertThat(importClassWithContext(Parent.class)
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
+                .isAnnotatedWith(DescribedPredicate.alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(importClassWithContext(Parent.class)
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
+                .isAnnotatedWith(DescribedPredicate.alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
@@ -352,10 +356,10 @@ public class JavaClassTest {
         JavaClass clazz = importClassesWithContext(Parent.class, SomeAnnotation.class).get(Parent.class);
 
         assertThat(clazz
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
+                .isMetaAnnotatedWith(DescribedPredicate.alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(clazz
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
+                .isMetaAnnotatedWith(DescribedPredicate.alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
@@ -400,12 +404,12 @@ public class JavaClassTest {
 
         assertThat(clazz.getMembers())
                 .extracting(memberIdentifier())
-                .containsOnlyElementsOf(ChildWithFieldAndMethod.Members.MEMBERS);
+                .hasSameElementsAs(ChildWithFieldAndMethod.Members.MEMBERS);
 
         assertThat(clazz.getAllMembers())
                 .filteredOn(isNotObject())
                 .extracting(memberIdentifier())
-                .containsOnlyElementsOf(ImmutableSet.<String>builder()
+                .hasSameElementsAs(ImmutableSet.<String>builder()
                         .addAll(ChildWithFieldAndMethod.Members.MEMBERS)
                         .addAll(ParentWithFieldAndMethod.Members.MEMBERS)
                         .addAll(InterfaceWithFieldAndMethod.Members.MEMBERS)
@@ -434,19 +438,19 @@ public class JavaClassTest {
     public void tryGetCodeUnitWithParameterTypes() {
         final JavaClass clazz = importClasses(ChildWithFieldAndMethod.class).get(ChildWithFieldAndMethod.class);
 
-        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>singletonList(String.class)).get())
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.singletonList(String.class)).get())
                 .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
         assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", singletonList(String.class.getName())).get())
                 .matchesMethod(ChildWithFieldAndMethod.class, "childMethod", String.class);
-        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>singletonList(Object.class)).get())
+        assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.singletonList(Object.class)).get())
                 .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
         assertThatCodeUnit(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, singletonList(Object.class.getName())).get())
                 .matchesConstructor(ChildWithFieldAndMethod.class, Object.class);
 
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.<Class<?>>emptyList())).isEmpty();
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.<String>emptyList())).isEmpty();
-        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.<Class<?>>emptyList())).isEmpty();
-        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.<String>emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes("childMethod", Collections.emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames("childMethod", Collections.emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypes(CONSTRUCTOR_NAME, Collections.emptyList())).isEmpty();
+        assertThat(clazz.tryGetCodeUnitWithParameterTypeNames(CONSTRUCTOR_NAME, Collections.emptyList())).isEmpty();
     }
 
     @Test
@@ -1231,6 +1235,44 @@ public class JavaClassTest {
     }
 
     @Test
+    public void direct_dependencies_from_self_by_references() {
+        JavaClass javaClass = importClasses(AReferencingB.class, BReferencedByA.class).get(AReferencingB.class);
+
+        assertReferencesFromAToB(javaClass.getDirectDependenciesFromSelf());
+    }
+
+    @Test
+    public void direct_dependencies_to_self_by_references() {
+        JavaClass javaClass = importClasses(AReferencingB.class, BReferencedByA.class).get(BReferencedByA.class);
+
+        assertReferencesFromAToB(javaClass.getDirectDependenciesToSelf());
+    }
+
+    private void assertReferencesFromAToB(Set<Dependency> dependencies) {
+        assertThat(dependencies)
+                .areAtLeastOne(referenceDependency()
+                        .from(AReferencingB.class)
+                        .to(BReferencedByA.class, CONSTRUCTOR_NAME)
+                        .inLineNumber(9))
+                .areAtLeastOne(referenceDependency()
+                        .from(AReferencingB.class)
+                        .to(BReferencedByA.class, CONSTRUCTOR_NAME)
+                        .inLineNumber(10))
+                .areAtLeastOne(referenceDependency()
+                        .from(AReferencingB.class)
+                        .to(BReferencedByA.class, "getSomeField")
+                        .inLineNumber(14))
+                .areAtLeastOne(referenceDependency()
+                        .from(AReferencingB.class)
+                        .to(BReferencedByA.class, "getSomeField")
+                        .inLineNumber(15))
+                .areAtLeastOne(referenceDependency()
+                        .from(AReferencingB.class)
+                        .to(BReferencedByA.class, "getNothing")
+                        .inLineNumber(16));
+    }
+
+    @Test
     public void direct_dependencies_to_self_by_annotation() {
         JavaClasses javaClasses = importPackagesOf(getClass());
 
@@ -1479,6 +1521,49 @@ public class JavaClassTest {
         assertThat(GET_METHODS.apply(javaClass)).isEqualTo(javaClass.getMethods());
         assertThat(GET_CONSTRUCTORS.apply(javaClass)).isEqualTo(javaClass.getConstructors());
         assertThat(GET_STATIC_INITIALIZER.apply(javaClass)).contains(javaClass.getStaticInitializer().get());
+    }
+
+    static class Data_function_get_code_unit_references {
+        static class Target {
+            void target() {
+            }
+        }
+    }
+
+    @Test
+    public void function_get_code_unit_references_from_self() {
+        @SuppressWarnings("unused")
+        class Origin {
+            Consumer<Data_function_get_code_unit_references.Target> origin() {
+                Supplier<Data_function_get_code_unit_references.Target> supplier =
+                        Data_function_get_code_unit_references.Target::new;
+                return Data_function_get_code_unit_references.Target::target;
+            }
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClasses(Origin.class, Data_function_get_code_unit_references.Target.class).get(Origin.class);
+
+        assertThat(JavaClass.Functions.GET_CODE_UNIT_REFERENCES_FROM_SELF.apply(javaClass)).isEqualTo(javaClass.getCodeUnitReferencesFromSelf());
+        assertThat(JavaClass.Functions.GET_METHOD_REFERENCES_FROM_SELF.apply(javaClass)).isEqualTo(javaClass.getMethodReferencesFromSelf());
+        assertThat(JavaClass.Functions.GET_CONSTRUCTOR_REFERENCES_FROM_SELF.apply(javaClass)).isEqualTo(javaClass.getConstructorReferencesFromSelf());
+    }
+
+    @Test
+    public void function_get_code_unit_references_to_self() {
+        @SuppressWarnings("unused")
+        class Origin {
+            Consumer<Data_function_get_code_unit_references.Target> origin() {
+                Supplier<Data_function_get_code_unit_references.Target> supplier = Data_function_get_code_unit_references.Target::new;
+                return Data_function_get_code_unit_references.Target::target;
+            }
+        }
+
+        JavaClass javaClass = new ClassFileImporter().importClasses(Origin.class, Data_function_get_code_unit_references.Target.class)
+                .get(Data_function_get_code_unit_references.Target.class);
+
+        assertThat(JavaClass.Functions.GET_CODE_UNIT_REFERENCES_TO_SELF.apply(javaClass)).isEqualTo(javaClass.getCodeUnitReferencesToSelf());
+        assertThat(JavaClass.Functions.GET_METHOD_REFERENCES_TO_SELF.apply(javaClass)).isEqualTo(javaClass.getMethodReferencesToSelf());
+        assertThat(JavaClass.Functions.GET_CONSTRUCTOR_REFERENCES_TO_SELF.apply(javaClass)).isEqualTo(javaClass.getConstructorReferencesToSelf());
     }
 
     @Test
@@ -1913,6 +1998,10 @@ public class JavaClassTest {
         return new DependencyConditionCreation("has return type");
     }
 
+    private static DependencyConditionCreation referenceDependency() {
+        return new DependencyConditionCreation("references");
+    }
+
     private static DependencyConditionCreation methodThrowsDeclarationDependency() {
         return new DependencyConditionCreation("throws type");
     }
@@ -2031,7 +2120,7 @@ public class JavaClassTest {
         }
     }
 
-    private Extractor<JavaMember, String> memberIdentifier() {
+    private Function<JavaMember, String> memberIdentifier() {
         return input -> input.getOwner().getSimpleName() + "#" + input.getName();
     }
 

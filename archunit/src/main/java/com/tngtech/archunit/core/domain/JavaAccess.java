@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.Objects;
 import java.util.Set;
 
 import com.tngtech.archunit.PublicAPI;
@@ -26,7 +25,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
-import com.tngtech.archunit.core.importer.DomainBuilders;
+import com.tngtech.archunit.core.importer.DomainBuilders.JavaAccessBuilder;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -38,15 +37,15 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
     private final JavaCodeUnit origin;
     private final TARGET target;
     private final int lineNumber;
-    private final int hashCode;
     private final SourceCodeLocation sourceCodeLocation;
+    private final boolean declaredInLambda;
 
-    JavaAccess(DomainBuilders.JavaAccessBuilder<TARGET, ?> builder) {
+    JavaAccess(JavaAccessBuilder<TARGET, ?> builder) {
         this.origin = checkNotNull(builder.getOrigin());
         this.target = checkNotNull(builder.getTarget());
         this.lineNumber = builder.getLineNumber();
-        this.hashCode = Objects.hash(origin.getFullName(), target.getFullName(), lineNumber);
         this.sourceCodeLocation = SourceCodeLocation.of(getOriginOwner(), lineNumber);
+        this.declaredInLambda = builder.isDeclaredInLambda();
     }
 
     @Override
@@ -92,23 +91,9 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         return sourceCodeLocation;
     }
 
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        final JavaAccess<?> other = (JavaAccess<?>) obj;
-        return Objects.equals(this.origin.getFullName(), other.origin.getFullName()) &&
-                Objects.equals(this.target.getFullName(), other.target.getFullName()) &&
-                Objects.equals(this.lineNumber, other.lineNumber);
+    @PublicAPI(usage = ACCESS)
+    public boolean isDeclaredInLambda() {
+        return declaredInLambda;
     }
 
     @Override

@@ -40,10 +40,10 @@ import com.tngtech.archunit.core.importer.testexamples.annotatedparameters.Class
 import com.tngtech.archunit.core.importer.testexamples.annotationfieldimport.ClassWithAnnotatedFields;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods;
 import com.tngtech.archunit.core.importer.testexamples.annotationmethodimport.ClassWithAnnotatedMethods.MethodAnnotationWithEnumAndArrayValue;
-import com.tngtech.archunit.core.importer.testexamples.annotations.AnotherAnnotationWithAnnotationParameter;
-import com.tngtech.archunit.core.importer.testexamples.annotations.SomeAnnotationWithAnnotationParameter;
-import com.tngtech.archunit.core.importer.testexamples.annotations.SomeAnnotationWithClassParameter;
-import com.tngtech.archunit.core.importer.testexamples.classhierarchy.Child;
+import com.tngtech.archunit.core.importer.testexamples.annotationresolution.AnotherAnnotationWithAnnotationParameter;
+import com.tngtech.archunit.core.importer.testexamples.annotationresolution.SomeAnnotationWithAnnotationParameter;
+import com.tngtech.archunit.core.importer.testexamples.annotationresolution.SomeAnnotationWithClassParameter;
+import com.tngtech.archunit.core.importer.testexamples.classhierarchyresolution.Child;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;

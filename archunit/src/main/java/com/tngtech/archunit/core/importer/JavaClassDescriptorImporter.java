@@ -63,7 +63,11 @@ class JavaClassDescriptorImporter {
     }
 
     static boolean isLambdaMethod(Handle methodHandle) {
-        return LAMBDA_METHOD_PATTERN.matcher(methodHandle.getName()).matches();
+        return isLambdaMethodName(methodHandle.getName());
+    }
+
+    static boolean isLambdaMethodName(String methodName) {
+        return LAMBDA_METHOD_PATTERN.matcher(methodName).matches();
     }
 
     static Object importAsmTypeIfPossible(Object value) {

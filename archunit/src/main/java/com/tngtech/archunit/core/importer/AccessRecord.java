@@ -54,6 +54,8 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
     int getLineNumber();
 
+    boolean isDeclaredInLambda();
+
     RawAccessRecord getRaw();
 
     @Internal
@@ -261,6 +263,11 @@ interface AccessRecord<TARGET extends AccessTarget> {
             @Override
             public int getLineNumber() {
                 return record.lineNumber;
+            }
+
+            @Override
+            public boolean isDeclaredInLambda() {
+                return record.declaredInLambda;
             }
 
             @Override

@@ -39,11 +39,11 @@ public class ViolationLineMatcherFactoryTest {
                     "A:1|" +
                     "A$2|" + false,
             "" +
-                    "Method <MyClass.lambda$myFunction$2()> has a violation in (MyClass.java:123)|" +
-                    "Method <MyClass.lambda$myFunction$123()> has a violation in (MyClass.java:0)|" + true,
+                    "Method <MyClass.access$2()> has a violation in (MyClass.java:123)|" +
+                    "Method <MyClass.access$123()> has a violation in (MyClass.java:0)|" + true,
             "" +
-                    "Method <C.lambda$myFunction$2()> is bad in (C.java:123)|" +
-                    "Method <C.lambda$myFunction$2()> is bad in (C.java:123), too|" + false,
+                    "Method <C.access$200()> is bad in (C.java:123)|" +
+                    "Method <C.access$200()> is bad in (C.java:123), too|" + false,
             "" +
                     "A:1) B$2 C|" +  // limitation of the current implementation:
                     "A: B$ C|" + true,  // false positive

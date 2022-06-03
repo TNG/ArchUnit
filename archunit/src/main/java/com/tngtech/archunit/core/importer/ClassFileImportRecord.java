@@ -15,19 +15,18 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -36,23 +35,27 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaClassTypeParametersBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaCodeUnitBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaFieldBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaMemberBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaParameterizedTypeBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaStaticInitializerBuilder;
-import com.tngtech.archunit.core.importer.DomainBuilders.JavaTypeParameterBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.TryCatchBlockBuilder;
 import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
+import com.tngtech.archunit.core.importer.RawAccessRecord.MemberSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
+import static java.util.Collections.emptyList;
 
 class ClassFileImportRecord {
+    private static final Logger log = LoggerFactory.getLogger(ClassFileImportRecord.class);
+
     private static final JavaClassTypeParametersBuilder NO_TYPE_PARAMETERS =
-            new JavaClassTypeParametersBuilder(Collections.<JavaTypeParameterBuilder<JavaClass>>emptyList());
+            new JavaClassTypeParametersBuilder(emptyList());
 
     private final Map<String, JavaClass> classes = new HashMap<>();
 
@@ -75,6 +78,7 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodReferenceRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
+    private final Map<String, RawAccessRecord> rawSyntheticLambdaMethodInvocationRecordsByTarget = new HashMap<>();
 
     void setSuperclass(String ownerName, String superclassName) {
         checkState(!superclassNamesByOwner.containsKey(ownerName),
@@ -181,52 +185,8 @@ class ClassFileImportRecord {
         return Optional.ofNullable(staticInitializerBuildersByOwner.get(ownerName));
     }
 
-    Set<String> getAnnotationTypeNamesFor(JavaClass owner) {
-        ImmutableSet.Builder<String> result = ImmutableSet.builder();
-        for (JavaAnnotationBuilder annotationBuilder : annotationsByOwner.get(owner.getName())) {
-            result.add(annotationBuilder.getFullyQualifiedClassName());
-        }
-        return result.build();
-    }
-
     Set<JavaAnnotationBuilder> getAnnotationsFor(JavaClass owner) {
         return annotationsByOwner.get(owner.getName());
-    }
-
-    Set<String> getMemberAnnotationTypeNamesFor(JavaClass owner) {
-        Iterable<JavaMemberBuilder<?, ?>> memberBuilders = Iterables.concat(
-                fieldBuildersByOwner.get(owner.getName()),
-                methodBuildersByOwner.get(owner.getName()),
-                constructorBuildersByOwner.get(owner.getName()),
-                nullToEmpty(staticInitializerBuildersByOwner.get(owner.getName())));
-
-        ImmutableSet.Builder<String> result = ImmutableSet.builder();
-        for (JavaMemberBuilder<?, ?> memberBuilder : memberBuilders) {
-            for (JavaAnnotationBuilder annotationBuilder : annotationsByOwner.get(getMemberKey(owner.getName(), memberBuilder.getName(), memberBuilder.getDescriptor()))) {
-                result.add(annotationBuilder.getFullyQualifiedClassName());
-            }
-        }
-        return result.build();
-    }
-
-    Set<String> getParameterAnnotationTypeNamesFor(JavaClass owner) {
-        Iterable<JavaCodeUnitBuilder<?, ?>> codeUnitBuilders = Iterables.<JavaCodeUnitBuilder<?, ?>>concat(
-                methodBuildersByOwner.get(owner.getName()),
-                constructorBuildersByOwner.get(owner.getName()));
-
-        ImmutableSet.Builder<String> result = ImmutableSet.builder();
-        for (JavaCodeUnitBuilder<?, ?> codeUnitBuilder : codeUnitBuilders) {
-            for (JavaAnnotationBuilder annotationBuilder : codeUnitBuilder.getParameterAnnotationBuilders()) {
-                result.add(annotationBuilder.getFullyQualifiedClassName());
-            }
-        }
-        return result.build();
-    }
-
-    private Iterable<JavaMemberBuilder<?, ?>> nullToEmpty(JavaStaticInitializerBuilder staticInitializerBuilder) {
-        return staticInitializerBuilder != null
-                ? Collections.<JavaMemberBuilder<?, ?>>singleton(staticInitializerBuilder)
-                : Collections.<JavaMemberBuilder<?, ?>>emptySet();
     }
 
     Set<JavaAnnotationBuilder> getAnnotationsFor(JavaMember owner) {
@@ -269,24 +229,61 @@ class ClassFileImportRecord {
         rawConstructorReferenceRecords.add(record);
     }
 
+    void registerLambdaInvocation(RawAccessRecord record) {
+        rawSyntheticLambdaMethodInvocationRecordsByTarget.put(getMemberKey(record.target), record);
+    }
+
     void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
-        rawFieldAccessRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawFieldAccessRecords, createLambdaFieldAccessWithNewOrigin).forEach(doWithRecord);
     }
 
     void forEachRawMethodCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        rawMethodCallRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawMethodCallRecords, createLambdaAccessWithNewOrigin).forEach(doWithRecord);
     }
 
     void forEachRawConstructorCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        rawConstructorCallRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawConstructorCallRecords, createLambdaAccessWithNewOrigin).forEach(doWithRecord);
     }
 
     void forEachRawMethodReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
-        rawMethodReferenceRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawMethodReferenceRecords, createLambdaAccessWithNewOrigin).forEach(doWithRecord);
     }
 
     void forEachRawConstructorReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
-        rawConstructorReferenceRecords.forEach(doWithRecord);
+        fixLambdaOrigins(rawConstructorReferenceRecords, createLambdaAccessWithNewOrigin).forEach(doWithRecord);
+    }
+
+    private <ACCESS extends RawAccessRecord> Stream<ACCESS> fixLambdaOrigins(
+            Set<ACCESS> rawAccessRecordsIncludingSyntheticLambda,
+            BiFunction<ACCESS, CodeUnit, ACCESS> createAccessWithNewOrigin
+    ) {
+        return rawAccessRecordsIncludingSyntheticLambda.stream()
+                .flatMap(access -> isLambdaMethodName(access.caller.getName())
+                        ? replaceOriginByLambdaOrigin(access, createAccessWithNewOrigin)
+                        : Stream.of(access));
+    }
+
+    private <ACCESS extends RawAccessRecord> Stream<ACCESS> replaceOriginByLambdaOrigin(ACCESS accessFromSyntheticLambda, BiFunction<ACCESS, CodeUnit, ACCESS> createAccessWithNewOrigin) {
+        RawAccessRecord lambdaInvocationRecord = findNonSyntheticOriginOf(accessFromSyntheticLambda);
+
+        if (lambdaInvocationRecord != null) {
+            return Stream.of(createAccessWithNewOrigin.apply(accessFromSyntheticLambda, lambdaInvocationRecord.caller));
+        } else {
+            log.warn("Could not find matching dynamic invocation for synthetic lambda method {}.{}|{}",
+                    accessFromSyntheticLambda.target.getDeclaringClassName(),
+                    accessFromSyntheticLambda.target.name,
+                    accessFromSyntheticLambda.target.getDescriptor());
+            return Stream.empty();
+        }
+    }
+
+    private <ACCESS extends RawAccessRecord> RawAccessRecord findNonSyntheticOriginOf(ACCESS accessFromSyntheticLambda) {
+        RawAccessRecord result = accessFromSyntheticLambda;
+        do {
+            result = rawSyntheticLambdaMethodInvocationRecordsByTarget.get(getMemberKey(result.caller));
+        } while (result != null && isLambdaMethodName(result.caller.getName()));
+
+        return result;
     }
 
     void add(JavaClass javaClass) {
@@ -297,12 +294,8 @@ class ClassFileImportRecord {
         return classes;
     }
 
-    Set<String> getAllSuperclassNames() {
-        return ImmutableSet.copyOf(superclassNamesByOwner.values());
-    }
-
-    Set<String> getAllSuperinterfaceNames() {
-        return ImmutableSet.copyOf(interfaceNamesByOwner.values());
+    private static String getMemberKey(MemberSignature member) {
+        return getMemberKey(member.getDeclaringClassName(), member.getName(), member.getDescriptor());
     }
 
     private static String getMemberKey(JavaMember member) {
@@ -311,6 +304,23 @@ class ClassFileImportRecord {
 
     private static String getMemberKey(String declaringClassName, String methodName, String descriptor) {
         return declaringClassName + "|" + methodName + "|" + descriptor;
+    }
+
+    private static final BiFunction<RawAccessRecord, CodeUnit, RawAccessRecord> createLambdaAccessWithNewOrigin =
+            (access, newOrigin) -> fillWithNewOriginDeclaredInLambda(new RawAccessRecord.Builder(), access, newOrigin)
+                    .build();
+
+    private static final BiFunction<RawAccessRecord.ForField, CodeUnit, RawAccessRecord.ForField> createLambdaFieldAccessWithNewOrigin =
+            (access, newOrigin) -> fillWithNewOriginDeclaredInLambda(new RawAccessRecord.ForField.Builder(), access, newOrigin)
+                    .withAccessType(access.accessType)
+                    .build();
+
+    private static <T extends RawAccessRecord.BaseBuilder<T>> T fillWithNewOriginDeclaredInLambda(T builder, RawAccessRecord originalAccess, CodeUnit newOrigin) {
+        return builder
+                .withCaller(newOrigin)
+                .withTarget(originalAccess.target)
+                .withLineNumber(originalAccess.lineNumber)
+                .withDeclaredInLambda();
     }
 
     private static class EnclosingDeclarationsByInnerClasses {

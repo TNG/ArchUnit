@@ -99,7 +99,7 @@ class JavaClassProcessor extends ClassVisitor {
     }
 
     Optional<JavaClass> createJavaClass() {
-        return javaClassBuilder != null ? Optional.of(javaClassBuilder.build()) : Optional.<JavaClass>empty();
+        return javaClassBuilder != null ? Optional.of(javaClassBuilder.build()) : Optional.empty();
     }
 
     @Override
@@ -140,7 +140,7 @@ class JavaClassProcessor extends ClassVisitor {
     private Optional<String> getSuperclassName(String superName, boolean isInterface) {
         return superName != null && !isInterface ?
                 Optional.of(createTypeName(superName)) :
-                Optional.<String>empty();
+                Optional.empty();
     }
 
     private boolean importAborted() {
@@ -199,7 +199,7 @@ class JavaClassProcessor extends ClassVisitor {
     // visitInnerClass is called for named inner classes, even if we are currently importing
     // this class itself (i.e. visit(..) and visitInnerClass(..) are called with the same class name.
     // visitInnerClass offers some more properties like correct modifiers.
-    // Modifier handling is somewhat counter intuitive for nested named classes, even though we 'visit' the nested class
+    // Modifier handling is somewhat counterintuitive for nested named classes, even though we 'visit' the nested class
     // like any outer class in visit(..) before, the modifiers like 'PUBLIC' or 'PRIVATE'
     // are found in the access flags of visitInnerClass(..)
     private boolean visitingCurrentClass(String innerTypeName) {
@@ -432,7 +432,9 @@ class JavaClassProcessor extends ClassVisitor {
         }
 
         private void processLambdaMetafactoryMethodHandleArgument(Handle methodHandle) {
-            if (!isLambdaMethod(methodHandle)) {
+            if (isLambdaMethod(methodHandle)) {
+                accessHandler.handleLambdaInstruction(methodHandle.getOwner(), methodHandle.getName(), methodHandle.getDesc());
+            } else {
                 accessHandler.handleMethodReferenceInstruction(methodHandle.getOwner(), methodHandle.getName(), methodHandle.getDesc());
             }
         }
@@ -536,6 +538,8 @@ class JavaClassProcessor extends ClassVisitor {
 
         void handleMethodReferenceInstruction(String owner, String name, String desc);
 
+        void handleLambdaInstruction(String owner, String name, String desc);
+
         void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType);
 
         void handleTryFinallyBlock(Label start, Label end, Label handler);
@@ -566,6 +570,10 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void handleMethodReferenceInstruction(String owner, String name, String desc) {
+            }
+
+            @Override
+            public void handleLambdaInstruction(String owner, String name, String desc) {
             }
 
             @Override
@@ -732,12 +740,8 @@ class JavaClassProcessor extends ClassVisitor {
         private class ArrayValueBuilder extends ValueBuilder {
             @Override
             public <T extends HasDescription> Optional<Object> build(T owner, ImportedClasses importContext) {
-                Optional<Class<?>> componentType = determineComponentType(importContext);
-                if (!componentType.isPresent()) {
-                    return Optional.empty();
-                }
+                return determineComponentType(importContext).map(aClass -> toArray(aClass, buildValues(owner, importContext)));
 
-                return Optional.of(toArray(componentType.get(), buildValues(owner, importContext)));
             }
 
             @SuppressWarnings({"unchecked", "rawtypes"}) // NOTE: We assume the component type matches the list
@@ -770,7 +774,7 @@ class JavaClassProcessor extends ClassVisitor {
 
             private Optional<Class<?>> determineComponentType(ImportedClasses importContext) {
                 if (derivedComponentType != null) {
-                    return Optional.<Class<?>>of(derivedComponentType);
+                    return Optional.of(derivedComponentType);
                 }
 
                 Optional<JavaClass> returnType = importContext.getMethodReturnType(
@@ -779,12 +783,12 @@ class JavaClassProcessor extends ClassVisitor {
 
                 return returnType.isPresent() ?
                         determineComponentTypeFromReturnValue(returnType.get()) :
-                        Optional.<Class<?>>empty();
+                        Optional.empty();
             }
 
             private Optional<Class<?>> determineComponentTypeFromReturnValue(JavaClass returnType) {
                 if (returnType.isEquivalentTo(Class[].class)) {
-                    return Optional.<Class<?>>of(JavaClass.class);
+                    return Optional.of(JavaClass.class);
                 }
 
                 return resolveComponentTypeFrom(returnType.getName());
@@ -796,10 +800,10 @@ class JavaClassProcessor extends ClassVisitor {
                 JavaClassDescriptor componentType = getComponentType(descriptor);
 
                 if (componentType.isPrimitive()) {
-                    return Optional.<Class<?>>of(componentType.resolveClass());
+                    return Optional.of(componentType.resolveClass());
                 }
                 if (String.class.getName().equals(componentType.getFullyQualifiedClassName())) {
-                    return Optional.<Class<?>>of(String.class);
+                    return Optional.of(String.class);
                 }
 
                 // if we couldn't determine the type up to now, it must be an empty enum or annotation array,
@@ -807,7 +811,7 @@ class JavaClassProcessor extends ClassVisitor {
                 // if this will ever make a problem, since annotation proxy would to the conversion backwards
                 // and if one has to handle get(property): Object, this to be an empty Object[]
                 // instead of a JavaEnumConstant[] or JavaAnnotation<?>[] should hardly cause any real problems
-                return Optional.<Class<?>>of(Object.class);
+                return Optional.of(Object.class);
             }
 
             private JavaClassDescriptor getComponentType(JavaClassDescriptor descriptor) {
