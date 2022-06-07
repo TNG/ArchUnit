@@ -21,8 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -48,7 +50,9 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.tngtech.archunit.base.Optionals.stream;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
+import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticAccessMethodName;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticEnumSwitchMapFieldName;
 import static java.util.Collections.emptyList;
 
@@ -79,7 +83,8 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodReferenceRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
-    private final SyntheticLambdaAccessRecorder syntheticLambdaAccessRecorder = new SyntheticLambdaAccessRecorder();
+    private final SyntheticAccessRecorder syntheticLambdaAccessRecorder = createSyntheticLambdaAccessRecorder();
+    private final SyntheticAccessRecorder syntheticPrivateAccessRecorder = createSyntheticPrivateAccessRecorder();
 
     void setSuperclass(String ownerName, String superclassName) {
         checkState(!superclassNamesByOwner.containsKey(ownerName),
@@ -217,7 +222,11 @@ class ClassFileImportRecord {
     }
 
     void registerMethodCall(RawAccessRecord record) {
-        rawMethodCallRecords.add(record);
+        if (isSyntheticAccessMethodName(record.target.name)) {
+            syntheticPrivateAccessRecorder.registerSyntheticMethodInvocation(record);
+        } else {
+            rawMethodCallRecords.add(record);
+        }
     }
 
     void registerConstructorCall(RawAccessRecord record) {
@@ -237,31 +246,51 @@ class ClassFileImportRecord {
     }
 
     void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
-        fixLambdaOrigins(rawFieldAccessRecords, COPY_RAW_FIELD_ACCESS_RECORD).forEach(doWithRecord);
+        fixSyntheticOrigins(
+                rawFieldAccessRecords, COPY_RAW_FIELD_ACCESS_RECORD,
+                syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder
+        ).forEach(doWithRecord);
     }
 
     void forEachRawMethodCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        fixLambdaOrigins(rawMethodCallRecords, COPY_RAW_ACCESS_RECORD).forEach(doWithRecord);
+        fixSyntheticOrigins(
+                rawMethodCallRecords, COPY_RAW_ACCESS_RECORD,
+                syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder
+        ).forEach(doWithRecord);
     }
 
     void forEachRawConstructorCallRecord(Consumer<RawAccessRecord> doWithRecord) {
-        fixLambdaOrigins(rawConstructorCallRecords, COPY_RAW_ACCESS_RECORD).forEach(doWithRecord);
+        fixSyntheticOrigins(
+                rawConstructorCallRecords, COPY_RAW_ACCESS_RECORD,
+                syntheticLambdaAccessRecorder
+        ).forEach(doWithRecord);
     }
 
     void forEachRawMethodReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
-        fixLambdaOrigins(rawMethodReferenceRecords, COPY_RAW_ACCESS_RECORD).forEach(doWithRecord);
+        fixSyntheticOrigins(
+                rawMethodReferenceRecords, COPY_RAW_ACCESS_RECORD,
+                syntheticPrivateAccessRecorder, syntheticLambdaAccessRecorder
+        ).forEach(doWithRecord);
     }
 
     void forEachRawConstructorReferenceRecord(Consumer<RawAccessRecord> doWithRecord) {
-        fixLambdaOrigins(rawConstructorReferenceRecords, COPY_RAW_ACCESS_RECORD).forEach(doWithRecord);
+        fixSyntheticOrigins(
+                rawConstructorReferenceRecords, COPY_RAW_ACCESS_RECORD,
+                syntheticLambdaAccessRecorder
+        ).forEach(doWithRecord);
     }
 
-    private <ACCESS extends RawAccessRecord> Stream<ACCESS> fixLambdaOrigins(
-            Set<ACCESS> rawAccessRecordsIncludingSyntheticLambda,
-            Function<ACCESS, ? extends RawAccessRecord.BaseBuilder<ACCESS, ?>> createAccessWithNewOrigin
+    private <ACCESS extends RawAccessRecord> Stream<ACCESS> fixSyntheticOrigins(
+            Set<ACCESS> rawAccessRecordsIncludingSyntheticAccesses,
+            Function<ACCESS, ? extends RawAccessRecord.BaseBuilder<ACCESS, ?>> createAccessWithNewOrigin,
+            SyntheticAccessRecorder... syntheticAccessRecorders
     ) {
-        return rawAccessRecordsIncludingSyntheticLambda.stream()
-                .flatMap(access -> syntheticLambdaAccessRecorder.fixSyntheticAccess(access, createAccessWithNewOrigin));
+
+        Stream<ACCESS> result = rawAccessRecordsIncludingSyntheticAccesses.stream();
+        for (SyntheticAccessRecorder syntheticAccessRecorder : syntheticAccessRecorders) {
+            result = result.flatMap(access -> stream(syntheticAccessRecorder.fixSyntheticAccess(access, createAccessWithNewOrigin)));
+        }
+        return result;
     }
 
     void add(JavaClass javaClass) {
@@ -286,6 +315,22 @@ class ClassFileImportRecord {
                     .withTarget(access.target)
                     .withLineNumber(access.lineNumber)
                     .withDeclaredInLambda(access.declaredInLambda);
+
+    private static SyntheticAccessRecorder createSyntheticLambdaAccessRecorder() {
+        return new SyntheticAccessRecorder(
+                codeUnit -> isLambdaMethodName(codeUnit.getName()),
+                (accessBuilder, newOrigin) -> accessBuilder
+                        .withCaller(newOrigin)
+                        .withDeclaredInLambda(true)
+        );
+    }
+
+    private static SyntheticAccessRecorder createSyntheticPrivateAccessRecorder() {
+        return new SyntheticAccessRecorder(
+                codeUnit -> isSyntheticAccessMethodName(codeUnit.getName()),
+                RawAccessRecord.BaseBuilder::withCaller
+        );
+    }
 
     private static String getMemberKey(MemberSignature member) {
         return getMemberKey(member.getDeclaringClassName(), member.getName(), member.getDescriptor());
@@ -328,47 +373,56 @@ class ClassFileImportRecord {
         }
     }
 
-    private static class SyntheticLambdaAccessRecorder {
-        private final Map<String, RawAccessRecord> rawSyntheticLambdaMethodInvocationRecordsByTarget = new HashMap<>();
+    private static class SyntheticAccessRecorder {
+        private final Map<String, RawAccessRecord> rawSyntheticMethodInvocationRecordsByTarget = new HashMap<>();
+        private final Predicate<CodeUnit> isSyntheticOrigin;
+        private final BiConsumer<RawAccessRecord.BaseBuilder<?, ?>, CodeUnit> fixOrigin;
 
-        void registerSyntheticMethodInvocation(RawAccessRecord record) {
-            rawSyntheticLambdaMethodInvocationRecordsByTarget.put(getMemberKey(record.target), record);
+        SyntheticAccessRecorder(
+                Predicate<CodeUnit> isSyntheticOrigin,
+                BiConsumer<RawAccessRecord.BaseBuilder<?, ?>, CodeUnit> fixOrigin
+        ) {
+            this.isSyntheticOrigin = isSyntheticOrigin;
+            this.fixOrigin = fixOrigin;
         }
 
-        <ACCESS extends RawAccessRecord> Stream<? extends ACCESS> fixSyntheticAccess(
+        void registerSyntheticMethodInvocation(RawAccessRecord record) {
+            rawSyntheticMethodInvocationRecordsByTarget.put(getMemberKey(record.target), record);
+        }
+
+        <ACCESS extends RawAccessRecord> Optional<ACCESS> fixSyntheticAccess(
                 ACCESS access,
                 Function<ACCESS, ? extends RawAccessRecord.BaseBuilder<ACCESS, ?>> copyAccess
         ) {
-            return isLambdaMethodName(access.caller.getName())
-                    ? replaceOriginByLambdaOrigin(access, copyAccess)
-                    : Stream.of(access);
+            return isSyntheticOrigin.test(access.caller)
+                    ? replaceOriginByFixedOrigin(access, copyAccess)
+                    : Optional.of(access);
         }
 
-        private <ACCESS extends RawAccessRecord> Stream<ACCESS> replaceOriginByLambdaOrigin(
-                ACCESS accessFromSyntheticLambda,
+        private <ACCESS extends RawAccessRecord> Optional<ACCESS> replaceOriginByFixedOrigin(
+                ACCESS accessFromSyntheticMethod,
                 Function<ACCESS, ? extends RawAccessRecord.BaseBuilder<ACCESS, ?>> copyAccess
         ) {
-            RawAccessRecord lambdaInvocationRecord = findNonSyntheticOriginOf(accessFromSyntheticLambda);
+            RawAccessRecord accessWithCorrectOrigin = findNonSyntheticOriginOf(accessFromSyntheticMethod);
 
-            if (lambdaInvocationRecord != null) {
-                return Stream.of(copyAccess.apply(accessFromSyntheticLambda)
-                        .withCaller(lambdaInvocationRecord.caller)
-                        .withDeclaredInLambda(true)
-                        .build());
+            if (accessWithCorrectOrigin != null) {
+                RawAccessRecord.BaseBuilder<ACCESS, ?> copiedBuilder = copyAccess.apply(accessFromSyntheticMethod);
+                fixOrigin.accept(copiedBuilder, accessWithCorrectOrigin.caller);
+                return Optional.of(copiedBuilder.build());
             } else {
-                log.warn("Could not find matching dynamic invocation for synthetic lambda method {}.{}|{}",
-                        accessFromSyntheticLambda.target.getDeclaringClassName(),
-                        accessFromSyntheticLambda.target.name,
-                        accessFromSyntheticLambda.target.getDescriptor());
-                return Stream.empty();
+                log.warn("Could not find matching origin for synthetic method {}.{}|{}",
+                        accessFromSyntheticMethod.target.getDeclaringClassName(),
+                        accessFromSyntheticMethod.target.name,
+                        accessFromSyntheticMethod.target.getDescriptor());
+                return Optional.empty();
             }
         }
 
-        private <ACCESS extends RawAccessRecord> RawAccessRecord findNonSyntheticOriginOf(ACCESS accessFromSyntheticLambda) {
-            RawAccessRecord result = accessFromSyntheticLambda;
+        private <ACCESS extends RawAccessRecord> RawAccessRecord findNonSyntheticOriginOf(ACCESS accessFromSyntheticMethod) {
+            RawAccessRecord result = accessFromSyntheticMethod;
             do {
-                result = rawSyntheticLambdaMethodInvocationRecordsByTarget.get(getMemberKey(result.caller));
-            } while (result != null && isLambdaMethodName(result.caller.getName()));
+                result = rawSyntheticMethodInvocationRecordsByTarget.get(getMemberKey(result.caller));
+            } while (result != null && isSyntheticOrigin.test(result.caller));
 
             return result;
         }

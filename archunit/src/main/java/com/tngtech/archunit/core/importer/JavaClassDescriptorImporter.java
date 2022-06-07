@@ -26,6 +26,7 @@ import org.objectweb.asm.Type;
 class JavaClassDescriptorImporter {
     private static final String LAMBDA_METAFACTORY_ASM_OBJECT_TYPE_NAME = "java/lang/invoke/LambdaMetafactory";
     private static final Pattern LAMBDA_METHOD_PATTERN = Pattern.compile("lambda\\$.*\\$\\d+");
+    private static final Pattern ACCESS_METHOD_PATTERN = Pattern.compile("access\\$\\d+");
 
     /**
      * Takes an 'internal' ASM object type name, i.e. the class name but with slashes instead of periods,
@@ -68,6 +69,10 @@ class JavaClassDescriptorImporter {
 
     static boolean isLambdaMethodName(String methodName) {
         return LAMBDA_METHOD_PATTERN.matcher(methodName).matches();
+    }
+
+    static boolean isSyntheticAccessMethodName(String methodName) {
+        return ACCESS_METHOD_PATTERN.matcher(methodName).matches();
     }
 
     static boolean isSyntheticEnumSwitchMapFieldName(String methodName) {
