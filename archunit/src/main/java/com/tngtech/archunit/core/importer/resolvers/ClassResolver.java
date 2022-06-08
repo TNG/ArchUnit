@@ -107,18 +107,18 @@ public interface ClassResolver {
                 return Optional.empty();
             }
 
-            Class<?> resolverClass = classForName(resolverClassName);
+            Class<?> resolverClass = classForName(resolverClassName.get());
             List<String> args = ArchConfiguration.get().getClassResolverArguments();
             ClassResolverProvider classResolverProvider = createProvider(resolverClass, args);
             return Optional.of(classResolverProvider.get());
         }
 
         @MayResolveTypesViaReflection(reason = "Loading a ClassResolver implementation is independent of the actual import")
-        private Class<?> classForName(Optional<String> resolverClassName) {
+        private Class<?> classForName(String resolverClassName) {
             try {
-                return ClassLoaders.loadClass(resolverClassName.get());
+                return ClassLoaders.loadClass(resolverClassName);
             } catch (ClassNotFoundException e) {
-                throw ClassResolverConfigurationException.onLoadingClass(resolverClassName.get(), e);
+                throw ClassResolverConfigurationException.onLoadingClass(resolverClassName, e);
             }
         }
 
@@ -146,7 +146,7 @@ public interface ClassResolver {
 
         private Optional<Constructor<?>> tryGetListConstructor(Class<?> resolverClass) {
             try {
-                return Optional.<Constructor<?>>of(resolverClass.getConstructor(List.class));
+                return Optional.of(accessibleConstructor(resolverClass, List.class));
             } catch (NoSuchMethodException e) {
                 return Optional.empty();
             }
@@ -155,7 +155,7 @@ public interface ClassResolver {
         private ClassResolverProvider tryCreateResolverProviderForDefaultConstructor(final Class<?> resolverClass, final List<String> args) {
             final Constructor<?> defaultConstructor;
             try {
-                defaultConstructor = resolverClass.getConstructor();
+                defaultConstructor = accessibleConstructor(resolverClass);
             } catch (NoSuchMethodException e) {
                 throw ClassResolverConfigurationException.onWrongArguments(resolverClass, e);
             }
@@ -163,9 +163,20 @@ public interface ClassResolver {
             return new ClassResolverProvider(instantiationException(defaultConstructor, args)) {
                 @Override
                 ClassResolver tryGet() throws Exception {
-                    return (ClassResolver) resolverClass.getConstructor().newInstance();
+                    return (ClassResolver) defaultConstructor.newInstance();
                 }
             };
+        }
+
+        private Constructor<?> accessibleConstructor(Class<?> clazz, Class<?>... parameterTypes) throws NoSuchMethodException {
+            Constructor<?> constructor;
+            try {
+                constructor = clazz.getDeclaredConstructor(parameterTypes);
+            } catch (NoSuchMethodException e) {
+                constructor = clazz.getConstructor(parameterTypes);
+            }
+            constructor.setAccessible(true);
+            return constructor;
         }
 
         static class NoOpClassResolver implements ClassResolver {

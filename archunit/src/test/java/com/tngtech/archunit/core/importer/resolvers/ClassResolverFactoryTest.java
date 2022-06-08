@@ -158,11 +158,11 @@ public class ClassResolverFactoryTest {
         };
     }
 
-    static class TestResolver implements ClassResolver {
+    private static class TestResolver implements ClassResolver {
         final String first;
         final String second;
 
-        public TestResolver(List<String> args) {
+        private TestResolver(List<String> args) {
             Preconditions.checkArgument(args.size() == 2);
             this.first = args.get(0);
             this.second = args.get(1);
@@ -193,8 +193,8 @@ public class ClassResolverFactoryTest {
         }
     }
 
-    static class ResolverWithDefaultConstructor implements ClassResolver {
-        public ResolverWithDefaultConstructor() {
+    private static class ResolverWithDefaultConstructor implements ClassResolver {
+        private ResolverWithDefaultConstructor() {
         }
 
         @Override
@@ -208,6 +208,7 @@ public class ClassResolverFactoryTest {
     }
 
     static class ResolverWithWrongConstructor implements ClassResolver {
+        @SuppressWarnings("unused")
         ResolverWithWrongConstructor(String bummer) {
         }
 
