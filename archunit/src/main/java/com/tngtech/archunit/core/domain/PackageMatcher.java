@@ -22,7 +22,9 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 
@@ -41,6 +43,12 @@ import static java.util.stream.Collectors.toList;
  * <li><b>{@code '*.*.pack*..'}</b> matches <b>{@code 'a.b.packfix.c.d'}</b>,
  * but neither <b>{@code 'a.packfix.b'}</b> nor <b>{@code 'a.b.prepack.d'}</b></li>
  * </ul>
+ * You can also use alternations with the '|' operator within brackets. For example
+ * <ul>
+ * <li><b>{@code 'pack.[a.c|b*].d'}</b> matches <b>{@code 'pack.a.c.d'} or <b>{@code 'pack.bar.d'}</b>, but neither
+ * <b>{@code 'pack.a.d'}</b> nor <b>{@code 'pack.b.c.d'}</b></li>
+ * </ul>
+ * <p>
  * Furthermore, the use of capturing groups is supported. In this case '(*)' matches any sequence of characters,
  * but not the dot '.', while '(**)' matches any sequence including the dot. <br>
  * For example
@@ -49,6 +57,7 @@ import static java.util.stream.Collectors.toList;
  * <li><b>{@code '..service.(**)'}</b> matches <b>{@code 'a.service.hello.more'}</b> and group 1 would be <b>{@code 'hello.more'}</b></li>
  * <li><b>{@code 'my.(*)..service.(**)'}</b> matches <b>{@code 'my.company.some.service.hello.more'}</b>
  * and group 1 would be <b>{@code 'company'}</b>, while group 2 would be <b>{@code 'hello.more'}</b></li>
+ * <li><b>{@code '..service.(a|b*)..'}</b> matches <b>{@code 'a.service.bar.more'}</b> and group 1 would be <b>{@code 'bar'}</b></li>
  * </ul>
  * Create via {@link PackageMatcher#of(String) PackageMatcher.of(packageIdentifier)}
  */
@@ -62,7 +71,14 @@ public final class PackageMatcher {
     private static final String TWO_STAR_CAPTURE_REGEX = "(\\w+(?:\\.\\w+)*)";
     static final String TWO_STAR_REGEX_MARKER = "#%#%#";
 
-    private static final Set<Character> PACKAGE_CONTROL_SYMBOLS = ImmutableSet.of('*', '(', ')', '.');
+    private static final Pattern ILLEGAL_ALTERNATION_PATTERN = Pattern.compile("\\[[^|]*]");
+    private static final Pattern ILLEGAL_NESTED_GROUP_PATTERN = Pattern.compile(
+            nestedGroupRegex('(', ')', '(')
+                    + "|" + nestedGroupRegex('(', ')', '[')
+                    + "|" + nestedGroupRegex('[', ']', '(')
+                    + "|" + nestedGroupRegex('[', ']', '['));
+
+    private static final Set<Character> PACKAGE_CONTROL_SYMBOLS = ImmutableSet.of('*', '(', ')', '.', '|', '[', ']');
 
     private final String packageIdentifier;
     private final Pattern packagePattern;
@@ -84,7 +100,32 @@ public final class PackageMatcher {
         if (packageIdentifier.contains("(..)")) {
             throw new IllegalArgumentException("Package Identifier does not support capturing via (..), use (**) instead");
         }
+        if (ILLEGAL_ALTERNATION_PATTERN.matcher(packageIdentifier).find()) {
+            throw new IllegalArgumentException(
+                    "Package Identifier does not allow alternation brackets '[]' without specifying any alternative via '|' inside");
+        }
+        if (containsToplevelAlternation(packageIdentifier)) {
+            throw new IllegalArgumentException(
+                    "Package Identifier only supports '|' inside of '[]' or '()'");
+        }
+        if (ILLEGAL_NESTED_GROUP_PATTERN.matcher(packageIdentifier).find()) {
+            throw new IllegalArgumentException("Package Identifier does not support nesting '()' or '[]' within other '()' or '[]'");
+        }
         validateCharacters(packageIdentifier);
+    }
+
+    private boolean containsToplevelAlternation(String packageIdentifier) {
+        Stream<String> prefixesBeforeAlternation = IntStream.range(0, packageIdentifier.length())
+                .filter(i -> packageIdentifier.charAt(i) == '|')
+                .mapToObj(alternationIndex -> packageIdentifier.substring(0, alternationIndex));
+
+        return prefixesBeforeAlternation.anyMatch(beforeAlternation ->
+                sameNumberOfOccurrences(beforeAlternation, '(', ')')
+                        && sameNumberOfOccurrences(beforeAlternation, '[', ']'));
+    }
+
+    private boolean sameNumberOfOccurrences(String string, char first, char second) {
+        return CharMatcher.is(first).countIn(string) == CharMatcher.is(second).countIn(string);
     }
 
     private void validateCharacters(String packageIdentifier) {
@@ -99,12 +140,13 @@ public final class PackageMatcher {
     }
 
     private String convertToRegex(String packageIdentifier) {
-        return packageIdentifier.
-                replace(TWO_STAR_CAPTURE_LITERAL, TWO_STAR_REGEX_MARKER).
-                replace("*", "\\w+").
-                replace(".", "\\.").
-                replace(TWO_STAR_REGEX_MARKER, TWO_STAR_CAPTURE_REGEX).
-                replace("\\.\\.", TWO_DOTS_REGEX);
+        return packageIdentifier
+                .replaceAll("\\[(.*?)]", "(?:$1)") // replacing all '[..|..]' with '(?:..|..)'
+                .replace(TWO_STAR_CAPTURE_LITERAL, TWO_STAR_REGEX_MARKER)
+                .replace("*", "\\w+")
+                .replace(".", "\\.")
+                .replace(TWO_STAR_REGEX_MARKER, TWO_STAR_CAPTURE_REGEX)
+                .replace("\\.\\.", TWO_DOTS_REGEX);
     }
 
     /**
@@ -142,6 +184,10 @@ public final class PackageMatcher {
     @Override
     public String toString() {
         return "PackageMatcher{" + packageIdentifier + '}';
+    }
+
+    private static String nestedGroupRegex(char outerOpeningChar, char outerClosingChar, char nestedOpeningChar) {
+        return "\\" + outerOpeningChar + "[^" + outerClosingChar + "]*\\" + nestedOpeningChar;
     }
 
     public static final class Result {
