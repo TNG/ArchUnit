@@ -1016,7 +1016,10 @@ public interface ClassesShould {
     ClassesShouldConjunction onlyDependOnClassesThat(DescribedPredicate<? super JavaClass> predicate);
 
     /**
-     * Asserts that all classes selected by this rule transitively depend on certain classes.<br>
+     * Asserts that all classes selected by this rule transitively depend on any matching classes.<br>
+     * It focuses on detecting all <strong>direct</strong> dependencies of the selected classes that are themselves matched or have any
+     * transitive dependencies on matched classes. Thus, it doesn't discover all possible dependency paths but stops at the first match to be fast and
+     * resource-friendly.<br>
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
@@ -1031,7 +1034,10 @@ public interface ClassesShould {
     ClassesThat<ClassesShouldConjunction> transitivelyDependOnClassesThat();
 
     /**
-     * Asserts that all classes selected by this rule transitively depend on certain classes.<br>
+     * Asserts that all classes selected by this rule transitively depend on any matching classes.<br>
+     * It focuses on detecting all <strong>direct</strong> dependencies of the selected classes that are themselves matched or have any
+     * transitive dependencies on matched classes. Thus, it doesn't discover all possible dependency paths but stops at the first match to be fast and
+     * resource-friendly.<br>
      * NOTE: This usually makes more sense the negated way, e.g.
      * <p>
      * <pre><code>
