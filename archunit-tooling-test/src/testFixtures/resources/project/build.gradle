@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'com.tngtech.archunit:archunit:@junitDependency.version@'
+    implementation 'com.tngtech.archunit:archunit-junit4:@junitDependency.version@'
+    implementation 'com.tngtech.archunit:archunit-junit5:@junitDependency.version@'
+    testImplementation 'org.junit.vintage:junit-vintage-engine:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+test {
+    useJUnitPlatform()
+
+    jvmArgs = ['--add-opens', 'java.base/java.util=ALL-UNNAMED', '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED']
+    ignoreFailures = true
+
+    filter {
+        includePatterns = (project.getProperty('patterns') as String).split(',')
+    }
+}
