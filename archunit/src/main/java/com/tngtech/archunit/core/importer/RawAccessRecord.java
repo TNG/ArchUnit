@@ -193,10 +193,14 @@ class RawAccessRecord {
         }
     }
 
-    static class Builder extends BaseBuilder<Builder> {
+    static class Builder extends BaseBuilder<RawAccessRecord, Builder> {
+        @Override
+        RawAccessRecord build() {
+            return new RawAccessRecord(caller, target, lineNumber, declaredInLambda);
+        }
     }
 
-    static class BaseBuilder<SELF extends BaseBuilder<SELF>> {
+    abstract static class BaseBuilder<ACCESS extends RawAccessRecord, SELF extends BaseBuilder<ACCESS, SELF>> {
         CodeUnit caller;
         TargetInfo target;
         int lineNumber = -1;
@@ -217,8 +221,8 @@ class RawAccessRecord {
             return self();
         }
 
-        public SELF withDeclaredInLambda() {
-            declaredInLambda = true;
+        SELF withDeclaredInLambda(boolean declaredInLambda) {
+            this.declaredInLambda = declaredInLambda;
             return self();
         }
 
@@ -227,9 +231,7 @@ class RawAccessRecord {
             return (SELF) this;
         }
 
-        RawAccessRecord build() {
-            return new RawAccessRecord(caller, target, lineNumber, declaredInLambda);
-        }
+        abstract ACCESS build();
     }
 
     static class ForField extends RawAccessRecord {
@@ -240,7 +242,7 @@ class RawAccessRecord {
             this.accessType = accessType;
         }
 
-        static class Builder extends BaseBuilder<Builder> {
+        static class Builder extends BaseBuilder<RawAccessRecord.ForField, Builder> {
             private AccessType accessType;
 
             Builder withAccessType(AccessType accessType) {

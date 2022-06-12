@@ -299,7 +299,7 @@ class ClassFileProcessor {
             importRecord.addTryCatchBlocks(codeUnit.getDeclaringClassName(), codeUnit.getName(), codeUnit.getDescriptor(), tryCatchBlocks);
         }
 
-        private <BUILDER extends RawAccessRecord.BaseBuilder<BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
+        private <BUILDER extends RawAccessRecord.BaseBuilder<?, BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
             return builder
                     .withCaller(codeUnit)
                     .withTarget(target)
