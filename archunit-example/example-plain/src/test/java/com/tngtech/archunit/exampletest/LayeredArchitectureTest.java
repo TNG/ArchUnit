@@ -15,7 +15,7 @@ public class LayeredArchitectureTest {
 
     @Test
     public void layer_dependencies_are_respected() {
-        layeredArchitecture()
+        layeredArchitecture().consideringAllDependencies()
 
                 .layer("Controllers").definedBy("com.tngtech.archunit.example.layers.controller..")
                 .layer("Services").definedBy("com.tngtech.archunit.example.layers.service..")
@@ -30,7 +30,7 @@ public class LayeredArchitectureTest {
 
     @Test
     public void layer_dependencies_are_respected_with_exception() {
-        layeredArchitecture()
+        layeredArchitecture().consideringAllDependencies()
 
                 .layer("Controllers").definedBy("com.tngtech.archunit.example.layers.controller..")
                 .layer("Services").definedBy("com.tngtech.archunit.example.layers.service..")

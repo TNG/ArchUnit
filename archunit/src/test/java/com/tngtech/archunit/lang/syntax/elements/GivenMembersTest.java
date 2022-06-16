@@ -49,6 +49,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noConstructors
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMembers;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
+import static com.tngtech.archunit.testutil.TestUtils.union;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Collections.emptySet;
@@ -445,15 +446,6 @@ public class GivenMembersTest {
                 events.add(SimpleConditionEvent.violated(item, formatMember(item)));
             }
         };
-    }
-
-    @SafeVarargs
-    private static <T> Set<T> union(Set<T>... sets) {
-        ImmutableSet.Builder<T> result = ImmutableSet.builder();
-        for (Set<T> set : sets) {
-            result = result.addAll(set);
-        }
-        return result.build();
     }
 
     static DescribedPredicate<JavaMember> areNoFieldsWithType(final Class<?> type) {

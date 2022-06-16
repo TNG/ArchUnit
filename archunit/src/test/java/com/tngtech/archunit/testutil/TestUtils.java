@@ -8,7 +8,9 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import org.assertj.core.util.Files;
 
@@ -86,5 +88,14 @@ public class TestUtils {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @SafeVarargs
+    public static <T> Set<T> union(Set<T>... sets) {
+        ImmutableSet.Builder<T> result = ImmutableSet.builder();
+        for (Set<T> set : sets) {
+            result = result.addAll(set);
+        }
+        return result.build();
     }
 }

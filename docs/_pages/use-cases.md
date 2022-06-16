@@ -74,6 +74,7 @@ classes().that().areAssignableTo(EntityManager.class)
 
 ```
 layeredArchitecture()
+    .consideringAllDependencies()
     .layer("Controller").definedBy("..controller..")
     .layer("Service").definedBy("..service..")
     .layer("Persistence").definedBy("..persistence..")

@@ -258,6 +258,7 @@ note right on link #crimson: Access goes against layers
 [source,java]
 ----
 layeredArchitecture()
+    .consideringAllDependencies()
     .layer("Controller").definedBy("..controller..")
     .layer("Service").definedBy("..service..")
     .layer("Persistence").definedBy("..persistence..")

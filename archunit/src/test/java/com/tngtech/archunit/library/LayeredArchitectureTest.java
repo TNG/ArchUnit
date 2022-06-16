@@ -12,6 +12,12 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
+import com.tngtech.archunit.library.Architectures.LayeredArchitecture;
+import com.tngtech.archunit.library.testclasses.dependencysettings.DependencySettingsOutsideOfLayersAccessingLayers;
+import com.tngtech.archunit.library.testclasses.dependencysettings.forbidden_backwards.DependencySettingsForbiddenByMayOnlyBeAccessed;
+import com.tngtech.archunit.library.testclasses.dependencysettings.forbidden_forwards.DependencySettingsForbiddenByMayOnlyAccess;
+import com.tngtech.archunit.library.testclasses.dependencysettings.origin.DependencySettingsOriginClass;
+import com.tngtech.archunit.library.testclasses.dependencysettings_outside.DependencySettingsOutsideOfLayersBeingAccessedByLayers;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
 import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.mayonlyaccesslayers.forbidden.MayOnlyAccessLayersForbiddenClass;
@@ -32,6 +38,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
+import static com.tngtech.archunit.testutil.TestUtils.union;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.lang.System.lineSeparator;
 import static java.util.regex.Pattern.quote;
@@ -46,6 +53,7 @@ public class LayeredArchitectureTest {
     public static Object[][] layeredArchitectureDefinitions() {
         return testForEach(
                 layeredArchitecture()
+                        .consideringAllDependencies()
                         .layer("One").definedBy("..library.testclasses.some.pkg..")
                         .layer("Two").definedBy("..library.testclasses.first.any.pkg..", "..library.testclasses.second.any.pkg..")
                         .optionalLayer("Three").definedBy("..library.testclasses..three..")
@@ -53,6 +61,7 @@ public class LayeredArchitectureTest {
                         .whereLayer("Two").mayOnlyBeAccessedByLayers("One")
                         .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two"),
                 layeredArchitecture()
+                        .consideringAllDependencies()
                         .layer("One").definedBy(
                                 resideInAnyPackage("..library.testclasses.some.pkg..")
                                         .as("'..library.testclasses.some.pkg..'"))
@@ -67,18 +76,11 @@ public class LayeredArchitectureTest {
                         .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two"));
     }
 
-    static String[] absolute(String... pkgSuffix) {
-        return Arrays.stream(pkgSuffix)
-                .map(s -> OnionArchitectureTest.class.getPackage().getName() + ".testclasses." + s)
-                .map(absolute -> absolute.replaceAll("\\.\\.\\.+", ".."))
-                .toArray(String[]::new);
-    }
-
     @Test
     @UseDataProvider("layeredArchitectureDefinitions")
-    public void layered_architecture_description(Architectures.LayeredArchitecture architecture) {
+    public void layered_architecture_description(LayeredArchitecture architecture) {
         assertThat(architecture.getDescription()).isEqualTo(
-                "Layered architecture consisting of" + lineSeparator() +
+                "Layered architecture considering all dependencies, consisting of" + lineSeparator() +
                         "layer 'One' ('..library.testclasses.some.pkg..')" + lineSeparator() +
                         "layer 'Two' ('..library.testclasses.first.any.pkg..', '..library.testclasses.second.any.pkg..')" + lineSeparator() +
                         "optional layer 'Three' ('..library.testclasses..three..')" + lineSeparator() +
@@ -89,7 +91,8 @@ public class LayeredArchitectureTest {
 
     @Test
     public void layered_architecture_overridden_description() {
-        Architectures.LayeredArchitecture architecture = layeredArchitecture()
+        LayeredArchitecture architecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("One").definedBy("some.pkg..")
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
                 .as("overridden");
@@ -100,6 +103,7 @@ public class LayeredArchitectureTest {
     @Test
     public void layered_architecture_because_clause() {
         ArchRule architecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("One").definedBy("some.pkg..")
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
                 .as("overridden")
@@ -110,10 +114,10 @@ public class LayeredArchitectureTest {
 
     @Test
     public void layered_architecture_defining_constraint_on_non_existing_target_layer_is_rejected() {
-        assertThatThrownBy(() ->
-                layeredArchitecture()
-                        .layer("Some").definedBy("any")
-                        .whereLayer("NotThere").mayNotBeAccessedByAnyLayer()
+        assertThatThrownBy(() -> layeredArchitecture()
+                .consideringAllDependencies()
+                .layer("Some").definedBy("any")
+                .whereLayer("NotThere").mayNotBeAccessedByAnyLayer()
         )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("no layer")
@@ -122,10 +126,10 @@ public class LayeredArchitectureTest {
 
     @Test
     public void layered_architecture_defining_constraint_on_non_existing_origin_is_rejected() {
-        assertThatThrownBy(() ->
-                layeredArchitecture()
-                        .layer("Some").definedBy("any")
-                        .whereLayer("Some").mayOnlyBeAccessedByLayers("NotThere")
+        assertThatThrownBy(() -> layeredArchitecture()
+                .consideringAllDependencies()
+                .layer("Some").definedBy("any")
+                .whereLayer("Some").mayOnlyBeAccessedByLayers("NotThere")
         )
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("no layer")
@@ -134,7 +138,7 @@ public class LayeredArchitectureTest {
 
     @Test
     public void layered_architecture_rejects_empty_layers_by_default() {
-        Architectures.LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers();
+        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers();
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
@@ -144,8 +148,8 @@ public class LayeredArchitectureTest {
 
     @Test
     public void layered_architecture_allows_empty_layers_if_all_layers_are_optional() {
-        Architectures.LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().withOptionalLayers(true);
-        assertThat(architecture.getDescription()).startsWith("Layered architecture consisting of (optional)");
+        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().withOptionalLayers(true);
+        assertThat(architecture.getDescription()).startsWith("Layered architecture considering all dependencies, consisting of (optional)");
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
@@ -153,8 +157,8 @@ public class LayeredArchitectureTest {
     }
 
     @Test
-    public void layered_architecture_rejects_empty_layers_if_layers_are_explicity_not_optional_by_default() {
-        Architectures.LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().withOptionalLayers(false);
+    public void layered_architecture_rejects_empty_layers_if_layers_are_explicitly_not_optional_by_default() {
+        LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().withOptionalLayers(false);
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
@@ -162,8 +166,9 @@ public class LayeredArchitectureTest {
         assertFailureLayeredArchitectureWithEmptyLayers(result);
     }
 
-    private Architectures.LayeredArchitecture aLayeredArchitectureWithEmptyLayers() {
+    private LayeredArchitecture aLayeredArchitectureWithEmptyLayers() {
         return layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("Some").definedBy(absolute("should.not.be.found.."))
                 .layer("Other").definedBy(absolute("also.not.found"))
                 .layer("Okay").definedBy("..testclasses..")
@@ -178,7 +183,8 @@ public class LayeredArchitectureTest {
 
     @Test
     public void layered_architecture_allows_individual_empty_optionalLayer() {
-        Architectures.LayeredArchitecture architecture = layeredArchitecture()
+        LayeredArchitecture architecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .optionalLayer("can be absent").definedBy(absolute("should.not.be.found.."));
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
@@ -190,7 +196,7 @@ public class LayeredArchitectureTest {
 
     @Test
     @UseDataProvider("layeredArchitectureDefinitions")
-    public void layered_architecture_gathers_all_layer_violations(Architectures.LayeredArchitecture architecture) {
+    public void layered_architecture_gathers_all_layer_violations(LayeredArchitecture architecture) {
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
         EvaluationResult result = architecture.evaluate(classes);
@@ -207,7 +213,8 @@ public class LayeredArchitectureTest {
 
     @DataProvider
     public static Object[][] toIgnore() {
-        Architectures.LayeredArchitecture layeredArchitecture = layeredArchitecture()
+        LayeredArchitecture layeredArchitecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("One").definedBy(absolute("some.pkg.."))
                 .whereLayer("One").mayNotBeAccessedByAnyLayer();
 
@@ -245,7 +252,8 @@ public class LayeredArchitectureTest {
                 FirstAnyPkgClass.class, SomePkgSubclass.class,
                 SecondThreeAnyClass.class, SomePkgClass.class);
 
-        Architectures.LayeredArchitecture layeredArchitecture = layeredArchitecture()
+        LayeredArchitecture layeredArchitecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("One").definedBy(absolute("some.pkg.."))
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
                 .ignoreDependency(FirstAnyPkgClass.class, SomePkgSubclass.class);
@@ -262,12 +270,14 @@ public class LayeredArchitectureTest {
     public static Object[][] layeredArchitectureMayOnlyAccessLayersDefinitions() {
         return testForEach(
                 layeredArchitecture()
+                        .consideringAllDependencies()
                         .layer("Allowed").definedBy("..library.testclasses.mayonlyaccesslayers.allowed..")
                         .layer("Forbidden").definedBy("..library.testclasses.mayonlyaccesslayers.forbidden..")
                         .layer("Origin").definedBy("..library.testclasses.mayonlyaccesslayers.origin..")
                         .whereLayer("Origin").mayOnlyAccessLayers("Allowed")
                         .whereLayer("Forbidden").mayNotAccessAnyLayer(),
                 layeredArchitecture()
+                        .consideringAllDependencies()
                         .layer("Allowed").definedBy(
                                 resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.allowed..")
                                         .as("'..library.testclasses.mayonlyaccesslayers.allowed..'"))
@@ -283,9 +293,9 @@ public class LayeredArchitectureTest {
 
     @Test
     @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
-    public void layered_architecture_may_only_access_layers_description(Architectures.LayeredArchitecture architecture) {
+    public void layered_architecture_may_only_access_layers_description(LayeredArchitecture architecture) {
         assertThat(architecture.getDescription()).isEqualTo(
-                "Layered architecture consisting of" + lineSeparator() +
+                "Layered architecture considering all dependencies, consisting of" + lineSeparator() +
                         "layer 'Allowed' ('..library.testclasses.mayonlyaccesslayers.allowed..')" + lineSeparator() +
                         "layer 'Forbidden' ('..library.testclasses.mayonlyaccesslayers.forbidden..')" + lineSeparator() +
                         "layer 'Origin' ('..library.testclasses.mayonlyaccesslayers.origin..')" + lineSeparator() +
@@ -295,7 +305,7 @@ public class LayeredArchitectureTest {
 
     @Test
     @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
-    public void layered_architecture_gathers_may_only_access_layers_violations(Architectures.LayeredArchitecture architecture) {
+    public void layered_architecture_gathers_may_only_access_layers_violations(LayeredArchitecture architecture) {
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
 
         EvaluationResult result = architecture.evaluate(classes);
@@ -314,7 +324,7 @@ public class LayeredArchitectureTest {
 
     @Test
     @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
-    public void layered_architecture_can_ignore_may_only_access_layers_violations(Architectures.LayeredArchitecture architecture) {
+    public void layered_architecture_can_ignore_may_only_access_layers_violations(LayeredArchitecture architecture) {
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("mayonlyaccesslayers"));
 
         architecture = architecture.ignoreDependency(MayOnlyAccessLayersOriginClass.class, MayOnlyAccessLayersForbiddenClass.class)
@@ -323,6 +333,97 @@ public class LayeredArchitectureTest {
                 .ignoreDependency(MayOnlyAccessLayersForbiddenClass.class, MayOnlyAccessLayersOriginClass.class);
 
         assertThat(architecture.evaluate(classes).hasViolation()).as("result has violation").isFalse();
+    }
+
+    @Test
+    public void layered_architecture_supports_dependency_setting_considering_all_dependencies() {
+        LayeredArchitecture layeredArchitecture = defineLayeredArchitectureForDependencySettings(
+                layeredArchitecture().consideringAllDependencies());
+
+        EvaluationResult result = layeredArchitecture.evaluate(new ClassFileImporter().importPackages(absolute("dependencysettings")));
+
+        assertThat(layeredArchitecture.getDescription()).startsWith("Layered architecture considering all dependencies, consisting of");
+        assertPatternMatches(result.getFailureReport().getDetails(),
+                union(
+                        dependencySettingsViolationsInLayers(),
+                        dependencySettingsViolationsOutsideOfLayers(),
+                        dependencySettingsViolationsByJavaLang()
+                ));
+    }
+
+    @Test
+    public void layered_architecture_supports_dependency_setting_considering_only_dependencies_in_any_package() {
+        LayeredArchitecture layeredArchitecture = defineLayeredArchitectureForDependencySettings(
+                layeredArchitecture().consideringOnlyDependenciesInAnyPackage("..dependencysettings..", "..dependencysettings_outside.."));
+
+        EvaluationResult result = layeredArchitecture.evaluate(new ClassFileImporter().importPackages(absolute("dependencysettings")));
+
+        assertThat(layeredArchitecture.getDescription()).startsWith(
+                "Layered architecture considering only dependencies in any package ['..dependencysettings..', '..dependencysettings_outside..'], consisting of");
+        assertPatternMatches(result.getFailureReport().getDetails(),
+                union(
+                        dependencySettingsViolationsInLayers(),
+                        dependencySettingsViolationsOutsideOfLayers()
+                ));
+    }
+
+    @Test
+    public void layered_architecture_supports_dependency_setting_considering_only_dependencies_in_layers() {
+        LayeredArchitecture layeredArchitecture = defineLayeredArchitectureForDependencySettings(
+                layeredArchitecture().consideringOnlyDependenciesInLayers());
+
+        EvaluationResult result = layeredArchitecture.evaluate(new ClassFileImporter().importPackages(absolute("dependencysettings")));
+
+        assertThat(layeredArchitecture.getDescription()).startsWith(
+                "Layered architecture considering only dependencies in layers, consisting of");
+        assertPatternMatches(result.getFailureReport().getDetails(), dependencySettingsViolationsInLayers());
+    }
+
+    private LayeredArchitecture defineLayeredArchitectureForDependencySettings(LayeredArchitecture layeredArchitecture) {
+        return layeredArchitecture
+                .layer("Origin").definedBy("..library.testclasses.dependencysettings.origin..")
+                .layer("Allowed").definedBy("..library.testclasses.dependencysettings.allowed..")
+                .layer("ForbiddenByMayOnlyAccess").definedBy("..library.testclasses.dependencysettings.forbidden_forwards..")
+                .layer("ForbiddenByMayOnlyBeAccessed").definedBy("..library.testclasses.dependencysettings.forbidden_backwards..")
+                .whereLayer("Origin").mayOnlyAccessLayers("Allowed")
+                .whereLayer("Origin").mayNotBeAccessedByAnyLayer()
+                .whereLayer("ForbiddenByMayOnlyBeAccessed").mayNotBeAccessedByAnyLayer()
+                .whereLayer("ForbiddenByMayOnlyBeAccessed").mayNotAccessAnyLayer();
+    }
+
+    private Set<String> dependencySettingsViolationsByJavaLang() {
+        return ImmutableSet.of(
+                expectedInheritancePattern(DependencySettingsOriginClass.class, Object.class),
+                expectedAccessViolationPattern(DependencySettingsOriginClass.class, CONSTRUCTOR_NAME, Object.class, CONSTRUCTOR_NAME),
+                expectedInheritancePattern(DependencySettingsForbiddenByMayOnlyBeAccessed.class, Object.class),
+                expectedAccessViolationPattern(DependencySettingsForbiddenByMayOnlyBeAccessed.class, CONSTRUCTOR_NAME, Object.class, CONSTRUCTOR_NAME)
+        );
+    }
+
+    private Set<String> dependencySettingsViolationsOutsideOfLayers() {
+        return ImmutableSet.of(
+                expectedFieldTypePattern(
+                        DependencySettingsOutsideOfLayersAccessingLayers.class, "origin", DependencySettingsOriginClass.class),
+                expectedFieldTypePattern(
+                        DependencySettingsOriginClass.class, "beingAccessedByLayers", DependencySettingsOutsideOfLayersBeingAccessedByLayers.class)
+        );
+    }
+
+    private Set<String> dependencySettingsViolationsInLayers() {
+        return ImmutableSet.of(
+                expectedFieldTypePattern(
+                        DependencySettingsOriginClass.class, "forbiddenByMayOnlyAccess", DependencySettingsForbiddenByMayOnlyAccess.class),
+                expectedFieldTypePattern(
+                        DependencySettingsForbiddenByMayOnlyAccess.class, "forbiddenByMayOnlyBeAccessed", DependencySettingsForbiddenByMayOnlyBeAccessed.class),
+                expectedFieldTypePattern(
+                        DependencySettingsForbiddenByMayOnlyAccess.class, "origin", DependencySettingsOriginClass.class));
+    }
+
+    static String[] absolute(String... pkgSuffix) {
+        return Arrays.stream(pkgSuffix)
+                .map(s -> OnionArchitectureTest.class.getPackage().getName() + ".testclasses." + s)
+                .map(absolute -> absolute.replaceAll("\\.\\.\\.+", ".."))
+                .toArray(String[]::new);
     }
 
     private String singleLine(EvaluationResult result) {

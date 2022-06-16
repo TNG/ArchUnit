@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Stream;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
@@ -39,6 +41,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.Priority;
 import com.tngtech.archunit.lang.syntax.PredicateAggregator;
+import com.tngtech.archunit.library.Architectures.LayeredArchitecture.DependencySettings;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,11 +50,15 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
+import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackages;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependenciesWhere;
@@ -100,32 +107,36 @@ public final class Architectures {
      * @return An {@link ArchRule} enforcing the specified layered architecture
      */
     @PublicAPI(usage = ACCESS)
-    public static LayeredArchitecture layeredArchitecture() {
-        return new LayeredArchitecture();
+    public static DependencySettings layeredArchitecture() {
+        return new DependencySettings();
     }
 
     public static final class LayeredArchitecture implements ArchRule {
         private final LayerDefinitions layerDefinitions;
         private final Set<LayerDependencySpecification> dependencySpecifications;
+        private final DependencySettings dependencySettings;
         private final PredicateAggregator<Dependency> irrelevantDependenciesPredicate;
         private final Optional<String> overriddenDescription;
         private final boolean optionalLayers;
 
-        private LayeredArchitecture() {
+        private LayeredArchitecture(DependencySettings dependencySettings) {
             this(new LayerDefinitions(),
-                    new LinkedHashSet<LayerDependencySpecification>(),
+                    new LinkedHashSet<>(),
+                    dependencySettings,
                     new PredicateAggregator<Dependency>().thatORs(),
-                    Optional.<String>empty(),
+                    Optional.empty(),
                     false);
         }
 
         private LayeredArchitecture(LayerDefinitions layerDefinitions,
                 Set<LayerDependencySpecification> dependencySpecifications,
+                DependencySettings dependencySettings,
                 PredicateAggregator<Dependency> irrelevantDependenciesPredicate,
                 Optional<String> overriddenDescription,
                 boolean optionalLayers) {
             this.layerDefinitions = layerDefinitions;
             this.dependencySpecifications = dependencySpecifications;
+            this.dependencySettings = dependencySettings;
             this.irrelevantDependenciesPredicate = irrelevantDependenciesPredicate;
             this.overriddenDescription = overriddenDescription;
             this.optionalLayers = optionalLayers;
@@ -140,7 +151,14 @@ public final class Architectures {
          */
         @PublicAPI(usage = ACCESS)
         public LayeredArchitecture withOptionalLayers(boolean optionalLayers) {
-            return new LayeredArchitecture(layerDefinitions, dependencySpecifications, irrelevantDependenciesPredicate, overriddenDescription, optionalLayers);
+            return new LayeredArchitecture(
+                    layerDefinitions,
+                    dependencySpecifications,
+                    dependencySettings,
+                    irrelevantDependenciesPredicate,
+                    overriddenDescription,
+                    optionalLayers
+            );
         }
 
         private LayeredArchitecture addLayerDefinition(LayerDefinition definition) {
@@ -183,7 +201,8 @@ public final class Architectures {
                 return overriddenDescription.get();
             }
 
-            List<String> lines = newArrayList("Layered architecture consisting of" + (optionalLayers ? " (optional)" : ""));
+            String prefix = "Layered architecture " + dependencySettings.description;
+            List<String> lines = newArrayList(prefix + ", consisting of" + (optionalLayers ? " (optional)" : ""));
             for (LayerDefinition definition : layerDefinitions) {
                 lines.add(definition.toString());
             }
@@ -253,10 +272,11 @@ public final class Architectures {
             return ifDependencyIsRelevant(targetPackageMatches);
         }
 
-        private DescribedPredicate<Dependency> ifDependencyIsRelevant(DescribedPredicate<Dependency> originPackageMatches) {
+        private DescribedPredicate<Dependency> ifDependencyIsRelevant(DescribedPredicate<Dependency> predicate) {
+            DescribedPredicate<Dependency> configuredPredicate = dependencySettings.ignoreExcludedDependencies.apply(layerDefinitions, predicate);
             return irrelevantDependenciesPredicate.isPresent() ?
-                    originPackageMatches.or(irrelevantDependenciesPredicate.get()) :
-                    originPackageMatches;
+                    configuredPredicate.or(irrelevantDependenciesPredicate.get()) :
+                    configuredPredicate;
         }
 
         @Override
@@ -284,8 +304,13 @@ public final class Architectures {
         @PublicAPI(usage = ACCESS)
         public LayeredArchitecture as(String newDescription) {
             return new LayeredArchitecture(
-                    layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate, Optional.of(newDescription), optionalLayers);
+                    layerDefinitions,
+                    dependencySpecifications,
+                    dependencySettings,
+                    irrelevantDependenciesPredicate,
+                    Optional.of(newDescription),
+                    optionalLayers
+            );
         }
 
         /**
@@ -316,8 +341,13 @@ public final class Architectures {
         public LayeredArchitecture ignoreDependency(
                 DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
             return new LayeredArchitecture(
-                    layerDefinitions, dependencySpecifications,
-                    irrelevantDependenciesPredicate.add(dependency(origin, target)), overriddenDescription, optionalLayers);
+                    layerDefinitions,
+                    dependencySpecifications,
+                    dependencySettings,
+                    irrelevantDependenciesPredicate.add(dependency(origin, target)),
+                    overriddenDescription,
+                    optionalLayers
+            );
         }
 
         /**
@@ -377,6 +407,10 @@ public final class Architectures {
 
             DescribedPredicate<JavaClass> containsPredicateFor(String layerName) {
                 return containsPredicateFor(singleton(layerName));
+            }
+
+            DescribedPredicate<JavaClass> containsPredicateForAll() {
+                return containsPredicateFor(layerDefinitions.keySet());
             }
 
             DescribedPredicate<JavaClass> containsPredicateFor(final Collection<String> layerNames) {
@@ -515,6 +549,111 @@ public final class Architectures {
                 return String.format("where layer '%s' %s", layerName, descriptionSuffix);
             }
         }
+
+        /**
+         * Defines which dependencies the layered architecture will consider when checking for violations. Which dependencies
+         * are considered relevant depends on the context and the way to define the layered architecture (i.e. are the rules
+         * defined on incoming or outgoing dependencies).<br>
+         * Each setting has advantages and disadvantages. Considering less dependencies makes the rules
+         * more convenient to write and reduces the number of false positives. On the other hand, it will also increase
+         * the likelihood to overlook some unexpected corner cases and thus allow some unexpected violations to creep in unnoticed.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static final class DependencySettings {
+            final String description;
+            final BiFunction<LayerDefinitions, DescribedPredicate<Dependency>, DescribedPredicate<Dependency>> ignoreExcludedDependencies;
+
+            private DependencySettings() {
+                this(null, null);
+            }
+
+            private DependencySettings(String description, BiFunction<LayerDefinitions, DescribedPredicate<Dependency>, DescribedPredicate<Dependency>> ignoreExcludedDependencies) {
+                this.description = description;
+                this.ignoreExcludedDependencies = ignoreExcludedDependencies;
+            }
+
+            /**
+             * Defines {@link DependencySettings dependency settings} that consider all dependencies when checking for violations.
+             * With these settings even dependencies to {@link Object} can lead to violations of the layered architecture.
+             * However, if the rules are only defined on incoming dependencies (e.g. via
+             * {@link LayerDependencySpecification#mayOnlyBeAccessedByLayers(String...) mayOnlyBeAccessedByLayers(..)})
+             * taking all dependencies into account usually works fine and provides a good level of security to detect corner cases
+             * (e.g. dependencies like {@code KnownLayer -> SomewhereCompletelyOutsideOfTheLayers -> IllegalTargetForKnownLayer}).
+             *
+             * @return {@link DependencySettings dependency settings} to be used when checking for violations of the layered architecture
+             */
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture consideringAllDependencies() {
+                return new LayeredArchitecture(setToConsideringAllDependencies());
+            }
+
+            /**
+             * Defines {@link DependencySettings dependency settings} that consider only dependencies from/to certain packages, e.g. the app root.
+             * All dependencies that either have an origin or a target outside these packages will be ignored.
+             * When set to the root package(s) of the application under test this offers a good balance between eliminating false positives
+             * (like dependencies to {@link Object}) and preventing unexpected corner cases that conceal some existing violations
+             * (e.g. dependencies like {@code KnownLayer -> SomewhereCompletelyOutsideOfTheLayers -> IllegalTargetForKnownLayer}).
+             *
+             * @param packageIdentifier {@link PackageMatcher package identifier} defining which origins and targets of dependencies are relevant
+             * @param furtherPackageIdentifiers Additional {@link PackageMatcher package identifiers} defining relevant packages
+             * @return {@link DependencySettings dependency settings} to be used when checking for violations of the layered architecture
+             */
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture consideringOnlyDependenciesInAnyPackage(String packageIdentifier, final String... furtherPackageIdentifiers) {
+                String[] packageIdentifiers = Stream.concat(Stream.of(packageIdentifier), Stream.of(furtherPackageIdentifiers)).toArray(String[]::new);
+                return new LayeredArchitecture(setToConsideringOnlyDependenciesInAnyPackage(packageIdentifiers));
+            }
+
+            /**
+             * Defines {@link DependencySettings dependency settings} that consider only dependencies between the layers.
+             * All dependencies that either have an origin or a target outside any defined layer will be ignored.
+             * This provides a high level of convenience to eliminate false positives (e.g. dependencies on {@link Object}),
+             * but also introduces some danger to overlook corner cases that might conceal some unwanted dependencies.
+             * Take for example a layered architecture
+             * <pre><code>
+             * Controller(..controller..) -> Service(..service..) -> Persistence(..persistence..)</code></pre>
+             * then these {@link DependencySettings dependency settings} would e.g. not detect an unwanted dependency
+             * <pre><code>
+             * myapp.service.MyService -> myapp.utils.SomeShadyUtils -> myapp.controller.MyController</code></pre>
+             * because {@code myapp.utils} is not part of any layer of the layered architecture.
+             * For a better balance to also detect such cases refer to {@link #consideringOnlyDependenciesInAnyPackage(String, String...)}.
+             *
+             * @return {@link DependencySettings dependency settings} to be used when checking for violations of the layered architecture
+             */
+            @PublicAPI(usage = ACCESS)
+            public LayeredArchitecture consideringOnlyDependenciesInLayers() {
+                return new LayeredArchitecture(setToConsideringOnlyDependenciesInLayers());
+            }
+
+            private DependencySettings setToConsideringAllDependencies() {
+                return new DependencySettings(
+                        "considering all dependencies",
+                        (__, predicate) -> predicate
+                );
+            }
+
+            private DependencySettings setToConsideringOnlyDependenciesInAnyPackage(String[] packageIdentifiers) {
+                DescribedPredicate<JavaClass> outsideOfRelevantPackage = resideOutsideOfPackages(packageIdentifiers);
+                return new DependencySettings(
+                        String.format("considering only dependencies in any package ['%s']", Joiner.on("', '").join(packageIdentifiers)),
+                        (__, predicate) -> predicate.or(originOrTargetIs(outsideOfRelevantPackage))
+                );
+            }
+
+            private DependencySettings setToConsideringOnlyDependenciesInLayers() {
+                return new DependencySettings(
+                        "considering only dependencies in layers",
+                        (layerDefinitions, predicate) -> {
+                            DescribedPredicate<JavaClass> notInLayers = not(layerDefinitions.containsPredicateForAll());
+                            return predicate.or(originOrTargetIs(notInLayers));
+                        }
+                );
+            }
+
+            private DescribedPredicate<Dependency> originOrTargetIs(DescribedPredicate<JavaClass> predicate) {
+                return GET_ORIGIN_CLASS.is(predicate).or(GET_TARGET_CLASS.is(predicate));
+            }
+        }
     }
 
     @PublicAPI(usage = ACCESS)
@@ -605,7 +744,7 @@ public final class Architectures {
         }
 
         private LayeredArchitecture layeredArchitectureDelegate() {
-            LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture()
+            LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture().consideringAllDependencies()
                     .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPackageIdentifiers)
                     .layer(DOMAIN_SERVICE_LAYER).definedBy(domainServicePackageIdentifiers)
                     .layer(APPLICATION_SERVICE_LAYER).definedBy(applicationPackageIdentifiers)
