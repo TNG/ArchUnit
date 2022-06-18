@@ -28,6 +28,8 @@ import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 @RunWith(DataProviderRunner.class)
 public class DescribedPredicateTest {
@@ -43,7 +45,7 @@ public class DescribedPredicateTest {
     }
 
     @Test
-    public void and_works() {
+    public void instance_and_works() {
         assertThat(alwaysFalse().and(alwaysFalse())).rejects(new Object());
         assertThat(alwaysFalse().and(alwaysTrue())).rejects(new Object());
         assertThat(alwaysTrue().and(alwaysFalse())).rejects(new Object());
@@ -51,11 +53,69 @@ public class DescribedPredicateTest {
     }
 
     @Test
-    public void or_works() {
+    public void instance_or_works() {
         assertThat(alwaysFalse().or(alwaysFalse())).rejects(new Object());
         assertThat(alwaysFalse().or(alwaysTrue())).accepts(new Object());
         assertThat(alwaysTrue().or(alwaysFalse())).accepts(new Object());
         assertThat(alwaysTrue().or(alwaysTrue())).accepts(new Object());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void static_and_works() {
+        assertThat(DescribedPredicate.and()).rejects(new Object());
+        assertThat(DescribedPredicate.and(emptyList())).rejects(new Object());
+        assertThat(DescribedPredicate.and(new DescribedPredicate[]{alwaysTrue()})).accepts(new Object());
+        assertThat(DescribedPredicate.and(ImmutableList.of(alwaysTrue()))).accepts(new Object());
+        assertThat(DescribedPredicate.and(new DescribedPredicate[]{alwaysFalse()})).rejects(new Object());
+        assertThat(DescribedPredicate.and(ImmutableList.of(alwaysFalse()))).rejects(new Object());
+
+        assertThat(DescribedPredicate.and(alwaysFalse(), alwaysFalse())).rejects(new Object());
+        assertThat(DescribedPredicate.and(ImmutableList.of(alwaysFalse(), alwaysFalse()))).rejects(new Object());
+
+        assertThat(DescribedPredicate.and(alwaysFalse(), alwaysTrue())).rejects(new Object());
+        assertThat(DescribedPredicate.and(ImmutableList.of(alwaysFalse(), alwaysTrue()))).rejects(new Object());
+
+        assertThat(DescribedPredicate.and(alwaysTrue(), alwaysFalse())).rejects(new Object());
+        assertThat(DescribedPredicate.and(ImmutableList.of(alwaysTrue(), alwaysFalse()))).rejects(new Object());
+
+        assertThat(DescribedPredicate.and(alwaysTrue(), alwaysTrue())).accepts(new Object());
+        assertThat(DescribedPredicate.and(ImmutableList.of(alwaysTrue(), alwaysTrue()))).accepts(new Object());
+
+        assertThat(DescribedPredicate.and(alwaysTrue(), alwaysTrue(), alwaysTrue())).accepts(new Object());
+        assertThat(DescribedPredicate.and(ImmutableList.of(alwaysTrue(), alwaysTrue(), alwaysTrue()))).accepts(new Object());
+
+        assertThat(DescribedPredicate.and(alwaysTrue(), alwaysTrue(), alwaysFalse())).rejects(new Object());
+        assertThat(DescribedPredicate.and(ImmutableList.of(alwaysTrue(), alwaysTrue(), alwaysFalse()))).rejects(new Object());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void static_or_works() {
+        assertThat(DescribedPredicate.or()).rejects(new Object());
+        assertThat(DescribedPredicate.or(emptyList())).rejects(new Object());
+        assertThat(DescribedPredicate.or(new DescribedPredicate[]{alwaysTrue()})).accepts(new Object());
+        assertThat(DescribedPredicate.or(ImmutableList.of(alwaysTrue()))).accepts(new Object());
+        assertThat(DescribedPredicate.or(new DescribedPredicate[]{alwaysFalse()})).rejects(new Object());
+        assertThat(DescribedPredicate.or(ImmutableList.of(alwaysFalse()))).rejects(new Object());
+
+        assertThat(DescribedPredicate.or(alwaysFalse(), alwaysFalse())).rejects(new Object());
+        assertThat(DescribedPredicate.or(ImmutableList.of(alwaysFalse(), alwaysFalse()))).rejects(new Object());
+
+        assertThat(DescribedPredicate.or(alwaysFalse(), alwaysTrue())).accepts(new Object());
+        assertThat(DescribedPredicate.or(ImmutableList.of(alwaysFalse(), alwaysTrue()))).accepts(new Object());
+
+        assertThat(DescribedPredicate.or(alwaysTrue(), alwaysFalse())).accepts(new Object());
+        assertThat(DescribedPredicate.or(ImmutableList.of(alwaysTrue(), alwaysFalse()))).accepts(new Object());
+
+        assertThat(DescribedPredicate.or(alwaysTrue(), alwaysTrue())).accepts(new Object());
+        assertThat(DescribedPredicate.or(ImmutableList.of(alwaysTrue(), alwaysTrue()))).accepts(new Object());
+
+        assertThat(DescribedPredicate.or(alwaysFalse(), alwaysFalse(), alwaysFalse())).rejects(new Object());
+        assertThat(DescribedPredicate.or(ImmutableList.of(alwaysFalse(), alwaysFalse(), alwaysFalse()))).rejects(new Object());
+
+        assertThat(DescribedPredicate.or(alwaysFalse(), alwaysFalse(), alwaysTrue())).accepts(new Object());
+        assertThat(DescribedPredicate.or(ImmutableList.of(alwaysFalse(), alwaysFalse(), alwaysTrue()))).accepts(new Object());
     }
 
     @Test
@@ -185,8 +245,8 @@ public class DescribedPredicateTest {
     public void empty_works() {
         assertThat(empty())
                 .hasDescription("empty")
-                .accepts(Collections.emptyList())
-                .accepts(Collections.emptySet())
+                .accepts(emptyList())
+                .accepts(emptySet())
                 .rejects(ImmutableList.of(1))
                 .rejects(Collections.singleton(""));
     }

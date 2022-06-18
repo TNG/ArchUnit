@@ -16,15 +16,22 @@
 package com.tngtech.archunit.base;
 
 import java.util.Optional;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.Iterables.isEmpty;
+import static com.google.common.collect.Iterables.size;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
+import static java.util.stream.StreamSupport.stream;
 
 /**
  * A predicate holding a description.
@@ -73,6 +80,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return getDescription();
     }
 
+    @PublicAPI(usage = ACCESS)
     @SuppressWarnings("unchecked")
     public static <T> DescribedPredicate<T> alwaysTrue() {
         return (DescribedPredicate<T>) ALWAYS_TRUE;
@@ -85,6 +93,7 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
     };
 
+    @PublicAPI(usage = ACCESS)
     @SuppressWarnings("unchecked")
     public static <T> DescribedPredicate<T> alwaysFalse() {
         return (DescribedPredicate<T>) ALWAYS_FALSE;
@@ -97,60 +106,160 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         }
     };
 
+    @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> equalTo(final T object) {
         return new EqualToPredicate<>(object);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static <T extends Comparable<T>> DescribedPredicate<T> lessThan(final T value) {
         return new LessThanPredicate<>(value);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static <T extends Comparable<T>> DescribedPredicate<T> greaterThan(final T value) {
         return new GreaterThanPredicate<>(value);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static <T extends Comparable<T>> DescribedPredicate<T> lessThanOrEqualTo(final T value) {
         return new LessThanOrEqualToPredicate<>(value);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static <T extends Comparable<T>> DescribedPredicate<T> greaterThanOrEqualTo(final T value) {
         return new GreaterThanOrEqualToPredicate<>(value);
     }
 
+    @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> describe(String description, Predicate<? super T> predicate) {
         return new DescribePredicate<>(description, predicate).forSubtype();
     }
 
+    /**
+     * Same as {@link #not(DescribedPredicate)} but with a different description
+     */
+    @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> doesNot(final DescribedPredicate<? super T> predicate) {
         return not(predicate).as("does not %s", predicate.getDescription()).forSubtype();
     }
 
+    /**
+     * Same as {@link #not(DescribedPredicate)} but with a different description
+     */
+    @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> doNot(final DescribedPredicate<? super T> predicate) {
         return not(predicate).as("do not %s", predicate.getDescription()).forSubtype();
     }
 
+    /**
+     * @param predicate Any {@link DescribedPredicate}
+     * @return A predicate that will return {@code true} whenever the original predicate would return {@code false} and vice versa.
+     * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
+     */
+    @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<T> not(final DescribedPredicate<? super T> predicate) {
         return new NotPredicate<>(predicate);
     }
 
+    /**
+     * @see #and(Iterable)
+     */
+    @SafeVarargs
+    @PublicAPI(usage = ACCESS)
+    @SuppressWarnings("RedundantTypeArguments") // Unfortunately not really redundant with JDK 8 :-(
+    public static <T> DescribedPredicate<T> and(DescribedPredicate<? super T>... predicates) {
+        return and(ImmutableList.<DescribedPredicate<? super T>>copyOf(predicates));
+    }
+
+    /**
+     * @param predicates Any number of {@link DescribedPredicate predicates} to join together via *AND*
+     * @return A {@link DescribedPredicate predicate} that returns {@code true}, if all the supplied
+     *         predicates return {@code true}. Otherwise, it returns {@code false}.
+     *         If an empty {@link Iterable} is passed to this method the resulting predicate
+     *         will always return {@code false}.
+     * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
+     */
+    @PublicAPI(usage = ACCESS)
+    public static <T> DescribedPredicate<T> and(Iterable<? extends DescribedPredicate<? super T>> predicates) {
+        return joinPredicates(predicates, (a, b) -> a.and(b));
+    }
+
+    /**
+     * @see #or(Iterable)
+     */
+    @SafeVarargs
+    @PublicAPI(usage = ACCESS)
+    @SuppressWarnings("RedundantTypeArguments") // Unfortunately not really redundant with JDK 8 :-(
+    public static <T> DescribedPredicate<T> or(DescribedPredicate<? super T>... predicates) {
+        return or(ImmutableList.<DescribedPredicate<? super T>>copyOf(predicates));
+    }
+
+    /**
+     * @param predicates Any number of {@link DescribedPredicate predicates} to join together via *OR*
+     * @return A {@link DescribedPredicate predicate} that returns {@code true}, if any of the supplied
+     *         predicates returns {@code true}. Otherwise, it returns {@code false}.
+     *         If an empty {@link Iterable} is passed to this method the resulting predicate
+     *         will always return {@code false}.
+     * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
+     */
+    @PublicAPI(usage = ACCESS)
+    public static <T> DescribedPredicate<T> or(Iterable<? extends DescribedPredicate<? super T>> predicates) {
+        return joinPredicates(predicates, (a, b) -> a.or(b));
+    }
+
+    // DescribedPredicate is contravariant so the cast is safe
+    // Calling .get() is safe because we ensure that we have at least 2 elements ahead of the reduce operation
+    @SuppressWarnings({"unchecked", "OptionalGetWithoutIsPresent"})
+    private static <T> DescribedPredicate<T> joinPredicates(Iterable<? extends DescribedPredicate<? super T>> predicates, BinaryOperator<DescribedPredicate<T>> predicateJoinOperation) {
+        if (isEmpty(predicates)) {
+            return alwaysFalse();
+        }
+        if (size(predicates) == 1) {
+            return getOnlyElement(predicates).forSubtype();
+        }
+
+        return stream(predicates.spliterator(), false)
+                .map(it -> (DescribedPredicate<T>) it)
+                .reduce(predicateJoinOperation)
+                .get();
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static DescribedPredicate<Iterable<?>> empty() {
         return EMPTY;
     }
 
+    @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<Optional<T>> optionalContains(final DescribedPredicate<? super T> predicate) {
         return new OptionalContainsPredicate<>(predicate);
     }
 
+    @PublicAPI(usage = ACCESS)
     // OPTIONAL_EMPTY is independent of the concrete type parameter T of Optional<T>
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> DescribedPredicate<Optional<T>> optionalEmpty() {
         return (DescribedPredicate) OPTIONAL_EMPTY;
     }
 
+    /**
+     * @param predicate A {@link DescribedPredicate} for the elements of the {@link Iterable}
+     * @return A {@link DescribedPredicate predicate} for an {@link Iterable} that returns {@code true}
+     *         if and only if at least one element of the {@link Iterable} matches the given element predicate.
+     * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
+     */
+    @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<Iterable<? extends T>> anyElementThat(final DescribedPredicate<? super T> predicate) {
         return new AnyElementPredicate<>(predicate);
     }
 
+    /**
+     * @param predicate A {@link DescribedPredicate} for the elements of the {@link Iterable}
+     * @return A {@link DescribedPredicate predicate} for an {@link Iterable} that returns {@code true}
+     *         if and only if all elements of the {@link Iterable} matche the given element predicate.
+     * @param <T> The type of object the {@link DescribedPredicate predicate} applies to
+     */
+    @PublicAPI(usage = ACCESS)
     public static <T> DescribedPredicate<Iterable<T>> allElements(final DescribedPredicate<? super T> predicate) {
         return new AllElementsPredicate<>(predicate);
     }
