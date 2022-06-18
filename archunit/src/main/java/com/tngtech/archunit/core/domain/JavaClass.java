@@ -2355,15 +2355,74 @@ public class JavaClass
 
         /**
          * A predicate to determine if a {@link JavaClass} "belongs" to one of the passed {@link Class classes},
-         * where we define "belong" as being equivalent to the class itself or any inner/anonymous class of this class.
+         * where "belong" means that this {@link JavaClass} is equivalent to
+         * <ul>
+         *     <li>any of the passed {@link Class classes}</li>
+         *     <li>any nested/inner/anonymous class of one of the passed {@link Class classes}</li>
+         * </ul>
          *
-         * @param classes The {@link Class classes} to check the {@link JavaClass} against
+         * For example {@code belongToAnyOf(Outer.class)} would apply to the following cases
+         * <pre><code>
+         * class Outer {
+         *     // Inner would match belongToAnyOf(Outer.class) since it is an inner class of Outer
+         *     class Inner {}
+         *
+         *     void call() {
+         *         // this anonymous class would also match belongToAnyOf(Outer.class) since it is declared within Outer
+         *         new Serializable() {}
+         *     }
+         * }
+         *
+         * // this class would not match, since it is neither Outer itself nor nested within the class body of Outer
+         * class Other {}
+         * </code></pre>
+         *
+         * @param classes The {@link Class classes} to check the {@link JavaClass} and its enclosing classes against
          * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} is equivalent to
-         * one of the supplied {@link Class classes} or to one of its inner/anonymous classes.
+         *         one of the supplied {@link Class classes} or is a nested/inner/anonymous class of one of those classes.
+         *
+         * @see #belongTo(DescribedPredicate)
          */
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> belongToAnyOf(Class<?>... classes) {
-            return new BelongToAnyOfPredicate(classes);
+            return belongTo(DescribedPredicate.describe(
+                    "any of " + formatNamesOf(classes),
+                    javaClass -> stream(classes).anyMatch(javaClass::isEquivalentTo)
+            ));
+        }
+
+        /**
+         * A predicate to determine if a {@link JavaClass} "belongs" to a class matching the given predicate,
+         * where "belong" means that this {@link JavaClass} is
+         * <ul>
+         *     <li>directly matching the given predicate</li>
+         *     <li>a nested/inner/anonymous class of another {@link JavaClass} matching the predicate</li>
+         * </ul>
+         *
+         * For example {@code belongTo(annotatedWith(Something.class))} would apply to the following cases
+         * <pre><code>
+         *{@literal @}Something
+         * class Outer {
+         *     // Inner would match belongTo(annotatedWith(Something.class))
+         *     class Inner {}
+         *
+         *     void call() {
+         *         // this anonymous class would also match belongTo(annotatedWith(Something.class))
+         *         new Serializable() {}
+         *     }
+         * }
+         *
+         * // this class would not match, since it does not belong to a class annotated with @Something
+         * class Other {}
+         * </code></pre>
+         *
+         * @param predicate The {@link DescribedPredicate predicate} to check the {@link JavaClass} and enclosing classes against
+         * @return A {@link DescribedPredicate} returning true, if and only if the tested {@link JavaClass} or one of
+         *         its enclosing classes matches the given predicate.
+         */
+        @PublicAPI(usage = ACCESS)
+        public static DescribedPredicate<JavaClass> belongTo(DescribedPredicate<? super JavaClass> predicate) {
+            return new BelongToPredicate(predicate);
         }
 
         /**
@@ -2440,25 +2499,23 @@ public class JavaClass
 
         private static final Function<Optional<JavaStaticInitializer>, Set<JavaStaticInitializer>> AS_SET = Optionals::asSet;
 
-        private static class BelongToAnyOfPredicate extends DescribedPredicate<JavaClass> {
-            private final Class<?>[] classes;
+        private static class BelongToPredicate extends DescribedPredicate<JavaClass> {
+            private final DescribedPredicate<? super JavaClass> predicate;
 
-            BelongToAnyOfPredicate(Class<?>... classes) {
-                super("belong to any of " + formatNamesOf(classes));
-                this.classes = classes;
+            BelongToPredicate(DescribedPredicate<? super JavaClass> predicate) {
+                super("belong to " + predicate.getDescription());
+                this.predicate = predicate;
             }
 
             @Override
             public boolean test(JavaClass input) {
-                return stream(classes).anyMatch(clazz -> belongsTo(input, clazz));
-            }
-
-            private boolean belongsTo(JavaClass input, Class<?> clazz) {
                 JavaClass toTest = input;
-                while (!toTest.isEquivalentTo(clazz) && toTest.getEnclosingClass().isPresent()) {
+                boolean matches = predicate.test(toTest);
+                while (!matches && toTest.getEnclosingClass().isPresent()) {
                     toTest = toTest.getEnclosingClass().get();
+                    matches = predicate.test(toTest);
                 }
-                return toTest.isEquivalentTo(clazz);
+                return matches;
             }
         }
 

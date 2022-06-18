@@ -15,12 +15,15 @@ import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.rest.R
 import com.tngtech.archunit.library.testclasses.onionarchitecture.application.ApplicationLayerClass;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.model.DomainModelLayerClass;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.service.DomainServiceLayerClass;
+import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.library.Architectures.onionArchitecture;
@@ -29,6 +32,7 @@ import static com.tngtech.archunit.library.LayeredArchitectureTest.assertPattern
 import static com.tngtech.archunit.library.LayeredArchitectureTest.expectedAccessViolationPattern;
 import static com.tngtech.archunit.library.LayeredArchitectureTest.expectedEmptyLayerPattern;
 import static com.tngtech.archunit.library.LayeredArchitectureTest.expectedFieldTypePattern;
+import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.toSet;
@@ -37,16 +41,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(DataProviderRunner.class)
 public class OnionArchitectureTest {
 
-    @Test
-    public void onion_architecture_description() {
-        OnionArchitecture architecture = onionArchitecture()
-                .domainModels("onionarchitecture.domain.model..")
-                .domainServices("onionarchitecture.domain.service..")
-                .applicationServices("onionarchitecture.application..")
-                .adapter("cli", "onionarchitecture.adapter.cli..")
-                .adapter("persistence", "onionarchitecture.adapter.persistence..")
-                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..");
+    @DataProvider
+    public static Object[][] data_onion_architecture_description() {
+        return testForEach(
+                onionArchitecture()
+                        .domainModels("onionarchitecture.domain.model..")
+                        .domainServices("onionarchitecture.domain.service..")
+                        .applicationServices("onionarchitecture.application..")
+                        .adapter("cli", "onionarchitecture.adapter.cli..")
+                        .adapter("persistence", "onionarchitecture.adapter.persistence..")
+                        .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query.."),
+                onionArchitecture()
+                        .domainModels(alwaysTrue().as("'onionarchitecture.domain.model..'"))
+                        .domainServices(alwaysTrue().as("'onionarchitecture.domain.service..'"))
+                        .applicationServices(alwaysTrue().as("'onionarchitecture.application..'"))
+                        .adapter("cli", alwaysTrue().as("'onionarchitecture.adapter.cli..'"))
+                        .adapter("persistence", alwaysTrue().as("'onionarchitecture.adapter.persistence..'"))
+                        .adapter("rest", alwaysTrue().as("'onionarchitecture.adapter.rest.command..', 'onionarchitecture.adapter.rest.query..'"))
+        );
+    }
 
+    @Test
+    @UseDataProvider
+    public void test_onion_architecture_description(OnionArchitecture architecture) {
         assertThat(architecture.getDescription()).isEqualTo(
                 "Onion architecture consisting of" + lineSeparator() +
                         "domain models ('onionarchitecture.domain.model..')" + lineSeparator() +
@@ -94,9 +111,23 @@ public class OnionArchitectureTest {
         assertThat(architecture.getDescription()).isEqualTo("overridden, because some reason");
     }
 
+    @DataProvider
+    public static Object[][] data_onion_architecture_gathers_all_violations() {
+        return testForEach(
+                getTestOnionArchitecture(),
+                onionArchitecture()
+                        .domainModels(resideInAnyPackage(absolute("onionarchitecture.domain.model")))
+                        .domainServices(resideInAnyPackage(absolute("onionarchitecture.domain.service")))
+                        .applicationServices(resideInAnyPackage(absolute("onionarchitecture.application")))
+                        .adapter("cli", resideInAnyPackage(absolute("onionarchitecture.adapter.cli")))
+                        .adapter("persistence", resideInAnyPackage(absolute("onionarchitecture.adapter.persistence")))
+                        .adapter("rest", resideInAnyPackage(absolute("onionarchitecture.adapter.rest")))
+        );
+    }
+
     @Test
-    public void onion_architecture_gathers_all_violations() {
-        OnionArchitecture architecture = getTestOnionArchitecture();
+    @UseDataProvider
+    public void test_onion_architecture_gathers_all_violations(OnionArchitecture architecture) {
         JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
 
         EvaluationResult result = architecture.evaluate(classes);
@@ -164,7 +195,7 @@ public class OnionArchitectureTest {
         assertFailureOnionArchitectureWithEmptyLayers(result);
     }
 
-    private OnionArchitecture getTestOnionArchitecture() {
+    private static OnionArchitecture getTestOnionArchitecture() {
         return onionArchitecture()
                 .domainModels(absolute("onionarchitecture.domain.model"))
                 .domainServices(absolute("onionarchitecture.domain.service"))

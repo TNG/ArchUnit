@@ -16,7 +16,6 @@
 package com.tngtech.archunit.library;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -51,6 +50,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.base.DescribedPredicate.or;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
@@ -82,7 +82,7 @@ public final class Architectures {
     }
 
     /**
-     * Can be used to assert a typical layered architecture, e.g. with an UI layer, a business logic layer and
+     * Can be used to assert a typical layered architecture, e.g. with a UI layer, a business logic layer and
      * a persistence layer, where specific access rules should be adhered to, like UI may not access persistence
      * and each layer may only access lower layers, i.e. UI &rarr; business logic &rarr; persistence.
      * <br><br>
@@ -668,10 +668,10 @@ public final class Architectures {
         private static final String ADAPTER_LAYER = "adapter";
 
         private final Optional<String> overriddenDescription;
-        private String[] domainModelPackageIdentifiers = new String[0];
-        private String[] domainServicePackageIdentifiers = new String[0];
-        private String[] applicationPackageIdentifiers = new String[0];
-        private Map<String, String[]> adapterPackageIdentifiers = new LinkedHashMap<>();
+        private Optional<DescribedPredicate<? super JavaClass>> domainModelPredicate = Optional.empty();
+        private Optional<DescribedPredicate<? super JavaClass>> domainServicePredicate = Optional.empty();
+        private Optional<DescribedPredicate<? super JavaClass>> applicationPredicate = Optional.empty();
+        private Map<String, DescribedPredicate<? super JavaClass>> adapterPredicates = new LinkedHashMap<>();
         private boolean optionalLayers = false;
         private List<IgnoredDependency> ignoredDependencies = new ArrayList<>();
 
@@ -679,41 +679,62 @@ public final class Architectures {
             overriddenDescription = Optional.empty();
         }
 
-        private OnionArchitecture(String[] domainModelPackageIdentifiers,
-                String[] domainServicePackageIdentifiers,
-                String[] applicationPackageIdentifiers,
-                Map<String, String[]> adapterPackageIdentifiers,
+        private OnionArchitecture(
+                Optional<DescribedPredicate<? super JavaClass>> domainModelPredicate,
+                Optional<DescribedPredicate<? super JavaClass>> domainServicePredicate,
+                Optional<DescribedPredicate<? super JavaClass>> applicationPredicate,
+                Map<String, DescribedPredicate<? super JavaClass>> adapterPredicates,
                 List<IgnoredDependency> ignoredDependencies,
                 Optional<String> overriddenDescription) {
-            this.domainModelPackageIdentifiers = domainModelPackageIdentifiers;
-            this.domainServicePackageIdentifiers = domainServicePackageIdentifiers;
-            this.applicationPackageIdentifiers = applicationPackageIdentifiers;
-            this.adapterPackageIdentifiers = adapterPackageIdentifiers;
+            this.domainModelPredicate = domainModelPredicate;
+            this.domainServicePredicate = domainServicePredicate;
+            this.applicationPredicate = applicationPredicate;
+            this.adapterPredicates = adapterPredicates;
             this.ignoredDependencies = ignoredDependencies;
             this.overriddenDescription = overriddenDescription;
         }
 
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture domainModels(String... packageIdentifiers) {
-            domainModelPackageIdentifiers = packageIdentifiers;
+            return domainModels(byPackagePredicate(packageIdentifiers));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture domainModels(DescribedPredicate<? super JavaClass> predicate) {
+            domainModelPredicate = Optional.of(predicate);
             return this;
         }
 
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture domainServices(String... packageIdentifiers) {
-            domainServicePackageIdentifiers = packageIdentifiers;
+            return domainServices(byPackagePredicate(packageIdentifiers));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture domainServices(DescribedPredicate<? super JavaClass> predicate) {
+            domainServicePredicate = Optional.of(predicate);
             return this;
         }
 
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture applicationServices(String... packageIdentifiers) {
-            applicationPackageIdentifiers = packageIdentifiers;
+            return applicationServices(byPackagePredicate(packageIdentifiers));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture applicationServices(DescribedPredicate<? super JavaClass> predicate) {
+            applicationPredicate = Optional.of(predicate);
             return this;
         }
 
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture adapter(String name, String... packageIdentifiers) {
-            adapterPackageIdentifiers.put(name, packageIdentifiers);
+            return adapter(name, byPackagePredicate(packageIdentifiers));
+        }
+
+        @PublicAPI(usage = ACCESS)
+        public OnionArchitecture adapter(String name, DescribedPredicate<? super JavaClass> predicate) {
+            adapterPredicates.put(name, predicate);
             return this;
         }
 
@@ -743,18 +764,22 @@ public final class Architectures {
             return this;
         }
 
+        private DescribedPredicate<JavaClass> byPackagePredicate(String[] packageIdentifiers) {
+            return resideInAnyPackage(packageIdentifiers).as(joinSingleQuoted(packageIdentifiers));
+        }
+
         private LayeredArchitecture layeredArchitectureDelegate() {
             LayeredArchitecture layeredArchitectureDelegate = layeredArchitecture().consideringAllDependencies()
-                    .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPackageIdentifiers)
-                    .layer(DOMAIN_SERVICE_LAYER).definedBy(domainServicePackageIdentifiers)
-                    .layer(APPLICATION_SERVICE_LAYER).definedBy(applicationPackageIdentifiers)
-                    .layer(ADAPTER_LAYER).definedBy(concatenateAll(adapterPackageIdentifiers.values()))
+                    .layer(DOMAIN_MODEL_LAYER).definedBy(domainModelPredicate.orElse(alwaysFalse()))
+                    .layer(DOMAIN_SERVICE_LAYER).definedBy(domainServicePredicate.orElse(alwaysFalse()))
+                    .layer(APPLICATION_SERVICE_LAYER).definedBy(applicationPredicate.orElse(alwaysFalse()))
+                    .layer(ADAPTER_LAYER).definedBy(or(adapterPredicates.values()))
                     .whereLayer(DOMAIN_MODEL_LAYER).mayOnlyBeAccessedByLayers(DOMAIN_SERVICE_LAYER, APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
                     .whereLayer(DOMAIN_SERVICE_LAYER).mayOnlyBeAccessedByLayers(APPLICATION_SERVICE_LAYER, ADAPTER_LAYER)
                     .whereLayer(APPLICATION_SERVICE_LAYER).mayOnlyBeAccessedByLayers(ADAPTER_LAYER)
                     .withOptionalLayers(optionalLayers);
 
-            for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
+            for (Map.Entry<String, DescribedPredicate<? super JavaClass>> adapter : adapterPredicates.entrySet()) {
                 String adapterLayer = getAdapterLayer(adapter.getKey());
                 layeredArchitectureDelegate = layeredArchitectureDelegate
                         .layer(adapterLayer).definedBy(adapter.getValue())
@@ -764,10 +789,6 @@ public final class Architectures {
                 layeredArchitectureDelegate = ignoredDependency.ignoreFor(layeredArchitectureDelegate);
             }
             return layeredArchitectureDelegate.as(getDescription());
-        }
-
-        private String[] concatenateAll(Collection<String[]> arrays) {
-            return arrays.stream().flatMap(Arrays::stream).toArray(String[]::new);
         }
 
         private String getAdapterLayer(String name) {
@@ -795,8 +816,8 @@ public final class Architectures {
 
         @Override
         public OnionArchitecture as(String newDescription) {
-            return new OnionArchitecture(domainModelPackageIdentifiers, domainServicePackageIdentifiers,
-                    applicationPackageIdentifiers, adapterPackageIdentifiers, ignoredDependencies,
+            return new OnionArchitecture(domainModelPredicate, domainServicePredicate,
+                    applicationPredicate, adapterPredicates, ignoredDependencies,
                     Optional.of(newDescription));
         }
 
@@ -812,19 +833,21 @@ public final class Architectures {
             }
 
             List<String> lines = newArrayList("Onion architecture consisting of" + (optionalLayers ? " (optional)" : ""));
-            if (domainModelPackageIdentifiers.length > 0) {
-                lines.add(String.format("domain models ('%s')", Joiner.on("', '").join(domainModelPackageIdentifiers)));
-            }
-            if (domainServicePackageIdentifiers.length > 0) {
-                lines.add(String.format("domain services ('%s')", Joiner.on("', '").join(domainServicePackageIdentifiers)));
-            }
-            if (applicationPackageIdentifiers.length > 0) {
-                lines.add(String.format("application services ('%s')", Joiner.on("', '").join(applicationPackageIdentifiers)));
-            }
-            for (Map.Entry<String, String[]> adapter : adapterPackageIdentifiers.entrySet()) {
-                lines.add(String.format("adapter '%s' ('%s')", adapter.getKey(), Joiner.on("', '").join(adapter.getValue())));
+            domainModelPredicate.ifPresent(describedPredicate ->
+                    lines.add(String.format("domain models (%s)", describedPredicate.getDescription())));
+            domainServicePredicate.ifPresent(describedPredicate ->
+                    lines.add(String.format("domain services (%s)", describedPredicate.getDescription())));
+            applicationPredicate.ifPresent(describedPredicate ->
+                    lines.add(String.format("application services (%s)", describedPredicate.getDescription())));
+            for (Map.Entry<String, DescribedPredicate<? super JavaClass>> adapter : adapterPredicates.entrySet()) {
+                lines.add(String.format("adapter '%s' (%s)", adapter.getKey(), adapter.getValue().getDescription()));
             }
             return Joiner.on(lineSeparator()).join(lines);
+        }
+
+        @Override
+        public String toString() {
+            return getDescription();
         }
 
         private static class IgnoredDependency {

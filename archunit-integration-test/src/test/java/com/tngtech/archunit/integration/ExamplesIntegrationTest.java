@@ -1099,6 +1099,8 @@ class ExamplesIntegrationTest {
 
         addExpectedCommonFailure.accept("onion_architecture_is_respected_with_exception", expectedTestFailures);
 
+        ExpectedOnionArchitectureByAnnotationFailures.addTo(expectedTestFailures);
+
         return expectedTestFailures.toDynamicTests();
     }
 

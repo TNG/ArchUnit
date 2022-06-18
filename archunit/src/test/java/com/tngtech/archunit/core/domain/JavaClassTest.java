@@ -53,6 +53,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
@@ -64,6 +65,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_STATIC_IN
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyCodeUnitsThat;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyConstructorsThat;
@@ -1830,15 +1832,26 @@ public class JavaClassTest {
                 .hasDescription("equivalent to " + Parent.class.getName());
     }
 
+    @DataProvider
+    public static Object[][] data_predicate_belong_to() {
+        return testForEach(
+                belongToAnyOf(Object.class, ClassWithNamedAndAnonymousInnerClasses.class),
+                belongTo(describe(
+                        String.format("any of [%s, %s]", Object.class.getName(), ClassWithNamedAndAnonymousInnerClasses.class.getName()),
+                        javaClass -> javaClass.isEquivalentTo(Object.class) || javaClass.isEquivalentTo(ClassWithNamedAndAnonymousInnerClasses.class)))
+        );
+    }
+
     @Test
-    public void predicate_belong_to() {
+    @UseDataProvider
+    public void test_predicate_belong_to(DescribedPredicate<JavaClass> belongToPredicate) {
         JavaClasses classes = new ClassFileImporter().importPackagesOf(getClass());
         JavaClass outerAnonymous =
                 getOnlyClassSettingField(classes, ClassWithNamedAndAnonymousInnerClasses.name_of_fieldIndicatingOuterAnonymousInnerClass);
         JavaClass nestedAnonymous =
                 getOnlyClassSettingField(classes, ClassWithNamedAndAnonymousInnerClasses.name_of_fieldIndicatingNestedAnonymousInnerClass);
 
-        assertThat(belongToAnyOf(Object.class, ClassWithNamedAndAnonymousInnerClasses.class))
+        assertThat(belongToPredicate)
                 .hasDescription(String.format("belong to any of [%s, %s]",
                         Object.class.getName(), ClassWithNamedAndAnonymousInnerClasses.class.getName()))
                 .accepts(classes.get(ClassWithNamedAndAnonymousInnerClasses.class))
