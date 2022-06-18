@@ -21,6 +21,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Function;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
@@ -71,9 +72,9 @@ import static java.util.Collections.singleton;
  * Which dependencies should be considered by the rule can be configured via {@link Configuration}.
  * Candidates are
  * <ul>
- *     <li>{@link Configurations#consideringAllDependencies()}</li>
- *     <li>{@link Configurations#consideringOnlyDependenciesInDiagram()}</li>
- *     <li>{@link Configurations#consideringOnlyDependenciesInAnyPackage(String, String...)}</li>
+ *     <li>{@link Configuration#consideringAllDependencies()}</li>
+ *     <li>{@link Configuration#consideringOnlyDependenciesInDiagram()}</li>
+ *     <li>{@link Configuration#consideringOnlyDependenciesInAnyPackage(String, String...)}</li>
  * </ul>
  * <br>
  * A PlantUML diagram used with ArchUnit must abide by a certain set of rules:
@@ -210,8 +211,24 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
         }
     }
 
-    public static final class Configurations {
-        private Configurations() {
+    /**
+     * Used to specify which dependencies should be checked by the condition. Possible options are:
+     * <ul>
+     *     <li>{@link #consideringAllDependencies()}</li>
+     *     <li>{@link #consideringOnlyDependenciesInDiagram()}</li>
+     *     <li>{@link #consideringOnlyDependenciesInAnyPackage(String, String...)}</li>
+     * </ul>
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final class Configuration {
+        private final Function<JavaClassDiagramAssociation, DescribedPredicate<Dependency>> createIgnorePredicate;
+
+        private Configuration(Function<JavaClassDiagramAssociation, DescribedPredicate<Dependency>> createIgnorePredicate) {
+            this.createIgnorePredicate = createIgnorePredicate;
+        }
+
+        DescribedPredicate<Dependency> asIgnorePredicate(JavaClassDiagramAssociation javaClassDiagramAssociation) {
+            return createIgnorePredicate.apply(javaClassDiagramAssociation);
         }
 
         /**
@@ -219,7 +236,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
          */
         @PublicAPI(usage = ACCESS)
         public static Configuration consideringAllDependencies() {
-            return javaClassDiagramAssociation -> DescribedPredicate.<Dependency>alwaysFalse().as("");
+            return new Configuration(javaClassDiagramAssociation -> DescribedPredicate.<Dependency>alwaysFalse().as(""));
         }
 
         /**
@@ -229,7 +246,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
          */
         @PublicAPI(usage = ACCESS)
         public static Configuration consideringOnlyDependenciesInDiagram() {
-            return NotContainedInDiagramPredicate::new;
+            return new Configuration(NotContainedInDiagramPredicate::new);
         }
 
         /**
@@ -243,7 +260,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
                     .append(furtherPackageIdentifiers)
                     .toList();
 
-            return javaClassDiagramAssociation -> new NotContainedInPackagesPredicate(packageIdentifiers);
+            return new Configuration(javaClassDiagramAssociation -> new NotContainedInPackagesPredicate(packageIdentifiers));
         }
 
         private static class NotContainedInDiagramPredicate extends DescribedPredicate<Dependency> {
@@ -273,17 +290,5 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
                 return !PackageMatchers.of(packageIdentifiers).test(input.getTargetClass().getPackageName());
             }
         }
-    }
-
-    /**
-     * Used to specify which dependencies should be checked by the condition. Compare concrete instances:
-     * <ul>
-     *     <li>{@link Configurations#consideringAllDependencies()}</li>
-     *     <li>{@link Configurations#consideringOnlyDependenciesInDiagram()}</li>
-     *     <li>{@link Configurations#consideringOnlyDependenciesInAnyPackage(String, String...)}</li>
-     * </ul>
-     */
-    interface Configuration {
-        DescribedPredicate<Dependency> asIgnorePredicate(JavaClassDiagramAssociation javaClassDiagramAssociation);
     }
 }

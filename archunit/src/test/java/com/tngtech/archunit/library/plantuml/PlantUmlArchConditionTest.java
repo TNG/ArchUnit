@@ -35,9 +35,9 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.assertNoViolation;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.consideringAllDependencies;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.consideringOnlyDependenciesInAnyPackage;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configurations.consideringOnlyDependenciesInDiagram;
+import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration.consideringAllDependencies;
+import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInAnyPackage;
+import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInDiagram;
 import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.adhereToPlantUmlDiagram;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
