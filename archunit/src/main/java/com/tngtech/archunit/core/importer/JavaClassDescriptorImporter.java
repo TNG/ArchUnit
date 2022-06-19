@@ -70,6 +70,10 @@ class JavaClassDescriptorImporter {
         return LAMBDA_METHOD_PATTERN.matcher(methodName).matches();
     }
 
+    static boolean isSyntheticEnumSwitchMapFieldName(String methodName) {
+        return methodName.startsWith("$SwitchMap$");
+    }
+
     static Object importAsmTypeIfPossible(Object value) {
         return isAsmType(value) ? importAsmType(value) : value;
     }
