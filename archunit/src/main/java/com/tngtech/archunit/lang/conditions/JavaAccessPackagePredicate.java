@@ -19,8 +19,8 @@ import java.util.function.Function;
 
 import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.PackageMatchers;
 
 class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
     private final Function<JavaAccess<?>, String> getPackageName;

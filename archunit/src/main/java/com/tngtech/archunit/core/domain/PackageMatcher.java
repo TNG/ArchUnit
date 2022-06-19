@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.base;
+package com.tngtech.archunit.core.domain;
 
 import java.util.List;
 import java.util.Optional;

@@ -2,8 +2,8 @@ package com.tngtech.archunit.exampletest;
 
 import java.net.URL;
 
-import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.PackageMatchers;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.example.plantuml.catalog.ProductCatalog;
 import com.tngtech.archunit.example.plantuml.order.Order;

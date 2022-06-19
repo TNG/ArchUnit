@@ -28,10 +28,10 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.PackageMatcher;
-import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.PackageMatcher;
+import com.tngtech.archunit.core.domain.PackageMatchers;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 

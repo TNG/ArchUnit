@@ -19,7 +19,6 @@ import java.lang.annotation.Annotation;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
@@ -29,6 +28,7 @@ import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
+import com.tngtech.archunit.core.domain.PackageMatcher;
 import com.tngtech.archunit.core.domain.properties.HasName.Predicates;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;

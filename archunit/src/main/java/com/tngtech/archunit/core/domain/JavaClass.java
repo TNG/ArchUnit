@@ -34,7 +34,6 @@ import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.Optionals;
-import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
 import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;

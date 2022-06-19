@@ -1,4 +1,4 @@
-package com.tngtech.archunit.base;
+package com.tngtech.archunit.core.domain;
 
 import org.junit.Test;
 
