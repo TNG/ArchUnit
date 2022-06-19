@@ -17,17 +17,18 @@ package com.tngtech.archunit.lang.conditions;
 
 import java.util.function.Function;
 
-import com.google.common.base.Joiner;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.PackageMatchers;
+
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 
 class JavaAccessPackagePredicate extends DescribedPredicate<JavaAccess<?>> {
     private final Function<JavaAccess<?>, String> getPackageName;
     private final PackageMatchers packageMatchers;
 
     private JavaAccessPackagePredicate(String[] packageIdentifiers, Function<JavaAccess<?>, String> getPackageName) {
-        super(String.format("any package ['%s']", Joiner.on("', '").join(packageIdentifiers)));
+        super(String.format("any package [%s]", joinSingleQuoted(packageIdentifiers)));
         this.getPackageName = getPackageName;
         packageMatchers = PackageMatchers.of(packageIdentifiers);
     }

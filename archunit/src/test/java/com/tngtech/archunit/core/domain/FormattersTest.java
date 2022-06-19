@@ -21,10 +21,13 @@ import org.junit.runner.RunWith;
 import static com.google.common.collect.ImmutableList.of;
 import static com.google.common.collect.Sets.union;
 import static com.google.common.primitives.Primitives.allPrimitiveTypes;
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
+import static java.util.Arrays.stream;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toList;
 
 @RunWith(DataProviderRunner.class)
 public class FormattersTest {
@@ -116,5 +119,23 @@ public class FormattersTest {
     @UseDataProvider("canonical_array_name_test_cases")
     public void ensureCanonicalArrayTypeName(String input, String expected) {
         assertThat(Formatters.ensureCanonicalArrayTypeName(input)).as("Canonical name of '%s'", input).isEqualTo(expected);
+    }
+
+    @DataProvider
+    public static Object[][] data_joinSingleQuoted() {
+        return $$(
+                $(new String[0], ""),
+                $(new String[]{"one"}, "'one'"),
+                $(new String[]{"one", "two"}, "'one', 'two'"),
+                $(new String[]{"one", "two", "three"}, "'one', 'two', 'three'"),
+                $(new String[]{"", ""}, "'', ''")
+        );
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_joinSingleQuoted(String[] input, String expectedOutput) {
+        assertThat(joinSingleQuoted(input)).isEqualTo(expectedOutput);
+        assertThat(joinSingleQuoted(stream(input).collect(toList()))).isEqualTo(expectedOutput);
     }
 }

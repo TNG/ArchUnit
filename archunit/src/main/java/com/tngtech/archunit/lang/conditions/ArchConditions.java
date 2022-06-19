@@ -73,6 +73,7 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyO
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
 import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_ACCESSES_TO_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNIT_CALLS_FROM_SELF;
@@ -362,8 +363,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyHaveDependentsInAnyPackage(String... packageIdentifiers) {
-        String description = String.format("only have dependents in any package ['%s']",
-                Joiner.on("', '").join(packageIdentifiers));
+        String description = String.format("only have dependents in any package [%s]", joinSingleQuoted(packageIdentifiers));
         return onlyHaveDependentsWhere(dependencyOrigin(GET_PACKAGE_NAME.is(PackageMatchers.of(packageIdentifiers))))
                 .as(description);
     }
@@ -398,8 +398,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static AllDependenciesCondition onlyHaveDependenciesInAnyPackage(String... packageIdentifiers) {
-        String description = String.format("only have dependencies in any package ['%s']",
-                Joiner.on("', '").join(packageIdentifiers));
+        String description = String.format("only have dependencies in any package [%s]", joinSingleQuoted(packageIdentifiers));
         return onlyHaveDependenciesWhere(dependencyTarget(GET_PACKAGE_NAME.is(PackageMatchers.of(packageIdentifiers))))
                 .as(description);
     }

@@ -23,7 +23,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Function;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
@@ -39,6 +38,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependenciesInAnyPackage;
 import static java.util.Collections.singleton;
@@ -281,7 +281,7 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
             private final List<String> packageIdentifiers;
 
             NotContainedInPackagesPredicate(List<String> packageIdentifiers) {
-                super(" while ignoring dependencies outside of packages ['%s']", Joiner.on("', '").join(packageIdentifiers));
+                super(" while ignoring dependencies outside of packages [%s]", joinSingleQuoted(packageIdentifiers));
                 this.packageIdentifiers = packageIdentifiers;
             }
 

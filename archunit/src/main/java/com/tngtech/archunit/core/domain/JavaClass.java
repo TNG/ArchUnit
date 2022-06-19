@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
@@ -52,6 +51,7 @@ import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CONSTRUCTORS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
@@ -2325,7 +2325,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> resideInAnyPackage(final String... packageIdentifiers) {
             return resideInAnyPackage(packageIdentifiers,
-                    String.format("reside in any package ['%s']", Joiner.on("', '").join(packageIdentifiers)));
+                    String.format("reside in any package [%s]", joinSingleQuoted(packageIdentifiers)));
         }
 
         private static DescribedPredicate<JavaClass> resideInAnyPackage(final String[] packageIdentifiers, final String description) {
@@ -2342,7 +2342,7 @@ public class JavaClass
         @PublicAPI(usage = ACCESS)
         public static DescribedPredicate<JavaClass> resideOutsideOfPackages(String... packageIdentifiers) {
             return not(JavaClass.Predicates.resideInAnyPackage(packageIdentifiers))
-                    .as("reside outside of packages ['%s']", Joiner.on("', '").join(packageIdentifiers));
+                    .as("reside outside of packages [%s]", joinSingleQuoted(packageIdentifiers));
         }
 
         /**

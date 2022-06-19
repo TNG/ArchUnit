@@ -56,6 +56,7 @@ import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_C
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyTarget;
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackages;
@@ -457,8 +458,7 @@ public final class Architectures {
              */
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture definedBy(String... packageIdentifiers) {
-                String description = String.format("'%s'", Joiner.on("', '").join(packageIdentifiers));
-                return definedBy(resideInAnyPackage(packageIdentifiers).as(description));
+                return definedBy(resideInAnyPackage(packageIdentifiers).as(joinSingleQuoted(packageIdentifiers)));
             }
 
             boolean isOptional() {
@@ -506,7 +506,7 @@ public final class Architectures {
              */
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyBeAccessedByLayers(String... layerNames) {
-                return restrictLayers(LayerDependencyConstraint.ORIGIN, layerNames, "may only be accessed by layers ['%s']");
+                return restrictLayers(LayerDependencyConstraint.ORIGIN, layerNames, "may only be accessed by layers [%s]");
             }
 
             /**
@@ -525,7 +525,7 @@ public final class Architectures {
              */
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture mayOnlyAccessLayers(String... layerNames) {
-                return restrictLayers(LayerDependencyConstraint.TARGET, layerNames, "may only access layers ['%s']");
+                return restrictLayers(LayerDependencyConstraint.TARGET, layerNames, "may only access layers [%s]");
             }
 
             private LayeredArchitecture denyLayerAccess(LayerDependencyConstraint constraint, String description) {
@@ -540,7 +540,7 @@ public final class Architectures {
                 checkLayerNamesExist(layerNames);
                 allowedLayers.addAll(asList(layerNames));
                 this.constraint = constraint;
-                descriptionSuffix = String.format(descriptionTemplate, Joiner.on("', '").join(layerNames));
+                descriptionSuffix = String.format(descriptionTemplate, joinSingleQuoted(layerNames));
                 return LayeredArchitecture.this.addDependencySpecification(this);
             }
 
@@ -635,7 +635,7 @@ public final class Architectures {
             private DependencySettings setToConsideringOnlyDependenciesInAnyPackage(String[] packageIdentifiers) {
                 DescribedPredicate<JavaClass> outsideOfRelevantPackage = resideOutsideOfPackages(packageIdentifiers);
                 return new DependencySettings(
-                        String.format("considering only dependencies in any package ['%s']", Joiner.on("', '").join(packageIdentifiers)),
+                        String.format("considering only dependencies in any package [%s]", joinSingleQuoted(packageIdentifiers)),
                         (__, predicate) -> predicate.or(originOrTargetIs(outsideOfRelevantPackage))
                 );
             }

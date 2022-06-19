@@ -18,19 +18,19 @@ package com.tngtech.archunit.core.domain;
 import java.util.Collection;
 import java.util.Set;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 
 @PublicAPI(usage = ACCESS)
 public final class PackageMatchers extends DescribedPredicate<String> {
     private final Set<PackageMatcher> packageMatchers;
 
     private PackageMatchers(Set<String> packageIdentifiers) {
-        super("matches any of ['%s']", Joiner.on("', '").join(packageIdentifiers));
+        super("matches any of [%s]", joinSingleQuoted(packageIdentifiers));
         ImmutableSet.Builder<PackageMatcher> matchers = ImmutableSet.builder();
         for (String identifier : packageIdentifiers) {
             matchers.add(PackageMatcher.of(identifier));

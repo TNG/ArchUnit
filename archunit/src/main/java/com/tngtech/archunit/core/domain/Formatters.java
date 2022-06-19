@@ -16,6 +16,8 @@
 package com.tngtech.archunit.core.domain;
 
 import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -24,6 +26,8 @@ import com.tngtech.archunit.PublicAPI;
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 public final class Formatters {
@@ -97,18 +101,19 @@ public final class Formatters {
         return result.build();
     }
 
-    // Excluding the '$' character might be incorrect, but since '$' is a valid character of a class name
-    // and also the delimiter within the fully qualified name between an inner class and its enclosing class,
-    // there is no clean way to derive the simple name from just a fully qualified class name without
-    // further information
-    // Luckily for imported classes we can read this information from the bytecode
     /**
      * @param name A possibly fully qualified class name
      * @return A best guess of the simple name, i.e. prefixes like 'a.b.c.' cut off, 'Some$' of 'Some$Inner' as well.
-     * Returns an empty String, if the name belongs to an anonymous class (e.g. some.Type$1).
+     *         Returns an empty String, if the name belongs to an anonymous class (e.g. some.Type$1).
      */
     @PublicAPI(usage = ACCESS)
     public static String ensureSimpleName(String name) {
+        // Excluding the '$' character might be incorrect, but since '$' is a valid character of a class name
+        // and also the delimiter within the fully qualified name between an inner class and its enclosing class,
+        // there is no clean way to derive the simple name from just a fully qualified class name without
+        // further information
+        // Luckily for imported classes we can read this information from the bytecode
+
         int lastIndexOfDot = name.lastIndexOf('.');
         String partAfterDot = lastIndexOfDot >= 0 ? name.substring(lastIndexOfDot + 1) : name;
 
@@ -150,5 +155,27 @@ public final class Formatters {
     // where xxx is a type name. E.g. String[].class.getName() -> `[Ljava.lang.String;
     private static boolean isNoArrayClassName(String typeName) {
         return !typeName.startsWith("[");
+    }
+
+    /**
+     * @see #joinSingleQuoted(Iterable)
+     */
+    @PublicAPI(usage = ACCESS)
+    public static String joinSingleQuoted(String... strings) {
+        return joinSingleQuoted(stream(strings));
+    }
+
+    /**
+     * @param strings Any number of strings
+     * @return The strings concatenated on ',' and each wrapped in single quotes. E.g. {@code ["a", "b", "c"] -> "'a', 'b', 'c'"}
+     */
+    @PublicAPI(usage = ACCESS)
+    public static String joinSingleQuoted(Iterable<String> strings) {
+        return joinSingleQuoted(StreamSupport.stream(strings.spliterator(), false));
+    }
+
+    private static String joinSingleQuoted(Stream<String> strings) {
+        String joinedElements = strings.collect(joining("', '"));
+        return joinedElements.isEmpty() ? joinedElements : "'" + joinedElements + "'";
     }
 }
