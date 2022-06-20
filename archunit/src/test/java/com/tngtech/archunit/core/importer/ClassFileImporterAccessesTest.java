@@ -36,6 +36,7 @@ import com.tngtech.archunit.core.domain.TryCatchBlock;
 import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasOwner.Functions.Get;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
+import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsExternalMethod;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsMethodReturningArray;
 import com.tngtech.archunit.core.importer.testexamples.callimport.CallsOtherConstructor;
@@ -106,6 +107,7 @@ import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.getB
 import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
+import static com.tngtech.archunit.testutil.Assertions.assertThatAccesses;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTryCatchBlock;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
@@ -115,6 +117,7 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.field;
 import static com.tngtech.archunit.testutil.ReflectionTestUtils.method;
 import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
+import static com.tngtech.archunit.testutil.assertion.AccessesAssertion.access;
 import static com.tngtech.archunit.testutil.assertion.TryCatchBlocksAssertion.tryCatchBlock;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.groupingBy;
@@ -1196,6 +1199,43 @@ public class ClassFileImporterAccessesTest {
         for (JavaMethodCall call : origin.getMethodCallsFromSelf()) {
             assertThatCall(call).isTo("callMe");
         }
+    }
+
+    @Test
+    public void does_not_import_synthetic_switch_map_field_access_for_enum_switch_statements() {
+        class Target {
+            String field;
+
+            String method() {
+                return field;
+            }
+        }
+        @SuppressWarnings("unused")
+        class Origin {
+            String access(Target target, SomeEnum someEnum) {
+                switch (someEnum) {
+                    case SOME_VALUE:
+                        return target.field;
+                    case OTHER_VALUE:
+                        return target.method();
+                    default:
+                        return null;
+                }
+            }
+        }
+
+        Set<JavaAccess<?>> accesses = new ClassFileImporter().importClasses(Origin.class, Target.class).get(Origin.class)
+                .getMethod("access", Target.class, SomeEnum.class)
+                .getAccessesFromSelf();
+
+        assertThatAccesses(accesses).containOnly(
+                access().fromOrigin(Origin.class, "access")
+                        .toTarget(Target.class, "field"),
+                access().fromOrigin(Origin.class, "access")
+                        .toTarget(Target.class, "method"),
+                access().fromOrigin(Origin.class, "access")
+                        .toTarget(SomeEnum.class, "ordinal")
+        );
     }
 
     private Set<Dependency> withoutJavaLangTargets(Set<Dependency> dependencies) {

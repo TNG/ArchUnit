@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
+import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticEnumSwitchMapFieldName;
 import static java.util.Collections.emptyList;
 
 class ClassFileImportRecord {
@@ -210,7 +211,9 @@ class ClassFileImportRecord {
     }
 
     void registerFieldAccess(RawAccessRecord.ForField record) {
-        rawFieldAccessRecords.add(record);
+        if (!isSyntheticEnumSwitchMapFieldName(record.target.name)) {
+            rawFieldAccessRecords.add(record);
+        }
     }
 
     void registerMethodCall(RawAccessRecord record) {
