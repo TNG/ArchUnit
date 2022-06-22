@@ -18,6 +18,8 @@ dependencies {
     testImplementation dependency.assertj
     testImplementation dependency.mockito
     testImplementation dependency.junit5JupiterApi
+    testImplementation dependency.log4j_core
+    testImplementation dependency.log4j_slf4j
 
     testRuntimeOnly dependency.junit5JupiterEngine
 }
