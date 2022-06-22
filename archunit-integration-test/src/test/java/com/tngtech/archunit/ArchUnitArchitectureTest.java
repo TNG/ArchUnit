@@ -43,7 +43,7 @@ public class ArchUnitArchitectureTest {
     static final String THIRDPARTY_PACKAGE_IDENTIFIER = "..thirdparty..";
 
     @ArchTest
-    public static final ArchRule layers_are_respected = layeredArchitecture()
+    public static final ArchRule layers_are_respected = layeredArchitecture().consideringAllDependencies()
             .layer("Root").definedBy("com.tngtech.archunit")
             .layer("Base").definedBy("com.tngtech.archunit.base..")
             .layer("Core").definedBy("com.tngtech.archunit.core..")

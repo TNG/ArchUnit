@@ -935,7 +935,7 @@ class ExamplesIntegrationTest {
                 (memberName, expectedTestFailures) ->
                         expectedTestFailures
                                 .ofRule(memberName,
-                                        "Layered architecture consisting of" + lineSeparator() +
+                                        "Layered architecture considering all dependencies, consisting of" + lineSeparator() +
                                                 "layer 'Controllers' ('com.tngtech.archunit.example.layers.controller..')" + lineSeparator() +
                                                 "layer 'Services' ('com.tngtech.archunit.example.layers.service..')" + lineSeparator() +
                                                 "layer 'Persistence' ('com.tngtech.archunit.example.layers.persistence..')" + lineSeparator() +

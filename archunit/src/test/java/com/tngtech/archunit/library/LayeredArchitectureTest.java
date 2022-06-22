@@ -8,24 +8,20 @@ import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.library.Architectures.LayeredArchitecture;
-import com.tngtech.archunit.library.Architectures.OnionArchitecture;
+import com.tngtech.archunit.library.testclasses.dependencysettings.DependencySettingsOutsideOfLayersAccessingLayers;
+import com.tngtech.archunit.library.testclasses.dependencysettings.forbidden_backwards.DependencySettingsForbiddenByMayOnlyBeAccessed;
+import com.tngtech.archunit.library.testclasses.dependencysettings.forbidden_forwards.DependencySettingsForbiddenByMayOnlyAccess;
+import com.tngtech.archunit.library.testclasses.dependencysettings.origin.DependencySettingsOriginClass;
+import com.tngtech.archunit.library.testclasses.dependencysettings_outside.DependencySettingsOutsideOfLayersBeingAccessedByLayers;
 import com.tngtech.archunit.library.testclasses.first.any.pkg.FirstAnyPkgClass;
 import com.tngtech.archunit.library.testclasses.first.three.any.FirstThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.mayonlyaccesslayers.forbidden.MayOnlyAccessLayersForbiddenClass;
 import com.tngtech.archunit.library.testclasses.mayonlyaccesslayers.origin.MayOnlyAccessLayersOriginClass;
-import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.cli.CliAdapterLayerClass;
-import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.persistence.PersistenceAdapterLayerClass;
-import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.rest.RestAdapterLayerClass;
-import com.tngtech.archunit.library.testclasses.onionarchitecture.application.ApplicationLayerClass;
-import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.model.DomainModelLayerClass;
-import com.tngtech.archunit.library.testclasses.onionarchitecture.domain.service.DomainServiceLayerClass;
 import com.tngtech.archunit.library.testclasses.second.three.any.SecondThreeAnyClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.SomePkgClass;
 import com.tngtech.archunit.library.testclasses.some.pkg.sub.SomePkgSubclass;
@@ -34,38 +30,30 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.DataProviders;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
-import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
-import static com.tngtech.archunit.library.Architectures.onionArchitecture;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
+import static com.tngtech.archunit.testutil.TestUtils.union;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
-import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
 import static java.util.regex.Pattern.quote;
-import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
-public class ArchitecturesTest {
+public class LayeredArchitectureTest {
     private static final String NEW_LINE_REPLACE = "###";
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @DataProvider
     public static Object[][] layeredArchitectureDefinitions() {
         return testForEach(
                 layeredArchitecture()
+                        .consideringAllDependencies()
                         .layer("One").definedBy("..library.testclasses.some.pkg..")
                         .layer("Two").definedBy("..library.testclasses.first.any.pkg..", "..library.testclasses.second.any.pkg..")
                         .optionalLayer("Three").definedBy("..library.testclasses..three..")
@@ -73,6 +61,7 @@ public class ArchitecturesTest {
                         .whereLayer("Two").mayOnlyBeAccessedByLayers("One")
                         .whereLayer("Three").mayOnlyBeAccessedByLayers("One", "Two"),
                 layeredArchitecture()
+                        .consideringAllDependencies()
                         .layer("One").definedBy(
                                 resideInAnyPackage("..library.testclasses.some.pkg..")
                                         .as("'..library.testclasses.some.pkg..'"))
@@ -91,7 +80,7 @@ public class ArchitecturesTest {
     @UseDataProvider("layeredArchitectureDefinitions")
     public void layered_architecture_description(LayeredArchitecture architecture) {
         assertThat(architecture.getDescription()).isEqualTo(
-                "Layered architecture consisting of" + lineSeparator() +
+                "Layered architecture considering all dependencies, consisting of" + lineSeparator() +
                         "layer 'One' ('..library.testclasses.some.pkg..')" + lineSeparator() +
                         "layer 'Two' ('..library.testclasses.first.any.pkg..', '..library.testclasses.second.any.pkg..')" + lineSeparator() +
                         "optional layer 'Three' ('..library.testclasses..three..')" + lineSeparator() +
@@ -103,6 +92,7 @@ public class ArchitecturesTest {
     @Test
     public void layered_architecture_overridden_description() {
         LayeredArchitecture architecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("One").definedBy("some.pkg..")
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
                 .as("overridden");
@@ -113,6 +103,7 @@ public class ArchitecturesTest {
     @Test
     public void layered_architecture_because_clause() {
         ArchRule architecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("One").definedBy("some.pkg..")
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
                 .as("overridden")
@@ -123,24 +114,26 @@ public class ArchitecturesTest {
 
     @Test
     public void layered_architecture_defining_constraint_on_non_existing_target_layer_is_rejected() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("no layer");
-        thrown.expectMessage("NotThere");
-
-        layeredArchitecture()
+        assertThatThrownBy(() -> layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("Some").definedBy("any")
-                .whereLayer("NotThere").mayNotBeAccessedByAnyLayer();
+                .whereLayer("NotThere").mayNotBeAccessedByAnyLayer()
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("no layer")
+                .hasMessageContaining("NotThere");
     }
 
     @Test
     public void layered_architecture_defining_constraint_on_non_existing_origin_is_rejected() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("no layer");
-        thrown.expectMessage("NotThere");
-
-        layeredArchitecture()
+        assertThatThrownBy(() -> layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("Some").definedBy("any")
-                .whereLayer("Some").mayOnlyBeAccessedByLayers("NotThere");
+                .whereLayer("Some").mayOnlyBeAccessedByLayers("NotThere")
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("no layer")
+                .hasMessageContaining("NotThere");
     }
 
     @Test
@@ -156,7 +149,7 @@ public class ArchitecturesTest {
     @Test
     public void layered_architecture_allows_empty_layers_if_all_layers_are_optional() {
         LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().withOptionalLayers(true);
-        assertThat(architecture.getDescription()).startsWith("Layered architecture consisting of (optional)");
+        assertThat(architecture.getDescription()).startsWith("Layered architecture considering all dependencies, consisting of (optional)");
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
 
@@ -164,7 +157,7 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void layered_architecture_rejects_empty_layers_if_layers_are_explicity_not_optional_by_default() {
+    public void layered_architecture_rejects_empty_layers_if_layers_are_explicitly_not_optional_by_default() {
         LayeredArchitecture architecture = aLayeredArchitectureWithEmptyLayers().withOptionalLayers(false);
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
@@ -175,6 +168,7 @@ public class ArchitecturesTest {
 
     private LayeredArchitecture aLayeredArchitectureWithEmptyLayers() {
         return layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("Some").definedBy(absolute("should.not.be.found.."))
                 .layer("Other").definedBy(absolute("also.not.found"))
                 .layer("Okay").definedBy("..testclasses..")
@@ -190,6 +184,7 @@ public class ArchitecturesTest {
     @Test
     public void layered_architecture_allows_individual_empty_optionalLayer() {
         LayeredArchitecture architecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .optionalLayer("can be absent").definedBy(absolute("should.not.be.found.."));
 
         JavaClasses classes = new ClassFileImporter().importPackages(absolute(""));
@@ -219,6 +214,7 @@ public class ArchitecturesTest {
     @DataProvider
     public static Object[][] toIgnore() {
         LayeredArchitecture layeredArchitecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("One").definedBy(absolute("some.pkg.."))
                 .whereLayer("One").mayNotBeAccessedByAnyLayer();
 
@@ -257,6 +253,7 @@ public class ArchitecturesTest {
                 SecondThreeAnyClass.class, SomePkgClass.class);
 
         LayeredArchitecture layeredArchitecture = layeredArchitecture()
+                .consideringAllDependencies()
                 .layer("One").definedBy(absolute("some.pkg.."))
                 .whereLayer("One").mayNotBeAccessedByAnyLayer()
                 .ignoreDependency(FirstAnyPkgClass.class, SomePkgSubclass.class);
@@ -273,12 +270,14 @@ public class ArchitecturesTest {
     public static Object[][] layeredArchitectureMayOnlyAccessLayersDefinitions() {
         return testForEach(
                 layeredArchitecture()
+                        .consideringAllDependencies()
                         .layer("Allowed").definedBy("..library.testclasses.mayonlyaccesslayers.allowed..")
                         .layer("Forbidden").definedBy("..library.testclasses.mayonlyaccesslayers.forbidden..")
                         .layer("Origin").definedBy("..library.testclasses.mayonlyaccesslayers.origin..")
                         .whereLayer("Origin").mayOnlyAccessLayers("Allowed")
                         .whereLayer("Forbidden").mayNotAccessAnyLayer(),
                 layeredArchitecture()
+                        .consideringAllDependencies()
                         .layer("Allowed").definedBy(
                                 resideInAnyPackage("..library.testclasses.mayonlyaccesslayers.allowed..")
                                         .as("'..library.testclasses.mayonlyaccesslayers.allowed..'"))
@@ -296,7 +295,7 @@ public class ArchitecturesTest {
     @UseDataProvider("layeredArchitectureMayOnlyAccessLayersDefinitions")
     public void layered_architecture_may_only_access_layers_description(LayeredArchitecture architecture) {
         assertThat(architecture.getDescription()).isEqualTo(
-                "Layered architecture consisting of" + lineSeparator() +
+                "Layered architecture considering all dependencies, consisting of" + lineSeparator() +
                         "layer 'Allowed' ('..library.testclasses.mayonlyaccesslayers.allowed..')" + lineSeparator() +
                         "layer 'Forbidden' ('..library.testclasses.mayonlyaccesslayers.forbidden..')" + lineSeparator() +
                         "layer 'Origin' ('..library.testclasses.mayonlyaccesslayers.origin..')" + lineSeparator() +
@@ -337,177 +336,118 @@ public class ArchitecturesTest {
     }
 
     @Test
-    public void onion_architecture_description() {
-        OnionArchitecture architecture = onionArchitecture()
-                .domainModels("onionarchitecture.domain.model..")
-                .domainServices("onionarchitecture.domain.service..")
-                .applicationServices("onionarchitecture.application..")
-                .adapter("cli", "onionarchitecture.adapter.cli..")
-                .adapter("persistence", "onionarchitecture.adapter.persistence..")
-                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..");
+    public void layered_architecture_supports_dependency_setting_considering_all_dependencies() {
+        LayeredArchitecture layeredArchitecture = defineLayeredArchitectureForDependencySettings(
+                layeredArchitecture().consideringAllDependencies());
 
-        assertThat(architecture.getDescription()).isEqualTo(
-                "Onion architecture consisting of" + lineSeparator() +
-                        "domain models ('onionarchitecture.domain.model..')" + lineSeparator() +
-                        "domain services ('onionarchitecture.domain.service..')" + lineSeparator() +
-                        "application services ('onionarchitecture.application..')" + lineSeparator() +
-                        "adapter 'cli' ('onionarchitecture.adapter.cli..')" + lineSeparator() +
-                        "adapter 'persistence' ('onionarchitecture.adapter.persistence..')" + lineSeparator() +
-                        "adapter 'rest' ('onionarchitecture.adapter.rest.command..', 'onionarchitecture.adapter.rest.query..')"
+        EvaluationResult result = layeredArchitecture.evaluate(new ClassFileImporter().importPackages(absolute("dependencysettings")));
+
+        assertThat(layeredArchitecture.getDescription()).startsWith("Layered architecture considering all dependencies, consisting of");
+        assertPatternMatches(result.getFailureReport().getDetails(),
+                union(
+                        dependencySettingsViolationsInLayers(),
+                        dependencySettingsViolationsOutsideOfLayers(),
+                        dependencySettingsViolationsByJavaLang()
+                ));
+    }
+
+    @Test
+    public void layered_architecture_supports_dependency_setting_considering_only_dependencies_in_any_package() {
+        LayeredArchitecture layeredArchitecture = defineLayeredArchitectureForDependencySettings(
+                layeredArchitecture().consideringOnlyDependenciesInAnyPackage("..dependencysettings..", "..dependencysettings_outside.."));
+
+        EvaluationResult result = layeredArchitecture.evaluate(new ClassFileImporter().importPackages(absolute("dependencysettings")));
+
+        assertThat(layeredArchitecture.getDescription()).startsWith(
+                "Layered architecture considering only dependencies in any package ['..dependencysettings..', '..dependencysettings_outside..'], consisting of");
+        assertPatternMatches(result.getFailureReport().getDetails(),
+                union(
+                        dependencySettingsViolationsInLayers(),
+                        dependencySettingsViolationsOutsideOfLayers()
+                ));
+    }
+
+    @Test
+    public void layered_architecture_supports_dependency_setting_considering_only_dependencies_in_layers() {
+        LayeredArchitecture layeredArchitecture = defineLayeredArchitectureForDependencySettings(
+                layeredArchitecture().consideringOnlyDependenciesInLayers());
+
+        EvaluationResult result = layeredArchitecture.evaluate(new ClassFileImporter().importPackages(absolute("dependencysettings")));
+
+        assertThat(layeredArchitecture.getDescription()).startsWith(
+                "Layered architecture considering only dependencies in layers, consisting of");
+        assertPatternMatches(result.getFailureReport().getDetails(), dependencySettingsViolationsInLayers());
+    }
+
+    private LayeredArchitecture defineLayeredArchitectureForDependencySettings(LayeredArchitecture layeredArchitecture) {
+        return layeredArchitecture
+                .layer("Origin").definedBy("..library.testclasses.dependencysettings.origin..")
+                .layer("Allowed").definedBy("..library.testclasses.dependencysettings.allowed..")
+                .layer("ForbiddenByMayOnlyAccess").definedBy("..library.testclasses.dependencysettings.forbidden_forwards..")
+                .layer("ForbiddenByMayOnlyBeAccessed").definedBy("..library.testclasses.dependencysettings.forbidden_backwards..")
+                .whereLayer("Origin").mayOnlyAccessLayers("Allowed")
+                .whereLayer("Origin").mayNotBeAccessedByAnyLayer()
+                .whereLayer("ForbiddenByMayOnlyBeAccessed").mayNotBeAccessedByAnyLayer()
+                .whereLayer("ForbiddenByMayOnlyBeAccessed").mayNotAccessAnyLayer();
+    }
+
+    private Set<String> dependencySettingsViolationsByJavaLang() {
+        return ImmutableSet.of(
+                expectedInheritancePattern(DependencySettingsOriginClass.class, Object.class),
+                expectedAccessViolationPattern(DependencySettingsOriginClass.class, CONSTRUCTOR_NAME, Object.class, CONSTRUCTOR_NAME),
+                expectedInheritancePattern(DependencySettingsForbiddenByMayOnlyBeAccessed.class, Object.class),
+                expectedAccessViolationPattern(DependencySettingsForbiddenByMayOnlyBeAccessed.class, CONSTRUCTOR_NAME, Object.class, CONSTRUCTOR_NAME)
         );
     }
 
-    @Test
-    public void onion_architecture_description_with_missing_layers() {
-        OnionArchitecture architecture = onionArchitecture();
-
-        assertThat(architecture.getDescription()).isEqualTo("Onion architecture consisting of");
+    private Set<String> dependencySettingsViolationsOutsideOfLayers() {
+        return ImmutableSet.of(
+                expectedFieldTypePattern(
+                        DependencySettingsOutsideOfLayersAccessingLayers.class, "origin", DependencySettingsOriginClass.class),
+                expectedFieldTypePattern(
+                        DependencySettingsOriginClass.class, "beingAccessedByLayers", DependencySettingsOutsideOfLayersBeingAccessedByLayers.class)
+        );
     }
 
-    @Test
-    public void onion_architecture_overridden_description() {
-        OnionArchitecture architecture = onionArchitecture()
-                .domainModels("onionarchitecture.domain.model..")
-                .domainServices("onionarchitecture.domain.service..")
-                .applicationServices("onionarchitecture.application..")
-                .adapter("cli", "onionarchitecture.adapter.cli..")
-                .adapter("persistence", "onionarchitecture.adapter.persistence..")
-                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..")
-                .as("overridden");
-
-        assertThat(architecture.getDescription()).isEqualTo("overridden");
+    private Set<String> dependencySettingsViolationsInLayers() {
+        return ImmutableSet.of(
+                expectedFieldTypePattern(
+                        DependencySettingsOriginClass.class, "forbiddenByMayOnlyAccess", DependencySettingsForbiddenByMayOnlyAccess.class),
+                expectedFieldTypePattern(
+                        DependencySettingsForbiddenByMayOnlyAccess.class, "forbiddenByMayOnlyBeAccessed", DependencySettingsForbiddenByMayOnlyBeAccessed.class),
+                expectedFieldTypePattern(
+                        DependencySettingsForbiddenByMayOnlyAccess.class, "origin", DependencySettingsOriginClass.class));
     }
 
-    @Test
-    public void onion_architecture_because_clause() {
-        ArchRule architecture = onionArchitecture()
-                .domainModels("onionarchitecture.domain.model..")
-                .domainServices("onionarchitecture.domain.service..")
-                .applicationServices("onionarchitecture.application..")
-                .adapter("cli", "onionarchitecture.adapter.cli..")
-                .adapter("persistence", "onionarchitecture.adapter.persistence..")
-                .adapter("rest", "onionarchitecture.adapter.rest.command..", "onionarchitecture.adapter.rest.query..")
-                .as("overridden")
-                .because("some reason");
-
-        assertThat(architecture.getDescription()).isEqualTo("overridden, because some reason");
-    }
-
-    @Test
-    public void onion_architecture_gathers_all_violations() {
-        OnionArchitecture architecture = getTestOnionArchitecture();
-        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
-
-        EvaluationResult result = architecture.evaluate(classes);
-
-        assertPatternMatches(result.getFailureReport().getDetails(), getExpectedOnionViolations().toPatterns());
-    }
-
-    @Test
-    public void onion_architecture_is_not_violated_by_ignored_dependencies() {
-        OnionArchitecture onionIgnoringOriginApplicationLayerClass = getTestOnionArchitecture()
-                .ignoreDependency(ApplicationLayerClass.class, CliAdapterLayerClass.class)
-                .ignoreDependency(ApplicationLayerClass.class.getName(), PersistenceAdapterLayerClass.class.getName())
-                .ignoreDependency(simpleNameStartingWith("ApplicationLayerCl"), simpleNameContaining("estAdapterLayerCl"));
-        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
-
-        EvaluationResult result = onionIgnoringOriginApplicationLayerClass.evaluate(classes);
-
-        ExpectedOnionViolations expectedViolations = getExpectedOnionViolations().withoutViolationsWithOrigin(ApplicationLayerClass.class);
-        assertPatternMatches(result.getFailureReport().getDetails(), expectedViolations.toPatterns());
-    }
-
-    @Test
-    public void onion_architecture_with_overwritten_description_retains_ignored_dependencies() {
-        ArchRule onionIgnoringOriginApplicationLayerClass = getTestOnionArchitecture()
-                .ignoreDependency(equivalentTo(ApplicationLayerClass.class), DescribedPredicate.<JavaClass>alwaysTrue())
-                .because("some reason causing description to be overwritten");
-
-        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
-
-        EvaluationResult result = onionIgnoringOriginApplicationLayerClass.evaluate(classes);
-
-        ExpectedOnionViolations expectedViolations = getExpectedOnionViolations().withoutViolationsWithOrigin(ApplicationLayerClass.class);
-        assertPatternMatches(result.getFailureReport().getDetails(), expectedViolations.toPatterns());
-    }
-
-    @Test
-    public void onion_architecture_rejects_empty_layers_by_default() {
-        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers();
-
-        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
-
-        EvaluationResult result = architecture.evaluate(classes);
-        assertFailureOnionArchitectureWithEmptyLayers(result);
-    }
-
-    @Test
-    public void onion_architecture_allows_empty_layers_if_all_layers_are_optional() {
-        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().withOptionalLayers(true);
-        assertThat(architecture.getDescription()).startsWith("Onion architecture consisting of (optional)");
-
-        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
-
-        EvaluationResult result = architecture.evaluate(classes);
-        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isFalse();
-        assertThat(result.getFailureReport().isEmpty()).as("failure report").isTrue();
-    }
-
-    @Test
-    public void onion_architecture_rejects_empty_layers_if_layers_are_explicitly_not_optional_by_default() {
-        OnionArchitecture architecture = anOnionArchitectureWithEmptyLayers().withOptionalLayers(false);
-
-        JavaClasses classes = new ClassFileImporter().importPackages(absolute("onionarchitecture"));
-
-        EvaluationResult result = architecture.evaluate(classes);
-        assertFailureOnionArchitectureWithEmptyLayers(result);
-    }
-
-    private OnionArchitecture getTestOnionArchitecture() {
-        return onionArchitecture()
-                .domainModels(absolute("onionarchitecture.domain.model"))
-                .domainServices(absolute("onionarchitecture.domain.service"))
-                .applicationServices(absolute("onionarchitecture.application"))
-                .adapter("cli", absolute("onionarchitecture.adapter.cli"))
-                .adapter("persistence", absolute("onionarchitecture.adapter.persistence"))
-                .adapter("rest", absolute("onionarchitecture.adapter.rest"));
-    }
-
-    private ExpectedOnionViolations getExpectedOnionViolations() {
-        ExpectedOnionViolations expectedViolations = new ExpectedOnionViolations();
-        expectedViolations.from(DomainModelLayerClass.class)
-                .to(DomainServiceLayerClass.class, ApplicationLayerClass.class, CliAdapterLayerClass.class,
-                        PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectedViolations.from(DomainServiceLayerClass.class)
-                .to(ApplicationLayerClass.class, CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectedViolations.from(ApplicationLayerClass.class)
-                .to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectedViolations.from(CliAdapterLayerClass.class).to(PersistenceAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectedViolations.from(PersistenceAdapterLayerClass.class).to(CliAdapterLayerClass.class, RestAdapterLayerClass.class);
-        expectedViolations.from(RestAdapterLayerClass.class).to(CliAdapterLayerClass.class, PersistenceAdapterLayerClass.class);
-        return expectedViolations;
-    }
-
-    private OnionArchitecture anOnionArchitectureWithEmptyLayers() {
-        return onionArchitecture()
-                .domainModels(absolute("onionarchitecture.domain.model.does.not.exist"))
-                .domainServices(absolute("onionarchitecture.domain.service.not.there"))
-                .applicationServices(absolute("onionarchitecture.application.http410"));
-    }
-
-    private void assertFailureOnionArchitectureWithEmptyLayers(EvaluationResult result) {
-        assertThat(result.hasViolation()).as("result of evaluating empty layers has violation").isTrue();
-        assertPatternMatches(result.getFailureReport().getDetails(), ImmutableSet.of(
-                expectedEmptyLayerPattern("adapter"), expectedEmptyLayerPattern("application service"),
-                expectedEmptyLayerPattern("domain model"), expectedEmptyLayerPattern("domain service")
-        ));
+    static String[] absolute(String... pkgSuffix) {
+        return Arrays.stream(pkgSuffix)
+                .map(s -> OnionArchitectureTest.class.getPackage().getName() + ".testclasses." + s)
+                .map(absolute -> absolute.replaceAll("\\.\\.\\.+", ".."))
+                .toArray(String[]::new);
     }
 
     private String singleLine(EvaluationResult result) {
         return Joiner.on(NEW_LINE_REPLACE).join(result.getFailureReport().getDetails()).replace("\n", NEW_LINE_REPLACE);
     }
 
-    private void assertPatternMatches(List<String> input, Set<String> expectedRegexes) {
+    static String expectedAccessViolationPattern(Class<?> from, String fromMethod, Class<?> to, String toMethod) {
+        return String.format(".*%s.%s().*%s.%s().*", quote(from.getName()), fromMethod, quote(to.getName()), toMethod);
+    }
+
+    static String expectedFieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {
+        return String.format("Field .*%s\\.%s.* has type .*<%s>.*", owner.getSimpleName(), fieldName, fieldType.getName());
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static String expectedInheritancePattern(Class<?> child, Class<?> parent) {
+        return String.format("Class .*%s.* extends class .*.%s.*", child.getSimpleName(), parent.getSimpleName());
+    }
+
+    static String expectedEmptyLayerPattern(String layerName) {
+        return String.format("Layer '%s' is empty", layerName);
+    }
+
+    static void assertPatternMatches(List<String> input, Set<String> expectedRegexes) {
         Set<String> toMatch = new HashSet<>(expectedRegexes);
         for (String line : input) {
             if (!matchIteratorAndRemove(toMatch, line)) {
@@ -517,7 +457,7 @@ public class ArchitecturesTest {
         assertThat(toMatch).as("Unmatched Patterns").isEmpty();
     }
 
-    private boolean matchIteratorAndRemove(Set<String> toMatch, String line) {
+    static boolean matchIteratorAndRemove(Set<String> toMatch, String line) {
         for (Iterator<String> toMatchIterator = toMatch.iterator(); toMatchIterator.hasNext(); ) {
             if (line.matches(toMatchIterator.next())) {
                 toMatchIterator.remove();
@@ -525,30 +465,6 @@ public class ArchitecturesTest {
             }
         }
         return false;
-    }
-
-    private static String expectedAccessViolationPattern(Class<?> from, String fromMethod, Class<?> to, String toMethod) {
-        return String.format(".*%s.%s().*%s.%s().*", quote(from.getName()), fromMethod, quote(to.getName()), toMethod);
-    }
-
-    private static String expectedEmptyLayerPattern(String layerName) {
-        return String.format("Layer '%s' is empty", layerName);
-    }
-
-    private static String expectedFieldTypePattern(Class<?> owner, String fieldName, Class<?> fieldType) {
-        return String.format("Field .*%s\\.%s.* has type .*<%s>.*", owner.getSimpleName(), fieldName, fieldType.getName());
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private static String expectedInheritancePattern(Class<?> child, Class<?> parent) {
-        return String.format("Class .*%s.* extends class .*.%s.*", child.getSimpleName(), parent.getSimpleName());
-    }
-
-    private static String[] absolute(String... pkgSuffix) {
-        return Arrays.stream(pkgSuffix)
-                .map(s -> ArchitecturesTest.class.getPackage().getName() + ".testclasses." + s)
-                .map(absolute -> absolute.replaceAll("\\.\\.\\.+", ".."))
-                .toArray(String[]::new);
     }
 
     private static class RuleWithIgnore {
@@ -563,72 +479,6 @@ public class ArchitecturesTest {
         @Override
         public String toString() {
             return description;
-        }
-    }
-
-    private static class ExpectedOnionViolations {
-        private final Set<ExpectedOnionViolation> expected;
-
-        private ExpectedOnionViolations() {
-            this(new HashSet<ExpectedOnionViolation>());
-        }
-
-        private ExpectedOnionViolations(Set<ExpectedOnionViolation> expected) {
-            this.expected = expected;
-        }
-
-        From from(Class<?> from) {
-            return new From(from);
-        }
-
-        private ExpectedOnionViolations add(ExpectedOnionViolation expectedOnionViolation) {
-            expected.add(expectedOnionViolation);
-            return this;
-        }
-
-        public ExpectedOnionViolations withoutViolationsWithOrigin(Class<?> clazz) {
-            return new ExpectedOnionViolations(expected.stream()
-                    .filter(expectedViolation -> !expectedViolation.from.equals(clazz))
-                    .collect(toSet()));
-        }
-
-        Set<String> toPatterns() {
-            ImmutableSet.Builder<String> result = ImmutableSet.builder();
-            for (ExpectedOnionViolation expectedOnionViolation : expected) {
-                result.addAll(expectedOnionViolation.toPatterns());
-            }
-            return result.build();
-        }
-
-        class From {
-            private final Class<?> from;
-
-            private From(Class<?> from) {
-                this.from = from;
-            }
-
-            ExpectedOnionViolations to(Class<?>... to) {
-                return ExpectedOnionViolations.this.add(new ExpectedOnionViolation(from, to));
-            }
-        }
-    }
-
-    private static class ExpectedOnionViolation {
-        private final Class<?> from;
-        private final Set<Class<?>> tos;
-
-        private ExpectedOnionViolation(Class<?> from, Class<?>[] tos) {
-            this.from = from;
-            this.tos = ImmutableSet.copyOf(tos);
-        }
-
-        Set<String> toPatterns() {
-            ImmutableSet.Builder<String> result = ImmutableSet.builder();
-            for (Class<?> to : tos) {
-                result.add(expectedAccessViolationPattern(from, "call", to, "callMe"))
-                        .add(expectedFieldTypePattern(from, decapitalize(to.getSimpleName()), to));
-            }
-            return result.build();
         }
     }
 }

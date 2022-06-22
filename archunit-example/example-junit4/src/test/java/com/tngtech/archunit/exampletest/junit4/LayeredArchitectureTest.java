@@ -16,7 +16,7 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 @AnalyzeClasses(packages = "com.tngtech.archunit.example.layers")
 public class LayeredArchitectureTest {
     @ArchTest
-    public static final ArchRule layer_dependencies_are_respected = layeredArchitecture()
+    public static final ArchRule layer_dependencies_are_respected = layeredArchitecture().consideringAllDependencies()
 
             .layer("Controllers").definedBy("com.tngtech.archunit.example.layers.controller..")
             .layer("Services").definedBy("com.tngtech.archunit.example.layers.service..")
@@ -27,7 +27,7 @@ public class LayeredArchitectureTest {
             .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Services");
 
     @ArchTest
-    public static final ArchRule layer_dependencies_are_respected_with_exception = layeredArchitecture()
+    public static final ArchRule layer_dependencies_are_respected_with_exception = layeredArchitecture().consideringAllDependencies()
 
             .layer("Controllers").definedBy("com.tngtech.archunit.example.layers.controller..")
             .layer("Services").definedBy("com.tngtech.archunit.example.layers.service..")
