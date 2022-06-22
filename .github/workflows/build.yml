@@ -24,6 +24,15 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: build
+      - name: Check project files unmodified
+        run: |
+          directoryState="$(git status --porcelain)"
+          if [ -n "$directoryState" ]; then
+            echo "Some files were modified during build. Please run the build locally before checking in, as it ensures some source file conventions (like copyright header)."
+            echo "The following files were modified:"
+            echo "$directoryState"
+            exit 1
+          fi
 
   test:
     strategy:
