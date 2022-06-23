@@ -46,10 +46,19 @@ public final class ArchConfiguration {
     public static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "archunit.properties";
     @Internal // {@value ...} does not work on non public constants outside of the package
     public static final String RESOLVE_MISSING_DEPENDENCIES_FROM_CLASS_PATH = "resolveMissingDependenciesFromClassPath";
+    @Internal
+    public static final String JUNIT_PREFIX = "junit";
     static final String CLASS_RESOLVER = "classResolver";
     static final String CLASS_RESOLVER_ARGS = "classResolver.args";
     @Internal
     public static final String ENABLE_MD5_IN_CLASS_SOURCES = "enableMd5InClassSources";
+
+    @Internal
+    public static final String JUNIT_INCLUDE_TESTS_MATCHING = "includeTestsMatching";
+
+    @Internal
+    public static final String JUNIT_EXCLUDE_TESTS_MATCHING = "excludeTestsMatching";
+
     private static final String EXTENSION_PREFIX = "extension";
 
     private static final Logger LOG = LoggerFactory.getLogger(ArchConfiguration.class);

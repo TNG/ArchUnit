@@ -1,10 +1,11 @@
 plugins {
     id 'archunit.java-release-conventions'
+    id 'java-test-fixtures'
 }
 
 ext.moduleName = 'com.tngtech.archunit.junit5.engine'
 
-ext.minimumJavaVersion = JavaVersion.VERSION_1_8
+ext.minimumJavaVersion = JavaVersion.VERSION_1_9
 
 dependencies {
     api project(path: ':archunit')
@@ -22,6 +23,7 @@ dependencies {
     testImplementation dependency.assertj
     testImplementation dependency.mockito
     testImplementation dependency.junit5JupiterApi
+    testImplementation dependency.junitJupiterParams
 
     testRuntimeOnly dependency.junit5JupiterEngine
 }
@@ -66,7 +68,3 @@ def configureDependencies = { deps ->
     }
 }
 this.with project(':archunit-junit').configureJUnitArchive(configureDependencies)
-
-singlePackageExport {
-    exportedPackage = 'com.tngtech.archunit.junit.internal'
-}

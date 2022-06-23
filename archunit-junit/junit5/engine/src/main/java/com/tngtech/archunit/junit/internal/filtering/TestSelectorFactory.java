@@ -68,6 +68,10 @@ public interface TestSelectorFactory {
             return selectorName;
         }
 
+        public String getFullyQualifiedName() {
+            return getContainerName() + "." + getSelectorName();
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {

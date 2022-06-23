@@ -76,9 +76,7 @@ public class DependencyResolutionProcessTestUtils {
                 setResolutionProperty(propertyNameToDisable, 0);
             }
 
-            if (number.isPresent()) {
-                setResolutionProperty(getOnlyElement(propertyNames), number.get());
-            }
+            number.ifPresent(integer -> setResolutionProperty(getOnlyElement(propertyNames), integer));
         }
 
         private void setResolutionProperty(String propertyName, int number) {
