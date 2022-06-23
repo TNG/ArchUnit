@@ -98,7 +98,7 @@ public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEng
     @Override
     public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
         ArchUnitEngineDescriptor result = new ArchUnitEngineDescriptor(uniqueId);
-        result.setAdditionalFilter(TestSourceFilter.forRequest(discoveryRequest));
+        result.setAdditionalFilter(TestSourceFilter.forRequest(discoveryRequest, result));
 
         resolveRequestedClasspathRoot(discoveryRequest, uniqueId, result);
         resolveRequestedPackages(discoveryRequest, uniqueId, result);

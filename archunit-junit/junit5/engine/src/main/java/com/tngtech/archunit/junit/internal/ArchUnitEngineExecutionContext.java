@@ -15,7 +15,12 @@
  */
 package com.tngtech.archunit.junit.internal;
 
+import com.tngtech.archunit.ArchConfiguration;
 import org.junit.platform.engine.support.hierarchical.EngineExecutionContext;
 
 class ArchUnitEngineExecutionContext implements EngineExecutionContext {
+
+    ArchConfiguration getConfiguration() {
+        return ArchConfiguration.get();
+    }
 }

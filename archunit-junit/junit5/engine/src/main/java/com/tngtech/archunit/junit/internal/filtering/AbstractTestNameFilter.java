@@ -47,12 +47,34 @@ public abstract class AbstractTestNameFilter implements TestSourceFilter {
     );
     private final String discoveryFilterClassName;
 
-    public AbstractTestNameFilter(EngineDiscoveryRequest request, String discoveryFilterClassName) throws Exception {
+    public AbstractTestNameFilter(EngineDiscoveryRequest request, String discoveryFilterClassName) {
         this.discoveryFilterClassName = discoveryFilterClassName;
-        PostDiscoveryFilter postDiscoveryFilter = findPostDiscoveryFilter(request);
-        PostDiscoveryFilter replacement = initialize(postDiscoveryFilter);
-        if (replacement != postDiscoveryFilter) {
-            replaceFilter(request, postDiscoveryFilter, replacement);
+        Optional<PostDiscoveryFilter>  postDiscoveryFilter = findPostDiscoveryFilter(request);
+        Optional<PostDiscoveryFilter> replacement = postDiscoveryFilter.flatMap(this::throwingInitialize);
+        replacement.ifPresent(
+                newFilter -> postDiscoveryFilter.ifPresent(
+                        oldFilter -> replaceFilterIfNeeded(request, newFilter, oldFilter)));
+    }
+
+    public AbstractTestNameFilter(EngineDiscoveryRequest request) {
+        this(request, "");
+    }
+
+    private void replaceFilterIfNeeded(EngineDiscoveryRequest request, PostDiscoveryFilter newFilter, PostDiscoveryFilter oldFilter) {
+        if (!oldFilter.equals(newFilter)) {
+            try {
+                replaceFilter(request, oldFilter, newFilter);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private Optional<PostDiscoveryFilter> throwingInitialize(PostDiscoveryFilter filter) {
+        try {
+            return initialize(filter);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -83,17 +105,19 @@ public abstract class AbstractTestNameFilter implements TestSourceFilter {
                 .anyMatch(filter -> filter.getClass().getName().equals(discoveryFilterClassName));
     }
 
-    private PostDiscoveryFilter findPostDiscoveryFilter(EngineDiscoveryRequest request) {
+    private Optional<PostDiscoveryFilter> findPostDiscoveryFilter(EngineDiscoveryRequest request) {
         return ((LauncherDiscoveryRequest) request).getPostDiscoveryFilters().stream()
                 .filter(this::matches)
-                .findAny().get();
+                .findAny();
     }
 
     boolean matches(PostDiscoveryFilter filter) {
         return discoveryFilterClassName.equals(filter.getClass().getName());
     }
 
-    protected abstract PostDiscoveryFilter initialize(PostDiscoveryFilter filter) throws Exception;
+    protected Optional<PostDiscoveryFilter> initialize(PostDiscoveryFilter filter) {
+        return Optional.empty();
+    }
 
     protected abstract boolean shouldRunAccordingToTestingTool(TestSelectorFactory.TestSelector selector);
 

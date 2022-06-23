@@ -15,6 +15,8 @@
  */
 package com.tngtech.archunit.junit.internal.filtering;
 
+import com.tngtech.archunit.junit.internal.ArchUnitEngineDescriptor;
+import com.tngtech.archunit.junit.internal.ArchUnitTestEngine;
 import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
@@ -31,7 +33,7 @@ public interface TestSourceFilter {
 
     boolean shouldRun(TestSource source);
 
-    static TestSourceFilter forRequest(EngineDiscoveryRequest discoveryRequest) {
+    static TestSourceFilter forRequest(EngineDiscoveryRequest discoveryRequest, ArchUnitEngineDescriptor engineDescriptor) {
         return TestSourceFilter.NOOP;
     }
 }

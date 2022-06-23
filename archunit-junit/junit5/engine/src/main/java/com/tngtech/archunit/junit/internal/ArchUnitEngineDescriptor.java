@@ -15,13 +15,16 @@
  */
 package com.tngtech.archunit.junit.internal;
 
+import java.util.Properties;
+
+import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.junit.internal.filtering.TestSourceFilter;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.EngineDescriptor;
 import org.junit.platform.engine.support.hierarchical.Node;
 
-class ArchUnitEngineDescriptor extends EngineDescriptor implements Node<ArchUnitEngineExecutionContext> {
-    ArchUnitEngineDescriptor(UniqueId uniqueId) {
+public class ArchUnitEngineDescriptor extends EngineDescriptor implements Node<ArchUnitEngineExecutionContext> {
+    public ArchUnitEngineDescriptor(UniqueId uniqueId) {
         super(uniqueId, "ArchUnit JUnit 5");
     }
 
@@ -33,5 +36,9 @@ class ArchUnitEngineDescriptor extends EngineDescriptor implements Node<ArchUnit
 
     public TestSourceFilter getAdditionalFilter() {
         return additionalFilter;
+    }
+
+    public Properties getConfiguration() {
+        return ArchConfiguration.get().getSubProperties(ArchConfiguration.JUNIT_PREFIX);
     }
 }
