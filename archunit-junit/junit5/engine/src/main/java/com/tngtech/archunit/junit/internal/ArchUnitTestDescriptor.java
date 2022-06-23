@@ -15,7 +15,9 @@
  */
 package com.tngtech.archunit.junit.internal;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -87,37 +89,37 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         Supplier<JavaClasses> classes = () -> classCache.getClassesToAnalyzeFor(testClass, new JUnit5ClassAnalysisRequest(testClass));
 
         getAllFields(testClass, withAnnotation(ArchTest.class))
-                .forEach(field -> resolveField(resolver, classes, field));
+                .forEach(field -> resolveField(resolver, classes, new TestMember<>(testClass, field)));
         getAllMethods(testClass, withAnnotation(ArchTest.class))
-                .forEach(method -> resolveMethod(resolver, classes, method));
+                .forEach(method -> resolveMethod(resolver, classes, new TestMember<>(testClass, method)));
     }
 
-    private void resolveField(ElementResolver resolver, Supplier<JavaClasses> classes, Field field) {
-        resolver.resolveField(field)
+    private void resolveField(ElementResolver resolver, Supplier<JavaClasses> classes, TestMember<Field> field) {
+        resolver.resolveField(field.member)
                 .ifUnresolved(childResolver -> resolveChildren(this, childResolver, field, classes));
     }
 
-    private void resolveMethod(ElementResolver resolver, Supplier<JavaClasses> classes, Method method) {
-        resolver.resolveMethod(method)
+    private void resolveMethod(ElementResolver resolver, Supplier<JavaClasses> classes, TestMember<Method> method) {
+        resolver.resolveMethod(method.member)
                 .ifUnresolved(childResolver -> addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes)));
     }
 
     private static void resolveChildren(
-            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
+            TestDescriptor parent, ElementResolver resolver, TestMember<Field> field, Supplier<JavaClasses> classes) {
 
-        if (ArchTests.class.isAssignableFrom(field.getType())) {
+        if (ArchTests.class.isAssignableFrom(field.member.getType())) {
             resolveArchRules(parent, resolver, field, classes);
         } else {
             parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field), classes, field));
         }
     }
 
-    private static <T> T getValue(Field field) {
-        return getValueOrThrowException(field, field.getDeclaringClass(), ArchTestInitializationException::new);
+    private static <T> T getValue(TestMember<Field> field) {
+        return getValueOrThrowException(field.member, field.owner, ArchTestInitializationException::new);
     }
 
     private static void resolveArchRules(
-            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
+            TestDescriptor parent, ElementResolver resolver, TestMember<Field> field, Supplier<JavaClasses> classes) {
 
         DeclaredArchTests archTests = getDeclaredArchTests(field);
 
@@ -130,7 +132,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
                 });
     }
 
-    private static DeclaredArchTests getDeclaredArchTests(Field field) {
+    private static DeclaredArchTests getDeclaredArchTests(TestMember<Field> field) {
         return new DeclaredArchTests(getValue(field));
     }
 
@@ -148,8 +150,8 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final ArchRule rule;
         private final Supplier<JavaClasses> classes;
 
-        ArchUnitRuleDescriptor(UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, Field field) {
-            super(uniqueId, determineDisplayName(field.getName()), FieldSource.from(field), field);
+        ArchUnitRuleDescriptor(UniqueId uniqueId, ArchRule rule, Supplier<JavaClasses> classes, TestMember<Field> field) {
+            super(uniqueId, determineDisplayName(field.getName()), FieldSource.from(field.member), field.member);
             this.rule = rule;
             this.classes = classes;
         }
@@ -167,17 +169,19 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static class ArchUnitMethodDescriptor extends AbstractArchUnitTestDescriptor {
-        private final Method method;
+        private final TestMember<Method> method;
         private final Supplier<JavaClasses> classes;
 
-        ArchUnitMethodDescriptor(UniqueId uniqueId, Method method, Supplier<JavaClasses> classes) {
-            super(uniqueId.append("method", method.getName()),
-                    determineDisplayName(method.getName()), MethodSource.from(method), method);
-            validate(method);
+        ArchUnitMethodDescriptor(UniqueId uniqueId, TestMember<Method> method, Supplier<JavaClasses> classes) {
+            super(uniqueId.append("method", method.member.getName()),
+                    determineDisplayName(method.member.getName()),
+                    MethodSource.from(method.member),
+                    method.member);
+
+            validate(method.member);
 
             this.method = method;
             this.classes = classes;
-            this.method.setAccessible(true);
         }
 
         private void validate(Method method) {
@@ -194,7 +198,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
         @Override
         public ArchUnitEngineExecutionContext execute(ArchUnitEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor) {
-            invokeMethod(method, method.getDeclaringClass(), classes.get());
+            invokeMethod(method.member, method.owner, classes.get());
             return context;
         }
     }
@@ -203,12 +207,12 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         private final DeclaredArchTests archTests;
         private final Supplier<JavaClasses> classes;
 
-        ArchUnitArchTestsDescriptor(ElementResolver resolver, DeclaredArchTests archTests, Supplier<JavaClasses> classes, Field field) {
+        ArchUnitArchTestsDescriptor(ElementResolver resolver, DeclaredArchTests archTests, Supplier<JavaClasses> classes, TestMember<Field> field) {
 
             super(resolver.getUniqueId(),
                     archTests.getDisplayName(),
                     ClassSource.from(archTests.getDefinitionLocation()),
-                    field,
+                    field.member,
                     archTests.getDefinitionLocation());
             this.archTests = archTests;
             this.classes = classes;
@@ -217,12 +221,31 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         @Override
         public void createChildren(ElementResolver resolver) {
             archTests.handleFields(field ->
-                    resolver.resolve(FIELD_SEGMENT_TYPE, field.getName(), childResolver ->
-                            resolveChildren(this, childResolver, field, classes)));
+                    resolver.resolve(
+                            FIELD_SEGMENT_TYPE,
+                            field.getName(),
+                            childResolver -> resolveChildren(field, childResolver)));
 
             archTests.handleMethods(method ->
-                    resolver.resolve(METHOD_SEGMENT_TYPE, method.getName(), childResolver ->
-                            addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes))));
+                    resolver.resolve(
+                            METHOD_SEGMENT_TYPE,
+                            method.getName(),
+                            childResolver -> addChild(method)));
+        }
+
+        private void resolveChildren(Field field, ElementResolver childResolver) {
+            ArchUnitTestDescriptor.resolveChildren(
+                    this,
+                    childResolver,
+                    new TestMember<>(archTests.getDefinitionLocation(), field),
+                    classes);
+        }
+
+        private void addChild(Method method) {
+            addChild(new ArchUnitMethodDescriptor(
+                    getUniqueId(),
+                    new TestMember<>(archTests.getDefinitionLocation(), method),
+                    classes));
         }
 
         @Override
@@ -298,6 +321,20 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         @Override
         public boolean scanWholeClasspath() {
             return analyzeClasses.wholeClasspath();
+        }
+    }
+
+    private static class TestMember<MEMBER extends AccessibleObject & Member> {
+        final Class<?> owner;
+        final MEMBER member;
+
+        TestMember(Class<?> owner, MEMBER member) {
+            this.owner = owner;
+            this.member = member;
+        }
+
+        String getName() {
+            return member.getName();
         }
     }
 }
