@@ -3,6 +3,7 @@ package com.tngtech.archunit.tooling;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import com.tngtech.archunit.tooling.engines.jupiter.JUnitJupiterEngine;
 import com.tngtech.archunit.tooling.examples.ArchJUnit4SuiteTest;
 import com.tngtech.archunit.tooling.examples.ArchJUnit4Test;
 import com.tngtech.archunit.tooling.examples.ArchJUnit5SuiteTest;
@@ -10,6 +11,8 @@ import com.tngtech.archunit.tooling.examples.ArchJUnit5Test;
 import org.junit.jupiter.api.Disabled;
 import org.junitpioneer.jupiter.cartesian.ArgumentSets;
 import org.junitpioneer.jupiter.cartesian.CartesianTest;
+
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class ArchUnitToolingTest extends BaseTest {
 
@@ -21,8 +24,8 @@ public class ArchUnitToolingTest extends BaseTest {
 
     @CartesianTest
     @CartesianTest.MethodFactory("enginesAndFixtures")
-    @Disabled
     void shouldOnlyExecuteSelectedTests(TestEngine engine, Class<?> fixture) throws Exception {
+        assumeTrue(engine instanceof JUnitJupiterEngine);
         super.shouldOnlyExecuteSelectedTests(engine, fixture);
     }
 

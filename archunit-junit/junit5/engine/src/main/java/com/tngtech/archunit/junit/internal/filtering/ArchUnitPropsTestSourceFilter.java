@@ -130,8 +130,8 @@ public class ArchUnitPropsTestSourceFilter extends AbstractTestNameFilter {
 
         private boolean matchesSelector(Pattern pattern, TestSelector selector) {
             return
-                    pattern.matcher(selector.getFullyQualifiedName()).matches()
-                            || pattern.matcher(selector.getContainerName()).matches();
+                    pattern.matcher(selector.getFullyQualifiedName()).find()
+                            || pattern.matcher(selector.getContainerName()).find();
         }
     }
 }

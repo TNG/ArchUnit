@@ -1,13 +1,7 @@
 package com.tngtech.archunit.tooling.engines.jupiter;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.tngtech.archunit.junit.engine_api.FieldSource;
 import com.tngtech.archunit.tooling.ExecutedTestFile.TestResult;
@@ -28,14 +22,13 @@ import org.junit.platform.launcher.core.LauncherFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.tngtech.archunit.junit.engine_api.FieldSelector.selectField;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectMethod;
 
 public enum JUnitJupiterEngine implements TestEngine {
     INSTANCE;
 
     private static final Logger LOG = LoggerFactory.getLogger(JUnitJupiterEngine.class);
+    private static final String ARCHUNIT_INCLUDES_PARAMETER_NAME = "archunit.junit.includeTestsMatching";
 
     private final Launcher launcher = LauncherFactory.create();
 
@@ -48,42 +41,24 @@ public enum JUnitJupiterEngine implements TestEngine {
     }
 
     private LauncherDiscoveryRequest toDiscoveryRequest(TestFile testFile) {
-        List<DiscoverySelector> selectors = toSelectors(testFile)
-                .collect(Collectors.toList());
-        LOG.info("Executing request with selectors {}", selectors);
-        return LauncherDiscoveryRequestBuilder.request()
-                .selectors(selectors)
-                .filters()
-                .build();
-    }
-
-    private Stream<DiscoverySelector> toSelectors(TestFile testFile) {
+        DiscoverySelector selector = toTestClassSelector(testFile);
+        LOG.info("Executing request with selectors {}", selector);
+        LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request()
+                .selectors(selector);
         if (testFile.hasTestCasesFilter()) {
-            return testFile.getTestCases().stream().map(testCase -> toSelector(testFile.getFixture(), testCase));
+            String testCaseFilter = toTestCaseFilter(testFile);
+            builder = builder.configurationParameter(ARCHUNIT_INCLUDES_PARAMETER_NAME, testCaseFilter);
+            LOG.info("Executing request with test case filter {}", testCaseFilter);
         }
-        return Stream.of(selectClass(testFile.getFixture()));
+        return builder.build();
     }
 
-    private DiscoverySelector toSelector(Class<?> fixture, String testCase) {
-        return getMethodByName(fixture, testCase)
-                .<DiscoverySelector>map(method -> selectMethod(fixture, method))
-                .orElseGet(() -> getFieldByName(fixture, testCase)
-                        .<DiscoverySelector>map(field -> selectField(fixture, field.getName()))
-                        .orElseThrow(RuntimeException::new));
+    private String toTestCaseFilter(TestFile testFile) {
+        return testFile.getTestCases().stream().map((testFile.getFixture().getSimpleName() + ".")::concat).collect(Collectors.joining(","));
     }
 
-    private Optional<Method> getMethodByName(Class<?> owner, String name) {
-        return Arrays.stream(owner.getDeclaredMethods())
-                .filter(method -> name.equals(method.getName()))
-                .findFirst();
-    }
-
-    private Optional<Field> getFieldByName(Class<?> owner, String name) {
-        try {
-            return Optional.of(owner.getDeclaredField(name));
-        } catch (NoSuchFieldException e) {
-            return Optional.empty();
-        }
+    private DiscoverySelector toTestClassSelector(TestFile testFile) {
+        return selectClass(testFile.getFixture());
     }
 
     private static class TestExecutionCollector implements TestExecutionListener {

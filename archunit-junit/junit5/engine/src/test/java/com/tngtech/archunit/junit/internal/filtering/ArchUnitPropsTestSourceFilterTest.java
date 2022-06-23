@@ -72,10 +72,10 @@ class ArchUnitPropsTestSourceFilterTest {
         @ParameterizedTest(name = "by {0} filter")
         @CsvSource(value = {
         //"test scenario                 include filter                       accepted selector                       rejected selector",
-        "simple class name,              com.example.SomeClass,               com.example.SomeClass#someField,        com.example.AnotherClass#someField",
+        "simple class name,              SomeClass,                           com.example.SomeClass#someField,        com.example.AnotherClass#someField",
         "FQ class name,                  com.example.SomeClass,               com.example.SomeClass#someField,        com.example.AnotherClass#someField",
         "FQ class and field name,        com.example.SomeClass.someField,     com.example.SomeClass#someField,        com.example.AnotherClass#someField",
-        "simple class and field name,    com.example.SomeClass.someField,     com.example.SomeClass#someField,        com.example.AnotherClass#someField",
+        "simple class and field name,    SomeClass.someField,                 com.example.SomeClass#someField,        com.example.AnotherClass#someField",
         "package name,                   com.example.*,                       com.example.SomeClass#someField,        com.another.AnotherClass#someField",
         "partial wildcard class name,    com.example.An*Class,                com.example.AnotherClass#someField,     com.example.SomeClass#someField",
         "wildcard field name,            com.example.SomeClass.*,             com.example.SomeClass#someField,        com.example.AnotherClass#someField",
@@ -159,7 +159,7 @@ class ArchUnitPropsTestSourceFilterTest {
     }
 
     private void mockIncludeFilterInArchConfig(String filter) {
-        ArchConfiguration.get().setProperty(ArchConfiguration.JUNIT_PREFIX + "." + ArchConfiguration.JUNIT_INCLUDE_TESTS_MATCHING, filter);
+        ArchConfiguration.get().setProperty("junit.includeTestsMatching", filter);
     }
 
     private static class TestSelectorConverter implements ArgumentConverter {
