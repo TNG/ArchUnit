@@ -18,6 +18,7 @@ package com.tngtech.archunit.junit.internal;
 import java.lang.reflect.Field;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import org.junit.AssumptionViolatedException;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -75,6 +76,21 @@ abstract class ArchTestExecution {
         @Override
         void notify(RunNotifier notifier) {
             notifier.fireTestFailure(new Failure(description, failure));
+        }
+    }
+
+    static class AbortedResult extends Result {
+        private final Description description;
+        private final AssumptionViolatedException failedAssumption;
+
+        AbortedResult(Description description, AssumptionViolatedException failedAssumption) {
+            this.description = description;
+            this.failedAssumption = failedAssumption;
+        }
+
+        @Override
+        void notify(RunNotifier notifier) {
+            notifier.fireTestAssumptionFailed(new Failure(description, failedAssumption));
         }
     }
 }

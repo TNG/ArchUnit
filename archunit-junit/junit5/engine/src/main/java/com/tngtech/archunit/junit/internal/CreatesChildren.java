@@ -15,6 +15,8 @@
  */
 package com.tngtech.archunit.junit.internal;
 
+import com.tngtech.archunit.junit.internal.filtering.TestSourceFilter;
+
 interface CreatesChildren {
-    void createChildren(ElementResolver resolver);
+    void createChildren(ElementResolver resolver, TestSourceFilter filter);
 }

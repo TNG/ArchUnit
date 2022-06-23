@@ -4,20 +4,17 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
-
-import javax.annotation.Nonnull;
 
 import com.tngtech.archunit.tooling.TestEngine;
 import com.tngtech.archunit.tooling.TestFile;
 import com.tngtech.archunit.tooling.TestReport;
 import com.tngtech.archunit.tooling.engines.surefire.MavenProjectLayout.MavenProject;
 import com.tngtech.archunit.tooling.utils.AntReportParserAdapter;
+import com.tngtech.archunit.tooling.utils.JUnitEngineResolver;
 import com.tngtech.archunit.tooling.utils.TemporaryDirectoryUtils;
 import com.tngtech.archunit.tooling.utils.TemporaryDirectoryUtils.ThrowableFunction;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -43,6 +40,7 @@ public enum MavenSurefireEngine implements TestEngine {
     private static final Logger LOG = LoggerFactory.getLogger(MavenSurefireEngine.class);
 
     private final AntReportParserAdapter parser = new AntReportParserAdapter();
+    private final JUnitEngineResolver engineResolver = new JUnitEngineResolver();
     private final MavenProjectLayout projectLayout;
 
     private final Invoker invoker;
@@ -117,24 +115,8 @@ public enum MavenSurefireEngine implements TestEngine {
     private Properties propertiesForTest(TestFile testFile) {
         Properties result = new Properties();
         result.setProperty("test", toIncludePattern(testFile));
-        result.setProperty("surefire.includeJUnit5Engines", String.join(",", resolveJUnitEngines(testFile)));
+        result.setProperty("surefire.includeJUnit5Engines", String.join(",", engineResolver.resolveJUnitEngines(testFile)));
         return result;
-    }
-
-    @Nonnull
-    private List<String> resolveJUnitEngines(TestFile testFile) {
-        /* TODO configuration issue:
-            If archunit and junit-vintage are both included, then ArchUnit tests are being run twice (since they are discoverable by both engines).
-            This behavior should either be suppressed somehow or, at the very least, clearly stated in the docs.
-
-            (the former could be done by having ArchUnitTestEngine detect if JUnit Vintage is configured to run, and if so - skip JUnit 4 tests
-            during discovery. There does not, however, seem to exist a foolproof way of detecting whether a given engine is configured to run)
-        */
-        if (TestFile.TestingFramework.JUNIT4.equals(testFile.getTestingFramework())
-                && testFile.getFixture().getSimpleName().contains("Arch")) {
-            return Arrays.asList("junit-jupiter", "archunit");
-        }
-        return Arrays.asList("junit-jupiter", "junit-vintage", "archunit");
     }
 
     private String toIncludePattern(TestFile testFile) {

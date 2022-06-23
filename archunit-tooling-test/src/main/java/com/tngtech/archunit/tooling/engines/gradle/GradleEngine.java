@@ -10,6 +10,7 @@ import com.tngtech.archunit.tooling.TestEngine;
 import com.tngtech.archunit.tooling.TestFile;
 import com.tngtech.archunit.tooling.TestReport;
 import com.tngtech.archunit.tooling.utils.AntReportParserAdapter;
+import com.tngtech.archunit.tooling.utils.JUnitEngineResolver;
 import com.tngtech.archunit.tooling.utils.TemporaryDirectoryUtils;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
@@ -29,6 +30,7 @@ public enum GradleEngine implements TestEngine {
     private static final String DOT = ".";
 
     private final AntReportParserAdapter parser = new AntReportParserAdapter();
+    private final JUnitEngineResolver engineResolver = new JUnitEngineResolver();
     private final GradleProjectLayout projectLayout;
 
     GradleEngine(GradleProjectLayout projectLayout) {
@@ -59,7 +61,8 @@ public enum GradleEngine implements TestEngine {
                 .withArguments(
                         "--debug",
                         "--full-stacktrace",
-                        "-Ppatterns=" + String.join(",", toTestFilterArgument(testFile)));
+                        "-Ppatterns=" + String.join(",", toTestFilterArgument(testFile)),
+                        "-Pengines=" + String.join(",", engineResolver.resolveJUnitEngines(testFile)));
     }
 
     private Collection<String> toTestFilterArgument(TestFile testFile) {

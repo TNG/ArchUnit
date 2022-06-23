@@ -28,6 +28,7 @@ import com.tngtech.archunit.junit.ArchTests;
 import com.tngtech.archunit.junit.CacheMode;
 import com.tngtech.archunit.junit.LocationProvider;
 import com.tngtech.archunit.junit.engine_api.FieldSource;
+import com.tngtech.archunit.junit.internal.filtering.TestSourceFilter;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.UniqueId;
@@ -61,13 +62,14 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         this.classCache = classCache;
     }
 
-    static void resolve(TestDescriptor parent, ElementResolver resolver, ClassCache classCache) {
+    static void resolve(TestDescriptor parent, ElementResolver resolver, ClassCache classCache, TestSourceFilter additionalFilter) {
         resolver.resolveClass()
-                .ifRequestedAndResolved(CreatesChildren::createChildren)
-                .ifRequestedButUnresolved((clazz, childResolver) -> createTestDescriptor(parent, classCache, clazz, childResolver));
+                .ifRequestedAndResolved((resolvedMember, elementResolver) -> resolvedMember.createChildren(resolver, additionalFilter))
+                .ifRequestedButUnresolved((clazz, childResolver) -> createTestDescriptor(parent, classCache, clazz, childResolver, additionalFilter));
     }
 
-    private static void createTestDescriptor(TestDescriptor parent, ClassCache classCache, Class<?> clazz, ElementResolver childResolver) {
+    private static void createTestDescriptor(TestDescriptor parent, ClassCache classCache, Class<?> clazz, ElementResolver childResolver,
+            TestSourceFilter additionalFilter) {
         if (clazz.getAnnotation(AnalyzeClasses.class) == null) {
             LOG.warn("Class {} is not annotated with @{} and thus cannot run as a top level test. "
                             + "This warning can be ignored if {} is only used as part of a rules library included via {}.in({}.class).",
@@ -79,36 +81,44 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
         ArchUnitTestDescriptor classDescriptor = new ArchUnitTestDescriptor(childResolver, clazz, classCache);
         parent.addChild(classDescriptor);
-        classDescriptor.createChildren(childResolver);
+        classDescriptor.createChildren(childResolver, additionalFilter);
     }
 
     @Override
-    public void createChildren(ElementResolver resolver) {
+    public void createChildren(ElementResolver resolver, TestSourceFilter filter) {
         Supplier<JavaClasses> classes = () -> classCache.getClassesToAnalyzeFor(testClass, new JUnit5ClassAnalysisRequest(testClass));
 
         getAllFields(testClass, withAnnotation(ArchTest.class))
-                .forEach(field -> resolveField(resolver, classes, field));
+                .forEach(field -> resolveField(resolver, classes, field, filter));
         getAllMethods(testClass, withAnnotation(ArchTest.class))
-                .forEach(method -> resolveMethod(resolver, classes, method));
+                .forEach(method -> resolveMethod(resolver, classes, method, filter));
     }
 
-    private void resolveField(ElementResolver resolver, Supplier<JavaClasses> classes, Field field) {
+    private void resolveField(ElementResolver resolver, Supplier<JavaClasses> classes, Field field, TestSourceFilter filter) {
         resolver.resolveField(field)
-                .ifUnresolved(childResolver -> resolveChildren(this, childResolver, field, classes));
+                .ifUnresolved(childResolver -> resolveChildren(this, childResolver, field, classes, filter));
     }
 
-    private void resolveMethod(ElementResolver resolver, Supplier<JavaClasses> classes, Method method) {
+    private void resolveMethod(ElementResolver resolver, Supplier<JavaClasses> classes, Method method, TestSourceFilter filter) {
         resolver.resolveMethod(method)
-                .ifUnresolved(childResolver -> addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes)));
+                .ifUnresolved(childResolver -> {
+                    ArchUnitMethodDescriptor descriptor = new ArchUnitMethodDescriptor(getUniqueId(), method, classes);
+                    if (filter.shouldRun(descriptor)) {
+                        addChild(descriptor);
+                    }
+                });
     }
 
     private static void resolveChildren(
-            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
+            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes, TestSourceFilter filter) {
 
         if (ArchTests.class.isAssignableFrom(field.getType())) {
-            resolveArchRules(parent, resolver, field, classes);
+            resolveArchRules(parent, resolver, field, classes, filter);
         } else {
-            parent.addChild(new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field), classes, field));
+            ArchUnitRuleDescriptor descriptor = new ArchUnitRuleDescriptor(resolver.getUniqueId(), getValue(field), classes, field);
+            if (filter.shouldRun(descriptor)) {
+                parent.addChild(descriptor);
+            }
         }
     }
 
@@ -117,16 +127,18 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
     }
 
     private static void resolveArchRules(
-            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes) {
+            TestDescriptor parent, ElementResolver resolver, Field field, Supplier<JavaClasses> classes, TestSourceFilter filter) {
 
+        if (!filter.shouldRun(FieldSource.from(field))) {
+            return;
+        }
         DeclaredArchTests archTests = getDeclaredArchTests(field);
-
         resolver.resolveClass(archTests.getDefinitionLocation())
-                .ifRequestedAndResolved(CreatesChildren::createChildren)
+                .ifRequestedAndResolved((resolvedMember, elementResolver) -> resolvedMember.createChildren(resolver, filter))
                 .ifRequestedButUnresolved((clazz, childResolver) -> {
                     ArchUnitArchTestsDescriptor rulesDescriptor = new ArchUnitArchTestsDescriptor(childResolver, archTests, classes, field);
                     parent.addChild(rulesDescriptor);
-                    rulesDescriptor.createChildren(childResolver);
+                    rulesDescriptor.createChildren(childResolver, TestSourceFilter.NOOP);
                 });
     }
 
@@ -194,6 +206,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
         @Override
         public ArchUnitEngineExecutionContext execute(ArchUnitEngineExecutionContext context, DynamicTestExecutor dynamicTestExecutor) {
+
             invokeMethod(method, method.getDeclaringClass(), classes.get());
             return context;
         }
@@ -215,14 +228,18 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         }
 
         @Override
-        public void createChildren(ElementResolver resolver) {
+        public void createChildren(ElementResolver resolver, TestSourceFilter filter) {
             archTests.handleFields(field ->
                     resolver.resolve(FIELD_SEGMENT_TYPE, field.getName(), childResolver ->
-                            resolveChildren(this, childResolver, field, classes)));
+                            resolveChildren(this, childResolver, field, classes, filter)));
 
             archTests.handleMethods(method ->
-                    resolver.resolve(METHOD_SEGMENT_TYPE, method.getName(), childResolver ->
-                            addChild(new ArchUnitMethodDescriptor(getUniqueId(), method, classes))));
+                    resolver.resolve(METHOD_SEGMENT_TYPE, method.getName(), childResolver -> {
+                        ArchUnitMethodDescriptor descriptor = new ArchUnitMethodDescriptor(getUniqueId(), method, classes);
+                        if (filter.shouldRun(descriptor)) {
+                            addChild(descriptor);
+                        }
+                    }));
         }
 
         @Override

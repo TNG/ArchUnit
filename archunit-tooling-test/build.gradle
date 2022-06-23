@@ -46,7 +46,6 @@ processTestFixturesResources {
 }
 
 dependencies {
-    implementation project(path: ':archunit-junit5-engine-api')
     implementation project(path: ':archunit-junit5-engine')
     implementation project(path: ':archunit-junit4')
     implementation dependency.junit5JupiterEngine

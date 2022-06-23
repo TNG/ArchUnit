@@ -21,20 +21,31 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
-class ReflectionUtils {
+public class ReflectionUtils {
+
+    private static final com.google.common.base.Function<Object, Class<?>> EXTRACTING_CLASS = new com.google.common.base.Function<Object, Class<?>>() {
+        @Override
+        public Class<?> apply(Object input) {
+            return input.getClass();
+        }
+    };
+
     private ReflectionUtils() {
     }
 
@@ -82,7 +93,7 @@ class ReflectionUtils {
         }
     }
 
-    static <T> T getValueOrThrowException(Field field, Class<?> fieldOwner, Function<Throwable, ? extends RuntimeException> exceptionConverter) {
+    public static <T> T getValueOrThrowException(Field field, Class<?> fieldOwner, Function<Throwable, ? extends RuntimeException> exceptionConverter) {
         try {
             if (Modifier.isStatic(field.getModifiers())) {
                 return getValue(field, null);
@@ -96,14 +107,14 @@ class ReflectionUtils {
 
     static <T> T invokeMethod(Method method, Class<?> methodOwner, Object... args) {
         if (Modifier.isStatic(method.getModifiers())) {
-            return invoke(null, method, args);
+            return invokeMethod(null, method, args);
         } else {
-            return invoke(newInstanceOf(methodOwner), method, args);
+            return invokeMethod(newInstanceOf(methodOwner), method, args);
         }
     }
 
     @SuppressWarnings("unchecked") // callers must know, what they do here, we can't make this compile safe anyway
-    private static <T> T invoke(Object owner, Method method, Object... args) {
+    public static <T> T invokeMethod(Object owner, Method method, Object... args) {
         method.setAccessible(true);
         try {
             return (T) method.invoke(owner, args);
@@ -111,6 +122,22 @@ class ReflectionUtils {
             throw new ReflectionException(e);
         } catch (InvocationTargetException e) {
             ReflectionUtils.rethrowUnchecked(e.getTargetException());
+            return null; // will never be reached
+        }
+    }
+
+    public static <T> T invokeMethod(Object owner, String methodName, Object... args) {
+        return invokeMethod(owner, Objects.requireNonNull(findMethod(owner, methodName, args)), args);
+    }
+
+    private static Method findMethod(Object owner, String methodName, Object[] args) {
+        try {
+            return owner.getClass().getMethod(
+                    methodName,
+                    Iterables.toArray(Iterables.transform(Arrays.asList(args), EXTRACTING_CLASS), Class.class)
+            );
+        } catch (NoSuchMethodException e) {
+            ReflectionUtils.rethrowUnchecked(e);
             return null; // will never be reached
         }
     }

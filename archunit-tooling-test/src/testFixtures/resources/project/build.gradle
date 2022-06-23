@@ -16,7 +16,9 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        includeEngines((project.getProperty('engines') as String).split(','))
+    }
 
     jvmArgs = ['--add-opens', 'java.base/java.util=ALL-UNNAMED', '--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED']
     ignoreFailures = true
