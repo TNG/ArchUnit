@@ -1,13 +1,17 @@
 package com.tngtech.archunit.tooling.engines.jupiter;
 
+import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import com.tngtech.archunit.junit.engine_api.FieldSource;
 import com.tngtech.archunit.tooling.ExecutedTestFile.TestResult;
 import com.tngtech.archunit.tooling.TestEngine;
 import com.tngtech.archunit.tooling.TestFile;
 import com.tngtech.archunit.tooling.TestReport;
+import com.tngtech.archunit.tooling.utils.JUnitEngineResolver;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
@@ -17,8 +21,10 @@ import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
+import org.junit.platform.launcher.core.LauncherConfig;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
+import org.junit.platform.launcher.core.ServiceLoaderTestEngineRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,20 +36,33 @@ public enum JUnitJupiterEngine implements TestEngine {
     private static final Logger LOG = LoggerFactory.getLogger(JUnitJupiterEngine.class);
     private static final String ARCHUNIT_INCLUDES_PARAMETER_NAME = "archunit.junit.includeTestsMatching";
 
-    private final Launcher launcher = LauncherFactory.create();
+    private final JUnitEngineResolver engineResolver = new JUnitEngineResolver();
 
     @Override
-    public TestReport execute(TestFile testFiles) {
-        LauncherDiscoveryRequest request = toDiscoveryRequest(testFiles);
+    public TestReport execute(TestFile testFile) {
+        Launcher launcher = LauncherFactory.create(LauncherConfig.builder()
+                        .enableTestEngineAutoRegistration(false)
+                        .addTestEngines(manuallyLoadCorrectTestEngines(testFile))
+                .build());
+        LauncherDiscoveryRequest request = toDiscoveryRequest(testFile);
         TestExecutionCollector testExecutionCollector = new TestExecutionCollector();
         launcher.execute(launcher.discover(request), testExecutionCollector);
         return testExecutionCollector.getReport();
+    }
+
+    private org.junit.platform.engine.TestEngine[] manuallyLoadCorrectTestEngines(TestFile testFile) {
+        List<String> engineIds = engineResolver.resolveJUnitEngines(testFile);
+        Iterable<org.junit.platform.engine.TestEngine> testEngines = new ServiceLoaderTestEngineRegistry().loadTestEngines();
+        return StreamSupport.stream(testEngines::spliterator, 0, false)
+                .filter(engine -> engineIds.contains(engine.getId()))
+                .toArray(org.junit.platform.engine.TestEngine[]::new);
     }
 
     private LauncherDiscoveryRequest toDiscoveryRequest(TestFile testFile) {
         DiscoverySelector selector = toTestClassSelector(testFile);
         LOG.info("Executing request with selectors {}", selector);
         LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request()
+                .selectors()
                 .selectors(selector);
         if (testFile.hasTestCasesFilter()) {
             String testCaseFilter = toTestCaseFilter(testFile);
