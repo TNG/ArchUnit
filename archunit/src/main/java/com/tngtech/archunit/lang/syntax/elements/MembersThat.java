@@ -469,13 +469,13 @@ public interface MembersThat<CONJUNCTION> {
      * E.g. <code>someField</code> in
      *
      * <pre><code>
-     * class Example {
+     * class Example implements Serializable {
      *     Object someField;
      * }</code></pre>
      *
      * will be matched by
      * <pre><code>
-     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areDeclaredInClassesThat(DescribedPredicate) areDeclaredInClassesThat(areSubtypeOf(Object.class))}
+     * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#areDeclaredInClassesThat(DescribedPredicate) areDeclaredInClassesThat(are(assignableTo(Serializable.class)))}
      * </code></pre>
      *
      * @param predicate A predicate which matches classes where members have to be declared in

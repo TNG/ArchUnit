@@ -18,7 +18,7 @@ public class ArchConditionAssertion<T> extends AbstractObjectAssert<ArchConditio
     }
 
     public ConditionEventsAssertion checking(T item) {
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         actual.check(item, events);
         return assertThat(events);
     }

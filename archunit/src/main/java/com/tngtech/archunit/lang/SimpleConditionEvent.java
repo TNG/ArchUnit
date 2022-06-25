@@ -44,8 +44,8 @@ public final class SimpleConditionEvent implements ConditionEvent {
     }
 
     @Override
-    public void addInvertedTo(ConditionEvents events) {
-        events.add(new SimpleConditionEvent(correspondingObject, !conditionSatisfied, message));
+    public ConditionEvent invert() {
+        return new SimpleConditionEvent(correspondingObject, !conditionSatisfied, message);
     }
 
     @Override

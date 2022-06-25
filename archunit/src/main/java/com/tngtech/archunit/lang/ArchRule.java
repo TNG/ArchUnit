@@ -227,7 +227,7 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
                 verifyNoEmptyShouldIfEnabled(allObjects);
 
                 condition.init(allObjects);
-                ConditionEvents events = new ConditionEvents();
+                ConditionEvents events = ConditionEvents.Factory.create();
                 for (T object : allObjects) {
                     condition.check(object, events);
                 }

@@ -5,16 +5,31 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.HasDescription;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EvaluationResultTest {
+
+    @Test
+    public void reports_description_lines_of_events() {
+        List<String> expectedLinesAlphabetically = ImmutableList.of("another event message", "some event message");
+
+        EvaluationResult result = new EvaluationResult(
+                hasDescription("irrelevant"),
+                events(expectedLinesAlphabetically.get(1), expectedLinesAlphabetically.get(0)),
+                MEDIUM);
+
+        assertThat(result.getFailureReport().getDetails()).containsExactlyElementsOf(expectedLinesAlphabetically);
+    }
+
     @Test
     public void properties_are_passed_to_FailureReport() {
         EvaluationResult result = new EvaluationResult(
@@ -31,7 +46,6 @@ public class EvaluationResultTest {
     }
 
     @Test
-    @SuppressWarnings("Convert2Lambda") // to retrieve the type information ViolationHandler may not be converted to a Lambda
     public void allows_clients_to_handle_violations() {
         EvaluationResult result = evaluationResultWith(
                 new SimpleConditionEvent(ImmutableSet.of("message"), false, "expected"),
@@ -40,12 +54,8 @@ public class EvaluationResultTest {
                 new SimpleConditionEvent(ImmutableSet.of("second message"), false, "also expected"));
 
         final Set<String> actual = new HashSet<>();
-        result.handleViolations(new ViolationHandler<Set<?>>() {
-            @Override
-            public void handle(Collection<Set<?>> violatingObject, String message) {
-                actual.add(getOnlyElement(getOnlyElement(violatingObject)) + ": " + message);
-            }
-        });
+        result.handleViolations((Collection<Set<String>> violatingObject, String message) ->
+                actual.add(getOnlyElement(getOnlyElement(violatingObject)) + ": " + message));
 
         assertThat(actual).containsOnly("message: expected", "second message: also expected");
     }
@@ -64,8 +74,40 @@ public class EvaluationResultTest {
         assertThat(filtered.getFailureReport().getDetails()).containsOnly("keep first line1", "keep second line1", "keep second line2");
     }
 
+    @Test
+    public void filtering_lines_resets_information_about_number_of_violations() {
+        ConditionEvents events = events(new TestEvent(true, "drop first line1", "keep second line1"));
+        String informationAboutNumberOfViolations = "test number";
+        events.setInformationAboutNumberOfViolations(informationAboutNumberOfViolations);
+        EvaluationResult result = new EvaluationResult(hasDescription("unimportant"), events, MEDIUM);
+
+        EvaluationResult filtered = result.filterDescriptionsMatching(input -> input.contains("keep"));
+
+        assertThat(filtered.getFailureReport().toString()).contains("(1 times)");
+        assertThat(filtered.getFailureReport().toString()).doesNotContain(informationAboutNumberOfViolations);
+        assertThat(filtered.getFailureReport().getDetails()).containsOnly("keep second line1");
+    }
+
+    @Test
+    public void handleViolations_reports_only_violations_referring_to_the_correct_type() {
+        EvaluationResult result = evaluationResultWith(
+                SimpleConditionEvent.satisfied(new CorrectType("do not handle"), "I'm not violated"),
+                SimpleConditionEvent.violated(new WrongType(), "I'm violated, but wrong type"),
+                SimpleConditionEvent.violated(new WrongSupertype(), "I'm violated, but wrong type"),
+                SimpleConditionEvent.violated(new CorrectType("handle type"), "I'm violated and correct type"),
+                SimpleConditionEvent.violated(new CorrectSubtype("handle sub type"), "I'm violated and correct sub type"));
+
+        final Set<String> handledFailures = new HashSet<>();
+        result.handleViolations((Collection<CorrectType> violatingObjects, String message) ->
+                handledFailures.add(Joiner.on(", ").join(violatingObjects) + ": " + message));
+
+        assertThat(handledFailures).containsOnly(
+                "handle type: I'm violated and correct type",
+                "handle sub type: I'm violated and correct sub type");
+    }
+
     private EvaluationResult evaluationResultWith(ConditionEvent... events) {
-        return new EvaluationResult(hasDescription("unimportant"), events(events), Priority.MEDIUM);
+        return new EvaluationResult(hasDescription("unimportant"), events(events), MEDIUM);
     }
 
     private ConditionEvents events(String... messages) {
@@ -76,7 +118,7 @@ public class EvaluationResultTest {
     }
 
     private ConditionEvents events(ConditionEvent... events) {
-        ConditionEvents result = new ConditionEvents();
+        ConditionEvents result = ConditionEvents.Factory.create();
         for (ConditionEvent event : events) {
             result.add(event);
         }
@@ -87,9 +129,34 @@ public class EvaluationResultTest {
         return () -> description;
     }
 
+    private static class CorrectSubtype extends CorrectType {
+        CorrectSubtype(String message) {
+            super(message);
+        }
+    }
+
+    static class CorrectType extends WrongSupertype {
+        String message;
+
+        CorrectType(String message) {
+            this.message = message;
+        }
+
+        @Override
+        public String toString() {
+            return message;
+        }
+    }
+
+    private static class WrongType {
+    }
+
+    private static class WrongSupertype {
+    }
+
     private static class TestEvent implements ConditionEvent {
-        private boolean violation;
-        private List<String> descriptionLines;
+        private final boolean violation;
+        private final List<String> descriptionLines;
 
         private TestEvent(boolean violation, String... descriptionLines) {
             this.violation = violation;
@@ -102,7 +169,7 @@ public class EvaluationResultTest {
         }
 
         @Override
-        public void addInvertedTo(ConditionEvents events) {
+        public ConditionEvent invert() {
             throw new UnsupportedOperationException("Implement me");
         }
 

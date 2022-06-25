@@ -15,71 +15,135 @@
  */
 package com.tngtech.archunit.lang;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaMethod;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.Ordering.natural;
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 /**
  * Represents the result of evaluating an {@link ArchRule} against some {@link JavaClasses}.
- * To react to failures during evaluation of the rule, one can use {@link #handleViolations(ViolationHandler)}:
+ * To react to failures during evaluation of the rule, one can use {@link #handleViolations(ViolationHandler, Object[])}:
  * <br><br>
  * <pre><code>
- * result.handleViolations(new ViolationHandler&lt;JavaAccess&lt;?&gt;&gt;() {
- *     {@literal @}Override
- *     public void handle(Collection&lt;JavaAccess&lt;?&gt;&gt; violatingObjects, String message) {
- *         // do some reporting or react in any way to violation
- *     }
+ * result.handleViolations((Collection&lt;JavaAccess&lt;?&gt;&gt; violatingObjects, String message) -> {
+ *     // do some reporting or react in any way to violation
  * });
  * </code></pre>
  */
 public final class EvaluationResult {
     private final HasDescription rule;
-    private final ConditionEvents events;
+    private final List<ConditionEvent> violations;
+    private final Optional<String> informationAboutNumberOfViolations;
     private final Priority priority;
 
     @PublicAPI(usage = ACCESS)
     public EvaluationResult(HasDescription rule, Priority priority) {
-        this(rule, new ConditionEvents(), priority);
+        this(rule, emptyList(), Optional.empty(), priority);
     }
 
     @PublicAPI(usage = ACCESS)
     public EvaluationResult(HasDescription rule, ConditionEvents events, Priority priority) {
+        this(
+                rule,
+                events.getViolating(),
+                events.getInformationAboutNumberOfViolations(),
+                priority
+        );
+    }
+
+    EvaluationResult(HasDescription rule, Collection<ConditionEvent> violations, Optional<String> informationAboutNumberOfViolations, Priority priority) {
         this.rule = rule;
-        this.events = events;
+        this.violations = new ArrayList<>(violations);
+        this.informationAboutNumberOfViolations = informationAboutNumberOfViolations;
         this.priority = priority;
     }
 
     @PublicAPI(usage = ACCESS)
     public FailureReport getFailureReport() {
-        return new FailureReport(rule, priority, events.getFailureMessages());
+        ImmutableList<String> result = violations.stream()
+                .flatMap(event -> event.getDescriptionLines().stream())
+                .sorted(natural())
+                .collect(toImmutableList());
+        FailureMessages failureMessages = new FailureMessages(result, informationAboutNumberOfViolations);
+        return new FailureReport(rule, priority, failureMessages);
     }
 
     @PublicAPI(usage = ACCESS)
     public void add(EvaluationResult part) {
-        for (ConditionEvent event : part.events) {
-            events.add(event);
-        }
+        violations.addAll(part.violations);
     }
 
     /**
-     * @see ConditionEvents#handleViolations(ViolationHandler)
+     * Passes violations to the supplied {@link ViolationHandler}. The passed violations will automatically
+     * be filtered by the type of the given {@link ViolationHandler}. That is, when a
+     * <code>ViolationHandler&lt;SomeClass&gt;</code> is passed, only violations by objects assignable to
+     * <code>SomeClass</code> will be reported. Note that this will be unsafe for generics, i.e. ArchUnit
+     * cannot filter to match the full generic type signature. E.g.
+     * <pre><code>
+     * handleViolations((Collection&lt;Optional&lt;String&gt;&gt; objects, String message) ->
+     *     assertType(objects.iterator().next().get(), String.class)
+     * )
+     * </code></pre>
+     * might throw an exception if there are also {@code Optional<Integer>} violations.
+     * So, in general it is safer to use the wildcard {@code ?} for generic types, unless it is absolutely
+     * certain from the context what the type parameter will be
+     * (for example when only analyzing methods it might be clear that the type parameter will be {@link JavaMethod}).
+     *
+     * @param <T> Type of the relevant objects causing violations. E.g. {@code JavaAccess<?>}
+     * @param violationHandler The violation handler that is supposed to handle all violations matching the
+     *                         respective type parameter
+     * @param __ignored_parameter_to_reify_type__ This parameter will be ignored; its only use is to make the
+     *                                            generic type reified, so we can retrieve it at runtime.
+     *                                            Without this parameter, the generic type would be erased.
      */
+    @SafeVarargs
+    @SuppressWarnings("unused")
     @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
-    public void handleViolations(ViolationHandler<?> violationHandler) {
-        events.handleViolations(violationHandler);
+    public final <T> void handleViolations(ViolationHandler<T> violationHandler, T... __ignored_parameter_to_reify_type__) {
+        Class<T> correspondingObjectType = componentTypeOf(__ignored_parameter_to_reify_type__);
+        ConditionEvent.Handler eventHandler = convertToEventHandler(correspondingObjectType, violationHandler);
+        for (final ConditionEvent event : violations) {
+            event.handleWith(eventHandler);
+        }
+    }
+
+    @SuppressWarnings("unchecked") // The cast is safe, since the component type of T[] will be type T
+    private <T> Class<T> componentTypeOf(T[] array) {
+        return (Class<T>) array.getClass().getComponentType();
+    }
+
+    private <ITEM> ConditionEvent.Handler convertToEventHandler(Class<? extends ITEM> correspondingObjectType, ViolationHandler<ITEM> violationHandler) {
+        return (correspondingObjects, message) -> {
+            if (allElementTypesMatch(correspondingObjects, correspondingObjectType)) {
+                // If all elements are assignable to ITEM, covariance of ImmutableList allows this cast
+                @SuppressWarnings("unchecked")
+                Collection<ITEM> collection = ImmutableList.copyOf((Collection<ITEM>) correspondingObjects);
+                violationHandler.handle(collection, message);
+            }
+        };
+    }
+
+    private boolean allElementTypesMatch(Collection<?> violatingObjects, Class<?> supportedElementType) {
+        return violatingObjects.stream().allMatch(supportedElementType::isInstance);
     }
 
     @PublicAPI(usage = ACCESS)
     public boolean hasViolation() {
-        return events.containViolation();
+        return !violations.isEmpty();
     }
 
     @PublicAPI(usage = ACCESS)
@@ -96,20 +160,22 @@ public final class EvaluationResult {
      */
     @PublicAPI(usage = ACCESS)
     public EvaluationResult filterDescriptionsMatching(Predicate<String> linePredicate) {
-        ConditionEvents filtered = new ConditionEvents();
-        for (ConditionEvent event : events) {
-            filtered.add(new FilteredEvent(event, linePredicate));
-        }
-        return new EvaluationResult(rule, filtered, priority);
+        List<ConditionEvent> filtered = violations.stream()
+                .map(e -> new FilteredEvent(e, linePredicate))
+                .filter(FilteredEvent::isViolation)
+                .collect(toList());
+        return new EvaluationResult(rule, filtered, Optional.empty(), priority);
     }
 
     private static class FilteredEvent implements ConditionEvent {
         private final ConditionEvent delegate;
         private final Predicate<String> linePredicate;
+        private final List<String> filteredDescriptionLines;
 
         private FilteredEvent(ConditionEvent delegate, Predicate<String> linePredicate) {
             this.delegate = delegate;
             this.linePredicate = linePredicate;
+            filteredDescriptionLines = delegate.getDescriptionLines().stream().filter(linePredicate).collect(toList());
         }
 
         @Override
@@ -118,13 +184,13 @@ public final class EvaluationResult {
         }
 
         @Override
-        public void addInvertedTo(ConditionEvents events) {
-            delegate.addInvertedTo(events);
+        public ConditionEvent invert() {
+            return new FilteredEvent(delegate.invert(), linePredicate);
         }
 
         @Override
         public List<String> getDescriptionLines() {
-            return delegate.getDescriptionLines().stream().filter(linePredicate).collect(toList());
+            return filteredDescriptionLines;
         }
 
         @Override

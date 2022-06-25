@@ -163,7 +163,6 @@ public class ArchRuleTest {
         all(strings()).should(condition).evaluate(importClasses(getClass()));
 
         assertThat(condition.allObjectsToTest).containsOnly(getClass().getName());
-        assertThat(condition.eventsFromFinish.getAllowed()).isEmpty();
         assertThat(condition.eventsFromFinish.getViolating()).hasSize(1);
     }
 

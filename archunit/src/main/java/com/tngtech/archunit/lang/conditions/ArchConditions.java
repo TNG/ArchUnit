@@ -417,6 +417,16 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
+    public static <T> ArchCondition<T> and(ArchCondition<T> first, ArchCondition<T> second) {
+        return new AndCondition<>(first, second);
+    }
+
+    @PublicAPI(usage = ACCESS)
+    public static <T> ArchCondition<T> or(ArchCondition<T> first, ArchCondition<T> second) {
+        return new OrCondition<>(first, second);
+    }
+
+    @PublicAPI(usage = ACCESS)
     public static <T> ArchCondition<T> never(ArchCondition<T> condition) {
         return new NeverCondition<>(condition);
     }

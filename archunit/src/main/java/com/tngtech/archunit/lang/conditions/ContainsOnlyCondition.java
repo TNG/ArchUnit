@@ -34,11 +34,11 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
 
     @Override
     public void check(Collection<? extends T> collection, ConditionEvents events) {
-        ConditionEvents subEvents = new ConditionEvents();
+        ViolatedAndSatisfiedConditionEvents subEvents = new ViolatedAndSatisfiedConditionEvents();
         for (T item : collection) {
             condition.check(item, subEvents);
         }
-        if (!subEvents.isEmpty()) {
+        if (!subEvents.getAllowed().isEmpty() || !subEvents.getViolating().isEmpty()) {
             events.add(new OnlyConditionEvent(collection, subEvents));
         }
     }
@@ -53,7 +53,7 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
         private final Collection<ConditionEvent> allowed;
         private final Collection<ConditionEvent> violating;
 
-        private OnlyConditionEvent(Collection<?> correspondingObjects, ConditionEvents events) {
+        private OnlyConditionEvent(Collection<?> correspondingObjects, ViolatedAndSatisfiedConditionEvents events) {
             this(correspondingObjects, events.getAllowed(), events.getViolating());
         }
 
@@ -71,8 +71,8 @@ class ContainsOnlyCondition<T> extends ArchCondition<Collection<? extends T>> {
         }
 
         @Override
-        public void addInvertedTo(ConditionEvents events) {
-            events.add(new AnyConditionEvent(correspondingObjects, violating, allowed));
+        public ConditionEvent invert() {
+            return new AnyConditionEvent(correspondingObjects, violating, allowed);
         }
 
         @Override

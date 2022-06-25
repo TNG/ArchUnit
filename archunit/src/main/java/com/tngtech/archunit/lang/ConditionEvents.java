@@ -16,34 +16,26 @@
 package com.tngtech.archunit.lang;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Optional;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
-import com.google.common.reflect.TypeToken;
 import com.tngtech.archunit.PublicAPI;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.collect.Ordering.natural;
-import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
-public final class ConditionEvents implements Iterable<ConditionEvent> {
+/**
+ * Collects {@link ConditionEvent events} that occur when checking {@link ArchCondition ArchConditions}.
+ */
+@PublicAPI(usage = INHERITANCE)
+public interface ConditionEvents {
 
-    @PublicAPI(usage = ACCESS)
-    public ConditionEvents() {
-    }
+    /**
+     * Adds a {@link ConditionEvent} to these events.
+     * @param event A {@link ConditionEvent} caused by an {@link ArchCondition} when checking some element
+     */
+    void add(ConditionEvent event);
 
-    private final Multimap<Type, ConditionEvent> eventsByViolation = ArrayListMultimap.create();
-    private Optional<String> informationAboutNumberOfViolations = Optional.empty();
-
-    @PublicAPI(usage = ACCESS)
-    public void add(ConditionEvent event) {
-        eventsByViolation.get(Type.from(event.isViolation())).add(event);
-    }
+    Optional<String> getInformationAboutNumberOfViolations();
 
     /**
      * Can be used to override the information about the number of violations. If absent the violated rule
@@ -53,100 +45,26 @@ public final class ConditionEvents implements Iterable<ConditionEvent> {
      * can be supplied here to inform users that there actually were more violations than reported.
      * @param informationAboutNumberOfViolations The text to be shown for the number of times a rule has been violated
      */
-    @PublicAPI(usage = ACCESS)
-    public void setInformationAboutNumberOfViolations(String informationAboutNumberOfViolations) {
-        this.informationAboutNumberOfViolations = Optional.of(informationAboutNumberOfViolations);
-    }
-
-    @PublicAPI(usage = ACCESS)
-    public Collection<ConditionEvent> getViolating() {
-        return eventsByViolation.get(Type.VIOLATION);
-    }
-
-    @PublicAPI(usage = ACCESS)
-    public Collection<ConditionEvent> getAllowed() {
-        return eventsByViolation.get(Type.ALLOWED);
-    }
-
-    @PublicAPI(usage = ACCESS)
-    public boolean containViolation() {
-        return !getViolating().isEmpty();
-    }
-
-    @PublicAPI(usage = ACCESS)
-    public boolean isEmpty() {
-        return getAllowed().isEmpty() && getViolating().isEmpty();
-    }
+    void setInformationAboutNumberOfViolations(String informationAboutNumberOfViolations);
 
     /**
-     * @return Sorted failure messages describing the contained failures of these events.
-     *         Also offers information about the number of violations contained in these events.
+     * @return All {@link ConditionEvent events} that correspond to violations.
      */
-    @PublicAPI(usage = ACCESS)
-    public FailureMessages getFailureMessages() {
-        ImmutableList<String> result = getViolating().stream()
-                .flatMap(event -> event.getDescriptionLines().stream())
-                .sorted(natural())
-                .collect(toImmutableList());
-        return new FailureMessages(result, informationAboutNumberOfViolations);
-    }
+    Collection<ConditionEvent> getViolating();
 
     /**
-     * Passes violations to the supplied {@link ViolationHandler}. The passed violations will automatically
-     * be filtered by the reified type of the given {@link ViolationHandler}. That is, if a
-     * <code>ViolationHandler&lt;SomeClass&gt;</code> is passed, only violations by objects assignable to
-     * <code>SomeClass</code> will be reported. The term 'reified' means that the type parameter
-     * was not erased, i.e. ArchUnit can still determine the actual type parameter of the passed violation handler,
-     * otherwise the upper bound, in extreme cases {@link Object}, will be used (i.e. all violations will be passed).
-     *
-     * @param violationHandler The violation handler that is supposed to handle all violations matching the
-     *                         respective type parameter
+     * @return {@code true}, if these events contain any {@link #getViolating() violating} event, otherwise {@code false}
      */
-    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
-    public void handleViolations(ViolationHandler<?> violationHandler) {
-        ConditionEvent.Handler eventHandler = convertToEventHandler(violationHandler);
-        for (final ConditionEvent event : eventsByViolation.get(Type.VIOLATION)) {
-            event.handleWith(eventHandler);
+    boolean containViolation();
+
+    @PublicAPI(usage = ACCESS)
+    final class Factory {
+        private Factory() {
         }
-    }
 
-    private <T> ConditionEvent.Handler convertToEventHandler(final ViolationHandler<T> handler) {
-        final Class<?> supportedElementType = TypeToken.of(handler.getClass())
-                .resolveType(ViolationHandler.class.getTypeParameters()[0]).getRawType();
-
-        return (correspondingObjects, message) -> {
-            if (allElementTypesMatch(correspondingObjects, supportedElementType)) {
-                // If all elements are assignable to T (= supportedElementType), covariance of Collection allows this cast
-                @SuppressWarnings("unchecked")
-                Collection<T> collection = (Collection<T>) correspondingObjects;
-                handler.handle(collection, message);
-            }
-        };
-    }
-
-    private boolean allElementTypesMatch(Collection<?> violatingObjects, Class<?> supportedElementType) {
-        return violatingObjects.stream().allMatch(supportedElementType::isInstance);
-    }
-
-    @Override
-    @PublicAPI(usage = ACCESS)
-    public Iterator<ConditionEvent> iterator() {
-        return ImmutableSet.copyOf(eventsByViolation.values()).iterator();
-    }
-
-    @Override
-    public String toString() {
-        return "ConditionEvents{" +
-                "Allowed Events: " + getAllowed() +
-                "; Violating Events: " + getViolating() +
-                '}';
-    }
-
-    private enum Type {
-        ALLOWED, VIOLATION;
-
-        private static Type from(boolean violation) {
-            return violation ? VIOLATION : ALLOWED;
+        @PublicAPI(usage = ACCESS)
+        public static ConditionEvents create() {
+            return new SimpleConditionEvents();
         }
     }
 }

@@ -56,7 +56,7 @@ public class ClassCallsCodeUnitConditionTest {
     }
 
     private ConditionEvents checkCondition(ArchCondition<JavaClass> condition) {
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(CALLER_CLASS, events);
         return events;
     }

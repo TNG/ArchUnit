@@ -14,6 +14,7 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -35,7 +36,7 @@ public class ArchConditionTest {
     public void as_finishes_delegate() {
         ConditionWithInitAndFinish original = someCondition("any");
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         original.as("changed").finish(events);
 
         assertThat(original.eventsFromFinish).isEqualTo(events);
@@ -45,18 +46,18 @@ public class ArchConditionTest {
     public void and_checks_all_conditions() {
         ArchCondition<Integer> greaterThan10_14And20 = greaterThan(10).and(greaterThan(14, 20));
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         greaterThan10_14And20.check(15, events);
         assertThat(events).containViolations("15 is not greater than 20");
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         greaterThan10_14And20.check(5, events);
         assertThat(events).containViolations(
                 "5 is not greater than 10",
                 "5 is not greater than 14",
                 "5 is not greater than 20");
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         greaterThan10_14And20.check(21, events);
         assertThat(events).containNoViolation();
     }
@@ -65,10 +66,11 @@ public class ArchConditionTest {
     public void and_handles_each_violating_object_separately() {
         ArchCondition<Integer> condition = greaterThan(1).and(greaterThan(2)).and(greaterThan(3));
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(2, events);
         final List<HandledViolation> handledViolations = new ArrayList<>();
-        events.handleViolations((ViolationHandler<Integer>) (violatingObjects, message) -> handledViolations.add(new HandledViolation(violatingObjects, message)));
+        evaluationResultOf(events).handleViolations((Collection<Integer> violatingObjects, String message) ->
+                handledViolations.add(new HandledViolation(violatingObjects, message)));
 
         assertThat(handledViolations).containsOnly(
                 new HandledViolation(2, "2 is not greater than 2"),
@@ -80,16 +82,16 @@ public class ArchConditionTest {
         ArchCondition<Integer> greaterThan15OrGreater14And20 =
                 greaterThan(15).or(greaterThan(14, 20));
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         greaterThan15OrGreater14And20.check(15, events);
         assertThat(events).containViolations("15 is not greater than 15 and 15 is not greater than 20");
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         greaterThan15OrGreater14And20.check(5, events);
         assertThat(events).containViolations(
                 "5 is not greater than 14 and 5 is not greater than 15 and 5 is not greater than 20");
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         greaterThan15OrGreater14And20.check(16, events);
         assertThat(events).containNoViolation();
     }
@@ -99,7 +101,7 @@ public class ArchConditionTest {
         ArchCondition<Integer> isGreaterThan15OrEndsWith1 =
                 greaterThan(15).or(endsWith(1));
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         isGreaterThan15OrEndsWith1.check(12, events);
         assertThat(events).containViolations("12 does not end with 1 and 12 is not greater than 15");
     }
@@ -108,10 +110,11 @@ public class ArchConditionTest {
     public void or_handles_all_violated_conditions_as_unit() {
         ArchCondition<Integer> condition = greaterThan(1).or(greaterThan(2)).or(greaterThan(3));
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(1, events);
         final List<HandledViolation> handledViolations = new ArrayList<>();
-        events.handleViolations((ViolationHandler<Integer>) (violatingObjects, message) -> handledViolations.add(new HandledViolation(violatingObjects, message)));
+        evaluationResultOf(events).handleViolations((Collection<Integer> violatingObjects, String message) ->
+                handledViolations.add(new HandledViolation(violatingObjects, message)));
 
         assertThat(handledViolations).containsOnly(new HandledViolation(
                 1, "1 is not greater than 1 and 1 is not greater than 2 and 1 is not greater than 3"));
@@ -153,7 +156,7 @@ public class ArchConditionTest {
         ConditionWithInitAndFinish one = someCondition("one");
         ConditionWithInitAndFinish two = someCondition("two");
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         combination.combine(one, two).finish(events);
 
         assertThat(one.eventsFromFinish).isEqualTo(events);
@@ -175,11 +178,11 @@ public class ArchConditionTest {
     public void never_and() {
         ArchCondition<Integer> condition = never(greaterThan(3, 9).and(greaterThan(5, 7)));
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(4, events);
         assertThat(events.containViolation()).as("Events contain violation").isFalse();
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         condition.check(6, events);
         assertThat(events.containViolation()).as("Events contain violation").isTrue();
     }
@@ -188,11 +191,11 @@ public class ArchConditionTest {
     public void double_never_and() {
         ArchCondition<Integer> condition = never(never(greaterThan(3, 9).and(greaterThan(5, 7))));
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(9, events);
         assertThat(events.containViolation()).as("Events contain violation").isTrue();
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         condition.check(10, events);
         assertThat(events.containViolation()).as("Events contain violation").isFalse();
     }
@@ -201,11 +204,11 @@ public class ArchConditionTest {
     public void never_or() {
         ArchCondition<Integer> condition = never(greaterThan(3, 9).or(greaterThan(5, 7)));
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(3, events);
         assertThat(events.containViolation()).as("Events contain violation").isFalse();
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         condition.check(4, events);
         assertThat(events.containViolation()).as("Events contain violation").isTrue();
     }
@@ -214,11 +217,11 @@ public class ArchConditionTest {
     public void double_never_or() {
         ArchCondition<Integer> condition = never(never(greaterThan(3, 9).or(greaterThan(5, 7))));
 
-        ConditionEvents events = new ConditionEvents();
+        ConditionEvents events = ConditionEvents.Factory.create();
         condition.check(7, events);
         assertThat(events.containViolation()).as("Events contain violation").isTrue();
 
-        events = new ConditionEvents();
+        events = ConditionEvents.Factory.create();
         condition.check(8, events);
         assertThat(events.containViolation()).as("Events contain violation").isFalse();
     }
@@ -232,6 +235,10 @@ public class ArchConditionTest {
                 }
             }
         };
+    }
+
+    private EvaluationResult evaluationResultOf(ConditionEvents events) {
+        return new EvaluationResult(() -> "irrelevant", events, MEDIUM);
     }
 
     private ArchCondition<Integer> endsWith(final int number) {
