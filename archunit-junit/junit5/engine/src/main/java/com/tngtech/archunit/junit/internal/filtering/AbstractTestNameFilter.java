@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.platform.engine.EngineDiscoveryRequest;
 import org.junit.platform.engine.TestSource;
@@ -57,7 +58,7 @@ public abstract class AbstractTestNameFilter implements TestSourceFilter {
     }
 
     public AbstractTestNameFilter(EngineDiscoveryRequest request) {
-        this(request, "");
+        this(request, null);
     }
 
     private void replaceFilterIfNeeded(EngineDiscoveryRequest request, PostDiscoveryFilter newFilter, PostDiscoveryFilter oldFilter) {
@@ -106,6 +107,9 @@ public abstract class AbstractTestNameFilter implements TestSourceFilter {
     }
 
     private Optional<PostDiscoveryFilter> findPostDiscoveryFilter(EngineDiscoveryRequest request) {
+        if (discoveryFilterClassName == null) {
+            return Optional.empty();
+        }
         return ((LauncherDiscoveryRequest) request).getPostDiscoveryFilters().stream()
                 .filter(this::matches)
                 .findAny();

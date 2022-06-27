@@ -33,4 +33,8 @@ public class SimpleRules {
     public static final Set<String> RULE_FIELD_NAMES = ImmutableSet.of(SIMPLE_RULE_FIELD_ONE_NAME, SIMPLE_RULE_FIELD_TWO_NAME);
     public static final String SIMPLE_RULE_METHOD_ONE_NAME = "simple_rule_method_one";
     public static final Set<String> RULE_METHOD_NAMES = ImmutableSet.of(SIMPLE_RULE_METHOD_ONE_NAME, "simple_rule_method_two");
+
+    // must be a compile-time constant, unfortunately
+    private static final String SIMPLE_RULES_CLASS_NAME = "com.tngtech.archunit.junit.internal.testexamples.subtwo.SimpleRules";
+    public static final String SIMPLE_RULE_FIELD_ONE_QUALIFIED_NAME = SIMPLE_RULES_CLASS_NAME + "." + SIMPLE_RULE_FIELD_ONE_NAME;
 }

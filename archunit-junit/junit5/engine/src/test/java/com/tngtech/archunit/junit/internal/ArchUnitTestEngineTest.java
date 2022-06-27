@@ -109,6 +109,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ArchUnitTestEngineTest {
+
+    private static final String INCLUDE_TESTS_ENV_VARIABLE = "archunit.junit.includeTestsMatching";
+
     @Mock
     private ClassCache classCache;
     @Mock
@@ -712,6 +715,22 @@ class ArchUnitTestEngineTest {
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()),
                     engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleMethod.class.getName()),
                     simpleRulesId(engineId));
+        }
+
+        @Test
+        void filtering_fields_included_by_config_property() {
+            // given
+            EngineDiscoveryTestRequest discoveryRequest = new EngineDiscoveryTestRequest()
+                    .withConfigurationParam(INCLUDE_TESTS_ENV_VARIABLE, SimpleRules.SIMPLE_RULE_FIELD_ONE_QUALIFIED_NAME)
+                    .withClass(SimpleRules.class);
+
+            // when
+            TestDescriptor rootDescriptor = testEngine.discover(discoveryRequest, engineId);
+            TestDescriptor classDescriptor = getOnlyElement(rootDescriptor.getChildren());
+
+            // then
+            assertThat(toUniqueIds(classDescriptor)).containsOnly(
+                    simpleRulesId(engineId).append(FIELD_SEGMENT_TYPE, SimpleRules.SIMPLE_RULE_FIELD_ONE_NAME));
         }
 
         @Test

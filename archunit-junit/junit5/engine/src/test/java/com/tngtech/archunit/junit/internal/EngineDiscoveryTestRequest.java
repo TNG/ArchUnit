@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.engine_api.FieldSelector;
@@ -40,6 +41,8 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
 
     private final List<ClassNameFilter> classNameFilters = new ArrayList<>();
     private final List<PackageNameFilter> packageNameFilters = new ArrayList<>();
+
+    private final Properties configurationParams = new Properties();
 
     @Override
     @SuppressWarnings("unchecked") // compatibility is explicitly checked
@@ -103,7 +106,7 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
 
     @Override
     public ConfigurationParameters getConfigurationParameters() {
-        return new EmptyConfigurationParameters();
+        return new PropertiesBackedConfigurationParameters(configurationParams);
     }
 
     EngineDiscoveryTestRequest withClasspathRoot(URI uri) {
@@ -154,20 +157,31 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
         return this;
     }
 
-    private static class EmptyConfigurationParameters implements ConfigurationParameters {
+    EngineDiscoveryTestRequest withConfigurationParam(String key, String value) {
+        configurationParams.put(key, value);
+        return this;
+    }
+
+    private static class PropertiesBackedConfigurationParameters implements ConfigurationParameters {
+        private final Properties properties;
+
+        public PropertiesBackedConfigurationParameters(Properties properties) {
+            this.properties = properties;
+        }
+
         @Override
         public Optional<String> get(String key) {
-            return Optional.empty();
+            return Optional.ofNullable(properties.getProperty(key, null));
         }
 
         @Override
         public Optional<Boolean> getBoolean(String key) {
-            return Optional.empty();
+            return get(key).map(Boolean::parseBoolean);
         }
 
         @Override
         public int size() {
-            return 0;
+            return properties.size();
         }
     }
 }

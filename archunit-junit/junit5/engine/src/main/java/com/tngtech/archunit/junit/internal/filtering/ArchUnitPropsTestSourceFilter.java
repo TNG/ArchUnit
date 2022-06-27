@@ -74,8 +74,8 @@ public class ArchUnitPropsTestSourceFilter extends AbstractTestNameFilter {
     }
 
     private static Optional<String> readProperty(EngineDiscoveryRequest discoveryRequest, ArchUnitEngineDescriptor engineDescriptor, String key) {
-        return readFromConfigurationParams(discoveryRequest, key)
-                .or(() -> ArchUnitPropsTestSourceFilter.readFromEngineDescriptor(engineDescriptor, key));
+        return Optional.ofNullable(readFromConfigurationParams(discoveryRequest, key))
+                .orElseGet(() -> ArchUnitPropsTestSourceFilter.readFromEngineDescriptor(engineDescriptor, key));
     }
 
     private static Optional<String> readFromEngineDescriptor(ArchUnitEngineDescriptor engineDescriptor, String key) {
@@ -132,6 +132,11 @@ public class ArchUnitPropsTestSourceFilter extends AbstractTestNameFilter {
             return
                     pattern.matcher(selector.getFullyQualifiedName()).find()
                             || pattern.matcher(selector.getContainerName()).find();
+        }
+
+        @Override
+        public String toString() {
+            return patterns.toString();
         }
     }
 }
