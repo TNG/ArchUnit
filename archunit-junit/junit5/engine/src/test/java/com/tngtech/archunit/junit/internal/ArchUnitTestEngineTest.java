@@ -152,7 +152,7 @@ class ArchUnitTestEngineTest {
             TestDescriptor child = getOnlyElement(descriptor.getChildren());
             assertThat(child).isInstanceOf(ArchUnitTestDescriptor.class);
             assertThat(child.getUniqueId()).isEqualTo(engineId.append(CLASS_SEGMENT_TYPE, SimpleRuleField.class.getName()));
-            assertThat(child.getDisplayName()).isEqualTo(SimpleRuleField.class.getSimpleName());
+            assertThat(child.getDisplayName()).isEqualTo(SimpleRuleField.class.getName());
             assertThat(child.getType()).isEqualTo(CONTAINER);
             assertThat(child.getParent().get()).isEqualTo(descriptor);
         }
@@ -177,7 +177,7 @@ class ArchUnitTestEngineTest {
             TestDescriptor descriptor = testEngine.discover(discoveryRequest, createEngineId());
 
             Set<String> displayNames = descriptor.getChildren().stream().map(TestDescriptor::getDisplayName).collect(toSet());
-            assertThat(displayNames).containsOnly(SimpleRuleField.class.getSimpleName(), SimpleRuleMethod.class.getSimpleName());
+            assertThat(displayNames).containsOnly(SimpleRuleField.class.getName(), SimpleRuleMethod.class.getName());
         }
 
         @Test

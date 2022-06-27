@@ -127,13 +127,6 @@ task publishJUnitDepsToMavenLocal {
     dependsOn ':archunit:publishMavenJavaPublicationToMavenLocal'
 }
 
-gradle.taskGraph.whenReady { graph ->
-    if (graph.hasTask(publishJUnitDepsToMavenLocal)) {
-        def externalTests = graph.allTasks.findAll { task -> task.name.toLowerCase().endsWith("test") && !task.path.startsWith(":archunit-tooling-test:") }
-        externalTests.each { externalTest -> externalTest.enabled = false }
-    }
-}
-
 clean {
     dependsOn removeFromMavenLocal
 }
