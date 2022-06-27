@@ -64,11 +64,11 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
 
     static void resolve(TestDescriptor parent, ElementResolver resolver, ClassCache classCache, TestSourceFilter additionalFilter) {
         resolver.resolveClass()
-                .ifRequestedAndResolved((resolvedMember, elementResolver) -> resolvedMember.createChildren(resolver, additionalFilter))
+                .ifRequestedAndResolved((resolvedMember, childResolver) -> resolvedMember.createChildren(childResolver, additionalFilter))
                 .ifRequestedButUnresolved((clazz, childResolver) -> createTestDescriptor(parent, classCache, clazz, childResolver, additionalFilter));
     }
 
-    private static void createTestDescriptor(TestDescriptor parent, ClassCache classCache, Class<?> clazz, ElementResolver childResolver,
+    private static void createTestDescriptor(TestDescriptor parent, ClassCache classCache, Class<?> clazz, ElementResolver resolver,
             TestSourceFilter additionalFilter) {
         if (clazz.getAnnotation(AnalyzeClasses.class) == null) {
             LOG.warn("Class {} is not annotated with @{} and thus cannot run as a top level test. "
@@ -79,9 +79,9 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
             return;
         }
 
-        ArchUnitTestDescriptor classDescriptor = new ArchUnitTestDescriptor(childResolver, clazz, classCache);
+        ArchUnitTestDescriptor classDescriptor = new ArchUnitTestDescriptor(resolver, clazz, classCache);
         parent.addChild(classDescriptor);
-        classDescriptor.createChildren(childResolver, additionalFilter);
+        classDescriptor.createChildren(resolver, additionalFilter);
     }
 
     @Override
@@ -134,7 +134,7 @@ class ArchUnitTestDescriptor extends AbstractArchUnitTestDescriptor implements C
         }
         DeclaredArchTests archTests = getDeclaredArchTests(field);
         resolver.resolveClass(archTests.getDefinitionLocation())
-                .ifRequestedAndResolved((resolvedMember, elementResolver) -> resolvedMember.createChildren(resolver, filter))
+                .ifRequestedAndResolved((resolvedMember, childResolver) -> resolvedMember.createChildren(childResolver, TestSourceFilter.NOOP))
                 .ifRequestedButUnresolved((clazz, childResolver) -> {
                     ArchUnitArchTestsDescriptor rulesDescriptor = new ArchUnitArchTestsDescriptor(childResolver, archTests, classes, field);
                     parent.addChild(rulesDescriptor);

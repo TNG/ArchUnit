@@ -27,7 +27,17 @@ import org.slf4j.LoggerFactory;
 public interface TestSourceFilter {
     Logger LOG = LoggerFactory.getLogger(ArchUnitTestEngine.class);
 
-    TestSourceFilter NOOP = (descriptor -> true);
+    TestSourceFilter NOOP = new TestSourceFilter() {
+        @Override
+        public boolean shouldRun(TestSource source) {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "NOOP";
+        }
+    };
 
     default boolean shouldRun(TestDescriptor descriptor) {
         return descriptor.getSource()
