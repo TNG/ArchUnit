@@ -118,12 +118,12 @@ task removeFromMavenLocal {
 task publishJUnitDepsToMavenLocal {
     group = 'other'
     description = 'Publishes ArchUnit JUnit artifacts to local Maven repo'
-    dependsOn ':archunit-junit5-engine-api:publishMavenJavaPublicationToMavenLocal'
-    dependsOn ':archunit-junit5-engine:publishMavenJavaPublicationToMavenLocal'
-    dependsOn ':archunit-junit5-api:publishMavenJavaPublicationToMavenLocal'
-    dependsOn ':archunit-junit5:publishMavenJavaPublicationToMavenLocal'
-    dependsOn ':archunit-junit4:publishMavenJavaPublicationToMavenLocal'
-    dependsOn ':archunit:publishMavenJavaPublicationToMavenLocal'
+    dependsOn project(':archunit-junit5-engine-api').tasks.publishMavenJavaPublicationToMavenLocal
+    dependsOn project(':archunit-junit5-engine').tasks.publishMavenJavaPublicationToMavenLocal
+    dependsOn project(':archunit-junit5-api').tasks.publishMavenJavaPublicationToMavenLocal
+    dependsOn project(':archunit-junit5').tasks.publishMavenJavaPublicationToMavenLocal
+    dependsOn project(':archunit-junit4').tasks.publishMavenJavaPublicationToMavenLocal
+    dependsOn project(':archunit').tasks.publishMavenJavaPublicationToMavenLocal
 }
 
 clean {
