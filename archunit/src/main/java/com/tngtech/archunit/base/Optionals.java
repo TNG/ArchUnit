@@ -18,6 +18,7 @@ package com.tngtech.archunit.base;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.tngtech.archunit.Internal;
 
@@ -30,5 +31,9 @@ public final class Optionals {
 
     public static <T> Set<T> asSet(Optional<T> input) {
         return input.map(Collections::singleton).orElse(emptySet());
+    }
+
+    public static <T> Stream<T> stream(Optional<T> input) {
+        return input.map(Stream::of).orElse(Stream.empty());
     }
 }

@@ -25,7 +25,7 @@ public class AccessesAssertion {
                 return this;
             }
         }
-        throw new AssertionError("No access matches " + condition);
+        throw new AssertionError("No access matches " + condition + " within " + actualRemaining);
     }
 
     @SafeVarargs

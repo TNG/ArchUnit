@@ -75,6 +75,7 @@ import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.creat
 import static com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter.BuildFinisher.build;
 import static com.tngtech.archunit.core.importer.DomainBuilders.buildAnnotations;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
+import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticAccessMethodName;
 
 class ClassGraphCreator implements ImportContext {
     private final ImportedClasses classes;
@@ -263,7 +264,7 @@ class ClassGraphCreator implements ImportContext {
 
     @Override
     public Set<JavaMethod> createMethods(JavaClass owner) {
-        Stream<JavaMethodBuilder> methodBuilders = getNonSyntheticLambdaMethodBuildersFor(owner);
+        Stream<JavaMethodBuilder> methodBuilders = getNonSyntheticMethodBuildersFor(owner);
         if (owner.isAnnotation()) {
             methodBuilders = methodBuilders.map(methodBuilder -> methodBuilder
                     .withAnnotationDefaultValue(method ->
@@ -274,9 +275,11 @@ class ClassGraphCreator implements ImportContext {
         return build(methodBuilders, owner, classes);
     }
 
-    private Stream<JavaMethodBuilder> getNonSyntheticLambdaMethodBuildersFor(JavaClass owner) {
+    private Stream<JavaMethodBuilder> getNonSyntheticMethodBuildersFor(JavaClass owner) {
         return importRecord.getMethodBuildersFor(owner.getName()).stream()
-                .filter(methodBuilder -> !isLambdaMethodName(methodBuilder.getName()));
+                .filter(methodBuilder ->
+                        !isLambdaMethodName(methodBuilder.getName())
+                                && !isSyntheticAccessMethodName(methodBuilder.getName()));
     }
 
     @Override

@@ -27,6 +27,7 @@ import static com.tngtech.archunit.core.domain.JavaModifier.SYNCHRONIZED;
 import static com.tngtech.archunit.core.domain.JavaModifier.TRANSIENT;
 import static com.tngtech.archunit.core.domain.JavaModifier.VOLATILE;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporterTestUtils.isLambdaMethodName;
+import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporterTestUtils.isSyntheticAccessMethodName;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.propertiesOf;
 import static com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion.runtimePropertiesOf;
@@ -65,7 +66,10 @@ public class JavaMembersAssertion extends AbstractObjectAssert<JavaMembersAssert
         Set<Member> members = new HashSet<>();
         for (Class<?> clazz : classes) {
             members.addAll(ImmutableSet.copyOf(clazz.getDeclaredFields()));
-            members.addAll(Arrays.stream(clazz.getDeclaredMethods()).filter(m -> !isLambdaMethodName(m.getName())).collect(toSet()));
+            members.addAll(
+                    Arrays.stream(clazz.getDeclaredMethods())
+                            .filter(m -> !isLambdaMethodName(m.getName()) && !isSyntheticAccessMethodName(m.getName()))
+                            .collect(toSet()));
             members.addAll(ImmutableSet.copyOf(clazz.getDeclaredConstructors()));
         }
 
