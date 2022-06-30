@@ -45,6 +45,7 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaClassTest.expectInvalidSyntaxUsageForClassInsteadOfInterface;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -425,8 +426,7 @@ public class ClassesShouldTest {
                 ArchRule.class, ArchConfiguration.class, GivenObjects.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should reside in any package ['%s']",
-                        Joiner.on("', '").join(packageIdentifiers)))
+                .contains(String.format("classes should reside in any package [%s]", joinSingleQuoted(packageIdentifiers)))
                 .containsPattern(doesntResideInAnyPackagePatternFor(GivenObjects.class, packageIdentifiers))
                 .doesNotContain(String.format("%s", ArchRule.class.getSimpleName()))
                 .doesNotContain(String.format("%s", ArchConfiguration.class.getSimpleName()));
@@ -483,8 +483,7 @@ public class ClassesShouldTest {
                 ArchRule.class, ArchCondition.class, ArchConfiguration.class, GivenObjects.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .contains(String.format("classes should reside outside of packages ['%s']",
-                        Joiner.on("', '").join(packageIdentifiers)))
+                .contains(String.format("classes should reside outside of packages [%s]", joinSingleQuoted(packageIdentifiers)))
                 .containsPattern(doesntResideOutsideOfPackagesPatternFor(ArchRule.class, packageIdentifiers))
                 .containsPattern(doesntResideOutsideOfPackagesPatternFor(ArchCondition.class, packageIdentifiers))
                 .doesNotContain(String.format("%s", GivenObjects.class.getSimpleName()));
@@ -1835,13 +1834,13 @@ public class ClassesShouldTest {
 
     @SuppressWarnings("SameParameterValue")
     private String doesntResideInAnyPackagePatternFor(Class<?> clazz, String[] packageIdentifiers) {
-        return String.format("Class <%s> does not reside in any package \\['%s'\\] in %s",
-                quote(clazz.getName()), quote(Joiner.on("', '").join(packageIdentifiers)), locationPattern(clazz));
+        return String.format("Class <%s> does not reside in any package \\[%s\\] in %s",
+                quote(clazz.getName()), quote(joinSingleQuoted(packageIdentifiers)), locationPattern(clazz));
     }
 
     private String doesntResideOutsideOfPackagesPatternFor(Class<?> clazz, String[] packageIdentifiers) {
-        return String.format("Class <%s> does not reside outside of packages \\['%s'\\] in %s",
-                quote(clazz.getName()), quote(Joiner.on("', '").join(packageIdentifiers)), locationPattern(clazz));
+        return String.format("Class <%s> does not reside outside of packages \\[%s\\] in %s",
+                quote(clazz.getName()), quote(joinSingleQuoted(packageIdentifiers)), locationPattern(clazz));
     }
 
     private static DescribedPredicate<JavaCall<?>> callTargetIs(Class<?> type) {

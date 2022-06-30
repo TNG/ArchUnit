@@ -21,8 +21,8 @@ import java.util.TreeSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.PackageMatcher;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static java.util.stream.Collectors.toCollection;

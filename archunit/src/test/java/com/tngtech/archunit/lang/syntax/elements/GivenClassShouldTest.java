@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Joiner;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.RuntimeRetentionAnnotation;
@@ -22,6 +21,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.haveOnlyPrivateConstructors;
@@ -520,15 +520,15 @@ public class GivenClassShouldTest {
         String[] packageIdentifiers = {firstPackage, secondPackage};
 
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
-                .haveSuccessfulRuleText("the class %s should reside in any package ['%s']",
+                .haveSuccessfulRuleText("the class %s should reside in any package [%s]",
                         SomeClass.class.getName(),
-                        Joiner.on("', '").join(packageIdentifiers))
-                .haveFailingRuleText("the class %s should reside outside of packages ['%s']",
+                        joinSingleQuoted(packageIdentifiers))
+                .haveFailingRuleText("the class %s should reside outside of packages [%s]",
                         SomeClass.class.getName(),
-                        Joiner.on("', '").join(packageIdentifiers))
-                .containFailureDetail(String.format("Class <%s> does not reside outside of packages \\['%s'\\] in %s",
+                        joinSingleQuoted(packageIdentifiers))
+                .containFailureDetail(String.format("Class <%s> does not reside outside of packages \\[%s\\] in %s",
                         quote(SomeClass.class.getName()),
-                        quote(Joiner.on("', '").join(packageIdentifiers)),
+                        quote(joinSingleQuoted(packageIdentifiers)),
                         locationPattern(SomeClass.class)))
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }
@@ -558,15 +558,15 @@ public class GivenClassShouldTest {
         String[] packageIdentifiers = {firstPackage, secondPackage};
 
         assertThatRules(satisfiedRule, unsatisfiedRule, SomeClass.class, Object.class)
-                .haveSuccessfulRuleText("no class %s should reside outside of packages ['%s']",
+                .haveSuccessfulRuleText("no class %s should reside outside of packages [%s]",
                         SomeClass.class.getName(),
-                        Joiner.on("', '").join(packageIdentifiers))
-                .haveFailingRuleText("no class %s should reside in any package ['%s']",
+                        joinSingleQuoted(packageIdentifiers))
+                .haveFailingRuleText("no class %s should reside in any package [%s]",
                         SomeClass.class.getName(),
-                        Joiner.on("', '").join(packageIdentifiers))
-                .containFailureDetail(String.format("Class <%s> does reside in any package \\['%s'\\] in %s",
+                        joinSingleQuoted(packageIdentifiers))
+                .containFailureDetail(String.format("Class <%s> does reside in any package \\[%s\\] in %s",
                         quote(SomeClass.class.getName()),
-                        quote(Joiner.on("', '").join(packageIdentifiers)),
+                        quote(joinSingleQuoted(packageIdentifiers)),
                         locationPattern(SomeClass.class)))
                 .doNotContainFailureDetail(quote(Object.class.getName()));
     }

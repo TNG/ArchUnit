@@ -1,8 +1,8 @@
-package com.tngtech.archunit.base;
+package com.tngtech.archunit.core.domain;
 
 import java.util.Optional;
 
-import com.tngtech.archunit.base.PackageMatcher.Result;
+import com.tngtech.archunit.core.domain.PackageMatcher.Result;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Rule;
@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import static com.tngtech.archunit.base.PackageMatcher.TO_GROUPS;
+import static com.tngtech.archunit.core.domain.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)

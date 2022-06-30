@@ -30,10 +30,10 @@ import com.google.common.base.Joiner;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.PackageMatcher;
 import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.PackageMatcher;
 import com.tngtech.archunit.core.domain.properties.CanOverrideDescription;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
@@ -41,8 +41,8 @@ import com.tngtech.archunit.lang.syntax.PredicateAggregator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.base.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
+import static com.tngtech.archunit.core.domain.PackageMatcher.TO_GROUPS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 

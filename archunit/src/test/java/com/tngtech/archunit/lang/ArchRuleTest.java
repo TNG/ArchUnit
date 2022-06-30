@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.ARCHUNIT_IGNORE_PATTERNS_FILE_NAME;
@@ -238,7 +239,7 @@ public class ArchRuleTest {
         return new TypeSafeMatcher<String>() {
             @Override
             public void describeTo(Description description) {
-                description.appendText(String.format("Only the error messages '%s'", Joiner.on("', '").join(messages)));
+                description.appendText(String.format("Only the error messages %s", joinSingleQuoted(messages)));
             }
 
             @Override

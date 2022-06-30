@@ -53,6 +53,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_CODE_UNITS;
@@ -64,6 +65,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_STATIC_IN
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.belongToAnyOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyCodeUnitsThat;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.containAnyConstructorsThat;
@@ -210,14 +212,22 @@ public class JavaClassTest {
 
         assertThat(javaClass.reflect()).isEqualTo(ClassWithTwoFieldsAndTwoMethods.class);
         assertThat(javaClass.getFields()).hasSize(2);
+        Set<JavaField> allFields = excludeJavaLangObject(javaClass.getAllFields());
+        assertThat(allFields).hasSize(3);
         assertThat(javaClass.getMethods()).hasSize(2);
+        Set<JavaMethod> allMethods = excludeJavaLangObject(javaClass.getAllMethods());
+        assertThat(allMethods).hasSize(4);
 
         for (JavaField field : javaClass.getFields()) {
             assertThatType(field.getOwner()).isSameAs(javaClass);
         }
+        assertThatTypes(allFields.stream().map(JavaMember::getOwner).collect(toSet()))
+                .matchInAnyOrder(ClassWithTwoFieldsAndTwoMethods.class, SuperclassWithFieldAndMethod.class);
         for (JavaCodeUnit method : javaClass.getCodeUnits()) {
             assertThatType(method.getOwner()).isSameAs(javaClass);
         }
+        assertThatTypes(allMethods.stream().map(JavaMember::getOwner).collect(toSet()))
+                .matchInAnyOrder(ClassWithTwoFieldsAndTwoMethods.class, SuperclassWithFieldAndMethod.class, InterfaceWithMethod.class);
     }
 
     @Test
@@ -228,6 +238,11 @@ public class JavaClassTest {
         assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME)));
         assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME, String.class)));
         assertThat(javaClass.getConstructors()).is(containing(codeUnitWithSignature(CONSTRUCTOR_NAME, int.class, Object[].class)));
+
+        Set<JavaConstructor> allConstructors = excludeJavaLangObject(javaClass.getAllConstructors());
+        assertThat(allConstructors).as("all constructors").hasSize(5);
+        assertThatTypes(allConstructors.stream().map(JavaConstructor::getOwner).collect(toSet()))
+                .matchInAnyOrder(ClassWithSeveralConstructorsFieldsAndMethods.class, ParentOfClassWithSeveralConstructorsFieldsAndMethods.class);
     }
 
     @Test
@@ -1817,15 +1832,26 @@ public class JavaClassTest {
                 .hasDescription("equivalent to " + Parent.class.getName());
     }
 
+    @DataProvider
+    public static Object[][] data_predicate_belong_to() {
+        return testForEach(
+                belongToAnyOf(Object.class, ClassWithNamedAndAnonymousInnerClasses.class),
+                belongTo(describe(
+                        String.format("any of [%s, %s]", Object.class.getName(), ClassWithNamedAndAnonymousInnerClasses.class.getName()),
+                        javaClass -> javaClass.isEquivalentTo(Object.class) || javaClass.isEquivalentTo(ClassWithNamedAndAnonymousInnerClasses.class)))
+        );
+    }
+
     @Test
-    public void predicate_belong_to() {
+    @UseDataProvider
+    public void test_predicate_belong_to(DescribedPredicate<JavaClass> belongToPredicate) {
         JavaClasses classes = new ClassFileImporter().importPackagesOf(getClass());
         JavaClass outerAnonymous =
                 getOnlyClassSettingField(classes, ClassWithNamedAndAnonymousInnerClasses.name_of_fieldIndicatingOuterAnonymousInnerClass);
         JavaClass nestedAnonymous =
                 getOnlyClassSettingField(classes, ClassWithNamedAndAnonymousInnerClasses.name_of_fieldIndicatingNestedAnonymousInnerClass);
 
-        assertThat(belongToAnyOf(Object.class, ClassWithNamedAndAnonymousInnerClasses.class))
+        assertThat(belongToPredicate)
                 .hasDescription(String.format("belong to any of [%s, %s]",
                         Object.class.getName(), ClassWithNamedAndAnonymousInnerClasses.class.getName()))
                 .accepts(classes.get(ClassWithNamedAndAnonymousInnerClasses.class))
@@ -1953,6 +1979,10 @@ public class JavaClassTest {
                 .hasDescription("contain any static initializers that always true")
                 .accepts(classes.get(Data_of_predicate_containAnyStaticInitializersThat.Match.class))
                 .rejects(classes.get(Mismatch.class));
+    }
+
+    private <T extends JavaMember> Set<T> excludeJavaLangObject(Set<T> members) {
+        return members.stream().filter(it -> !it.getOwner().isEquivalentTo(Object.class)).collect(toSet());
     }
 
     private JavaClass getOnlyClassSettingField(JavaClasses classes, final String fieldName) {
@@ -2259,7 +2289,16 @@ public class JavaClassTest {
     }
 
     @SuppressWarnings("unused")
-    static class ClassWithSeveralConstructorsFieldsAndMethods {
+    static class ParentOfClassWithSeveralConstructorsFieldsAndMethods {
+        ParentOfClassWithSeveralConstructorsFieldsAndMethods() {
+        }
+
+        ParentOfClassWithSeveralConstructorsFieldsAndMethods(Object anyParam) {
+        }
+    }
+
+    @SuppressWarnings("unused")
+    static class ClassWithSeveralConstructorsFieldsAndMethods extends ParentOfClassWithSeveralConstructorsFieldsAndMethods {
         String stringField;
         private int intField;
 

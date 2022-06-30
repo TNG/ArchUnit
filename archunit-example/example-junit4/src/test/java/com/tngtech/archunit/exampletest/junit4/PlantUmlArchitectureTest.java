@@ -2,7 +2,7 @@ package com.tngtech.archunit.exampletest.junit4;
 
 import java.net.URL;
 
-import com.tngtech.archunit.base.PackageMatchers;
+import com.tngtech.archunit.core.domain.PackageMatchers;
 import com.tngtech.archunit.example.plantuml.catalog.ProductCatalog;
 import com.tngtech.archunit.example.plantuml.order.Order;
 import com.tngtech.archunit.example.plantuml.product.Product;
