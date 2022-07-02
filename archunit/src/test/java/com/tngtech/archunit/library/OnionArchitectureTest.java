@@ -9,6 +9,9 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.library.Architectures.OnionArchitecture;
+import com.tngtech.archunit.library.testclasses.coveringallclasses.first.First;
+import com.tngtech.archunit.library.testclasses.coveringallclasses.second.Second;
+import com.tngtech.archunit.library.testclasses.coveringallclasses.third.Third;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.cli.CliAdapterLayerClass;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.persistence.PersistenceAdapterLayerClass;
 import com.tngtech.archunit.library.testclasses.onionarchitecture.adapter.rest.RestAdapterLayerClass;
@@ -24,6 +27,7 @@ import org.junit.runner.RunWith;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameContaining;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.library.Architectures.onionArchitecture;
@@ -32,6 +36,7 @@ import static com.tngtech.archunit.library.LayeredArchitectureTest.assertPattern
 import static com.tngtech.archunit.library.LayeredArchitectureTest.expectedAccessViolationPattern;
 import static com.tngtech.archunit.library.LayeredArchitectureTest.expectedEmptyLayerPattern;
 import static com.tngtech.archunit.library.LayeredArchitectureTest.expectedFieldTypePattern;
+import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.beans.Introspector.decapitalize;
 import static java.lang.System.lineSeparator;
@@ -193,6 +198,46 @@ public class OnionArchitectureTest {
 
         EvaluationResult result = architecture.evaluate(classes);
         assertFailureOnionArchitectureWithEmptyLayers(result);
+    }
+
+    @Test
+    public void onion_architecture_ensure_all_classes_are_contained_in_architecture() {
+        JavaClasses classes = new ClassFileImporter().importClasses(First.class, Second.class);
+
+        OnionArchitecture architectureNotCoveringAllClasses = onionArchitecture().withOptionalLayers(true)
+                .domainModels("..first..")
+                .ensureAllClassesAreContainedInArchitecture();
+
+        assertThatRule(architectureNotCoveringAllClasses).checking(classes)
+                .hasOnlyOneViolation("Class <" + Second.class.getName() + "> is not contained in architecture");
+
+        OnionArchitecture architectureCoveringAllClasses = architectureNotCoveringAllClasses
+                .domainServices("..second..");
+        assertThatRule(architectureCoveringAllClasses).checking(classes).hasNoViolation();
+    }
+
+    @Test
+    public void onion_architecture_ensure_all_classes_are_contained_in_architecture_ignoring_packages() {
+        JavaClasses classes = new ClassFileImporter().importClasses(First.class, Second.class, Third.class);
+
+        OnionArchitecture architecture = onionArchitecture().withOptionalLayers(true)
+                .domainModels("..first..")
+                .ensureAllClassesAreContainedInArchitectureIgnoring("..second..");
+
+        assertThatRule(architecture).checking(classes)
+                .hasOnlyOneViolation("Class <" + Third.class.getName() + "> is not contained in architecture");
+    }
+
+    @Test
+    public void onion_architecture_ensure_all_classes_are_contained_in_architecture_ignoring_predicate() {
+        JavaClasses classes = new ClassFileImporter().importClasses(First.class, Second.class, Third.class);
+
+        OnionArchitecture architecture = onionArchitecture().withOptionalLayers(true)
+                .domainModels("..first..")
+                .ensureAllClassesAreContainedInArchitectureIgnoring(simpleName("Second"));
+
+        assertThatRule(architecture).checking(classes)
+                .hasOnlyOneViolation("Class <" + Third.class.getName() + "> is not contained in architecture");
     }
 
     private static OnionArchitecture getTestOnionArchitecture() {
