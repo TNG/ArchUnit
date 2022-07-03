@@ -729,7 +729,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             Class<? extends Annotation> type) {
-        return new IsConditionByPredicate<>(annotatedWith(type));
+        return new BeConditionByPredicate<>(annotatedWith(type));
     }
 
     /**
@@ -747,7 +747,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             String typeName) {
-        return new IsConditionByPredicate<>(annotatedWith(typeName));
+        return new BeConditionByPredicate<>(annotatedWith(typeName));
     }
 
     /**
@@ -765,7 +765,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beAnnotatedWith(
             final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return new IsConditionByPredicate<>(annotatedWith(predicate));
+        return new BeConditionByPredicate<>(annotatedWith(predicate));
     }
 
     /**
@@ -783,7 +783,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             Class<? extends Annotation> type) {
-        return new IsConditionByPredicate<>(metaAnnotatedWith(type));
+        return new BeConditionByPredicate<>(metaAnnotatedWith(type));
     }
 
     /**
@@ -801,7 +801,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             String typeName) {
-        return new IsConditionByPredicate<>(metaAnnotatedWith(typeName));
+        return new BeConditionByPredicate<>(metaAnnotatedWith(typeName));
     }
 
     /**
@@ -819,7 +819,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> beMetaAnnotatedWith(
             final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return new IsConditionByPredicate<>(metaAnnotatedWith(predicate));
+        return new BeConditionByPredicate<>(metaAnnotatedWith(predicate));
     }
 
     /**
@@ -884,7 +884,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(Class<?> type) {
-        return new IsConditionByPredicate<>(assignableTo(type));
+        return new BeConditionByPredicate<>(assignableTo(type));
     }
 
     /**
@@ -900,7 +900,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(String typeName) {
-        return new IsConditionByPredicate<>(assignableTo(typeName));
+        return new BeConditionByPredicate<>(assignableTo(typeName));
     }
 
     /**
@@ -916,7 +916,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableTo(DescribedPredicate<? super JavaClass> predicate) {
-        return new IsConditionByPredicate<>(assignableTo(predicate));
+        return new BeConditionByPredicate<>(assignableTo(predicate));
     }
 
     /**
@@ -932,7 +932,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(Class<?> type) {
-        return new IsConditionByPredicate<>(assignableFrom(type));
+        return new BeConditionByPredicate<>(assignableFrom(type));
     }
 
     /**
@@ -948,7 +948,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(String typeName) {
-        return new IsConditionByPredicate<>(assignableFrom(typeName));
+        return new BeConditionByPredicate<>(assignableFrom(typeName));
     }
 
     /**
@@ -964,7 +964,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> beAssignableFrom(DescribedPredicate<? super JavaClass> predicate) {
-        return new IsConditionByPredicate<>(assignableFrom(predicate));
+        return new BeConditionByPredicate<>(assignableFrom(predicate));
     }
 
     /**
@@ -1142,7 +1142,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> beDeclaredIn(Class<?> owner) {
-        return new IsConditionByPredicate<>(declaredIn(owner));
+        return new BeConditionByPredicate<>(declaredIn(owner));
     }
 
     /**
@@ -1159,7 +1159,7 @@ public final class ArchConditions {
      */
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaMember> beDeclaredIn(String ownerTypeName) {
-        return new IsConditionByPredicate<>(declaredIn(ownerTypeName));
+        return new BeConditionByPredicate<>(declaredIn(ownerTypeName));
     }
 
     /**
@@ -1177,7 +1177,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaMember> beDeclaredInClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         DescribedPredicate<JavaMember> declaredIn = declaredIn(
                 predicate.as("classes that " + predicate.getDescription()));
-        return new IsConditionByPredicate<>(declaredIn);
+        return new BeConditionByPredicate<>(declaredIn);
     }
 
     /**
@@ -1282,18 +1282,18 @@ public final class ArchConditions {
                 origin.is(constructor().and(predicate)), GET_CALLS_OF_SELF);
     }
 
-    private static final IsConditionByPredicate<JavaClass> BE_TOP_LEVEL_CLASSES =
-            new IsConditionByPredicate<>("a top level class", JavaClass.Predicates.TOP_LEVEL_CLASSES);
-    private static final IsConditionByPredicate<JavaClass> BE_NESTED_CLASSES =
-            new IsConditionByPredicate<>("a nested class", JavaClass.Predicates.NESTED_CLASSES);
-    private static final IsConditionByPredicate<JavaClass> BE_MEMBER_CLASSES =
-            new IsConditionByPredicate<>("a member class", JavaClass.Predicates.MEMBER_CLASSES);
-    private static final IsConditionByPredicate<JavaClass> BE_INNER_CLASSES =
-            new IsConditionByPredicate<>("an inner class", JavaClass.Predicates.INNER_CLASSES);
-    private static final IsConditionByPredicate<JavaClass> BE_ANONYMOUS_CLASSES =
-            new IsConditionByPredicate<>("an anonymous class", JavaClass.Predicates.ANONYMOUS_CLASSES);
-    private static final IsConditionByPredicate<JavaClass> BE_LOCAL_CLASSES =
-            new IsConditionByPredicate<>("a local class", JavaClass.Predicates.LOCAL_CLASSES);
+    private static final BeConditionByPredicate<JavaClass> BE_TOP_LEVEL_CLASSES =
+            new BeConditionByPredicate<>("a top level class", JavaClass.Predicates.TOP_LEVEL_CLASSES);
+    private static final BeConditionByPredicate<JavaClass> BE_NESTED_CLASSES =
+            new BeConditionByPredicate<>("a nested class", JavaClass.Predicates.NESTED_CLASSES);
+    private static final BeConditionByPredicate<JavaClass> BE_MEMBER_CLASSES =
+            new BeConditionByPredicate<>("a member class", JavaClass.Predicates.MEMBER_CLASSES);
+    private static final BeConditionByPredicate<JavaClass> BE_INNER_CLASSES =
+            new BeConditionByPredicate<>("an inner class", JavaClass.Predicates.INNER_CLASSES);
+    private static final BeConditionByPredicate<JavaClass> BE_ANONYMOUS_CLASSES =
+            new BeConditionByPredicate<>("an anonymous class", JavaClass.Predicates.ANONYMOUS_CLASSES);
+    private static final BeConditionByPredicate<JavaClass> BE_LOCAL_CLASSES =
+            new BeConditionByPredicate<>("a local class", JavaClass.Predicates.LOCAL_CLASSES);
 
     private static class HaveOnlyModifiersCondition<T extends HasModifiers & HasDescription & HasSourceCodeLocation>
             extends AllAttributesMatchCondition<T, JavaClass> {
@@ -1617,15 +1617,15 @@ public final class ArchConditions {
         }
     }
 
-    private static class IsConditionByPredicate<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
+    private static class BeConditionByPredicate<T extends HasDescription & HasSourceCodeLocation> extends ArchCondition<T> {
         private final String eventDescription;
         private final DescribedPredicate<T> predicate;
 
-        IsConditionByPredicate(DescribedPredicate<? super T> predicate) {
+        BeConditionByPredicate(DescribedPredicate<? super T> predicate) {
             this(predicate.getDescription(), predicate);
         }
 
-        IsConditionByPredicate(String eventDescription, DescribedPredicate<? super T> predicate) {
+        BeConditionByPredicate(String eventDescription, DescribedPredicate<? super T> predicate) {
             super(ArchPredicates.be(predicate).getDescription());
             this.eventDescription = eventDescription;
             this.predicate = predicate.forSubtype();
