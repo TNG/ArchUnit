@@ -117,6 +117,7 @@ import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Pred
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
 import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predicates.throwsClauseContainingType;
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
+import static com.tngtech.archunit.lang.ConditionEvent.createMessage;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static java.util.Arrays.asList;
 
@@ -1282,10 +1283,6 @@ public final class ArchConditions {
         ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by constructors that " + predicate.getDescription(),
                 origin.is(constructor().and(predicate)), GET_CALLS_OF_SELF);
-    }
-
-    private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
-        return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
     }
 
     private static final IsConditionByPredicate<JavaClass> BE_TOP_LEVEL_CLASSES =
