@@ -342,7 +342,7 @@ public class MembersShouldTest {
                 .evaluate(importClasses(ClassWithVariousMembers.class, A.class, B.class, C.class, MetaAnnotation.class));
 
         Set<String> actualMembers = parseMembers(result.getFailureReport().getDetails());
-        assertThat(actualMembers).containsOnlyElementsOf(expectedMembers);
+        assertThat(actualMembers).hasSameElementsAs(expectedMembers);
     }
 
     @DataProvider
@@ -394,7 +394,7 @@ public class MembersShouldTest {
                 .evaluate(importClasses(ClassWithVariousMembers.class, OtherClassWithMembers.class));
 
         Set<String> actualMembers = parseMembers(result.getFailureReport().getDetails());
-        assertThat(actualMembers).containsOnlyElementsOf(expectedMessages);
+        assertThat(actualMembers).hasSameElementsAs(expectedMessages);
     }
 
     @DataProvider
