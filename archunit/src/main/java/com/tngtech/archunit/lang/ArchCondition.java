@@ -63,6 +63,19 @@ public abstract class ArchCondition<T> {
         return description;
     }
 
+    /**
+     * Overwrites the description of this {@link ArchCondition}. E.g.
+     *
+     * <pre><code>
+     * classes().should(condition.as("some customized description with '%s'", "parameter"))
+     * </code></pre>
+     *
+     * would then yield {@code classes should some customized description with 'parameter'}.
+     *
+     * @param description The new description of this {@link ArchCondition}
+     * @param args Optional arguments to fill into the description via {@link String#format(String, Object...)}
+     * @return An {@link ArchCondition} with adjusted {@link #getDescription() description}.
+     */
     public ArchCondition<T> as(String description, Object... args) {
         return new ArchCondition<T>(description, args) {
             @Override
@@ -87,6 +100,18 @@ public abstract class ArchCondition<T> {
         return getDescription();
     }
 
+    /**
+     * Convenience method to downcast the condition. {@link ArchCondition ArchConditions} are contravariant by nature,
+     * i.e. an {@code ArchCondition<T>} is an instance of {@code ArchCondition<V>}, if and only if {@code V} is an instance of {@code T}.
+     * <br>
+     * Take for example {@code Object > String}. Obviously an {@code ArchCondition<Object>} is also an {@code ArchCondition<String>}.
+     * <br>
+     * Unfortunately, the Java type system does not allow us to express this property of the type parameter of {@code ArchCondition}.
+     * So to avoid forcing users to cast everywhere it is possible to use this method which also documents the intention and reasoning.
+     *
+     * @return An {@link ArchCondition} accepting a subtype of the condition's actual type parameter {@code T}
+     * @param <U> A subtype of the {@link ArchCondition ArchCondition's} type parameter {@code T}
+     */
     @SuppressWarnings("unchecked") // Cast is safe since input parameter is contravariant
     public <U extends T> ArchCondition<U> forSubtype() {
         return (ArchCondition<U>) this;
