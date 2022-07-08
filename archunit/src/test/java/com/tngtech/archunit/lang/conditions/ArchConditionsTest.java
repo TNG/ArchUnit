@@ -14,6 +14,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.core.domain.JavaCall.Predicates.target;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
@@ -106,7 +107,7 @@ public class ArchConditionsTest {
         JavaClasses classes = importClasses(CallingClass.class, SomeClass.class);
         JavaClass accessedClass = classes.get(SomeClass.class);
 
-        assertThat(onlyHaveDependentsWhere(DescribedPredicate.<Dependency>alwaysFalse()))
+        assertThat(onlyHaveDependentsWhere(alwaysFalse()))
                 .checking(accessedClass)
                 .haveAtLeastOneViolationMessageMatching(String.format(".*%s.*%s.*",
                         quote(CallingClass.class.getName()), quote(SomeClass.class.getName())));

@@ -12,6 +12,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
@@ -38,7 +39,7 @@ public class CanBeAnnotatedTest {
 
     @Test
     public void matches_annotation_by_predicate() {
-        assertThat(annotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
+        assertThat(annotatedWith(alwaysTrue()))
                 .accepts(importClassWithContext(AnnotatedClass.class));
         assertThat(annotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse().as("Something")))
                 .rejects(importClassWithContext(AnnotatedClass.class))
@@ -77,7 +78,7 @@ public class CanBeAnnotatedTest {
     public void matches_meta_annotation_by_predicate() {
         JavaClass clazz = importClassesWithContext(MetaAnnotatedClass.class, MetaRuntimeRetentionAnnotation.class).get(MetaAnnotatedClass.class);
 
-        assertThat(metaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
+        assertThat(metaAnnotatedWith(alwaysTrue()))
                 .accepts(clazz);
         assertThat(metaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse().as("Something")))
                 .rejects(clazz)

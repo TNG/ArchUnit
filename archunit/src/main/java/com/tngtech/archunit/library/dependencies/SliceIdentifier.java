@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,6 +26,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.Collections.emptyList;
 
 /**
  * A unique identifier of a {@link Slice}. All {@link JavaClasses} that are assigned to the same
@@ -85,6 +85,6 @@ public final class SliceIdentifier {
 
     @PublicAPI(usage = ACCESS)
     public static SliceIdentifier ignore() {
-        return new SliceIdentifier(Collections.<String>emptyList());
+        return new SliceIdentifier(emptyList());
     }
 }

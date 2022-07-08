@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -25,6 +24,7 @@ import org.objectweb.asm.Opcodes;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 public enum JavaModifier {
@@ -83,7 +83,7 @@ public enum JavaModifier {
                 .filter(modifier -> modifier.applicableTo.contains(type))
                 .filter(modifier -> modifierPresent(modifier, asmAccess))
                 .collect(toSet());
-        return result.isEmpty() ? Collections.<JavaModifier>emptySet() : Sets.immutableEnumSet(result);
+        return result.isEmpty() ? emptySet() : Sets.immutableEnumSet(result);
     }
 
     private static boolean modifierPresent(JavaModifier modifier, int asmAccess) {

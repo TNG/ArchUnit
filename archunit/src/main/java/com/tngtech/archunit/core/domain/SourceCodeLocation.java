@@ -58,7 +58,7 @@ public final class SourceCodeLocation {
     private static String resolveSourceFileName(JavaClass sourceClass) {
         Optional<String> recordedSourceFileName = sourceClass.getSource().isPresent()
                 ? sourceClass.getSource().get().getFileName()
-                : Optional.<String>empty();
+                : Optional.empty();
         return recordedSourceFileName.isPresent() ? recordedSourceFileName.get() : guessSourceFileName(sourceClass);
     }
 

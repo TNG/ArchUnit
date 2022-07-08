@@ -16,7 +16,7 @@ public class ReferencingClassObjects {
         List<Class<?>> referencedClassObjectsInStaticInitializer = ImmutableList.of(FilterInputStream.class, Buffer.class);
     }
 
-    List<Class<?>> referencedClassObjectsInConstructor = ImmutableList.<Class<?>>of(File.class, Path.class);
+    List<Class<?>> referencedClassObjectsInConstructor = ImmutableList.of(File.class, Path.class);
 
     List<Class<?>> referencedClassObjectsInMethod() {
         return ImmutableList.of(FileSystem.class, Charset.class);

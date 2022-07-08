@@ -41,8 +41,8 @@ class GivenConstructorsInternal extends AbstractGivenCodeUnitsInternal<JavaConst
                 priority,
                 classesTransformer,
                 prepareCondition,
-                new PredicateAggregator<JavaConstructor>(),
-                Optional.<String>empty());
+                new PredicateAggregator<>(),
+                Optional.empty());
     }
 
     private GivenConstructorsInternal(
@@ -63,7 +63,7 @@ class GivenConstructorsInternal extends AbstractGivenCodeUnitsInternal<JavaConst
 
     @Override
     public ConstructorsShouldInternal should(ArchCondition<? super JavaConstructor> condition) {
-        return new ConstructorsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaConstructor>forSubtype(), prepareCondition);
+        return new ConstructorsShouldInternal(finishedClassesTransformer(), priority, condition.forSubtype(), prepareCondition);
     }
 
     private static class GivenConstructorsFactory implements Factory<JavaConstructor, GivenConstructorsInternal> {

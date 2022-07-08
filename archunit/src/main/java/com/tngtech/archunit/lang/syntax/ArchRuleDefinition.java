@@ -21,10 +21,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.archunit.core.domain.JavaConstructor;
-import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMember;
-import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.AbstractClassesTransformer;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -169,7 +166,7 @@ public final class ArchRuleDefinition {
             return new GivenClassesInternal(
                     priority,
                     Transformers.classes().as("no " + Transformers.classes().getDescription()),
-                    ArchRuleDefinition.<JavaClass>negateCondition());
+                    ArchRuleDefinition.negateCondition());
         }
 
         @PublicAPI(usage = ACCESS)
@@ -182,7 +179,7 @@ public final class ArchRuleDefinition {
             return new GivenMembersInternal(
                     priority,
                     Transformers.members().as("no " + Transformers.members().getDescription()),
-                    ArchRuleDefinition.<JavaMember>negateCondition());
+                    ArchRuleDefinition.negateCondition());
         }
 
         @PublicAPI(usage = ACCESS)
@@ -195,7 +192,7 @@ public final class ArchRuleDefinition {
             return new GivenFieldsInternal(
                     priority,
                     Transformers.fields().as("no " + Transformers.fields().getDescription()),
-                    ArchRuleDefinition.<JavaField>negateCondition());
+                    ArchRuleDefinition.negateCondition());
         }
 
         @PublicAPI(usage = ACCESS)
@@ -208,7 +205,7 @@ public final class ArchRuleDefinition {
             return new GivenCodeUnitsInternal(
                     priority,
                     Transformers.codeUnits().as("no " + Transformers.codeUnits().getDescription()),
-                    ArchRuleDefinition.<JavaCodeUnit>negateCondition());
+                    ArchRuleDefinition.negateCondition());
         }
 
         @PublicAPI(usage = ACCESS)
@@ -221,7 +218,7 @@ public final class ArchRuleDefinition {
             return new GivenConstructorsInternal(
                     priority,
                     Transformers.constructors().as("no " + Transformers.constructors().getDescription()),
-                    ArchRuleDefinition.<JavaConstructor>negateCondition());
+                    ArchRuleDefinition.negateCondition());
         }
 
         @PublicAPI(usage = ACCESS)
@@ -234,7 +231,7 @@ public final class ArchRuleDefinition {
             return new GivenMethodsInternal(
                     priority,
                     Transformers.methods().as("no " + Transformers.methods().getDescription()),
-                    ArchRuleDefinition.<JavaMethod>negateCondition());
+                    ArchRuleDefinition.negateCondition());
         }
 
         /**
@@ -259,7 +256,7 @@ public final class ArchRuleDefinition {
             return new GivenObjectsInternal<>(
                     priority,
                     classesTransformer.as("no " + classesTransformer.getDescription()),
-                    ArchRuleDefinition.<TYPE>negateCondition());
+                    ArchRuleDefinition.negateCondition());
         }
 
         @PublicAPI(usage = ACCESS)
@@ -281,7 +278,7 @@ public final class ArchRuleDefinition {
         @PublicAPI(usage = ACCESS)
         public GivenClass noClass(final String className) {
             ClassesTransformer<JavaClass> noClass = theClassTransformer(className).as("no class " + className);
-            return new GivenClassInternal(priority, noClass, ArchRuleDefinition.<JavaClass>negateCondition());
+            return new GivenClassInternal(priority, noClass, ArchRuleDefinition.negateCondition());
         }
 
         private ClassesTransformer<JavaClass> theClassTransformer(final String className) {

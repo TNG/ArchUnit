@@ -8,8 +8,6 @@ import java.util.regex.Pattern;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.EvaluationResult;
@@ -31,6 +29,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -567,14 +567,14 @@ public class MembersShouldTest {
 
     @Test
     public void containNumberOfElements_passes_on_matching_predicate() {
-        assertThatRule(members().should().containNumberOfElements(DescribedPredicate.<Integer>alwaysTrue()))
+        assertThatRule(members().should().containNumberOfElements(alwaysTrue()))
                 .checking(importClasses(SimpleFieldAndMethod.class))
                 .hasNoViolation();
     }
 
     @Test
     public void containNumberOfElements_fails_on_mismatching_predicate() {
-        assertThatRule(members().should().containNumberOfElements(DescribedPredicate.<Integer>alwaysFalse()))
+        assertThatRule(members().should().containNumberOfElements(alwaysFalse()))
                 .checking(importClasses(SimpleFieldAndMethod.class))
                 .hasOnlyViolations("there is/are 3 element(s) in ["
                         + "com.tngtech.archunit.lang.syntax.elements.testclasses.SimpleFieldAndMethod.<init>(), "
@@ -608,7 +608,7 @@ public class MembersShouldTest {
     }
 
     private static ArchRule ruleWithEmptyShould() {
-        return members().that(DescribedPredicate.<JavaMember>alwaysFalse()).should().bePublic();
+        return members().that(alwaysFalse()).should().bePublic();
     }
 
     private Set<String> parseMembers(List<String> details) {
@@ -616,7 +616,7 @@ public class MembersShouldTest {
     }
 
     static Set<String> parseMembers(Class<?> possibleOwner, List<String> details) {
-        return parseMembers(ImmutableList.<Class<?>>of(possibleOwner), details);
+        return parseMembers(ImmutableList.of(possibleOwner), details);
     }
 
     static Set<String> parseMembers(List<Class<?>> possibleOwners, List<String> details) {

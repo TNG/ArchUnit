@@ -41,7 +41,7 @@ public class ArchUnitExtensionsTest {
     public void extensions_are_configured() {
         TestExtension extensionOne = new TestExtension("one");
         TestExtension extensionTwo = new TestExtension("two");
-        when(extensionLoader.getAll()).thenReturn(ImmutableSet.<ArchUnitExtension>of(extensionOne, extensionTwo));
+        when(extensionLoader.getAll()).thenReturn(ImmutableSet.of(extensionOne, extensionTwo));
         ArchConfiguration.get().setExtensionProperties(extensionOne.getUniqueIdentifier(),
                 properties("enabled", "true", "one", "valueOne"));
         ArchConfiguration.get().setExtensionProperties(extensionTwo.getUniqueIdentifier(),
@@ -68,7 +68,7 @@ public class ArchUnitExtensionsTest {
                 checkNotNull(getConfiguredProperties());
             }
         });
-        when(extensionLoader.getAll()).thenReturn(ImmutableSet.<ArchUnitExtension>of(extension));
+        when(extensionLoader.getAll()).thenReturn(ImmutableSet.of(extension));
 
         extensions.dispatch(evaluatedRule);
 
@@ -79,7 +79,7 @@ public class ArchUnitExtensionsTest {
     public void evaluated_rules_are_dispatched_to_all_extensions() {
         TestExtension extensionOne = enabled(new TestExtension("one"));
         TestExtension extensionTwo = enabled(new TestExtension("two"));
-        when(extensionLoader.getAll()).thenReturn(ImmutableSet.<ArchUnitExtension>of(extensionOne, extensionTwo));
+        when(extensionLoader.getAll()).thenReturn(ImmutableSet.of(extensionOne, extensionTwo));
 
         extensions.dispatch(evaluatedRule);
 
@@ -92,7 +92,7 @@ public class ArchUnitExtensionsTest {
         TestExtension extensionOne = newExtensionWithEnabled("one", false);
         TestExtension extensionTwo = newExtensionWithEnabled("two", true);
 
-        when(extensionLoader.getAll()).thenReturn(ImmutableSet.<ArchUnitExtension>of(extensionOne, extensionTwo));
+        when(extensionLoader.getAll()).thenReturn(ImmutableSet.of(extensionOne, extensionTwo));
 
         logTestRule.watch(ArchUnitExtensions.class, Level.DEBUG);
 

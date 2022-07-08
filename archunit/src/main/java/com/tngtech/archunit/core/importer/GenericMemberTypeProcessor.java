@@ -45,7 +45,7 @@ class GenericMemberTypeProcessor<T extends HasDescription> extends SignatureVisi
 
     @Override
     public void visitClassType(String internalObjectName) {
-        updateType(new JavaParameterizedTypeBuilder<T>(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName)));
+        updateType(new JavaParameterizedTypeBuilder<>(JavaClassDescriptorImporter.createFromAsmObjectTypeName(internalObjectName)));
     }
 
     @Override
@@ -60,7 +60,7 @@ class GenericMemberTypeProcessor<T extends HasDescription> extends SignatureVisi
 
     @Override
     public void visitTypeArgument() {
-        parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess<>(new DomainBuilders.JavaWildcardTypeBuilder<T>()));
+        parameterizedType.addTypeArgument(new NewJavaTypeCreationProcess<>(new DomainBuilders.JavaWildcardTypeBuilder<>()));
     }
 
     @Override

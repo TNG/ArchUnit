@@ -27,6 +27,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_SIMPLE_NAME;
 import static com.tngtech.archunit.core.domain.JavaPackage.Functions.GET_CLASSES;
 import static com.tngtech.archunit.core.domain.JavaPackage.Functions.GET_RELATIVE_NAME;
@@ -430,11 +432,11 @@ public class JavaPackageTest {
         JavaPackage annotatedPackage = importPackage("packageexamples.annotated");
         JavaPackage nonAnnotatedPackage = importPackage("packageexamples");
 
-        assertThat(annotatedPackage.isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue())).isTrue();
-        assertThat(annotatedPackage.isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse())).isFalse();
+        assertThat(annotatedPackage.isAnnotatedWith(alwaysTrue())).isTrue();
+        assertThat(annotatedPackage.isAnnotatedWith(alwaysFalse())).isFalse();
 
-        assertThat(nonAnnotatedPackage.isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue())).isFalse();
-        assertThat(nonAnnotatedPackage.isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse())).isFalse();
+        assertThat(nonAnnotatedPackage.isAnnotatedWith(alwaysTrue())).isFalse();
+        assertThat(nonAnnotatedPackage.isAnnotatedWith(alwaysFalse())).isFalse();
     }
 
     @Test

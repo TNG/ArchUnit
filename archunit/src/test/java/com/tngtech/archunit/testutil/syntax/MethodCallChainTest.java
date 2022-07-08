@@ -1,7 +1,5 @@
 package com.tngtech.archunit.testutil.syntax;
 
-import java.util.Collections;
-
 import com.tngtech.archunit.testutil.syntax.callchainexamples.fivestepswithgenericshierarchy.FiveStepsHierarchyImplementationStep1;
 import com.tngtech.archunit.testutil.syntax.callchainexamples.fivestepswithgenericshierarchy.FiveStepsHierarchyImplementationStep2;
 import com.tngtech.archunit.testutil.syntax.callchainexamples.fivestepswithgenericshierarchy.FiveStepsHierarchyImplementationStep3;
@@ -38,6 +36,7 @@ import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.testutil.syntax.MethodChoiceStrategy.chooseAllArchUnitSyntaxMethods;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(DataProviderRunner.class)
@@ -115,7 +114,7 @@ public class MethodCallChainTest {
     }
 
     private void invokeNext(MethodCallChain callChain) {
-        callChain.invokeNextMethodCandidate(new Parameters(Collections.<Parameter>emptyList()), false);
+        callChain.invokeNextMethodCandidate(new Parameters(emptyList()), false);
     }
 
     private static class CallChainTestCase<T> {

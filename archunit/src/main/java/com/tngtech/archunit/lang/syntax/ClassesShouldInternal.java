@@ -641,7 +641,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
 
     @Override
     public ClassesShouldConjunction containNumberOfElements(DescribedPredicate<? super Integer> predicate) {
-        return addCondition(ArchConditions.<JavaClass>containNumberOfElements(predicate));
+        return addCondition(ArchConditions.containNumberOfElements(predicate));
     }
 
     private ClassesShouldInternal copyWithNewCondition(ArchCondition<JavaClass> newCondition) {
@@ -655,7 +655,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
     @Override
     public ClassesShouldConjunction andShould(ArchCondition<? super JavaClass> condition) {
         return copyWithNewCondition(conditionAggregator
-                .thatANDsWith(ObjectsShouldInternal.<JavaClass>prependDescription("should"))
+                .thatANDsWith(prependDescription("should"))
                 .add(condition));
     }
 
@@ -664,14 +664,14 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         return new ClassesShouldInternal(
                 classesTransformer,
                 priority,
-                conditionAggregator.thatANDsWith(ObjectsShouldInternal.<JavaClass>prependDescription("should")),
+                conditionAggregator.thatANDsWith(prependDescription("should")),
                 prepareCondition);
     }
 
     @Override
     public ClassesShouldConjunction orShould(ArchCondition<? super JavaClass> condition) {
         return copyWithNewCondition(conditionAggregator
-                .thatORsWith(ObjectsShouldInternal.<JavaClass>prependDescription("should"))
+                .thatORsWith(prependDescription("should"))
                 .add(condition));
     }
 
@@ -680,7 +680,7 @@ class ClassesShouldInternal extends ObjectsShouldInternal<JavaClass>
         return new ClassesShouldInternal(
                 classesTransformer,
                 priority,
-                conditionAggregator.thatORsWith(ObjectsShouldInternal.<JavaClass>prependDescription("should")),
+                conditionAggregator.thatORsWith(prependDescription("should")),
                 prepareCondition);
     }
 }

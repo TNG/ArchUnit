@@ -33,7 +33,7 @@ class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsIntern
     GivenObjectsInternal(Priority priority,
             ClassesTransformer<T> classesTransformer,
             Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
-        this(priority, classesTransformer, prepareCondition, new PredicateAggregator<T>(), Optional.<String>empty());
+        this(priority, classesTransformer, prepareCondition, new PredicateAggregator<>(), Optional.empty());
     }
 
     private GivenObjectsInternal(
@@ -43,13 +43,13 @@ class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsIntern
             PredicateAggregator<T> relevantObjectsPredicates,
             Optional<String> overriddenDescription) {
 
-        super(new GivenObjectsFactory<T>(),
+        super(new GivenObjectsFactory<>(),
                 priority, classesTransformer, prepareCondition, relevantObjectsPredicates, overriddenDescription);
     }
 
     @Override
     public ArchRule should(ArchCondition<? super T> condition) {
-        return new ObjectsShouldInternal<>(finishedClassesTransformer(), priority, condition.<T>forSubtype(), prepareCondition);
+        return new ObjectsShouldInternal<>(finishedClassesTransformer(), priority, condition.forSubtype(), prepareCondition);
     }
 
     private static class GivenObjectsFactory<T> implements AbstractGivenObjects.Factory<T, GivenObjectsInternal<T>> {

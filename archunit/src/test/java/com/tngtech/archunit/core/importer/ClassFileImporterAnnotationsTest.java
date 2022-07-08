@@ -3,7 +3,6 @@ package com.tngtech.archunit.core.importer;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +46,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAnnotations;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
+import static java.util.Collections.emptySet;
 
 @RunWith(DataProviderRunner.class)
 public class ClassFileImporterAnnotationsTest {
@@ -400,7 +400,7 @@ public class ClassFileImporterAnnotationsTest {
             assertThat(parameter.getAnnotations()).isEmpty();
         }
         assertThat(method.getParameterAnnotations()).containsExactly(
-                Collections.<JavaAnnotation<JavaParameter>>emptySet(), Collections.<JavaAnnotation<JavaParameter>>emptySet());
+                emptySet(), emptySet());
     }
 
     @Test
@@ -574,7 +574,7 @@ public class ClassFileImporterAnnotationsTest {
             assertThatAnnotation(annotation).hasType(ParameterAnnotation.class);
         }
 
-        Set<JavaAnnotation<?>> expected = ImmutableSet.<JavaAnnotation<?>>of(
+        Set<JavaAnnotation<?>> expected = ImmutableSet.of(
                 classes.get(Dependent.class).getAnnotationOfType(ParameterAnnotation.class.getName()),
                 classes.get(Dependent.class).getField("field").getAnnotationOfType(ParameterAnnotation.class.getName()),
                 classes.get(Dependent.class).getConstructor(getClass()).getAnnotationOfType(ParameterAnnotation.class.getName()),

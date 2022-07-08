@@ -71,7 +71,7 @@ class SignatureTypeArgumentProcessor<TYPE extends HasDescription> extends Signat
     @Override
     public void visitTypeArgument() {
         log.trace("Encountered wildcard for {}", currentTypeArgument.getTypeName());
-        currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<TYPE>(), JavaTypeFinisher.IDENTITY));
+        currentTypeArgument.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<>(), JavaTypeFinisher.IDENTITY));
     }
 
     @Override
@@ -79,7 +79,7 @@ class SignatureTypeArgumentProcessor<TYPE extends HasDescription> extends Signat
         if (log.isTraceEnabled()) {
             log.trace("Encountered {} for {}: Type variable {}", typeArgumentType.description, parameterizedType.getTypeName(), typeFinisher.getFinishedName(name));
         }
-        typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess<TYPE>(name, typeFinisher));
+        typeArgumentType.addTypeArgumentToBuilder(parameterizedType, new ReferenceCreationProcess<>(name, typeFinisher));
     }
 
     @Override

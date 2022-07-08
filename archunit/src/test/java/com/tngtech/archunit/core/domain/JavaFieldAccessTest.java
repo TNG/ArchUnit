@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.Predicates.accessType;
@@ -67,7 +68,7 @@ public class JavaFieldAccessTest {
 
     @Test
     public void predicate_field_access_target_by_predicate() throws Exception {
-        assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysTrue()))
+        assertThat(target(alwaysTrue()))
                 .accepts(stringFieldAccess(GET));
         assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysFalse().as("any message")))
                 .rejects(stringFieldAccess(GET))

@@ -71,8 +71,8 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
                     priority,
                     classesTransformer,
                     prepareCondition,
-                    new PredicateAggregator<JavaCodeUnit>(),
-                    Optional.<String>empty());
+                    new PredicateAggregator<>(),
+                    Optional.empty());
         }
 
         private GivenCodeUnitsInternal(
@@ -93,7 +93,7 @@ abstract class AbstractGivenCodeUnitsInternal<MEMBER extends JavaCodeUnit, SELF 
 
         @Override
         public CodeUnitsShouldInternal should(ArchCondition<? super JavaCodeUnit> condition) {
-            return new CodeUnitsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaCodeUnit>forSubtype(), prepareCondition);
+            return new CodeUnitsShouldInternal(finishedClassesTransformer(), priority, condition.forSubtype(), prepareCondition);
         }
 
         private static class GivenCodeUnitsFactory implements Factory<JavaCodeUnit, GivenCodeUnitsInternal> {

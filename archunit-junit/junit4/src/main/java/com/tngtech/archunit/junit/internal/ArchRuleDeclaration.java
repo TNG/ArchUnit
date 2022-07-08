@@ -20,7 +20,6 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
@@ -32,6 +31,7 @@ import static com.tngtech.archunit.junit.internal.ArchTestExecution.getValue;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllFields;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.getAllMethods;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.withAnnotation;
+import static java.util.Collections.singleton;
 
 abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
     private final Class<?> testClass;
@@ -88,7 +88,7 @@ abstract class ArchRuleDeclaration<T extends AnnotatedElement> {
 
         return ArchTests.class.isAssignableFrom(field.getType()) ?
                 toDeclarations(getArchRulesIn(field, fieldOwner), testClass, archTestAnnotationType, forceIgnore || elementShouldBeIgnored(field)) :
-                Collections.<ArchRuleDeclaration<?>>singleton(ArchRuleDeclaration.from(testClass, field, fieldOwner, forceIgnore));
+                singleton(ArchRuleDeclaration.from(testClass, field, fieldOwner, forceIgnore));
     }
 
     private static ArchTests getArchRulesIn(Field field, Class<?> fieldOwner) {

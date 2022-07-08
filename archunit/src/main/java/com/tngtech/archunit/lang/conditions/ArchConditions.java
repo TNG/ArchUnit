@@ -67,6 +67,7 @@ import com.tngtech.archunit.lang.conditions.ClassAccessesFieldCondition.ClassSet
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.optionalContains;
+import static com.tngtech.archunit.base.DescribedPredicate.optionalEmpty;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependencyOrigin;
@@ -179,7 +180,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyAccessFieldsThat(final DescribedPredicate<? super JavaField> predicate) {
         ChainableFunction<JavaFieldAccess, FieldAccessTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaFieldAccess> accessPredicate = getTarget.then(FieldAccessTarget.Functions.RESOLVE_MEMBER)
-                .is(optionalContains(predicate.<JavaField>forSubtype()).or(DescribedPredicate.<JavaField>optionalEmpty()));
+                .is(optionalContains(predicate.<JavaField>forSubtype()).or(optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(accessPredicate, GET_FIELD_ACCESSES_FROM_SELF)
                 .as("only access fields that " + predicate.getDescription());
     }
@@ -195,7 +196,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> callMethod(String ownerName, String methodName, String... parameterTypeNames) {
-        return callMethodWhere(JavaCall.Predicates.target(With.<JavaClass>owner(name(ownerName)))
+        return callMethodWhere(JavaCall.Predicates.target(With.owner(name(ownerName)))
                 .and(JavaCall.Predicates.target(name(methodName)))
                 .and(JavaCall.Predicates.target(rawParameterTypes(parameterTypeNames))))
                 .as("call method %s", Formatters.formatMethodSimple(
@@ -212,7 +213,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallMethodsThat(final DescribedPredicate<? super JavaMethod> predicate) {
         ChainableFunction<JavaMethodCall, MethodCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaMethodCall> callPredicate = getTarget.then(MethodCallTarget.Functions.RESOLVE_MEMBER)
-                .is(optionalContains(predicate.<JavaMethod>forSubtype()).or(DescribedPredicate.<JavaMethod>optionalEmpty()));
+                .is(optionalContains(predicate.<JavaMethod>forSubtype()).or(optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_METHOD_CALLS_FROM_SELF)
                 .as("only call methods that " + predicate.getDescription());
     }
@@ -228,7 +229,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> callConstructor(String ownerName, String... parameterTypeNames) {
-        return callConstructorWhere(JavaCall.Predicates.target(With.<JavaClass>owner(name(ownerName)))
+        return callConstructorWhere(JavaCall.Predicates.target(With.owner(name(ownerName)))
                 .and(JavaCall.Predicates.target(name(CONSTRUCTOR_NAME)))
                 .and(JavaCall.Predicates.target(rawParameterTypes(parameterTypeNames))))
                 .as("call constructor %s", Formatters.formatMethodSimple(
@@ -245,7 +246,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallConstructorsThat(final DescribedPredicate<? super JavaConstructor> predicate) {
         ChainableFunction<JavaConstructorCall, ConstructorCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaConstructorCall> callPredicate = getTarget.then(ConstructorCallTarget.Functions.RESOLVE_MEMBER)
-                .is(optionalContains(predicate.<JavaConstructor>forSubtype()).or(DescribedPredicate.<JavaConstructor>optionalEmpty()));
+                .is(optionalContains(predicate.<JavaConstructor>forSubtype()).or(optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CONSTRUCTOR_CALLS_FROM_SELF)
                 .as("only call constructors that " + predicate.getDescription());
     }
@@ -260,7 +261,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyCallCodeUnitsThat(final DescribedPredicate<? super JavaCodeUnit> predicate) {
         ChainableFunction<JavaCall<?>, CodeUnitCallTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaCall<?>> callPredicate = getTarget.then(CodeUnitCallTarget.Functions.RESOLVE_MEMBER)
-                .is(optionalContains(predicate.<JavaCodeUnit>forSubtype()).or(DescribedPredicate.<JavaCodeUnit>optionalEmpty()));
+                .is(optionalContains(predicate.<JavaCodeUnit>forSubtype()).or(optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(callPredicate, GET_CODE_UNIT_CALLS_FROM_SELF)
                 .as("only call code units that " + predicate.getDescription());
     }
@@ -269,7 +270,7 @@ public final class ArchConditions {
     public static ArchCondition<JavaClass> onlyAccessMembersThat(final DescribedPredicate<? super JavaMember> predicate) {
         ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
         DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(AccessTarget.Functions.RESOLVE_MEMBER)
-                .is(optionalContains(predicate.<JavaMember>forSubtype()).or(DescribedPredicate.<JavaMember>optionalEmpty()));
+                .is(optionalContains(predicate.<JavaMember>forSubtype()).or(optionalEmpty()));
         return new ClassOnlyAccessesCondition<>(accessPredicate, GET_ACCESSES_FROM_SELF)
                 .as("only access members that " + predicate.getDescription());
     }
@@ -282,7 +283,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> accessClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
         ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
-        DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(Get.<JavaClass>owner()).is(predicate);
+        DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(Get.owner()).is(predicate);
         return new ClassAccessesCondition<>(accessPredicate, GET_ACCESSES_FROM_SELF)
                 .as("access classes that " + predicate.getDescription());
     }
@@ -290,7 +291,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyAccessClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
         ChainableFunction<JavaAccess<?>, AccessTarget> getTarget = JavaAccess.Functions.Get.target();
-        DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(Get.<JavaClass>owner()).is(predicate);
+        DescribedPredicate<JavaAccess<?>> accessPredicate = getTarget.then(Get.owner()).is(predicate);
         return new AllAccessesCondition("only access classes that", accessPredicate, GET_ACCESSES_FROM_SELF);
     }
 
@@ -318,7 +319,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> onlyBeAccessedByClassesThat(DescribedPredicate<? super JavaClass> predicate) {
         return new AllAccessesCondition("only be accessed by classes that",
-                JavaAccess.Functions.Get.origin().then(Get.<JavaClass>owner()).is(predicate), GET_ACCESSES_TO_SELF);
+                JavaAccess.Functions.Get.origin().then(Get.owner()).is(predicate), GET_ACCESSES_TO_SELF);
     }
 
     /**
@@ -441,7 +442,7 @@ public final class ArchConditions {
     }
 
     private static DescribedPredicate<? super JavaFieldAccess> ownerAndNameAre(String ownerName, final String fieldName) {
-        return JavaFieldAccess.Predicates.target(With.<JavaClass>owner(name(ownerName)))
+        return JavaFieldAccess.Predicates.target(With.owner(name(ownerName)))
                 .and(JavaFieldAccess.Predicates.target(name(fieldName)))
                 .as(ownerName + "." + fieldName);
     }
@@ -473,7 +474,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static <HAS_NAME extends HasName & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_NAME> notHaveName(String name) {
-        return not(ArchConditions.<HAS_NAME>haveName(name));
+        return not(ArchConditions.haveName(name));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -485,7 +486,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_FULL_NAME extends HasName.AndFullName & HasDescription & HasSourceCodeLocation>
     ArchCondition<HAS_FULL_NAME> notHaveFullName(String fullName) {
-        return not(new HaveConditionByPredicate<HAS_FULL_NAME>(fullName(fullName)));
+        return not(new HaveConditionByPredicate<>(fullName(fullName)));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -646,7 +647,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_MODIFIERS extends HasModifiers & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_MODIFIERS> notHaveModifier(
             final JavaModifier modifier) {
-        return not(ArchConditions.<HAS_MODIFIERS>haveModifier(modifier));
+        return not(ArchConditions.haveModifier(modifier));
     }
 
     @PublicAPI(usage = ACCESS)
@@ -737,7 +738,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
             Class<? extends Annotation> type) {
-        return not(ArchConditions.<HAS_ANNOTATIONS>beAnnotatedWith(type));
+        return not(ArchConditions.beAnnotatedWith(type));
     }
 
     /**
@@ -755,7 +756,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
             String typeName) {
-        return not(ArchConditions.<HAS_ANNOTATIONS>beAnnotatedWith(typeName));
+        return not(ArchConditions.beAnnotatedWith(typeName));
     }
 
     /**
@@ -773,7 +774,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeAnnotatedWith(
             DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return not(ArchConditions.<HAS_ANNOTATIONS>beAnnotatedWith(predicate));
+        return not(ArchConditions.beAnnotatedWith(predicate));
     }
 
     /**
@@ -791,7 +792,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
             Class<? extends Annotation> type) {
-        return not(ArchConditions.<HAS_ANNOTATIONS>beMetaAnnotatedWith(type));
+        return not(ArchConditions.beMetaAnnotatedWith(type));
     }
 
     /**
@@ -809,7 +810,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
             String typeName) {
-        return not(ArchConditions.<HAS_ANNOTATIONS>beMetaAnnotatedWith(typeName));
+        return not(ArchConditions.beMetaAnnotatedWith(typeName));
     }
 
     /**
@@ -827,7 +828,7 @@ public final class ArchConditions {
     @PublicAPI(usage = ACCESS)
     public static <HAS_ANNOTATIONS extends HasAnnotations<?> & HasDescription & HasSourceCodeLocation> ArchCondition<HAS_ANNOTATIONS> notBeMetaAnnotatedWith(
             DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        return not(ArchConditions.<HAS_ANNOTATIONS>beMetaAnnotatedWith(predicate));
+        return not(ArchConditions.beMetaAnnotatedWith(predicate));
     }
 
     /**
@@ -1300,7 +1301,7 @@ public final class ArchConditions {
         private final Function<JavaClass, ? extends Collection<T>> getHasModifiers;
 
         HaveOnlyModifiersCondition(String description, final JavaModifier modifier, Function<JavaClass, ? extends Collection<T>> getHasModifiers) {
-            super("have only " + description, new ModifierCondition<T>(modifier));
+            super("have only " + description, new ModifierCondition<>(modifier));
             this.getHasModifiers = getHasModifiers;
         }
 

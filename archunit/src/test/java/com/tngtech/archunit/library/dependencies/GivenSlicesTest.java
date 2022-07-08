@@ -16,6 +16,8 @@ import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,14 +58,14 @@ public class GivenSlicesTest {
         GivenSlices givenSlices = slices().matching("..testclasses.(*)..");
         JavaClasses classes = new ClassFileImporter().importPackages("com.tngtech.archunit.library.testclasses");
 
-        EvaluationResult result = givenSlices.that(DescribedPredicate.<Slice>alwaysFalse())
-                .and(DescribedPredicate.<Slice>alwaysTrue())
+        EvaluationResult result = givenSlices.that(alwaysFalse())
+                .and(alwaysTrue())
                 .should().notDependOnEachOther().evaluate(classes);
 
         assertThat(result.hasViolation()).as("Result has violation").isFalse();
 
-        result = givenSlices.that(DescribedPredicate.<Slice>alwaysTrue())
-                .or(DescribedPredicate.<Slice>alwaysFalse())
+        result = givenSlices.that(alwaysTrue())
+                .or(alwaysFalse())
                 .should().notDependOnEachOther().evaluate(classes);
 
         assertThat(result.hasViolation()).as("Result has violation").isTrue();

@@ -361,7 +361,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     private Optional<JavaClass> tryGetClassWith(DescribedPredicate<? super JavaClass> predicate) {
         Set<JavaClass> matching = getClassesWith(predicate);
-        return matching.size() == 1 ? Optional.of(getOnlyElement(matching)) : Optional.<JavaClass>empty();
+        return matching.size() == 1 ? Optional.of(getOnlyElement(matching)) : Optional.empty();
     }
 
     private Set<JavaClass> getClassesWith(Predicate<? super JavaClass> predicate) {

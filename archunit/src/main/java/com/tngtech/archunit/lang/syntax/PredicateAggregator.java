@@ -26,7 +26,7 @@ public final class PredicateAggregator<T> {
     private final Optional<DescribedPredicate<T>> predicate;
 
     public PredicateAggregator() {
-        this(AddMode.<T>and(), Optional.<DescribedPredicate<T>>empty());
+        this(AddMode.and(), Optional.empty());
     }
 
     private PredicateAggregator(AddMode<T> addMode, Optional<DescribedPredicate<T>> predicate) {
@@ -47,11 +47,11 @@ public final class PredicateAggregator<T> {
     }
 
     public PredicateAggregator<T> thatANDs() {
-        return new PredicateAggregator<>(AddMode.<T>and(), predicate);
+        return new PredicateAggregator<>(AddMode.and(), predicate);
     }
 
     public PredicateAggregator<T> thatORs() {
-        return new PredicateAggregator<>(AddMode.<T>or(), predicate);
+        return new PredicateAggregator<>(AddMode.or(), predicate);
     }
 
     private abstract static class AddMode<T> {

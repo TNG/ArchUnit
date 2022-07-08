@@ -73,7 +73,7 @@ public class TestUtils {
         File file = newTemporaryFile();
         try {
             Files.write(bytes, file);
-            return new Source(file.toURI(), Optional.<String>empty(), true).getMd5sum();
+            return new Source(file.toURI(), Optional.empty(), true).getMd5sum();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -111,7 +111,7 @@ public class TestUtils {
     }
 
     private static MethodCallTarget unresolvedTargetFrom(JavaMethod target) {
-        return ImportTestUtils.targetFrom(target, Optional::<JavaMethod>empty);
+        return ImportTestUtils.targetFrom(target, Optional::empty);
     }
 
     public static Class<?>[] asClasses(List<JavaClass> parameters) {

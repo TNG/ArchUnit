@@ -295,7 +295,7 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
     }
 
     private SELF copyWithNewCondition(ArchCondition<? super MEMBER> newCondition) {
-        return copyWithNewCondition(new ConditionAggregator<>(newCondition.<MEMBER>forSubtype()));
+        return copyWithNewCondition(new ConditionAggregator<>(newCondition.forSubtype()));
     }
 
     abstract SELF copyWithNewCondition(ConditionAggregator<MEMBER> newCondition);
@@ -307,25 +307,25 @@ abstract class AbstractMembersShouldInternal<MEMBER extends JavaMember, SELF ext
     @Override
     public SELF andShould(ArchCondition<? super MEMBER> condition) {
         return copyWithNewCondition(conditionAggregator
-                .thatANDsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should"))
+                .thatANDsWith(prependDescription("should"))
                 .add(condition));
     }
 
     @Override
     public SELF andShould() {
-        return copyWithNewCondition(conditionAggregator.thatANDsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should")));
+        return copyWithNewCondition(conditionAggregator.thatANDsWith(prependDescription("should")));
     }
 
     @Override
     public SELF orShould(ArchCondition<? super MEMBER> condition) {
         return copyWithNewCondition(conditionAggregator
-                .thatORsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should"))
+                .thatORsWith(prependDescription("should"))
                 .add(condition));
     }
 
     @Override
     public SELF orShould() {
-        return copyWithNewCondition(conditionAggregator.thatORsWith(ObjectsShouldInternal.<MEMBER>prependDescription("should")));
+        return copyWithNewCondition(conditionAggregator.thatORsWith(prependDescription("should")));
     }
 
     @SuppressWarnings("unchecked")

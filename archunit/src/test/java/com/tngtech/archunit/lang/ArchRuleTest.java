@@ -9,7 +9,6 @@ import java.util.TreeSet;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaClassesTest;
@@ -26,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
@@ -182,7 +182,7 @@ public class ArchRuleTest {
         thrown.expectMessage("failed to check any classes");
         thrown.expectMessage(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
 
-        createPassingArchRule(strings().that(DescribedPredicate.<String>alwaysFalse())).evaluate(importClasses(SomeClass.class));
+        createPassingArchRule(strings().that(alwaysFalse())).evaluate(importClasses(SomeClass.class));
     }
 
     @Test
@@ -208,7 +208,7 @@ public class ArchRuleTest {
     }
 
     private <T> ArchRule createPassingArchRule(ClassesTransformer<T> classesTransformer) {
-        return ArchRule.Factory.create(classesTransformer, ALWAYS_BE_VALID.<T>forSubtype(), Priority.MEDIUM);
+        return ArchRule.Factory.create(classesTransformer, ALWAYS_BE_VALID.forSubtype(), Priority.MEDIUM);
     }
 
     private ClassesTransformer<String> strings() {

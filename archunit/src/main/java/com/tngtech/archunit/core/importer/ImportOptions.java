@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.importer;
 
-import java.util.Collections;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
@@ -23,6 +22,7 @@ import com.tngtech.archunit.PublicAPI;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static java.util.Collections.emptySet;
 
 /**
  * A collection of {@link ImportOption} to filter class locations. All supplied {@link ImportOption}s will be joined
@@ -34,7 +34,7 @@ public final class ImportOptions {
 
     @PublicAPI(usage = ACCESS)
     public ImportOptions() {
-        this(Collections.<ImportOption>emptySet());
+        this(emptySet());
     }
 
     private ImportOptions(Set<ImportOption> options) {

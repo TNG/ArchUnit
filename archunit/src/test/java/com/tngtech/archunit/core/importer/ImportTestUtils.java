@@ -47,6 +47,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.importer.DomainBuilders.newConstructorCallTargetBuilder;
 import static com.tngtech.archunit.core.importer.DomainBuilders.newMethodCallTargetBuilder;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -299,7 +300,7 @@ public class ImportTestUtils {
 
         ImportedTestClasses() {
             super(
-                    Collections.<String, JavaClass>emptyMap(),
+                    emptyMap(),
                     new ClassResolver() {
                         @Override
                         public void setClassUriImporter(ClassUriImporter classUriImporter) {
@@ -380,12 +381,12 @@ public class ImportTestUtils {
 
         @Override
         public Map<String, JavaAnnotation<JavaClass>> createAnnotations(JavaClass owner) {
-            return Collections.emptyMap();
+            return emptyMap();
         }
 
         @Override
         public Map<String, JavaAnnotation<JavaMember>> createAnnotations(JavaMember owner) {
-            return Collections.emptyMap();
+            return emptyMap();
         }
 
         @Override

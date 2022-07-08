@@ -92,7 +92,7 @@ public class TextFileBasedViolationStoreTest {
 
     @Test
     public void reads_empty_list_of_violations() {
-        store.save(defaultRule(), ImmutableList.<String>of());
+        store.save(defaultRule(), ImmutableList.of());
 
         List<String> storedViolations = store.getViolations(defaultRule());
 

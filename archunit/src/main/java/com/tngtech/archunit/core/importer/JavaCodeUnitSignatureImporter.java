@@ -16,7 +16,6 @@
 package com.tngtech.archunit.core.importer;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -31,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERSION;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 class JavaCodeUnitSignatureImporter {
@@ -103,9 +103,9 @@ class JavaCodeUnitSignatureImporter {
 
     static class JavaCodeUnitSignature {
         static final JavaCodeUnitSignature ABSENT = new JavaCodeUnitSignature(
-                Collections.<JavaTypeParameterBuilder<JavaCodeUnit>>emptyList(),
-                Collections.<JavaTypeCreationProcess<JavaCodeUnit>>emptyList(),
-                Optional.<JavaTypeCreationProcess<JavaCodeUnit>>empty()
+                emptyList(),
+                emptyList(),
+                Optional.empty()
         );
 
         private final List<JavaTypeParameterBuilder<JavaCodeUnit>> typeParameterBuilders;

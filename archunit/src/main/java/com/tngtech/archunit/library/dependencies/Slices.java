@@ -16,7 +16,6 @@
 package com.tngtech.archunit.library.dependencies;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -43,6 +42,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Dependency.toTargetClasses;
 import static com.tngtech.archunit.core.domain.PackageMatcher.TO_GROUPS;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -181,7 +181,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         }
 
         private Transformer(SliceAssignment sliceAssignment, String description, SlicesPredicateAggregator predicate) {
-            this(sliceAssignment, description, Optional.<String>empty(), predicate);
+            this(sliceAssignment, description, Optional.empty(), predicate);
         }
 
         private Transformer(SliceAssignment sliceAssignment,
@@ -266,7 +266,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         private final String descriptionJoinWord;
 
         SlicesPredicateAggregator(String descriptionJoinWord) {
-            this(new PredicateAggregator<Slice>(), descriptionJoinWord);
+            this(new PredicateAggregator<>(), descriptionJoinWord);
         }
 
         private SlicesPredicateAggregator(PredicateAggregator<Slice> predicate, String descriptionJoinWord) {
@@ -335,7 +335,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
         public SliceIdentifier getIdentifierOf(JavaClass javaClass) {
             PackageMatcher matcher = PackageMatcher.of(packageIdentifier);
             Optional<List<String>> result = matcher.match(javaClass.getPackageName()).map(TO_GROUPS);
-            List<String> parts = result.orElse(Collections.<String>emptyList());
+            List<String> parts = result.orElse(emptyList());
             return parts.isEmpty() ? SliceIdentifier.ignore() : SliceIdentifier.of(parts);
         }
 

@@ -1,11 +1,12 @@
 package com.tngtech.archunit.library.dependencies;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import static java.util.Collections.emptyList;
 
 public class SliceIdentifierTest {
     @Rule
@@ -36,7 +37,7 @@ public class SliceIdentifierTest {
     public void rejects_empty_parts_list() {
         expectEmptyPartsException();
 
-        SliceIdentifier.of(Collections.<String>emptyList());
+        SliceIdentifier.of(emptyList());
     }
 
     private void expectEmptyPartsException() {

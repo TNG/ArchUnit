@@ -1,7 +1,6 @@
 package com.tngtech.archunit.library.dependencies;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -20,6 +19,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Sets.cartesianProduct;
 import static com.tngtech.archunit.library.dependencies.CycleConfiguration.MAX_NUMBER_OF_CYCLES_TO_DETECT_PROPERTY_NAME;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
@@ -237,6 +237,6 @@ public class GraphTest {
     }
 
     static <NODE, ATTACHMENT> Edge<NODE, ATTACHMENT> newEdge(NODE from, NODE to) {
-        return new Edge<>(from, to, Collections.<ATTACHMENT>emptySet());
+        return new Edge<>(from, to, emptySet());
     }
 }
