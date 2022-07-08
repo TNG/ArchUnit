@@ -9,6 +9,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaType;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
@@ -42,7 +43,7 @@ public class HasParameterTypesTest {
     public void predicate_on_parameters_by_Predicate() {
         HasParameterTypes hasParameterTypes = newHasParameterTypes(String.class, Serializable.class);
 
-        assertThat(rawParameterTypes(DescribedPredicate.<List<JavaClass>>alwaysTrue()))
+        assertThat(rawParameterTypes(alwaysTrue()))
                 .accepts(hasParameterTypes);
         assertThat(rawParameterTypes(DescribedPredicate.<List<JavaClass>>alwaysFalse().as("some text")))
                 .rejects(hasParameterTypes)

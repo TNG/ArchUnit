@@ -19,7 +19,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -43,6 +42,7 @@ import org.junit.runners.model.Statement;
 import static com.tngtech.archunit.junit.internal.ArchRuleDeclaration.elementShouldBeIgnored;
 import static com.tngtech.archunit.junit.internal.ArchRuleDeclaration.toDeclarations;
 import static com.tngtech.archunit.junit.internal.ArchTestExecution.getValue;
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 
 final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> implements ArchUnitRunner.InternalRunner<ArchTestExecution> {
@@ -96,7 +96,7 @@ final class ArchUnitRunnerInternal extends ParentRunner<ArchTestExecution> imple
         if (ruleField.getType() == ArchTests.class) {
             return asTestExecutions(getArchRules(ruleField.getField()), ignore);
         }
-        return Collections.<ArchTestExecution>singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), ignore));
+        return singleton(new ArchRuleExecution(getTestClass().getJavaClass(), ruleField.getField(), ignore));
     }
 
     private Set<ArchTestExecution> asTestExecutions(ArchTests archTests, boolean forceIgnore) {

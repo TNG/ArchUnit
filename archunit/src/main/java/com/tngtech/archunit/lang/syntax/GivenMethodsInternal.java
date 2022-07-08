@@ -42,8 +42,8 @@ class GivenMethodsInternal
                 priority,
                 classesTransformer,
                 prepareCondition,
-                new PredicateAggregator<JavaMethod>(),
-                Optional.<String>empty());
+                new PredicateAggregator<>(),
+                Optional.empty());
     }
 
     private GivenMethodsInternal(
@@ -79,7 +79,7 @@ class GivenMethodsInternal
 
     @Override
     public MethodsShouldInternal should(ArchCondition<? super JavaMethod> condition) {
-        return new MethodsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMethod>forSubtype(), prepareCondition);
+        return new MethodsShouldInternal(finishedClassesTransformer(), priority, condition.forSubtype(), prepareCondition);
     }
 
     private static class GivenMethodsFactory implements Factory<JavaMethod, GivenMethodsInternal> {

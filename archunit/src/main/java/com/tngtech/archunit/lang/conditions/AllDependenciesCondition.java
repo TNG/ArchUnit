@@ -26,6 +26,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 
 @PublicAPI(usage = ACCESS)
 public final class AllDependenciesCondition extends AllAttributesMatchCondition<Dependency, JavaClass> {
@@ -38,7 +39,7 @@ public final class AllDependenciesCondition extends AllAttributesMatchCondition<
             final DescribedPredicate<? super Dependency> predicate,
             Function<JavaClass, ? extends Collection<Dependency>> javaClassToRelevantDependencies) {
 
-        this(description, predicate, javaClassToRelevantDependencies, DescribedPredicate.<Dependency>alwaysFalse());
+        this(description, predicate, javaClassToRelevantDependencies, alwaysFalse());
     }
 
     private AllDependenciesCondition(

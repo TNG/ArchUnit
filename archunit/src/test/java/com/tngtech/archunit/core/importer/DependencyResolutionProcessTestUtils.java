@@ -43,7 +43,7 @@ public class DependencyResolutionProcessTestUtils {
         }
 
         static ImporterWithAdjustedResolutionRuns disableAllIterationsExcept(String... propertyNames) {
-            return new ImporterWithAdjustedResolutionRuns(ImmutableSet.copyOf(propertyNames), Optional.<Integer>empty());
+            return new ImporterWithAdjustedResolutionRuns(ImmutableSet.copyOf(propertyNames), Optional.empty());
         }
 
         static ImporterWithAdjustedResolutionRuns disableAllIterationsExcept(String propertyName, int number) {

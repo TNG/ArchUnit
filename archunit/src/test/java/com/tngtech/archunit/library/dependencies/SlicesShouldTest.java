@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.library.dependencies.GivenSlicesTest.TEST_CLASSES_PACKAGE;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -49,7 +50,7 @@ public class SlicesShouldTest {
                 .contain(SecondAnyClass.class, FirstAnyPkgClass.class)
                 .contain(SecondThreeAnyClass.class, SomePkgClass.class);
 
-        rule = rule.ignoreDependency(classIn(".*\\.first\\.three\\..*"), DescribedPredicate.<JavaClass>alwaysTrue());
+        rule = rule.ignoreDependency(classIn(".*\\.first\\.three\\..*"), alwaysTrue());
         assertViolations(classes, rule)
                 .doNotContain(FirstThreeAnyClass.class, SecondThreeAnyClass.class)
                 .contain(FirstAnyPkgClass.class, SomePkgSubclass.class)
@@ -70,7 +71,7 @@ public class SlicesShouldTest {
                 .doNotContain(SecondAnyClass.class, FirstAnyPkgClass.class)
                 .contain(SecondThreeAnyClass.class, SomePkgClass.class);
 
-        rule = rule.ignoreDependency(DescribedPredicate.<JavaClass>alwaysTrue(), classIn(".*\\.some\\.pkg\\..*"));
+        rule = rule.ignoreDependency(alwaysTrue(), classIn(".*\\.some\\.pkg\\..*"));
         assertViolations(classes, rule)
                 .doNotContain(FirstThreeAnyClass.class, SecondThreeAnyClass.class)
                 .doNotContain(FirstAnyPkgClass.class, SomePkgSubclass.class)

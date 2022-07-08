@@ -17,7 +17,6 @@ package com.tngtech.archunit.library.plantuml;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +30,8 @@ import com.google.common.base.Splitter;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 class PlantUmlPatterns {
     private static final String COMPONENT_NAME_GROUP_NAME = "componentName";
@@ -137,8 +138,8 @@ class PlantUmlPatterns {
 
         static Collection<PlantUmlDependencyMatcher> tryParseFromLeftToRight(String line) {
             return isDependencyFromLeftToRight(line) ?
-                    Collections.singletonList(parseDependencyFromLeftToRight(line)) :
-                    Collections.<PlantUmlDependencyMatcher>emptyList();
+                    singletonList(parseDependencyFromLeftToRight(line)) :
+                    emptyList();
         }
 
         private static boolean isDependencyFromLeftToRight(String line) {
@@ -152,8 +153,8 @@ class PlantUmlPatterns {
 
         static Collection<PlantUmlDependencyMatcher> tryParseFromRightToLeft(String line) {
             return isDependencyFromRightToLeft(line) ?
-                    Collections.singletonList(parseDependencyFromRightToLeft(line)) :
-                    Collections.<PlantUmlDependencyMatcher>emptyList();
+                    singletonList(parseDependencyFromRightToLeft(line)) :
+                    emptyList();
         }
 
         private static boolean isDependencyFromRightToLeft(String line) {

@@ -3,7 +3,6 @@ package com.tngtech.archunit.lang;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -15,6 +14,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.Priority.HIGH;
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
@@ -115,7 +115,7 @@ public class CompositeArchRuleTest {
     private static CompositeArchRule compositeRuleWithPartialEmptyShould() {
         return CompositeArchRule
                 .of(classes().should().bePublic())
-                .and(classes().that(DescribedPredicate.<JavaClass>alwaysFalse()).should().bePublic());
+                .and(classes().that(alwaysFalse()).should().bePublic());
     }
 
     private void assertPriority(String failureMessage, Priority priority) {

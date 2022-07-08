@@ -3,13 +3,13 @@ package com.tngtech.archunit.testutil.syntax;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.util.Collections;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.Collections.emptyMap;
 
 class PropagatedType {
     private final Type type;
@@ -30,7 +30,7 @@ class PropagatedType {
         } else if (type instanceof ParameterizedType) {
             return resolveTypeVariables((ParameterizedType) type, context);
         } else {
-            return Collections.emptyMap();
+            return emptyMap();
         }
     }
 
@@ -104,7 +104,7 @@ class PropagatedType {
         }
 
         static Context empty() {
-            return new Context(Collections.<String, Type>emptyMap());
+            return new Context(emptyMap());
         }
 
         Type resolve(Type type) {

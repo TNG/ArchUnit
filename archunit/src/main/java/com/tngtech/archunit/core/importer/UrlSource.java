@@ -231,7 +231,7 @@ interface UrlSource extends Iterable<URL> {
             Optional<URL> fileUri = newFileUri(path);
 
             try {
-                return fileUri.isPresent() ? Optional.of(new URL("jar:" + fileUri.get() + "!/")) : Optional.<URL>empty();
+                return fileUri.isPresent() ? Optional.of(new URL("jar:" + fileUri.get() + "!/")) : Optional.empty();
             } catch (MalformedURLException e) {
                 LOG.warn("Cannot parse URL from path " + path, e);
                 return Optional.empty();

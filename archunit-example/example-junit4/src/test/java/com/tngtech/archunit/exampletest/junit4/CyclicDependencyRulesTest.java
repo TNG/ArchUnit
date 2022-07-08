@@ -1,6 +1,5 @@
 package com.tngtech.archunit.exampletest.junit4;
 
-import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.example.cycles.complexcycles.slice1.SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree;
 import com.tngtech.archunit.example.cycles.complexcycles.slice3.ClassCallingConstructorInSliceFive;
@@ -13,6 +12,7 @@ import com.tngtech.archunit.library.dependencies.SliceIdentifier;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
@@ -55,7 +55,7 @@ public class CyclicDependencyRulesTest {
                     .as("Slices of complex scenario ignoring some violations")
                     .should().beFreeOfCycles()
                     .ignoreDependency(SliceOneCallingConstructorInSliceTwoAndMethodInSliceThree.class, ClassCallingConstructorInSliceFive.class)
-                    .ignoreDependency(resideInAPackage("..slice4.."), DescribedPredicate.<JavaClass>alwaysTrue());
+                    .ignoreDependency(resideInAPackage("..slice4.."), alwaysTrue());
 
     @ArchTest
     public static final ArchRule no_cycles_in_freely_customized_slices =

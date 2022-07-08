@@ -1,6 +1,5 @@
 package com.tngtech.archunit.core.domain;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +12,7 @@ import org.junit.rules.ExpectedException;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,7 +49,7 @@ public class JavaClassesTest {
 
     @Test
     public void creation_of_JavaClasses_from_empty_classes_should_create_empty_default_package() {
-        JavaClasses classes = JavaClasses.of(Collections.<JavaClass>emptySet());
+        JavaClasses classes = JavaClasses.of(emptySet());
 
         assertThat(classes.getDefaultPackage().getAllClasses()).isEmpty();
     }

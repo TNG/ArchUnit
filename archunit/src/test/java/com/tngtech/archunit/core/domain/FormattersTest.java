@@ -3,7 +3,6 @@ package com.tngtech.archunit.core.domain;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -26,6 +25,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 
@@ -41,7 +41,7 @@ public class FormattersTest {
         assertThat(Formatters.formatNamesOf(List.class, Iterable.class, String.class))
                 .containsExactly(List.class.getName(), Iterable.class.getName(), String.class.getName());
 
-        assertThat(Formatters.formatNamesOf(Collections.<Class<?>>emptyList())).isEmpty();
+        assertThat(Formatters.formatNamesOf(emptyList())).isEmpty();
 
         assertThat(Formatters.formatNamesOf(of(List.class, Iterable.class, String.class)))
                 .containsExactly(List.class.getName(), Iterable.class.getName(), String.class.getName());

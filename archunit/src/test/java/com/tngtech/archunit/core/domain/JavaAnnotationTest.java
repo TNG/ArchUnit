@@ -349,7 +349,7 @@ public class JavaAnnotationTest {
         private final Multimap<String, Object> visitedParameters;
 
         ParametersStoringVisitor() {
-            this("", HashMultimap.<String, Object>create());
+            this("", HashMultimap.create());
         }
 
         private ParametersStoringVisitor(String prefix, Multimap<String, Object> visitedParameters) {

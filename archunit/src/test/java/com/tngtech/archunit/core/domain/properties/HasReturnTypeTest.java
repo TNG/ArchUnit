@@ -5,6 +5,7 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaType;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RETURN_TYPE;
@@ -38,7 +39,7 @@ public class HasReturnTypeTest {
     public void predicate_on_return_type_by_Predicate() {
         HasReturnType hasReturnTypeString = newHasReturnType(importClassWithContext(String.class));
 
-        assertThat(rawReturnType(DescribedPredicate.<JavaClass>alwaysTrue()))
+        assertThat(rawReturnType(alwaysTrue()))
                 .accepts(hasReturnTypeString);
         assertThat(rawReturnType(DescribedPredicate.<JavaClass>alwaysFalse().as("some text")))
                 .rejects(hasReturnTypeString)

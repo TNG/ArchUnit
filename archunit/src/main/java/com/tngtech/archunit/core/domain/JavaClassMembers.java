@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.core.domain;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +35,7 @@ import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaModifier.ENUM;
 import static com.tngtech.archunit.core.domain.JavaModifier.SYNTHETIC;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 class JavaClassMembers {
@@ -339,10 +339,10 @@ class JavaClassMembers {
     static JavaClassMembers empty(JavaClass owner) {
         return new JavaClassMembers(
                 owner,
-                Collections.<JavaField>emptySet(),
-                Collections.<JavaMethod>emptySet(),
-                Collections.<JavaConstructor>emptySet(),
-                Optional.<JavaStaticInitializer>empty());
+                emptySet(),
+                emptySet(),
+                emptySet(),
+                Optional.empty());
     }
 
     static JavaClassMembers create(JavaClass owner, ImportContext context) {

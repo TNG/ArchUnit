@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Spy;
@@ -35,6 +34,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -152,7 +152,7 @@ public class ClassCacheTest {
         TestAnalysisRequest defaultOptions = new TestAnalysisRequest().withWholeClasspath(true);
         Class<?>[] expectedImportResult = new Class[]{getClass()};
         doReturn(new ClassFileImporter().importClasses(expectedImportResult))
-                .when(cacheClassFileImporter).importClasses(any(ImportOptions.class), ArgumentMatchers.<Location>anyCollection());
+                .when(cacheClassFileImporter).importClasses(any(ImportOptions.class), anyCollection());
 
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, defaultOptions);
 
@@ -245,7 +245,7 @@ public class ClassCacheTest {
     }
 
     private void verifyNumberOfImports(int number) {
-        verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOptions.class), ArgumentMatchers.<Location>anyCollection());
+        verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOptions.class), anyCollection());
         verifyNoMoreInteractions(cacheClassFileImporter);
     }
 

@@ -50,7 +50,7 @@ public class SessionBeanRulesTest {
 
     private static final DescribedPredicate<JavaFieldAccess> TARGET_IS_STATELESS_SESSION_BEAN =
             Get.<JavaFieldAccess, FieldAccessTarget>target()
-                    .then(HasOwner.Functions.Get.<JavaClass>owner())
+                    .then(HasOwner.Functions.Get.owner())
                     .is(annotatedWith(Stateless.class));
 
     private static final DescribedPredicate<JavaAccess<?>> ACCESS_ORIGIN_IS_OUTSIDE_OF_CONSTRUCTION =

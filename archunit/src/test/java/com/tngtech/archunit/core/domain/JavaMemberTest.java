@@ -2,9 +2,10 @@ package com.tngtech.archunit.core.domain;
 
 import java.lang.annotation.Retention;
 
-import com.tngtech.archunit.base.DescribedPredicate;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
@@ -32,10 +33,10 @@ public class JavaMemberTest {
     @Test
     public void isAnnotatedWith_predicate() {
         assertThat(importField(SomeClass.class, "someField")
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
+                .isAnnotatedWith(alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(importField(SomeClass.class, "someField")
-                .isAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
+                .isAnnotatedWith(alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 
@@ -68,10 +69,10 @@ public class JavaMemberTest {
         JavaClass clazz = importClassesWithContext(SomeClass.class, Deprecated.class).get(SomeClass.class);
 
         assertThat(clazz.getField("someField")
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysTrue()))
+                .isMetaAnnotatedWith(alwaysTrue()))
                 .as("predicate matches").isTrue();
         assertThat(clazz.getField("someField")
-                .isMetaAnnotatedWith(DescribedPredicate.<JavaAnnotation<?>>alwaysFalse()))
+                .isMetaAnnotatedWith(alwaysFalse()))
                 .as("predicate matches").isFalse();
     }
 

@@ -37,7 +37,7 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
 
     GivenClassesInternal(Priority priority, ClassesTransformer<JavaClass> classesTransformer,
             Function<ArchCondition<JavaClass>, ArchCondition<JavaClass>> prepareCondition) {
-        this(priority, classesTransformer, prepareCondition, new PredicateAggregator<JavaClass>(), Optional.<String>empty());
+        this(priority, classesTransformer, prepareCondition, new PredicateAggregator<>(), Optional.empty());
     }
 
     private GivenClassesInternal(
@@ -74,7 +74,7 @@ class GivenClassesInternal extends AbstractGivenObjects<JavaClass, GivenClassesI
 
     @Override
     public ClassesShouldConjunction should(ArchCondition<? super JavaClass> condition) {
-        return new ClassesShouldInternal(finishedClassesTransformer(), priority, condition.<JavaClass>forSubtype(), prepareCondition);
+        return new ClassesShouldInternal(finishedClassesTransformer(), priority, condition.forSubtype(), prepareCondition);
     }
 
     private static class GivenClassesFactory implements Factory<JavaClass, GivenClassesInternal> {

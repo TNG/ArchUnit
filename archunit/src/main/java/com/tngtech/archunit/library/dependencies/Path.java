@@ -16,7 +16,6 @@
 package com.tngtech.archunit.library.dependencies;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -26,12 +25,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.collect.Iterables.getLast;
+import static java.util.Collections.emptyList;
 
 class Path<T, ATTACHMENT> {
     private final List<Edge<T, ATTACHMENT>> edges;
 
     Path() {
-        this(Collections.<Edge<T, ATTACHMENT>>emptyList());
+        this(emptyList());
     }
 
     Path(Path<T, ATTACHMENT> other) {

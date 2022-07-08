@@ -40,7 +40,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
     ObjectsShouldInternal(ClassesTransformer<? extends T> classesTransformer,
             Priority priority,
             Function<ArchCondition<T>, ArchCondition<T>> prepareCondition) {
-        this(classesTransformer, priority, new ConditionAggregator<T>(), prepareCondition);
+        this(classesTransformer, priority, new ConditionAggregator<>(), prepareCondition);
     }
 
     ObjectsShouldInternal(ClassesTransformer<? extends T> classesTransformer,
@@ -117,11 +117,11 @@ class ObjectsShouldInternal<T> implements ArchRule {
         private final AddMode<T> addMode;
 
         ConditionAggregator() {
-            this(Optional.<ArchCondition<T>>empty(), AddMode.<T>and());
+            this(Optional.empty(), AddMode.and());
         }
 
         ConditionAggregator(ArchCondition<T> condition) {
-            this(Optional.of(condition), AddMode.<T>and());
+            this(Optional.of(condition), AddMode.and());
         }
 
         private ConditionAggregator(Optional<ArchCondition<T>> condition, AddMode<T> addMode) {
@@ -157,7 +157,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
             return new AddMode<T>() {
                 @Override
                 ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other) {
-                    ArchCondition<T> second = prepareCondition.apply(other.<T>forSubtype());
+                    ArchCondition<T> second = prepareCondition.apply(other.forSubtype());
                     return first.isPresent() ? first.get().and(second) : second;
                 }
             };
@@ -167,7 +167,7 @@ class ObjectsShouldInternal<T> implements ArchRule {
             return new AddMode<T>() {
                 @Override
                 ArchCondition<T> apply(Optional<ArchCondition<T>> first, ArchCondition<? super T> other) {
-                    ArchCondition<T> second = prepareCondition.apply(other.<T>forSubtype());
+                    ArchCondition<T> second = prepareCondition.apply(other.forSubtype());
                     return first.isPresent() ? first.get().or(second) : second;
                 }
             };

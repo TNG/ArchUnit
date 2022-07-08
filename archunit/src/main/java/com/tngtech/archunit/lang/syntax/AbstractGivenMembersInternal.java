@@ -73,8 +73,8 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
                     priority,
                     classesTransformer,
                     prepareCondition,
-                    new PredicateAggregator<JavaMember>(),
-                    Optional.<String>empty());
+                    new PredicateAggregator<>(),
+                    Optional.empty());
         }
 
         private GivenMembersInternal(
@@ -90,7 +90,7 @@ abstract class AbstractGivenMembersInternal<MEMBER extends JavaMember, SELF exte
 
         @Override
         public MembersShouldConjunction<JavaMember> should(ArchCondition<? super JavaMember> condition) {
-            return new MembersShouldInternal(finishedClassesTransformer(), priority, condition.<JavaMember>forSubtype(), prepareCondition);
+            return new MembersShouldInternal(finishedClassesTransformer(), priority, condition.forSubtype(), prepareCondition);
         }
 
         @Override

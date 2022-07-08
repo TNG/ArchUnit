@@ -10,6 +10,7 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.TestUtils.throwsClause;
@@ -65,7 +66,7 @@ public class HasThrowsClauseTest {
     public void predicate_on_parameters_by_Predicate() {
         HasThrowsClause<?> hasThrowsClause = newHasThrowsClause(FirstException.class, SecondException.class);
 
-        assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysTrue()))
+        assertThat(HasThrowsClause.Predicates.throwsClause(alwaysTrue()))
                 .accepts(hasThrowsClause);
         assertThat(HasThrowsClause.Predicates.throwsClause(DescribedPredicate.<ThrowsClause<?>>alwaysFalse().as("some text")))
                 .rejects(hasThrowsClause)

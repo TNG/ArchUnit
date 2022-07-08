@@ -259,7 +259,7 @@ public class DescribedPredicateTest {
                 .accepts(ImmutableList.of(-1, 0, 5, 6))
                 .accepts(ImmutableList.of(-1, 0, 5, 5, 6))
                 .rejects(ImmutableList.of(-1, 0, 6))
-                .rejects(ImmutableList.<Integer>of());
+                .rejects(ImmutableList.of());
     }
 
     @Test

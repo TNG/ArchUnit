@@ -232,7 +232,7 @@ public interface JavaClassDescriptor {
 
         private static class PrimitiveClassDescriptor extends AbstractClassDescriptor {
             PrimitiveClassDescriptor(String fullName) {
-                super(fullName, fullName, "");
+                super(fullName, fullName, "java.lang");
                 checkArgument(primitiveClassesByName.containsKey(fullName), "'%s' must be a primitive name", fullName);
             }
 
@@ -268,7 +268,7 @@ public interface JavaClassDescriptor {
 
             private static String createPackageOfComponentType(String fullName) {
                 String componentType = getCanonicalName(fullName).replace("[]", "");
-                return createPackage(componentType);
+                return JavaClassDescriptor.From.name(componentType).getPackageName();
             }
 
             private static String createSimpleName(String fullName) {

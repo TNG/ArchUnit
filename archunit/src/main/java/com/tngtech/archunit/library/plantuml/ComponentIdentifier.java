@@ -23,7 +23,7 @@ class ComponentIdentifier {
     private final Optional<Alias> alias;
 
     ComponentIdentifier(ComponentName componentName) {
-        this(componentName, Optional.<Alias>empty());
+        this(componentName, Optional.empty());
     }
 
     ComponentIdentifier(ComponentName componentName, Alias alias) {

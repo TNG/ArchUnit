@@ -49,7 +49,7 @@ public class SessionBeanRulesTest {
 
     private static DescribedPredicate<JavaFieldAccess> targetIsStatelessSessionBean() {
         return Get.<JavaFieldAccess, FieldAccessTarget>target()
-                .then(HasOwner.Functions.Get.<JavaClass>owner())
+                .then(HasOwner.Functions.Get.owner())
                 .is(annotatedWith(Stateless.class));
     }
 

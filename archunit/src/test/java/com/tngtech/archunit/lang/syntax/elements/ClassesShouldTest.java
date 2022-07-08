@@ -19,7 +19,6 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaCall;
-import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotatedTest.ClassRetentionAnnotation;
@@ -43,6 +42,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
@@ -389,8 +390,8 @@ public class ClassesShouldTest {
     public void resideInAPackage(ArchRule rule, String packageIdentifier) {
         checkTestStillValid(packageIdentifier,
                 ImmutableSet.of(ArchRule.class, ArchCondition.class),
-                ImmutableSet.<Class<?>>of(ArchConfiguration.class),
-                ImmutableSet.<Class<?>>of(GivenObjects.class));
+                ImmutableSet.of(ArchConfiguration.class),
+                ImmutableSet.of(GivenObjects.class));
 
         EvaluationResult result = rule.evaluate(importClasses(
                 ArchRule.class, ArchCondition.class, ArchConfiguration.class, GivenObjects.class));
@@ -420,7 +421,7 @@ public class ClassesShouldTest {
     public void resideInAnyPackage(ArchRule rule, String... packageIdentifiers) {
         checkTestStillValid(packageIdentifiers,
                 ImmutableSet.of(ArchRule.class, ArchConfiguration.class),
-                ImmutableSet.<Class<?>>of(GivenObjects.class));
+                ImmutableSet.of(GivenObjects.class));
 
         EvaluationResult result = rule.evaluate(importClasses(
                 ArchRule.class, ArchConfiguration.class, GivenObjects.class));
@@ -446,8 +447,8 @@ public class ClassesShouldTest {
     public void resideOutsideOfPackage(ArchRule rule, String packageIdentifier) {
         checkTestStillValid(packageIdentifier,
                 ImmutableSet.of(ArchRule.class, ArchCondition.class),
-                ImmutableSet.<Class<?>>of(ArchConfiguration.class),
-                ImmutableSet.<Class<?>>of(GivenObjects.class));
+                ImmutableSet.of(ArchConfiguration.class),
+                ImmutableSet.of(GivenObjects.class));
 
         EvaluationResult result = rule.evaluate(importClasses(
                 ArchRule.class, ArchCondition.class, ArchConfiguration.class, GivenObjects.class));
@@ -477,7 +478,7 @@ public class ClassesShouldTest {
     public void resideOutsideOfPackages(ArchRule rule, String... packageIdentifiers) {
         checkTestStillValid(packageIdentifiers,
                 ImmutableSet.of(ArchRule.class, ArchConfiguration.class),
-                ImmutableSet.<Class<?>>of(GivenObjects.class));
+                ImmutableSet.of(GivenObjects.class));
 
         EvaluationResult result = rule.evaluate(importClasses(
                 ArchRule.class, ArchCondition.class, ArchConfiguration.class, GivenObjects.class));
@@ -787,7 +788,7 @@ public class ClassesShouldTest {
     }
 
     private static List<List<?>> implementNotSatisfiedCases(Class<?> classToCheckAgainst, Class<?> violating) {
-        return ImmutableList.<List<?>>of(
+        return ImmutableList.of(
                 ImmutableList.of(classes().should().implement(classToCheckAgainst),
                         classToCheckAgainst, violating),
                 ImmutableList.of(classes().should(ArchConditions.implement(classToCheckAgainst)),
@@ -1690,14 +1691,14 @@ public class ClassesShouldTest {
 
     @Test
     public void containNumberOfElements_passes_on_matching_predicate() {
-        assertThatRule(classes().should().containNumberOfElements(DescribedPredicate.<Integer>alwaysTrue()))
+        assertThatRule(classes().should().containNumberOfElements(alwaysTrue()))
                 .checking(importClasses(String.class, Integer.class))
                 .hasNoViolation();
     }
 
     @Test
     public void containNumberOfElements_fails_on_mismatching_predicate() {
-        assertThatRule(classes().should().containNumberOfElements(DescribedPredicate.<Integer>alwaysFalse()))
+        assertThatRule(classes().should().containNumberOfElements(alwaysFalse()))
                 .checking(importClasses(String.class, Integer.class))
                 .hasOnlyViolations("there is/are 2 element(s) in [java.lang.Integer, java.lang.String]");
     }
@@ -1797,7 +1798,7 @@ public class ClassesShouldTest {
     }
 
     private static ArchRule ruleWithEmptyShould() {
-        return classes().that(DescribedPredicate.<JavaClass>alwaysFalse()).should().bePublic();
+        return classes().that(alwaysFalse()).should().bePublic();
     }
 
     static String locationPattern(Class<?> clazz) {

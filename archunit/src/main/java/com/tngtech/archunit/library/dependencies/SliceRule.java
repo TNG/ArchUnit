@@ -15,7 +15,6 @@
  */
 package com.tngtech.archunit.library.dependencies;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,11 +32,13 @@ import com.tngtech.archunit.lang.EvaluationResult;
 import com.tngtech.archunit.lang.Priority;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.priority;
+import static java.util.Collections.emptyList;
 
 public final class SliceRule implements ArchRule {
     private final Slices.Transformer inputTransformer;
@@ -51,10 +52,10 @@ public final class SliceRule implements ArchRule {
         this(
                 inputTransformer,
                 priority,
-                Collections.<Transformation>emptyList(),
-                DescribedPredicate.<Dependency>alwaysFalse(),
+                emptyList(),
+                alwaysFalse(),
                 conditionFactory,
-                Optional.<Boolean>empty());
+                Optional.empty());
     }
 
     private SliceRule(

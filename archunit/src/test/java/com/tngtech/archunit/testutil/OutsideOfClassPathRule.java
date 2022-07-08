@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -24,6 +23,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.TestUtils.newTemporaryFolder;
 import static com.tngtech.archunit.testutil.TestUtils.toUri;
 import static java.nio.file.Files.createDirectories;
+import static java.util.Collections.emptyList;
 
 public class OutsideOfClassPathRule extends ExternalResource {
     private final TemporaryFolder temporaryFolder = new TemporaryFolder(newTemporaryFolder());
@@ -43,7 +43,7 @@ public class OutsideOfClassPathRule extends ExternalResource {
     }
 
     public Path setUp(URL folder) throws IOException {
-        return setUp(folder, Collections.<String>emptyList());
+        return setUp(folder, emptyList());
     }
 
     public Path setUp(URL folder, List<String> subfolder) throws IOException {

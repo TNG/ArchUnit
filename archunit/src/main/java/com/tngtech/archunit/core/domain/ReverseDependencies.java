@@ -244,7 +244,7 @@ final class ReverseDependencies {
         }
 
         private Set<JavaAnnotation<?>> findAnnotations(JavaClass clazz) {
-            Set<JavaAnnotation<?>> result = Sets.<JavaAnnotation<?>>newHashSet(clazz.getAnnotations());
+            Set<JavaAnnotation<?>> result = Sets.newHashSet(clazz.getAnnotations());
             for (JavaMember member : clazz.getMembers()) {
                 result.addAll(member.getAnnotations());
             }

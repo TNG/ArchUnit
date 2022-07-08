@@ -21,7 +21,7 @@ public class ExampleExtension implements ArchUnitExtension {
     public static final String UNIQUE_IDENTIFIER = "archunit-example-extension";
 
     private static final ConcurrentHashMap<NewConfigurationEvent, Object> configurationEvents = new ConcurrentHashMap<>();
-    private static final List<EvaluatedRuleEvent> evaluatedRuleEvents = synchronizedList(new ArrayList<EvaluatedRuleEvent>());
+    private static final List<EvaluatedRuleEvent> evaluatedRuleEvents = synchronizedList(new ArrayList<>());
 
     @Override
     public String getUniqueIdentifier() {

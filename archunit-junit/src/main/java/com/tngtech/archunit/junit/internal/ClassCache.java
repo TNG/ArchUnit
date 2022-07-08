@@ -16,7 +16,6 @@
 package com.tngtech.archunit.junit.internal;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -40,6 +39,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.junit.CacheMode.FOREVER;
 import static com.tngtech.archunit.junit.internal.ReflectionUtils.newInstanceOf;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -182,7 +182,7 @@ class ClassCache {
                 declaredLocations = ImmutableSet.<Location>builder()
                         .addAll(getLocationsOfPackages(classAnalysisRequest))
                         .addAll(getLocationsOfProviders(classAnalysisRequest, testClass))
-                        .addAll(classAnalysisRequest.scanWholeClasspath() ? Locations.inClassPath() : Collections.<Location>emptySet())
+                        .addAll(classAnalysisRequest.scanWholeClasspath() ? Locations.inClassPath() : emptySet())
                         .build();
             }
 

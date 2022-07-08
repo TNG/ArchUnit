@@ -7,6 +7,7 @@ import com.tngtech.archunit.core.importer.testexamples.SomeClass;
 import com.tngtech.archunit.core.importer.testexamples.SomeEnum;
 import org.junit.Test;
 
+import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassesWithContext;
 import static com.tngtech.archunit.core.domain.TestUtils.newMethodCallBuilder;
@@ -53,7 +54,7 @@ public class JavaAccessTest {
                 .hasDescription("origin some text")
                 .accepts(anyAccess());
 
-        predicate = JavaAccess.Predicates.origin(DescribedPredicate.<JavaCodeUnit>alwaysFalse());
+        predicate = JavaAccess.Predicates.origin(alwaysFalse());
         assertThat(predicate).rejects(anyAccess());
     }
 

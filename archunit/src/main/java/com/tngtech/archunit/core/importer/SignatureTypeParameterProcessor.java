@@ -66,13 +66,13 @@ class SignatureTypeParameterProcessor<OWNER extends HasDescription> extends Sign
     @Override
     public void visitTypeArgument() {
         log.trace("Encountered wildcard for {}", currentBound.getTypeName());
-        currentBound.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<OWNER>()));
+        currentBound.addTypeArgument(new NewJavaTypeCreationProcess<>(new JavaWildcardTypeBuilder<>()));
     }
 
     @Override
     public void visitTypeVariable(String name) {
         log.trace("Encountered upper bound for {}: Type variable {}", currentType.getName(), name);
-        currentType.addBound(new ReferenceCreationProcess<OWNER>(name));
+        currentType.addBound(new ReferenceCreationProcess<>(name));
     }
 
     @Override

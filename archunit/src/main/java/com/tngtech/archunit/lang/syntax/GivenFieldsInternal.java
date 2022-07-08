@@ -42,8 +42,8 @@ class GivenFieldsInternal
                 priority,
                 classesTransformer,
                 prepareCondition,
-                new PredicateAggregator<JavaField>(),
-                Optional.<String>empty());
+                new PredicateAggregator<>(),
+                Optional.empty());
     }
 
     private GivenFieldsInternal(
@@ -64,7 +64,7 @@ class GivenFieldsInternal
 
     @Override
     public FieldsShouldInternal should(ArchCondition<? super JavaField> condition) {
-        return new FieldsShouldInternal(finishedClassesTransformer(), priority, condition.<JavaField>forSubtype(), prepareCondition);
+        return new FieldsShouldInternal(finishedClassesTransformer(), priority, condition.forSubtype(), prepareCondition);
     }
 
     @Override

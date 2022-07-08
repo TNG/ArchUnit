@@ -136,7 +136,7 @@ public class JavaClassDescriptorTest {
 
         assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(int[].class.getName());
         assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(int[].class.getSimpleName());
-        assertThat(arrayDescriptor.getPackageName()).isEmpty();
+        assertThat(arrayDescriptor.getPackageName()).isEqualTo("java.lang");
     }
 
     @Test
@@ -159,9 +159,9 @@ public class JavaClassDescriptorTest {
     }
 
     private static List<List<Object>> namesToPrimitive(Class<?> primitiveType) {
-        return ImmutableList.<List<Object>>of(
-                ImmutableList.<Object>of(primitiveType.getName(), primitiveType),
-                ImmutableList.<Object>of(Type.getType(primitiveType).getDescriptor(), primitiveType));
+        return ImmutableList.of(
+                ImmutableList.of(primitiveType.getName(), primitiveType),
+                ImmutableList.of(Type.getType(primitiveType).getDescriptor(), primitiveType));
     }
 
     @DataProvider
@@ -189,8 +189,8 @@ public class JavaClassDescriptorTest {
     }
 
     private static List<List<Object>> namesToArray(Class<?> arrayType) {
-        return ImmutableList.<List<Object>>of(
-                ImmutableList.<Object>of(arrayType.getName(), arrayType),
-                ImmutableList.<Object>of(arrayType.getCanonicalName(), arrayType));
+        return ImmutableList.of(
+                ImmutableList.of(arrayType.getName(), arrayType),
+                ImmutableList.of(arrayType.getCanonicalName(), arrayType));
     }
 }
