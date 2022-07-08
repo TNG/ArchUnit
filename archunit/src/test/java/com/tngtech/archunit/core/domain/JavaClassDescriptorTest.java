@@ -136,7 +136,7 @@ public class JavaClassDescriptorTest {
 
         assertThat(arrayDescriptor.getFullyQualifiedClassName()).isEqualTo(int[].class.getName());
         assertThat(arrayDescriptor.getSimpleClassName()).isEqualTo(int[].class.getSimpleName());
-        assertThat(arrayDescriptor.getPackageName()).isEmpty();
+        assertThat(arrayDescriptor.getPackageName()).isEqualTo("java.lang");
     }
 
     @Test

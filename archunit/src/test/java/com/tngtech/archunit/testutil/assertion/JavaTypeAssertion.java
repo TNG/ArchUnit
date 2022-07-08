@@ -110,10 +110,13 @@ public class JavaTypeAssertion extends AbstractObjectAssert<JavaTypeAssertion, J
     }
 
     public static String getExpectedPackageName(Class<?> clazz) {
-        if (!clazz.isArray()) {
-            return clazz.getPackage() != null ? clazz.getPackage().getName() : "";
+        if (clazz.isArray()) {
+            return getExpectedPackageName(clazz.getComponentType());
         }
-        return getExpectedPackageName(clazz.getComponentType());
+        if (clazz.isPrimitive()) {
+            return "java.lang";
+        }
+        return clazz.getPackage() != null ? clazz.getPackage().getName() : "";
     }
 
     private Set<JavaModifier> getExpectedModifiersForClass(Class<?> clazz) {
