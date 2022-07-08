@@ -13,6 +13,7 @@ import java.util.function.Function;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaClass.Predicates;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasType;
@@ -36,7 +37,6 @@ import static com.tngtech.archunit.core.domain.properties.HasName.AndFullName.Pr
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
-import static com.tngtech.archunit.lang.conditions.ArchConditions.fullyQualifiedName;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -1711,46 +1711,90 @@ public class ShouldClassesThatTest {
         static class TestClass {
             DirectlyDependentClass1 directDependency1;
             DirectlyDependentClass2 directDependency2;
+            DirectlyDependentClass3 directDependency3;
+        }
+
+        @SuppressWarnings("unused")
+        static class TestClassNotViolatingBecauseOnlyDependingOnOtherSelectedClass {
+            TestClass testClass;
         }
 
         @SuppressWarnings("unused")
         static class DirectlyDependentClass1 {
-            TransitivelyDependentClass transitiveDependency1;
+            Level1TransitivelyDependentClass1 transitiveDependency1;
         }
 
         @SuppressWarnings("unused")
-        static class DirectlyDependentClass2{
+        static class DirectlyDependentClass2 {
             DirectlyDependentClass1 otherDependency;
-            TransitivelyDependentClass transitiveDependency2;
+            Level2TransitivelyDependentClass2 transitiveDependency2;
         }
 
-        static class TransitivelyDependentClass {
+        static class DirectlyDependentClass3 {
+        }
+
+        @SuppressWarnings("unused")
+        static class Level1TransitivelyDependentClass1 {
+             Level2TransitivelyDependentClass1 transitiveDependency1;
+        }
+
+        static class Level2TransitivelyDependentClass1 {
+        }
+
+        @SuppressWarnings("unused")
+        static class Level2TransitivelyDependentClass2 {
+            Level2TransitivelyDependentClass1 transitiveDependency1;
         }
     }
 
     @Test
     @DataProvider(value = {"true", "false"})
     public void transitivelyDependOnClassesThat_reports_all_transitive_dependencies(boolean viaPredicate) {
-        Class<?> testClass = TransitivelyDependOnClassesThatTestCases.TestClass.class;
+        Class<?> testClass1 = TransitivelyDependOnClassesThatTestCases.TestClass.class;
+        Class<?> testClass2 = TransitivelyDependOnClassesThatTestCases.TestClassNotViolatingBecauseOnlyDependingOnOtherSelectedClass.class;
         Class<?> directlyDependentClass1 = TransitivelyDependOnClassesThatTestCases.DirectlyDependentClass1.class;
         Class<?> directlyDependentClass2 = TransitivelyDependOnClassesThatTestCases.DirectlyDependentClass2.class;
-        Class<?> transitivelyDependentClass = TransitivelyDependOnClassesThatTestCases.TransitivelyDependentClass.class;
+        Class<?> directlyDependentClass3 = TransitivelyDependOnClassesThatTestCases.DirectlyDependentClass3.class;
+        Class<?> level1TransitivelyDependentClass1 = TransitivelyDependOnClassesThatTestCases.Level1TransitivelyDependentClass1.class;
+        Class<?> level2TransitivelyDependentClass1 = TransitivelyDependOnClassesThatTestCases.Level2TransitivelyDependentClass1.class;
+        Class<?> level2TransitivelyDependentClass2 = TransitivelyDependOnClassesThatTestCases.Level2TransitivelyDependentClass2.class;
+        Class<?>[] matchingTransitivelyDependentClasses =
+                new Class<?>[]{level2TransitivelyDependentClass1, level2TransitivelyDependentClass2, directlyDependentClass3};
+
         JavaClasses classes = new ClassFileImporter().importClasses(
-                testClass, directlyDependentClass1, directlyDependentClass2, transitivelyDependentClass
+                testClass1,
+                testClass2,
+                directlyDependentClass1,
+                directlyDependentClass2,
+                directlyDependentClass3,
+                level1TransitivelyDependentClass1,
+                level2TransitivelyDependentClass1,
+                level2TransitivelyDependentClass2
         );
 
-        ClassesShould noClassesShould = noClasses().that().haveFullyQualifiedName(testClass.getName()).should();
+        ClassesShould noClassesShould = noClasses().that().haveSimpleNameStartingWith("TestClass").should();
         ArchRule rule = viaPredicate
-                ? noClassesShould.transitivelyDependOnClassesThat(have(fullyQualifiedName(transitivelyDependentClass.getName())))
-                : noClassesShould.transitivelyDependOnClassesThat().haveFullyQualifiedName(transitivelyDependentClass.getName());
+                ? noClassesShould.transitivelyDependOnClassesThat(Predicates.belongToAnyOf(matchingTransitivelyDependentClasses))
+                : noClassesShould.transitivelyDependOnClassesThat().belongToAnyOf(matchingTransitivelyDependentClasses);
 
         assertThatRule(rule).checking(classes)
-                .hasViolations(2)
-                .hasViolationMatching(String.format(".*%s\\.%s.* has type .*%s.*",
-                        quote(directlyDependentClass1.getName()), "transitiveDependency1", quote(transitivelyDependentClass.getName())
+                .hasViolations(3)
+                .hasViolationMatching(String.format(".*<%s> transitively depends on <(?:%s|%s)> by \\[%s->.*\\] in .*",
+                        quote(testClass1.getName()),
+                        quote(level2TransitivelyDependentClass1.getName()),
+                        quote(level2TransitivelyDependentClass2.getName()),
+                        quote(directlyDependentClass2.getName())
                 ))
-                .hasViolationMatching(String.format(".*%s\\.%s.* has type .*%s.*",
-                        quote(directlyDependentClass2.getName()), "transitiveDependency2", quote(transitivelyDependentClass.getName())
+                .hasViolationMatching(String.format(".*<%s> transitively depends on <%s> by \\[%s->%s->%s\\] in .*",
+                        quote(testClass1.getName()),
+                        quote(level2TransitivelyDependentClass1.getName()),
+                        quote(directlyDependentClass1.getName()),
+                        quote(level1TransitivelyDependentClass1.getName()),
+                        quote(level2TransitivelyDependentClass1.getName())
+                ))
+                .hasViolationMatching(String.format(".*<%s> depends on <%s> in .*",
+                        quote(testClass1.getName()),
+                        quote(directlyDependentClass3.getName())
                 ));
     }
 

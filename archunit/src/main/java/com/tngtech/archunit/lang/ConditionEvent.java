@@ -19,7 +19,10 @@ import java.util.Collection;
 import java.util.List;
 
 import com.tngtech.archunit.PublicAPI;
+import com.tngtech.archunit.base.HasDescription;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
+import com.tngtech.archunit.core.domain.properties.HasSourceCodeLocation;
 
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -65,6 +68,21 @@ public interface ConditionEvent {
      */
     @PublicAPI(usage = INHERITANCE, state = EXPERIMENTAL)
     void handleWith(Handler handler);
+
+    /**
+     * Convenience method to create a standard ArchUnit {@link ConditionEvent} message. It will prepend the
+     * description of the object that caused the event (e.g. a {@link JavaClass}) and append the source code
+     * location of the respective object.
+     *
+     * @param object The object to describe, e.g. the {@link JavaClass} {@code com.example.SomeClass}
+     * @param message The message that should be filled into the template, e.g. "does not have simple name 'Correct'"
+     * @return The formatted message, e.g. {@code Class <com.example.SomeClass> does not have simple name 'Correct' in (SomeClass.java:0)}
+     * @param <T> The object described by the event.
+     */
+    @PublicAPI(usage = ACCESS)
+    static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
+        return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
+    }
 
     /**
      * Handles the data of a {@link ConditionEvent} that is the corresponding objects and the description

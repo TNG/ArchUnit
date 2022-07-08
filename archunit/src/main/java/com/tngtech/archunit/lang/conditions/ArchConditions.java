@@ -85,7 +85,6 @@ import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELDS;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_FIELD_ACCESSES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_METHOD_CALLS_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE_NAME;
-import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_TRANSITIVE_DEPENDENCIES_FROM_SELF;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableFrom;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
@@ -117,6 +116,7 @@ import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Pred
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Predicates.rawReturnType;
 import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predicates.throwsClauseContainingType;
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
+import static com.tngtech.archunit.lang.ConditionEvent.createMessage;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static java.util.Arrays.asList;
 
@@ -304,10 +304,7 @@ public final class ArchConditions {
 
     @PublicAPI(usage = ACCESS)
     public static ArchCondition<JavaClass> transitivelyDependOnClassesThat(final DescribedPredicate<? super JavaClass> predicate) {
-        return new AnyDependencyCondition(
-                "transitively depend on classes that " + predicate.getDescription(),
-                GET_TARGET_CLASS.is(predicate),
-                GET_TRANSITIVE_DEPENDENCIES_FROM_SELF);
+        return new TransitiveDependencyCondition(predicate);
     }
 
     @PublicAPI(usage = ACCESS)
@@ -1282,10 +1279,6 @@ public final class ArchConditions {
         ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by constructors that " + predicate.getDescription(),
                 origin.is(constructor().and(predicate)), GET_CALLS_OF_SELF);
-    }
-
-    private static <T extends HasDescription & HasSourceCodeLocation> String createMessage(T object, String message) {
-        return object.getDescription() + " " + message + " in " + object.getSourceCodeLocation();
     }
 
     private static final IsConditionByPredicate<JavaClass> BE_TOP_LEVEL_CLASSES =
