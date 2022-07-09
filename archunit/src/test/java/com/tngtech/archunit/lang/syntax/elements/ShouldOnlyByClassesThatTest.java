@@ -40,6 +40,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldEvaluator.filterClassesAppearingInFailureReport;
 import static com.tngtech.archunit.lang.syntax.elements.ClassesShouldEvaluator.filterViolationCausesInFailureReport;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
+import static com.tngtech.archunit.testutil.ReflectionTestUtils.classForName;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1165,14 +1166,6 @@ public class ShouldOnlyByClassesThatTest {
 
     private static DescribedPredicate<HasName> classWithNameOf(Class<?> type) {
         return GET_NAME.is(equalTo(type.getName()));
-    }
-
-    private static Class<?> classForName(String className) {
-        try {
-            return Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private static class ClassAccessedByFoo {

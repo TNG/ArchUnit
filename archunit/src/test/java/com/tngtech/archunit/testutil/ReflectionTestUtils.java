@@ -42,4 +42,12 @@ public class ReflectionTestUtils {
         }
         return result;
     }
+
+    public static Class<?> classForName(String className) {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
