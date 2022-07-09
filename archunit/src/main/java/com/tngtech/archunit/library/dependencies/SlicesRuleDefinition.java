@@ -46,7 +46,13 @@ public final class SlicesRuleDefinition {
     }
 
     /**
-     * Entry point into {@link SlicesRuleDefinition}
+     * Defines a rule on "slices" of a code base, e.g.
+     * <pre><code>
+     * slices().matching("..myapp.(*)..").should().beFreeOfCycles()
+     * </code></pre>
+     * The concept is very similar to layers. But, while the mental model of layers is more that of
+     * "horizontal" cutting and sorting of the code base (i.e. technical layers), the mental model of
+     * slices is one of "vertical" cutting (i.e. different business domains).
      */
     @PublicAPI(usage = ACCESS)
     public static Creator slices() {

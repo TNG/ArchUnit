@@ -748,6 +748,13 @@ public final class Architectures {
         }
     }
 
+    /**
+     * Defines an Onion Architecture. As opposed to a traditional {@link #layeredArchitecture() layered architecture},
+     * an Onion Architecture puts the domain model at the core of the architecture. Dependencies are inverted,
+     * so that technical infrastructure or user interfaces are docked onto the onion through the outer layers.
+     * For more information please refer to the
+     * <a href="https://www.archunit.org/userguide/html/000_Index.html#_onion_architecture">ArchUnit user guide</a>
+     */
     @PublicAPI(usage = ACCESS)
     public static OnionArchitecture onionArchitecture() {
         return new OnionArchitecture();
