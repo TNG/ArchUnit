@@ -195,7 +195,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have name matching '%s'", regex))
-                .containsPattern(String.format("Class <%s> does not match '%s' in %s",
+                .containsPattern(String.format("Class <%s> does not have name matching '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(regex),
                         locationPattern(WrongNamedClass.class)))
@@ -219,7 +219,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have name not matching '%s'", regex))
-                .containsPattern(String.format("Class <%s> matches '%s' in %s",
+                .containsPattern(String.format("Class <%s> has name matching '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(regex),
                         locationPattern(WrongNamedClass.class)))
@@ -244,7 +244,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name starting with '%s'", prefix))
-                .containsPattern(String.format("simple name of %s does not start with '%s' in %s",
+                .containsPattern(String.format("Class <%s> does not have simple name starting with '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(prefix),
                         locationPattern(WrongNamedClass.class)))
@@ -269,7 +269,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name not starting with '%s'", prefix))
-                .containsPattern(String.format("simple name of %s starts with '%s' in %s",
+                .containsPattern(String.format("Class <%s> has simple name starting with '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(prefix),
                         locationPattern(WrongNamedClass.class)))
@@ -294,7 +294,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name containing '%s'", infix))
-                .containsPattern(String.format("simple name of %s does not contain '%s' in %s",
+                .containsPattern(String.format("Class <%s> does not have simple name containing '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(infix),
                         locationPattern(WrongNamedClass.class)))
@@ -319,7 +319,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name not containing '%s'", infix))
-                .containsPattern(String.format("simple name of %s contains '%s' in %s",
+                .containsPattern(String.format("Class <%s> has simple name containing '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(infix),
                         locationPattern(WrongNamedClass.class)))
@@ -344,7 +344,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name ending with '%s'", suffix))
-                .containsPattern(String.format("simple name of %s does not end with '%s' in %s",
+                .containsPattern(String.format("Class <%s> does not have simple name ending with '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(suffix),
                         locationPattern(WrongNamedClass.class)))
@@ -369,7 +369,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should have simple name not ending with '%s'", suffix))
-                .containsPattern(String.format("simple name of %s ends with '%s' in %s",
+                .containsPattern(String.format("Class <%s> has simple name ending with '%s' in %s",
                         quote(WrongNamedClass.class.getName()),
                         quote(suffix),
                         locationPattern(WrongNamedClass.class)))
@@ -835,7 +835,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains(String.format("classes should not implement %s", Collection.class.getName()))
-                .containsPattern(String.format("Class <%s> implements %s in %s",
+                .containsPattern(String.format("Class <%s> does implement %s in %s",
                         quote(violated.getName()),
                         quote(Collection.class.getName()),
                         locationPattern(violated)))
@@ -1359,7 +1359,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should be interfaces")
-                .containsPattern(String.format("Class <%s> is not an interface in %s",
+                .containsPattern(String.format("Class <%s> is no interface in %s",
                         quote(violated.getName()),
                         locationPattern(violated)))
                 .doesNotMatch(String.format(".*%s.* interface.*", quote(satisfied.getName())));
@@ -1399,7 +1399,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should be enums")
-                .containsPattern(String.format("Class <%s> is not an enum in %s",
+                .containsPattern(String.format("Class <%s> is no enum in %s",
                         quote(violated.getName()),
                         locationPattern(violated)))
                 .doesNotMatch(String.format(".*%s.* enum.*", quote(satisfied.getName())));
@@ -1443,7 +1443,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should be top level classes")
-                .containsPattern(String.format("Class <%s> is not a top level class", quote(violated.getName())))
+                .containsPattern(String.format("Class <%s> is no top level class", quote(violated.getName())))
                 .doesNotMatch(String.format(".*%s.* top level class.*", quote(satisfied.getName())));
     }
 
@@ -1487,7 +1487,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should be nested classes")
-                .containsPattern(String.format("Class <%s> is not a nested class", quote(violated.getName())))
+                .containsPattern(String.format("Class <%s> is no nested class", quote(violated.getName())))
                 .doesNotMatch(String.format(".*%s.* nested class.*", quote(satisfied.getName())));
     }
 
@@ -1531,7 +1531,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should be member classes")
-                .containsPattern(String.format("Class <%s> is not a member class", quote(violated.getName())))
+                .containsPattern(String.format("Class <%s> is no member class", quote(violated.getName())))
                 .doesNotMatch(String.format(".*%s.* member class.*", quote(satisfied.getName())));
     }
 
@@ -1575,7 +1575,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should be inner classes")
-                .containsPattern(String.format("Class <%s> is not an inner class", quote(violated.getName())))
+                .containsPattern(String.format("Class <%s> is no inner class", quote(violated.getName())))
                 .doesNotMatch(String.format(".*%s.* inner class.*", quote(satisfied.getName())));
     }
 
@@ -1619,7 +1619,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should be anonymous classes")
-                .containsPattern(String.format("Class <%s> is not an anonymous class", quote(violated.getName())))
+                .containsPattern(String.format("Class <%s> is no anonymous class", quote(violated.getName())))
                 .doesNotMatch(String.format(".*%s.* anonymous class.*", quote(satisfied.getName())));
     }
 
@@ -1663,7 +1663,7 @@ public class ClassesShouldTest {
 
         assertThat(singleLineFailureReportOf(result))
                 .contains("classes should be local classes")
-                .containsPattern(String.format("Class <%s> is not a local class", quote(violated.getName())))
+                .containsPattern(String.format("Class <%s> is no local class", quote(violated.getName())))
                 .doesNotMatch(String.format(".*%s.* local class.*", quote(satisfied.getName())));
     }
 

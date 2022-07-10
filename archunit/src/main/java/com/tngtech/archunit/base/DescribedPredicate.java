@@ -51,6 +51,19 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
         return description;
     }
 
+    /**
+     * Overwrites the description of this {@link DescribedPredicate}. E.g.
+     *
+     * <pre><code>
+     * classes().that(predicate.as("some customized description with '%s'", "parameter")).should().bePublic()
+     * </code></pre>
+     *
+     * would then yield {@code classes that some customized description with 'parameter' should be public}.
+     *
+     * @param description The new description of this {@link DescribedPredicate}
+     * @param params Optional arguments to fill into the description via {@link String#format(String, Object...)}
+     * @return An {@link DescribedPredicate} with adjusted {@link #getDescription() description}.
+     */
     public DescribedPredicate<T> as(String description, Object... params) {
         return new AsPredicate<>(this, description, params);
     }
@@ -68,7 +81,16 @@ public abstract class DescribedPredicate<T> implements Predicate<T> {
     }
 
     /**
-     * Workaround for the limitations of the Java type system {@code ->} Can't specify this contravariant type at the language level
+     * Convenience method to downcast the predicate. {@link DescribedPredicate DescribedPredicates} are contravariant by nature,
+     * i.e. an {@code DescribedPredicate<T>} is an instance of {@code DescribedPredicate<V>}, if and only if {@code V} is an instance of {@code T}.
+     * <br>
+     * Take for example {@code Object > String}. Obviously a {@code DescribedPredicate<Object>} is also a {@code DescribedPredicate<String>}.
+     * <br>
+     * Unfortunately, the Java type system does not allow us to express this property of the type parameter of {@code DescribedPredicate}.
+     * So to avoid forcing users to cast everywhere it is possible to use this method which also documents the intention and reasoning.
+     *
+     * @return A {@link DescribedPredicate} accepting a subtype of the predicate's actual type parameter {@code T}
+     * @param <U> A subtype of the {@link DescribedPredicate DescribedPredicate's} type parameter {@code T}
      */
     @SuppressWarnings("unchecked") // DescribedPredicate is contravariant
     public final <U extends T> DescribedPredicate<U> forSubtype() {

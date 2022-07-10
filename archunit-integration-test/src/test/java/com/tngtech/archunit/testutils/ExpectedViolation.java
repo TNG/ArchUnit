@@ -137,12 +137,12 @@ public class ExpectedViolation {
         }
 
         public MessageAssertionChain.Link havingNameMatching(String regex) {
-            return MessageAssertionChain.containsLine("Class <%s> matches '%s' in (%s.java:0)",
+            return MessageAssertionChain.containsLine("Class <%s> has name matching '%s' in (%s.java:0)",
                     clazz.getName(), regex, clazz.getSimpleName());
         }
 
         public MessageAssertionChain.Link havingSimpleNameContaining(String infix) {
-            return MessageAssertionChain.containsLine("simple name of %s contains '%s' in (%s.java:0)",
+            return MessageAssertionChain.containsLine("Class <%s> has simple name containing '%s' in (%s.java:0)",
                     clazz.getName(), infix, clazz.getSimpleName());
         }
 

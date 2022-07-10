@@ -190,7 +190,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), regex)
                 .haveFailingRuleText("the class %s should have name not matching '%s'",
                         SomeClass.class.getName(), regex)
-                .containFailureDetail(String.format("Class <%s> matches '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has name matching '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(regex),
                         locationPattern(SomeClass.class)))
@@ -222,7 +222,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), regex)
                 .haveFailingRuleText("no class %s should have name matching '%s'",
                         SomeClass.class.getName(), regex)
-                .containFailureDetail(String.format("Class <%s> matches '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has name matching '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(regex),
                         locationPattern(SomeClass.class)))
@@ -255,7 +255,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), prefix)
                 .haveFailingRuleText("the class %s should have simple name not starting with '%s'",
                         SomeClass.class.getName(), prefix)
-                .containFailureDetail(String.format("simple name of %s starts with '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has simple name starting with '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(prefix),
                         locationPattern(SomeClass.class)))
@@ -289,7 +289,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), prefix)
                 .haveFailingRuleText("no class %s should have simple name starting with '%s'",
                         SomeClass.class.getName(), prefix)
-                .containFailureDetail(String.format("simple name of %s starts with '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has simple name starting with '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(prefix),
                         locationPattern(SomeClass.class)))
@@ -323,7 +323,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), infix)
                 .haveFailingRuleText("the class %s should have simple name not containing '%s'",
                         SomeClass.class.getName(), infix)
-                .containFailureDetail(String.format("simple name of %s contains '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has simple name containing '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(infix),
                         locationPattern(SomeClass.class)))
@@ -357,7 +357,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), infix)
                 .haveFailingRuleText("no class %s should have simple name containing '%s'",
                         SomeClass.class.getName(), infix)
-                .containFailureDetail(String.format("simple name of %s contains '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has simple name containing '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(infix),
                         locationPattern(SomeClass.class)))
@@ -391,7 +391,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), suffix)
                 .haveFailingRuleText("the class %s should have simple name not ending with '%s'",
                         SomeClass.class.getName(), suffix)
-                .containFailureDetail(String.format("simple name of %s ends with '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has simple name ending with '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(suffix),
                         locationPattern(SomeClass.class)))
@@ -425,7 +425,7 @@ public class GivenClassShouldTest {
                         SomeClass.class.getName(), suffix)
                 .haveFailingRuleText("no class %s should have simple name ending with '%s'",
                         SomeClass.class.getName(), suffix)
-                .containFailureDetail(String.format("simple name of %s ends with '%s' in %s",
+                .containFailureDetail(String.format("Class <%s> has simple name ending with '%s' in %s",
                         quote(SomeClass.class.getName()),
                         quote(suffix),
                         locationPattern(SomeClass.class)))
@@ -1035,7 +1035,7 @@ public class GivenClassShouldTest {
                         ArrayList.class.getName(), Collection.class.getName())
                 .haveFailingRuleText("the class %s should not implement %s",
                         ArrayList.class.getName(), Collection.class.getName())
-                .containFailureDetail(String.format("Class <%s> implements %s in %s",
+                .containFailureDetail(String.format("Class <%s> does implement %s in %s",
                         quote(ArrayList.class.getName()),
                         quote(Collection.class.getName()),
                         locationPattern(ArrayList.class)))
@@ -1064,7 +1064,7 @@ public class GivenClassShouldTest {
                         ArrayList.class.getName(), Collection.class.getName())
                 .haveFailingRuleText("no class %s should implement %s",
                         ArrayList.class.getName(), Collection.class.getName())
-                .containFailureDetail(String.format("Class <%s> implements %s in %s",
+                .containFailureDetail(String.format("Class <%s> does implement %s in %s",
                         quote(ArrayList.class.getName()),
                         quote(Collection.class.getName()),
                         locationPattern(ArrayList.class)))

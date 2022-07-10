@@ -342,7 +342,7 @@ public class MembersShouldTest {
                 .evaluate(importClasses(ClassWithVariousMembers.class, A.class, B.class, C.class, MetaAnnotation.class));
 
         Set<String> actualMembers = parseMembers(result.getFailureReport().getDetails());
-        assertThat(actualMembers).containsOnlyElementsOf(expectedMembers);
+        assertThat(actualMembers).hasSameElementsAs(expectedMembers);
     }
 
     @DataProvider
@@ -394,7 +394,7 @@ public class MembersShouldTest {
                 .evaluate(importClasses(ClassWithVariousMembers.class, OtherClassWithMembers.class));
 
         Set<String> actualMembers = parseMembers(result.getFailureReport().getDetails());
-        assertThat(actualMembers).containsOnlyElementsOf(expectedMessages);
+        assertThat(actualMembers).hasSameElementsAs(expectedMessages);
     }
 
     @DataProvider
@@ -419,7 +419,7 @@ public class MembersShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .containsPattern(String.format(".*%s.* name does not start with '%s' in %s",
+                .containsPattern(String.format(".*%s.* does not have name starting with '%s' in %s",
                         quote(violatingMember),
                         quote(prefix),
                         locationPattern(SimpleFieldAndMethod.class)));
@@ -447,7 +447,7 @@ public class MembersShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .containsPattern(String.format(".*%s.* name starts with '%s' in %s",
+                .containsPattern(String.format(".*%s.* has name starting with '%s' in %s",
                         quote(prefix),
                         quote(prefix),
                         locationPattern(SimpleFieldAndMethod.class)));
@@ -475,7 +475,7 @@ public class MembersShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .containsPattern(String.format(".*%s.* name does not contain '%s' in %s",
+                .containsPattern(String.format(".*%s.* does not have name containing '%s' in %s",
                         quote(violatingMember),
                         quote(infix),
                         locationPattern(SimpleFieldAndMethod.class)));
@@ -503,7 +503,7 @@ public class MembersShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .containsPattern(String.format(".*%s.* name contains '%s' in %s",
+                .containsPattern(String.format(".*%s.* has name containing '%s' in %s",
                         quote(infix),
                         quote(infix),
                         locationPattern(SimpleFieldAndMethod.class)));
@@ -531,7 +531,7 @@ public class MembersShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .containsPattern(String.format(".*%s.* name does not end with '%s' in %s",
+                .containsPattern(String.format(".*%s.* does not have name ending with '%s' in %s",
                         quote(violatingMember),
                         quote(suffix),
                         locationPattern(SimpleFieldAndMethod.class)));
@@ -559,7 +559,7 @@ public class MembersShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(SimpleFieldAndMethod.class));
 
         assertThat(singleLineFailureReportOf(result))
-                .containsPattern(String.format(".*%s.* name ends with '%s' in %s",
+                .containsPattern(String.format(".*%s.* has name ending with '%s' in %s",
                         quote(suffix),
                         quote(suffix),
                         locationPattern(SimpleFieldAndMethod.class)));
