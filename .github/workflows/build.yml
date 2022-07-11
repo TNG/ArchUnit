@@ -36,6 +36,7 @@ jobs:
 
   test:
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
@@ -68,6 +69,7 @@ jobs:
 
   integration-test:
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
