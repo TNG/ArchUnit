@@ -15,6 +15,10 @@
  */
 package com.tngtech.archunit.library;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.JavaAccess.Functions.Get;
@@ -24,7 +28,9 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
 
+import static com.google.common.base.Functions.identity;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
@@ -37,6 +43,8 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.core.domain.properties.HasOwner.Predicates.With.owner;
 import static com.tngtech.archunit.core.domain.properties.HasParameterTypes.Predicates.rawParameterTypes;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static com.tngtech.archunit.lang.ConditionEvent.createMessage;
+import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.accessField;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.beAnnotatedWith;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.callCodeUnitWhere;
@@ -44,8 +52,10 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.callMethodWher
 import static com.tngtech.archunit.lang.conditions.ArchConditions.dependOnClassesThat;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.setFieldWhere;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * GeneralCodingRules provides a set of very general {@link ArchCondition ArchConditions}
@@ -407,4 +417,63 @@ public final class GeneralCodingRules {
                     .as("no classes should use field injection")
                     .because("field injection is considered harmful; use constructor injection or setter injection instead; "
                             + "see https://stackoverflow.com/q/39890849 for detailed explanations");
+
+    /**
+     * A rule that checks that every test class has the same package as the implementation class.<br>
+     * The rule assumes that tests can be identified by having the same name as the implementation class,
+     * but suffixed with "Test" (e.g. {@code SomeClass} -> {@code SomeClassTest}).<br>
+     * To customize the name suffix that identifies test classes please refer to
+     * {@link #testClassesShouldResideInTheSamePackageAsImplementation(String)}
+     */
+    @PublicAPI(usage = ACCESS)
+    public static ArchRule testClassesShouldResideInTheSamePackageAsImplementation() {
+        return testClassesShouldResideInTheSamePackageAsImplementation("Test");
+    }
+
+    /**
+     * A rule that checks that every test class resides in the same package as the implementation class.<br>
+     * This rule will identify "test classes" solely by class name convention. I.e. for a given
+     * class {@code SomeObject} the respective test class will be derived as {@code SomeObject${testClassSuffix}}
+     * taking into account the supplied {@code testClassSuffix}. If the {@code testClassSuffix}
+     * would for example be {@code "Tests"}, then {@code SomeObjectTests} would be identified as the associated test class
+     * of {@code SomeObject}.
+     *
+     * @param testClassSuffix The suffix that distinguishes test classes from their respective implementation class under test, e.g. {@code "Test"}
+     * @see #testClassesShouldResideInTheSamePackageAsImplementation()
+     */
+    @PublicAPI(usage = ACCESS)
+    public static ArchRule testClassesShouldResideInTheSamePackageAsImplementation(String testClassSuffix) {
+        return classes().should(resideInTheSamePackageAsTheirTestClasses(testClassSuffix))
+                .as("test classes should reside in the same package as their implementation classes");
+    }
+
+    private static ArchCondition<JavaClass> resideInTheSamePackageAsTheirTestClasses(String testClassSuffix) {
+        return new ArchCondition<JavaClass>("reside in the same package as their test classes") {
+            Map<String, JavaClass> testClassesBySimpleClassName = new HashMap<>();
+
+            @Override
+            public void init(Collection<JavaClass> allClasses) {
+                testClassesBySimpleClassName = allClasses.stream()
+                        .filter(clazz -> clazz.getName().endsWith(testClassSuffix))
+                        .collect(toMap(JavaClass::getSimpleName, identity()));
+            }
+
+            @Override
+            public void check(JavaClass implementationClass, ConditionEvents events) {
+                String implementationClassName = implementationClass.getSimpleName();
+                String implementationClassPackageName = implementationClass.getPackageName();
+                String possibleTestClassName = implementationClassName + testClassSuffix;
+                JavaClass possibleTestClass = testClassesBySimpleClassName.get(possibleTestClassName);
+
+                boolean isTestClassInWrongPackage = possibleTestClass != null
+                        && !possibleTestClass.getPackageName().equals(implementationClassPackageName);
+
+                if (isTestClassInWrongPackage) {
+                    String message = createMessage(possibleTestClass,
+                            String.format("does not reside in same package as implementation class <%s>", implementationClass.getName()));
+                    events.add(violated(possibleTestClass, message));
+                }
+            }
+        };
+    }
 }

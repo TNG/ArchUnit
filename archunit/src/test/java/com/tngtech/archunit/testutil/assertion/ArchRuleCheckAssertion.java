@@ -55,6 +55,11 @@ public class ArchRuleCheckAssertion {
         return this;
     }
 
+    public ArchRuleCheckAssertion hasOnlyOneViolationWithStandardPattern(Class<?> violatingClass, String violationDescription) {
+        String violationMessage = "Class <" + violatingClass.getName() + "> " + violationDescription + " in (" + violatingClass.getSimpleName() + ".java:0)";
+        return hasOnlyOneViolation(violationMessage);
+    }
+
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public ArchRuleCheckAssertion hasOnlyOneViolationMatching(String regex) {
         assertThat(getOnlyElement(evaluationResult.getFailureReport().getDetails())).matches(regex);
