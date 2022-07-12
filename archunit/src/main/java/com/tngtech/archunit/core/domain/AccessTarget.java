@@ -19,7 +19,6 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableList;
@@ -27,7 +26,6 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.ChainableFunction;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
-import com.tngtech.archunit.base.Optionals;
 import com.tngtech.archunit.base.Suppliers;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasName;
@@ -44,7 +42,6 @@ import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilde
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
-import static com.tngtech.archunit.base.Optionals.asSet;
 import static com.tngtech.archunit.core.domain.JavaCodeUnit.Functions.Get.throwsClause;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
@@ -119,13 +116,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     public String getFullName() {
         return fullName;
     }
-
-    /**
-     * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public abstract Set<? extends JavaMember> resolve();
 
     /**
      * Attempts to resolve the targeted member (method, field or constructor).
@@ -249,13 +239,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
                         return (Optional<JavaMember>) input.resolveMember();
                     }
                 };
-
-        /**
-         * @deprecated Use {@link #RESOLVE_MEMBER} instead
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<AccessTarget, Set<JavaMember>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
     }
 
     /**
@@ -280,25 +263,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @PublicAPI(usage = ACCESS)
         public JavaClass getRawType() {
             return type;
-        }
-
-        /**
-         * @deprecated Use {@link #resolveMember()} instead
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public Optional<JavaField> resolveField() {
-            return resolveMember();
-        }
-
-        /**
-         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
-         */
-        @Override
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public Set<JavaField> resolve() {
-            return asSet(resolveMember());
         }
 
         /**
@@ -359,13 +323,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
                             return input.resolveMember();
                         }
                     };
-
-            /**
-             * @deprecated Use {@link #RESOLVE_MEMBER} instead
-             */
-            @Deprecated
-            @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<FieldAccessTarget, Set<JavaField>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -433,14 +390,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return (Optional<? extends JavaCodeUnit>) super.resolveMember();
         }
 
-        /**
-         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
-         */
-        @Override
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public abstract Set<? extends JavaCodeUnit> resolve();
-
         public static final class Functions {
             private Functions() {
             }
@@ -454,13 +403,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
                             return (Optional<JavaCodeUnit>) input.resolveMember();
                         }
                     };
-
-            /**
-             * @deprecated Use {@link #RESOLVE_MEMBER} instead
-             */
-            @Deprecated
-            @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<CodeUnitAccessTarget, Set<JavaCodeUnit>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -515,25 +457,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
 
         /**
-         * @deprecated Use {@link #resolveMember()} instead
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public Optional<JavaConstructor> resolveConstructor() {
-            return resolveMember();
-        }
-
-        /**
-         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
-         */
-        @Override
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public Set<JavaConstructor> resolve() {
-            return asSet(resolveMember());
-        }
-
-        /**
          * @return A constructor that matches this target, or {@link Optional#empty()} if no matching constructor
          * was imported.
          */
@@ -562,13 +485,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
                             return input.resolveMember();
                         }
                     };
-
-            /**
-             * @deprecated Use {@link #RESOLVE_MEMBER} instead
-             */
-            @Deprecated
-            @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<ConstructorCallTarget, Set<JavaConstructor>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -586,16 +502,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @SuppressWarnings("unchecked") // the cast is safe because the type parameter represents this object
         public ThrowsClause<ConstructorReferenceTarget> getThrowsClause() {
             return (ThrowsClause<ConstructorReferenceTarget>) super.getThrowsClause();
-        }
-
-        /**
-         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
-         */
-        @Override
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public Set<JavaConstructor> resolve() {
-            return asSet(resolveMember());
         }
 
         /**
@@ -620,11 +526,11 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             }
 
             @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<ConstructorReferenceTarget, Set<JavaConstructor>> RESOLVE_MEMBER =
-                    new ChainableFunction<ConstructorReferenceTarget, Set<JavaConstructor>>() {
+            public static final ChainableFunction<ConstructorReferenceTarget, Optional<JavaConstructor>> RESOLVE_MEMBER =
+                    new ChainableFunction<ConstructorReferenceTarget, Optional<JavaConstructor>>() {
                         @Override
-                        public Set<JavaConstructor> apply(ConstructorReferenceTarget input) {
-                            return input.resolve();
+                        public Optional<JavaConstructor> apply(ConstructorReferenceTarget input) {
+                            return input.resolveMember();
                         }
                     };
         }
@@ -681,16 +587,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return (Optional<JavaMethod>) super.resolveMember();
         }
 
-        /**
-         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
-         */
-        @Override
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public Set<JavaMethod> resolve() {
-            return asSet(resolveMember());
-        }
-
         @Override
         @PublicAPI(usage = ACCESS)
         public String getDescription() {
@@ -709,13 +605,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
                             return input.resolveMember();
                         }
                     };
-
-            /**
-             * @deprecated Use {@link #RESOLVE_MEMBER} instead
-             */
-            @Deprecated
-            @PublicAPI(usage = ACCESS)
-            public static final ChainableFunction<MethodCallTarget, Set<JavaMethod>> RESOLVE = RESOLVE_MEMBER.then(Optionals::asSet);
         }
     }
 
@@ -746,16 +635,6 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         @SuppressWarnings("unchecked") // cast is safe because we know the member must be a JavaMethod if present
         public Optional<JavaMethod> resolveMember() {
             return (Optional<JavaMethod>) super.resolveMember();
-        }
-
-        /**
-         * @deprecated This will never return more than one element, use {@link #resolveMember()} instead
-         */
-        @Override
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public Set<JavaMethod> resolve() {
-            return asSet(resolveMember());
         }
 
         @Override

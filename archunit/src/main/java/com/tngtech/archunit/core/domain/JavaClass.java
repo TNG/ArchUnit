@@ -1070,15 +1070,6 @@ public class JavaClass
     }
 
     /**
-     * @deprecated Use {@link #getCodeUnitCallsFromSelf()} instead
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public Set<JavaCall<?>> getCallsFromSelf() {
-        return getCodeUnitCallsFromSelf();
-    }
-
-    /**
      * Returns all calls of this class to methods or constructors.
      *
      * @see #getAccessesFromSelf()
@@ -1514,24 +1505,6 @@ public class JavaClass
     }
 
     /**
-     * @deprecated use {@link Formatters#formatNamesOf(Class[])} instead
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public static List<String> namesOf(Class<?>... paramTypes) {
-        return formatNamesOf(paramTypes);
-    }
-
-    /**
-     * @deprecated use {@link Formatters#formatNamesOf(Iterable)} instead
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public static List<String> namesOf(Iterable<Class<?>> paramTypes) {
-        return formatNamesOf(paramTypes);
-    }
-
-    /**
      * @return all throws declarations on any method or constructor of this class
      *         (e.g. {@code void method() throws SomeException})
      */
@@ -1928,13 +1901,6 @@ public class JavaClass
                         return input.getCodeUnitCallsFromSelf();
                     }
                 };
-
-        /**
-         * @deprecated Use {@link #GET_CODE_UNIT_CALLS_FROM_SELF} instead
-         */
-        @Deprecated
-        @PublicAPI(usage = ACCESS)
-        public static final ChainableFunction<JavaClass, Set<JavaCall<?>>> GET_CALLS_FROM_SELF = GET_CODE_UNIT_CALLS_FROM_SELF;
 
         /**
          * @see #getMethodReferencesFromSelf()
