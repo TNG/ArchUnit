@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.CodeUnitCallTarget;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget;
@@ -239,18 +238,12 @@ public class AccessTargetTest {
 
         assertThat(AccessTarget.Functions.RESOLVE_MEMBER.apply(methodCallTarget))
                 .contains(methodCallTarget.resolveMember().get());
-        assertThat(AccessTarget.Functions.RESOLVE.apply(methodCallTarget))
-                .isEqualTo(ImmutableSet.of(methodCallTarget.resolveMember().get()));
 
         assertThat(AccessTarget.CodeUnitAccessTarget.Functions.RESOLVE_MEMBER.apply(methodCallTarget))
                 .contains(methodCallTarget.resolveMember().get());
-        assertThat(AccessTarget.CodeUnitAccessTarget.Functions.RESOLVE.apply(methodCallTarget))
-                .isEqualTo(ImmutableSet.of(methodCallTarget.resolveMember().get()));
 
         assertThat(MethodCallTarget.Functions.RESOLVE_MEMBER.apply(methodCallTarget))
                 .contains(methodCallTarget.resolveMember().get());
-        assertThat(MethodCallTarget.Functions.RESOLVE.apply(methodCallTarget))
-                .isEqualTo(ImmutableSet.of(methodCallTarget.resolveMember().get()));
 
         MethodReferenceTarget methodReferenceTarget = findTargetWithType(targetClass.getAccessesToSelf(), MethodReferenceTarget.class);
 
@@ -261,8 +254,6 @@ public class AccessTargetTest {
 
         assertThat(ConstructorCallTarget.Functions.RESOLVE_MEMBER.apply(constructorCallTarget))
                 .contains(constructorCallTarget.resolveMember().get());
-        assertThat(ConstructorCallTarget.Functions.RESOLVE.apply(constructorCallTarget))
-                .isEqualTo(ImmutableSet.of(constructorCallTarget.resolveMember().get()));
 
         ConstructorReferenceTarget constructorReferenceTarget = findTargetWithType(targetClass.getAccessesToSelf(), ConstructorReferenceTarget.class);
 
@@ -273,8 +264,6 @@ public class AccessTargetTest {
 
         assertThat(FieldAccessTarget.Functions.RESOLVE_MEMBER.apply(fieldAccessTarget))
                 .contains(fieldAccessTarget.resolveMember().get());
-        assertThat(FieldAccessTarget.Functions.RESOLVE.apply(fieldAccessTarget))
-                .isEqualTo(ImmutableSet.of(fieldAccessTarget.resolveMember().get()));
     }
 
     @SuppressWarnings("unchecked")
@@ -314,18 +303,12 @@ public class AccessTargetTest {
     }
 
     private CodeUnitCallTarget getTarget(JavaClass javaClass, String targetName) {
-        for (JavaCall<?> call : getCodeUnitCallsFromSelf(javaClass)) {
+        for (JavaCall<?> call : javaClass.getCodeUnitCallsFromSelf()) {
             if (call.getTarget().getName().equals(targetName)) {
                 return call.getTarget();
             }
         }
         throw new AssertionError(String.format("Couldn't find target %s.%s", javaClass.getSimpleName(), targetName));
-    }
-
-    private Set<JavaCall<?>> getCodeUnitCallsFromSelf(JavaClass javaClass) {
-        Set<JavaCall<?>> result = javaClass.getCodeUnitCallsFromSelf();
-        assertThat(result).isEqualTo(javaClass.getCallsFromSelf());
-        return result;
     }
 
     @SuppressWarnings({"unused", "FieldCanBeLocal"})

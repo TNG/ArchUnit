@@ -192,9 +192,6 @@ public class JavaPackageTest {
 
         assertThatPackages(java.getSubpackages()).containRelativeNames("lang", "util", "io", "security");
         assertThatPackages(java.getSubpackages()).containNames("java.lang", "java.util", "java.io", "java.security");
-
-        assertThatPackages(java.getSubPackages()).containRelativeNames("lang", "util", "io", "security");
-        assertThatPackages(java.getSubPackages()).containNames("java.lang", "java.util", "java.io", "java.security");
     }
 
     @Test
@@ -214,9 +211,6 @@ public class JavaPackageTest {
         JavaPackage java = defaultPackage.getPackage("java");
 
         assertThatPackages(java.getAllSubpackages()).containPackagesOf(
-                Object.class, Annotation.class, Collection.class, BlockingQueue.class, Security.class);
-
-        assertThatPackages(java.getAllSubPackages()).containPackagesOf(
                 Object.class, Annotation.class, Collection.class, BlockingQueue.class, Security.class);
     }
 

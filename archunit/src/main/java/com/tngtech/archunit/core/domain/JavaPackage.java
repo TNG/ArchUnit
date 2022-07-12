@@ -236,15 +236,6 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @deprecated Use {@link #getSubpackages()} instead.
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public Set<JavaPackage> getSubPackages() {
-        return getSubpackages();
-    }
-
-    /**
      * @return all sub-packages including nested sub-packages contained in this package,
      * e.g. {@code [java.lang, java.lang.annotation, java.util, java.util.concurrent, ...]} for package {@code java}
      * (compare {@link #getSubpackages()})
@@ -257,15 +248,6 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
             result.addAll(subpackage.getAllSubpackages());
         }
         return result.build();
-    }
-
-    /**
-     * @deprecated Use {@link #getAllSubpackages()} instead.
-     */
-    @Deprecated
-    @PublicAPI(usage = ACCESS)
-    public Set<JavaPackage> getAllSubPackages() {
-        return getAllSubpackages();
     }
 
     /**
