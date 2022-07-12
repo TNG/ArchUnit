@@ -22,9 +22,15 @@ import com.tngtech.archunit.lang.ArchCondition;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface GivenClass {
+    /**
+     * Like {@link GivenClasses#should()} but for a single class
+     */
     @PublicAPI(usage = ACCESS)
     ClassesShould should();
 
+    /**
+     * Like {@link GivenClasses#should(ArchCondition)} but for a single class
+     */
     @PublicAPI(usage = ACCESS)
     ClassesShouldConjunction should(ArchCondition<? super JavaClass> condition);
 }

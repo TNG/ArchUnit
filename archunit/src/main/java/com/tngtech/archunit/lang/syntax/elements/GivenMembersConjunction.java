@@ -32,9 +32,15 @@ public interface GivenMembersConjunction<MEMBER extends JavaMember> extends Give
     @PublicAPI(usage = ACCESS)
     GivenMembersConjunction<MEMBER> or(DescribedPredicate<? super MEMBER> predicate);
 
+    /**
+     * Like {@link #and(DescribedPredicate)} but allows to pick the predicate to join by a fluent API.
+     */
     @PublicAPI(usage = ACCESS)
     MembersThat<? extends GivenMembersConjunction<MEMBER>> and();
 
+    /**
+     * Like {@link #or(DescribedPredicate)} but allows to pick the predicate to join by a fluent API.
+     */
     @PublicAPI(usage = ACCESS)
     MembersThat<? extends GivenMembersConjunction<MEMBER>> or();
 
@@ -42,6 +48,9 @@ public interface GivenMembersConjunction<MEMBER extends JavaMember> extends Give
     @PublicAPI(usage = ACCESS)
     MembersShouldConjunction<MEMBER> should(ArchCondition<? super MEMBER> condition);
 
+    /**
+     * Like {@link #should(ArchCondition)} but allows to pick the condition to join by a fluent API.
+     */
     @PublicAPI(usage = ACCESS)
     MembersShould<? extends MembersShouldConjunction<MEMBER>> should();
 }

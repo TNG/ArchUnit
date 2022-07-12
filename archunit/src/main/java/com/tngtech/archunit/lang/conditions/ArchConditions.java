@@ -127,6 +127,10 @@ import static com.tngtech.archunit.core.domain.properties.HasThrowsClause.Predic
 import static com.tngtech.archunit.core.domain.properties.HasType.Predicates.rawType;
 import static java.util.Arrays.asList;
 
+/**
+ * A collection of predefined {@link ArchCondition ArchConditions} that can be customized or joined together
+ * via {@link ArchCondition#and(ArchCondition)} and {@link ArchCondition#or(ArchCondition)}.
+ */
 public final class ArchConditions {
     private ArchConditions() {
     }
