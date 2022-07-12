@@ -333,6 +333,9 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
         }
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link Dependency}.
+     */
     public static final class Predicates {
         private Predicates() {
         }

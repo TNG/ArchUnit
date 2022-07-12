@@ -29,7 +29,9 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.PackageMatcher;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasName.Predicates;
+import com.tngtech.archunit.core.domain.properties.HasType;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -297,6 +299,11 @@ public interface ClassesThat<CONJUNCTION> {
     /**
      * Matches classes annotated with a certain annotation, where matching annotations are
      * determined by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaAnnotation} can be found within one of the respective ancestors
+     * like {@link HasType.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -307,6 +314,11 @@ public interface ClassesThat<CONJUNCTION> {
     /**
      * Matches classes not annotated with a certain annotation, where matching annotations are
      * determined by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaAnnotation} can be found within one of the respective ancestors
+     * like {@link HasType.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -379,6 +391,12 @@ public interface ClassesThat<CONJUNCTION> {
      * This also matches classes where a direct annotation matches the supplied predicate.
      * </p>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaAnnotation} can be found within one of the respective ancestors
+     * like {@link HasType.Predicates}.
+     *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -393,6 +411,12 @@ public interface ClassesThat<CONJUNCTION> {
      * <p>
      * Matching classes may also not be annotated with a direct annotation matching the supplied predicate.
      * </p>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaAnnotation} can be found within one of the respective ancestors
+     * like {@link HasType.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -452,6 +476,10 @@ public interface ClassesThat<CONJUNCTION> {
      * Note that this only matches non-interface {@link JavaClass classes} that implement an interface matching the {@code predicate}
      * (compare {@link JavaClass.Predicates#implement(Class)}.
      * For general assignability see {@link #areAssignableTo(DescribedPredicate)}
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying interfaces matching classes must implement
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -462,6 +490,10 @@ public interface ClassesThat<CONJUNCTION> {
     /**
      * Matches classes that do not implement a certain interface matching the given predicate.
      * This is the negation of {@link #implement(DescribedPredicate)}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying interfaces matching classes must not implement
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -518,6 +550,10 @@ public interface ClassesThat<CONJUNCTION> {
      * Matches classes assignable to a certain type matching the given predicate. For example, a call with
      * {@link Predicates#name(String)} would be equivalent to
      * {@link #areAssignableTo(String)}, but the approach is a lot more generic.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying an upper type bound to match imported classes against
      *                  (imported subtypes will match)
@@ -529,6 +565,10 @@ public interface ClassesThat<CONJUNCTION> {
     /**
      * Matches classes not assignable to a certain type matching the given predicate.
      * This is the negation of {@link #areAssignableTo(DescribedPredicate)}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying an upper type bound imported classes should NOT have
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -589,6 +629,10 @@ public interface ClassesThat<CONJUNCTION> {
      * Matches classes assignable from a certain type matching the given predicate. For example, a call with
      * {@link Predicates#name(String)} would be equivalent to
      * {@link #areAssignableFrom(String)}, but the approach is a lot more generic.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying a lower type bound to match imported classes against
      *                  (imported supertypes will match)
@@ -600,6 +644,10 @@ public interface ClassesThat<CONJUNCTION> {
     /**
      * Matches classes not assignable from a certain type matching the given predicate.
      * This is the negation of {@link #areAssignableFrom(DescribedPredicate)}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying a lower type bound imported classes should NOT have
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -743,6 +791,11 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes that contain any {@link JavaMember member} matching the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaMember} can be found within {@link JavaMember.Predicates} or one of the respective ancestors
+     * like {@link HasName.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaMember JavaMembers}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -752,6 +805,11 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes that contain any {@link JavaField field} matching the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaField} can be found within {@link JavaMember.Predicates} or one of the respective ancestors
+     * like {@link HasName.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaField JavaFields}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -761,6 +819,11 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes that contain any {@link JavaCodeUnit code unit} matching the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaCodeUnit} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaCodeUnit JavaCodeUnits}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -770,6 +833,11 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes that contain any {@link JavaMethod method} matching the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaMethod} can be found within {@link JavaMethod.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaMethod JavaMethods}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -779,6 +847,11 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes that contain any {@link JavaConstructor constructor} matching the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaConstructor} can be found within {@link JavaConstructor.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaConstructor JavaConstructors}
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -788,6 +861,11 @@ public interface ClassesThat<CONJUNCTION> {
 
     /**
      * Matches classes that contain a {@link JavaStaticInitializer static initializer} matching the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaStaticInitializer} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaStaticInitializer JavaStaticInitializers}
      * @return A syntax conjunction element, which can be completed to form a full rule

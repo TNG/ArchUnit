@@ -658,6 +658,16 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         }
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link AccessTarget}.
+     * Note that due to inheritance further predicates for {@link AccessTarget} can be found in the following locations:
+     * <ul>
+     *     <li>{@link HasName.Predicates}</li>
+     *     <li>{@link HasName.AndFullName.Predicates}</li>
+     *     <li>{@link CanBeAnnotated.Predicates}</li>
+     *     <li>{@link HasOwner.Predicates}</li>
+     * </ul>
+     */
     public static final class Predicates {
         private Predicates() {
         }

@@ -17,9 +17,18 @@ package com.tngtech.archunit.lang.conditions;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Predefined {@link DescribedPredicate predicates} that offer syntactic sugar.
+ * <br><br>
+ * Note that there are nested classes {@code DomainObject.Predicates} with predefined {@link DescribedPredicate predicates}
+ * for many domain objects by convention<br>
+ * For example {@link DescribedPredicate predicates} targeting {@link JavaClass} can be found
+ * within the class {@link JavaClass.Predicates}.
+ */
 public class ArchPredicates {
     private ArchPredicates() {
     }

@@ -28,6 +28,9 @@ public interface HasModifiers {
     @PublicAPI(usage = ACCESS)
     Set<JavaModifier> getModifiers();
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasModifiers}
+     */
     final class Predicates {
         private Predicates() {
         }

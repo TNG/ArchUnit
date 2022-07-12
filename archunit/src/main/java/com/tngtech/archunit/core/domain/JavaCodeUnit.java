@@ -356,6 +356,16 @@ public abstract class JavaCodeUnit
         }
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link JavaCodeUnit}.
+     * Note that due to inheritance further predicates for {@link JavaCodeUnit} can be found in the following locations:
+     * <ul>
+     *     <li>{@link JavaMember.Predicates}</li>
+     *     <li>{@link HasParameterTypes.Predicates}</li>
+     *     <li>{@link HasReturnType.Predicates}</li>
+     *     <li>{@link HasThrowsClause.Predicates}</li>
+     * </ul>
+     */
     public static final class Predicates {
         private Predicates() {
         }

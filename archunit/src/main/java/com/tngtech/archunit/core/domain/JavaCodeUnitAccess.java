@@ -28,6 +28,10 @@ public abstract class JavaCodeUnitAccess<T extends CodeUnitAccessTarget> extends
         super(builder);
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link JavaCodeUnitAccess}.
+     * Further predicates to be used with {@link JavaCodeUnitAccess} can be found at {@link JavaAccess.Predicates}.
+     */
     public static final class Predicates {
         private Predicates() {
         }

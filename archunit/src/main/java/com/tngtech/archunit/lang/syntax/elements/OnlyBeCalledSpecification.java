@@ -20,13 +20,21 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaConstructor;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
 public interface OnlyBeCalledSpecification<CONJUNCTION> {
 
     /**
+     * Restricts allowed origins of calls to classes matching the supplied {@link DescribedPredicate}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate Restricts which classes the call should originate from. Every class that calls the respective {@link JavaCodeUnit} must match the predicate.
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -40,6 +48,13 @@ public interface OnlyBeCalledSpecification<CONJUNCTION> {
     ClassesThat<CONJUNCTION> byClassesThat();
 
     /**
+     * Restricts allowed origins of calls to code units matching the supplied {@link DescribedPredicate}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaCodeUnit} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
+     *
      * @param predicate Restricts which code units the call should originate from
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -47,6 +62,13 @@ public interface OnlyBeCalledSpecification<CONJUNCTION> {
     CONJUNCTION byCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate);
 
     /**
+     * Restricts allowed origins of calls to methods matching the supplied {@link DescribedPredicate}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaMethod} can be found within {@link JavaMethod.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
+     *
      * @param predicate Restricts which methods the call should originate from. Calls from constructors are treated as mismatch.
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -54,6 +76,13 @@ public interface OnlyBeCalledSpecification<CONJUNCTION> {
     CONJUNCTION byMethodsThat(DescribedPredicate<? super JavaMethod> predicate);
 
     /**
+     * Restricts allowed origins of calls to constructors matching the supplied {@link DescribedPredicate}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaConstructor} can be found within {@link JavaConstructor.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
+     *
      * @param predicate Restricts which constructors the call should originate from. Calls from methods are treated as mismatch.
      * @return A syntax conjunction element, which can be completed to form a full rule
      */

@@ -21,6 +21,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -116,6 +117,11 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      *
      * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawParameterTypes(DescribedPredicate) haveRawParameterTypes(whereFirstTypeIs(String.class))}</code></pre>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their raw parameter types
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -134,6 +140,11 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      * Then <code>someMethod</code> would be matched by
      *
      * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotHaveRawParameterTypes(DescribedPredicate) doNotHaveRawParameterTypes(whereFirstTypeIs(int.class))}</code></pre>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their raw parameter types
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -230,6 +241,11 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      *
      * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#haveRawReturnType(DescribedPredicate) haveRawReturnType(assignableTo(Serializable.class))}</code></pre>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their raw return types
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -248,6 +264,11 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      * Then <code>someMethod</code> would be matched by
      *
      * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotHaveRawReturnType(DescribedPredicate) doNotHaveRawReturnType(assignableTo(List.class))}</code></pre>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their raw return types
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -344,6 +365,11 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      *
      * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#declareThrowableOfType(DescribedPredicate) declareThrowableOfType(nameStartingWith("First"))}</code></pre>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their declared {@link Throwable}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -362,6 +388,11 @@ public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      * Then <code>someMethod</code> would be matched by
      *
      * <pre><code>{@link ArchRuleDefinition#codeUnits() codeUnits()}.{@link GivenCodeUnits#that() that()}.{@link CodeUnitsThat#doNotDeclareThrowableOfType(DescribedPredicate) doNotDeclareThrowableOfType(nameStartingWith("Second"))}</code></pre>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their declared {@link Throwable}
      * @return A syntax conjunction element, which can be completed to form a full rule

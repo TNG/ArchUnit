@@ -81,6 +81,10 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
         }
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link JavaFieldAccess}.
+     * Further predicates to be used with {@link JavaFieldAccess} can be found at {@link JavaAccess.Predicates}.
+     */
     public static final class Predicates {
         private Predicates() {
         }

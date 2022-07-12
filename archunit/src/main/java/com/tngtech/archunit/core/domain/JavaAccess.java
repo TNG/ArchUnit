@@ -125,6 +125,14 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
                 .collect(toImmutableSet());
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link JavaAccess}.
+     * Note that due to inheritance further predicates for {@link JavaAccess} can be found in the following locations:
+     * <ul>
+     *     <li>{@link HasName.Predicates}</li>
+     *     <li>{@link HasOwner.Predicates}</li>
+     * </ul>
+     */
     public static final class Predicates {
         private Predicates() {
         }
