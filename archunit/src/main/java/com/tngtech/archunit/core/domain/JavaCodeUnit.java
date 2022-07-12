@@ -29,6 +29,8 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.ForwardingList;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.base.ResolvesTypesViaReflection;
+import com.tngtech.archunit.core.domain.properties.HasName;
+import com.tngtech.archunit.core.domain.properties.HasOwner;
 import com.tngtech.archunit.core.domain.properties.HasParameterTypes;
 import com.tngtech.archunit.core.domain.properties.HasReturnType;
 import com.tngtech.archunit.core.domain.properties.HasThrowsClause;
@@ -391,6 +393,16 @@ public abstract class JavaCodeUnit
         }
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link JavaCodeUnit}.
+     * Note that due to inheritance further functions for {@link JavaCodeUnit} can be found in the following locations:
+     * <ul>
+     *     <li>{@link HasName.Functions}</li>
+     *     <li>{@link HasName.AndFullName.Functions}</li>
+     *     <li>{@link HasReturnType.Functions}</li>
+     *     <li>{@link HasOwner.Functions}</li>
+     * </ul>
+     */
     @PublicAPI(usage = ACCESS)
     public static final class Functions {
         private Functions() {

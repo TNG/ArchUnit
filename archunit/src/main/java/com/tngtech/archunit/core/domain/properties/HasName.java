@@ -207,6 +207,9 @@ public interface HasName {
         }
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link HasName}.
+     */
     final class Functions {
         private Functions() {
         }

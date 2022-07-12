@@ -86,6 +86,9 @@ public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUn
         return new ReferencedClassObject(owner, javaClass, lineNumber);
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link ReferencedClassObject}.
+     */
     @PublicAPI(usage = ACCESS)
     public static final class Functions {
         private Functions() {

@@ -58,6 +58,9 @@ public interface HasType {
         }
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link HasType}.
+     */
     final class Functions {
         private Functions() {
         }

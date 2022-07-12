@@ -58,6 +58,9 @@ public interface HasReturnType {
 
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link HasReturnType}.
+     */
     final class Functions {
         private Functions() {
         }

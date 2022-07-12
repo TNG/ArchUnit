@@ -226,6 +226,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         return "target{" + fullName + '}';
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link AccessTarget}.
+     */
     public static final class Functions {
         private Functions() {
         }
@@ -311,6 +314,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return "field <" + getFullName() + ">";
         }
 
+        /**
+         * Predefined {@link ChainableFunction functions} to transform {@link FieldAccessTarget}.
+         */
         public static final class Functions {
             private Functions() {
             }
@@ -390,6 +396,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return (Optional<? extends JavaCodeUnit>) super.resolveMember();
         }
 
+        /**
+         * Predefined {@link ChainableFunction functions} to transform {@link CodeUnitAccessTarget}.
+         */
         public static final class Functions {
             private Functions() {
             }
@@ -473,6 +482,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return "constructor <" + getFullName() + ">";
         }
 
+        /**
+         * Predefined {@link ChainableFunction functions} to transform {@link ConstructorCallTarget}.
+         */
         public static final class Functions {
             private Functions() {
             }
@@ -521,6 +533,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return "constructor <" + getFullName() + ">";
         }
 
+        /**
+         * Predefined {@link ChainableFunction functions} to transform {@link ConstructorReferenceTarget}.
+         */
         public static final class Functions {
             private Functions() {
             }
@@ -593,6 +608,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return "method <" + getFullName() + ">";
         }
 
+        /**
+         * Predefined {@link ChainableFunction functions} to transform {@link MethodCallTarget}.
+         */
         public static final class Functions {
             private Functions() {
             }
@@ -643,6 +661,9 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
             return "method <" + getFullName() + ">";
         }
 
+        /**
+         * Predefined {@link ChainableFunction functions} to transform {@link MethodReferenceTarget}.
+         */
         public static final class Functions {
             private Functions() {
             }

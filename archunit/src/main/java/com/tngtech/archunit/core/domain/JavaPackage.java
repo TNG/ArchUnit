@@ -576,6 +576,9 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         void visit(JavaPackage javaPackage);
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link JavaPackage}.
+     */
     public static final class Functions {
         private Functions() {
         }

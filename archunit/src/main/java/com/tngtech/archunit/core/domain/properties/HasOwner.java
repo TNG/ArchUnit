@@ -72,6 +72,9 @@ public interface HasOwner<T> {
         }
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link HasOwner}.
+     */
     @PublicAPI(usage = ACCESS)
     final class Functions {
         private Functions() {
