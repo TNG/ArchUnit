@@ -105,8 +105,6 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameEn
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleNameStartingWith;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.core.domain.JavaCodeUnit.Functions.Get.GET_CALLS_OF_SELF;
-import static com.tngtech.archunit.core.domain.JavaCodeUnit.Predicates.constructor;
-import static com.tngtech.archunit.core.domain.JavaCodeUnit.Predicates.method;
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.FINAL;
@@ -1251,24 +1249,24 @@ public final class ArchConditions {
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> onlyBeCalledByCodeUnitsThat(DescribedPredicate<? super JavaMember> predicate) {
+    public static ArchCondition<JavaCodeUnit> onlyBeCalledByCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
         ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by code units that " + predicate.getDescription(),
                 origin.is(predicate), GET_CALLS_OF_SELF);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> onlyBeCalledByMethodsThat(DescribedPredicate<? super JavaMember> predicate) {
+    public static ArchCondition<JavaCodeUnit> onlyBeCalledByMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
         ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by methods that " + predicate.getDescription(),
-                origin.is(method().and(predicate)), GET_CALLS_OF_SELF);
+                origin.is(matching(JavaMethod.class, predicate)), GET_CALLS_OF_SELF);
     }
 
     @PublicAPI(usage = ACCESS)
-    public static ArchCondition<JavaCodeUnit> onlyBeCalledByConstructorsThat(DescribedPredicate<? super JavaMember> predicate) {
+    public static ArchCondition<JavaCodeUnit> onlyBeCalledByConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate) {
         ChainableFunction<JavaAccess<?>, ? extends JavaCodeUnit> origin = JavaAccess.Functions.Get.origin();
         return new CodeUnitOnlyCallsCondition<>("only be called by constructors that " + predicate.getDescription(),
-                origin.is(constructor().and(predicate)), GET_CALLS_OF_SELF);
+                origin.is(matching(JavaConstructor.class, predicate)), GET_CALLS_OF_SELF);
     }
 
     /**
@@ -1307,6 +1305,13 @@ public final class ArchConditions {
         return ArchCondition.from(predicate.<T>forSubtype())
                 .as(ArchPredicates.be(predicate).getDescription())
                 .describeEventsBy((predicateDescription, satisfied) -> (satisfied ? "is " : "is not ") + predicateDescription);
+    }
+
+    @SuppressWarnings("unchecked") // cast compatibility is explicitly checked
+    private static <U, T> DescribedPredicate<T> matching(Class<U> type, DescribedPredicate<? super U> predicate) {
+        return DescribedPredicate.describe(
+                String.format("matching %s %s", type.getSimpleName(), predicate.getDescription()),
+                input -> type.isInstance(input) && predicate.test((U) input));
     }
 
     private static final ArchCondition<JavaClass> BE_TOP_LEVEL_CLASSES =

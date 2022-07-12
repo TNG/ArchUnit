@@ -19,7 +19,8 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.JavaConstructor;
+import com.tngtech.archunit.core.domain.JavaMethod;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -43,19 +44,19 @@ public interface OnlyBeCalledSpecification<CONJUNCTION> {
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION byCodeUnitsThat(DescribedPredicate<? super JavaMember> predicate);
+    CONJUNCTION byCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate);
 
     /**
      * @param predicate Restricts which methods the call should originate from. Calls from constructors are treated as mismatch.
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION byMethodsThat(DescribedPredicate<? super JavaMember> predicate);
+    CONJUNCTION byMethodsThat(DescribedPredicate<? super JavaMethod> predicate);
 
     /**
      * @param predicate Restricts which constructors the call should originate from. Calls from methods are treated as mismatch.
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @PublicAPI(usage = ACCESS)
-    CONJUNCTION byConstructorsThat(DescribedPredicate<? super JavaMember> predicate);
+    CONJUNCTION byConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate);
 }
