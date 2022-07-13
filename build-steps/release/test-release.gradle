@@ -42,6 +42,8 @@ task testRelease() {
     doFirst {
         gitHubClone(archunitExamplesGitRepo, testReleaseDir)
 
+        updateArchUnitExampleSources(testReleaseDir)
+
         updateArchUnitExampleVersion(testReleaseDir)
 
         configureStagingRepository()

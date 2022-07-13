@@ -5,7 +5,6 @@ import java.util.regex.Pattern
 apply from: scriptRelativePath(this, 'archunit-examples-utils.gradle')
 
 final File checkoutDir = new File(project.buildDir, 'example-update')
-final List<String> exampleFolders = ['example-plain', 'example-junit4', 'example-junit5']
 
 task checkoutArchUnitExample {
     doLast {
@@ -15,18 +14,7 @@ task checkoutArchUnitExample {
 
 task copyArchUnitExampleSrc(dependsOn: checkoutArchUnitExample) {
     doLast {
-        exampleFolders.each { exampleFolder ->
-            def targetSource = new File(new File(checkoutDir, exampleFolder), 'src')
-            targetSource.deleteDir()
-            copy {
-                from new File(project(':archunit-example:example-plain').projectDir, 'src/main')
-                into new File(targetSource, 'main')
-            }
-            copy {
-                from new File(project(":archunit-example:${exampleFolder}").projectDir, 'src/test')
-                into new File(targetSource, 'test')
-            }
-        }
+        updateArchUnitExampleSources(checkoutDir)
     }
 }
 

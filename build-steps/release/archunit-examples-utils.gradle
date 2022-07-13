@@ -6,3 +6,17 @@ ext.updateArchUnitExampleVersion = { File archUnitExampleDir ->
         buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit[^:]*:)[\d.]*/, "\$1${version}")
     }
 }
+ext.updateArchUnitExampleSources = { File targetArchUnitExampleDir ->
+    ['example-plain', 'example-junit4', 'example-junit5'].each { exampleFolder ->
+        def targetSource = new File(new File(targetArchUnitExampleDir, exampleFolder), 'src')
+        targetSource.deleteDir()
+        copy {
+            from new File(project(':archunit-example:example-plain').projectDir, 'src/main')
+            into new File(targetSource, 'main')
+        }
+        copy {
+            from new File(project(":archunit-example:${exampleFolder}").projectDir, 'src/test')
+            into new File(targetSource, 'test')
+        }
+    }
+}
