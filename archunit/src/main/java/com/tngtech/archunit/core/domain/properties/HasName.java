@@ -37,6 +37,9 @@ public interface HasName {
         @PublicAPI(usage = ACCESS)
         String getFullName();
 
+        /**
+         * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasName.AndFullName}
+         */
         final class Predicates {
             private Predicates() {
             }
@@ -97,6 +100,9 @@ public interface HasName {
         }
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasName}
+     */
     final class Predicates {
         private Predicates() {
         }
@@ -201,6 +207,9 @@ public interface HasName {
         }
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link HasName}.
+     */
     final class Functions {
         private Functions() {
         }

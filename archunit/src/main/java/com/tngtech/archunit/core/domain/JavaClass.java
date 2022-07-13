@@ -1748,6 +1748,15 @@ public class JavaClass
         }
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link JavaClass}.
+     * Note that due to inheritance further functions for {@link JavaClass} can be found in the following locations:
+     * <ul>
+     *     <li>{@link HasName.Functions}</li>
+     *     <li>{@link HasName.AndFullName.Functions}</li>
+     *     <li>{@link JavaType.Functions}</li>
+     * </ul>
+     */
     public static final class Functions {
         private Functions() {
         }
@@ -2035,6 +2044,16 @@ public class JavaClass
                 };
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link JavaClass}.
+     * Note that due to inheritance further predicates for {@link JavaClass} can be found in the following locations:
+     * <ul>
+     *     <li>{@link HasName.Predicates}</li>
+     *     <li>{@link HasName.AndFullName.Predicates}</li>
+     *     <li>{@link HasModifiers.Predicates}</li>
+     *     <li>{@link CanBeAnnotated.Predicates}</li>
+     * </ul>
+     */
     public static final class Predicates {
         private Predicates() {
         }

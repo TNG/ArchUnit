@@ -37,6 +37,10 @@ public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnT
     @PublicAPI(usage = ACCESS)
     ThrowsClause<? extends LOCATION> getThrowsClause();
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasThrowsClause}
+     */
+    @PublicAPI(usage = ACCESS)
     final class Predicates {
         private Predicates() {
         }

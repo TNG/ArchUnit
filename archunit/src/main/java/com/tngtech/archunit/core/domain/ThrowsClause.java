@@ -134,6 +134,9 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
         return throwsDeclarations;
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link ThrowsClause}.
+     */
     public static final class Functions {
         private Functions() {
         }

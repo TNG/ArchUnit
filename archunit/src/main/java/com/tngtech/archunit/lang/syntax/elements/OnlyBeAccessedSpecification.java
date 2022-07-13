@@ -19,6 +19,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.PackageMatcher;
+import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
@@ -39,6 +40,12 @@ public interface OnlyBeAccessedSpecification<CONJUNCTION> {
     ClassesThat<ClassesShouldConjunction> byClassesThat();
 
     /**
+     * Allows to restrict the access origins by matching them against the supplied {@link DescribedPredicate}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate Restricts which classes the access should be from
      * @return A syntax conjunction element, which can be completed to form a full rule
      */

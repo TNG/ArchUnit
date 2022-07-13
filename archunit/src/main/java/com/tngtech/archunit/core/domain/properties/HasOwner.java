@@ -39,6 +39,9 @@ public interface HasOwner<T> {
     @PublicAPI(usage = ACCESS)
     T getOwner();
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasOwner}
+     */
     @PublicAPI(usage = ACCESS)
     final class Predicates {
         private Predicates() {
@@ -69,6 +72,9 @@ public interface HasOwner<T> {
         }
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link HasOwner}.
+     */
     @PublicAPI(usage = ACCESS)
     final class Functions {
         private Functions() {

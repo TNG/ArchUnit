@@ -18,7 +18,9 @@ package com.tngtech.archunit.lang.syntax.elements;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -44,6 +46,10 @@ public interface GivenClasses extends GivenObjects<JavaClass> {
      * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#that(DescribedPredicate) that(haveSimpleName("Example"))}
      * </code>
      *
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
     @Override
@@ -57,6 +63,8 @@ public interface GivenClasses extends GivenObjects<JavaClass> {
      * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should() should()}.{@link ClassesShould#haveSimpleName(String) haveSimpleName("Example")}
      * </code>
      *
+     * Use {@link #should(ArchCondition)} to freely customize the condition against which the classes should be checked.
+     *
      * @return A syntax element, which can be used to restrict the classes under consideration
      */
     @PublicAPI(usage = ACCESS)
@@ -68,6 +76,9 @@ public interface GivenClasses extends GivenObjects<JavaClass> {
      * <code>
      * {@link ArchRuleDefinition#classes() classes()}.{@link GivenClasses#should(ArchCondition) should(haveSimpleName("Example"))}
      * </code>
+     *
+     * {@link #should()} is a fluent version of this API that allows your IDE to make suggestions.<br>
+     * Predefined conditions to customize and join can be found within {@link ArchConditions}.
      *
      * @return A syntax element, which can be used to restrict the classes under consideration
      */

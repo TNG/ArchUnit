@@ -18,7 +18,9 @@ package com.tngtech.archunit.lang.syntax.elements;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -28,9 +30,9 @@ public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<ME
     /**
      * Allows to restrict the set of members under consideration. E.g.
      * <br><br>
-     * <code>
+     * <pre><code>
      * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that() that()}.{@link MembersThat#haveName(String) haveName("foo")}
-     * </code>
+     * </code></pre>
      *
      * @return A syntax element, which can be used to restrict the members under consideration
      */
@@ -40,9 +42,14 @@ public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<ME
     /**
      * Allows to restrict the set of members under consideration. E.g.
      * <br><br>
-     * <code>
+     * <pre><code>
      * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#that(DescribedPredicate) that(haveName("foo"))}
-     * </code>
+     * </code></pre>
+     *
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaMember} can be found within {@link JavaMember.Predicates} or one of the respective ancestors
+     * like {@link HasName.Predicates}.
      *
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -53,9 +60,9 @@ public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<ME
     /**
      * Allows to specify assertions for the set of members under consideration. E.g.
      * <br><br>
-     * <code>
+     * <pre><code>
      * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#should() should()}.{@link MembersShould#haveName(String) haveName("foo")}
-     * </code>
+     * </code></pre>
      *
      * @return A syntax element, which can be used to restrict the members under consideration
      */
@@ -65,9 +72,11 @@ public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<ME
     /**
      * Allows to specify assertions for the set of members under consideration. E.g.
      * <br><br>
-     * <code>
+     * <pre><code>
      * {@link ArchRuleDefinition#members() members()}.{@link GivenMembers#should(ArchCondition) should(haveName("foo"))}
-     * </code>
+     * </code></pre>
+     *
+     * Predefined conditions to customize and join can be found within {@link ArchConditions}.
      *
      * @return A syntax element, which can be used to restrict the members under consideration
      */

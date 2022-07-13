@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.PackageMatcher;
 import com.tngtech.archunit.core.domain.PackageMatchers;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 
@@ -101,12 +102,28 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
         this.javaClassDiagramAssociation = javaClassDiagramAssociation;
     }
 
+    /**
+     * Ignores all {@link Dependency dependencies} that have an {@link Dependency#getOriginClass() origin class}
+     * matching the supplied {@link DescribedPredicate ignorePredicate}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     */
     @PublicAPI(usage = ACCESS)
     public PlantUmlArchCondition ignoreDependenciesWithOrigin(DescribedPredicate<? super JavaClass> ignorePredicate) {
         return ignoreDependencies(GET_ORIGIN_CLASS.is(ignorePredicate)
                 .as("ignoring dependencies with origin " + ignorePredicate.getDescription()));
     }
 
+    /**
+     * Ignores all {@link Dependency dependencies} that have an {@link Dependency#getTargetClass() target class}
+     * matching the supplied {@link DescribedPredicate ignorePredicate}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     */
     @PublicAPI(usage = ACCESS)
     public PlantUmlArchCondition ignoreDependenciesWithTarget(DescribedPredicate<? super JavaClass> ignorePredicate) {
         return ignoreDependencies(GET_TARGET_CLASS.is(ignorePredicate)
@@ -125,6 +142,13 @@ public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
                         .as("ignoring dependencies from %s to %s", origin, target));
     }
 
+    /**
+     * Ignores all {@link Dependency dependencies} matching the supplied {@link DescribedPredicate ignorePredicate}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link Dependency} can be found within {@link Dependency.Predicates}.
+     */
     @PublicAPI(usage = ACCESS)
     public PlantUmlArchCondition ignoreDependencies(DescribedPredicate<? super Dependency> ignorePredicate) {
         String description = getDescription() + ", " + ignorePredicate.getDescription();

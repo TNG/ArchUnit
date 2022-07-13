@@ -21,6 +21,7 @@ import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -139,6 +140,11 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their raw parameter types
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -159,6 +165,11 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      *     void someMethod(String stringParam, int intParam) {...}
      * }
      * </code></pre>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their raw parameter types
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -265,6 +276,11 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their raw return types
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -285,6 +301,11 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      *     String someMethod() {...}
      * }
      * </code></pre>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their raw return types
      * @return A syntax conjunction element, which can be completed to form a full rule
@@ -391,6 +412,11 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      * }
      * </code></pre>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} match by their declared {@link Throwable}
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -411,6 +437,11 @@ public interface CodeUnitsShould<CONJUNCTION extends CodeUnitsShouldConjunction<
      *     void someMethod() throws SomeException {...}
      * }
      * </code></pre>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A {@link DescribedPredicate} that determines, which {@link JavaCodeUnit JavaCodeUnits} do not match by their declared {@link Throwable}
      * @return A syntax conjunction element, which can be completed to form a full rule

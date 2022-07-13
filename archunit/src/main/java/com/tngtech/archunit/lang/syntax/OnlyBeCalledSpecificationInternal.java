@@ -18,7 +18,8 @@ package com.tngtech.archunit.lang.syntax;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
-import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.JavaConstructor;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.OnlyBeCalledSpecification;
@@ -41,17 +42,17 @@ class OnlyBeCalledSpecificationInternal<SHOULD extends AbstractMembersShouldInte
     }
 
     @Override
-    public SHOULD byCodeUnitsThat(DescribedPredicate<? super JavaMember> predicate) {
+    public SHOULD byCodeUnitsThat(DescribedPredicate<? super JavaCodeUnit> predicate) {
         return codeUnitsShould.addCondition(ArchConditions.onlyBeCalledByCodeUnitsThat(predicate));
     }
 
     @Override
-    public SHOULD byMethodsThat(DescribedPredicate<? super JavaMember> predicate) {
+    public SHOULD byMethodsThat(DescribedPredicate<? super JavaMethod> predicate) {
         return codeUnitsShould.addCondition(ArchConditions.onlyBeCalledByMethodsThat(predicate));
     }
 
     @Override
-    public SHOULD byConstructorsThat(DescribedPredicate<? super JavaMember> predicate) {
+    public SHOULD byConstructorsThat(DescribedPredicate<? super JavaConstructor> predicate) {
         return codeUnitsShould.addCondition(ArchConditions.onlyBeCalledByConstructorsThat(predicate));
     }
 }

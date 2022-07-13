@@ -133,6 +133,14 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
         return getClass().getSimpleName() + "{location=" + getLocation() + ", type=" + type + '}';
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link ThrowsDeclaration}.
+     * Note that due to inheritance further functions for {@link ThrowsDeclaration} can be found in the following locations:
+     * <ul>
+     *     <li>{@link HasType.Functions}</li>
+     *     <li>{@link HasOwner.Functions}</li>
+     * </ul>
+     */
     @PublicAPI(usage = ACCESS)
     public static final class Functions {
         private Functions() {

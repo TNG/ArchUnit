@@ -33,6 +33,10 @@ public interface HasReturnType {
     @PublicAPI(usage = ACCESS)
     JavaClass getRawReturnType();
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasReturnType}
+     */
+    @PublicAPI(usage = ACCESS)
     final class Predicates {
         private Predicates() {
         }
@@ -54,6 +58,9 @@ public interface HasReturnType {
 
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link HasReturnType}.
+     */
     final class Functions {
         private Functions() {
         }

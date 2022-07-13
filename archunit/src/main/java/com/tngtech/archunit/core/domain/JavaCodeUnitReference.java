@@ -28,6 +28,10 @@ public abstract class JavaCodeUnitReference<T extends CodeUnitReferenceTarget> e
         super(builder);
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link JavaCodeUnitReference}.
+     * Further predicates to be used with {@link JavaCodeUnitReference} can be found at {@link JavaCodeUnitAccess.Predicates}.
+     */
     public static final class Predicates {
         private Predicates() {
         }

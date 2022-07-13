@@ -18,6 +18,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -118,6 +119,11 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
      *     Object someField;
      * }</code></pre>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate A predicate determining which sort of types fields should have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
@@ -137,6 +143,11 @@ public interface FieldsShould<CONJUNCTION extends FieldsShouldConjunction> exten
      * class Example {
      *     String someField;
      * }</code></pre>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate determining which sort of types fields should not have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule

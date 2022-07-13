@@ -59,6 +59,10 @@ public interface HasParameterTypes {
     @PublicAPI(usage = ACCESS)
     List<JavaClass> getRawParameterTypes();
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasParameterTypes}
+     */
+    @PublicAPI(usage = ACCESS)
     final class Predicates {
         private Predicates() {
         }

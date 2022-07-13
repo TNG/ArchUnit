@@ -39,6 +39,9 @@ public interface JavaType extends HasName {
     @PublicAPI(usage = ACCESS)
     JavaClass toErasure();
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link JavaType}.
+     */
     final class Functions {
         private Functions() {
         }

@@ -34,6 +34,7 @@ import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.PackageMatcher;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -275,6 +276,10 @@ public final class Architectures {
         /**
          * Like {@link #ensureAllClassesAreContainedInArchitecture()} but will ignore classes in packages matching
          * the specified {@link DescribedPredicate predicate}.
+         * <br><br>
+         * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+         * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+         * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
          *
          * @param predicate {@link DescribedPredicate predicate} specifying which classes may live outside the architecture
          *
@@ -537,6 +542,10 @@ public final class Architectures {
 
             /**
              * Defines a layer by a predicate, i.e. any {@link JavaClass} that will match the predicate will belong to this layer.
+             * <br><br>
+             * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+             * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+             * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
              */
             @PublicAPI(usage = ACCESS)
             public LayeredArchitecture definedBy(DescribedPredicate<? super JavaClass> predicate) {
@@ -787,44 +796,106 @@ public final class Architectures {
             this.overriddenDescription = overriddenDescription;
         }
 
+        /**
+         * Defines which classes belong to domain models by matching them against {@link PackageMatcher package identifiers}.
+         * @param packageIdentifiers {@link PackageMatcher package identifiers} defining which classes belong to domain models
+         * @return The {@link OnionArchitecture} to be checked against classes or further customized
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture domainModels(String... packageIdentifiers) {
             return domainModels(byPackagePredicate(packageIdentifiers));
         }
 
+        /**
+         * Defines which classes belong to domain models by matching them against the supplied {@link DescribedPredicate predicate}.
+         * <br><br>
+         * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+         * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+         * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+         * @param predicate A {@link DescribedPredicate} defining which classes belong to domain models
+         * @return The {@link OnionArchitecture} to be checked against classes or further customized
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture domainModels(DescribedPredicate<? super JavaClass> predicate) {
             domainModelPredicate = Optional.of(predicate);
             return this;
         }
 
+        /**
+         * Defines which classes belong to domain services by matching them against {@link PackageMatcher package identifiers}.
+         *
+         * @param packageIdentifiers {@link PackageMatcher package identifiers} defining which classes belong to domain services
+         * @return The {@link OnionArchitecture} to be checked against classes or further customized
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture domainServices(String... packageIdentifiers) {
             return domainServices(byPackagePredicate(packageIdentifiers));
         }
 
+        /**
+         * Defines which classes belong to domain services by matching them against the supplied {@link DescribedPredicate predicate}.
+         * <br><br>
+         * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+         * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+         * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+         * @param predicate A {@link DescribedPredicate} defining which classes belong to domain services
+         * @return The {@link OnionArchitecture} to be checked against classes or further customized
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture domainServices(DescribedPredicate<? super JavaClass> predicate) {
             domainServicePredicate = Optional.of(predicate);
             return this;
         }
 
+        /**
+         * Defines which classes belong to application services by matching them against {@link PackageMatcher package identifiers}.
+         *
+         * @param packageIdentifiers {@link PackageMatcher package identifiers} defining which classes belong to application services
+         * @return The {@link OnionArchitecture} to be checked against classes or further customized
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture applicationServices(String... packageIdentifiers) {
             return applicationServices(byPackagePredicate(packageIdentifiers));
         }
 
+        /**
+         * Defines which classes belong to application services by matching them against the supplied {@link DescribedPredicate predicate}.
+         * <br><br>
+         * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+         * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+         * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+         * @param predicate A {@link DescribedPredicate} defining which classes belong to application services
+         * @return The {@link OnionArchitecture} to be checked against classes or further customized
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture applicationServices(DescribedPredicate<? super JavaClass> predicate) {
             applicationPredicate = Optional.of(predicate);
             return this;
         }
 
+        /**
+         * Defines which classes belong to a specific adapter by matching them against {@link PackageMatcher package identifiers}.
+         *
+         * @param name The name of the adapter
+         * @param packageIdentifiers {@link PackageMatcher package identifiers} defining which classes belong to the adapter
+         * @return The {@link OnionArchitecture} to be checked against classes or further customized
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture adapter(String name, String... packageIdentifiers) {
             return adapter(name, byPackagePredicate(packageIdentifiers));
         }
 
+        /**
+         * Defines which classes belong to a specific adapter by matching them against the supplied {@link DescribedPredicate predicate}.
+         * <br><br>
+         * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+         * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+         * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+         *
+         * @param name The name of the adapter
+         * @param predicate A {@link DescribedPredicate} defining which classes belong to the adapter
+         * @return The {@link OnionArchitecture} to be checked against classes or further customized
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture adapter(String name, DescribedPredicate<? super JavaClass> predicate) {
             adapterPredicates.put(name, predicate);
@@ -841,16 +912,35 @@ public final class Architectures {
             return this;
         }
 
+        /**
+         * Ignores all {@link Dependency dependencies} that have an {@link Dependency#getOriginClass() origin class}
+         * {@link JavaClass#isEquivalentTo(Class) equivalent to} the supplied {@code origin} and {@link Dependency#getTargetClass() target class}
+         * {@link JavaClass#isEquivalentTo(Class) equivalent to} the supplied {@code target}.
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture ignoreDependency(Class<?> origin, Class<?> target) {
             return ignoreDependency(equivalentTo(origin), equivalentTo(target));
         }
 
+        /**
+         * Ignores all {@link Dependency dependencies} that have an {@link Dependency#getOriginClass() origin class}
+         * with fully qualified class name {@code origin} and {@link Dependency#getTargetClass() target class}
+         * with fully qualified class name {@code target}.
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture ignoreDependency(String origin, String target) {
             return ignoreDependency(name(origin), name(target));
         }
 
+        /**
+         * Ignores all {@link Dependency dependencies} that have an {@link Dependency#getOriginClass() origin class}
+         * matching the supplied {@code origin} {@link DescribedPredicate predicate} and {@link Dependency#getTargetClass() target class}
+         * matching the supplied {@code target} {@link DescribedPredicate predicate}.
+         * <br><br>
+         * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+         * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+         * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+         */
         @PublicAPI(usage = ACCESS)
         public OnionArchitecture ignoreDependency(DescribedPredicate<? super JavaClass> origin, DescribedPredicate<? super JavaClass> target) {
             this.ignoredDependencies.add(new IgnoredDependency(origin, target));
@@ -885,6 +975,10 @@ public final class Architectures {
         /**
          * Like {@link #ensureAllClassesAreContainedInArchitecture()} but will ignore classes in packages matching
          * the specified {@link DescribedPredicate predicate}.
+         * <br><br>
+         * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+         * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+         * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
          *
          * @param predicate {@link DescribedPredicate predicate} specifying which classes may live outside the architecture
          *

@@ -34,7 +34,9 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.PackageMatcher;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.domain.properties.HasName.Predicates;
+import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
@@ -321,6 +323,11 @@ public interface ClassesShould {
     /**
      * Asserts that classes are annotated with a certain annotation, where matching annotations are
      * determined by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaAnnotation} can be found within one of the respective ancestors
+     * like {@link HasType.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -331,6 +338,11 @@ public interface ClassesShould {
     /**
      * Asserts that classes are not annotated with a certain annotation, where matching annotations are
      * determined by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaAnnotation} can be found within one of the respective ancestors
+     * like {@link HasType.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -402,6 +414,12 @@ public interface ClassesShould {
      * The assertion is also successful if classes are directly annotated with an annotation matching the supplied predicate.
      * </p>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaAnnotation} can be found within one of the respective ancestors
+     * like {@link HasType.Predicates}.
+     *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
      */
@@ -415,6 +433,12 @@ public interface ClassesShould {
      * <p>
      * The assertion also fails if classes are directly annotated with an annotation matching the supplied predicate.
      * </p>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaAnnotation} can be found within one of the respective ancestors
+     * like {@link HasType.Predicates}.
      *
      * @param predicate A predicate defining matching {@link JavaAnnotation JavaAnnotations}
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -482,6 +506,10 @@ public interface ClassesShould {
      * Note that this only matches non-interface {@link JavaClass classes} that implement an interface matching the {@code predicate}
      * (compare {@link JavaClass.Predicates#implement(Class)}.
      * For general assignability see {@link #beAssignableTo(DescribedPredicate)}
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying an interface imported classes should implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -494,6 +522,10 @@ public interface ClassesShould {
     /**
      * Asserts that classes do not implement a certain interface matching the given predicate.
      * This is the negation of {@link #implement(DescribedPredicate)}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying an interface imported classes should NOT implement
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -560,6 +592,10 @@ public interface ClassesShould {
      * Asserts that classes are assignable to a certain type matching the given predicate. For example, a call with
      * {@link Predicates#name(String)} would be equivalent to
      * {@link #beAssignableTo(String)}, but the approach is a lot more generic.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying an upper type bound to match imported classes against
      *                  (imported subtypes will match)
@@ -573,6 +609,10 @@ public interface ClassesShould {
     /**
      * Asserts that classes are not assignable to a certain type matching the given predicate.
      * This is the negation of {@link #beAssignableTo(DescribedPredicate)}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying an upper type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -643,6 +683,10 @@ public interface ClassesShould {
      * Asserts that classes are assignable from a certain type matching the given predicate. For example, a call with
      * {@link Predicates#name(String)} would be equivalent to
      * {@link #beAssignableFrom(String)}, but the approach is a lot more generic.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying a lower type bound to match imported classes against
      *                  (imported supertypes will match)
@@ -656,6 +700,10 @@ public interface ClassesShould {
     /**
      * Asserts that classes are not assignable from a certain type matching the given predicate.
      * This is the negation of {@link #beAssignableFrom(DescribedPredicate)}.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate identifying a lower type bound imported classes should NOT have
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -688,6 +736,11 @@ public interface ClassesShould {
     /**
      * Matches against accessing fields, where origin (a method or constructor) and target (a field)
      * can be freely restricted by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaFieldAccess} can be found within {@link JavaFieldAccess.Predicates} or one of the respective ancestors
+     * like {@link JavaAccess.Predicates}.
      *
      * @param predicate Determines which {@link JavaFieldAccess JavaFieldAccesses} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -697,6 +750,11 @@ public interface ClassesShould {
 
     /**
      * Matches all field accesses against the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaField} can be found within {@link JavaMember.Predicates} or one of the respective ancestors
+     * like {@link HasName.Predicates}.
      *
      * @param predicate Determines which {@link JavaField JavaFields} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -727,6 +785,11 @@ public interface ClassesShould {
     /**
      * Matches against getting of fields, where origin (a method or constructor) and target (a field)
      * can be freely restricted by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaFieldAccess} can be found within {@link JavaFieldAccess.Predicates} or one of the respective ancestors
+     * like {@link JavaAccess.Predicates}.
      *
      * @param predicate Determines which {@link JavaFieldAccess JavaFieldAccesses} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -757,6 +820,11 @@ public interface ClassesShould {
     /**
      * Matches against setting of fields, where origin (a method or constructor) and target (a field)
      * can be freely restricted by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaFieldAccess} can be found within {@link JavaFieldAccess.Predicates} or one of the respective ancestors
+     * like {@link JavaAccess.Predicates}.
      *
      * @param predicate Determines which {@link JavaFieldAccess JavaFieldAccesses} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -789,6 +857,11 @@ public interface ClassesShould {
     /**
      * Matches against method calls where origin (a method or constructor) and target (a method)
      * can be freely restricted by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaMethodCall} can be found within {@link JavaCall.Predicates} or one of the respective ancestors
+     * like {@link JavaAccess.Predicates}.
      *
      * @param predicate Determines which {@link JavaMethodCall JavaMethodCalls} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -798,6 +871,11 @@ public interface ClassesShould {
 
     /**
      * Matches all method calls against the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaMethod} can be found within {@link JavaMethod.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
      *
      * @param predicate Determines which {@link JavaMethod JavaMethods} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -828,6 +906,11 @@ public interface ClassesShould {
     /**
      * Matches against constructor calls where origin (a method or constructor) and target (a constructor)
      * can be freely restricted by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaConstructorCall} can be found within {@link JavaCall.Predicates} or one of the respective ancestors
+     * like {@link JavaAccess.Predicates}.
      *
      * @param predicate Determines which {@link JavaConstructorCall JavaConstructorCalls} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -837,6 +920,11 @@ public interface ClassesShould {
 
     /**
      * Matches all constructor calls against the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaConstructor} can be found within {@link JavaConstructor.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
      *
      * @param predicate Determines which {@link JavaConstructor JavaConstructors} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -848,6 +936,11 @@ public interface ClassesShould {
      * Matches against access of arbitrary targets (compare {@link AccessTarget})
      * where origin (a method or constructor) and target (a field, method or constructor) can be freely restricted
      * by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaAccess} can be found within {@link JavaAccess.Predicates} or one of the respective ancestors
+     * like {@link HasName.Predicates}.
      *
      * @param predicate Determines which {@link JavaAccess JavaAccesses} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -857,6 +950,11 @@ public interface ClassesShould {
 
     /**
      * Matches all members calls against the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaMember} can be found within {@link JavaMember.Predicates} or one of the respective ancestors
+     * like {@link HasName.Predicates}.
      *
      * @param predicate Determines which {@link JavaMember JavaMembers} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -867,6 +965,11 @@ public interface ClassesShould {
     /**
      * Matches against code unit calls (compare {@link JavaCodeUnit}) where origin (a code unit)
      * and target (a code unit) can be freely restricted by the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaCall} can be found within {@link JavaCall.Predicates} or one of the respective ancestors
+     * like {@link JavaAccess.Predicates}.
      *
      * @param predicate Determines which {@link JavaCall JavaCalls} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -876,6 +979,11 @@ public interface ClassesShould {
 
     /**
      * Matches all code unit calls against the supplied predicate.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaCodeUnit} can be found within {@link JavaCodeUnit.Predicates} or one of the respective ancestors
+     * like {@link JavaMember.Predicates}.
      *
      * @param predicate Determines which {@link JavaCodeUnit JavaCodeUnits} match the rule
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -909,6 +1017,10 @@ public interface ClassesShould {
      *
      * NOTE: 'access' refers only to violations by real accesses, i.e. accessing a field, and calling a method.
      * Compare with {@link #dependOnClassesThat(DescribedPredicate)} that catches a wider variety of violations.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the access target
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -942,6 +1054,10 @@ public interface ClassesShould {
      *
      * NOTE: 'access' refers only to violations by real accesses, i.e. accessing a field, and calling a method.
      * Compare with {@link #onlyDependOnClassesThat(DescribedPredicate)} that catches a wider variety of violations.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the access target
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -975,6 +1091,10 @@ public interface ClassesShould {
      *
      * NOTE: 'dependOn' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
      * Compare with {@link #accessClassesThat(DescribedPredicate)} that catches violations only by real accesses.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency target
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -1008,6 +1128,10 @@ public interface ClassesShould {
      *
      * NOTE: 'dependOn' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
      * Compare with {@link #onlyAccessClassesThat(DescribedPredicate)} that catches violations only by real accesses.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency target
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -1045,6 +1169,10 @@ public interface ClassesShould {
      * </code></pre>
      *
      * NOTE: 'dependOn' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency target
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule
@@ -1092,6 +1220,10 @@ public interface ClassesShould {
      * NOTE: 'depends' catches wide variety of violations, e.g. having fields of type, having method parameters of type, extending type etc...
      * Compare with {@link #onlyBeAccessed()}.{@link OnlyBeAccessedSpecification#byClassesThat(DescribedPredicate) byClassesThat(DescribedPredicate)}
      * that catches violations only by real accesses.
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate Determines which {@link JavaClass JavaClasses} match the dependency origin
      * @return A syntax element that can either be used as working rule, or to continue specifying a more complex rule

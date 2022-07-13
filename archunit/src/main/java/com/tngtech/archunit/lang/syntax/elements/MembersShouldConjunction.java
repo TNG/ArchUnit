@@ -17,21 +17,43 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaMember;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Same as {@link ClassesShouldConjunction} but for rules about {@link JavaMember members}.
+ * In particular, the explanation about associativity of joining further {@link ArchCondition conditions}
+ * via {@link #andShould(ArchCondition)} and {@link #orShould(ArchCondition)}
+ * as explained within {@link ClassesShouldConjunction} also holds for the methods defined in this
+ * hierarchy of classes.
+ * @param <MEMBER> The concrete type of {@link JavaMember} this conjunction describes, e.g. {@link JavaMethod}.
+ */
 public interface MembersShouldConjunction<MEMBER extends JavaMember> extends ArchRule {
+
+    /**
+     * Same as {@link ClassesShouldConjunction#andShould(ArchCondition)} but for {@link JavaMember}
+     */
     @PublicAPI(usage = ACCESS)
     MembersShouldConjunction<MEMBER> andShould(ArchCondition<? super MEMBER> condition);
 
+    /**
+     * Same as {@link ClassesShouldConjunction#andShould()} but for {@link JavaMember}
+     */
     @PublicAPI(usage = ACCESS)
     MembersShould<? extends MembersShouldConjunction<MEMBER>> andShould();
 
+    /**
+     * Same as {@link ClassesShouldConjunction#orShould(ArchCondition)} but for {@link JavaMember}
+     */
     @PublicAPI(usage = ACCESS)
     MembersShouldConjunction<MEMBER> orShould(ArchCondition<? super MEMBER> condition);
 
+    /**
+     * Same as {@link ClassesShouldConjunction#orShould()} but for {@link JavaMember}
+     */
     @PublicAPI(usage = ACCESS)
     MembersShould<? extends MembersShouldConjunction<MEMBER>> orShould();
 }

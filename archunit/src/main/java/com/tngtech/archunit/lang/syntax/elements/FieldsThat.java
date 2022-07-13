@@ -18,6 +18,7 @@ package com.tngtech.archunit.lang.syntax.elements;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
@@ -113,6 +114,11 @@ public interface FieldsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      *
      * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#haveRawType(DescribedPredicate) haveRawType(assignableTo(Serializable.class))}</code></pre>
      *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
+     *
      * @param predicate A predicate determining which types of fields match
      * @return A syntax conjunction element, which can be completed to form a full rule
      */
@@ -131,6 +137,11 @@ public interface FieldsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
      * Then <code>someField</code> would be matched by
      *
      * <pre><code>{@link ArchRuleDefinition#fields() fields()}.{@link GivenFields#that() that()}.{@link FieldsThat#doNotHaveRawType(DescribedPredicate) doNotHaveRawType(assignableTo(List.class))}</code></pre>
+     *
+     * <br><br>
+     * Note that many predefined {@link DescribedPredicate predicates} can be found within a subclass {@code Predicates} of the
+     * respective domain object or a common ancestor. For example, {@link DescribedPredicate predicates} targeting
+     * {@link JavaClass} can be found within {@link JavaClass.Predicates} or one of the respective ancestors like {@link HasName.Predicates}.
      *
      * @param predicate A predicate determining which types of fields do not match
      * @return A syntax conjunction element, which can be completed to form a full rule

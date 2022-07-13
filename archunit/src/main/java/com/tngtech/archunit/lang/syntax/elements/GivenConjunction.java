@@ -17,13 +17,27 @@ package com.tngtech.archunit.lang.syntax.elements;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClass.Predicates;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+/**
+ * Allows to further filter the set of all objects via {@link #and(DescribedPredicate)} or {@link #or(DescribedPredicate)}
+ * or create a complete {@link ArchRule} via {@link #should(ArchCondition)}.
+ * @param <OBJECTS> The type of the objects to be checked by the final {@link ArchRule}, e.g. {@link JavaClass}.
+ */
 public interface GivenConjunction<OBJECTS> {
+
+    /**
+     * Creates an {@link ArchRule} that will evaluate all {@code OBJECTS} under test against the supplied
+     * {@link ArchCondition}.
+     *
+     * @param condition The {@link ArchCondition} to check objects against
+     * @return An {@link ArchRule} that can be checked against a set of {@code OBJECTS}
+     */
     @PublicAPI(usage = ACCESS)
     ArchRule should(ArchCondition<? super OBJECTS> condition);
 

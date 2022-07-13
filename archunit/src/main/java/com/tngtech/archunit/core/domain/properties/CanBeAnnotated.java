@@ -92,6 +92,9 @@ public interface CanBeAnnotated {
     @PublicAPI(usage = ACCESS)
     boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate);
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link CanBeAnnotated}
+     */
     final class Predicates {
         private Predicates() {
         }

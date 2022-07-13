@@ -197,6 +197,17 @@ public abstract class JavaMember implements
         return getClass().getSimpleName() + '{' + getFullName() + '}';
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link JavaMember}.
+     * Note that due to inheritance further predicates for {@link JavaMember} can be found in the following locations:
+     * <ul>
+     *     <li>{@link HasName.Predicates}</li>
+     *     <li>{@link HasName.AndFullName.Predicates}</li>
+     *     <li>{@link HasModifiers.Predicates}</li>
+     *     <li>{@link CanBeAnnotated.Predicates}</li>
+     *     <li>{@link HasOwner.Predicates}</li>
+     * </ul>
+     */
     public static final class Predicates {
         private Predicates() {
         }

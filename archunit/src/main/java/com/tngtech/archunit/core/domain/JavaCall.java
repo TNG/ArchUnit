@@ -28,6 +28,10 @@ public abstract class JavaCall<T extends CodeUnitCallTarget> extends JavaCodeUni
         super(builder);
     }
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting {@link JavaCall}.
+     * Further predicates to be used with {@link JavaCall} can be found at {@link JavaCodeUnitAccess.Predicates}.
+     */
     public static final class Predicates {
         private Predicates() {
         }

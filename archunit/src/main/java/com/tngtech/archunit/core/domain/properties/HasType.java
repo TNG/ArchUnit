@@ -34,6 +34,10 @@ public interface HasType {
     @PublicAPI(usage = ACCESS)
     JavaClass getRawType();
 
+    /**
+     * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasType}
+     */
+    @PublicAPI(usage = ACCESS)
     final class Predicates {
         private Predicates() {
         }
@@ -54,6 +58,9 @@ public interface HasType {
         }
     }
 
+    /**
+     * Predefined {@link ChainableFunction functions} to transform {@link HasType}.
+     */
     final class Functions {
         private Functions() {
         }
