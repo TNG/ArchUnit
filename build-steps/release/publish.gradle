@@ -48,7 +48,9 @@ def updateVersion = { Closure<String> calculateNewVersion ->
 
 task prepareRelease() {
     doFirst {
-        String releaseVersion = withCurrentVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix -> "$oldMajor.$oldMinor.$oldPatch" }
+        String releaseVersion = withCurrentVersion { int oldMajor, int oldMinor, int oldPatch, String oldSuffix ->
+            "$oldMajor.$oldMinor.$oldPatch${oldSuffix.replace('-SNAPSHOT', '')}"
+        }
 
         def releaseBranch = "release-$releaseVersion"
         executeCommand(['git', 'checkout', '-b', "$releaseBranch"])
