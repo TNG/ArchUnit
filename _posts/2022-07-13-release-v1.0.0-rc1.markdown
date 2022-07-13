@@ -1,0 +1,8 @@
+---
+layout: splash
+title:  "New release of ArchUnit (v1.0.0-rc1)"
+date:   2022-07-13 12:00:00
+categories: news release
+---
+
+A new release of ArchUnit (v1.0.0-rc1) is out. For details see [the release on GitHub](https://github.com/TNG/ArchUnit/releases/tag/v1.0.0-rc1 "ArchUnit v1.0.0-rc1 on GitHub").
