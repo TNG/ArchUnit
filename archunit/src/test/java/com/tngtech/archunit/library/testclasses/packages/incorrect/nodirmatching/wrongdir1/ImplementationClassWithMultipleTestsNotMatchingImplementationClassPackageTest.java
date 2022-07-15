@@ -1,0 +1,4 @@
+package com.tngtech.archunit.library.testclasses.packages.incorrect.nodirmatching.wrongdir1;
+
+public class ImplementationClassWithMultipleTestsNotMatchingImplementationClassPackageTest {
+}

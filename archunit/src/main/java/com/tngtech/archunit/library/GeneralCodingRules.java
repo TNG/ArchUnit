@@ -17,6 +17,7 @@ package com.tngtech.archunit.library;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.tngtech.archunit.PublicAPI;
@@ -30,7 +31,6 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 
-import static com.google.common.base.Functions.identity;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.AccessTarget.Predicates.constructor;
@@ -55,7 +55,8 @@ import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
-import static java.util.stream.Collectors.toMap;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * GeneralCodingRules provides a set of very general {@link ArchCondition ArchConditions}
@@ -449,13 +450,13 @@ public final class GeneralCodingRules {
 
     private static ArchCondition<JavaClass> resideInTheSamePackageAsTheirTestClasses(String testClassSuffix) {
         return new ArchCondition<JavaClass>("reside in the same package as their test classes") {
-            Map<String, JavaClass> testClassesBySimpleClassName = new HashMap<>();
+            Map<String, List<JavaClass>> testClassesBySimpleClassName = new HashMap<>();
 
             @Override
             public void init(Collection<JavaClass> allClasses) {
                 testClassesBySimpleClassName = allClasses.stream()
                         .filter(clazz -> clazz.getName().endsWith(testClassSuffix))
-                        .collect(toMap(JavaClass::getSimpleName, identity()));
+                        .collect(groupingBy(JavaClass::getSimpleName));
             }
 
             @Override
@@ -463,15 +464,17 @@ public final class GeneralCodingRules {
                 String implementationClassName = implementationClass.getSimpleName();
                 String implementationClassPackageName = implementationClass.getPackageName();
                 String possibleTestClassName = implementationClassName + testClassSuffix;
-                JavaClass possibleTestClass = testClassesBySimpleClassName.get(possibleTestClassName);
+                List<JavaClass> possibleTestClasses = testClassesBySimpleClassName.getOrDefault(possibleTestClassName, emptyList());
 
-                boolean isTestClassInWrongPackage = possibleTestClass != null
-                        && !possibleTestClass.getPackageName().equals(implementationClassPackageName);
+                boolean isTestClassInWrongPackage = !possibleTestClasses.isEmpty()
+                        && possibleTestClasses.stream().noneMatch(clazz -> clazz.getPackageName().equals(implementationClassPackageName));
 
                 if (isTestClassInWrongPackage) {
-                    String message = createMessage(possibleTestClass,
-                            String.format("does not reside in same package as implementation class <%s>", implementationClass.getName()));
-                    events.add(violated(possibleTestClass, message));
+                    possibleTestClasses.forEach(wrongTestClass -> {
+                        String message = createMessage(wrongTestClass,
+                                String.format("does not reside in same package as implementation class <%s>", implementationClass.getName()));
+                        events.add(violated(wrongTestClass, message));
+                    });
                 }
             }
         };

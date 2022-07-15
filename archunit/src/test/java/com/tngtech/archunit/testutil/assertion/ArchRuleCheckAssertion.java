@@ -1,5 +1,6 @@
 package com.tngtech.archunit.testutil.assertion;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.google.common.base.Joiner;
@@ -56,8 +57,20 @@ public class ArchRuleCheckAssertion {
     }
 
     public ArchRuleCheckAssertion hasOnlyOneViolationWithStandardPattern(Class<?> violatingClass, String violationDescription) {
-        String violationMessage = "Class <" + violatingClass.getName() + "> " + violationDescription + " in (" + violatingClass.getSimpleName() + ".java:0)";
+        String violationMessage = toViolationMessage(violatingClass, violationDescription);
         return hasOnlyOneViolation(violationMessage);
+    }
+
+    public ArchRuleCheckAssertion hasViolationWithStandardPattern(Class<?> violatingClass, String violationDescription) {
+        String violationMessage = toViolationMessage(violatingClass, violationDescription);
+        List<String> allViolations = evaluationResult.getFailureReport().getDetails();
+        assertThat(allViolations).contains(violationMessage);
+        assertThat(error.get().getMessage()).contains(violationMessage);
+        return this;
+    }
+
+    private String toViolationMessage(Class<?> violatingClass, String violationDescription) {
+        return "Class <" + violatingClass.getName() + "> " + violationDescription + " in (" + violatingClass.getSimpleName() + ".java:0)";
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
