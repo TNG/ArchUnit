@@ -17,6 +17,7 @@ package com.tngtech.archunit.junit;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import java.lang.annotation.Inherited;
 
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -49,6 +50,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(TYPE)
 @Retention(RUNTIME)
 @PublicAPI(usage = ACCESS)
+@Inherited
 public @interface AnalyzeClasses {
     /**
      * @return Packages to look for within the classpath / modulepath
