@@ -105,9 +105,7 @@ public class ArchRuleTest {
     }
 
     @Test
-    public void description_can_be_overridden() throws IOException {
-        writeIgnoreFileWithPatterns(".*");
-
+    public void description_can_be_overridden() {
         ArchRule ruleWithOverriddenDescription = classes().should(conditionThatReportsErrors("first one", "second two"))
                 .as("rule text overridden");
         String description = ruleWithOverriddenDescription.getDescription();
