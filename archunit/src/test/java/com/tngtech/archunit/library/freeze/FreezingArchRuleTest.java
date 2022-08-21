@@ -2,6 +2,7 @@ package com.tngtech.archunit.library.freeze;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,10 +39,13 @@ import org.junit.runner.RunWith;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.cartesianProduct;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
+import static com.tngtech.archunit.lang.EvaluationResultTest.writeIgnoreFileWithPatterns;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.freeze.FreezingArchRule.freeze;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.exists;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -477,6 +481,27 @@ public class FreezingArchRuleTest {
         ArchConfiguration.get().setProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, "false");
         expectStoreUpdateDisabledException();
         freeze(someRule.withViolations("remaining").create()).check(importClasses(getClass()));
+    }
+
+    @Test
+    public void violations_ignored_by_archunit_ignore_patterns_are_omitted_from_the_store() throws IOException {
+        Path ignoreFile = null;
+        try {
+            ignoreFile = writeIgnoreFileWithPatterns(".* ignored");
+
+            ArchRule input = rule("some description").withViolations("first ignored", "second non-ignored").create();
+            TestViolationStore violationStore = new TestViolationStore();
+
+            assertThatRule(freeze(input).persistIn(violationStore))
+                    .checking(importClasses(getClass()))
+                    .hasNoViolation();
+
+            violationStore.verifyStoredRule("some description", "second non-ignored");
+        } finally {
+            if (ignoreFile != null && exists(ignoreFile)) {
+                delete(ignoreFile);
+            }
+        }
     }
 
     private void expectStoreUpdateDisabledException() {
