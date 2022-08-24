@@ -15,17 +15,10 @@
  */
 package com.tngtech.archunit.lang;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.Internal;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedIterable;
@@ -40,10 +33,7 @@ import com.tngtech.archunit.lang.syntax.elements.ClassesThat;
 import com.tngtech.archunit.lang.syntax.elements.GivenClasses;
 
 import static com.google.common.collect.Iterables.isEmpty;
-import static com.google.common.io.Resources.readLines;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Represents a rule about a specified set of objects of interest (e.g. {@link JavaClass}).
@@ -88,9 +78,6 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
         private Assertions() {
         }
 
-        static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
-        private static final String COMMENT_LINE_PREFIX = "#";
-
         @PublicAPI(usage = ACCESS)
         public static void check(ArchRule rule, JavaClasses classes) {
             EvaluationResult result = rule.evaluate(classes);
@@ -102,43 +89,9 @@ public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRul
         public static void assertNoViolation(EvaluationResult result) {
             FailureReport report = result.getFailureReport();
 
-            Set<Pattern> patterns = readPatternsFrom(ARCHUNIT_IGNORE_PATTERNS_FILE_NAME);
-            if (!patterns.isEmpty()) {
-                report = report.filter(notMatchedByAny(patterns));
-            }
             if (!report.isEmpty()) {
                 throw new AssertionError(report.toString());
             }
-        }
-
-        private static Predicate<String> notMatchedByAny(final Set<Pattern> patterns) {
-            return message -> {
-                String normalizedMessage = message.replaceAll("\r*\n", " ");
-                return patterns.stream().noneMatch(pattern -> pattern.matcher(normalizedMessage).matches());
-            };
-        }
-
-        private static Set<Pattern> readPatternsFrom(String fileNameInClassPath) {
-            URL ignorePatternsResource = getCurrentClassLoader(Assertions.class).getResource(fileNameInClassPath);
-            if (ignorePatternsResource == null) {
-                return Collections.emptySet();
-            }
-
-            try {
-                return readPatternsFrom(ignorePatternsResource);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        private static Set<Pattern> readPatternsFrom(URL ignorePatternsResource) throws IOException {
-            ImmutableSet.Builder<Pattern> result = ImmutableSet.builder();
-            for (String line : readLines(ignorePatternsResource, UTF_8)) {
-                if (!line.startsWith(COMMENT_LINE_PREFIX)) {
-                    result.add(Pattern.compile(line));
-                }
-            }
-            return result.build();
         }
 
         private static class SimpleEvaluatedRule implements EvaluatedRule {

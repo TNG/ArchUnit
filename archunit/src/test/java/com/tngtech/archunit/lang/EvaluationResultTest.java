@@ -1,5 +1,10 @@
 package com.tngtech.archunit.lang;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -9,14 +14,31 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.HasDescription;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.tngtech.archunit.lang.EvaluationResult.ARCHUNIT_IGNORE_PATTERNS_FILE_NAME;
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
+import static com.tngtech.archunit.testutil.TestUtils.toUri;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.exists;
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EvaluationResultTest {
+
+    @Before
+    public void setUp() throws IOException {
+        cleanIgnoreFile();
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        cleanIgnoreFile();
+    }
 
     @Test
     public void reports_description_lines_of_events() {
@@ -106,6 +128,63 @@ public class EvaluationResultTest {
                 "handle sub type: I'm violated and correct sub type");
     }
 
+    @Test
+    public void filters_violations_ignored_by_archunit_ignore_patterns() throws IOException {
+        writeIgnoreFileWithPatterns(".* one", ".*two");
+
+        EvaluationResult result = evaluationResultWith(events("first one", "second two", "third one more", "fourth"));
+
+        assertThat(result.hasViolation()).as("result has violation").isTrue();
+        assertThat(result.getFailureReport().getDetails()).containsOnly("third one more", "fourth");
+    }
+
+    @Test
+    public void if_all_messages_are_ignored_the_test_passes() throws IOException {
+        writeIgnoreFileWithPatterns(".*");
+
+        EvaluationResult result = evaluationResultWith(events("first one", "second two"));
+
+        assertThat(result.hasViolation()).as("result has violation").isFalse();
+    }
+
+    @Test
+    public void ignored_pattern_with_comment() throws IOException {
+        writeIgnoreFileWithPatterns("# comment1", "#comment2", "regular_reg_exp");
+
+        EvaluationResult result = evaluationResultWith(events("# comment1", "#comment2", "regular_reg_exp"));
+
+        assertThat(result.hasViolation()).as("result has violation").isTrue();
+        assertThat(result.getFailureReport().getDetails()).containsOnly("# comment1", "#comment2");
+    }
+
+    @Test
+    public void filters_violations_ignored_by_archunit_ignore_patterns_from_multiple_sources() throws IOException {
+        writeIgnoreFileWithPatterns(".* one", ".*two");
+
+        EvaluationResult result = new EvaluationResult(hasDescription("irrelevant"), MEDIUM);
+        result.add(evaluationResultWith(events("first one", "keep1")));
+        result.add(evaluationResultWith(events("second two", "keep2")));
+
+        assertThat(result.hasViolation()).as("result has violation").isTrue();
+        assertThat(result.getFailureReport().getDetails()).containsOnly("keep1", "keep2");
+    }
+
+    @Test
+    public void ignores_filtered_violations_ignored_by_archunit_ignore_patterns_when_handling_errors() throws IOException {
+        writeIgnoreFileWithPatterns(".* one", ".*two");
+
+        EvaluationResult result = evaluationResultWith(events("first one", "second two", "third one more", "fourth"));
+
+        List<String> handledViolations = new ArrayList<>();
+        result.handleViolations((Collection<Object> irrelevant, String message) -> handledViolations.add(message));
+
+        assertThat(handledViolations).containsOnly("third one more", "fourth");
+    }
+
+    private EvaluationResult evaluationResultWith(ConditionEvents events) {
+        return evaluationResultWith(events.getViolating().toArray(new ConditionEvent[0]));
+    }
+
     private EvaluationResult evaluationResultWith(ConditionEvent... events) {
         return new EvaluationResult(hasDescription("unimportant"), events(events), MEDIUM);
     }
@@ -127,6 +206,24 @@ public class EvaluationResultTest {
 
     private HasDescription hasDescription(final String description) {
         return () -> description;
+    }
+
+    public static Path writeIgnoreFileWithPatterns(String... patterns) throws IOException {
+        Path ignoreFile = ignoreFile();
+        Files.write(ignoreFile, Joiner.on("\n").join(patterns).getBytes(UTF_8));
+        return ignoreFile;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private static Path ignoreFile() {
+        return Paths.get(toUri(EvaluationResultTest.class.getResource("/"))).resolve(ARCHUNIT_IGNORE_PATTERNS_FILE_NAME);
+    }
+
+    private void cleanIgnoreFile() throws IOException {
+        Path ignoreFile = ignoreFile();
+        if (exists(ignoreFile)) {
+            delete(ignoreFile);
+        }
     }
 
     private static class CorrectSubtype extends CorrectType {

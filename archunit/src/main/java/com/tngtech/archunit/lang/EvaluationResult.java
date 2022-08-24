@@ -15,13 +15,19 @@
  */
 package com.tngtech.archunit.lang;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -29,9 +35,12 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Ordering.natural;
+import static com.google.common.io.Resources.readLines;
 import static com.tngtech.archunit.PublicAPI.State.EXPERIMENTAL;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
-import static java.util.Collections.emptyList;
+import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -45,29 +54,32 @@ import static java.util.stream.Collectors.toList;
  * </code></pre>
  */
 public final class EvaluationResult {
+    static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
+    private static final String COMMENT_LINE_PREFIX = "#";
+
     private final HasDescription rule;
-    private final List<ConditionEvent> violations;
+    private final ArrayList<ConditionEvent> violations;
     private final Optional<String> informationAboutNumberOfViolations;
     private final Priority priority;
 
     @PublicAPI(usage = ACCESS)
     public EvaluationResult(HasDescription rule, Priority priority) {
-        this(rule, emptyList(), Optional.empty(), priority);
+        this(rule, new ArrayList<>(), Optional.empty(), priority);
     }
 
     @PublicAPI(usage = ACCESS)
     public EvaluationResult(HasDescription rule, ConditionEvents events, Priority priority) {
         this(
                 rule,
-                events.getViolating(),
+                new ArrayList<>(events.getViolating()),
                 events.getInformationAboutNumberOfViolations(),
                 priority
         );
     }
 
-    EvaluationResult(HasDescription rule, Collection<ConditionEvent> violations, Optional<String> informationAboutNumberOfViolations, Priority priority) {
+    private EvaluationResult(HasDescription rule, ArrayList<ConditionEvent> violations, Optional<String> informationAboutNumberOfViolations, Priority priority) {
         this.rule = rule;
-        this.violations = new ArrayList<>(violations);
+        this.violations = createViolations(violations);
         this.informationAboutNumberOfViolations = informationAboutNumberOfViolations;
         this.priority = priority;
     }
@@ -160,11 +172,50 @@ public final class EvaluationResult {
      */
     @PublicAPI(usage = ACCESS)
     public EvaluationResult filterDescriptionsMatching(Predicate<String> linePredicate) {
-        List<ConditionEvent> filtered = violations.stream()
+        ArrayList<ConditionEvent> filtered = filterEvents(violations, linePredicate);
+        return new EvaluationResult(rule, filtered, Optional.empty(), priority);
+    }
+
+    private static ArrayList<ConditionEvent> filterEvents(Collection<ConditionEvent> violations, Predicate<String> linePredicate) {
+        return violations.stream()
                 .map(e -> new FilteredEvent(e, linePredicate))
                 .filter(FilteredEvent::isViolation)
-                .collect(toList());
-        return new EvaluationResult(rule, filtered, Optional.empty(), priority);
+                .collect(toCollection(ArrayList::new));
+    }
+
+    private static ArrayList<ConditionEvent> createViolations(ArrayList<ConditionEvent> violations) {
+        Set<Pattern> patterns = readPatternsFrom(ARCHUNIT_IGNORE_PATTERNS_FILE_NAME);
+        return patterns.isEmpty() ? violations : filterEvents(violations, notMatchedByAny(patterns));
+    }
+
+    private static Predicate<String> notMatchedByAny(final Set<Pattern> patterns) {
+        return message -> {
+            String normalizedMessage = message.replaceAll("\r*\n", " ");
+            return patterns.stream().noneMatch(pattern -> pattern.matcher(normalizedMessage).matches());
+        };
+    }
+
+    private static Set<Pattern> readPatternsFrom(String fileNameInClassPath) {
+        URL ignorePatternsResource = getCurrentClassLoader(ArchRule.Assertions.class).getResource(fileNameInClassPath);
+        if (ignorePatternsResource == null) {
+            return Collections.emptySet();
+        }
+
+        try {
+            return readPatternsFrom(ignorePatternsResource);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Set<Pattern> readPatternsFrom(URL ignorePatternsResource) throws IOException {
+        ImmutableSet.Builder<Pattern> result = ImmutableSet.builder();
+        for (String line : readLines(ignorePatternsResource, UTF_8)) {
+            if (!line.startsWith(COMMENT_LINE_PREFIX)) {
+                result.add(Pattern.compile(line));
+            }
+        }
+        return result.build();
     }
 
     private static class FilteredEvent implements ConditionEvent {
