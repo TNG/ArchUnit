@@ -100,10 +100,9 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<? extends JavaAnnotation<JavaPackage>> getAnnotations() {
-        if (packageInfo.isPresent()) {
-            return packageInfo.get().getAnnotations().stream().map(withSelfAsOwner).collect(toSet());
-        }
-        return emptySet();
+        return packageInfo
+                .map(it -> it.getAnnotations().stream().map(withSelfAsOwner).collect(toSet()))
+                .orElse(emptySet());
     }
 
     @Override
@@ -134,64 +133,43 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @Override
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation<JavaPackage>> tryGetAnnotationOfType(String typeName) {
-        if (packageInfo.isPresent()) {
-            return packageInfo.get().tryGetAnnotationOfType(typeName).map(withSelfAsOwner);
-        }
-        return Optional.empty();
+        return packageInfo.flatMap(it -> it.tryGetAnnotationOfType(typeName).map(withSelfAsOwner));
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(Class<? extends Annotation> annotationType) {
-        if (packageInfo.isPresent()) {
-            return packageInfo.get().isAnnotatedWith(annotationType);
-        }
-        return false;
+        return packageInfo.map(it -> it.isAnnotatedWith(annotationType)).orElse(false);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(String annotationTypeName) {
-        if (packageInfo.isPresent()) {
-            return packageInfo.get().isAnnotatedWith(annotationTypeName);
-        }
-        return false;
+        return packageInfo.map(it -> it.isAnnotatedWith(annotationTypeName)).orElse(false);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        if (packageInfo.isPresent()) {
-            return packageInfo.get().isAnnotatedWith(predicate);
-        }
-        return false;
+        return packageInfo.map(it -> it.isAnnotatedWith(predicate)).orElse(false);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
-        if (packageInfo.isPresent()) {
-            return packageInfo.get().isMetaAnnotatedWith(annotationType);
-        }
-        return false;
+        return packageInfo.map(it -> it.isMetaAnnotatedWith(annotationType)).orElse(false);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(String annotationTypeName) {
-        if (packageInfo.isPresent()) {
-            return packageInfo.get().isMetaAnnotatedWith(annotationTypeName);
-        }
-        return false;
+        return packageInfo.map(it -> it.isMetaAnnotatedWith(annotationTypeName)).orElse(false);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
-        if (packageInfo.isPresent()) {
-            return packageInfo.get().isMetaAnnotatedWith(predicate);
-        }
-        return false;
+        return packageInfo.map(it -> it.isMetaAnnotatedWith(predicate)).orElse(false);
     }
 
     /**
