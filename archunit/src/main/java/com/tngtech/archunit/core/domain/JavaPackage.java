@@ -50,6 +50,40 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toSet;
 
+/**
+ * Represents a package of Java classes as defined by the
+ * <a href="https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html">Java Language Specification</a>.
+ * I.e. a namespace/group for related classes, where each package can also contain further subpackages.
+ * Thus, packages define a hierarchical tree-like structure.<br>
+ * An example would be the package {@code java.lang} which contains {@code java.lang.Object}.<br>
+ * ArchUnit will consider the "classes of a package" to be the classes residing <b>directly</b>
+ * within the package. Furthermore, "subpackages" of a package are considered packages that are residing
+ * <b>directly</b> within this package. On the contrary, ArchUnit will call the hierarchical tree-like structure
+ * consisting of all packages that can be reached by traversing subpackages, subpackages of subpackages, etc.,
+ * as "package tree".
+ * <br><br>
+ * Take for example the classes
+ * <pre><code>
+ * com.example.TopLevel
+ * com.example.first.First
+ * com.example.first.nested.FirstNested
+ * com.example.first.nested.deeper_nested.FirstDeeperNested
+ * com.example.second.Second
+ * com.example.second.nested.SecondNested
+ * </code></pre>
+ * Then the package {@code com.example} would contain only the class {@code com.example.TopLevel}. It would also
+ * contain two subpackages {@code com.example.first} and {@code com.example.second} (but not {@code com.example.first.nested}
+ * as that is not <b>directly</b> contained within {@code com.example}).<br>
+ * The package tree of {@code com.example} would contain all packages (and classes within)
+ * <pre><code>
+ * {@code com.example}
+ * {@code com.example.first}
+ * {@code com.example.first.nested}
+ * {@code com.example.first.nested.deeper_nested}
+ * {@code com.example.second}
+ * {@code com.example.second.nested}
+ * </code></pre>
+ */
 public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     private final String name;
     private final String relativeName;
@@ -83,6 +117,11 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         return relativeName;
     }
 
+    /**
+     * @return The {@link JavaClass} representing the compiled {@code package-info.class} file of this {@link JavaPackage}
+     *         (for details refer to the <a href="https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html">Java Language Specification</a>).
+     *         Will throw an {@link IllegalArgumentException} if no {@code package-info} exists in this package.
+     */
     @PublicAPI(usage = ACCESS)
     public HasAnnotations<?> getPackageInfo() {
         Optional<? extends HasAnnotations<?>> packageInfo = tryGetPackageInfo();
@@ -92,11 +131,20 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         return packageInfo.get();
     }
 
+    /**
+     * @return The {@link JavaClass} representing the compiled {@code package-info.class} file of this {@link JavaPackage}
+     *         or {@link Optional#empty()} if no {@code package-info} exists in this package
+     *         (for details refer to the <a href="https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html">Java Language Specification</a>).
+     */
     @PublicAPI(usage = ACCESS)
     public Optional<? extends HasAnnotations<?>> tryGetPackageInfo() {
         return packageInfo;
     }
 
+    /**
+     * @return All annotations on the compiled {@link #getPackageInfo() package-info.class} file
+     *         (for details refer to the <a href="https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html">Java Language Specification</a>).
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public Set<? extends JavaAnnotation<JavaPackage>> getAnnotations() {
@@ -105,12 +153,29 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
                 .orElse(emptySet());
     }
 
+    /**
+     * @return The {@link Annotation} of the given type on the {@link #getPackageInfo() package-info.class} of this package
+     *         (for details refer to the <a href="https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html">Java Language Specification</a>).
+     *         Will throw an {@link IllegalArgumentException} if either there is no {@code package-info}
+     *         or the {@code package-info} is not annotated with the respective annotation type.
+     * @param <A> The type of the {@link Annotation} to retrieve
+     * @see #tryGetAnnotationOfType(Class)
+     * @see #getAnnotationOfType(String)
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> A getAnnotationOfType(Class<A> type) {
         return getAnnotationOfType(type.getName()).as(type);
     }
 
+    /**
+     * @return The {@link JavaAnnotation} matching the given type on the {@link #getPackageInfo() package-info.class} of this package
+     *         (for details refer to the <a href="https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html">Java Language Specification</a>).
+     *         Will throw an {@link IllegalArgumentException} if either there is no {@code package-info}
+     *         or the {@code package-info} is not annotated with the respective annotation type.
+     * @see #tryGetAnnotationOfType(String)
+     * @see #getAnnotationOfType(Class)
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaAnnotation<JavaPackage> getAnnotationOfType(String typeName) {
@@ -121,6 +186,14 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         return annotation.get();
     }
 
+    /**
+     * @return The {@link Annotation} of the given type on the {@link #getPackageInfo() package-info.class}
+     *         of this package or {@link Optional#empty()} if either there is no {@code package-info}
+     *         or the {@code package-info} is not annotated with the respective annotation type.
+     * @param <A> The type of the {@link Annotation} to retrieve
+     * @see #getAnnotationOfType(Class)
+     * @see #tryGetAnnotationOfType(String)
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type) {
@@ -130,42 +203,85 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
         return Optional.empty();
     }
 
+    /**
+     * @return The {@link JavaAnnotation} matching the given type on the {@link #getPackageInfo() package-info.class}
+     *         of this package or {@link Optional#empty()} if either there is no {@code package-info}
+     *         or the {@code package-info} is not annotated with the respective annotation type.
+     * @see #tryGetAnnotationOfType(Class)
+     * @see #getAnnotationOfType(String)
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public Optional<JavaAnnotation<JavaPackage>> tryGetAnnotationOfType(String typeName) {
         return packageInfo.flatMap(it -> it.tryGetAnnotationOfType(typeName).map(withSelfAsOwner));
     }
 
+    /**
+     * @return {@code true} if and only if there is a {@link #getPackageInfo() package-info.class} in this package
+     *         that is annotated with an {@link Annotation} of the given type.
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(Class<? extends Annotation> annotationType) {
         return packageInfo.map(it -> it.isAnnotatedWith(annotationType)).orElse(false);
     }
 
+    /**
+     * @return {@code true} if and only if there is a {@link #getPackageInfo() package-info.class} in this package
+     *         that is annotated with an {@link Annotation} of the given type.
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(String annotationTypeName) {
         return packageInfo.map(it -> it.isAnnotatedWith(annotationTypeName)).orElse(false);
     }
 
+    /**
+     * @return {@code true} if and only if there is a {@link #getPackageInfo() package-info.class} in this package
+     *         that is annotated with an {@link Annotation} matching the given predicate.
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
         return packageInfo.map(it -> it.isAnnotatedWith(predicate)).orElse(false);
     }
 
+    /**
+     * @return {@code true} if and only if there is a {@link #getPackageInfo() package-info.class} in this package
+     *         that is meta-annotated with an {@link Annotation} of the given type.
+     *         A meta-annotation is an annotation that is declared on another annotation.
+     *         <p>
+     *         This method also returns {@code true} if this element is directly annotated with the given annotation type.
+     *         </p>
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(Class<? extends Annotation> annotationType) {
         return packageInfo.map(it -> it.isMetaAnnotatedWith(annotationType)).orElse(false);
     }
 
+    /**
+     * @return {@code true} if and only if there is a {@link #getPackageInfo() package-info.class} in this package
+     *         that is meta-annotated with an {@link Annotation} of the given type.
+     *         A meta-annotation is an annotation that is declared on another annotation.
+     *         <p>
+     *         This method also returns {@code true} if this element is directly annotated with the given annotation type.
+     *         </p>
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(String annotationTypeName) {
         return packageInfo.map(it -> it.isMetaAnnotatedWith(annotationTypeName)).orElse(false);
     }
 
+    /**
+     * @return {@code true} if and only if there is a {@link #getPackageInfo() package-info.class} in this package
+     *         that is annotated with an {@link Annotation} matching the given predicate.
+     *         A meta-annotation is an annotation that is declared on another annotation.
+     *         <p>
+     *         This method also returns {@code true} if this element is directly annotated with the given annotation type.
+     *         </p>
+     */
     @Override
     @PublicAPI(usage = ACCESS)
     public boolean isMetaAnnotatedWith(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
@@ -185,7 +301,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @return all classes directly contained in this package, no classes in sub-packages (compare {@link #getAllClasses()})
+     * @return all classes directly contained in this package, no classes in subpackages (compare {@link #getAllClasses()})
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getClasses() {
@@ -193,7 +309,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @return all classes contained in this package or any sub-package (compare {@link #getClasses()})
+     * @return all classes contained in this package or any subpackage (compare {@link #getClasses()})
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getAllClasses() {
@@ -205,8 +321,8 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @return all (direct) sub-packages contained in this package, e.g. {@code [java.lang, java.io, ...]} for package {@code java}
-     * (compare {@link #getAllSubpackages()})
+     * @return all (direct) subpackages contained in this package, e.g. for package {@code java} this would be
+     *         {@code [java.lang, java.io, ...]} (compare {@link #getAllSubpackages()})
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaPackage> getSubpackages() {
@@ -214,7 +330,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @return all sub-packages including nested sub-packages contained in this package,
+     * @return all subpackages including nested sub-packages contained in this package,
      * e.g. {@code [java.lang, java.lang.annotation, java.util, java.util.concurrent, ...]} for package {@code java}
      * (compare {@link #getSubpackages()})
      */
@@ -230,7 +346,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     /**
      * @param clazz a {@link JavaClass}
-     * @return true if this package (directly) contains this {@link JavaClass}
+     * @return {@code true} if this package (directly) contains this {@link JavaClass}
      */
     @PublicAPI(usage = ACCESS)
     public boolean containsClass(JavaClass clazz) {
@@ -239,7 +355,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     /**
      * @param clazz a Java {@link Class}
-     * @return true if this package (directly) contains a {@link JavaClass} equivalent to the supplied {@link Class}
+     * @return {@code true} if this package (directly) contains a {@link JavaClass} equivalent to the supplied {@link Class}
      * @see #getClass(Class)
      * @see #containsClassWithFullyQualifiedName(String)
      * @see #containsClassWithSimpleName(String)
@@ -250,7 +366,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @param clazz A Java class
+     * @param clazz A Java {@link Class}
      * @return the class if contained in this package, otherwise an Exception is thrown
      * @see #containsClass(Class)
      * @see #getClassWithFullyQualifiedName(String)
@@ -263,7 +379,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     /**
      * @param className fully qualified name of a Java class
-     * @return true if this package (directly) contains a {@link JavaClass} with the given fully qualified name
+     * @return {@code true} if this package (directly) contains a {@link JavaClass} with the given fully qualified name
      * @see #getClassWithFullyQualifiedName(String)
      * @see #containsClass(Class)
      * @see #containsClassWithSimpleName(String)
@@ -275,7 +391,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     /**
      * @param className fully qualified name of a Java class
-     * @return the class if contained in this package, otherwise an Exception is thrown
+     * @return the class if (directly) contained in this package, otherwise an Exception is thrown
      * @see #containsClassWithFullyQualifiedName(String)
      * @see #getClass(Class)
      * @see #getClassWithSimpleName(String)
@@ -292,7 +408,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     /**
      * @param className simple name of a Java class
-     * @return true if this package (directly) contains a {@link JavaClass} with the given simple name
+     * @return {@code true} if this package (directly) contains a {@link JavaClass} with the given simple name
      * @see #getClassWithSimpleName(String)
      * @see #containsClass(Class)
      * @see #containsClassWithFullyQualifiedName(String)
@@ -304,7 +420,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
 
     /**
      * @param className simple name of a Java class
-     * @return the class if contained in this package, otherwise an Exception is thrown
+     * @return the class if (directly) contained in this package, otherwise an Exception is thrown
      * @see #containsClassWithSimpleName(String)
      * @see #getClass(Class)
      * @see #getClassWithFullyQualifiedName(String)
@@ -329,8 +445,8 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @param packageName name of a package, may consist of several parts, e.g. {@code some.subpackage}
-     * @return true if this package contains the supplied (sub-) package
+     * @param packageName (relative) name of a package, may consist of several parts, e.g. {@code some.subpackage}
+     * @return true if this package contains the supplied (sub-)package with the given (relative) name
      * @see #getPackage(String)
      */
     @PublicAPI(usage = ACCESS)
@@ -339,8 +455,8 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @param packageName name of a package, may consist of several parts, e.g. {@code some.subpackage}
-     * @return the (sub-) package with the given (relative) name; throws an exception if there is no such package contained
+     * @param packageName (relative) name of a package, may consist of several parts, e.g. {@code some.subpackage}
+     * @return the (sub-)package with the given (relative) name; throws an exception if there is no such package contained
      * @see #containsPackage(String)
      */
     @PublicAPI(usage = ACCESS)
