@@ -491,8 +491,11 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getClassDependenciesFromSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaClass javaClass : getAllClasses()) {
-            addAllNonSelfDependencies(result, javaClass.getDirectDependenciesFromSelf());
+        Set<JavaClass> allClasses = getAllClasses();
+        for (JavaClass javaClass : allClasses) {
+            javaClass.getDirectDependenciesFromSelf().stream()
+                    .filter(it -> !allClasses.contains(it.getTargetClass()))
+                    .forEach(result::add);
         }
         return result.build();
     }
@@ -504,18 +507,13 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getClassDependenciesToSelf() {
         ImmutableSet.Builder<Dependency> result = ImmutableSet.builder();
-        for (JavaClass javaClass : getAllClasses()) {
-            addAllNonSelfDependencies(result, javaClass.getDirectDependenciesToSelf());
+        Set<JavaClass> allClasses = getAllClasses();
+        for (JavaClass javaClass : allClasses) {
+            javaClass.getDirectDependenciesToSelf().stream()
+                    .filter(it -> !allClasses.contains(it.getOriginClass()))
+                    .forEach(result::add);
         }
         return result.build();
-    }
-
-    private void addAllNonSelfDependencies(ImmutableSet.Builder<Dependency> result, Set<Dependency> dependencies) {
-        for (Dependency dependency : dependencies) {
-            if (!containsClass(dependency.getOriginClass()) || !containsClass(dependency.getTargetClass())) {
-                result.add(dependency);
-            }
-        }
     }
 
     /**

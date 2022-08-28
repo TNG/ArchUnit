@@ -17,6 +17,7 @@ import com.tngtech.archunit.core.domain.packageexamples.first.First1;
 import com.tngtech.archunit.core.domain.packageexamples.first.First2;
 import com.tngtech.archunit.core.domain.packageexamples.second.ClassDependingOnOtherSecondClass;
 import com.tngtech.archunit.core.domain.packageexamples.second.Second1;
+import com.tngtech.archunit.core.domain.packageexamples.second.Second2;
 import com.tngtech.archunit.core.domain.packageexamples.second.sub.SecondSub1;
 import com.tngtech.archunit.core.domain.packageexamples.third.sub.ThirdSub1;
 import com.tngtech.archunit.core.domain.packageexamples.unrelated.AnyClass;
@@ -267,7 +268,8 @@ public class JavaPackageTest {
         assertThatDependencies(examplePackage.getPackage("second").getClassDependenciesFromSelf())
                 .contain(Second1.class, First2.class)
                 .contain(SecondSub1.class, ThirdSub1.class)
-                .contain(SecondSub1.class, First1.class);
+                .contain(SecondSub1.class, First1.class)
+                .doesNotContain(Second2.class, SecondSub1.class);
 
         assertThatDependencies(examplePackage.getPackage("third").getClassDependenciesFromSelf())
                 .contain(ThirdSub1.class, First1.class);
@@ -292,7 +294,8 @@ public class JavaPackageTest {
                 .contain(SecondSub1.class, ThirdSub1.class);
 
         assertThatDependencies(examplePackage.getPackage("second").getClassDependenciesToSelf())
-                .doesNotContain(ClassDependingOnOtherSecondClass.class, Second1.class);
+                .doesNotContain(ClassDependingOnOtherSecondClass.class, Second1.class)
+                .doesNotContain(SecondSub1.class, Second2.class);
 
         assertThatDependencies(examplePackage.getPackage("unrelated").getClassDependenciesToSelf())
                 .isEmpty();
