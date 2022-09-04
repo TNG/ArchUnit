@@ -117,48 +117,68 @@ public class JavaPackageTest {
     }
 
     @Test
-    public void retrieves_class_by_class_object() {
-        JavaPackage defaultPackage = importDefaultPackage(Object.class, String.class);
+    public void retrieves_JavaClasses() {
+        JavaClasses classes = new ClassFileImporter().importClasses(Object.class, String.class);
+        JavaPackage defaultPackage = classes.getDefaultPackage();
+        JavaClass javaLangObject = classes.get(Object.class);
 
-        assertThat(defaultPackage.getPackage("java").containsClass(Object.class))
-                .as("package 'java' contains java.lang.Object").isFalse();
+        assertThat(defaultPackage.getPackage("java").containsClass(javaLangObject))
+                .as("package 'java' contains " + javaLangObject.getName()).isFalse();
 
         JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
 
-        assertThat(javaPackage.containsClass(Object.class))
-                .as("java.lang.Object is reported contained by class object").isTrue();
-        assertThat(javaPackage.getClass(Object.class).isEquivalentTo(Object.class))
-                .as("java.lang.Object is returned by class object").isTrue();
+        assertThat(javaPackage.containsClass(javaLangObject))
+                .as(javaLangObject.getName() + " is contained").isTrue();
+        assertThat(javaPackage.getClass(Object.class))
+                .as(javaLangObject.getName() + "is returned").isEqualTo(javaLangObject);
+    }
+
+    @Test
+    public void retrieves_class_by_class_object() {
+        Class<?> javaLangObject = Object.class;
+        JavaPackage defaultPackage = importDefaultPackage(javaLangObject, String.class);
+
+        assertThat(defaultPackage.getPackage("java").containsClass(javaLangObject))
+                .as("package 'java' contains " + javaLangObject.getName()).isFalse();
+
+        JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
+
+        assertThat(javaPackage.containsClass(javaLangObject))
+                .as(javaLangObject + " is reported contained by class object").isTrue();
+        assertThat(javaPackage.getClass(javaLangObject).isEquivalentTo(javaLangObject))
+                .as(javaLangObject + " is returned by class object").isTrue();
     }
 
     @Test
     public void retrieves_class_by_fully_qualified_name() {
-        JavaPackage defaultPackage = importDefaultPackage(Object.class, String.class);
+        Class<Object> javaLangObject = Object.class;
+        JavaPackage defaultPackage = importDefaultPackage(javaLangObject, String.class);
 
-        assertThat(defaultPackage.getPackage("java").containsClassWithFullyQualifiedName(Object.class.getName()))
-                .as("package 'java' contains java.lang.Object").isFalse();
+        assertThat(defaultPackage.getPackage("java").containsClassWithFullyQualifiedName(javaLangObject.getName()))
+                .as("package 'java' contains " + javaLangObject.getName()).isFalse();
 
         JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
 
-        assertThat(javaPackage.containsClassWithFullyQualifiedName(Object.class.getName()))
-                .as("java.lang.Object is reported contained by fully qualified name").isTrue();
-        assertThat(javaPackage.getClassWithFullyQualifiedName(Object.class.getName()).isEquivalentTo(Object.class))
-                .as("java.lang.Object is returned by fully qualified name").isTrue();
+        assertThat(javaPackage.containsClassWithFullyQualifiedName(javaLangObject.getName()))
+                .as(javaLangObject.getName() + " is reported contained by fully qualified name").isTrue();
+        assertThat(javaPackage.getClassWithFullyQualifiedName(javaLangObject.getName()).isEquivalentTo(javaLangObject))
+                .as(javaLangObject.getName() + " is returned by fully qualified name").isTrue();
     }
 
     @Test
     public void retrieves_class_by_simple_class_name() {
-        JavaPackage defaultPackage = importDefaultPackage(Object.class, String.class);
+        Class<Object> javaLangObject = Object.class;
+        JavaPackage defaultPackage = importDefaultPackage(javaLangObject, String.class);
 
-        assertThat(defaultPackage.getPackage("java").containsClassWithSimpleName(Object.class.getSimpleName()))
-                .as("package 'java' contains java.lang.Object").isFalse();
+        assertThat(defaultPackage.getPackage("java").containsClassWithSimpleName(javaLangObject.getSimpleName()))
+                .as("package 'java' contains " + javaLangObject.getName()).isFalse();
 
         JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
 
-        assertThat(javaPackage.containsClassWithSimpleName(Object.class.getSimpleName()))
-                .as("java.lang.Object is reported contained by simple name").isTrue();
-        assertThat(javaPackage.getClassWithSimpleName(Object.class.getSimpleName()).isEquivalentTo(Object.class))
-                .as("java.lang.Object is returned by simple name").isTrue();
+        assertThat(javaPackage.containsClassWithSimpleName(javaLangObject.getSimpleName()))
+                .as(javaLangObject + " is reported contained by simple name").isTrue();
+        assertThat(javaPackage.getClassWithSimpleName(javaLangObject.getSimpleName()).isEquivalentTo(javaLangObject))
+                .as(javaLangObject + " is returned by simple name").isTrue();
     }
 
     @Test
