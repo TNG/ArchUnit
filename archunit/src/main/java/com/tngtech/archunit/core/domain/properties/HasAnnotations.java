@@ -30,15 +30,45 @@ public interface HasAnnotations<SELF extends HasAnnotations<SELF>> extends CanBe
     @PublicAPI(usage = ACCESS)
     Set<? extends JavaAnnotation<? extends SELF>> getAnnotations();
 
+    /**
+     * @param type The {@link Class} of the {@link Annotation} to retrieve.
+     * @return The {@link Annotation} of the given type.
+     *         Will throw an {@link IllegalArgumentException} if no matching {@link Annotation} is present.
+     * @param <A> The type of the {@link Annotation} to retrieve
+     * @see #tryGetAnnotationOfType(Class)
+     * @see #getAnnotationOfType(String)
+     */
     @PublicAPI(usage = ACCESS)
     <A extends Annotation> A getAnnotationOfType(Class<A> type);
 
+    /**
+     * @param typeName The fully qualified class name of the {@link Annotation} type to retrieve.
+     * @return The {@link JavaAnnotation} matching the given type.
+     *         Will throw an {@link IllegalArgumentException} if no matching {@link Annotation} is present.
+     * @see #tryGetAnnotationOfType(String)
+     * @see #getAnnotationOfType(Class)
+     */
     @PublicAPI(usage = ACCESS)
     JavaAnnotation<? extends SELF> getAnnotationOfType(String typeName);
 
+    /**
+     * @param type The {@link Class} of the {@link Annotation} to retrieve.
+     * @return The {@link Annotation} of the given type or {@link Optional#empty()}
+     *         if there is no {@link Annotation} with the respective annotation type.
+     * @param <A> The type of the {@link Annotation} to retrieve
+     * @see #getAnnotationOfType(Class)
+     * @see #tryGetAnnotationOfType(String)
+     */
     @PublicAPI(usage = ACCESS)
     <A extends Annotation> Optional<A> tryGetAnnotationOfType(Class<A> type);
 
+    /**
+     * @param typeName The fully qualified class name of the {@link Annotation} type to retrieve.
+     * @return The {@link JavaAnnotation} matching the given type or {@link Optional#empty()}
+     *         if there is no {@link Annotation} with the respective annotation type.
+     * @see #getAnnotationOfType(String)
+     * @see #tryGetAnnotationOfType(Class)
+     */
     @PublicAPI(usage = ACCESS)
     Optional<? extends JavaAnnotation<? extends SELF>> tryGetAnnotationOfType(String typeName);
 }

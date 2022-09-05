@@ -17,6 +17,7 @@ import com.tngtech.archunit.core.domain.packageexamples.first.First1;
 import com.tngtech.archunit.core.domain.packageexamples.first.First2;
 import com.tngtech.archunit.core.domain.packageexamples.second.ClassDependingOnOtherSecondClass;
 import com.tngtech.archunit.core.domain.packageexamples.second.Second1;
+import com.tngtech.archunit.core.domain.packageexamples.second.Second2;
 import com.tngtech.archunit.core.domain.packageexamples.second.sub.SecondSub1;
 import com.tngtech.archunit.core.domain.packageexamples.third.sub.ThirdSub1;
 import com.tngtech.archunit.core.domain.packageexamples.unrelated.AnyClass;
@@ -117,48 +118,68 @@ public class JavaPackageTest {
     }
 
     @Test
-    public void retrieves_class_by_class_object() {
-        JavaPackage defaultPackage = importDefaultPackage(Object.class, String.class);
+    public void retrieves_JavaClasses() {
+        JavaClasses classes = new ClassFileImporter().importClasses(Object.class, String.class);
+        JavaPackage defaultPackage = classes.getDefaultPackage();
+        JavaClass javaLangObject = classes.get(Object.class);
 
-        assertThat(defaultPackage.getPackage("java").containsClass(Object.class))
-                .as("package 'java' contains java.lang.Object").isFalse();
+        assertThat(defaultPackage.getPackage("java").containsClass(javaLangObject))
+                .as("package 'java' contains " + javaLangObject.getName()).isFalse();
 
         JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
 
-        assertThat(javaPackage.containsClass(Object.class))
-                .as("java.lang.Object is reported contained by class object").isTrue();
-        assertThat(javaPackage.getClass(Object.class).isEquivalentTo(Object.class))
-                .as("java.lang.Object is returned by class object").isTrue();
+        assertThat(javaPackage.containsClass(javaLangObject))
+                .as(javaLangObject.getName() + " is contained").isTrue();
+        assertThat(javaPackage.getClass(Object.class))
+                .as(javaLangObject.getName() + "is returned").isEqualTo(javaLangObject);
+    }
+
+    @Test
+    public void retrieves_class_by_class_object() {
+        Class<?> javaLangObject = Object.class;
+        JavaPackage defaultPackage = importDefaultPackage(javaLangObject, String.class);
+
+        assertThat(defaultPackage.getPackage("java").containsClass(javaLangObject))
+                .as("package 'java' contains " + javaLangObject.getName()).isFalse();
+
+        JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
+
+        assertThat(javaPackage.containsClass(javaLangObject))
+                .as(javaLangObject + " is reported contained by class object").isTrue();
+        assertThat(javaPackage.getClass(javaLangObject).isEquivalentTo(javaLangObject))
+                .as(javaLangObject + " is returned by class object").isTrue();
     }
 
     @Test
     public void retrieves_class_by_fully_qualified_name() {
-        JavaPackage defaultPackage = importDefaultPackage(Object.class, String.class);
+        Class<Object> javaLangObject = Object.class;
+        JavaPackage defaultPackage = importDefaultPackage(javaLangObject, String.class);
 
-        assertThat(defaultPackage.getPackage("java").containsClassWithFullyQualifiedName(Object.class.getName()))
-                .as("package 'java' contains java.lang.Object").isFalse();
+        assertThat(defaultPackage.getPackage("java").containsClassWithFullyQualifiedName(javaLangObject.getName()))
+                .as("package 'java' contains " + javaLangObject.getName()).isFalse();
 
         JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
 
-        assertThat(javaPackage.containsClassWithFullyQualifiedName(Object.class.getName()))
-                .as("java.lang.Object is reported contained by fully qualified name").isTrue();
-        assertThat(javaPackage.getClassWithFullyQualifiedName(Object.class.getName()).isEquivalentTo(Object.class))
-                .as("java.lang.Object is returned by fully qualified name").isTrue();
+        assertThat(javaPackage.containsClassWithFullyQualifiedName(javaLangObject.getName()))
+                .as(javaLangObject.getName() + " is reported contained by fully qualified name").isTrue();
+        assertThat(javaPackage.getClassWithFullyQualifiedName(javaLangObject.getName()).isEquivalentTo(javaLangObject))
+                .as(javaLangObject.getName() + " is returned by fully qualified name").isTrue();
     }
 
     @Test
     public void retrieves_class_by_simple_class_name() {
-        JavaPackage defaultPackage = importDefaultPackage(Object.class, String.class);
+        Class<Object> javaLangObject = Object.class;
+        JavaPackage defaultPackage = importDefaultPackage(javaLangObject, String.class);
 
-        assertThat(defaultPackage.getPackage("java").containsClassWithSimpleName(Object.class.getSimpleName()))
-                .as("package 'java' contains java.lang.Object").isFalse();
+        assertThat(defaultPackage.getPackage("java").containsClassWithSimpleName(javaLangObject.getSimpleName()))
+                .as("package 'java' contains " + javaLangObject.getName()).isFalse();
 
         JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
 
-        assertThat(javaPackage.containsClassWithSimpleName(Object.class.getSimpleName()))
-                .as("java.lang.Object is reported contained by simple name").isTrue();
-        assertThat(javaPackage.getClassWithSimpleName(Object.class.getSimpleName()).isEquivalentTo(Object.class))
-                .as("java.lang.Object is returned by simple name").isTrue();
+        assertThat(javaPackage.containsClassWithSimpleName(javaLangObject.getSimpleName()))
+                .as(javaLangObject + " is reported contained by simple name").isTrue();
+        assertThat(javaPackage.getClassWithSimpleName(javaLangObject.getSimpleName()).isEquivalentTo(javaLangObject))
+                .as(javaLangObject + " is returned by simple name").isTrue();
     }
 
     @Test
@@ -210,7 +231,7 @@ public class JavaPackageTest {
 
         JavaPackage java = defaultPackage.getPackage("java");
 
-        assertThatPackages(java.getAllSubpackages()).containPackagesOf(
+        assertThatPackages(java.getSubpackagesInTree()).containPackagesOf(
                 Object.class, Annotation.class, Collection.class, BlockingQueue.class, Security.class);
     }
 
@@ -219,7 +240,7 @@ public class JavaPackageTest {
         JavaPackage defaultPackage = importDefaultPackage(Object.class, String.class, File.class, Serializable.class, Security.class);
 
         final List<JavaClass> visitedClasses = new ArrayList<>();
-        defaultPackage.accept(startsWith("S"), visitedClasses::add);
+        defaultPackage.traversePackageTree(startsWith("S"), visitedClasses::add);
 
         assertThatTypes(visitedClasses).contain(String.class, Serializable.class, Security.class);
         for (JavaClass visitedClass : visitedClasses) {
@@ -232,7 +253,7 @@ public class JavaPackageTest {
         JavaPackage defaultPackage = importDefaultPackage(Object.class, Annotation.class, File.class, Security.class);
 
         final List<JavaPackage> visitedPackages = new ArrayList<>();
-        defaultPackage.accept(nameContains(".lang"), visitedPackages::add);
+        defaultPackage.traversePackageTree(nameContains(".lang"), visitedPackages::add);
 
         assertThatPackages(visitedPackages).containPackagesOf(Object.class, Annotation.class);
         for (JavaPackage visitedPackage : visitedPackages) {
@@ -241,77 +262,158 @@ public class JavaPackageTest {
     }
 
     @Test
-    public void has_class_dependencies_to_other_packages() {
+    public void has_class_dependencies_from_this_package() {
         JavaPackage examplePackage = importPackage("packageexamples");
 
-        assertThatDependencies(examplePackage.getPackage("second").getClassDependenciesFromSelf())
+        assertThatDependencies(examplePackage.getPackage("second").getClassDependenciesFromThisPackage())
                 .contain(Second1.class, First2.class)
-                .contain(SecondSub1.class, ThirdSub1.class)
-                .contain(SecondSub1.class, First1.class);
+                .contain(Second2.class, SecondSub1.class)
+                .doesNotContain(ClassDependingOnOtherSecondClass.class, Second1.class)
+                .doesNotContain(SecondSub1.class, ThirdSub1.class)
+                .doesNotContain(SecondSub1.class, First1.class);
 
-        assertThatDependencies(examplePackage.getPackage("third").getClassDependenciesFromSelf())
-                .contain(ThirdSub1.class, First1.class);
+        assertThatDependencies(examplePackage.getPackage("third").getClassDependenciesFromThisPackage())
+                .isEmpty();
 
-        assertThatDependencies(examplePackage.getPackage("second").getClassDependenciesFromSelf())
-                .doesNotContain(ClassDependingOnOtherSecondClass.class, Second1.class);
-
-        assertThatDependencies(examplePackage.getPackage("unrelated").getClassDependenciesFromSelf())
+        assertThatDependencies(examplePackage.getPackage("unrelated").getClassDependenciesFromThisPackage())
                 .containOnly(AnyClass.class, Object.class);
     }
 
     @Test
-    public void has_class_dependencies_from_other_packages() {
+    public void has_class_dependencies_from_this_package_tree() {
         JavaPackage examplePackage = importPackage("packageexamples");
 
-        assertThatDependencies(examplePackage.getPackage("first").getClassDependenciesToSelf())
+        assertThatDependencies(examplePackage.getPackage("second").getClassDependenciesFromThisPackageTree())
                 .contain(Second1.class, First2.class)
-                .contain(ThirdSub1.class, First1.class)
-                .contain(SecondSub1.class, First1.class);
-
-        assertThatDependencies(examplePackage.getPackage("third").getClassDependenciesToSelf())
-                .contain(SecondSub1.class, ThirdSub1.class);
-
-        assertThatDependencies(examplePackage.getPackage("second").getClassDependenciesToSelf())
+                .contain(SecondSub1.class, ThirdSub1.class)
+                .contain(SecondSub1.class, First1.class)
+                .doesNotContain(Second2.class, SecondSub1.class)
                 .doesNotContain(ClassDependingOnOtherSecondClass.class, Second1.class);
 
-        assertThatDependencies(examplePackage.getPackage("unrelated").getClassDependenciesToSelf())
+        assertThatDependencies(examplePackage.getPackage("third").getClassDependenciesFromThisPackageTree())
+                .contain(ThirdSub1.class, First1.class);
+
+        assertThatDependencies(examplePackage.getPackage("unrelated").getClassDependenciesFromThisPackageTree())
+                .containOnly(AnyClass.class, Object.class);
+    }
+
+    @Test
+    public void has_class_dependencies_to_this_package() {
+        JavaPackage examplePackage = importPackage("packageexamples");
+
+        assertThatDependencies(examplePackage.getPackage("first").getClassDependenciesToThisPackage())
+                .contain(Second1.class, First2.class)
+                .contain(SecondSub1.class, First1.class)
+                .contain(ThirdSub1.class, First1.class);
+
+        assertThatDependencies(examplePackage.getPackage("second").getClassDependenciesToThisPackage())
+                .contain(First1.class, Second1.class)
+                .contain(SecondSub1.class, Second2.class)
+                .doesNotContain(First2.class, SecondSub1.class)
+                .doesNotContain(ClassDependingOnOtherSecondClass.class, Second1.class);
+
+        assertThatDependencies(examplePackage.getPackage("third").getClassDependenciesToThisPackage())
+                .isEmpty();
+
+        assertThatDependencies(examplePackage.getPackage("unrelated").getClassDependenciesToThisPackage())
                 .isEmpty();
     }
 
     @Test
-    public void has_package_dependencies_to_other_packages() {
+    public void has_class_dependencies_to_this_package_tree() {
         JavaPackage examplePackage = importPackage("packageexamples");
 
-        assertThat(examplePackage.getPackage("second").getPackageDependenciesFromSelf())
+        assertThatDependencies(examplePackage.getPackage("first").getClassDependenciesToThisPackageTree())
+                .contain(Second1.class, First2.class)
+                .contain(ThirdSub1.class, First1.class)
+                .contain(SecondSub1.class, First1.class);
+
+        assertThatDependencies(examplePackage.getPackage("second").getClassDependenciesToThisPackageTree())
+                .contain(First1.class, Second1.class)
+                .contain(First2.class, SecondSub1.class)
+                .doesNotContain(SecondSub1.class, Second2.class)
+                .doesNotContain(ClassDependingOnOtherSecondClass.class, Second1.class);
+
+        assertThatDependencies(examplePackage.getPackage("third").getClassDependenciesToThisPackageTree())
+                .contain(SecondSub1.class, ThirdSub1.class);
+
+        assertThatDependencies(examplePackage.getPackage("unrelated").getClassDependenciesToThisPackageTree())
+                .isEmpty();
+    }
+
+    @Test
+    public void has_package_dependencies_from_this_package() {
+        JavaPackage examplePackage = importPackage("packageexamples");
+
+        assertThat(examplePackage.getPackage("second").getPackageDependenciesFromThisPackage())
+                .containsOnly(
+                        getRoot(examplePackage).getPackage("java.lang"),
+                        examplePackage.getPackage("second.sub"),
+                        examplePackage.getPackage("first"));
+
+        assertThat(examplePackage.getPackage("third").getPackageDependenciesFromThisPackage())
+                .isEmpty();
+
+        assertThatPackages(examplePackage.getPackage("unrelated").getPackageDependenciesFromThisPackage())
+                .containOnlyNames("java.lang");
+    }
+
+    @Test
+    public void has_package_dependencies_from_this_package_tree() {
+        JavaPackage examplePackage = importPackage("packageexamples");
+
+        assertThat(examplePackage.getPackage("second").getPackageDependenciesFromThisPackageTree())
                 .containsOnly(
                         getRoot(examplePackage).getPackage("java.lang"),
                         examplePackage.getPackage("first"),
                         examplePackage.getPackage("third.sub"));
 
-        assertThat(examplePackage.getPackage("third").getPackageDependenciesFromSelf())
+        assertThat(examplePackage.getPackage("third").getPackageDependenciesFromThisPackageTree())
                 .containsOnly(examplePackage.getPackage("first"));
 
-        assertThatPackages(examplePackage.getPackage("unrelated").getPackageDependenciesFromSelf())
+        assertThatPackages(examplePackage.getPackage("unrelated").getPackageDependenciesFromThisPackageTree())
                 .containOnlyNames("java.lang");
     }
 
     @Test
-    public void has_package_dependencies_from_other_packages() {
+    public void has_package_dependencies_to_this_package() {
         JavaPackage examplePackage = importPackage("packageexamples");
 
-        assertThat(examplePackage.getPackage("first").getPackageDependenciesToSelf())
+        assertThat(examplePackage.getPackage("first").getPackageDependenciesToThisPackage())
                 .containsOnly(
                         examplePackage.getPackage("second"),
                         examplePackage.getPackage("second.sub"),
                         examplePackage.getPackage("third.sub"));
 
-        assertThat(examplePackage.getPackage("third").getPackageDependenciesToSelf())
+        assertThat(examplePackage.getPackage("second").getPackageDependenciesToThisPackage())
+                .containsOnly(
+                        examplePackage.getPackage("first"),
+                        examplePackage.getPackage("second.sub"));
+
+        assertThat(examplePackage.getPackage("third").getPackageDependenciesToThisPackage())
+                .isEmpty();
+
+        assertThat(examplePackage.getPackage("unrelated").getPackageDependenciesToThisPackage())
+                .isEmpty();
+    }
+
+    @Test
+    public void has_package_dependencies_to_this_package_tree() {
+        JavaPackage examplePackage = importPackage("packageexamples");
+
+        assertThat(examplePackage.getPackage("first").getPackageDependenciesToThisPackageTree())
+                .containsOnly(
+                        examplePackage.getPackage("second"),
+                        examplePackage.getPackage("second.sub"),
+                        examplePackage.getPackage("third.sub"));
+
+        assertThat(examplePackage.getPackage("second").getPackageDependenciesToThisPackageTree())
+                .containsOnly(examplePackage.getPackage("first"));
+
+        assertThat(examplePackage.getPackage("third").getPackageDependenciesToThisPackageTree())
                 .containsOnly(examplePackage.getPackage("second.sub"));
 
-        assertThat(examplePackage.getPackage("second").getPackageDependenciesToSelf())
-                .doesNotContain(examplePackage.getPackage("second"));
-
-        assertThat(examplePackage.getPackage("unrelated").getPackageDependenciesToSelf())
+        assertThat(examplePackage.getPackage("unrelated").getPackageDependenciesToThisPackageTree())
                 .isEmpty();
     }
 

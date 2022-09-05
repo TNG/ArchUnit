@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.domain.packageexamples.second;
 
 import com.tngtech.archunit.core.domain.packageexamples.first.First2;
 
+@SuppressWarnings("unused")
 public class Second1 {
     First2 first2;
     // Since we meanwhile consider arrays to be within the package of their component type, we will always run into the problem
