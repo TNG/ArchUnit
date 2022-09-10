@@ -38,8 +38,8 @@ class NormalizedResourceName {
         return string.startsWith(resourceName);
     }
 
-    public boolean startsWith(NormalizedResourceName prefix) {
-        return equals(prefix) || isAncestorPath(prefix);
+    boolean startsWith(NormalizedResourceName prefix) {
+        return prefix.resourceName.isEmpty() || equals(prefix) || isAncestorPath(prefix);
     }
 
     private boolean isAncestorPath(NormalizedResourceName prefix) {

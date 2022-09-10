@@ -4,9 +4,11 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.tngtech.archunit.Slow;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -28,6 +30,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.TestUtils.urlOf;
 import static java.util.jar.Attributes.Name.CLASS_PATH;
+import static java.util.stream.Collectors.toSet;
 
 @Category(Slow.class)
 public class ClassFileImporterSlowTest {
@@ -51,6 +54,22 @@ public class ClassFileImporterSlowTest {
         classes = new ClassFileImporter().importClasspath(new ImportOptions().with(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath()));
 
         assertThatTypes(classes).contain(ClassFileImporter.class, getClass(), Rule.class, File.class);
+    }
+
+    @Test
+    public void importing_the_default_package_equals_importing_the_classpath() {
+        Set<String> classNamesOfDefaultPackageImport = new ClassFileImporter().withImportOption(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath())
+                .importPackages("")
+                .stream().map(JavaClass::getName).collect(toSet());
+        Set<String> classNamesOfClasspathImport = new ClassFileImporter()
+                .importClasspath(new ImportOptions().with(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath()))
+                .stream().map(JavaClass::getName).collect(toSet());
+
+        Set<String> classNamesOnlyInDefaultPackageImport = Sets.difference(classNamesOfDefaultPackageImport, classNamesOfClasspathImport);
+        assertThat(classNamesOnlyInDefaultPackageImport).as("Classes only contained in default package import").isEmpty();
+
+        Set<String> classNamesOnlyInClasspathImport = Sets.difference(classNamesOfClasspathImport, classNamesOfDefaultPackageImport);
+        assertThat(classNamesOnlyInClasspathImport).as("Classes only contained in classpath import").isEmpty();
     }
 
     @Test
