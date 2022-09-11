@@ -59,10 +59,6 @@ class NormalizedResourceName {
         return result;
     }
 
-    boolean belongsToClassFile() {
-        return resourceName.endsWith(".class");
-    }
-
     /**
      * @return The resourceName as if it was an entry of an archive
      *         (i.e. not starting with '/', but ending with '/' in case of directories)
