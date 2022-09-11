@@ -2,6 +2,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeArchives;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludePackageInfos;
+import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeGradleTestFixtures;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
 import com.tngtech.archunit.core.importer.ImportOption.OnlyIncludeTests;
 import com.tngtech.java.junit.dataprovider.DataProvider;
@@ -27,6 +29,7 @@ import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_JARS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_PACKAGE_INFOS;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TEST_FIXTURES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.ONLY_INCLUDE_TESTS;
 import static com.tngtech.archunit.testutil.TestUtils.relativeResourceUri;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
@@ -121,6 +124,25 @@ public class ImportOptionsTest {
 
         assertThat(doNotIncludeTests.includes(Location.of(targetFile.toPath())))
                 .as("includes location %s", targetFile.getAbsolutePath()).isEqualTo(expectedInclude);
+    }
+
+    @DataProvider
+    public static Object[][] data_excludes_test_fixtures() {
+        return testForEach(new DoNotIncludeGradleTestFixtures(), DO_NOT_INCLUDE_TEST_FIXTURES);
+    }
+
+    @Test
+    @UseDataProvider
+    public void test_excludes_test_fixtures(ImportOption doNotIncludeTestFixtures) {
+        assertThat(doNotIncludeTestFixtures.includes(Location.of(URI.create("file:///any/build/classes/java/test/com/SomeTest.class"))))
+                .as("includes test class from file path").isTrue();
+        assertThat(doNotIncludeTestFixtures.includes(Location.of(URI.create("jar:file:///any/build/libs/some-test.jar!/com/SomeTest"))))
+                .as("includes test class from JAR path").isTrue();
+
+        assertThat(doNotIncludeTestFixtures.includes(Location.of(URI.create("file:///any/build/classes/java/testFixtures/com/SomeFixture.class"))))
+                .as("excludes test fixture from file path").isFalse();
+        assertThat(doNotIncludeTestFixtures.includes(Location.of(URI.create("jar:file:///any/build/libs/some-test-test-fixtures.jar!/com/SomeFixture"))))
+                .as("excludes test fixture from JAR path").isFalse();
     }
 
     @DataProvider
