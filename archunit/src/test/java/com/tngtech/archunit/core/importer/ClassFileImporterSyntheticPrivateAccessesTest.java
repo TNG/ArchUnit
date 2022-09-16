@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import com.tngtech.archunit.core.domain.JavaAccess;
+import com.tngtech.archunit.core.domain.JavaClass;
 import org.junit.Test;
 
 import static com.tngtech.archunit.core.domain.JavaConstructor.CONSTRUCTOR_NAME;
@@ -332,6 +333,65 @@ public class ClassFileImporterSyntheticPrivateAccessesTest {
                         .to(Target.class, "method")
                         .declaredInLambda()
         );
+    }
+
+    @Test
+    public void imports_multiple_accesses_to_same_private_field() {
+        @SuppressWarnings("unused")
+        class Target {
+            private String field;
+        }
+        @SuppressWarnings("unused")
+        class Origin {
+            String first(Target target) {
+                return target.field;
+            }
+
+            String second(Target target) {
+                return target.field;
+            }
+        }
+
+        JavaClass origin = new ClassFileImporter().importClasses(Target.class, Origin.class).get(Origin.class);
+
+        assertThatAccesses(origin.getAccessesFromSelf())
+                .contain(expectedAccess()
+                        .from(Origin.class, "first")
+                        .toField(GET, Target.class, "field")
+                )
+                .contain(expectedAccess()
+                        .from(Origin.class, "second")
+                        .toField(GET, Target.class, "field"));
+    }
+
+    @Test
+    public void imports_multiple_calls_to_same_private_method() {
+        @SuppressWarnings("unused")
+        class Target {
+            private void method() {
+            }
+        }
+        @SuppressWarnings("unused")
+        class Origin {
+            void first(Target target) {
+                target.method();
+            }
+
+            void second(Target target) {
+                target.method();
+            }
+        }
+
+        JavaClass origin = new ClassFileImporter().importClasses(Target.class, Origin.class).get(Origin.class);
+
+        assertThatAccesses(origin.getAccessesFromSelf())
+                .contain(expectedAccess()
+                        .from(Origin.class, "first")
+                        .to(Target.class, "method")
+                )
+                .contain(expectedAccess()
+                        .from(Origin.class, "second")
+                        .to(Target.class, "method"));
     }
 
     private static class Data_of_imports_private_constructor_reference_from_lambda {
