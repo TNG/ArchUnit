@@ -8,7 +8,6 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
-import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.Locations;
 import com.tngtech.archunit.junit.LocationProvider;
@@ -33,8 +32,8 @@ import static com.tngtech.archunit.junit.CacheMode.PER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -152,12 +151,12 @@ public class ClassCacheTest {
         TestAnalysisRequest defaultOptions = new TestAnalysisRequest().withWholeClasspath(true);
         Class<?>[] expectedImportResult = new Class[]{getClass()};
         doReturn(new ClassFileImporter().importClasses(expectedImportResult))
-                .when(cacheClassFileImporter).importClasses(any(ImportOptions.class), anyCollection());
+                .when(cacheClassFileImporter).importClasses(anySet(), anyCollection());
 
         JavaClasses classes = cache.getClassesToAnalyzeFor(TestClass.class, defaultOptions);
 
         assertThatTypes(classes).matchExactly(expectedImportResult);
-        verify(cacheClassFileImporter).importClasses(any(ImportOptions.class), locationCaptor.capture());
+        verify(cacheClassFileImporter).importClasses(anySet(), locationCaptor.capture());
         assertThat(locationCaptor.getValue())
                 .has(locationContaining("archunit"))
                 .has(locationContaining("asm"))
@@ -203,7 +202,7 @@ public class ClassCacheTest {
 
         assertThat(classes).isEmpty();
 
-        verify(cacheClassFileImporter).importClasses(any(ImportOptions.class), locationCaptor.capture());
+        verify(cacheClassFileImporter).importClasses(anySet(), locationCaptor.capture());
         assertThat(locationCaptor.getValue()).isEmpty();
     }
 
@@ -245,7 +244,7 @@ public class ClassCacheTest {
     }
 
     private void verifyNumberOfImports(int number) {
-        verify(cacheClassFileImporter, times(number)).importClasses(any(ImportOptions.class), anyCollection());
+        verify(cacheClassFileImporter, times(number)).importClasses(anySet(), anyCollection());
         verifyNoMoreInteractions(cacheClassFileImporter);
     }
 
@@ -281,7 +280,7 @@ public class ClassCacheTest {
     }
 
     public static class AnotherTestFilterForJUnitJars implements ImportOption {
-        private TestFilterForJUnitJars filter = new TestFilterForJUnitJars();
+        private final TestFilterForJUnitJars filter = new TestFilterForJUnitJars();
 
         @Override
         public boolean includes(Location location) {

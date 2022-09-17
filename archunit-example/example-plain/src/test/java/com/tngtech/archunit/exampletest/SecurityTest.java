@@ -2,12 +2,13 @@ package com.tngtech.archunit.exampletest;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import com.tngtech.archunit.core.importer.ImportOptions;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static java.util.Collections.singleton;
 
 @Category(Example.class)
 public class SecurityTest {
@@ -27,15 +28,15 @@ public class SecurityTest {
         ArchRule rule = classes().that().resideInAPackage("java.security.cert..")
                 .should().onlyBeAccessed().byAnyPackage("..example.layers.security..", "java..", "..sun..", "javax..", "apple.security..", "org.jcp..");
 
-        JavaClasses classes = new ClassFileImporter().importClasspath(onlyAppAndRuntime());
+        JavaClasses classes = new ClassFileImporter().importClasspath(singleton(onlyAppAndRuntime()));
 
         rule.check(classes);
     }
 
-    private ImportOptions onlyAppAndRuntime() {
-        return new ImportOptions().with(location ->
+    private ImportOption onlyAppAndRuntime() {
+        return location ->
                 location.contains("archunit")
                         || location.contains("/rt.jar")
-                        || location.contains("java.base"));
+                        || location.contains("java.base");
     }
 }

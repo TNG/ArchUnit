@@ -8,7 +8,6 @@ import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 
 import com.tngtech.archunit.Slow;
-import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.junit.internal.ClassCache.CacheClassFileImporter;
 import org.junit.After;
 import org.junit.Before;
@@ -23,7 +22,7 @@ import org.mockito.junit.MockitoRule;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.stream.Collectors.toList;
 import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -64,7 +63,7 @@ public class ClassCacheConcurrencyTest {
         for (Future<?> future : futures) {
             future.get(1, MINUTES);
         }
-        verify(classFileImporter, atMost(TEST_CLASSES.size())).importClasses(any(ImportOptions.class), anyCollection());
+        verify(classFileImporter, atMost(TEST_CLASSES.size())).importClasses(anySet(), anyCollection());
         verifyNoMoreInteractions(classFileImporter);
     }
 

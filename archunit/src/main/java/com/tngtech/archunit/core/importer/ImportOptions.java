@@ -15,25 +15,19 @@
  */
 package com.tngtech.archunit.core.importer;
 
+import java.util.Collection;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.tngtech.archunit.PublicAPI;
+import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.Collections.emptySet;
 
-/**
- * A collection of {@link ImportOption} to filter class locations. All supplied {@link ImportOption}s will be joined
- * with <b>AND</b>, i.e. only {@link Location}s that are accepted by <b>all</b> {@link ImportOption}s
- * will be imported.
- */
-public final class ImportOptions {
+final class ImportOptions {
     private final Set<ImportOption> options;
 
-    @PublicAPI(usage = ACCESS)
-    public ImportOptions() {
+    ImportOptions() {
         this(emptySet());
     }
 
@@ -41,13 +35,12 @@ public final class ImportOptions {
         this.options = checkNotNull(options);
     }
 
-    /**
-     * @param option An {@link ImportOption} to evaluate on {@link Location}s of class files
-     * @return self to add further {@link ImportOption}s in a fluent way
-     */
-    @PublicAPI(usage = ACCESS)
-    public ImportOptions with(ImportOption option) {
+    ImportOptions with(ImportOption option) {
         return new ImportOptions(ImmutableSet.<ImportOption>builder().addAll(options).add(option).build());
+    }
+
+    ImportOptions with(Collection<ImportOption> options) {
+        return new ImportOptions(Sets.union(this.options, ImmutableSet.copyOf(options)));
     }
 
     boolean include(Location location) {

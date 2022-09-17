@@ -48,8 +48,7 @@ import static java.util.stream.Collectors.toSet;
  * The central API to import {@link JavaClasses} from compiled Java class files.
  * Supports various types of {@link Location}, e.g. {@link Path},
  * {@link JarFile} or {@link URL}. The {@link Location Locations} that are scanned can be filtered by passing any number of
- * {@link ImportOption} to {@link #withImportOption(ImportOption)}, which will then be <b>AND</b>ed (compare
- * {@link ImportOptions}).
+ * {@link ImportOption} to {@link #withImportOption(ImportOption)}, which will then be <b>AND</b>ed.
  * <br><br>
  * Note that information about a class is only complete, if all necessary classes are imported.
  * For example, if class A is imported, and A accesses class B,
@@ -89,7 +88,11 @@ public final class ClassFileImporter {
     }
 
     @PublicAPI(usage = ACCESS)
-    public ClassFileImporter(ImportOptions importOptions) {
+    public ClassFileImporter(Collection<ImportOption> importOptions) {
+        this(new ImportOptions().with(importOptions));
+    }
+
+    private ClassFileImporter(ImportOptions importOptions) {
         this.importOptions = importOptions;
     }
 
@@ -236,11 +239,12 @@ public final class ClassFileImporter {
      */
     @PublicAPI(usage = ACCESS)
     public JavaClasses importClasspath() {
-        return importClasspath(importOptions.with(ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES));
+        return new ClassFileImporter(importOptions.with(ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES))
+                .importLocations(Locations.inClassPath());
     }
 
     /**
-     * Imports classes from the whole classpath considering the supplied {@link ImportOptions}.<br>
+     * Imports classes from the whole classpath considering the supplied {@link ImportOption ImportOptions}.<br>
      * Note that ArchUnit does not distinguish between the classpath and the modulepath for Java &gt;= 9,
      * thus all classes from the classpath or the modulepath will be considered.
      * <br><br>
@@ -248,7 +252,7 @@ public final class ClassFileImporter {
      * as well as configuration and details, refer to {@link ClassFileImporter}.
      */
     @PublicAPI(usage = ACCESS)
-    public JavaClasses importClasspath(ImportOptions options) {
+    public JavaClasses importClasspath(Collection<ImportOption> options) {
         return new ClassFileImporter(options).importLocations(Locations.inClassPath());
     }
 

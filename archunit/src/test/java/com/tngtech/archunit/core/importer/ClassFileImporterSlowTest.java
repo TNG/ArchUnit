@@ -29,6 +29,7 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.TestUtils.urlOf;
+import static java.util.Collections.singleton;
 import static java.util.jar.Attributes.Name.CLASS_PATH;
 import static java.util.stream.Collectors.toSet;
 
@@ -51,7 +52,7 @@ public class ClassFileImporterSlowTest {
         assertThatTypes(classes).doNotContain(Rule.class); // Default does not import jars
         assertThatTypes(classes).doNotContain(File.class); // Default does not import JDK classes
 
-        classes = new ClassFileImporter().importClasspath(new ImportOptions().with(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath()));
+        classes = new ClassFileImporter().importClasspath(singleton(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath()));
 
         assertThatTypes(classes).contain(ClassFileImporter.class, getClass(), Rule.class, File.class);
     }
@@ -62,7 +63,7 @@ public class ClassFileImporterSlowTest {
                 .importPackages("")
                 .stream().map(JavaClass::getName).collect(toSet());
         Set<String> classNamesOfClasspathImport = new ClassFileImporter()
-                .importClasspath(new ImportOptions().with(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath()))
+                .importClasspath(singleton(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath()))
                 .stream().map(JavaClass::getName).collect(toSet());
 
         Set<String> classNamesOnlyInDefaultPackageImport = Sets.difference(classNamesOfDefaultPackageImport, classNamesOfClasspathImport);
@@ -171,7 +172,7 @@ public class ClassFileImporterSlowTest {
     }
 
     private JavaClasses importJavaBase() {
-        return new ClassFileImporter().importClasspath(new ImportOptions().with(location -> {
+        return new ClassFileImporter().importClasspath(singleton(location -> {
             return
                     // before Java 9 package like java.lang were in rt.jar
                     location.contains("rt.jar") ||
