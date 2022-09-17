@@ -50,11 +50,12 @@ import org.slf4j.LoggerFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.tngtech.archunit.base.Optionals.stream;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethodName;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticAccessMethodName;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isSyntheticEnumSwitchMapFieldName;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toSet;
 
 class ClassFileImportRecord {
     private static final Logger log = LoggerFactory.getLogger(ClassFileImportRecord.class);
@@ -288,7 +289,7 @@ class ClassFileImportRecord {
 
         Stream<ACCESS> result = rawAccessRecordsIncludingSyntheticAccesses.stream();
         for (SyntheticAccessRecorder syntheticAccessRecorder : syntheticAccessRecorders) {
-            result = result.flatMap(access -> stream(syntheticAccessRecorder.fixSyntheticAccess(access, createAccessWithNewOrigin)));
+            result = result.flatMap(access -> syntheticAccessRecorder.fixSyntheticAccess(access, createAccessWithNewOrigin).stream());
         }
         return result;
     }
@@ -374,7 +375,7 @@ class ClassFileImportRecord {
     }
 
     private static class SyntheticAccessRecorder {
-        private final Map<String, RawAccessRecord> rawSyntheticMethodInvocationRecordsByTarget = new HashMap<>();
+        private final SetMultimap<String, RawAccessRecord> rawSyntheticMethodInvocationRecordsByTarget = HashMultimap.create();
         private final Predicate<CodeUnit> isSyntheticOrigin;
         private final BiConsumer<RawAccessRecord.BaseBuilder<?, ?>, CodeUnit> fixOrigin;
 
@@ -390,41 +391,41 @@ class ClassFileImportRecord {
             rawSyntheticMethodInvocationRecordsByTarget.put(getMemberKey(record.target), record);
         }
 
-        <ACCESS extends RawAccessRecord> Optional<ACCESS> fixSyntheticAccess(
+        <ACCESS extends RawAccessRecord> Set<ACCESS> fixSyntheticAccess(
                 ACCESS access,
                 Function<ACCESS, ? extends RawAccessRecord.BaseBuilder<ACCESS, ?>> copyAccess
         ) {
             return isSyntheticOrigin.test(access.caller)
                     ? replaceOriginByFixedOrigin(access, copyAccess)
-                    : Optional.of(access);
+                    : singleton(access);
         }
 
-        private <ACCESS extends RawAccessRecord> Optional<ACCESS> replaceOriginByFixedOrigin(
+        private <ACCESS extends RawAccessRecord> Set<ACCESS> replaceOriginByFixedOrigin(
                 ACCESS accessFromSyntheticMethod,
                 Function<ACCESS, ? extends RawAccessRecord.BaseBuilder<ACCESS, ?>> copyAccess
         ) {
-            RawAccessRecord accessWithCorrectOrigin = findNonSyntheticOriginOf(accessFromSyntheticMethod);
+            Set<ACCESS> result = findNonSyntheticOriginOf(accessFromSyntheticMethod)
+                    .map(accessWithCorrectOrigin -> {
+                        RawAccessRecord.BaseBuilder<ACCESS, ?> copiedBuilder = copyAccess.apply(accessFromSyntheticMethod);
+                        fixOrigin.accept(copiedBuilder, accessWithCorrectOrigin.caller);
+                        return copiedBuilder.build();
+                    })
+                    .collect(toSet());
 
-            if (accessWithCorrectOrigin != null) {
-                RawAccessRecord.BaseBuilder<ACCESS, ?> copiedBuilder = copyAccess.apply(accessFromSyntheticMethod);
-                fixOrigin.accept(copiedBuilder, accessWithCorrectOrigin.caller);
-                return Optional.of(copiedBuilder.build());
-            } else {
+            if (result.isEmpty()) {
                 log.warn("Could not find matching origin for synthetic method {}.{}|{}",
                         accessFromSyntheticMethod.target.getDeclaringClassName(),
                         accessFromSyntheticMethod.target.name,
                         accessFromSyntheticMethod.target.getDescriptor());
-                return Optional.empty();
             }
-        }
-
-        private <ACCESS extends RawAccessRecord> RawAccessRecord findNonSyntheticOriginOf(ACCESS accessFromSyntheticMethod) {
-            RawAccessRecord result = accessFromSyntheticMethod;
-            do {
-                result = rawSyntheticMethodInvocationRecordsByTarget.get(getMemberKey(result.caller));
-            } while (result != null && isSyntheticOrigin.test(result.caller));
 
             return result;
+        }
+
+        private <ACCESS extends RawAccessRecord> Stream<RawAccessRecord> findNonSyntheticOriginOf(ACCESS access) {
+            return isSyntheticOrigin.test(access.caller)
+                    ? rawSyntheticMethodInvocationRecordsByTarget.get(getMemberKey(access.caller)).stream().flatMap(this::findNonSyntheticOriginOf)
+                    : Stream.of(access);
         }
     }
 }
