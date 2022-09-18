@@ -15,10 +15,10 @@ import static com.tngtech.archunit.core.domain.Dependency.Predicates.dependency;
 import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_PACKAGE_NAME;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration.consideringAllDependencies;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInAnyPackage;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInDiagram;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.adhereToPlantUmlDiagram;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration.consideringAllDependencies;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInAnyPackage;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInDiagram;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.adhereToPlantUmlDiagram;
 
 @Category(Example.class)
 public class PlantUmlArchitectureTest {

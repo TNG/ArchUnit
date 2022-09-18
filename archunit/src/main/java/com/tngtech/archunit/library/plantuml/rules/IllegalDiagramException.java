@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
-class ComponentIntersectionException extends RuntimeException {
-    ComponentIntersectionException(String format) {
-        super(format);
+class IllegalDiagramException extends RuntimeException {
+    IllegalDiagramException(String message, Object... args) {
+        super(String.format(message, args));
     }
 }

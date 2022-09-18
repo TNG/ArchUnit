@@ -13,26 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.Objects;
+import java.util.Optional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+class ComponentIdentifier {
+    private final ComponentName componentName;
+    private final Optional<Alias> alias;
 
-class Stereotype {
-    private String value;
-
-    Stereotype(String value) {
-        this.value = checkNotNull(value);
+    ComponentIdentifier(ComponentName componentName) {
+        this(componentName, Optional.empty());
     }
 
-    String asString() {
-        return value;
+    ComponentIdentifier(ComponentName componentName, Alias alias) {
+        this(componentName, Optional.of(alias));
+    }
+
+    private ComponentIdentifier(ComponentName componentName, Optional<Alias> alias) {
+        this.componentName = componentName;
+        this.alias = alias;
+    }
+
+    ComponentName getComponentName() {
+        return componentName;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return Objects.hash(componentName, alias);
     }
 
     @Override
@@ -43,14 +52,16 @@ class Stereotype {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Stereotype other = (Stereotype) obj;
-        return Objects.equals(this.value, other.value);
+        final ComponentIdentifier other = (ComponentIdentifier) obj;
+        return Objects.equals(this.componentName, other.componentName)
+                && Objects.equals(this.alias, other.alias);
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "value='" + value + '\'' +
+                "componentName=" + componentName +
+                ", alias=" + alias +
                 '}';
     }
 }

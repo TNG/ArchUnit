@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -120,8 +120,8 @@ class PlantUmlPatterns {
         private static final Pattern DEPENDENCY_RIGHT_ARROW_PATTERN = Pattern.compile("\\s-+" + DEPENDENCY_ARROW_CENTER_REGEX + "-*>\\s");
         private static final Pattern DEPENDENCY_LEFT_ARROW_PATTERN = Pattern.compile("\\s<-*" + DEPENDENCY_ARROW_CENTER_REGEX + "-+\\s");
 
+        private final String origin;
         private final String target;
-        private String origin;
 
         PlantUmlDependencyMatcher(String origin, String target) {
             this.origin = checkNotNull(origin, "Origin must not be null");

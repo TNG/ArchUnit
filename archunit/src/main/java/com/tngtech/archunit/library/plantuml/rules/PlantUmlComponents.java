@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.Collection;
 import java.util.Map;
@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 
 import com.google.common.collect.FluentIterable;
 
-import static com.tngtech.archunit.library.plantuml.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlComponent.Functions.TO_EXISTING_ALIAS;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 

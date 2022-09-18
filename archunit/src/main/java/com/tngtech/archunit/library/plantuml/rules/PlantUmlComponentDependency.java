@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class Alias {
-    private String value;
+class PlantUmlComponentDependency {
+    private final PlantUmlComponent origin;
+    private final PlantUmlComponent target;
 
-    Alias(String value) {
-        if (value.contains("[") || value.contains("]") || value.contains("\"")) {
-            throw new IllegalDiagramException("Alias '%s' should not contain character(s): '[' or ']' or '\"'", value);
-        }
-        this.value = checkNotNull(value);
+    PlantUmlComponentDependency(PlantUmlComponent origin, PlantUmlComponent target) {
+        this.origin = checkNotNull(origin);
+        this.target = checkNotNull(target);
     }
 
-    String asString() {
-        return value;
+    PlantUmlComponent getTarget() {
+        return target;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return Objects.hash(origin, target);
     }
 
     @Override
@@ -46,14 +45,16 @@ class Alias {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final Alias other = (Alias) obj;
-        return Objects.equals(this.value, other.value);
+        final PlantUmlComponentDependency other = (PlantUmlComponentDependency) obj;
+        return Objects.equals(this.origin, other.origin)
+                && Objects.equals(this.target, other.target);
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "value='" + value + '\'' +
+                "origin=" + origin +
+                ", target=" + target +
                 '}';
     }
 }

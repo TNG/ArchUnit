@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.Collection;
 import java.util.List;
@@ -62,9 +62,8 @@ class PlantUmlComponent {
     }
 
     ComponentIdentifier getIdentifier() {
-        return alias.isPresent()
-                ? new ComponentIdentifier(componentName, alias.get())
-                : new ComponentIdentifier(componentName);
+        return alias.map(it -> new ComponentIdentifier(componentName, it))
+                .orElseGet(() -> new ComponentIdentifier(componentName));
     }
 
     @Override

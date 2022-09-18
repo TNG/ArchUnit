@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.io.File;
 import java.net.MalformedURLException;
