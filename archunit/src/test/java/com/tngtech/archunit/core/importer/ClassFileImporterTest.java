@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -80,6 +81,7 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Condition;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -139,7 +141,7 @@ public class ClassFileImporterTest {
 
         Iterable<JavaClass> classes = new ClassFileImporter().importUrl(getClass().getResource("testexamples/simpleimport"));
 
-        assertThat(namesOf(classes)).containsOnlyElementsOf(expectedClassNames);
+        assertThat(namesOf(classes)).hasSameElementsAs(expectedClassNames);
     }
 
     @Test
@@ -879,10 +881,20 @@ public class ClassFileImporterTest {
         assertThatTypes(classes).matchInAnyOrder(Class11.class, Class12.class);
     }
 
-    @Test
-    public void ImportOptions_are_respected() throws Exception {
-        ClassFileImporter importer = new ClassFileImporter().withImportOption(importOnly(getClass(), Rule.class));
+    @DataProvider
+    public static Object[][] data_ImportOptions_are_respected() {
+        return testForEach(
+                new ClassFileImporter().withImportOption(importOnly(ClassFileImporterTest.class, Rule.class)),
+                new ClassFileImporter().withImportOptions(ImmutableSet.of(
+                        importOnly(ClassFileImporterTest.class, ClassFileImporterTestUtils.class, Rule.class, Test.class),
+                        importOnly(ClassFileImporterTest.class, ImportOptionsTest.class, Rule.class, Ignore.class)
+                ))
+        );
+    }
 
+    @Test
+    @UseDataProvider
+    public void test_ImportOptions_are_respected(ClassFileImporter importer) throws Exception {
         assertThatTypes(importer.importPath(Paths.get(uriOf(getClass())))).matchExactly(getClass());
         assertThatTypes(importer.importUrl(urlOf(getClass()))).matchExactly(getClass());
         assertThatTypes(importer.importJar(jarFileOf(Rule.class))).matchExactly(Rule.class);
@@ -909,10 +921,6 @@ public class ClassFileImporterTest {
         Files.copy(Paths.get(uriOf(clazz)), new File(targetFolder, clazz.getSimpleName() + ".class").toPath());
     }
 
-    private ImportOption importOnly(final Class<?>... classes) {
-        return location -> stream(classes).anyMatch(c -> location.contains(urlOf(c).getFile()));
-    }
-
     private Condition<CodeUnitAccessTarget> targetWithFullName(final String name) {
         return new Condition<CodeUnitAccessTarget>(String.format("target with name '%s'", name)) {
             @Override
@@ -920,5 +928,9 @@ public class ClassFileImporterTest {
                 return value.getFullName().equals(name);
             }
         };
+    }
+
+    private static ImportOption importOnly(final Class<?>... classes) {
+        return location -> stream(classes).anyMatch(c -> location.contains(urlOf(c).getFile()));
     }
 }

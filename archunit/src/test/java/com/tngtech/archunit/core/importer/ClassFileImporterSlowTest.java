@@ -23,13 +23,13 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static com.tngtech.archunit.core.importer.ClassFileImporterTestUtils.jarFileOf;
+import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES;
 import static com.tngtech.archunit.core.importer.ImportOption.Predefined.DO_NOT_INCLUDE_TESTS;
 import static com.tngtech.archunit.core.importer.UrlSourceTest.JAVA_CLASS_PATH_PROP;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatType;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.archunit.testutil.TestUtils.urlOf;
-import static java.util.Collections.singleton;
 import static java.util.jar.Attributes.Name.CLASS_PATH;
 import static java.util.stream.Collectors.toSet;
 
@@ -45,25 +45,40 @@ public class ClassFileImporterSlowTest {
     public final ContextClassLoaderRule contextClassLoaderRule = new ContextClassLoaderRule();
 
     @Test
-    public void imports_the_classpath() {
-        JavaClasses classes = new ClassFileImporter().importClasspath();
+    public void imports_the_classpath_without_archives() {
+        JavaClasses classes = new ClassFileImporter().withImportOption(DO_NOT_INCLUDE_ARCHIVES).importClasspath();
 
         assertThatTypes(classes).contain(ClassFileImporter.class, getClass());
         assertThatTypes(classes).doNotContain(Rule.class); // Default does not import jars
         assertThatTypes(classes).doNotContain(File.class); // Default does not import JDK classes
 
-        classes = new ClassFileImporter().importClasspath(singleton(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath()));
+        classes = new ClassFileImporter()
+                .withImportOption(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath())
+                .importClasspath();
 
         assertThatTypes(classes).contain(ClassFileImporter.class, getClass(), Rule.class, File.class);
     }
 
     @Test
+    public void imports_the_classpath_using_multiple_ImportOptions() {
+        JavaClasses classes = new ClassFileImporter()
+                .withImportOption(DO_NOT_INCLUDE_ARCHIVES)
+                .withImportOption(DO_NOT_INCLUDE_TESTS)
+                .importClasspath();
+
+        assertThatTypes(classes).contain(ClassFileImporter.class);
+        assertThatTypes(classes).doNotContain(getClass(), Rule.class, String.class);
+    }
+
+    @Test
     public void importing_the_default_package_equals_importing_the_classpath() {
-        Set<String> classNamesOfDefaultPackageImport = new ClassFileImporter().withImportOption(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath())
+        Set<String> classNamesOfDefaultPackageImport = new ClassFileImporter()
+                .withImportOption(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath())
                 .importPackages("")
                 .stream().map(JavaClass::getName).collect(toSet());
         Set<String> classNamesOfClasspathImport = new ClassFileImporter()
-                .importClasspath(singleton(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath()))
+                .withImportOption(importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath())
+                .importClasspath()
                 .stream().map(JavaClass::getName).collect(toSet());
 
         Set<String> classNamesOnlyInDefaultPackageImport = Sets.difference(classNamesOfDefaultPackageImport, classNamesOfClasspathImport);
@@ -71,14 +86,6 @@ public class ClassFileImporterSlowTest {
 
         Set<String> classNamesOnlyInClasspathImport = Sets.difference(classNamesOfClasspathImport, classNamesOfDefaultPackageImport);
         assertThat(classNamesOnlyInClasspathImport).as("Classes only contained in classpath import").isEmpty();
-    }
-
-    @Test
-    public void respects_ImportOptions_when_using_the_default_importClasspath_method() {
-        JavaClasses classes = new ClassFileImporter().withImportOption(DO_NOT_INCLUDE_TESTS).importClasspath();
-
-        assertThatTypes(classes).contain(ClassFileImporter.class);
-        assertThatTypes(classes).doNotContain(getClass(), Rule.class, String.class);
     }
 
     @Test
@@ -172,13 +179,14 @@ public class ClassFileImporterSlowTest {
     }
 
     private JavaClasses importJavaBase() {
-        return new ClassFileImporter().importClasspath(singleton(location -> {
-            return
-                    // before Java 9 package like java.lang were in rt.jar
-                    location.contains("rt.jar") ||
-                            // from Java 9 on those packages were in a JRT with name 'java.base'
-                            (location.asURI().getScheme().equals("jrt") && location.contains("java.base"));
-        }));
+        return new ClassFileImporter()
+                .withImportOption(location ->
+                        // before Java 9 packages like java.lang were in rt.jar
+                        location.contains("rt.jar") ||
+                                // from Java 9 on those packages were in a JRT with name 'java.base'
+                                (location.asURI().getScheme().equals("jrt") && location.contains("java.base"))
+                )
+                .importClasspath();
     }
 
     private ImportOption importJavaBaseOrRtAndJUnitJarAndFilesOnTheClasspath() {

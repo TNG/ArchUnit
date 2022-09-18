@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static java.util.Collections.singleton;
 
 @Category(Example.class)
 public class SecurityTest {
@@ -28,7 +27,7 @@ public class SecurityTest {
         ArchRule rule = classes().that().resideInAPackage("java.security.cert..")
                 .should().onlyBeAccessed().byAnyPackage("..example.layers.security..", "java..", "..sun..", "javax..", "apple.security..", "org.jcp..");
 
-        JavaClasses classes = new ClassFileImporter().importClasspath(singleton(onlyAppAndRuntime()));
+        JavaClasses classes = new ClassFileImporter().withImportOption(onlyAppAndRuntime()).importClasspath();
 
         rule.check(classes);
     }
