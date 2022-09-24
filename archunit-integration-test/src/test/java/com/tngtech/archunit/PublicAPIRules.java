@@ -22,6 +22,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.CompositeArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.lang.conditions.ArchPredicates;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.google.common.collect.Iterables.getLast;
@@ -42,8 +43,9 @@ import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predica
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.beAnnotatedWith;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.have;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
-import static com.tngtech.archunit.lang.conditions.ArchPredicates.have;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.is;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
@@ -65,6 +67,13 @@ public class PublicAPIRules {
 
                     .as("classes that are not explicitly designed as API should not be public")
                     .because("we risk extensibility and maintainability of ArchUnit, if internal classes leak to users");
+
+    @ArchTest
+    public static final ArchRule public_classes_of_public_API_should_be_annotated_with_PublicAPI =
+            classes()
+                    .that(haveMemberThatBelongsToPublicApi())
+                    .should(beAnnotatedWith(PublicAPI.class).<JavaClass>forSubtype()
+                            .or(have(supertype(annotatedWith(PublicAPI.class)).and(not(modifier(PUBLIC))))));
 
     @ArchTest
     public static final ArchRule only_members_that_are_public_API_or_explicitly_marked_as_internal_are_accessible =
@@ -127,7 +136,7 @@ public class PublicAPIRules {
                     .that().haveRawParameterTypes(anyElementThat(is(assignableTo(DescribedPredicate.class))))
                     .and(are(declaredIn(modifier(PUBLIC))))
                     .and(are(not(declaredIn(annotatedWith(Internal.class)))))
-                    .and(have(modifier(PUBLIC)))
+                    .and(ArchPredicates.have(modifier(PUBLIC)))
                     .should(haveContravariantPredicateParameterTypes())
                     .as(String.format(
                             "Public API methods that take a %s<PARAM> should declare the type parameter contravariantly (i.e. %s<? super PARAM>)",
@@ -201,21 +210,6 @@ public class PublicAPIRules {
         return declaredIn(resideInAPackage(packageIdentifier).as("class in '%s'", packageIdentifier));
     }
 
-    private static ArchCondition<JavaMember> notBePublic() {
-        return new ArchCondition<JavaMember>("not be public") {
-            @Override
-            public void check(JavaMember member, ConditionEvents events) {
-                boolean satisfied = !member.getModifiers().contains(PUBLIC);
-                events.add(new SimpleConditionEvent(member, satisfied,
-                        String.format("member %s.%s is %spublic in %s",
-                                member.getOwner().getName(),
-                                member.getName(),
-                                satisfied ? "not " : "",
-                                member.getSourceCodeLocation())));
-            }
-        };
-    }
-
     private static ArchCondition<JavaMember> bePubliclyAccessible() {
         return new ArchCondition<JavaMember>("be publicly accessible") {
             @Override
@@ -261,6 +255,12 @@ public class PublicAPIRules {
                 return input.getAllMembers().stream().anyMatch(member -> member.isAnnotatedWith(PublicAPI.class));
             }
         };
+    }
+
+    private static DescribedPredicate<JavaClass> supertype(DescribedPredicate<? super JavaClass> predicate) {
+        return DescribedPredicate.describe(
+                "supertype " + predicate.getDescription(),
+                javaClass -> Stream.concat(javaClass.getAllRawSuperclasses().stream(), javaClass.getAllRawInterfaces().stream()).anyMatch(predicate));
     }
 
     private static DescribedPredicate<JavaMember> withoutAPIMarking() {

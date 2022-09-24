@@ -33,6 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.stream.Collectors.toMap;
 
+@PublicAPI(usage = ACCESS)
 public final class JavaClasses extends ForwardingCollection<JavaClass> implements DescribedIterable<JavaClass>, CanOverrideDescription<JavaClasses> {
     private final ImmutableMap<String, JavaClass> classes;
     private final JavaPackage defaultPackage;

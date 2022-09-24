@@ -43,6 +43,7 @@ import static com.tngtech.archunit.base.ClassLoaders.getCurrentClassLoader;
 /**
  * Allows access to configured properties in {@value ARCHUNIT_PROPERTIES_RESOURCE_NAME}.
  */
+@PublicAPI(usage = ACCESS)
 public final class ArchConfiguration {
     @Internal // {@value ...} does not work on non public constants outside of the package
     public static final String ARCHUNIT_PROPERTIES_RESOURCE_NAME = "archunit.properties";
@@ -405,6 +406,7 @@ public final class ArchConfiguration {
         }
     }
 
+    @PublicAPI(usage = ACCESS)
     public final class ExtensionProperties {
         private final String extensionIdentifier;
 

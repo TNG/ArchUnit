@@ -26,10 +26,12 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
+@PublicAPI(usage = ACCESS)
 public interface HasName {
     @PublicAPI(usage = ACCESS)
     String getName();
 
+    @PublicAPI(usage = ACCESS)
     interface AndFullName extends HasName {
         /**
          * @return The full name of the given object. Varies by context, for details consult Javadoc of the concrete subclass.
@@ -40,6 +42,7 @@ public interface HasName {
         /**
          * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasName.AndFullName}
          */
+        @PublicAPI(usage = ACCESS)
         final class Predicates {
             private Predicates() {
             }
@@ -86,6 +89,7 @@ public interface HasName {
             }
         }
 
+        @PublicAPI(usage = ACCESS)
         final class Functions {
             private Functions() {
             }
@@ -103,6 +107,7 @@ public interface HasName {
     /**
      * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasName}
      */
+    @PublicAPI(usage = ACCESS)
     final class Predicates {
         private Predicates() {
         }
@@ -210,6 +215,7 @@ public interface HasName {
     /**
      * Predefined {@link ChainableFunction functions} to transform {@link HasName}.
      */
+    @PublicAPI(usage = ACCESS)
     final class Functions {
         private Functions() {
         }
@@ -231,6 +237,7 @@ public interface HasName {
         };
     }
 
+    @PublicAPI(usage = ACCESS)
     final class Utils {
         private Utils() {
         }

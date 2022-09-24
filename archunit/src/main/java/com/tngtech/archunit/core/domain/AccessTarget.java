@@ -82,6 +82,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
  *
  * @see #resolveMember()
  */
+@PublicAPI(usage = ACCESS)
 public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotated, HasOwner<JavaClass>, HasDescription {
     private final String name;
     private final JavaClass owner;
@@ -229,6 +230,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
     /**
      * Predefined {@link ChainableFunction functions} to transform {@link AccessTarget}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Functions {
         private Functions() {
         }
@@ -248,6 +250,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Represents an {@link AccessTarget} where the target is a field. For further elaboration about the necessity to distinguish
      * {@link FieldAccessTarget FieldAccessTarget} from {@link JavaField}, refer to the documentation at {@link AccessTarget}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class FieldAccessTarget extends AccessTarget implements HasType {
         private final JavaClass type;
 
@@ -317,6 +320,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         /**
          * Predefined {@link ChainableFunction functions} to transform {@link FieldAccessTarget}.
          */
+        @PublicAPI(usage = ACCESS)
         public static final class Functions {
             private Functions() {
             }
@@ -336,6 +340,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
      * {@link CodeUnitAccessTarget CodeUnitAccessTarget} from {@link JavaCodeUnit}, refer to the documentation at {@link AccessTarget}.
      */
+    @PublicAPI(usage = ACCESS)
     public abstract static class CodeUnitAccessTarget extends AccessTarget
             implements HasParameterTypes, HasReturnType, HasThrowsClause<CodeUnitAccessTarget> {
         private final ImmutableList<JavaClass> parameters;
@@ -399,6 +404,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         /**
          * Predefined {@link ChainableFunction functions} to transform {@link CodeUnitAccessTarget}.
          */
+        @PublicAPI(usage = ACCESS)
         public static final class Functions {
             private Functions() {
             }
@@ -419,6 +425,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
      * {@link CodeUnitCallTarget CodeUnitCallTarget} from {@link JavaCodeUnit} refer to the documentation at {@link AccessTarget}.
      */
+    @PublicAPI(usage = ACCESS)
     public abstract static class CodeUnitCallTarget extends CodeUnitAccessTarget {
         CodeUnitCallTarget(CodeUnitAccessTargetBuilder<?, ?> builder) {
             super(builder);
@@ -436,6 +443,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Represents an {@link AccessTarget} where the target is a code unit. For further elaboration about the necessity to distinguish
      * {@link CodeUnitReferenceTarget CodeUnitReferenceTarget} from {@link JavaCodeUnit} refer to the documentation at {@link AccessTarget}.
      */
+    @PublicAPI(usage = ACCESS)
     public abstract static class CodeUnitReferenceTarget extends CodeUnitAccessTarget {
         CodeUnitReferenceTarget(CodeUnitAccessTargetBuilder<?, ?> builder) {
             super(builder);
@@ -453,6 +461,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Represents a {@link CodeUnitCallTarget} where the target is a constructor. For further elaboration about the necessity to distinguish
      * {@link ConstructorCallTarget ConstructorCallTarget} from {@link JavaConstructor} refer to the documentation at {@link AccessTarget}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class ConstructorCallTarget extends CodeUnitCallTarget {
         ConstructorCallTarget(CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorCallTarget> builder) {
             super(builder);
@@ -485,6 +494,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         /**
          * Predefined {@link ChainableFunction functions} to transform {@link ConstructorCallTarget}.
          */
+        @PublicAPI(usage = ACCESS)
         public static final class Functions {
             private Functions() {
             }
@@ -504,6 +514,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Represents a {@link CodeUnitReferenceTarget} where the target is a constructor. For further elaboration about the necessity to distinguish
      * {@link ConstructorReferenceTarget ConstructorReferenceTarget} from {@link JavaConstructor} refer to the documentation at {@link AccessTarget}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class ConstructorReferenceTarget extends CodeUnitReferenceTarget {
         ConstructorReferenceTarget(CodeUnitAccessTargetBuilder<JavaConstructor, ConstructorReferenceTarget> builder) {
             super(builder);
@@ -536,6 +547,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         /**
          * Predefined {@link ChainableFunction functions} to transform {@link ConstructorReferenceTarget}.
          */
+        @PublicAPI(usage = ACCESS)
         public static final class Functions {
             private Functions() {
             }
@@ -555,6 +567,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Represents a {@link CodeUnitCallTarget} where the target is a method. For further elaboration about the necessity to distinguish
      * {@link MethodCallTarget MethodCallTarget} from {@link JavaMethod} refer to the documentation at {@link AccessTarget}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class MethodCallTarget extends CodeUnitCallTarget {
         MethodCallTarget(CodeUnitAccessTargetBuilder<JavaMethod, MethodCallTarget> builder) {
             super(builder);
@@ -611,6 +624,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         /**
          * Predefined {@link ChainableFunction functions} to transform {@link MethodCallTarget}.
          */
+        @PublicAPI(usage = ACCESS)
         public static final class Functions {
             private Functions() {
             }
@@ -630,6 +644,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      * Represents a {@link CodeUnitReferenceTarget} where the target is a method. For further elaboration about the necessity to distinguish
      * {@link MethodReferenceTarget MethodReferenceTarget} from {@link JavaMethod} refer to the documentation at {@link AccessTarget}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class MethodReferenceTarget extends CodeUnitReferenceTarget {
         MethodReferenceTarget(CodeUnitAccessTargetBuilder<JavaMethod, MethodReferenceTarget> builder) {
             super(builder);
@@ -664,6 +679,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
         /**
          * Predefined {@link ChainableFunction functions} to transform {@link MethodReferenceTarget}.
          */
+        @PublicAPI(usage = ACCESS)
         public static final class Functions {
             private Functions() {
             }
@@ -689,6 +705,7 @@ public abstract class AccessTarget implements HasName.AndFullName, CanBeAnnotate
      *     <li>{@link HasOwner.Predicates}</li>
      * </ul>
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Predicates {
         private Predicates() {
         }

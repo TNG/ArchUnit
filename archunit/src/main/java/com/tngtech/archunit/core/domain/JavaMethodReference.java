@@ -15,10 +15,14 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodReferenceBuilder;
 
-public class JavaMethodReference extends JavaCodeUnitReference<MethodReferenceTarget> {
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+@PublicAPI(usage = ACCESS)
+public final class JavaMethodReference extends JavaCodeUnitReference<MethodReferenceTarget> {
     JavaMethodReference(JavaMethodReferenceBuilder builder) {
         super(builder);
     }

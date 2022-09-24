@@ -52,6 +52,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  *
  * @see com.tngtech.archunit.library.dependencies.Slices.Transformer
  */
+@PublicAPI(usage = ACCESS)
 public interface ArchRule extends CanBeEvaluated, CanOverrideDescription<ArchRule> {
     @PublicAPI(usage = ACCESS)
     void check(JavaClasses classes);

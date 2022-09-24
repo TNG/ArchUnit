@@ -30,6 +30,7 @@ import static com.tngtech.archunit.core.domain.Formatters.formatMethodParameterT
 import static com.tngtech.archunit.core.domain.Formatters.formatNamesOf;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAMES;
 
+@PublicAPI(usage = ACCESS)
 public interface HasParameterTypes {
 
     /**

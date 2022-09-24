@@ -50,6 +50,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * }
  * </code></pre>
  */
+@PublicAPI(usage = ACCESS)
 public final class ArchTests {
     private final Class<?> definitionLocation;
 

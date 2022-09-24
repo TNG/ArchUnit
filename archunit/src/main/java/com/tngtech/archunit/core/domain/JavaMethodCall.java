@@ -15,10 +15,14 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaMethodCallBuilder;
 
-public class JavaMethodCall extends JavaCall<MethodCallTarget> {
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+@PublicAPI(usage = ACCESS)
+public final class JavaMethodCall extends JavaCall<MethodCallTarget> {
     JavaMethodCall(JavaMethodCallBuilder builder) {
         super(builder);
     }

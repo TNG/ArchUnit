@@ -88,7 +88,8 @@ import static java.util.Collections.singleton;
  *     <li>Dependencies must use arrows only consisting of dashes, pointing right, e.g. <code>--&gt;</code></li>
  * </ol>
  */
-public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
+@PublicAPI(usage = ACCESS)
+public final class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     private final DescribedPredicate<Dependency> ignorePredicate;
     private final JavaClassDiagramAssociation javaClassDiagramAssociation;
 

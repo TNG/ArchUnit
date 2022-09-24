@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public abstract class JavaAccess<TARGET extends AccessTarget>
         implements HasName, HasDescription, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
 
@@ -133,6 +134,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
      *     <li>{@link HasOwner.Predicates}</li>
      * </ul>
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Predicates {
         private Predicates() {
         }
@@ -202,6 +204,7 @@ public abstract class JavaAccess<TARGET extends AccessTarget>
         private Functions() {
         }
 
+        @PublicAPI(usage = ACCESS)
         public static final class Get {
             private Get() {
             }

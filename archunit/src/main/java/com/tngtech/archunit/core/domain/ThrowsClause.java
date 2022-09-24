@@ -38,6 +38,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.stream.Collectors.toList;
 
+@PublicAPI(usage = ACCESS)
 public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>>
         extends ForwardingList<ThrowsDeclaration<LOCATION>>
         implements HasOwner<LOCATION> {
@@ -137,6 +138,7 @@ public final class ThrowsClause<LOCATION extends HasParameterTypes & HasReturnTy
     /**
      * Predefined {@link ChainableFunction functions} to transform {@link ThrowsClause}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Functions {
         private Functions() {
         }

@@ -42,6 +42,7 @@ public interface JavaType extends HasName {
     /**
      * Predefined {@link ChainableFunction functions} to transform {@link JavaType}.
      */
+    @PublicAPI(usage = ACCESS)
     final class Functions {
         private Functions() {
         }

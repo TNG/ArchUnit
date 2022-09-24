@@ -19,6 +19,7 @@ import com.tngtech.archunit.PublicAPI;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface MethodsShould<CONJUNCTION extends MethodsShouldConjunction> extends CodeUnitsShould<CONJUNCTION> {
 
     /**

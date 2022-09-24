@@ -35,6 +35,7 @@ import static java.util.Collections.list;
  * Represents a set of {@link Location locations} of Java class files. Also offers methods to derive concrete locations (i.e. URIs) from
  * higher level concepts like packages or the classpath.
  */
+@PublicAPI(usage = ACCESS)
 public final class Locations {
     private static final InitialConfiguration<LocationResolver> locationResolver = new InitialConfiguration<>();
 

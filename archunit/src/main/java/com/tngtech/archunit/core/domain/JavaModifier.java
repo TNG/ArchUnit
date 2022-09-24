@@ -27,6 +27,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 
+@PublicAPI(usage = ACCESS)
 public enum JavaModifier {
     @PublicAPI(usage = ACCESS)
     PUBLIC(EnumSet.allOf(ApplicableType.class), Opcodes.ACC_PUBLIC),

@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaAccessBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public abstract class JavaCall<T extends CodeUnitCallTarget> extends JavaCodeUnitAccess<T> {
     JavaCall(JavaAccessBuilder<T, ?> builder) {
         super(builder);
@@ -32,6 +33,7 @@ public abstract class JavaCall<T extends CodeUnitCallTarget> extends JavaCodeUni
      * Predefined {@link DescribedPredicate predicates} targeting {@link JavaCall}.
      * Further predicates to be used with {@link JavaCall} can be found at {@link JavaCodeUnitAccess.Predicates}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Predicates {
         private Predicates() {
         }

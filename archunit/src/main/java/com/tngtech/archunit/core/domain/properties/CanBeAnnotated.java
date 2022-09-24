@@ -34,6 +34,7 @@ import static com.tngtech.archunit.core.domain.Formatters.ensureSimpleName;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
+@PublicAPI(usage = ACCESS)
 public interface CanBeAnnotated {
 
     /**
@@ -95,6 +96,7 @@ public interface CanBeAnnotated {
     /**
      * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link CanBeAnnotated}
      */
+    @PublicAPI(usage = ACCESS)
     final class Predicates {
         private Predicates() {
         }
@@ -215,6 +217,7 @@ public interface CanBeAnnotated {
         }
     }
 
+    @PublicAPI(usage = ACCESS)
     final class Utils {
         private Utils() {
         }

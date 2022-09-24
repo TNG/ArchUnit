@@ -35,6 +35,7 @@ import com.tngtech.archunit.core.domain.properties.HasType;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface ClassesThat<CONJUNCTION> {
     /**
      * Matches classes by their fully qualified class name.

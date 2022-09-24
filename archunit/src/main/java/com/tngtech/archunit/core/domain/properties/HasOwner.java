@@ -32,6 +32,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * an annotation parameter is owned by the annotation that declares it, etc.
  * @param <T> The type of the "owner", e.g. a <code>{@link JavaClass}</code> as the owner of a <code>{@link JavaMember}</code>
  */
+@PublicAPI(usage = ACCESS)
 public interface HasOwner<T> {
     /**
      * @return The "owner" of this object, compare {@link HasOwner}
@@ -47,6 +48,7 @@ public interface HasOwner<T> {
         private Predicates() {
         }
 
+        @PublicAPI(usage = ACCESS)
         public static final class With {
             private With() {
             }
@@ -80,6 +82,7 @@ public interface HasOwner<T> {
         private Functions() {
         }
 
+        @PublicAPI(usage = ACCESS)
         public static final class Get {
             private Get() {
             }

@@ -25,6 +25,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface GivenMembers<MEMBER extends JavaMember> extends GivenObjects<MEMBER> {
 
     /**

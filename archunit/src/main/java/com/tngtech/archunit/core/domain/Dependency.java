@@ -54,7 +54,8 @@ import static com.tngtech.archunit.base.Optionals.asSet;
  * Note that a {@link Dependency} will by definition never be a self-reference,
  * i.e. <code>origin</code> will never be equal to <code>target</code>.
  */
-public class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation {
+@PublicAPI(usage = ACCESS)
+public final class Dependency implements HasDescription, Comparable<Dependency>, HasSourceCodeLocation {
     private final JavaClass originClass;
     private final JavaClass targetClass;
     private final int lineNumber;
@@ -336,6 +337,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     /**
      * Predefined {@link DescribedPredicate predicates} targeting {@link Dependency}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Predicates {
         private Predicates() {
         }
@@ -393,6 +395,7 @@ public class Dependency implements HasDescription, Comparable<Dependency>, HasSo
     /**
      * Predefined {@link ChainableFunction functions} to transform {@link Dependency}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Functions {
         private Functions() {
         }

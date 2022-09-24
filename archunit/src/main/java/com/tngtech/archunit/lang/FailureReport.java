@@ -16,7 +16,6 @@
 package com.tngtech.archunit.lang;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.PublicAPI;
@@ -24,6 +23,7 @@ import com.tngtech.archunit.base.HasDescription;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public final class FailureReport {
     private final FailureMessages failureMessages;
     private final HasDescription rule;
@@ -48,9 +48,5 @@ public final class FailureReport {
     @Override
     public String toString() {
         return FailureDisplayFormatFactory.create().formatFailure(rule, failureMessages, priority);
-    }
-
-    FailureReport filter(Predicate<String> predicate) {
-        return new FailureReport(rule, priority, failureMessages.filter(predicate));
     }
 }

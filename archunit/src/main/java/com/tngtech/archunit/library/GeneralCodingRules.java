@@ -72,6 +72,7 @@ import static java.util.stream.Collectors.groupingBy;
  * For further information refer to {@link ClassFileImporter}.
  * </p>
  */
+@PublicAPI(usage = ACCESS)
 public final class GeneralCodingRules {
     private GeneralCodingRules() {
     }

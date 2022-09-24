@@ -33,6 +33,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
+@PublicAPI(usage = ACCESS)
 public interface HasThrowsClause<LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>> {
     @PublicAPI(usage = ACCESS)
     ThrowsClause<? extends LOCATION> getThrowsClause();

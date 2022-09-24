@@ -25,6 +25,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
 import static com.tngtech.archunit.core.domain.properties.HasReturnType.Functions.GET_RAW_RETURN_TYPE;
 
+@PublicAPI(usage = ACCESS)
 public interface HasReturnType {
 
     @PublicAPI(usage = ACCESS)
@@ -61,6 +62,7 @@ public interface HasReturnType {
     /**
      * Predefined {@link ChainableFunction functions} to transform {@link HasReturnType}.
      */
+    @PublicAPI(usage = ACCESS)
     final class Functions {
         private Functions() {
         }

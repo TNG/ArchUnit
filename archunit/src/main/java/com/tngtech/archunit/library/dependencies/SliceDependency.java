@@ -30,6 +30,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.StreamSupport.stream;
 
+@PublicAPI(usage = ACCESS)
 public final class SliceDependency implements HasDescription {
     private final Slice origin;
     private final SortedSet<Dependency> relevantDependencies;

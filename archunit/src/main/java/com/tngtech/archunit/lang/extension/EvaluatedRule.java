@@ -28,6 +28,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * respective {@link EvaluationResult}. To react to failures during evaluation of the rule,
  * see {@link EvaluationResult}.
  */
+@PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
 public interface EvaluatedRule {
     @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     ArchRule getRule();

@@ -15,7 +15,11 @@
  */
 package com.tngtech.archunit.lang.syntax.elements;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+@PublicAPI(usage = ACCESS)
 public interface GivenConstructors extends GivenCodeUnits<JavaConstructor> {
 }

@@ -26,6 +26,7 @@ import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
+@PublicAPI(usage = ACCESS)
 public interface HasType {
 
     @PublicAPI(usage = ACCESS)
@@ -61,6 +62,7 @@ public interface HasType {
     /**
      * Predefined {@link ChainableFunction functions} to transform {@link HasType}.
      */
+    @PublicAPI(usage = ACCESS)
     final class Functions {
         private Functions() {
         }

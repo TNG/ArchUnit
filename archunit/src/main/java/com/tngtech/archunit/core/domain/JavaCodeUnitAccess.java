@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaAccessBuilder;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public abstract class JavaCodeUnitAccess<T extends CodeUnitAccessTarget> extends JavaAccess<T> {
     JavaCodeUnitAccess(JavaAccessBuilder<T, ?> builder) {
         super(builder);
@@ -32,6 +33,7 @@ public abstract class JavaCodeUnitAccess<T extends CodeUnitAccessTarget> extends
      * Predefined {@link DescribedPredicate predicates} targeting {@link JavaCodeUnitAccess}.
      * Further predicates to be used with {@link JavaCodeUnitAccess} can be found at {@link JavaAccess.Predicates}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Predicates {
         private Predicates() {
         }

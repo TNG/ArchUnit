@@ -50,6 +50,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  *                   For further information about the resolution process of {@link AccessTarget AccessTargets} to
  *                   {@link JavaMember JavaMembers} consult the documentation at {@link AccessTarget}.
  */
+@PublicAPI(usage = ACCESS)
 public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasReturnType & HasName.AndFullName & CanBeAnnotated & HasOwner<JavaClass>>
         implements HasType, HasOwner<ThrowsClause<LOCATION>> {
 
@@ -146,6 +147,7 @@ public final class ThrowsDeclaration<LOCATION extends HasParameterTypes & HasRet
         private Functions() {
         }
 
+        @PublicAPI(usage = ACCESS)
         public static final class Get {
             private Get() {
             }

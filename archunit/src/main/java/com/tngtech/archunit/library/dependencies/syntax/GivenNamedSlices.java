@@ -23,6 +23,7 @@ import com.tngtech.archunit.library.dependencies.Slice;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface GivenNamedSlices extends GivenObjects<Slice>, CanOverrideDescription<GivenNamedSlices> {
 
     @PublicAPI(usage = ACCESS)

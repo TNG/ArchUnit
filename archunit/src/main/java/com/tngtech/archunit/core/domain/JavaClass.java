@@ -69,7 +69,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toSet;
 
-public class JavaClass
+@PublicAPI(usage = ACCESS)
+public final class JavaClass
         implements JavaType, HasName.AndFullName, HasTypeParameters<JavaClass>, HasAnnotations<JavaClass>, HasModifiers, HasSourceCodeLocation {
 
     private final Optional<Source> source;
@@ -1757,6 +1758,7 @@ public class JavaClass
      *     <li>{@link JavaType.Functions}</li>
      * </ul>
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Functions {
         private Functions() {
         }
@@ -2054,6 +2056,7 @@ public class JavaClass
      *     <li>{@link CanBeAnnotated.Predicates}</li>
      * </ul>
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Predicates {
         private Predicates() {
         }

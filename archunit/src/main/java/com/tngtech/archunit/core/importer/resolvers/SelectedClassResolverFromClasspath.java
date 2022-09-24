@@ -32,6 +32,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  *
  * @see ClassResolverFromClasspath
  */
+@PublicAPI(usage = ACCESS)
 public final class SelectedClassResolverFromClasspath implements ClassResolver {
     private final Set<String> packageRoots;
     private final ClassResolverFromClasspath classResolverFromClasspath = new ClassResolverFromClasspath();

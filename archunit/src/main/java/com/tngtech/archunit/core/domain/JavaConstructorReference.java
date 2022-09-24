@@ -15,10 +15,14 @@
  */
 package com.tngtech.archunit.core.domain;
 
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.core.domain.AccessTarget.ConstructorReferenceTarget;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaConstructorReferenceBuilder;
 
-public class JavaConstructorReference extends JavaCodeUnitReference<ConstructorReferenceTarget> {
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
+
+@PublicAPI(usage = ACCESS)
+public final class JavaConstructorReference extends JavaCodeUnitReference<ConstructorReferenceTarget> {
     JavaConstructorReference(JavaConstructorReferenceBuilder builder) {
         super(builder);
     }

@@ -21,6 +21,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface GivenClass {
     /**
      * Like {@link GivenClasses#should()} but for a single class

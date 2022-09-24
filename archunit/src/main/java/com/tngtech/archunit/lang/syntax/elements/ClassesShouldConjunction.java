@@ -51,6 +51,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * Note that inverting the rule, e.g. via {@link ArchRuleDefinition#noClasses()}, will also invert the join operator. I.e.
  * if you define {@code noClasses().should().a().orShould().b()} it will mean that all classes must satisfy {@code not(a) AND not(b)}.
  */
+@PublicAPI(usage = ACCESS)
 public interface ClassesShouldConjunction extends ArchRule {
 
     /**

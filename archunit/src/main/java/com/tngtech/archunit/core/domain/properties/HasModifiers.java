@@ -31,6 +31,7 @@ public interface HasModifiers {
     /**
      * Predefined {@link DescribedPredicate predicates} targeting objects that implement {@link HasModifiers}
      */
+    @PublicAPI(usage = ACCESS)
     final class Predicates {
         private Predicates() {
         }

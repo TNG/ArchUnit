@@ -61,6 +61,7 @@ import static java.util.Collections.emptySet;
  *     <li><code>jar:file:///home/someuser/.m2/repository/myproject/foolib.jar!/myproject/Foo.class</code></li>
  * </ul>
  */
+@PublicAPI(usage = ACCESS)
 public abstract class Location {
     private static final InitialConfiguration<Set<Factory>> factories = new InitialConfiguration<>();
 

@@ -29,7 +29,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * For example {@link DescribedPredicate predicates} targeting {@link JavaClass} can be found
  * within the class {@link JavaClass.Predicates}.
  */
-public class ArchPredicates {
+@PublicAPI(usage = ACCESS)
+public final class ArchPredicates {
     private ArchPredicates() {
     }
 

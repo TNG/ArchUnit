@@ -48,6 +48,7 @@ import static java.util.stream.Collectors.toList;
  * Thus there could be a slice 'Order' housing all the classes from the {@code order} package, a slice 'Customer'
  * housing all the classes from the {@code customer} package and so on.
  */
+@PublicAPI(usage = ACCESS)
 public final class Slice extends ForwardingSet<JavaClass> implements HasDescription, CanOverrideDescription<Slice> {
     private final SliceAssignment sliceAssignment;
     private final List<String> matchingGroups;

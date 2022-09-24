@@ -50,6 +50,7 @@ import static java.util.stream.Collectors.toSet;
  * Basic collection of {@link Slice} for tests of dependencies between different domain packages, e.g. to avoid cycles.
  * Refer to {@link SlicesRuleDefinition} for further info on how to form an {@link ArchRule} to test slices.
  */
+@PublicAPI(usage = ACCESS)
 public final class Slices implements DescribedIterable<Slice>, CanOverrideDescription<Slices> {
     private final Iterable<Slice> slices;
     private final String description;
@@ -170,6 +171,7 @@ public final class Slices implements DescribedIterable<Slice>, CanOverrideDescri
      *
      * @see Slices
      */
+    @PublicAPI(usage = ACCESS)
     public static class Transformer implements ClassesTransformer<Slice> {
         private final SliceAssignment sliceAssignment;
         private final String description;

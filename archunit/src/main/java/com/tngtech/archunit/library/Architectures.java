@@ -78,6 +78,7 @@ import static java.util.stream.Collectors.toSet;
  * <li>{@link #onionArchitecture()}</li>
  * </ul>
  */
+@PublicAPI(usage = ACCESS)
 public final class Architectures {
     private Architectures() {
     }
@@ -113,6 +114,7 @@ public final class Architectures {
         return new DependencySettings();
     }
 
+    @PublicAPI(usage = ACCESS)
     public static final class LayeredArchitecture implements ArchRule {
         private final LayerDefinitions layerDefinitions;
         private final Set<LayerDependencySpecification> dependencySpecifications;
@@ -529,6 +531,7 @@ public final class Architectures {
             }
         }
 
+        @PublicAPI(usage = ACCESS)
         public final class LayerDefinition {
             private final String name;
             private final boolean optional;
@@ -581,6 +584,7 @@ public final class Architectures {
             TARGET
         }
 
+        @PublicAPI(usage = ACCESS)
         public final class LayerDependencySpecification {
             private final String layerName;
             private final Set<String> allowedLayers = new LinkedHashSet<>();
@@ -762,6 +766,7 @@ public final class Architectures {
         return new OnionArchitecture();
     }
 
+    @PublicAPI(usage = ACCESS)
     public static final class OnionArchitecture implements ArchRule {
         private static final String DOMAIN_MODEL_LAYER = "domain model";
         private static final String DOMAIN_SERVICE_LAYER = "domain service";

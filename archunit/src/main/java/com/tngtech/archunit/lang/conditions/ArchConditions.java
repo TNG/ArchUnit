@@ -131,6 +131,7 @@ import static java.util.Arrays.asList;
  * A collection of predefined {@link ArchCondition ArchConditions} that can be customized or joined together
  * via {@link ArchCondition#and(ArchCondition)} and {@link ArchCondition#or(ArchCondition)}.
  */
+@PublicAPI(usage = ACCESS)
 public final class ArchConditions {
     private ArchConditions() {
     }
