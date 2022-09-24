@@ -16,6 +16,7 @@
 package com.tngtech.archunit.junit.internal;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -29,7 +30,6 @@ import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
-import com.tngtech.archunit.core.importer.ImportOptions;
 import com.tngtech.archunit.core.importer.Location;
 import com.tngtech.archunit.core.importer.Locations;
 import com.tngtech.archunit.junit.CacheMode;
@@ -110,9 +110,9 @@ class ClassCache {
 
         private synchronized void initialize() {
             if (javaClasses == null) {
-                ImportOptions importOptions = new ImportOptions();
+                Set<ImportOption> importOptions = new HashSet<>();
                 for (Class<? extends ImportOption> optionClass : importOptionTypes) {
-                    importOptions = importOptions.with(newInstanceOf(optionClass));
+                    importOptions.add(newInstanceOf(optionClass));
                 }
                 javaClasses = cacheClassFileImporter.importClasses(importOptions, locations);
             }
@@ -121,7 +121,7 @@ class ClassCache {
 
     // Used for testing -> that's also the reason it's declared top level
     static class CacheClassFileImporter {
-        JavaClasses importClasses(ImportOptions importOptions, Collection<Location> locations) {
+        JavaClasses importClasses(Set<ImportOption> importOptions, Collection<Location> locations) {
             return new ClassFileImporter(importOptions).importLocations(locations);
         }
     }

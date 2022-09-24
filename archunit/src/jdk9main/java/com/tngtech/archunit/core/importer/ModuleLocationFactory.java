@@ -26,10 +26,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -129,7 +129,7 @@ class ModuleLocationFactory implements Location.Factory {
             locations = entries.stream()
                     .map(entry -> new ModuleClassFileLocation(moduleReference, entry))
                     .filter(classFileLocation -> classFileLocation.isIncludedBy(importOptions))
-                    .map(Function.identity()); // thanks Java type system :-(
+                    .map(identity());
         }
 
         private Set<String> loadEntries(ModuleReference moduleReference, NormalizedResourceName resourceName) {

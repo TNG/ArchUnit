@@ -23,7 +23,6 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeJars;
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests;
-import com.tngtech.archunit.core.importer.ImportOptions;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -70,7 +69,7 @@ public @interface AnalyzeClasses {
 
     /**
      * Allows to filter the class import. The supplied types will be instantiated and used to create the
-     * {@link ImportOptions} passed to the {@link ClassFileImporter}. Considering caching, compare the notes on
+     * {@link ImportOption ImportOptions} passed to the {@link ClassFileImporter}. Considering caching, compare the notes on
      * {@link ImportOption}.
      *
      * @return The types of {@link ImportOption} to use for the import

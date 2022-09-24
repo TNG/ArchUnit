@@ -47,9 +47,9 @@ import static java.util.stream.Collectors.toSet;
 /**
  * The central API to import {@link JavaClasses} from compiled Java class files.
  * Supports various types of {@link Location}, e.g. {@link Path},
- * {@link JarFile} or {@link URL}. The {@link Location Locations} that are scanned can be filtered by passing any number of
- * {@link ImportOption} to {@link #withImportOption(ImportOption)}, which will then be <b>AND</b>ed (compare
- * {@link ImportOptions}).
+ * {@link JarFile} or {@link URL}. The {@link Location Locations} that are scanned can be filtered by
+ * {@link #withImportOption(ImportOption)} or {@link #withImportOptions(Collection)},
+ * which will then join the {@link ImportOption ImportOptions} using <b>AND</b> semantics.
  * <br><br>
  * Note that information about a class is only complete, if all necessary classes are imported.
  * For example, if class A is imported, and A accesses class B,
@@ -89,7 +89,11 @@ public final class ClassFileImporter {
     }
 
     @PublicAPI(usage = ACCESS)
-    public ClassFileImporter(ImportOptions importOptions) {
+    public ClassFileImporter(Collection<ImportOption> importOptions) {
+        this(new ImportOptions().with(importOptions));
+    }
+
+    private ClassFileImporter(ImportOptions importOptions) {
         this.importOptions = importOptions;
     }
 
@@ -103,6 +107,14 @@ public final class ClassFileImporter {
     @PublicAPI(usage = ACCESS)
     public ClassFileImporter withImportOption(ImportOption option) {
         return new ClassFileImporter(importOptions.with(option));
+    }
+
+    /**
+     * Same as {@link #withImportOption(ImportOption)} but takes multiple {@link ImportOption ImportOptions}.
+     */
+    @PublicAPI(usage = ACCESS)
+    public ClassFileImporter withImportOptions(Collection<ImportOption> options) {
+        return new ClassFileImporter(importOptions.with(options));
     }
 
     /**
@@ -229,18 +241,7 @@ public final class ClassFileImporter {
     }
 
     /**
-     * Imports classes from the whole classpath without archives (JARs or JRTs).
-     * <br><br>
-     * For information about the impact of the imported classes on the evaluation of rules,
-     * as well as configuration and details, refer to {@link ClassFileImporter}.
-     */
-    @PublicAPI(usage = ACCESS)
-    public JavaClasses importClasspath() {
-        return importClasspath(importOptions.with(ImportOption.Predefined.DO_NOT_INCLUDE_ARCHIVES));
-    }
-
-    /**
-     * Imports classes from the whole classpath considering the supplied {@link ImportOptions}.<br>
+     * Imports classes from the whole classpath.<br>
      * Note that ArchUnit does not distinguish between the classpath and the modulepath for Java &gt;= 9,
      * thus all classes from the classpath or the modulepath will be considered.
      * <br><br>
@@ -248,8 +249,8 @@ public final class ClassFileImporter {
      * as well as configuration and details, refer to {@link ClassFileImporter}.
      */
     @PublicAPI(usage = ACCESS)
-    public JavaClasses importClasspath(ImportOptions options) {
-        return new ClassFileImporter(options).importLocations(Locations.inClassPath());
+    public JavaClasses importClasspath() {
+        return importLocations(Locations.inClassPath());
     }
 
     /**

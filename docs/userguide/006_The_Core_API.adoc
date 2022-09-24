@@ -26,7 +26,7 @@ specified as URLs or as JAR files.
 
 Furthermore specific locations can be filtered out, if they are contained in the source of classes,
 but should not be imported. A typical use case would be to ignore test classes, when the classpath
-is imported. This can be achieved by specifying `ImportOptions`:
+is imported. This can be achieved by specifying `ImportOption`﻿s:
 
 [source,java,options="nowrap"]
 ----
@@ -47,7 +47,7 @@ A `Location` is principally an URI, i.e. ArchUnit considers sources as File or J
 
 For the two common cases to skip importing JAR files and to skip importing test files
 (for typical setups, like a Maven or Gradle build),
-there already exist predefined `ImportOptions`:
+there already exist predefined `ImportOption`﻿s:
 
 [source,java,options="nowrap"]
 ----
@@ -284,7 +284,7 @@ object from the Reflection API. For example:
 
 [source,java,options="nowrap"]
 ----
-JavaClasses classes = new ClassFileImporter().importClasspath(new ImportOptions());
+JavaClasses classes = new ClassFileImporter().importClasspath();
 
 // ArchUnit's java.lang.String
 JavaClass javaClass = classes.get(String.class);
