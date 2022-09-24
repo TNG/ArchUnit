@@ -1,6 +1,5 @@
 package com.tngtech.archunit.lang.extension;
 
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
@@ -34,7 +33,7 @@ public class ArchUnitExtensionLoaderTest {
     private ArchUnitExtensionLoader extensionLoader = new ArchUnitExtensionLoader();
 
     @Test
-    public void loads_a_single_extension() throws IOException {
+    public void loads_a_single_extension() {
         testServicesFile.addService(TestExtension.class);
 
         Iterable<ArchUnitExtension> extensions = extensionLoader.getAll();
@@ -53,7 +52,7 @@ public class ArchUnitExtensionLoaderTest {
     }
 
     @Test
-    public void loads_multiple_extensions() throws IOException {
+    public void loads_multiple_extensions() {
         testServicesFile.addService(TestExtension.class);
         testServicesFile.addService(DummyTestExtension.class);
         testServicesFile.addService(YetAnotherDummyTestExtension.class);

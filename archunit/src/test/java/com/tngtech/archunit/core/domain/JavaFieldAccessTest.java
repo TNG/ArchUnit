@@ -59,7 +59,7 @@ public class JavaFieldAccessTest {
 
     @Test
     @UseDataProvider("accessTypes")
-    public void predicate_access_type(AccessType accessType) throws Exception {
+    public void predicate_access_type(AccessType accessType) {
         assertThat(accessType(accessType))
                 .accepts(stringFieldAccess(accessType))
                 .rejects(stringFieldAccess(not(accessType)))
@@ -67,7 +67,7 @@ public class JavaFieldAccessTest {
     }
 
     @Test
-    public void predicate_field_access_target_by_predicate() throws Exception {
+    public void predicate_field_access_target_by_predicate() {
         assertThat(target(alwaysTrue()))
                 .accepts(stringFieldAccess(GET));
         assertThat(target(DescribedPredicate.<FieldAccessTarget>alwaysFalse().as("any message")))
@@ -79,11 +79,11 @@ public class JavaFieldAccessTest {
         return getOnlyElement(EnumSet.complementOf(EnumSet.of(accessType)));
     }
 
-    private JavaFieldAccessTestBuilder stringFieldAccessRecordBuilder(JavaClass clazz) throws NoSuchFieldException {
+    private JavaFieldAccessTestBuilder stringFieldAccessRecordBuilder(JavaClass clazz) {
         return stringFieldAccessBuilder(clazz, "stringField");
     }
 
-    private JavaFieldAccess stringFieldAccess(AccessType accessType) throws Exception {
+    private JavaFieldAccess stringFieldAccess(AccessType accessType) {
         JavaClass clazz = importClassWithContext(SomeClass.class);
         return new JavaFieldAccessTestBuilder()
                 .withOrigin(accessFieldMethod(clazz))
@@ -93,18 +93,18 @@ public class JavaFieldAccessTest {
                 .build();
     }
 
-    private JavaFieldAccessTestBuilder stringFieldAccessBuilder(JavaClass clazz, String name) throws NoSuchFieldException {
+    private JavaFieldAccessTestBuilder stringFieldAccessBuilder(JavaClass clazz, String name) {
         return stringFieldAccessBuilder(targetFrom(clazz.getField(name)));
     }
 
-    private JavaFieldAccessTestBuilder stringFieldAccessBuilder(FieldAccessTarget target) throws NoSuchFieldException {
+    private JavaFieldAccessTestBuilder stringFieldAccessBuilder(FieldAccessTarget target) {
         return new JavaFieldAccessTestBuilder()
                 .withTarget(target)
                 .withAccessType(GET)
                 .withLineNumber(31);
     }
 
-    private JavaMethod accessFieldMethod(JavaClass clazz) throws NoSuchMethodException {
+    private JavaMethod accessFieldMethod(JavaClass clazz) {
         return clazz.getMethod("accessStringField");
     }
 

@@ -129,7 +129,7 @@ public class OutsideOfClassPathRule extends ExternalResource {
         private String className;
 
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             if (file.toString().endsWith(".class")) {
                 className = getClassName(file.toAbsolutePath().toString());
                 return FileVisitResult.TERMINATE;
