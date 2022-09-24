@@ -85,7 +85,7 @@ public class DependenciesAssertion extends AbstractIterableAssert<
         List<Dependency> rest = newArrayList(actual);
         List<ExpectedDependency> missingDependencies = new ArrayList<>();
         for (final ExpectedDependency expectedDependency : expectedDependencies) {
-            if (!rest.stream().anyMatch(expectedDependency::matches)) {
+            if (rest.stream().noneMatch(expectedDependency::matches)) {
                 missingDependencies.add(expectedDependency);
             }
             rest = rest.stream().filter(dependency -> !expectedDependency.matches(dependency)).collect(toList());
