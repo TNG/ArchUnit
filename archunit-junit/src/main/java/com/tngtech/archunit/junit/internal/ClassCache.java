@@ -67,6 +67,7 @@ class ClassCache {
                 }
             });
 
+    @SuppressWarnings("FieldMayBeFinal") // We want to change this in tests
     private CacheClassFileImporter cacheClassFileImporter = new CacheClassFileImporter();
 
     JavaClasses getClassesToAnalyzeFor(Class<?> testClass, ClassAnalysisRequest classAnalysisRequest) {

@@ -218,7 +218,7 @@ class ElementResolver {
 
     private class UnresolvedMember extends PossiblyResolvedMember {
         private final Member member;
-        private String segmentType;
+        private final String segmentType;
 
         UnresolvedMember(Member member, String segmentType) {
             this.member = member;

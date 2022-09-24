@@ -71,6 +71,7 @@ import static java.util.stream.Collectors.toList;
 public final class ArchUnitTestEngine extends HierarchicalTestEngine<ArchUnitEngineExecutionContext> {
     static final String UNIQUE_ID = "archunit";
 
+    @SuppressWarnings("FieldMayBeFinal")
     private SharedCache cache = new SharedCache(); // NOTE: We want to change this in tests -> no static/final reference
 
     @Override

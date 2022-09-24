@@ -29,7 +29,7 @@ class RawAccessRecord {
     final CodeUnit caller;
     final TargetInfo target;
     final int lineNumber;
-    public boolean declaredInLambda;
+    final boolean declaredInLambda;
 
     RawAccessRecord(CodeUnit caller, TargetInfo target, int lineNumber, boolean declaredInLambda) {
         this.caller = checkNotNull(caller);

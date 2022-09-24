@@ -670,7 +670,7 @@ public final class DomainBuilders {
                 };
             }
 
-            static JavaTypeFinisher IDENTITY = new JavaTypeFinisher() {
+            static final JavaTypeFinisher IDENTITY = new JavaTypeFinisher() {
                 @Override
                 JavaType finish(JavaType input, ImportedClasses classes) {
                     return input;
