@@ -54,7 +54,6 @@ import com.tngtech.archunit.junit.internal.testexamples.subtwo.SimpleRules;
 import com.tngtech.archunit.junit.internal.testexamples.wrong.WrongRuleMethodNotStatic;
 import com.tngtech.archunit.junit.internal.testexamples.wrong.WrongRuleMethodWrongParameters;
 import com.tngtech.archunit.junit.internal.testutil.LogCaptor;
-import com.tngtech.archunit.junit.internal.testutil.MockitoExtension;
 import com.tngtech.archunit.junit.internal.testutil.TestLogExtension;
 import com.tngtech.archunit.testutil.TestLogRecorder.RecordedLogEvent;
 import org.junit.jupiter.api.AfterEach;
@@ -75,6 +74,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -116,6 +118,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 class ArchUnitTestEngineTest {
     @Mock
     private ClassCache classCache;
