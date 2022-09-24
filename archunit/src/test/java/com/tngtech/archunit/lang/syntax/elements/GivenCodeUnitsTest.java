@@ -176,7 +176,7 @@ public class GivenCodeUnitsTest {
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
-        assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMembers);
+        assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMembers);
     }
 
     @DataProvider
@@ -219,7 +219,7 @@ public class GivenCodeUnitsTest {
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
-        assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMembers);
+        assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMembers);
     }
 
     @DataProvider
@@ -275,7 +275,7 @@ public class GivenCodeUnitsTest {
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
-        assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMembers);
+        assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMembers);
     }
 
     static DescribedPredicate<List<JavaClass>> oneParameterOfType(final Class<?> type) {

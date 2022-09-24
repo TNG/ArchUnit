@@ -32,7 +32,7 @@ public class JavaCodeUnitTest {
 
         assertThat(method.getCallsFromSelf())
                 .hasSize(4)
-                .containsOnlyElementsOf(union(method.getConstructorCallsFromSelf(), method.getMethodCallsFromSelf()));
+                .hasSameElementsAs(union(method.getConstructorCallsFromSelf(), method.getMethodCallsFromSelf()));
     }
 
     @Test
@@ -41,7 +41,7 @@ public class JavaCodeUnitTest {
 
         assertThat(method.getAccessesFromSelf())
                 .hasSize(6)
-                .containsOnlyElementsOf(ImmutableList.<JavaAccess<?>>builder()
+                .hasSameElementsAs(ImmutableList.<JavaAccess<?>>builder()
                         .addAll(method.getConstructorCallsFromSelf())
                         .addAll(method.getMethodCallsFromSelf())
                         .addAll(method.getFieldAccesses())

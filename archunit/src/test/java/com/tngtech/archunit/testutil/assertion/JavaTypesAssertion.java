@@ -34,7 +34,7 @@ public class JavaTypesAssertion extends AbstractObjectAssert<JavaTypesAssertion,
     }
 
     public void matchInAnyOrder(Iterable<Class<?>> classes) {
-        assertThat(HasName.Utils.namesOf(actual)).as(descriptionText()).containsOnlyElementsOf(formatNamesOf(classes));
+        assertThat(HasName.Utils.namesOf(actual)).as(descriptionText()).hasSameElementsAs(formatNamesOf(classes));
 
         JavaType[] actualSorted = sortedJavaTypes(actual);
         Class<?>[] expectedSorted = sortedClasses(classes);

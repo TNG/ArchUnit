@@ -169,7 +169,7 @@ public class ClassFileSourceTest {
                 .extracting("uri")
                 .extractingResultOf("toString")
                 .usingElementComparator(MATCH_IF_EXPECTED_IS_SUBSTRING)
-                .containsOnlyElementsOf(expectedIncluded);
+                .hasSameElementsAs(expectedIncluded);
     }
 
     private static ImportOptions locationContains(final String part) {

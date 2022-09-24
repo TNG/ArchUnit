@@ -580,7 +580,7 @@ public class ClassFileImporterAnnotationsTest {
                 classes.get(Dependent.class).getConstructor(getClass()).getAnnotationOfType(ParameterAnnotation.class.getName()),
                 classes.get(Dependent.class).getMethod("method").getAnnotationOfType(ParameterAnnotation.class.getName())
         );
-        assertThat(annotations).as("annotations with parameter type " + String.class.getSimpleName()).containsOnlyElementsOf(expected);
+        assertThat(annotations).as("annotations with parameter type " + String.class.getSimpleName()).hasSameElementsAs(expected);
     }
 
     @SuppressWarnings({"unchecked", "unused"})

@@ -44,7 +44,7 @@ public class JavaClassesTest {
     public void creation_of_JavaClasses_from_existing_classes_should_keep_the_original_package_tree() {
         JavaClasses classes = JavaClasses.of(singletonList(ALL_CLASSES.get(SomeClass.class)));
 
-        assertThat(classes.getDefaultPackage().getAllClasses()).containsOnlyElementsOf(ALL_CLASSES.getDefaultPackage().getAllClasses());
+        assertThat(classes.getDefaultPackage().getAllClasses()).hasSameElementsAs(ALL_CLASSES.getDefaultPackage().getAllClasses());
     }
 
     @Test

@@ -69,7 +69,7 @@ public class LocationTest {
 
         assertThat(location.streamEntries())
                 .as("entries of JAR")
-                .containsOnlyElementsOf(Sets.difference(entries, singleton(packageEntry(DescribedPredicate.class))));
+                .hasSameElementsAs(Sets.difference(entries, singleton(packageEntry(DescribedPredicate.class))));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class LocationTest {
 
         assertThat(location.streamEntries())
                 .as("entries of JAR")
-                .containsOnlyElementsOf(Sets.difference(entries, singleton(packageEntry(DescribedPredicate.class))));
+                .hasSameElementsAs(Sets.difference(entries, singleton(packageEntry(DescribedPredicate.class))));
 
         location = Location.of(jarUriOfEntry(jarFile, packageEntry(getClass())));
 

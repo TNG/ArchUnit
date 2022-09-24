@@ -40,7 +40,7 @@ public class MethodsShouldTest {
         EvaluationResult result = ruleStart.evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualMethods = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
-        assertThat(actualMethods).containsOnlyElementsOf(expectedMembers);
+        assertThat(actualMethods).hasSameElementsAs(expectedMembers);
     }
 
     private static final String METHOD_A = "methodA([I)";
