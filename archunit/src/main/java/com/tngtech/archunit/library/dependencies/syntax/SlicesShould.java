@@ -20,6 +20,7 @@ import com.tngtech.archunit.library.dependencies.SliceRule;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface SlicesShould {
     @PublicAPI(usage = ACCESS)
     SliceRule beFreeOfCycles();

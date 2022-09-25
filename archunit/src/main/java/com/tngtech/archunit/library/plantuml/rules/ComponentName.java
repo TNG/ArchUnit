@@ -13,32 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class PlantUmlComponentDependency {
-    private final PlantUmlComponent origin;
-    private final PlantUmlComponent target;
+class ComponentName {
+    private final String value;
 
-    PlantUmlComponentDependency(PlantUmlComponent origin, PlantUmlComponent target) {
-        this.origin = checkNotNull(origin);
-        this.target = checkNotNull(target);
+    ComponentName(String value) {
+        this.value = checkNotNull(value);
     }
 
-    PlantUmlComponent getOrigin() {
-        return origin;
-    }
-
-    PlantUmlComponent getTarget() {
-        return target;
+    String asString() {
+        return value;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(origin, target);
+        return Objects.hash(value);
     }
 
     @Override
@@ -49,16 +43,14 @@ class PlantUmlComponentDependency {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final PlantUmlComponentDependency other = (PlantUmlComponentDependency) obj;
-        return Objects.equals(this.origin, other.origin)
-                && Objects.equals(this.target, other.target);
+        final ComponentName other = (ComponentName) obj;
+        return Objects.equals(this.value, other.value);
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "origin=" + origin +
-                ", target=" + target +
+                "value='" + value + '\'' +
                 '}';
     }
 }

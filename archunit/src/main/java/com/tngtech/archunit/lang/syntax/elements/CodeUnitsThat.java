@@ -26,6 +26,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface CodeUnitsThat<CONJUNCTION> extends MembersThat<CONJUNCTION> {
 
     /**

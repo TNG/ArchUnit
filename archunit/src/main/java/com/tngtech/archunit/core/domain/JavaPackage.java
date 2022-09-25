@@ -85,6 +85,7 @@ import static java.util.stream.Collectors.toSet;
  * {@code com.example.second.nested}
  * </code></pre>
  */
+@PublicAPI(usage = ACCESS)
 public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     private final String name;
     private final String relativeName;
@@ -747,6 +748,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     /**
      * Predefined {@link ChainableFunction functions} to transform {@link JavaPackage}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Functions {
         private Functions() {
         }

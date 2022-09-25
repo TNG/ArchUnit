@@ -1,10 +1,20 @@
 package com.tngtech.archunit.core.domain;
 
-import com.tngtech.archunit.core.importer.ClassFileImporter;
-import org.junit.Test;
+import java.util.Set;
+import java.util.function.Function;
 
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.DataProviders;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static com.tngtech.archunit.core.domain.JavaClass.Functions.GET_TRANSITIVE_DEPENDENCIES_FROM_SELF;
 import static com.tngtech.archunit.testutil.Assertions.assertThatDependencies;
 
+@RunWith(DataProviderRunner.class)
 public class JavaClassTransitiveDependenciesTest {
 
     @SuppressWarnings("unused")
@@ -27,8 +37,17 @@ public class JavaClassTransitiveDependenciesTest {
         }
     }
 
+    @DataProvider
+    public static Object[][] data_finds_transitive_dependencies_in_acyclic_graph() {
+        return DataProviders.testForEach(
+                (Function<JavaClass, Set<Dependency>>) JavaClass::getTransitiveDependenciesFromSelf,
+                GET_TRANSITIVE_DEPENDENCIES_FROM_SELF
+        );
+    }
+
     @Test
-    public void findsTransitiveDependenciesInAcyclicGraph() {
+    @UseDataProvider
+    public void test_finds_transitive_dependencies_in_acyclic_graph(Function<JavaClass, Set<Dependency>> getTransitiveDependenciesFromSelf) {
         Class<?> a = AcyclicGraph.A.class;
         Class<?> b = AcyclicGraph.B.class;
         Class<?> c = AcyclicGraph.C.class;
@@ -37,7 +56,7 @@ public class JavaClassTransitiveDependenciesTest {
         Class<?> cArray = AcyclicGraph.C[][].class;
 
         // @formatter:off
-        assertThatDependencies(classes.get(a).getTransitiveDependenciesFromSelf())
+        assertThatDependencies(getTransitiveDependenciesFromSelf.apply(classes.get(a)))
                 .contain(a, Object.class)
                 .contain(a, b)
                     .contain(b, Object.class)
@@ -48,11 +67,11 @@ public class JavaClassTransitiveDependenciesTest {
                         .contain(d, Object.class)
                         .contain(d, String.class);
 
-        assertThatDependencies(classes.get(b).getTransitiveDependenciesFromSelf())
+        assertThatDependencies(getTransitiveDependenciesFromSelf.apply(classes.get(b)))
                 .contain(b, Object.class)
                 .contain(b, Integer.class);
 
-        assertThatDependencies(classes.get(c).getTransitiveDependenciesFromSelf())
+        assertThatDependencies(getTransitiveDependenciesFromSelf.apply(classes.get(c)))
                 .contain(c, Object.class)
                 .contain(c, d)
                     .contain(d, Object.class)
@@ -87,7 +106,7 @@ public class JavaClassTransitiveDependenciesTest {
     }
 
     @Test
-    public void findsTransitiveDependenciesInCyclicGraph() {
+    public void finds_transitive_dependencies_in_cyclic_graph() {
         Class<?> a = CyclicGraph.A.class;
         Class<?> b = CyclicGraph.B.class;
         Class<?> c = CyclicGraph.C.class;

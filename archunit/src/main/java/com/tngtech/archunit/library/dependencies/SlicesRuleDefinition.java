@@ -41,6 +41,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * </code></pre>
  * Then this rule will assert, that the four slices of 'myapp' are free of cycles.
  */
+@PublicAPI(usage = ACCESS)
 public final class SlicesRuleDefinition {
     private SlicesRuleDefinition() {
     }
@@ -53,6 +54,7 @@ public final class SlicesRuleDefinition {
         return new Creator();
     }
 
+    @PublicAPI(usage = ACCESS)
     public static class Creator {
         private Creator() {
         }

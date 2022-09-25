@@ -40,6 +40,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.priority;
 import static java.util.Collections.emptyList;
 
+@PublicAPI(usage = ACCESS)
 public final class SliceRule implements ArchRule {
     private final Slices.Transformer inputTransformer;
     private final Priority priority;

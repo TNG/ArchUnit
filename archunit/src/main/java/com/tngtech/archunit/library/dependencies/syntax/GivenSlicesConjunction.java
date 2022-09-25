@@ -24,6 +24,7 @@ import com.tngtech.archunit.library.dependencies.Slice;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface GivenSlicesConjunction extends GivenConjunction<Slice> {
 
     /**

@@ -39,7 +39,8 @@ import static java.util.Collections.emptySet;
  * }
  * </code></pre>
  */
-public class JavaStaticInitializer extends JavaCodeUnit {
+@PublicAPI(usage = ACCESS)
+public final class JavaStaticInitializer extends JavaCodeUnit {
     @PublicAPI(usage = ACCESS)
     public static final String STATIC_INITIALIZER_NAME = "<clinit>";
 

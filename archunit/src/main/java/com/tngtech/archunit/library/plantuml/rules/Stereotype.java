@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class ComponentName {
+class Stereotype {
     private final String value;
 
-    ComponentName(String value) {
+    Stereotype(String value) {
         this.value = checkNotNull(value);
     }
 
@@ -43,7 +43,7 @@ class ComponentName {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ComponentName other = (ComponentName) obj;
+        final Stereotype other = (Stereotype) obj;
         return Objects.equals(this.value, other.value);
     }
 

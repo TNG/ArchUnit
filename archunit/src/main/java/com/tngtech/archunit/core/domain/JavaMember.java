@@ -43,6 +43,7 @@ import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Utils.t
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 
+@PublicAPI(usage = ACCESS)
 public abstract class JavaMember implements
         HasName.AndFullName, HasDescriptor, HasAnnotations<JavaMember>, HasModifiers, HasOwner<JavaClass>, HasSourceCodeLocation {
 
@@ -208,6 +209,7 @@ public abstract class JavaMember implements
      *     <li>{@link HasOwner.Predicates}</li>
      * </ul>
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Predicates {
         private Predicates() {
         }

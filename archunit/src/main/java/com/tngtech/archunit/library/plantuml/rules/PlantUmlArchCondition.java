@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -88,7 +88,8 @@ import static java.util.Collections.singleton;
  *     <li>Dependencies must use arrows only consisting of dashes, pointing right, e.g. <code>--&gt;</code></li>
  * </ol>
  */
-public class PlantUmlArchCondition extends ArchCondition<JavaClass> {
+@PublicAPI(usage = ACCESS)
+public final class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     private final DescribedPredicate<Dependency> ignorePredicate;
     private final JavaClassDiagramAssociation javaClassDiagramAssociation;
 

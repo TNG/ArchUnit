@@ -54,6 +54,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
  * in particular every place, where Java code with behavior, like calling other methods or accessing fields, can
  * be defined.
  */
+@PublicAPI(usage = ACCESS)
 public abstract class JavaCodeUnit
         extends JavaMember
         implements HasParameterTypes, HasReturnType, HasTypeParameters<JavaCodeUnit>, HasThrowsClause<JavaCodeUnit> {
@@ -368,6 +369,7 @@ public abstract class JavaCodeUnit
      *     <li>{@link HasThrowsClause.Predicates}</li>
      * </ul>
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Predicates {
         private Predicates() {
         }
@@ -408,6 +410,7 @@ public abstract class JavaCodeUnit
         private Functions() {
         }
 
+        @PublicAPI(usage = ACCESS)
         public static final class Get {
             private Get() {
             }

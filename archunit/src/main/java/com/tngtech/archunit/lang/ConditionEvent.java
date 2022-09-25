@@ -92,6 +92,7 @@ public interface ConditionEvent {
      * <i>'Method A.foo() calls method B.bar() in (A.java:123)'</i>
      * </p>
      */
+    @PublicAPI(usage = ACCESS, state = EXPERIMENTAL)
     interface Handler {
         /**
          * @param correspondingObjects The objects this event describes (e.g. method calls, field accesses, ...)

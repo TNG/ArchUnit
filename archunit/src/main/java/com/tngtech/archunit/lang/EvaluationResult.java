@@ -53,6 +53,7 @@ import static java.util.stream.Collectors.toList;
  * });
  * </code></pre>
  */
+@PublicAPI(usage = ACCESS)
 public final class EvaluationResult {
     static final String ARCHUNIT_IGNORE_PATTERNS_FILE_NAME = "archunit_ignore_patterns.txt";
     private static final String COMMENT_LINE_PREFIX = "#";

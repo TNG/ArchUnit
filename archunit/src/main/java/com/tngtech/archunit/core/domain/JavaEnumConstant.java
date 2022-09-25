@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.importer.DomainBuilders.JavaEnumConstantBuilder
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public final class JavaEnumConstant {
     private final JavaClass declaringClass;
     private final String name;

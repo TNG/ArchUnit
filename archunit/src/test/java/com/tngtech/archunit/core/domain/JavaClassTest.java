@@ -109,8 +109,6 @@ import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.quote;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(DataProviderRunner.class)
 @SuppressWarnings("SameParameterValue")
@@ -1797,11 +1795,9 @@ public class JavaClassTest {
 
     @Test
     public void predicate_reside_in_a_package() {
-        JavaClass clazz = fakeClassWithPackage("some.arbitrary.pkg");
+        JavaClass clazz = importClassWithContext(getClass());
 
-        assertThat(resideInAPackage("some..pkg")).accepts(clazz);
-
-        clazz = fakeClassWithPackage("wrong.arbitrary.pkg");
+        assertThat(resideInAPackage("com..domain")).accepts(clazz);
 
         assertThat(resideInAPackage("some..pkg")).rejects(clazz);
 
@@ -1810,11 +1806,9 @@ public class JavaClassTest {
 
     @Test
     public void predicate_reside_in_any_package() {
-        JavaClass clazz = fakeClassWithPackage("some.arbitrary.pkg");
+        JavaClass clazz = importClassWithContext(getClass());
 
-        assertThat(resideInAnyPackage("any.thing", "some..pkg")).accepts(clazz);
-
-        clazz = fakeClassWithPackage("wrong.arbitrary.pkg");
+        assertThat(resideInAnyPackage("any.thing", "com..domain")).accepts(clazz);
 
         assertThat(resideInAnyPackage("any.thing", "some..pkg")).rejects(clazz);
 
@@ -2161,12 +2155,6 @@ public class JavaClassTest {
                 return !value.getOwner().isEquivalentTo(Object.class);
             }
         };
-    }
-
-    private static JavaClass fakeClassWithPackage(String pkg) {
-        JavaClass javaClass = mock(JavaClass.class);
-        when(javaClass.getPackageName()).thenReturn(pkg);
-        return javaClass;
     }
 
     private static AssignableAssert assertThatAssignable() {

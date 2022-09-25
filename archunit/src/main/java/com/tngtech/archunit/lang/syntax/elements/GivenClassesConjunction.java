@@ -22,6 +22,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface GivenClassesConjunction extends GivenConjunction<JavaClass> {
     @Override
     @PublicAPI(usage = ACCESS)

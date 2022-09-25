@@ -43,7 +43,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * to your <code>{@value com.tngtech.archunit.ArchConfiguration#ARCHUNIT_PROPERTIES_RESOURCE_NAME}</code>.
  * </p>
  */
-public class Source {
+@PublicAPI(usage = ACCESS)
+public final class Source {
     private final URI uri;
     private final Optional<String> fileName;
     private final Md5sum md5sum;
@@ -92,7 +93,8 @@ public class Source {
         return uri + " [md5='" + md5sum + "']";
     }
 
-    public static class Md5sum {
+    @PublicAPI(usage = ACCESS)
+    public static final class Md5sum {
         /**
          * We can't determine the md5 sum, because the platform is missing the digest algorithm
          */
@@ -173,7 +175,7 @@ public class Source {
             }
 
             Optional<byte[]> bytesFromUri = read(uri);
-            return bytesFromUri.isPresent() ? new Md5sum(bytesFromUri.get(), MD5_DIGEST) : UNDETERMINED;
+            return bytesFromUri.map(bytes -> new Md5sum(bytes, MD5_DIGEST)).orElse(UNDETERMINED);
         }
 
         private static Optional<byte[]> read(URI uri) {

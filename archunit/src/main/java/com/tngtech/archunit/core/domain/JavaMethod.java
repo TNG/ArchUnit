@@ -34,7 +34,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
-public class JavaMethod extends JavaCodeUnit {
+@PublicAPI(usage = ACCESS)
+public final class JavaMethod extends JavaCodeUnit {
     private final Supplier<Method> methodSupplier;
     private final ThrowsClause<JavaMethod> throwsClause;
     private final Optional<Object> annotationDefaultValue;

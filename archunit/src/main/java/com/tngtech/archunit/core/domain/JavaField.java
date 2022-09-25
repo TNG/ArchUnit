@@ -30,7 +30,8 @@ import com.tngtech.archunit.core.importer.DomainBuilders;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
-public class JavaField extends JavaMember implements HasType {
+@PublicAPI(usage = ACCESS)
+public final class JavaField extends JavaMember implements HasType {
     private final JavaType type;
     private final Supplier<Field> fieldSupplier;
 

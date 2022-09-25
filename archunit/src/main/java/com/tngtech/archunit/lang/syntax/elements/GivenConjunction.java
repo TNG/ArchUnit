@@ -29,6 +29,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * or create a complete {@link ArchRule} via {@link #should(ArchCondition)}.
  * @param <OBJECTS> The type of the objects to be checked by the final {@link ArchRule}, e.g. {@link JavaClass}.
  */
+@PublicAPI(usage = ACCESS)
 public interface GivenConjunction<OBJECTS> {
 
     /**

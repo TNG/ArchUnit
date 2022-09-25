@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface OnlyBeAccessedSpecification<CONJUNCTION> {
     /**
      * Matches classes residing in a package matching any of the supplied package identifiers.

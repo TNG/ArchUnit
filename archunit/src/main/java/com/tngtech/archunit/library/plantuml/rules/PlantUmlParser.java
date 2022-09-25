@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,8 +26,8 @@ import java.util.regex.Pattern;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
-import com.tngtech.archunit.library.plantuml.PlantUmlPatterns.PlantUmlComponentMatcher;
-import com.tngtech.archunit.library.plantuml.PlantUmlPatterns.PlantUmlDependencyMatcher;
+import com.tngtech.archunit.library.plantuml.rules.PlantUmlPatterns.PlantUmlComponentMatcher;
+import com.tngtech.archunit.library.plantuml.rules.PlantUmlPatterns.PlantUmlDependencyMatcher;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;

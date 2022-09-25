@@ -33,6 +33,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.Formatters.formatMethod;
 import static com.tngtech.archunit.core.domain.properties.HasName.Utils.namesOf;
 
+@PublicAPI(usage = ACCESS)
 public final class JavaConstructor extends JavaCodeUnit {
     private final Supplier<Constructor<?>> constructorSupplier;
     private final ThrowsClause<JavaConstructor> throwsClause;

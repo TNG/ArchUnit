@@ -29,6 +29,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * will be reused for <code>BTest</code>. If this is not desired, the {@link CacheMode}.{@link #PER_CLASS}
  * can be used to completely deactivate caching between different test classes.
  */
+@PublicAPI(usage = ACCESS)
 public enum CacheMode {
     /**
      * Signals that imported Java classes should be cached for the current test class only, and discarded afterwards.

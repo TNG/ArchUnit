@@ -44,6 +44,7 @@ import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.never;
 import static java.util.Collections.singleton;
 
+@PublicAPI(usage = ACCESS)
 public final class ArchRuleDefinition {
     private ArchRuleDefinition() {
     }
@@ -149,6 +150,7 @@ public final class ArchRuleDefinition {
         return priority(MEDIUM).noMethods();
     }
 
+    @PublicAPI(usage = ACCESS)
     public static final class Creator {
         private final Priority priority;
 

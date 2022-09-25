@@ -24,6 +24,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
 
 @PublicAPI(usage = INHERITANCE)
 public interface DescribedIterable<T> extends Iterable<T>, HasDescription {
+    @PublicAPI(usage = ACCESS)
     final class From {
         private From() {
         }

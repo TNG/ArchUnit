@@ -1,4 +1,4 @@
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,7 @@ import com.tngtech.archunit.library.diagramtests.multipledependencies.origin.Som
 import com.tngtech.archunit.library.diagramtests.multipledependencies.target.SomeTarget;
 import com.tngtech.archunit.library.diagramtests.simpledependency.origin.SomeOriginClass;
 import com.tngtech.archunit.library.diagramtests.simpledependency.target.SomeTargetClass;
-import com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration;
+import com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.DataProviders;
@@ -35,10 +35,10 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.equivalentTo
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.ArchRule.Assertions.assertNoViolation;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration.consideringAllDependencies;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInAnyPackage;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInDiagram;
-import static com.tngtech.archunit.library.plantuml.PlantUmlArchCondition.adhereToPlantUmlDiagram;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration.consideringAllDependencies;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInAnyPackage;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInDiagram;
+import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.adhereToPlantUmlDiagram;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 

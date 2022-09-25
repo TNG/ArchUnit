@@ -35,6 +35,7 @@ import static java.util.Collections.emptyList;
  * be equal if and only if their parts are equal. The parts can also be referred to from
  * {@link Slices#namingSlices(String)} via '{@code $x}' where '{@code x}' is the number of the part.
  */
+@PublicAPI(usage = ACCESS)
 public final class SliceIdentifier {
     private final List<String> parts;
 

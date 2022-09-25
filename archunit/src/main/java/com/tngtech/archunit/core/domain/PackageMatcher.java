@@ -61,6 +61,7 @@ import static java.util.stream.Collectors.toList;
  * </ul>
  * Create via {@link PackageMatcher#of(String) PackageMatcher.of(packageIdentifier)}
  */
+@PublicAPI(usage = ACCESS)
 public final class PackageMatcher {
     private static final String OPT_LETTERS_AT_START = "(?:^\\w*)?";
     private static final String OPT_LETTERS_AT_END = "(?:\\w*$)?";
@@ -190,6 +191,7 @@ public final class PackageMatcher {
         return "\\" + outerOpeningChar + "[^" + outerClosingChar + "]*\\" + nestedOpeningChar;
     }
 
+    @PublicAPI(usage = ACCESS)
     public static final class Result {
         private final Matcher matcher;
 
@@ -211,6 +213,6 @@ public final class PackageMatcher {
     @PublicAPI(usage = ACCESS)
     public static final Function<Result, List<String>> TO_GROUPS = input ->
             IntStream.rangeClosed(1, input.getNumberOfGroups())
-                    .mapToObj(i -> input.getGroup(i))
+                    .mapToObj(input::getGroup)
                     .collect(toList());
 }

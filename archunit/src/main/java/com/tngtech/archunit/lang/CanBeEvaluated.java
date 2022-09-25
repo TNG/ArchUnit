@@ -21,6 +21,7 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface CanBeEvaluated extends HasDescription {
     @PublicAPI(usage = ACCESS)
     EvaluationResult evaluate(JavaClasses classes);

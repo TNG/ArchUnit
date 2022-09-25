@@ -30,7 +30,8 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.GET;
 import static com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType.SET;
 
-public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
+@PublicAPI(usage = ACCESS)
+public final class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
     private static final Map<AccessType, String> MESSAGE_VERB = ImmutableMap.of(
             GET, "gets",
             SET, "sets");
@@ -57,6 +58,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
         return MESSAGE_VERB.get(accessType);
     }
 
+    @PublicAPI(usage = ACCESS)
     public enum AccessType {
         @PublicAPI(usage = ACCESS)
         GET(Opcodes.GETFIELD | Opcodes.GETSTATIC),
@@ -85,6 +87,7 @@ public class JavaFieldAccess extends JavaAccess<FieldAccessTarget> {
      * Predefined {@link DescribedPredicate predicates} targeting {@link JavaFieldAccess}.
      * Further predicates to be used with {@link JavaFieldAccess} can be found at {@link JavaAccess.Predicates}.
      */
+    @PublicAPI(usage = ACCESS)
     public static final class Predicates {
         private Predicates() {
         }

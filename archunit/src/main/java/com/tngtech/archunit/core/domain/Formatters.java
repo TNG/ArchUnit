@@ -30,6 +30,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+@PublicAPI(usage = ACCESS)
 public final class Formatters {
     private Formatters() {
     }

@@ -75,6 +75,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.INHERITANCE;
  *                is annotated on a class or member, it is that class or member. If this
  *                annotation is a member of another annotation, it is that annotation.
  */
+@PublicAPI(usage = ACCESS)
 public final class JavaAnnotation<OWNER extends HasDescription> implements HasType, HasOwner<OWNER>, HasDescription {
     private final JavaClass type;
     private final OWNER owner;

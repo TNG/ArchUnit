@@ -31,6 +31,7 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
  * hierarchy of classes.
  * @param <MEMBER> The concrete type of {@link JavaMember} this conjunction describes, e.g. {@link JavaMethod}.
  */
+@PublicAPI(usage = ACCESS)
 public interface MembersShouldConjunction<MEMBER extends JavaMember> extends ArchRule {
 
     /**

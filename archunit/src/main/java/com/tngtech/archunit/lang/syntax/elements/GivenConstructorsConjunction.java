@@ -21,6 +21,7 @@ import com.tngtech.archunit.core.domain.JavaConstructor;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface GivenConstructorsConjunction extends GivenCodeUnitsConjunction<JavaConstructor> {
 
     @Override

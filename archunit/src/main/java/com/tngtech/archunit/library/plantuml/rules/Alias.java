@@ -13,35 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tngtech.archunit.library.plantuml;
+package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.Objects;
-import java.util.Optional;
 
-class ComponentIdentifier {
-    private final ComponentName componentName;
-    private final Optional<Alias> alias;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-    ComponentIdentifier(ComponentName componentName) {
-        this(componentName, Optional.empty());
+class Alias {
+    private final String value;
+
+    Alias(String value) {
+        if (value.contains("[") || value.contains("]") || value.contains("\"")) {
+            throw new IllegalDiagramException("Alias '%s' should not contain character(s): '[' or ']' or '\"'", value);
+        }
+        this.value = checkNotNull(value);
     }
 
-    ComponentIdentifier(ComponentName componentName, Alias alias) {
-        this(componentName, Optional.of(alias));
-    }
-
-    private ComponentIdentifier(ComponentName componentName, Optional<Alias> alias) {
-        this.componentName = componentName;
-        this.alias = alias;
-    }
-
-    ComponentName getComponentName() {
-        return componentName;
+    String asString() {
+        return value;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(componentName, alias);
+        return Objects.hash(value);
     }
 
     @Override
@@ -52,16 +46,14 @@ class ComponentIdentifier {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ComponentIdentifier other = (ComponentIdentifier) obj;
-        return Objects.equals(this.componentName, other.componentName)
-                && Objects.equals(this.alias, other.alias);
+        final Alias other = (Alias) obj;
+        return Objects.equals(this.value, other.value);
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "componentName=" + componentName +
-                ", alias=" + alias +
+                "value='" + value + '\'' +
                 '}';
     }
 }

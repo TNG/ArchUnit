@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.tngtech.archunit.PublicAPI;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -30,11 +31,13 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getLast;
+import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 import static com.tngtech.archunit.lang.ConditionEvent.createMessage;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
-public class TransitiveDependencyCondition extends ArchCondition<JavaClass> {
+@PublicAPI(usage = ACCESS)
+public final class TransitiveDependencyCondition extends ArchCondition<JavaClass> {
 
     private final DescribedPredicate<? super JavaClass> conditionPredicate;
     private final TransitiveDependencyPath transitiveDependencyPath = new TransitiveDependencyPath();

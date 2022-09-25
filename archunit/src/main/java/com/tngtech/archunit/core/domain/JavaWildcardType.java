@@ -37,7 +37,8 @@ import static java.util.stream.Collectors.joining;
  * A lower bound denotes a common subtype that must be assignable to all substitutions
  * of this wildcard type. It is denoted by {@code ? super SomeType}.
  */
-public class JavaWildcardType implements JavaType, HasUpperBounds {
+@PublicAPI(usage = ACCESS)
+public final class JavaWildcardType implements JavaType, HasUpperBounds {
     private static final String WILDCARD_TYPE_NAME = "?";
 
     private final List<JavaType> upperBounds;

@@ -78,6 +78,7 @@ import static java.util.stream.Collectors.toSet;
  *
  * @see ArchConfiguration
  */
+@PublicAPI(usage = ACCESS)
 public final class ClassFileImporter {
     private static final Logger LOG = LoggerFactory.getLogger(ClassFileImporter.class);
 

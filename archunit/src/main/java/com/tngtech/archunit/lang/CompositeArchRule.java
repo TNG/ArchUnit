@@ -28,6 +28,7 @@ import static com.tngtech.archunit.lang.ArchRule.Factory.createBecauseDescriptio
 import static com.tngtech.archunit.lang.Priority.MEDIUM;
 import static java.util.Collections.singletonList;
 
+@PublicAPI(usage = ACCESS)
 public final class CompositeArchRule implements ArchRule {
     private final Priority priority;
     private final List<ArchRule> rules;
@@ -123,7 +124,7 @@ public final class CompositeArchRule implements ArchRule {
         }
 
         @PublicAPI(usage = ACCESS)
-        public final CompositeArchRule of(ArchRule rule) {
+        public CompositeArchRule of(ArchRule rule) {
             return new CompositeArchRule(priority, singletonList(rule), rule.getDescription());
         }
     }

@@ -26,6 +26,7 @@ import com.tngtech.archunit.core.domain.properties.HasName;
 
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public interface OnlyBeCalledSpecification<CONJUNCTION> {
 
     /**

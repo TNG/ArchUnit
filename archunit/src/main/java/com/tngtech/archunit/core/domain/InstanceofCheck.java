@@ -24,6 +24,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 
+@PublicAPI(usage = ACCESS)
 public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
 
     private final JavaCodeUnit owner;
