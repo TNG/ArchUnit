@@ -41,6 +41,7 @@ import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_ORIGIN_C
 import static com.tngtech.archunit.core.domain.Dependency.Functions.GET_TARGET_CLASS;
 import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.name;
+import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependenciesInAnyPackage;
 import static java.util.Collections.singleton;
 
@@ -159,20 +160,24 @@ public final class PlantUmlArchCondition extends ArchCondition<JavaClass> {
     }
 
     @Override
-    public void check(JavaClass item, ConditionEvents events) {
-        if (allDependenciesAreIgnored(item)) {
+    public void check(JavaClass javaClass, ConditionEvents events) {
+        if (allDependenciesAreIgnored(javaClass)) {
+            return;
+        }
+        if (!javaClassDiagramAssociation.contains(javaClass)) {
+            events.add(violated(javaClass, String.format("Class %s is not contained in any component", javaClass.getName())));
             return;
         }
 
         String[] allAllowedTargets = Sets.union(
-                javaClassDiagramAssociation.getPackageIdentifiersFromComponentOf(item),
-                javaClassDiagramAssociation.getTargetPackageIdentifiers(item)
+                javaClassDiagramAssociation.getPackageIdentifiersFromComponentOf(javaClass),
+                javaClassDiagramAssociation.getTargetPackageIdentifiers(javaClass)
         ).toArray(new String[0]);
 
         ArchCondition<JavaClass> delegate = onlyHaveDependenciesInAnyPackage(allAllowedTargets)
                 .ignoreDependency(ignorePredicate);
 
-        delegate.check(item, events);
+        delegate.check(javaClass, events);
     }
 
     private boolean allDependenciesAreIgnored(JavaClass item) {

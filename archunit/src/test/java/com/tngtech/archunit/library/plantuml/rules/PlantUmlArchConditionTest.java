@@ -39,6 +39,7 @@ import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.
 import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInAnyPackage;
 import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.Configuration.consideringOnlyDependenciesInDiagram;
 import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.adhereToPlantUmlDiagram;
+import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -156,15 +157,15 @@ public class PlantUmlArchConditionTest {
         JavaClasses notContained = importClasses(Object.class);
         PlantUmlArchCondition condition = adhereToPlantUmlDiagram(file, consideringAllDependencies());
 
-        classes().should(condition.ignoreDependenciesWithOrigin(equivalentTo(Object.class)))
-                .check(notContained);
+        assertThatRule(classes().should(condition))
+                .checking(notContained)
+                .hasOnlyOneViolation(String.format(
+                        "Class %s is not contained in any component",
+                        getOnlyElement(notContained).getName()));
 
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage(String.format(
-                "Class %s is not contained in any component",
-                getOnlyElement(notContained).getName()));
-
-        classes().should(condition).check(notContained);
+        assertThatRule(classes().should(condition.ignoreDependenciesWithOrigin(equivalentTo(Object.class))))
+                .checking(notContained)
+                .hasNoViolation();
     }
 
     @Test

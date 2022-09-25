@@ -3,6 +3,7 @@ package com.tngtech.archunit.library.plantuml.rules;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.NoSuchElementException;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.library.diagramtests.confusingpackagenames.foopackage.barpackage.ClassInFooAndBarPackage;
@@ -64,8 +65,7 @@ public class JavaClassDiagramAssociationTest {
                 .write());
         JavaClass classNotContained = importClassWithContext(Object.class);
 
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage(String.format("Class %s is not contained in any component", Object.class.getName()));
+        thrown.expect(NoSuchElementException.class);
 
         javaClassDiagramAssociation.getTargetPackageIdentifiers(classNotContained);
     }

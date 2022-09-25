@@ -79,8 +79,6 @@ class JavaClassDiagramAssociation {
                     String.format("Class %s may not be contained in more than one component, but is contained in [%s]",
                             javaClass.getName(),
                             Joiner.on(", ").join(getComponentNames(associatedComponents))));
-        } else if (associatedComponents.isEmpty()) {
-            throw new IllegalStateException(String.format("Class %s is not contained in any component", javaClass.getName()));
         }
 
         return getOnlyElement(associatedComponents);
