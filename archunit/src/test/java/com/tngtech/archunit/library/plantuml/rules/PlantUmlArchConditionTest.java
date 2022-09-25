@@ -169,6 +169,26 @@ public class PlantUmlArchConditionTest {
     }
 
     @Test
+    public void class_must_not_be_contained_in_multiple_components_if_it_has_relevant_dependencies() {
+        File file = TestDiagram.in(temporaryFolder)
+                .component("First").withStereoTypes("java..")
+                .component("Second").withStereoTypes("..lang..")
+                .write();
+        JavaClasses containedInTwoComponents = importClasses(Object.class);
+        PlantUmlArchCondition condition = adhereToPlantUmlDiagram(file, consideringAllDependencies());
+
+        assertThatRule(classes().should(condition))
+                .checking(containedInTwoComponents)
+                .hasOnlyOneViolation(String.format(
+                        "Class %s may not be contained in more than one component, but is contained in [First, Second]",
+                        getOnlyElement(containedInTwoComponents).getName()));
+
+        assertThatRule(classes().should(condition.ignoreDependenciesWithOrigin(equivalentTo(Object.class))))
+                .checking(containedInTwoComponents)
+                .hasNoViolation();
+    }
+
+    @Test
     public void diagram_with_multiple_dependencies_that_considers_only_certain_packages() {
         File file = TestDiagram.in(temporaryFolder)
                 .component("SomeOrigin").withStereoTypes("..origin")

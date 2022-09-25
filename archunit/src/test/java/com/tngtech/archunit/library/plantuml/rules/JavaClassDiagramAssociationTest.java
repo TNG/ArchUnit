@@ -83,17 +83,14 @@ public class JavaClassDiagramAssociationTest {
     }
 
     @Test
-    public void class_resides_in_multiple_packages() {
+    public void rejects_class_residing_in_multiple_packages() {
         JavaClassDiagramAssociation javaClassDiagramAssociation = createAssociation(TestDiagram.in(temporaryFolder)
                 .component("A").withStereoTypes("..foopackage..")
                 .component("B").withStereoTypes("..barpackage")
                 .write());
         JavaClass classContainedInTwoComponents = importClassWithContext(ClassInFooAndBarPackage.class);
 
-        thrown.expect(ComponentIntersectionException.class);
-        thrown.expectMessage(String.format(
-                "Class %s may not be contained in more than one component, but is contained in [A, B]",
-                ClassInFooAndBarPackage.class.getName()));
+        thrown.expect(IllegalArgumentException.class);
 
         javaClassDiagramAssociation.getTargetPackageIdentifiers(classContainedInTwoComponents);
     }

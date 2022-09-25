@@ -21,6 +21,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import com.google.common.collect.FluentIterable;
@@ -44,6 +45,7 @@ import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nam
 import static com.tngtech.archunit.lang.SimpleConditionEvent.violated;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.onlyHaveDependenciesInAnyPackage;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.joining;
 
 /**
  * Allows to evaluate <a href="http://plantuml.com/component-diagram">PlantUML Component Diagrams</a>
@@ -164,11 +166,31 @@ public final class PlantUmlArchCondition extends ArchCondition<JavaClass> {
         if (allDependenciesAreIgnored(javaClass)) {
             return;
         }
+
         if (!javaClassDiagramAssociation.contains(javaClass)) {
             events.add(violated(javaClass, String.format("Class %s is not contained in any component", javaClass.getName())));
             return;
         }
 
+        Set<PlantUmlComponent> components = javaClassDiagramAssociation.getAssociatedComponents(javaClass);
+        if (components.size() > 1) {
+            events.add(violated(javaClass, String.format(
+                    "Class %s may not be contained in more than one component, but is contained in [%s]",
+                    javaClass.getName(), joinSortedNames(components))));
+            return;
+        }
+
+        checkDependencies(javaClass, events);
+    }
+
+    private static String joinSortedNames(Set<PlantUmlComponent> components) {
+        return components.stream()
+                .map(it -> it.getComponentName().asString())
+                .sorted()
+                .collect(joining(", "));
+    }
+
+    private void checkDependencies(JavaClass javaClass, ConditionEvents events) {
         String[] allAllowedTargets = Sets.union(
                 javaClassDiagramAssociation.getPackageIdentifiersFromComponentOf(javaClass),
                 javaClassDiagramAssociation.getTargetPackageIdentifiers(javaClass)

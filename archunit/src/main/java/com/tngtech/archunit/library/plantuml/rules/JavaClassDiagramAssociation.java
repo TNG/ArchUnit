@@ -17,15 +17,12 @@ package com.tngtech.archunit.library.plantuml.rules;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.PackageMatcher;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static java.util.stream.Collectors.toCollection;
 
 class JavaClassDiagramAssociation {
     private final Set<AssociatedComponent> components;
@@ -72,23 +69,14 @@ class JavaClassDiagramAssociation {
     }
 
     private PlantUmlComponent getComponentOf(final JavaClass javaClass) {
-        Set<PlantUmlComponent> associatedComponents = getAssociatedComponents(javaClass);
-
-        if (associatedComponents.size() > 1) {
-            throw new ComponentIntersectionException(
-                    String.format("Class %s may not be contained in more than one component, but is contained in [%s]",
-                            javaClass.getName(),
-                            Joiner.on(", ").join(getComponentNames(associatedComponents))));
-        }
-
-        return getOnlyElement(associatedComponents);
+        return getOnlyElement(getAssociatedComponents(javaClass));
     }
 
     boolean contains(JavaClass javaClass) {
         return !getAssociatedComponents(javaClass).isEmpty();
     }
 
-    private Set<PlantUmlComponent> getAssociatedComponents(JavaClass javaClass) {
+    Set<PlantUmlComponent> getAssociatedComponents(JavaClass javaClass) {
         ImmutableSet.Builder<PlantUmlComponent> result = ImmutableSet.builder();
         for (AssociatedComponent component : components) {
             if (component.contains(javaClass)) {
@@ -96,12 +84,6 @@ class JavaClassDiagramAssociation {
             }
         }
         return result.build();
-    }
-
-    private Set<String> getComponentNames(Set<PlantUmlComponent> associatedComponents) {
-        return associatedComponents.stream()
-                .map(associatedComponent -> associatedComponent.getComponentName().asString())
-                .collect(toCollection(TreeSet::new));
     }
 
     private static class AssociatedComponent {
