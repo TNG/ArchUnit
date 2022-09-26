@@ -3,6 +3,7 @@ package com.tngtech.archunit.library.plantuml.rules;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.NoSuchElementException;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.library.diagramtests.confusingpackagenames.foopackage.barpackage.ClassInFooAndBarPackage;
@@ -64,8 +65,7 @@ public class JavaClassDiagramAssociationTest {
                 .write());
         JavaClass classNotContained = importClassWithContext(Object.class);
 
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage(String.format("Class %s is not contained in any component", Object.class.getName()));
+        thrown.expect(NoSuchElementException.class);
 
         javaClassDiagramAssociation.getTargetPackageIdentifiers(classNotContained);
     }
@@ -83,17 +83,14 @@ public class JavaClassDiagramAssociationTest {
     }
 
     @Test
-    public void class_resides_in_multiple_packages() {
+    public void rejects_class_residing_in_multiple_packages() {
         JavaClassDiagramAssociation javaClassDiagramAssociation = createAssociation(TestDiagram.in(temporaryFolder)
                 .component("A").withStereoTypes("..foopackage..")
                 .component("B").withStereoTypes("..barpackage")
                 .write());
         JavaClass classContainedInTwoComponents = importClassWithContext(ClassInFooAndBarPackage.class);
 
-        thrown.expect(ComponentIntersectionException.class);
-        thrown.expectMessage(String.format(
-                "Class %s may not be contained in more than one component, but is contained in [A, B]",
-                ClassInFooAndBarPackage.class.getName()));
+        thrown.expect(IllegalArgumentException.class);
 
         javaClassDiagramAssociation.getTargetPackageIdentifiers(classContainedInTwoComponents);
     }
