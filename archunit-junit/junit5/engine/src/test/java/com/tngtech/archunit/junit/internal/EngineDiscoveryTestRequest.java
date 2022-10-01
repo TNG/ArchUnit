@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.junit.engine_api.FieldSelector;
@@ -26,6 +27,7 @@ import org.junit.platform.engine.discovery.UniqueIdSelector;
 
 import static com.tngtech.archunit.junit.engine_api.FieldSelector.selectField;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectMethod;
@@ -168,6 +170,11 @@ class EngineDiscoveryTestRequest implements EngineDiscoveryRequest {
         @Override
         public int size() {
             return 0;
+        }
+
+        @Override
+        public Set<String> keySet() {
+            return emptySet();
         }
     }
 }
