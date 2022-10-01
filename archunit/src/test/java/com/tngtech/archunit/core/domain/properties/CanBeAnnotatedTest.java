@@ -8,9 +8,9 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysTrue;
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
@@ -19,10 +19,9 @@ import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predica
 import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.metaAnnotatedWith;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CanBeAnnotatedTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void matches_annotation_by_type() {
@@ -55,8 +54,7 @@ public class CanBeAnnotatedTest {
         annotatedWith(ClassRetentionAnnotation.class);
         annotatedWith(DefaultClassRetentionAnnotation.class);
 
-        expectInvalidSyntaxUsageForRetentionSource(thrown);
-        annotatedWith(SourceRetentionAnnotation.class);
+        expectInvalidSyntaxUsageForRetentionSource(() -> annotatedWith(SourceRetentionAnnotation.class));
     }
 
     @Test
@@ -94,15 +92,15 @@ public class CanBeAnnotatedTest {
         metaAnnotatedWith(ClassRetentionAnnotation.class);
         metaAnnotatedWith(DefaultClassRetentionAnnotation.class);
 
-        expectInvalidSyntaxUsageForRetentionSource(thrown);
-        metaAnnotatedWith(SourceRetentionAnnotation.class);
+        expectInvalidSyntaxUsageForRetentionSource(() -> metaAnnotatedWith(SourceRetentionAnnotation.class));
     }
 
-    public static void expectInvalidSyntaxUsageForRetentionSource(ExpectedException thrown) {
-        thrown.expect(InvalidSyntaxUsageException.class);
-        thrown.expectMessage(Retention.class.getSimpleName());
-        thrown.expectMessage(RetentionPolicy.SOURCE.name());
-        thrown.expectMessage("useless");
+    public static void expectInvalidSyntaxUsageForRetentionSource(ThrowingCallable callable) {
+        assertThatThrownBy(callable)
+                .isInstanceOf(InvalidSyntaxUsageException.class)
+                .hasMessageContaining(Retention.class.getSimpleName())
+                .hasMessageContaining(RetentionPolicy.SOURCE.name())
+                .hasMessageContaining("useless");
     }
 
     @Retention(RUNTIME)

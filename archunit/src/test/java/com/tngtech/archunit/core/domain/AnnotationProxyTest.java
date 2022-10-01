@@ -14,18 +14,15 @@ import com.google.common.collect.ImmutableMap;
 import com.tngtech.archunit.core.InitialConfiguration;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import org.assertj.core.api.Condition;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class AnnotationProxyTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void annotation_type_is_returned() {
@@ -229,11 +226,14 @@ public class AnnotationProxyTest {
         JavaAnnotation<?> mismatch = new ClassFileImporter().importClasses(TestAnnotation.class, Retention.class)
                 .get(TestAnnotation.class).getAnnotationOfType(Retention.class.getName());
 
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage(Retention.class.getSimpleName());
-        thrown.expectMessage(TestAnnotation.class.getSimpleName());
-        thrown.expectMessage("incompatible");
-        AnnotationProxy.of(TestAnnotation.class, mismatch);
+        assertThatThrownBy(
+                () -> AnnotationProxy.of(TestAnnotation.class, mismatch)
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(Retention.class.getSimpleName())
+                .hasMessageContaining(TestAnnotation.class.getSimpleName())
+                .hasMessageContaining("incompatible")
+        ;
     }
 
     @Test

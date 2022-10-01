@@ -8,18 +8,15 @@ import com.tngtech.archunit.base.ArchUnitException.ReflectionException;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.objectweb.asm.Type;
 
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class JavaClassDescriptorTest {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     @UseDataProvider("primitives")
@@ -72,8 +69,9 @@ public class JavaClassDescriptorTest {
 
     @Test
     public void resolving_throws_exception_if_type_doesnt_exist() {
-        thrown.expect(ReflectionException.class);
-        JavaClassDescriptor.From.name("does.not.exist").resolveClass();
+        assertThatThrownBy(
+                () -> JavaClassDescriptor.From.name("does.not.exist").resolveClass()
+        ).isInstanceOf(ReflectionException.class);
     }
 
     @Test

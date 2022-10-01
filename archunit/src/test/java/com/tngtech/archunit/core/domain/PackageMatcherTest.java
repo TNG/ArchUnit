@@ -6,19 +6,16 @@ import com.tngtech.archunit.core.domain.PackageMatcher.Result;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.PackageMatcher.TO_GROUPS;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class PackageMatcherTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     @DataProvider(value = {
@@ -109,42 +106,37 @@ public class PackageMatcherTest {
 
     @Test
     public void should_reject_more_than_two_dots_in_a_row() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Package Identifier may not contain more than two '.' in a row");
-
-        PackageMatcher.of("some...pkg");
+        assertThatThrownBy(() -> PackageMatcher.of("some...pkg"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Package Identifier may not contain more than two '.' in a row");
     }
 
     @Test
     public void should_reject_more_than_one_star_in_a_row() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Package Identifier may not contain more than one '*' in a row");
-
-        PackageMatcher.of("some**package");
+        assertThatThrownBy(() -> PackageMatcher.of("some**package"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Package Identifier may not contain more than one '*' in a row");
     }
 
     @Test
     public void should_reject_capturing_with_two_dots() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Package Identifier does not support capturing via (..), use (**) instead");
-
-        PackageMatcher.of("some.(..).package");
+        assertThatThrownBy(() -> PackageMatcher.of("some.(..).package"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Package Identifier does not support capturing via (..), use (**) instead");
     }
 
     @Test
     public void should_reject_non_alternating_alternatives() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Package Identifier does not allow alternation brackets '[]' without specifying any alternative via '|' inside");
-
-        PackageMatcher.of("some.[nonalternating].package");
+        assertThatThrownBy(() -> PackageMatcher.of("some.[nonalternating].package"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Package Identifier does not allow alternation brackets '[]' without specifying any alternative via '|' inside");
     }
 
     @Test
     public void should_reject_toplevel_alternations() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Package Identifier only supports '|' inside of '[]' or '()'");
-
-        PackageMatcher.of("some.pkg|other.pkg");
+        assertThatThrownBy(() -> PackageMatcher.of("some.pkg|other.pkg"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Package Identifier only supports '|' inside of '[]' or '()'");
     }
 
     @DataProvider
@@ -160,21 +152,18 @@ public class PackageMatcherTest {
     @Test
     @UseDataProvider
     public void test_reject_nesting_of_groups(String packageIdentifier) {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Package Identifier does not support nesting '()' or '[]' within other '()' or '[]'");
-
-        PackageMatcher.of(packageIdentifier);
+        assertThatThrownBy(() -> PackageMatcher.of(packageIdentifier))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Package Identifier does not support nesting '()' or '[]' within other '()' or '[]'");
     }
 
     @Test
     public void should_reject_illegal_characters() {
         String illegalPackageIdentifier = "some" + PackageMatcher.TWO_STAR_REGEX_MARKER + "package";
 
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage(String.format(
-                "Package Identifier '%s' may only consist of valid java identifier parts or the symbols '.)(*'", illegalPackageIdentifier));
-
-        PackageMatcher.of(illegalPackageIdentifier);
+        assertThatThrownBy(() -> PackageMatcher.of(illegalPackageIdentifier))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Package Identifier '%s' may only consist of valid java identifier parts or the symbols '.)(*'", illegalPackageIdentifier);
     }
 
     @Test

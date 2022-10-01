@@ -17,21 +17,17 @@ import com.tngtech.archunit.core.importer.resolvers.ClassResolver.Factory.NoOpCl
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.archunit.testutil.ContextClassLoaderRule;
 import com.tngtech.archunit.testutil.OutsideOfClassPathRule;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static com.tngtech.archunit.testutil.TestUtils.uriOf;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ClassResolverFactoryTest {
     @Rule
     public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
     @Rule
     public final OutsideOfClassPathRule outsideOfClassPathRule = new OutsideOfClassPathRule();
     @Rule
@@ -77,10 +73,9 @@ public class ClassResolverFactoryTest {
     public void wrong_resolver_class_name() {
         ArchConfiguration.get().setProperty("classResolver", "not.There");
 
-        thrown.expect(ClassResolverConfigurationException.class);
-        thrown.expectMessage("Error loading resolver class not.There");
-
-        resolverFactory.create();
+        assertThatThrownBy(resolverFactory::create)
+                .isInstanceOf(ClassResolverConfigurationException.class)
+                .hasMessage("Error loading resolver class not.There");
     }
 
     @Test
@@ -88,9 +83,7 @@ public class ClassResolverFactoryTest {
         ArchConfiguration.get().setClassResolver(ResolverWithWrongConstructor.class);
         ArchConfiguration.get().setClassResolverArguments("irrelevant");
 
-        expectWrongConstructorException(ResolverWithWrongConstructor.class, "'irrelevant'");
-
-        resolverFactory.create();
+        expectWrongConstructorException(resolverFactory::create, ResolverWithWrongConstructor.class, "'irrelevant'");
     }
 
     @Test
@@ -98,9 +91,7 @@ public class ClassResolverFactoryTest {
         ArchConfiguration.get().setClassResolver(ResolverWithDefaultConstructor.class);
         ArchConfiguration.get().setClassResolverArguments("too", "many");
 
-        expectWrongConstructorException(ResolverWithDefaultConstructor.class, "'too', 'many'");
-
-        resolverFactory.create();
+        expectWrongConstructorException(resolverFactory::create, ResolverWithDefaultConstructor.class, "'too', 'many'");
     }
 
     @Test
@@ -108,12 +99,11 @@ public class ClassResolverFactoryTest {
         ArchConfiguration.get().setClassResolver(ExceptionThrowingTestResolver.class);
         ArchConfiguration.get().setClassResolverArguments("bummer");
 
-        thrown.expect(ClassResolverConfigurationException.class);
-        thrown.expectMessage("class " + ExceptionThrowingTestResolver.class.getName() +
-                " threw an exception in constructor " + ExceptionThrowingTestResolver.class.getSimpleName() + "('bummer')");
-        thrown.expect(causeWithMessageContaining("bummer"));
-
-        resolverFactory.create();
+        assertThatThrownBy(resolverFactory::create)
+                .isInstanceOf(ClassResolverConfigurationException.class)
+                .hasMessage("class %s threw an exception in constructor %s('bummer')",
+                        ExceptionThrowingTestResolver.class.getName(), ExceptionThrowingTestResolver.class.getSimpleName())
+                .rootCause().hasMessageContaining("bummer");
     }
 
     @Test
@@ -135,27 +125,11 @@ public class ClassResolverFactoryTest {
         assertThat(resolver.getClass().getName()).isEqualTo(resolverClassName);
     }
 
-    private void expectWrongConstructorException(Class<?> resolverClass, String params) {
-        thrown.expect(ClassResolverConfigurationException.class);
-        thrown.expectMessage("class " + resolverClass.getName() +
-                " has no constructor taking a single argument of type java.util.List, to accept configured parameters " +
-                "[" + params + "]");
-    }
-
-    private Matcher<Throwable> causeWithMessageContaining(final String message) {
-        return new TypeSafeMatcher<Throwable>() {
-            @Override
-            protected boolean matchesSafely(Throwable item) {
-                return item.getCause() != null &&
-                        item.getCause().getCause() != null &&
-                        item.getCause().getCause().getMessage().contains(message);
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText(String.format("cause with cause with message containing '%s'", message));
-            }
-        };
+    private void expectWrongConstructorException(ThrowingCallable callable, Class<?> resolverClass, String params) {
+        assertThatThrownBy(callable)
+                .isInstanceOf(ClassResolverConfigurationException.class)
+                .hasMessage("class %s has no constructor taking a single argument of type java.util.List, to accept configured parameters [%s]",
+                        resolverClass.getName(), params);
     }
 
     private static class TestResolver implements ClassResolver {

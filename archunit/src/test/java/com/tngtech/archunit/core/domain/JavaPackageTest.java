@@ -23,9 +23,7 @@ import com.tngtech.archunit.core.domain.packageexamples.third.sub.ThirdSub1;
 import com.tngtech.archunit.core.domain.packageexamples.unrelated.AnyClass;
 import com.tngtech.archunit.core.domain.properties.HasName;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
@@ -43,8 +41,6 @@ import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JavaPackageTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void creates_default_package() {
@@ -60,38 +56,42 @@ public class JavaPackageTest {
 
     @Test
     public void rejects_retrieving_non_existing_subpackages() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("does not contain");
-        thrown.expectMessage("some.pkg");
-
-        importDefaultPackage().getPackage("some.pkg");
+        assertThatThrownBy(
+                () -> importDefaultPackage().getPackage("some.pkg")
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not contain")
+                .hasMessageContaining("some.pkg");
     }
 
     @Test
     public void rejects_retrieving_non_existing_classes_by_class_object() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("does not contain");
-        thrown.expectMessage(Object.class.getName());
-
-        importDefaultPackage().getClass(Object.class);
+        assertThatThrownBy(
+                () -> importDefaultPackage().getClass(Object.class)
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not contain")
+                .hasMessageContaining(Object.class.getName());
     }
 
     @Test
     public void rejects_retrieving_non_existing_classes_by_fully_qualified_name() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("does not contain");
-        thrown.expectMessage(Object.class.getName());
-
-        importDefaultPackage().getClassWithFullyQualifiedName(Object.class.getName());
+        assertThatThrownBy(
+                () -> importDefaultPackage().getClassWithFullyQualifiedName(Object.class.getName())
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not contain")
+                .hasMessageContaining(Object.class.getName());
     }
 
     @Test
     public void rejects_retrieving_non_existing_classes_by_simple_name() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("does not contain");
-        thrown.expectMessage(Object.class.getSimpleName());
-
-        importDefaultPackage().getClassWithSimpleName(Object.class.getSimpleName());
+        assertThatThrownBy(
+                () -> importDefaultPackage().getClassWithSimpleName(Object.class.getSimpleName())
+        )
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("does not contain")
+                .hasMessageContaining(Object.class.getSimpleName());
     }
 
     @Test

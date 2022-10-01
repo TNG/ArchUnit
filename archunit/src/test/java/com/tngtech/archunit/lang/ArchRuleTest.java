@@ -13,11 +13,9 @@ import com.tngtech.archunit.core.importer.testexamples.SomeClass;
 import com.tngtech.archunit.lang.ArchConditionTest.ConditionWithInitAndFinish;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import com.tngtech.archunit.testutil.ArchConfigurationRule;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeMatcher;
+import org.assertj.core.api.Condition;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
@@ -30,31 +28,32 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.testutil.ArchConfigurationRule.FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME;
 import static java.util.stream.Collectors.toCollection;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ArchRuleTest {
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Rule
     public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
 
     @Test
     public void priority_is_passed() {
-        thrown.expect(AssertionError.class);
-        thrown.expectMessage("Priority: HIGH");
-
-        ArchRuleDefinition.priority(HIGH).classes()
-                .should(ALWAYS_BE_VIOLATED)
-                .check(JavaClassesTest.ALL_CLASSES);
+        assertThatThrownBy(
+                () -> ArchRuleDefinition.priority(HIGH).classes()
+                        .should(ALWAYS_BE_VIOLATED)
+                        .check(JavaClassesTest.ALL_CLASSES)
+        )
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("Priority: HIGH");
     }
 
     @Test
     public void evaluation_should_print_all_event_messages() {
-        expectAssertionErrorWithMessages("first", "second");
-
-        classes().should(conditionThatReportsErrors("first", "second"))
-                .check(importClassesWithContext(EvaluationResultTest.class));
+        assertThatThrownBy(
+                () -> classes().should(conditionThatReportsErrors("first", "second"))
+                        .check(importClassesWithContext(EvaluationResultTest.class))
+        )
+                .isInstanceOf(AssertionError.class)
+                .is(containingOnlyLinesWith("first", "second"));
     }
 
     @Test
@@ -120,20 +119,22 @@ public class ArchRuleTest {
 
     @Test
     public void evaluation_fails_because_of_empty_set_of_elements_with_default_fail_on_empty_should() {
-        thrown.expect(AssertionError.class);
-        thrown.expectMessage("failed to check any classes");
-        thrown.expectMessage(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
-
-        createPassingArchRule().evaluate(importEmptyClasses());
+        assertThatThrownBy(
+                () -> createPassingArchRule().evaluate(importEmptyClasses())
+        )
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("failed to check any classes")
+                .hasMessageContaining(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
     }
 
     @Test
     public void evaluation_fails_because_of_empty_set_of_elements_after_that_clause_with_default_fail_on_empty_should() {
-        thrown.expect(AssertionError.class);
-        thrown.expectMessage("failed to check any classes");
-        thrown.expectMessage(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
-
-        createPassingArchRule(strings().that(alwaysFalse())).evaluate(importClasses(SomeClass.class));
+        assertThatThrownBy(
+                () -> createPassingArchRule(strings().that(alwaysFalse())).evaluate(importClasses(SomeClass.class))
+        )
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("failed to check any classes")
+                .hasMessageContaining(FAIL_ON_EMPTY_SHOULD_PROPERTY_NAME);
     }
 
     @Test
@@ -171,21 +172,11 @@ public class ArchRuleTest {
         };
     }
 
-    private void expectAssertionErrorWithMessages(final String... messages) {
-        thrown.expect(AssertionError.class);
-        thrown.expectMessage(containingOnlyLinesWith(messages));
-    }
-
-    private TypeSafeMatcher<String> containingOnlyLinesWith(final String[] messages) {
-        return new TypeSafeMatcher<String>() {
+    private Condition<Throwable> containingOnlyLinesWith(String... messages) {
+        return new Condition<Throwable>(String.format("Only the error messages %s", joinSingleQuoted(messages))) {
             @Override
-            public void describeTo(Description description) {
-                description.appendText(String.format("Only the error messages %s", joinSingleQuoted(messages)));
-            }
-
-            @Override
-            protected boolean matchesSafely(String item) {
-                List<String> actualMessageLines = getActualMessageLines(item);
+            public boolean matches(Throwable value) {
+                List<String> actualMessageLines = getActualMessageLines(value.getMessage());
                 for (String message : messages) {
                     removeFirstActualMessageContaining(message, actualMessageLines);
                 }

@@ -25,7 +25,6 @@ import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -42,14 +41,12 @@ import static com.tngtech.archunit.library.plantuml.rules.PlantUmlArchCondition.
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class PlantUmlArchConditionTest {
     @Rule
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @DataProvider
     public static Object[] possibleInputTypes() {
@@ -250,9 +247,9 @@ public class PlantUmlArchConditionTest {
         File file = temporaryFolder.newFile("plantuml_diagram_" + UUID.randomUUID() + ".puml");
         Files.write(file.toPath(), "XXX-someUnparseableContent-XXX".getBytes(UTF_8));
 
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage(String.format("No components defined in diagram <%s>", toUrl(file)));
-        adhereToPlantUmlDiagram(file, consideringOnlyDependenciesInDiagram());
+        assertThatThrownBy(() -> adhereToPlantUmlDiagram(file, consideringOnlyDependenciesInDiagram()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("No components defined in diagram <%s>", toUrl(file));
     }
 
     private ListAssert<String> assertThatEvaluatedConditionWithConfiguration(

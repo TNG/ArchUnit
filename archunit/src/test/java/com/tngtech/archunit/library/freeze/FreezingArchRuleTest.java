@@ -32,7 +32,6 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -62,9 +61,6 @@ public class FreezingArchRuleTest {
 
     @Rule
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void delegates_description() {
@@ -333,10 +329,11 @@ public class FreezingArchRuleTest {
     public void rejects_illegal_ViolationStore_configuration() {
         String wrongConfig = "SomeBogus";
         ArchConfiguration.get().setProperty("freeze.store", wrongConfig);
+        ArchRule someRule = rule("some description").withoutViolations().create();
 
-        thrown.expect(StoreInitializationFailedException.class);
-        thrown.expectMessage("freeze.store=" + wrongConfig);
-        freeze(rule("some description").withoutViolations().create()).check(importClasses(getClass()));
+        assertThatThrownBy(() -> freeze(someRule))
+                .isInstanceOf(StoreInitializationFailedException.class)
+                .hasMessageContaining("freeze.store=" + wrongConfig);
     }
 
     @Test
@@ -404,10 +401,11 @@ public class FreezingArchRuleTest {
     public void rejects_illegal_ViolationLineMatcher_configuration() {
         String wrongConfig = "SomeBogus";
         ArchConfiguration.get().setProperty(LINE_MATCHER_PROPERTY_NAME, wrongConfig);
+        ArchRule someRule = rule("some description").withoutViolations().create();
 
-        thrown.expect(ViolationLineMatcherInitializationFailedException.class);
-        thrown.expectMessage("freeze.lineMatcher=" + wrongConfig);
-        freeze(rule("some description").withoutViolations().create()).check(importClasses(getClass()));
+        assertThatThrownBy(() -> freeze(someRule))
+                .isInstanceOf(ViolationLineMatcherInitializationFailedException.class)
+                .hasMessageContaining("freeze.lineMatcher=" + wrongConfig);
     }
 
     @Test
@@ -466,8 +464,8 @@ public class FreezingArchRuleTest {
         freeze(rule("new rule, updates enabled explicitly").withoutViolations().create()).check(importClasses(getClass()));
 
         ArchConfiguration.get().setProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, "false");
-        expectStoreUpdateDisabledException();
-        freeze(rule("new rule, updates disabled").withoutViolations().create()).check(importClasses(getClass()));
+        FreezingArchRule frozenRule = freeze(rule("new rule, updates disabled").withoutViolations().create());
+        expectStoreUpdateDisabledException(() -> frozenRule.check(importClasses(getClass())));
     }
 
     @Test
@@ -479,8 +477,8 @@ public class FreezingArchRuleTest {
         freeze(someRule.withViolations("remaining", "will be solved").create()).check(importClasses(getClass()));
 
         ArchConfiguration.get().setProperty(ALLOW_STORE_UPDATE_PROPERTY_NAME, "false");
-        expectStoreUpdateDisabledException();
-        freeze(someRule.withViolations("remaining").create()).check(importClasses(getClass()));
+        FreezingArchRule frozenRule = freeze(someRule.withViolations("remaining").create());
+        expectStoreUpdateDisabledException(() -> frozenRule.check(importClasses(getClass())));
     }
 
     @Test
@@ -504,9 +502,10 @@ public class FreezingArchRuleTest {
         }
     }
 
-    private void expectStoreUpdateDisabledException() {
-        thrown.expect(StoreUpdateFailedException.class);
-        thrown.expectMessage("Updating frozen violations is disabled (enable by configuration " + ALLOW_STORE_UPDATE_PROPERTY_NAME + "=true)");
+    private void expectStoreUpdateDisabledException(ThrowingCallable callable) {
+        assertThatThrownBy(callable)
+                .isInstanceOf(StoreUpdateFailedException.class)
+                .hasMessageContaining("Updating frozen violations is disabled (enable by configuration " + ALLOW_STORE_UPDATE_PROPERTY_NAME + "=true)");
     }
 
     private void createFrozen(TestViolationStore violationStore, ArchRule rule) {

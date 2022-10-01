@@ -17,7 +17,6 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +29,7 @@ import org.mockito.junit.MockitoRule;
 import static com.tngtech.archunit.core.domain.TestUtils.importClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -38,8 +38,6 @@ import static org.mockito.Mockito.when;
 public class ArchUnitRunnerTest {
     @Rule
     public final MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Mock
     private ClassCache cache;
@@ -88,13 +86,14 @@ public class ArchUnitRunnerTest {
     }
 
     @Test
-    public void rejects_missing_analyze_annotation() throws InitializationError {
-        thrown.expect(ArchTestInitializationException.class);
-        thrown.expectMessage(Object.class.getSimpleName());
-        thrown.expectMessage("must be annotated");
-        thrown.expectMessage(AnalyzeClasses.class.getSimpleName());
-
-        new ArchUnitRunnerInternal(Object.class);
+    public void rejects_missing_analyze_annotation() {
+        assertThatThrownBy(
+                () -> new ArchUnitRunnerInternal(Object.class)
+        )
+                .isInstanceOf(ArchTestInitializationException.class)
+                .hasMessageContaining(Object.class.getSimpleName())
+                .hasMessageContaining("must be annotated")
+                .hasMessageContaining(AnalyzeClasses.class.getSimpleName());
     }
 
     private ArchUnitRunnerInternal newRunner(Class<?> testClass) {

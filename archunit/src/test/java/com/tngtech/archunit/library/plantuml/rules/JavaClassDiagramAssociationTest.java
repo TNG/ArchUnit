@@ -10,19 +10,16 @@ import com.tngtech.archunit.library.diagramtests.confusingpackagenames.foopackag
 import com.tngtech.archunit.library.diagramtests.simpledependency.origin.SomeOriginClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import static com.tngtech.archunit.core.domain.TestUtils.importClassWithContext;
 import static com.tngtech.archunit.testutil.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JavaClassDiagramAssociationTest {
 
     @Rule
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void get_package_identifier_associated_with_class() {
@@ -65,9 +62,10 @@ public class JavaClassDiagramAssociationTest {
                 .write());
         JavaClass classNotContained = importClassWithContext(Object.class);
 
-        thrown.expect(NoSuchElementException.class);
-
-        javaClassDiagramAssociation.getTargetPackageIdentifiers(classNotContained);
+        assertThatThrownBy(
+                () -> javaClassDiagramAssociation.getTargetPackageIdentifiers(classNotContained)
+        )
+                .isInstanceOf(NoSuchElementException.class);
     }
 
     @Test
@@ -90,9 +88,10 @@ public class JavaClassDiagramAssociationTest {
                 .write());
         JavaClass classContainedInTwoComponents = importClassWithContext(ClassInFooAndBarPackage.class);
 
-        thrown.expect(IllegalArgumentException.class);
-
-        javaClassDiagramAssociation.getTargetPackageIdentifiers(classContainedInTwoComponents);
+        assertThatThrownBy(
+                () -> javaClassDiagramAssociation.getTargetPackageIdentifiers(classContainedInTwoComponents)
+        )
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -102,10 +101,9 @@ public class JavaClassDiagramAssociationTest {
                 .component("second").withStereoTypes("..identical..")
                 .write();
 
-        thrown.expect(IllegalDiagramException.class);
-        thrown.expectMessage("Stereotype '..identical..' should be unique");
-
-        createAssociation(file);
+        assertThatThrownBy(() -> createAssociation(file))
+                .isInstanceOf(IllegalDiagramException.class)
+                .hasMessage("Stereotype '..identical..' should be unique");
     }
 
     private JavaClassDiagramAssociation createAssociation(File file) {

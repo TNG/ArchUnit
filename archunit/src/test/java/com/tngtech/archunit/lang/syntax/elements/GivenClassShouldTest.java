@@ -16,9 +16,7 @@ import com.tngtech.archunit.lang.syntax.elements.testclasses.SomeClass;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.core.domain.Formatters.joinSingleQuoted;
@@ -43,8 +41,6 @@ import static java.util.regex.Pattern.quote;
 
 @RunWith(DataProviderRunner.class)
 public class GivenClassShouldTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     private static final String ANY_NUMBER_OF_NON_NEWLINE_CHARS_REGEX = "[^" + FAILURE_REPORT_NEWLINE_MARKER + "]*";
 
@@ -1419,7 +1415,7 @@ public class GivenClassShouldTest {
     private static class RuleEvaluationAsserter {
         private final ArchRule satisfiedRule;
         private final ArchRule unsatisfiedRule;
-        private EvaluationResult satisfiedResult;
+        private final EvaluationResult satisfiedResult;
         private final EvaluationResult unsatisfiedResult;
 
         RuleEvaluationAsserter(ArchRule satisfiedRule, ArchRule unsatisfiedRule, Class<?>... classesToImport) {
