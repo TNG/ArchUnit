@@ -289,7 +289,7 @@ public class AnnotationProxyTest {
     }
 
     private String formatSubAnnotation(AnnotationPropertiesFormatter formatter, String value) {
-        Map<String, Object> properties = Collections.singletonMap("value", (Object) value);
+        Map<String, Object> properties = Collections.singletonMap("value", value);
         return "@com.tngtech.archunit.core.domain.AnnotationProxyTest$SubAnnotation(" + formatter.formatProperties(properties) + ")";
     }
 
