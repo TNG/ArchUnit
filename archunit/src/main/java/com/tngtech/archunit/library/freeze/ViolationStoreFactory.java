@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -27,7 +28,6 @@ import java.util.regex.Pattern;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.io.Files;
 import com.tngtech.archunit.ArchConfiguration;
 import com.tngtech.archunit.base.MayResolveTypesViaReflection;
 import com.tngtech.archunit.lang.ArchRule;
@@ -133,7 +133,7 @@ class ViolationStoreFactory {
         private void write(List<String> violations, File ruleDetails) {
             String updatedViolations = Joiner.on("\n").join(escape(violations));
             try {
-                Files.write(updatedViolations, ruleDetails, UTF_8);
+                Files.write(ruleDetails.toPath(), updatedViolations.getBytes(UTF_8));
             } catch (IOException e) {
                 throw new StoreUpdateFailedException(e);
             }

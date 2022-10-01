@@ -3,6 +3,7 @@ package com.tngtech.archunit.testutil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -13,12 +14,13 @@ import com.google.common.collect.Lists;
 import org.junit.rules.ExternalResource;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 public class ReplaceFileRule extends ExternalResource {
     private final File tempDir = TestUtils.newTemporaryFolder();
 
     private final List<FileAction> fileActions = new ArrayList<>();
-    private final List<MoveAction> moveActions = new ArrayList<>();
     private final Set<File> replacedFiles = new HashSet<>();
 
     public void replace(File target, String content, Charset charset) {
@@ -56,7 +58,7 @@ public class ReplaceFileRule extends ExternalResource {
 
     private void append(File file, String line, Charset charset) {
         try {
-            com.google.common.io.Files.append(System.lineSeparator() + line, file, charset);
+            Files.write(file.toPath(), (System.lineSeparator() + line).getBytes(charset), WRITE, APPEND);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -64,7 +66,6 @@ public class ReplaceFileRule extends ExternalResource {
 
     private void addMoveAction(MoveAction moveAction) {
         fileActions.add(moveAction);
-        moveActions.add(moveAction);
     }
 
     @Override
@@ -102,7 +103,7 @@ public class ReplaceFileRule extends ExternalResource {
 
         private void move(File origin, File target) {
             try {
-                java.nio.file.Files.move(origin.toPath(), target.toPath());
+                Files.move(origin.toPath(), target.toPath());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -142,7 +143,7 @@ public class ReplaceFileRule extends ExternalResource {
         @Override
         public FileAction execute() {
             try {
-                com.google.common.io.Files.write(content, target, charset);
+                Files.write(target.toPath(), content.getBytes(charset));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
