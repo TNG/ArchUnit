@@ -2,7 +2,6 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -169,7 +168,7 @@ public class ImportOptionsTest {
 
     @Test
     @UseDataProvider("do_not_include_package_info_classes")
-    public void detect_package_info_class(ImportOption doNotIncludePackageInfoClasses) throws URISyntaxException {
+    public void detect_package_info_class(ImportOption doNotIncludePackageInfoClasses) {
         Location packageInfoLocation = Location.of(relativeResourceUri(getClass(), "testexamples/package-info.class"));
         assertThat(doNotIncludePackageInfoClasses.includes(packageInfoLocation))
                 .as("doNotIncludePackageInfoClasses includes package-info.class")

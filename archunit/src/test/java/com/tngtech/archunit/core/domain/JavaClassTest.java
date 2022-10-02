@@ -46,10 +46,9 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.AbstractBooleanAssert;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
@@ -113,8 +112,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @RunWith(DataProviderRunner.class)
 @SuppressWarnings("SameParameterValue")
 public class JavaClassTest {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void finds_array_type() {
@@ -1746,14 +1743,14 @@ public class JavaClassTest {
     public void implement_rejects_non_interface_types() {
         implement(Serializable.class);
 
-        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
-        implement(AbstractList.class);
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(AbstractList.class, () -> implement(AbstractList.class));
     }
 
-    public static void expectInvalidSyntaxUsageForClassInsteadOfInterface(ExpectedException thrown, Class<?> nonInterface) {
-        thrown.expect(InvalidSyntaxUsageException.class);
-        thrown.expectMessage(nonInterface.getName());
-        thrown.expectMessage("interface");
+    public static void expectInvalidSyntaxUsageForClassInsteadOfInterface(Class<?> nonInterface, ThrowingCallable callable) {
+        assertThatThrownBy(callable)
+                .isInstanceOf(InvalidSyntaxUsageException.class)
+                .hasMessageContaining(nonInterface.getName())
+                .hasMessageContaining("interface");
     }
 
     @DataProvider

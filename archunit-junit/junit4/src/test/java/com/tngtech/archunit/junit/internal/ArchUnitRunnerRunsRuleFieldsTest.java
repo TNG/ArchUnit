@@ -13,7 +13,6 @@ import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -38,6 +37,7 @@ import static com.tngtech.archunit.junit.internal.ArchUnitRunnerTestUtils.newRun
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -45,8 +45,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ArchUnitRunnerRunsRuleFieldsTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
     @Rule
     public final MockitoRule mockitoRule = MockitoJUnit.rule();
     @Rule
@@ -69,7 +67,7 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     @InjectMocks
     private ArchUnitRunnerInternal runner = ArchUnitRunnerTestUtils.newRunnerFor(SomeArchTest.class);
 
-    private JavaClasses cachedClasses = importClassesWithContext(Object.class);
+    private final JavaClasses cachedClasses = importClassesWithContext(Object.class);
 
     @Before
     public void setUp() {
@@ -123,11 +121,11 @@ public class ArchUnitRunnerRunsRuleFieldsTest {
     public void should_fail_on_wrong_field_type() {
         ArchUnitRunnerInternal runner = newRunnerFor(WrongArchTestWrongFieldType.class, cache);
 
-        thrown.expectMessage("Rule field " +
-                WrongArchTestWrongFieldType.class.getSimpleName() + "." + NO_RULE_AT_ALL_FIELD_NAME +
-                " to check must be of type " + ArchRule.class.getSimpleName());
-
-        runner.runChild(ArchUnitRunnerTestUtils.getRule(NO_RULE_AT_ALL_FIELD_NAME, runner), runNotifier);
+        assertThatThrownBy(
+                () -> runner.runChild(ArchUnitRunnerTestUtils.getRule(NO_RULE_AT_ALL_FIELD_NAME, runner), runNotifier)
+        )
+                .hasMessage("Rule field %s.%s to check must be of type %s",
+                        WrongArchTestWrongFieldType.class.getSimpleName(), NO_RULE_AT_ALL_FIELD_NAME, ArchRule.class.getSimpleName());
     }
 
     @Test

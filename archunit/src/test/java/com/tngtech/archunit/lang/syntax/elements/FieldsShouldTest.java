@@ -68,7 +68,7 @@ public class FieldsShouldTest {
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualFields = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
-        assertThat(actualFields).containsOnlyElementsOf(expectedViolatingFields);
+        assertThat(actualFields).hasSameElementsAs(expectedViolatingFields);
     }
 
     private static final String FIELD_A = "fieldA";

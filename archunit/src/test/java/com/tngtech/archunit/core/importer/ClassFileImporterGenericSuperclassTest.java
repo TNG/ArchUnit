@@ -302,7 +302,6 @@ public class ClassFileImporterGenericSuperclassTest {
             ArchConfiguration.get().setResolveMissingDependenciesFromClassPath(false);
             return importClassWithOnlyGenericTypeResolution(OuterWithTypeParameter.SomeInner.Child.class).getSuperclass().get();
         });
-        ;
 
         assertThatType(genericSuperclass).as("generic superclass").hasActualTypeArguments(
                 typeVariable("OUTER").withoutUpperBounds()

@@ -176,7 +176,7 @@ public class CodeUnitsShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualMembers = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
-        assertThat(actualMembers).containsOnlyElementsOf(expectedMembers);
+        assertThat(actualMembers).hasSameElementsAs(expectedMembers);
     }
 
     @DataProvider
@@ -229,7 +229,7 @@ public class CodeUnitsShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualMembers = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
-        assertThat(actualMembers).containsOnlyElementsOf(expectedMembers);
+        assertThat(actualMembers).hasSameElementsAs(expectedMembers);
     }
 
     @DataProvider
@@ -282,7 +282,7 @@ public class CodeUnitsShouldTest {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithVariousMembers.class));
 
         Set<String> actualMembers = parseMembers(ClassWithVariousMembers.class, result.getFailureReport().getDetails());
-        assertThat(actualMembers).containsOnlyElementsOf(expectedMembers);
+        assertThat(actualMembers).hasSameElementsAs(expectedMembers);
     }
 
     @DataProvider

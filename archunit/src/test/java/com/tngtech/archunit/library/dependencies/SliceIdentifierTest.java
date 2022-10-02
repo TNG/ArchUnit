@@ -2,47 +2,38 @@ package com.tngtech.archunit.library.dependencies;
 
 import java.util.List;
 
-import org.junit.Rule;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class SliceIdentifierTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void rejects_null() {
-        thrown.expect(NullPointerException.class);
-
-        SliceIdentifier.of((String[]) null);
+        assertThatThrownBy(() -> SliceIdentifier.of((String[]) null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     public void rejects_null_list() {
-        thrown.expect(NullPointerException.class);
-
-        SliceIdentifier.of((List<String>) null);
+        assertThatThrownBy(() -> SliceIdentifier.of((List<String>) null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     public void rejects_empty_parts() {
-        expectEmptyPartsException();
-
-        SliceIdentifier.of();
+        expectEmptyPartsException(SliceIdentifier::of);
     }
 
     @Test
     public void rejects_empty_parts_list() {
-        expectEmptyPartsException();
-
-        SliceIdentifier.of(emptyList());
+        expectEmptyPartsException(() -> SliceIdentifier.of(emptyList()));
     }
 
-    private void expectEmptyPartsException() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("empty");
-        thrown.expectMessage("Use SliceIdentifier.ignore() to ignore a JavaClass");
+    private void expectEmptyPartsException(ThrowingCallable callable) {
+        assertThatThrownBy(callable)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("empty")
+                .hasMessageContaining("Use SliceIdentifier.ignore() to ignore a JavaClass");
     }
 }

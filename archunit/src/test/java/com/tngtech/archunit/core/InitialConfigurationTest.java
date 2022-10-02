@@ -1,14 +1,11 @@
 package com.tngtech.archunit.core;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class InitialConfigurationTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void can_set_and_retrieve_an_initial_value() {
@@ -24,17 +21,21 @@ public class InitialConfigurationTest {
 
         configuration.set("old");
 
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage("set once");
-        thrown.expectMessage("old");
-        thrown.expectMessage("changed");
-        configuration.set("changed");
+        assertThatThrownBy(
+                () -> configuration.set("changed")
+        )
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("set once")
+                .hasMessageContaining("old")
+                .hasMessageContaining("changed");
     }
 
     @Test
     public void throws_exception_if_no_value_is_present_on_access() {
-        thrown.expect(IllegalStateException.class);
-        thrown.expectMessage("No value was ever set");
-        new InitialConfiguration<>().get();
+        assertThatThrownBy(
+                () -> new InitialConfiguration<>().get()
+        )
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("No value was ever set");
     }
 }

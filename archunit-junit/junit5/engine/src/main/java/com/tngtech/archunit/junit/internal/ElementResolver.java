@@ -159,7 +159,7 @@ class ElementResolver {
         return remainingSegments;
     }
 
-    abstract class PossiblyResolvedClass {
+    abstract static class PossiblyResolvedClass {
         void ifRequestedButUnresolved(BiConsumer<Class<?>, ElementResolver> doIfResolved) {
         }
 
@@ -168,7 +168,7 @@ class ElementResolver {
         }
     }
 
-    private class RequestedAndSuccessfullyResolvedClass extends PossiblyResolvedClass {
+    private static class RequestedAndSuccessfullyResolvedClass extends PossiblyResolvedClass {
         private final CreatesChildren classDescriptor;
         private final ElementResolver childResolver;
 
@@ -203,14 +203,14 @@ class ElementResolver {
         }
     }
 
-    private class ClassNotRequested extends PossiblyResolvedClass {
+    private static class ClassNotRequested extends PossiblyResolvedClass {
     }
 
-    abstract class PossiblyResolvedMember {
+    abstract static class PossiblyResolvedMember {
         abstract void ifUnresolved(Consumer<ElementResolver> childResolver);
     }
 
-    private class SuccessfullyResolvedMember extends PossiblyResolvedMember {
+    private static class SuccessfullyResolvedMember extends PossiblyResolvedMember {
         @Override
         void ifUnresolved(Consumer<ElementResolver> childResolver) {
         }
@@ -218,7 +218,7 @@ class ElementResolver {
 
     private class UnresolvedMember extends PossiblyResolvedMember {
         private final Member member;
-        private String segmentType;
+        private final String segmentType;
 
         UnresolvedMember(Member member, String segmentType) {
             this.member = member;

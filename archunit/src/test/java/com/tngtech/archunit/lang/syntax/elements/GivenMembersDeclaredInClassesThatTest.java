@@ -27,7 +27,6 @@ import com.tngtech.archunit.testutil.ArchConfigurationRule;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
@@ -49,8 +48,6 @@ import static java.util.regex.Pattern.quote;
 
 @RunWith(DataProviderRunner.class)
 public class GivenMembersDeclaredInClassesThatTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Rule
     public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule();
@@ -360,8 +357,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         classes().that().areAnnotatedWith(ClassRetentionAnnotation.class);
         classes().that().areAnnotatedWith(DefaultClassRetentionAnnotation.class);
 
-        expectInvalidSyntaxUsageForRetentionSource(thrown);
-        classes().that().areAnnotatedWith(SourceRetentionAnnotation.class);
+        expectInvalidSyntaxUsageForRetentionSource(() -> classes().that().areAnnotatedWith(SourceRetentionAnnotation.class));
     }
 
     @Test
@@ -381,8 +377,7 @@ public class GivenMembersDeclaredInClassesThatTest {
         classes().that().areNotAnnotatedWith(ClassRetentionAnnotation.class);
         classes().that().areNotAnnotatedWith(DefaultClassRetentionAnnotation.class);
 
-        expectInvalidSyntaxUsageForRetentionSource(thrown);
-        classes().that().areNotAnnotatedWith(SourceRetentionAnnotation.class);
+        expectInvalidSyntaxUsageForRetentionSource(() -> classes().that().areNotAnnotatedWith(SourceRetentionAnnotation.class));
     }
 
     @Test
@@ -488,8 +483,7 @@ public class GivenMembersDeclaredInClassesThatTest {
     public void implement_rejects_non_interface_types() {
         classes().that().implement(Serializable.class);
 
-        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
-        classes().that().implement(AbstractList.class);
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(AbstractList.class, () -> classes().that().implement(AbstractList.class));
     }
 
     @Test
@@ -504,8 +498,7 @@ public class GivenMembersDeclaredInClassesThatTest {
     public void doNotImplement_rejects_non_interface_types() {
         classes().that().doNotImplement(Serializable.class);
 
-        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
-        classes().that().doNotImplement(AbstractList.class);
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(AbstractList.class, () -> classes().that().doNotImplement(AbstractList.class));
     }
 
     @Test

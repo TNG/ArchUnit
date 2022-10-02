@@ -115,7 +115,7 @@ class JohnsonCycleFinder {
 
     static class Result implements Iterable<int[]> {
         private final CycleConfiguration configuration = new CycleConfiguration();
-        private List<int[]> cycles = new ArrayList<>();
+        private final List<int[]> cycles = new ArrayList<>();
         private boolean maxNumberOfCyclesReached = false;
 
         private Result() {

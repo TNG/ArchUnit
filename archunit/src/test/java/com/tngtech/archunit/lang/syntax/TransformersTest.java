@@ -30,7 +30,7 @@ public class TransformersTest {
 
         DescribedIterable<JavaClass> output = Transformers.classes().transform(input);
 
-        assertThat(output).containsOnlyElementsOf(input);
+        assertThat(output).hasSameElementsAs(input);
     }
 
     @DataProvider

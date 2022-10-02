@@ -38,7 +38,7 @@ public class GivenMethodsTest {
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
-        assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMembers);
+        assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMembers);
     }
 
     private static final String METHOD_A = "methodA([I)";

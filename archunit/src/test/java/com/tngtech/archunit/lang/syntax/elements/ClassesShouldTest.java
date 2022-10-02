@@ -39,7 +39,6 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.tngtech.archunit.base.DescribedPredicate.alwaysFalse;
@@ -83,9 +82,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @RunWith(DataProviderRunner.class)
 public class ClassesShouldTest {
     static final String FAILURE_REPORT_NEWLINE_MARKER = "#";
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Rule
     public final ArchConfigurationRule configurationRule = new ArchConfigurationRule();
@@ -641,8 +637,7 @@ public class ClassesShouldTest {
         classes().should().beAnnotatedWith(ClassRetentionAnnotation.class);
         classes().should().beAnnotatedWith(DefaultClassRetentionAnnotation.class);
 
-        expectInvalidSyntaxUsageForRetentionSource(thrown);
-        classes().should().beAnnotatedWith(SourceRetentionAnnotation.class);
+        expectInvalidSyntaxUsageForRetentionSource(() -> classes().should().beAnnotatedWith(SourceRetentionAnnotation.class));
     }
 
     @DataProvider
@@ -747,8 +742,7 @@ public class ClassesShouldTest {
         classes().should().notBeAnnotatedWith(ClassRetentionAnnotation.class);
         classes().should().notBeAnnotatedWith(DefaultClassRetentionAnnotation.class);
 
-        expectInvalidSyntaxUsageForRetentionSource(thrown);
-        classes().should().notBeAnnotatedWith(SourceRetentionAnnotation.class);
+        expectInvalidSyntaxUsageForRetentionSource(() -> classes().should().notBeAnnotatedWith(SourceRetentionAnnotation.class));
     }
 
     @DataProvider
@@ -775,8 +769,7 @@ public class ClassesShouldTest {
     public void implement_rejects_non_interface_types() {
         classes().should().implement(Serializable.class);
 
-        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
-        classes().should().implement(AbstractList.class);
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(AbstractList.class, () -> classes().should().implement(AbstractList.class));
     }
 
     @DataProvider
@@ -846,8 +839,7 @@ public class ClassesShouldTest {
     public void notImplement_rejects_non_interface_types() {
         classes().should().notImplement(Serializable.class);
 
-        expectInvalidSyntaxUsageForClassInsteadOfInterface(thrown, AbstractList.class);
-        classes().should().notImplement(AbstractList.class);
+        expectInvalidSyntaxUsageForClassInsteadOfInterface(AbstractList.class, () -> classes().should().notImplement(AbstractList.class));
     }
 
     @DataProvider

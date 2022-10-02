@@ -14,18 +14,15 @@ import com.tngtech.archunit.library.freeze.ViolationStoreFactory.TextFileBasedVi
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class TextFileBasedViolationStoreTest {
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Rule
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -51,10 +48,9 @@ public class TextFileBasedViolationStoreTest {
     public void throws_an_exception_if_violations_of_unstored_rule_are_requested() {
         ArchRule rule = defaultRule();
 
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("No rule stored with description '" + rule.getDescription() + "'");
-
-        store.getViolations(rule);
+        assertThatThrownBy(() -> store.getViolations(rule))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("No rule stored with description '%s'", rule.getDescription());
     }
 
     @Test

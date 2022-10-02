@@ -19,7 +19,6 @@ import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.assertj.core.api.Condition;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -32,6 +31,7 @@ import static com.tngtech.archunit.junit.CacheMode.PER_CLASS;
 import static com.tngtech.archunit.testutil.Assertions.assertThatTypes;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.doReturn;
@@ -44,9 +44,6 @@ public class ClassCacheTest {
 
     @Rule
     public final MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Rule
     public final ArchConfigurationRule archConfigurationRule = new ArchConfigurationRule()
@@ -128,12 +125,13 @@ public class ClassCacheTest {
 
     @Test
     public void rejects_LocationProviders_without_default_constructor() {
-        thrown.expect(ArchTestExecutionException.class);
-        thrown.expectMessage("public default constructor");
-        thrown.expectMessage(LocationProvider.class.getSimpleName());
-
-        cache.getClassesToAnalyzeFor(WrongLocationProviderWithConstructorParam.class,
-                analyzeLocation(WrongLocationProviderWithConstructorParam.class));
+        assertThatThrownBy(
+                () -> cache.getClassesToAnalyzeFor(WrongLocationProviderWithConstructorParam.class,
+                        analyzeLocation(WrongLocationProviderWithConstructorParam.class))
+        )
+                .isInstanceOf(ArchTestExecutionException.class)
+                .hasMessageContaining("public default constructor")
+                .hasMessageContaining(LocationProvider.class.getSimpleName());
     }
 
     @Test

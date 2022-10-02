@@ -22,9 +22,8 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ClassesTransformer;
 import com.tngtech.archunit.lang.Priority;
-import com.tngtech.archunit.lang.syntax.elements.GivenObjects;
 
-class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsInternal<T>> implements GivenObjects<T> {
+class GivenObjectsInternal<T> extends AbstractGivenObjects<T, GivenObjectsInternal<T>> {
 
     GivenObjectsInternal(Priority priority, ClassesTransformer<T> classesTransformer) {
         this(priority, classesTransformer, Function.identity());

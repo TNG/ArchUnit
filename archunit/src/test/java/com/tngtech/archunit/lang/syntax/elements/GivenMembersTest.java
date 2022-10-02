@@ -132,7 +132,7 @@ public class GivenMembersTest {
         EvaluationResult result = rule.evaluate(importClasses(ClassWithVariousMembers.class));
 
         assertViolation(result);
-        assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedViolationDetails);
+        assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedViolationDetails);
     }
 
     @Test
@@ -381,7 +381,7 @@ public class GivenMembersTest {
         EvaluationResult result = conjunction.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class, A.class, B.class, C.class, MetaAnnotation.class));
 
-        assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMessages);
+        assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMessages);
     }
 
     @DataProvider
@@ -432,7 +432,7 @@ public class GivenMembersTest {
         EvaluationResult result = conjunction.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class, OtherClassWithMembers.class));
 
-        assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMessages);
+        assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMessages);
     }
 
     static void assertViolation(EvaluationResult result) {

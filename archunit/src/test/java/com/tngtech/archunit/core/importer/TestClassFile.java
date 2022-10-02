@@ -2,8 +2,7 @@ package com.tngtech.archunit.core.importer;
 
 import java.io.File;
 import java.io.IOException;
-
-import com.google.common.io.Files;
+import java.nio.file.Files;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.tngtech.archunit.testutil.TestUtils.newTemporaryFolder;
@@ -26,7 +25,7 @@ public class TestClassFile {
 
             checkState(sourceFile.getParentFile().exists() || sourceFile.getParentFile().mkdirs(),
                     "Can't create directory %s", sourceFile.getParentFile().getAbsolutePath());
-            Files.write(sourceCode, sourceFile, UTF_8);
+            Files.write(sourceFile.toPath(), sourceCode.getBytes(UTF_8));
 
             int result = getSystemJavaCompiler().run(null, null, null, sourceFile.getAbsolutePath());
             checkState(result == 0, "Compiler exit code should be 0, but it was " + result);

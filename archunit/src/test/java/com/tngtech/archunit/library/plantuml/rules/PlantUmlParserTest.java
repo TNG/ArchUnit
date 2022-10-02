@@ -13,7 +13,6 @@ import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -26,13 +25,11 @@ import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.testForEach;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.rangeClosed;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class PlantUmlParserTest {
     private static final PlantUmlParser parser = new PlantUmlParser();
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Rule
     public final TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -215,11 +212,10 @@ public class PlantUmlParserTest {
                 .dependencyFrom("[NotYetDefined]").to("[AlsoNotYetDefined]")
                 .write();
 
-        thrown.expect(IllegalDiagramException.class);
-        thrown.expectMessage("There is no Component with name or alias = 'NotYetDefined'");
-        thrown.expectMessage("Components must be specified separately from dependencies");
-
-        createDiagram(file);
+        assertThatThrownBy(() -> createDiagram(file))
+                .isInstanceOf(IllegalDiagramException.class)
+                .hasMessageContaining("There is no Component with name or alias = 'NotYetDefined'")
+                .hasMessageContaining("Components must be specified separately from dependencies");
     }
 
     @Test
@@ -228,11 +224,10 @@ public class PlantUmlParserTest {
                 .rawLine("[componentWithoutStereotype]")
                 .write();
 
-        thrown.expect(IllegalDiagramException.class);
-        thrown.expectMessage("componentWithoutStereotype");
-        thrown.expectMessage("at least one stereotype specifying the package identifier(<<..>>)");
-
-        createDiagram(file);
+        assertThatThrownBy(() -> createDiagram(file))
+                .isInstanceOf(IllegalDiagramException.class)
+                .hasMessageContaining("componentWithoutStereotype")
+                .hasMessageContaining("at least one stereotype specifying the package identifier(<<..>>)");
     }
 
     @Test
@@ -251,10 +246,9 @@ public class PlantUmlParserTest {
                 .component("irrelevant").withAlias("ill[]egal").withStereoTypes("..irrelevant..")
                 .write();
 
-        thrown.expect(IllegalDiagramException.class);
-        thrown.expectMessage("Alias 'ill[]egal' should not contain character(s): '[' or ']' or '\"'");
-
-        createDiagram(file);
+        assertThatThrownBy(() -> createDiagram(file))
+                .isInstanceOf(IllegalDiagramException.class)
+                .hasMessageContaining("Alias 'ill[]egal' should not contain character(s): '[' or ']' or '\"'");
     }
 
     @Test

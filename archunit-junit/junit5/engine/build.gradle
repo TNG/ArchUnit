@@ -17,6 +17,7 @@ dependencies {
     testImplementation project(path: ':archunit', configuration: 'tests')
     testImplementation dependency.assertj
     testImplementation dependency.mockito
+    testImplementation dependency.mockito_junit5
     testImplementation dependency.junit5JupiterApi
     testImplementation dependency.log4j_core
     testImplementation dependency.log4j_slf4j

@@ -1,6 +1,5 @@
 package com.tngtech.archunit.lang.extension;
 
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.regex.Pattern;
 
@@ -12,29 +11,25 @@ import com.tngtech.archunit.lang.extension.examples.TestExtensionWithSameIdentif
 import com.tngtech.archunit.lang.extension.examples.YetAnotherDummyTestExtension;
 import com.tngtech.archunit.testutil.LogTestRule;
 import org.apache.logging.log4j.Level;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
+import org.assertj.core.api.Condition;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static java.util.regex.Pattern.quote;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ArchUnitExtensionLoaderTest {
     @Rule
     public final TestServicesFile testServicesFile = new TestServicesFile();
     @Rule
-    public final ExpectedException thrown = ExpectedException.none();
-    @Rule
     public final LogTestRule logTestRule = new LogTestRule();
 
-    private ArchUnitExtensionLoader extensionLoader = new ArchUnitExtensionLoader();
+    private final ArchUnitExtensionLoader extensionLoader = new ArchUnitExtensionLoader();
 
     @Test
-    public void loads_a_single_extension() throws IOException {
+    public void loads_a_single_extension() {
         testServicesFile.addService(TestExtension.class);
 
         Iterable<ArchUnitExtension> extensions = extensionLoader.getAll();
@@ -53,7 +48,7 @@ public class ArchUnitExtensionLoaderTest {
     }
 
     @Test
-    public void loads_multiple_extensions() throws IOException {
+    public void loads_multiple_extensions() {
         testServicesFile.addService(TestExtension.class);
         testServicesFile.addService(DummyTestExtension.class);
         testServicesFile.addService(YetAnotherDummyTestExtension.class);
@@ -71,22 +66,22 @@ public class ArchUnitExtensionLoaderTest {
     public void rejects_null_extension_identifier() {
         testServicesFile.addService(TestExtensionWithNullIdentifier.class);
 
-        thrown.expect(ExtensionLoadingException.class);
-        thrown.expectMessage("identifier");
-        thrown.expectMessage("null");
-        thrown.expectMessage(containingWord(TestExtensionWithNullIdentifier.class.getName()));
-        extensionLoader.getAll();
+        assertThatThrownBy(extensionLoader::getAll)
+                .isInstanceOf(ExtensionLoadingException.class)
+                .hasMessageContaining("identifier")
+                .hasMessageContaining("null")
+                .is(containingWord(TestExtensionWithNullIdentifier.class.getName()));
     }
 
     @Test
     public void rejects_illegal_characters_in_extension_identifier() {
         testServicesFile.addService(TestExtensionWithIllegalIdentifier.class);
 
-        thrown.expect(ExtensionLoadingException.class);
-        thrown.expectMessage("identifier");
-        thrown.expectMessage("'.'");
-        thrown.expectMessage(containingWord(TestExtensionWithIllegalIdentifier.class.getName()));
-        extensionLoader.getAll();
+        assertThatThrownBy(extensionLoader::getAll)
+                .isInstanceOf(ExtensionLoadingException.class)
+                .hasMessageContaining("identifier")
+                .hasMessageContaining("'.'")
+                .is(containingWord(TestExtensionWithIllegalIdentifier.class.getName()));
     }
 
     @Test
@@ -94,12 +89,12 @@ public class ArchUnitExtensionLoaderTest {
         testServicesFile.addService(TestExtension.class);
         testServicesFile.addService(TestExtensionWithSameIdentifier.class);
 
-        thrown.expect(ExtensionLoadingException.class);
-        thrown.expectMessage("must be unique");
-        thrown.expectMessage(TestExtension.UNIQUE_IDENTIFIER);
-        thrown.expectMessage(containingWord(TestExtension.class.getName()));
-        thrown.expectMessage(containingWord(TestExtensionWithSameIdentifier.class.getName()));
-        extensionLoader.getAll();
+        assertThatThrownBy(extensionLoader::getAll)
+                .isInstanceOf(ExtensionLoadingException.class)
+                .hasMessageContaining("must be unique")
+                .hasMessageContaining(TestExtension.UNIQUE_IDENTIFIER)
+                .is(containingWord(TestExtension.class.getName()))
+                .is(containingWord(TestExtensionWithSameIdentifier.class.getName()));
     }
 
     @Test
@@ -119,17 +114,12 @@ public class ArchUnitExtensionLoaderTest {
         return "Loaded " + ArchUnitExtension.class.getSimpleName() + " with id '" + identifier + "'";
     }
 
-    private Matcher<String> containingWord(final String word) {
+    private Condition<Throwable> containingWord(final String word) {
         final Pattern wordPattern = Pattern.compile(" " + quote(word) + "[: ]");
-        return new TypeSafeMatcher<String>() {
+        return new Condition<Throwable>(String.format("containing word '%s'", word)) {
             @Override
-            protected boolean matchesSafely(String item) {
-                return wordPattern.matcher(item).find();
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText(String.format("containing word '%s'", word));
+            public boolean matches(Throwable value) {
+                return wordPattern.matcher(value.getMessage()).find();
             }
         };
     }

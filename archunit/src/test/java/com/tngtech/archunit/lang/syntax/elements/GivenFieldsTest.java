@@ -72,7 +72,7 @@ public class GivenFieldsTest {
         EvaluationResult result = ruleStart.should(everythingViolationPrintMemberName())
                 .evaluate(importClasses(ClassWithVariousMembers.class));
 
-        assertThat(result.getFailureReport().getDetails()).containsOnlyElementsOf(expectedMembers);
+        assertThat(result.getFailureReport().getDetails()).hasSameElementsAs(expectedMembers);
     }
 
     private static Set<String> allFieldsExcept(String... fieldNames) {

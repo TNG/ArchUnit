@@ -12,7 +12,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -21,14 +20,12 @@ import static com.tngtech.archunit.testutil.ReflectionTestUtils.constructor;
 import static com.tngtech.archunit.testutil.TestUtils.properties;
 import static com.tngtech.archunit.testutil.TestUtils.singleProperty;
 import static com.tngtech.archunit.testutil.TestUtils.toUri;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 
 public class ArchConfigurationTest {
     private static final String PROPERTIES_FILE_NAME = "archconfigtest.properties";
     private final File testPropsFile = new File(new File(toUri(getClass().getResource("/"))), PROPERTIES_FILE_NAME);
-
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Rule
     public final SystemPropertiesRule systemPropertiesRule = new SystemPropertiesRule();
@@ -210,10 +207,12 @@ public class ArchConfigurationTest {
         assertThat(configuration.containsProperty("not.there"))
                 .as("configuration contains property name 'not.there'").isFalse();
 
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("'not.there'");
-        thrown.expectMessage("not configured");
-        configuration.getProperty("not.there");
+        assertThatThrownBy(
+                () -> configuration.getProperty("not.there")
+        )
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("'not.there'")
+                .hasMessageContaining("not configured");
     }
 
     @Test

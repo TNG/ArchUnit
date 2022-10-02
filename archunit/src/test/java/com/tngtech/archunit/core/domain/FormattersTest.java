@@ -12,9 +12,7 @@ import com.google.common.collect.Sets;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
 import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static com.google.common.collect.ImmutableList.of;
@@ -28,11 +26,10 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(DataProviderRunner.class)
 public class FormattersTest {
-    @Rule
-    public final ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void formatNamesOf() {
@@ -54,9 +51,9 @@ public class FormattersTest {
     @Test
     @SuppressWarnings("ConstantConditions")
     public void ensureSimpleName_withNullString() {
-        thrown.expect(NullPointerException.class);
-
-        Formatters.ensureSimpleName(null);
+        assertThatThrownBy(
+                () -> Formatters.ensureSimpleName(null)
+        ).isInstanceOf(NullPointerException.class);
     }
 
     @DataProvider
