@@ -3,7 +3,7 @@ ext.updateArchUnitExampleVersion = { File archUnitExampleDir ->
     fileTree(archUnitExampleDir) {
         include '**/build.gradle'
     }.each {File buildFile ->
-        buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit[^:]*:)[\d.]*/, "\$1${version}")
+        buildFile.text = buildFile.text.replaceAll(/(com\.tngtech\.archunit:archunit[^:]*:)[\w.-]*/, "\$1${version}")
     }
 }
 ext.updateArchUnitExampleSources = { File targetArchUnitExampleDir ->
