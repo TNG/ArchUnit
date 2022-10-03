@@ -17,7 +17,7 @@ framework.
 ###### Gradle
 
 ```
-testImplementation 'com.tngtech.archunit:archunit:1.0.0-rc1'
+testImplementation 'com.tngtech.archunit:archunit:1.0.0'
 ```
 
 ###### Maven
@@ -26,7 +26,7 @@ testImplementation 'com.tngtech.archunit:archunit:1.0.0-rc1'
 <dependency>
     <groupId>com.tngtech.archunit</groupId>
     <artifactId>archunit</artifactId>
-    <version>1.0.0-rc1</version>
+    <version>1.0.0</version>
     <scope>test</scope>
 </dependency>
 ```
