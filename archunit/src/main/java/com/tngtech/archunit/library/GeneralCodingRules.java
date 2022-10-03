@@ -480,4 +480,22 @@ public final class GeneralCodingRules {
             }
         };
     }
+
+    /**
+     * A rule that checks that all {@link AssertionError AssertionErrors} (e.g. from the {@code assert} keyword) have a detail message.
+     * <p>
+     * Example:
+     * <pre>{@code
+     * assert x > 0;  // violation
+     * throw new AssertionError();  // violation
+     *
+     * assert x > 0 : "x is not positive";  // no violation
+     * throw new AssertionError("x is not positive");  // no violation
+     * }</pre>
+     * </p>
+     */
+    @PublicAPI(usage = ACCESS)
+    public static final ArchRule ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE =
+            noClasses().should().callConstructor(AssertionError.class /* without detailMessage */)
+                    .because("assertions should have a detail message");
 }

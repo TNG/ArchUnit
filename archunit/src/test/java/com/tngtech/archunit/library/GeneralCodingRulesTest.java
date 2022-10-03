@@ -12,8 +12,10 @@ import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.d
 import com.tngtech.archunit.library.testclasses.packages.incorrect.wrongsubdir.defaultsuffix.subdir.ImplementationClassWithWrongTestClassPackageTest;
 import org.junit.Test;
 
+import static com.tngtech.archunit.library.GeneralCodingRules.ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE;
 import static com.tngtech.archunit.library.GeneralCodingRules.testClassesShouldResideInTheSamePackageAsImplementation;
 import static com.tngtech.archunit.testutil.Assertions.assertThatRule;
+import static java.util.regex.Pattern.quote;
 
 public class GeneralCodingRulesTest {
 
@@ -80,4 +82,41 @@ public class GeneralCodingRulesTest {
                 );
     }
 
+    @Test
+    public void ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE_should_fail_on_assert_without_detail_message() {
+        @SuppressWarnings("unused")
+        class InvalidAssertions {
+            void f(int x) {
+                assert x > 0;
+            }
+
+            void f() {
+                throw new AssertionError();
+            }
+        }
+        assertThatRule(ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE)
+                .checking(new ClassFileImporter().importClasses(InvalidAssertions.class))
+                .hasViolations(2)
+                .hasViolationContaining("Method <%s.f(int)> calls constructor <%s.<init>()>",
+                        InvalidAssertions.class.getName(), AssertionError.class.getName())
+                .hasViolationContaining("Method <%s.f()> calls constructor <%s.<init>()>",
+                        InvalidAssertions.class.getName(), AssertionError.class.getName());
+    }
+
+    @Test
+    public void ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE_should_accept_assert_with_detail_message() {
+        @SuppressWarnings("unused")
+        class ValidAssertions {
+            void f(int x) {
+                assert x > 0 : "argument should be positive";
+            }
+
+            void f() {
+                throw new AssertionError("f() should not be called");
+            }
+        }
+        assertThatRule(ASSERTIONS_SHOULD_HAVE_DETAIL_MESSAGE)
+                .checking(new ClassFileImporter().importClasses(ValidAssertions.class))
+                .hasNoViolation();
+    }
 }
