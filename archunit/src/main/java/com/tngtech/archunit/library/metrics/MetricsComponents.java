@@ -121,7 +121,7 @@ public final class MetricsComponents<T> extends ForwardingCollection<MetricsComp
     public static MetricsComponents<JavaClass> fromPackages(Collection<JavaPackage> packages) {
         ImmutableSet.Builder<MetricsComponent<JavaClass>> components = ImmutableSet.builder();
         for (JavaPackage javaPackage : packages) {
-            components.add(MetricsComponent.of(javaPackage.getName(), javaPackage.getAllClasses()));
+            components.add(MetricsComponent.of(javaPackage.getName(), javaPackage.getClassesInPackageTree()));
         }
         return MetricsComponents.of(components.build());
     }

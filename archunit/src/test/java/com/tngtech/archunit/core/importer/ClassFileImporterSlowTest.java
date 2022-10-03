@@ -171,7 +171,7 @@ public class ClassFileImporterSlowTest {
 
         JavaPackage javaPackage = defaultPackage.getPackage("java.lang");
         assertThatTypes(javaPackage.getClasses()).contain(Object.class, String.class, Integer.class);
-        assertThatTypes(javaPackage.getAllClasses()).contain(Object.class, Annotation.class, Field.class);
+        assertThatTypes(javaPackage.getClassesInPackageTree()).contain(Object.class, Annotation.class, Field.class);
 
         assertThat(javaClasses.containPackage("java.util"))
                 .as("Classes contain package 'java.util'").isTrue();

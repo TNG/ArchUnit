@@ -303,7 +303,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @return all classes directly contained in this package, but not classes in the lower levels of the package tree (compare {@link #getAllClasses()})
+     * @return all classes directly contained in this package, but not classes in the lower levels of the package tree (compare {@link #getClassesInPackageTree()})
      */
     @PublicAPI(usage = ACCESS)
     public Set<JavaClass> getClasses() {
@@ -311,13 +311,14 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
     }
 
     /**
-     * @return all classes contained in this package tree (compare {@link #getClasses()})
+     * @return all classes contained in this {@link JavaPackage package tree}, i.e. all classes in this package,
+     *         subpackages, subpackages of subpackages, and so on (compare {@link #getClasses()})
      */
     @PublicAPI(usage = ACCESS)
-    public Set<JavaClass> getAllClasses() {
+    public Set<JavaClass> getClassesInPackageTree() {
         ImmutableSet.Builder<JavaClass> result = ImmutableSet.<JavaClass>builder().addAll(classes);
         for (JavaPackage subpackage : getSubpackages()) {
-            result.addAll(subpackage.getAllClasses());
+            result.addAll(subpackage.getClassesInPackageTree());
         }
         return result.build();
     }
@@ -512,7 +513,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getClassDependenciesFromThisPackageTree() {
-        return getClassDependenciesFrom(getAllClasses());
+        return getClassDependenciesFrom(getClassesInPackageTree());
     }
 
     /**
@@ -541,7 +542,7 @@ public final class JavaPackage implements HasName, HasAnnotations<JavaPackage> {
      */
     @PublicAPI(usage = ACCESS)
     public Set<Dependency> getClassDependenciesToThisPackageTree() {
-        return getClassDependenciesTo(getAllClasses());
+        return getClassDependenciesTo(getClassesInPackageTree());
     }
 
     /**
