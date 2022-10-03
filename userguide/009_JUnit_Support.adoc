@@ -104,7 +104,7 @@ public class MyLocationProvider implements LocationProvider {
 @AnalyzeClasses(locations = MyLocationProvider.class)
 ----
 
-Furthermore to choose specific classes beneath those locations, `ImportOptions` can be
+Furthermore, to choose specific classes beneath those locations, `ImportOption`﻿s can be
 specified (compare <<The Core API>>). For example, to import the classpath, but only consider
 production code, and only consider code that is directly supplied and does not come from JARs:
 
@@ -118,7 +118,7 @@ and then supply the type to `@AnalyzeClasses`.
 
 ==== Controlling the Cache
 
-By default all classes will be cached by location. This means that between different
+By default, all classes will be cached by location. This means that between different
 test class runs imported Java classes will be reused, if the exact combination of locations has already
 been imported.
 
