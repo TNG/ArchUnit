@@ -19,7 +19,7 @@ initializeSonatypeStagingRepository.doFirst {
 task publishArchUnit(dependsOn: [closeSonatypeStagingRepository, releaseSonatypeStagingRepository])
 
 def getLastReleaseVersion() {
-    (new File(project.rootDir, 'README.md').text =~ /testImplementation 'com.tngtech.archunit:archunit:(\d+.\d+.\d+)'/).findAll().first()[1]
+    (new File(project.rootDir, 'README.md').text =~ /testImplementation 'com.tngtech.archunit:archunit:(\d+.\d+.\d+.*)'/).findAll().first()[1]
 }
 
 def gradleProperties = new File(project.rootDir, 'gradle.properties')
