@@ -90,6 +90,7 @@ public final class Architectures {
      * <br><br>
      * A layered architecture can for example be defined like this:
      * <pre><code>layeredArchitecture()
+     * .consideringAllDependencies()
      * .layer("UI").definedBy("my.application.ui..")
      * .layer("Business Logic").definedBy("my.application.domain..")
      * .layer("Persistence").definedBy("my.application.persistence..")
