@@ -221,7 +221,7 @@ public class JavaPackageTest {
 
         JavaPackage javaLang = defaultPackage.getPackage("java.lang");
 
-        assertThatTypes(javaLang.getAllClasses()).contain(Object.class, String.class, Annotation.class, Field.class);
+        assertThatTypes(javaLang.getClassesInPackageTree()).contain(Object.class, String.class, Annotation.class, Field.class);
     }
 
     @Test

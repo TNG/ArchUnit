@@ -40,14 +40,14 @@ public class JavaClassesTest {
     public void creation_of_JavaClasses_from_existing_classes_should_keep_the_original_package_tree() {
         JavaClasses classes = JavaClasses.of(singletonList(ALL_CLASSES.get(SomeClass.class)));
 
-        assertThat(classes.getDefaultPackage().getAllClasses()).hasSameElementsAs(ALL_CLASSES.getDefaultPackage().getAllClasses());
+        assertThat(classes.getDefaultPackage().getClassesInPackageTree()).hasSameElementsAs(ALL_CLASSES.getDefaultPackage().getClassesInPackageTree());
     }
 
     @Test
     public void creation_of_JavaClasses_from_empty_classes_should_create_empty_default_package() {
         JavaClasses classes = JavaClasses.of(emptySet());
 
-        assertThat(classes.getDefaultPackage().getAllClasses()).isEmpty();
+        assertThat(classes.getDefaultPackage().getClassesInPackageTree()).isEmpty();
     }
 
     @Test
