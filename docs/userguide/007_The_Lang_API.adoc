@@ -131,7 +131,7 @@ For example:
 DescribedPredicate<JavaClass> haveAFieldAnnotatedWithPayload =
     new DescribedPredicate<JavaClass>("have a field annotated with @Payload"){
         @Override
-        public boolean apply(JavaClass input) {
+        public boolean test(JavaClass input) {
             boolean someFieldAnnotatedWithPayload = // iterate fields and check for @Payload
             return someFieldAnnotatedWithPayload;
         }
