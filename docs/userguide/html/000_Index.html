@@ -449,7 +449,7 @@ h4 {
 <div id="header">
 <h1>ArchUnit User Guide</h1>
 <div class="details">
-<span id="revnumber">version 1.0.0-rc1</span>
+<span id="revnumber">version 1.0.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -617,7 +617,7 @@ Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit4&lt;/artifactId&gt;
-    &lt;version&gt;1.0.0-rc1&lt;/version&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -626,7 +626,7 @@ Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit4:1.0.0-rc1'
+    testImplementation 'com.tngtech.archunit:archunit-junit4:1.0.0'
 }</code></pre>
 </div>
 </div>
@@ -647,7 +647,7 @@ from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit-junit5&lt;/artifactId&gt;
-    &lt;version&gt;1.0.0-rc1&lt;/version&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -656,7 +656,7 @@ from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-    testImplementation 'com.tngtech.archunit:archunit-junit5:1.0.0-rc1'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.0.0'
 }</code></pre>
 </div>
 </div>
@@ -673,7 +673,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <pre class="highlightjs highlight nowrap"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
     &lt;groupId&gt;com.tngtech.archunit&lt;/groupId&gt;
     &lt;artifactId&gt;archunit&lt;/artifactId&gt;
-    &lt;version&gt;1.0.0-rc1&lt;/version&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
     &lt;scope&gt;test&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -682,7 +682,7 @@ context, include the core ArchUnit dependency from Maven Central:</p>
 <div class="title">build.gradle</div>
 <div class="content">
 <pre class="highlightjs highlight nowrap"><code class="language-none hljs">dependencies {
-   testImplementation 'com.tngtech.archunit:archunit:1.0.0-rc1'
+   testImplementation 'com.tngtech.archunit:archunit:1.0.0'
 }</code></pre>
 </div>
 </div>
@@ -1092,7 +1092,7 @@ specified as URLs or as JAR files.</p>
 <div class="paragraph">
 <p>Furthermore specific locations can be filtered out, if they are contained in the source of classes,
 but should not be imported. A typical use case would be to ignore test classes, when the classpath
-is imported. This can be achieved by specifying <code>ImportOptions</code>:</p>
+is imported. This can be achieved by specifying <code>ImportOption</code>﻿s:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1122,7 +1122,7 @@ JavaClasses classes = new ClassFileImporter().withImportOption(ignoreTests).impo
 <div class="paragraph">
 <p>For the two common cases to skip importing JAR files and to skip importing test files
 (for typical setups, like a Maven or Gradle build),
-there already exist predefined <code>ImportOptions</code>:</p>
+there already exist predefined <code>ImportOption</code>﻿s:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1258,7 +1258,7 @@ object from the Reflection API. For example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClasses classes = new ClassFileImporter().importClasspath(new ImportOptions());
+<pre class="highlightjs highlight nowrap"><code data-lang="java" class="language-java hljs">JavaClasses classes = new ClassFileImporter().importClasspath();
 
 // ArchUnit's java.lang.String
 JavaClass javaClass = classes.get(String.class);
@@ -2568,7 +2568,7 @@ packages these classes reside in will be imported:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Furthermore to choose specific classes beneath those locations, <code>ImportOptions</code> can be
+<p>Furthermore, to choose specific classes beneath those locations, <code>ImportOption</code>﻿s can be
 specified (compare <a href="#_the_core_api">The Core API</a>). For example, to import the classpath, but only consider
 production code, and only consider code that is directly supplied and does not come from JARs:</p>
 </div>
@@ -2585,7 +2585,7 @@ and then supply the type to <code>@AnalyzeClasses</code>.</p>
 <div class="sect3">
 <h4 id="_controlling_the_cache"><a class="anchor" href="#_controlling_the_cache"></a>9.1.3. Controlling the Cache</h4>
 <div class="paragraph">
-<p>By default all classes will be cached by location. This means that between different
+<p>By default, all classes will be cached by location. This means that between different
 test class runs imported Java classes will be reused, if the exact combination of locations has already
 been imported.</p>
 </div>
