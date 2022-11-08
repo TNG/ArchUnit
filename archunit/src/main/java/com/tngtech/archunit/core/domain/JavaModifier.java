@@ -18,6 +18,7 @@ package com.tngtech.archunit.core.domain;
 import java.util.EnumSet;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.tngtech.archunit.PublicAPI;
 import org.objectweb.asm.Opcodes;
@@ -73,7 +74,17 @@ public enum JavaModifier {
     @Deprecated
     @PublicAPI(usage = ACCESS)
     public static Set<JavaModifier> getModifiersForClass(int asmAccess) {
-        return getModifiersFor(ApplicableType.CLASS, asmAccess);
+        Set<JavaModifier> modifiers = getModifiersFor(ApplicableType.CLASS, asmAccess);
+        boolean opCodeForRecordIsPresent = (asmAccess & Opcodes.ACC_RECORD) != 0;
+        if (opCodeForRecordIsPresent) {
+            // As records are implicitly static and final (compare JLS 8.10 Record Declarations),
+            // we ensure that those modifiers are always present. (asmAccess does not contain STATIC.)
+            return ImmutableSet.<JavaModifier>builder()
+                    .addAll(modifiers)
+                    .add(JavaModifier.STATIC, JavaModifier.FINAL)
+                    .build();
+        }
+        return modifiers;
     }
 
     /**
