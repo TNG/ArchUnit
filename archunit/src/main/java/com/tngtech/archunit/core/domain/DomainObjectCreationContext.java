@@ -172,8 +172,8 @@ public class DomainObjectCreationContext {
         return new Source(uri, sourceFileName, md5InClassSourcesEnabled);
     }
 
-    public static ReferencedClassObject createReferencedClassObject(JavaCodeUnit codeUnit, JavaClass javaClass, int lineNumber) {
-        return ReferencedClassObject.from(codeUnit, javaClass, lineNumber);
+    public static ReferencedClassObject createReferencedClassObject(JavaCodeUnit codeUnit, JavaClass javaClass, int lineNumber, boolean declaredInLambda) {
+        return ReferencedClassObject.from(codeUnit, javaClass, lineNumber, declaredInLambda);
     }
 
     public static <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> createThrowsClause(CODE_UNIT codeUnit, List<JavaClass> types) {

@@ -68,7 +68,6 @@ import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
-import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.domain.Source;
 import com.tngtech.archunit.core.domain.SourceCodeLocation;
 import com.tngtech.archunit.core.domain.ThrowsClause;
@@ -82,7 +81,6 @@ import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createInstanceofCheck;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createReferencedClassObject;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTryCatchBlock;
@@ -250,7 +248,6 @@ public final class DomainBuilders {
         private SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex;
         private JavaCodeUnitTypeParametersBuilder typeParametersBuilder;
         private List<JavaClassDescriptor> throwsDeclarations;
-        private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
         private final List<RawInstanceofCheck> instanceOfChecks = new ArrayList<>();
 
         private JavaCodeUnitBuilder() {
@@ -280,11 +277,6 @@ public final class DomainBuilders {
 
         SELF withThrowsClause(List<JavaClassDescriptor> throwsDeclarations) {
             this.throwsDeclarations = throwsDeclarations;
-            return self();
-        }
-
-        SELF addReferencedClassObject(RawReferencedClassObject rawReferencedClassObject) {
-            rawReferencedClassObjects.add(rawReferencedClassObject);
             return self();
         }
 
@@ -337,14 +329,6 @@ public final class DomainBuilders {
 
         public <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> getThrowsClause(CODE_UNIT codeUnit) {
             return createThrowsClause(codeUnit, asJavaClasses(this.throwsDeclarations));
-        }
-
-        public Set<ReferencedClassObject> getReferencedClassObjects(JavaCodeUnit codeUnit) {
-            ImmutableSet.Builder<ReferencedClassObject> result = ImmutableSet.builder();
-            for (RawReferencedClassObject rawReferencedClassObject : this.rawReferencedClassObjects) {
-                result.add(createReferencedClassObject(codeUnit, get(rawReferencedClassObject.getClassName()), rawReferencedClassObject.getLineNumber()));
-            }
-            return result.build();
         }
 
         public Set<InstanceofCheck> getInstanceofChecks(JavaCodeUnit codeUnit) {
@@ -733,7 +717,7 @@ public final class DomainBuilders {
         }
     }
 
-    private static abstract class AbstractTypeParametersBuilder<OWNER extends HasDescription> {
+    private abstract static class AbstractTypeParametersBuilder<OWNER extends HasDescription> {
         private final List<JavaTypeParameterBuilder<OWNER>> typeParameterBuilders;
 
         AbstractTypeParametersBuilder(List<JavaTypeParameterBuilder<OWNER>> typeParameterBuilders) {
@@ -1096,7 +1080,7 @@ public final class DomainBuilders {
     }
 
     @Internal
-    public static abstract class AccessTargetBuilder<MEMBER extends JavaMember, TARGET extends AccessTarget, SELF extends AccessTargetBuilder<MEMBER, TARGET, SELF>> {
+    public abstract static class AccessTargetBuilder<MEMBER extends JavaMember, TARGET extends AccessTarget, SELF extends AccessTargetBuilder<MEMBER, TARGET, SELF>> {
         private final Function<SELF, TARGET> createTarget;
 
         private JavaClass owner;

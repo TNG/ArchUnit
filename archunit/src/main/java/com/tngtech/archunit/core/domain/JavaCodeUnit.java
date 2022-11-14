@@ -63,7 +63,6 @@ public abstract class JavaCodeUnit
     private final Parameters parameters;
     private final String fullName;
     private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
-    private final Set<ReferencedClassObject> referencedClassObjects;
     private final Set<InstanceofCheck> instanceofChecks;
 
     private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
@@ -72,6 +71,7 @@ public abstract class JavaCodeUnit
     private Set<JavaMethodReference> methodReferences = Collections.emptySet();
     private Set<JavaConstructorReference> constructorReferences = Collections.emptySet();
     private Set<TryCatchBlock> tryCatchBlocks = Collections.emptySet();
+    private Set<ReferencedClassObject> referencedClassObjects;
 
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
@@ -79,7 +79,6 @@ public abstract class JavaCodeUnit
         returnType = new ReturnType(this, builder);
         parameters = new Parameters(this, builder);
         fullName = formatMethod(getOwner().getName(), getName(), namesOf(getRawParameterTypes()));
-        referencedClassObjects = ImmutableSet.copyOf(builder.getReferencedClassObjects(this));
         instanceofChecks = ImmutableSet.copyOf(builder.getInstanceofChecks(this));
     }
 
@@ -271,7 +270,7 @@ public abstract class JavaCodeUnit
         return parameters.getAnnotations();
     }
 
-    void completeAccessesFrom(ImportContext context) {
+    void completeFrom(ImportContext context) {
         Set<TryCatchBlockBuilder> tryCatchBlockBuilders = context.createTryCatchBlockBuilders(this);
         fieldAccesses = context.createFieldAccessesFor(this, tryCatchBlockBuilders);
         methodCalls = context.createMethodCallsFor(this, tryCatchBlockBuilders);
@@ -281,6 +280,7 @@ public abstract class JavaCodeUnit
         tryCatchBlocks = tryCatchBlockBuilders.stream()
                 .map(builder -> builder.build(this, context))
                 .collect(toImmutableSet());
+        referencedClassObjects = context.createReferencedClassObjectsFor(this);
     }
 
     @ResolvesTypesViaReflection

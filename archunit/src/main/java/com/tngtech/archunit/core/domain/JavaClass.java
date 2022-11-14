@@ -1480,7 +1480,7 @@ public final class JavaClass
 
     JavaClassDependencies completeFrom(ImportContext context) {
         completeComponentType(context);
-        members.completeAccessesFrom(context);
+        members.completeFrom(context);
         javaClassDependencies = new JavaClassDependencies(this);
         return javaClassDependencies;
     }

@@ -34,6 +34,7 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaStaticInitializer;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
+import com.tngtech.archunit.core.domain.ReferencedClassObject;
 import com.tngtech.archunit.core.importer.DomainBuilders.BuilderWithBuildParameter;
 import com.tngtech.archunit.core.importer.DomainBuilders.FieldAccessTargetBuilder;
 import com.tngtech.archunit.core.importer.DomainBuilders.JavaAnnotationBuilder.ValueBuilder;
@@ -426,6 +427,11 @@ public class ImportTestUtils {
 
         @Override
         public Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit) {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit codeUnit) {
             return Collections.emptySet();
         }
 

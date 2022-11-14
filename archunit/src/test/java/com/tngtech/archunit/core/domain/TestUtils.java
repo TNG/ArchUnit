@@ -166,7 +166,7 @@ public class TestUtils {
             ImportContext context = mock(ImportContext.class);
             Set<JavaMethodCall> calls = targets.stream().map(target -> newMethodCall(method, target, lineNumber)).collect(toSet());
             when(context.createMethodCallsFor(eq(method), anySet())).thenReturn(ImmutableSet.copyOf(calls));
-            method.completeAccessesFrom(context);
+            method.completeFrom(context);
             return getCallToTarget(methodCallTarget);
         }
 
@@ -190,7 +190,7 @@ public class TestUtils {
                     .thenReturn(ImmutableSet.of(
                             newFieldAccess(method, target, lineNumber, accessType)
                     ));
-            method.completeAccessesFrom(context);
+            method.completeFrom(context);
         }
     }
 

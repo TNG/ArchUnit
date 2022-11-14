@@ -278,6 +278,16 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void handleReferencedClassObject(JavaClassDescriptor type, int lineNumber) {
+            importRecord.registerReferencedClassObject(new RawReferencedClassObject.Builder()
+                    .withOrigin(codeUnit)
+                    .withTarget(type)
+                    .withLineNumber(lineNumber)
+                    .withDeclaredInLambda(false)
+                    .build());
+        }
+
+        @Override
         public void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType) {
             LOG.trace("Found try/catch block between {} and {} for throwable {}", start, end, throwableType);
             tryCatchRecorder.registerTryCatchBlock(start, end, handler, throwableType);

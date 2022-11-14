@@ -16,36 +16,89 @@
 package com.tngtech.archunit.core.importer;
 
 import com.tngtech.archunit.core.domain.JavaClassDescriptor;
+import com.tngtech.archunit.core.importer.RawAccessRecord.CodeUnit;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class RawReferencedClassObject {
-    private final JavaClassDescriptor type;
+class RawReferencedClassObject implements RawCodeUnitDependency<JavaClassDescriptor> {
+    private final CodeUnit origin;
+    private final JavaClassDescriptor target;
     private final int lineNumber;
+    private final boolean declaredInLambda;
 
-    private RawReferencedClassObject(JavaClassDescriptor type, int lineNumber) {
-        this.type = checkNotNull(type);
+    private RawReferencedClassObject(CodeUnit origin, JavaClassDescriptor target, int lineNumber, boolean declaredInLambda) {
+        this.origin = checkNotNull(origin);
+        this.target = checkNotNull(target);
         this.lineNumber = lineNumber;
+        this.declaredInLambda = declaredInLambda;
     }
 
-    static RawReferencedClassObject from(JavaClassDescriptor target, int lineNumber) {
-        return new RawReferencedClassObject(target, lineNumber);
+    @Override
+    public CodeUnit getOrigin() {
+        return origin;
+    }
+
+    @Override
+    public JavaClassDescriptor getTarget() {
+        return target;
     }
 
     String getClassName() {
-        return type.getFullyQualifiedClassName();
+        return target.getFullyQualifiedClassName();
     }
 
-    int getLineNumber() {
+    public int getLineNumber() {
         return lineNumber;
+    }
+
+    public boolean isDeclaredInLambda() {
+        return declaredInLambda;
     }
 
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("type", type)
+                .add("origin", origin)
+                .add("target", target)
                 .add("lineNumber", lineNumber)
+                .add("declaredInLambda", declaredInLambda)
                 .toString();
+    }
+
+    static class Builder implements RawCodeUnitDependencyBuilder<RawReferencedClassObject, JavaClassDescriptor> {
+        private CodeUnit origin;
+        private JavaClassDescriptor target;
+        private int lineNumber;
+        private boolean declaredInLambda;
+
+        @Override
+        public Builder withOrigin(CodeUnit origin) {
+            this.origin = origin;
+            return this;
+        }
+
+        @Override
+        public Builder withTarget(JavaClassDescriptor target) {
+            this.target = target;
+            return this;
+        }
+
+        @Override
+        public Builder withLineNumber(int lineNumber) {
+            this.lineNumber = lineNumber;
+            return this;
+        }
+
+        @Override
+        public Builder withDeclaredInLambda(boolean declaredInLambda) {
+            this.declaredInLambda = declaredInLambda;
+            return this;
+        }
+
+        @Override
+        public RawReferencedClassObject build() {
+            return new RawReferencedClassObject(origin, target, lineNumber, declaredInLambda);
+        }
     }
 }

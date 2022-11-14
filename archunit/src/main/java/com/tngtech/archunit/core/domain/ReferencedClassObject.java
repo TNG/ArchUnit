@@ -31,12 +31,14 @@ public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUn
     private final JavaClass value;
     private final int lineNumber;
     private final SourceCodeLocation sourceCodeLocation;
+    private final boolean declaredInLambda;
 
-    private ReferencedClassObject(JavaCodeUnit owner, JavaClass value, int lineNumber) {
+    private ReferencedClassObject(JavaCodeUnit owner, JavaClass value, int lineNumber, boolean declaredInLambda) {
         this.owner = checkNotNull(owner);
         this.value = checkNotNull(value);
         this.lineNumber = lineNumber;
         sourceCodeLocation = SourceCodeLocation.of(owner.getOwner(), lineNumber);
+        this.declaredInLambda = declaredInLambda;
     }
 
     @Override
@@ -73,17 +75,23 @@ public final class ReferencedClassObject implements HasType, HasOwner<JavaCodeUn
         return sourceCodeLocation;
     }
 
+    @PublicAPI(usage = ACCESS)
+    public boolean isDeclaredInLambda() {
+        return declaredInLambda;
+    }
+
     @Override
     public String toString() {
         return toStringHelper(this)
                 .add("owner", owner)
                 .add("value", value)
                 .add("sourceCodeLocation", sourceCodeLocation)
+                .add("declaredInLambda", declaredInLambda)
                 .toString();
     }
 
-    static ReferencedClassObject from(JavaCodeUnit owner, JavaClass javaClass, int lineNumber) {
-        return new ReferencedClassObject(owner, javaClass, lineNumber);
+    static ReferencedClassObject from(JavaCodeUnit owner, JavaClass javaClass, int lineNumber, boolean declaredInLambda) {
+        return new ReferencedClassObject(owner, javaClass, lineNumber, declaredInLambda);
     }
 
     /**

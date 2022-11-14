@@ -63,5 +63,7 @@ public interface ImportContext {
 
     Set<TryCatchBlockBuilder> createTryCatchBlockBuilders(JavaCodeUnit codeUnit);
 
+    Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit codeUnit);
+
     JavaClass resolveClass(String fullyQualifiedClassName);
 }

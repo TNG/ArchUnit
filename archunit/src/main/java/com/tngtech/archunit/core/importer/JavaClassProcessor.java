@@ -373,7 +373,7 @@ class JavaClassProcessor extends ClassVisitor {
         public void visitLdcInsn(Object value) {
             if (JavaClassDescriptorImporter.isAsmType(value)) {
                 JavaClassDescriptor type = JavaClassDescriptorImporter.importAsmType(value);
-                codeUnitBuilder.addReferencedClassObject(RawReferencedClassObject.from(type, actualLineNumber));
+                accessHandler.handleReferencedClassObject(type, actualLineNumber);
                 declarationHandler.onDeclaredClassObject(type.getFullyQualifiedClassName());
             }
         }
@@ -535,6 +535,8 @@ class JavaClassProcessor extends ClassVisitor {
 
         void handleLambdaInstruction(String owner, String name, String desc);
 
+        void handleReferencedClassObject(JavaClassDescriptor type, int lineNumber);
+
         void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType);
 
         void handleTryFinallyBlock(Label start, Label end, Label handler);
@@ -569,6 +571,10 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void handleLambdaInstruction(String owner, String name, String desc) {
+            }
+
+            @Override
+            public void handleReferencedClassObject(JavaClassDescriptor type, int lineNumber) {
             }
 
             @Override
