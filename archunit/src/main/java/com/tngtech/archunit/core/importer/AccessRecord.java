@@ -291,17 +291,7 @@ interface AccessRecord<TARGET extends AccessTarget> {
         }
 
         private static Supplier<JavaCodeUnit> createOriginSupplier(final CodeUnit origin, final ImportedClasses classes) {
-            return Suppliers.memoize(() -> Factory.getOrigin(origin, classes));
-        }
-
-        private static JavaCodeUnit getOrigin(CodeUnit rawOrigin, ImportedClasses classes) {
-            for (JavaCodeUnit method : classes.getOrResolve(rawOrigin.getDeclaringClassName()).getCodeUnits()) {
-                if (rawOrigin.is(method)) {
-                    return method;
-                }
-            }
-            throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
-                    " that matches supposed origin " + rawOrigin);
+            return Suppliers.memoize(() -> origin.resolveFrom(classes));
         }
 
         private static List<JavaClass> getArgumentTypesFrom(String descriptor, ImportedClasses classes) {

@@ -84,6 +84,7 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawConstructorCallRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawMethodReferenceRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
+    private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
     private final SyntheticAccessRecorder syntheticLambdaAccessRecorder = createSyntheticLambdaAccessRecorder();
     private final SyntheticAccessRecorder syntheticPrivateAccessRecorder = createSyntheticPrivateAccessRecorder();
 
@@ -246,6 +247,10 @@ class ClassFileImportRecord {
         syntheticLambdaAccessRecorder.registerSyntheticMethodInvocation(record);
     }
 
+    void registerReferencedClassObject(RawReferencedClassObject referencedClassObject) {
+        rawReferencedClassObjects.add(referencedClassObject);
+    }
+
     void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
         fixSyntheticOrigins(
                 rawFieldAccessRecords, COPY_RAW_FIELD_ACCESS_RECORD,
@@ -281,6 +286,13 @@ class ClassFileImportRecord {
         ).forEach(doWithRecord);
     }
 
+    void forEachRawReferencedClassObject(Consumer<RawReferencedClassObject> doWithReferencedClassObject) {
+        fixSyntheticOrigins(
+                rawReferencedClassObjects, COPY_RAW_REFERENCED_CLASS_OBJECT,
+                syntheticLambdaAccessRecorder
+        ).forEach(doWithReferencedClassObject);
+    }
+
     private <ACCESS extends RawCodeUnitDependency<?>> Stream<ACCESS> fixSyntheticOrigins(
             Set<ACCESS> rawAccessRecordsIncludingSyntheticAccesses,
             Function<ACCESS, ? extends RawCodeUnitDependencyBuilder<ACCESS, ?>> createAccessWithNewOrigin,
@@ -308,6 +320,9 @@ class ClassFileImportRecord {
     private static final Function<RawAccessRecord.ForField, RawAccessRecord.ForField.Builder> COPY_RAW_FIELD_ACCESS_RECORD =
             access -> copyInto(new RawAccessRecord.ForField.Builder(), access)
                     .withAccessType(access.accessType);
+
+    private static final Function<RawReferencedClassObject, RawReferencedClassObject.Builder> COPY_RAW_REFERENCED_CLASS_OBJECT =
+            referencedClassObject -> copyInto(new RawReferencedClassObject.Builder(), referencedClassObject);
 
     private static <TARGET, BUILDER extends RawCodeUnitDependencyBuilder<?, TARGET>> BUILDER copyInto(BUILDER builder, RawCodeUnitDependency<TARGET> referencedClassObject) {
         builder

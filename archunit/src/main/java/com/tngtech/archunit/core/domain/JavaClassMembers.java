@@ -318,9 +318,9 @@ class JavaClassMembers {
         }
     }
 
-    void completeAccessesFrom(ImportContext context) {
+    void completeFrom(ImportContext context) {
         for (JavaCodeUnit codeUnit : codeUnits) {
-            codeUnit.completeAccessesFrom(context);
+            codeUnit.completeFrom(context);
         }
     }
 

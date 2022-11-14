@@ -123,7 +123,17 @@ class RawAccessRecord implements RawCodeUnitDependency<RawAccessRecord.TargetInf
             return declaringClassName;
         }
 
-        boolean is(JavaCodeUnit method) {
+        JavaCodeUnit resolveFrom(ImportedClasses classes) {
+            for (JavaCodeUnit method : classes.getOrResolve(getDeclaringClassName()).getCodeUnits()) {
+                if (is(method)) {
+                    return method;
+                }
+            }
+            throw new IllegalStateException("Never found a " + JavaCodeUnit.class.getSimpleName() +
+                    " that matches supposed origin " + this);
+        }
+
+        private boolean is(JavaCodeUnit method) {
             return getName().equals(method.getName())
                     && descriptor.equals(method.getDescriptor())
                     && getDeclaringClassName().equals(method.getOwner().getName());
