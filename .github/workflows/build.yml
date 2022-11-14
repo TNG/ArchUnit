@@ -128,4 +128,4 @@ jobs:
         env:
           JAVA_HOME: ${{ env.build_jdk_path }}
         with:
-          arguments: build -xtest -xspotbugsMain -xjavadoc runMavenTest -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}
+          arguments: runMavenTest -PtestJavaVersion=${{ matrix.test_java_version }} -Porg.gradle.java.installations.paths=${{ env.test_jdk_path }}
