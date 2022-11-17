@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget;
 import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -41,6 +42,7 @@ import com.tngtech.archunit.testutil.assertion.DependenciesAssertion;
 import com.tngtech.archunit.testutil.assertion.DependencyAssertion;
 import com.tngtech.archunit.testutil.assertion.DescribedPredicateAssertion;
 import com.tngtech.archunit.testutil.assertion.ExpectedAccessCreation;
+import com.tngtech.archunit.testutil.assertion.InstanceofChecksAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaAnnotationAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaAnnotationsAssertion;
 import com.tngtech.archunit.testutil.assertion.JavaClassAssertion;
@@ -156,6 +158,10 @@ public class Assertions extends org.assertj.core.api.Assertions {
 
     public static ReferencedClassObjectsAssertion assertThatReferencedClassObjects(Set<ReferencedClassObject> referencedClassObjects) {
         return new ReferencedClassObjectsAssertion(referencedClassObjects);
+    }
+
+    public static InstanceofChecksAssertion assertThatInstanceofChecks(Set<InstanceofCheck> instanceofChecks) {
+        return new InstanceofChecksAssertion(instanceofChecks);
     }
 
     public static JavaEnumConstantAssertion assertThat(JavaEnumConstant enumConstant) {

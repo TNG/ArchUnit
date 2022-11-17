@@ -71,7 +71,6 @@ import static com.tngtech.archunit.core.importer.ClassFileProcessor.ASM_API_VERS
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isAsmMethodHandle;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMetafactory;
 import static com.tngtech.archunit.core.importer.JavaClassDescriptorImporter.isLambdaMethod;
-import static com.tngtech.archunit.core.importer.RawInstanceofCheck.from;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
@@ -401,7 +400,7 @@ class JavaClassProcessor extends ClassVisitor {
         public void visitTypeInsn(int opcode, String type) {
             if (opcode == Opcodes.INSTANCEOF) {
                 JavaClassDescriptor instanceOfCheckType = JavaClassDescriptorImporter.createFromAsmObjectTypeName(type);
-                codeUnitBuilder.addInstanceOfCheck(from(instanceOfCheckType, actualLineNumber));
+                accessHandler.handleInstanceofCheck(instanceOfCheckType, actualLineNumber);
                 declarationHandler.onDeclaredInstanceofCheck(instanceOfCheckType.getFullyQualifiedClassName());
             }
         }
@@ -537,6 +536,8 @@ class JavaClassProcessor extends ClassVisitor {
 
         void handleReferencedClassObject(JavaClassDescriptor type, int lineNumber);
 
+        void handleInstanceofCheck(JavaClassDescriptor instanceOfCheckType, int lineNumber);
+
         void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType);
 
         void handleTryFinallyBlock(Label start, Label end, Label handler);
@@ -575,6 +576,10 @@ class JavaClassProcessor extends ClassVisitor {
 
             @Override
             public void handleReferencedClassObject(JavaClassDescriptor type, int lineNumber) {
+            }
+
+            @Override
+            public void handleInstanceofCheck(JavaClassDescriptor instanceOfCheckType, int lineNumber) {
             }
 
             @Override

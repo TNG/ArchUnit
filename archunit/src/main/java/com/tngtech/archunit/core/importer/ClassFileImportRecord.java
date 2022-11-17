@@ -85,6 +85,7 @@ class ClassFileImportRecord {
     private final Set<RawAccessRecord> rawMethodReferenceRecords = new HashSet<>();
     private final Set<RawAccessRecord> rawConstructorReferenceRecords = new HashSet<>();
     private final Set<RawReferencedClassObject> rawReferencedClassObjects = new HashSet<>();
+    private final Set<RawInstanceofCheck> rawInstanceofChecks = new HashSet<>();
     private final SyntheticAccessRecorder syntheticLambdaAccessRecorder = createSyntheticLambdaAccessRecorder();
     private final SyntheticAccessRecorder syntheticPrivateAccessRecorder = createSyntheticPrivateAccessRecorder();
 
@@ -251,6 +252,10 @@ class ClassFileImportRecord {
         rawReferencedClassObjects.add(referencedClassObject);
     }
 
+    void registerInstanceofCheck(RawInstanceofCheck instanceofCheck) {
+        rawInstanceofChecks.add(instanceofCheck);
+    }
+
     void forEachRawFieldAccessRecord(Consumer<RawAccessRecord.ForField> doWithRecord) {
         fixSyntheticOrigins(
                 rawFieldAccessRecords, COPY_RAW_FIELD_ACCESS_RECORD,
@@ -293,6 +298,13 @@ class ClassFileImportRecord {
         ).forEach(doWithReferencedClassObject);
     }
 
+    void forEachRawInstanceofCheck(Consumer<RawInstanceofCheck> doWithInstanceofCheck) {
+        fixSyntheticOrigins(
+                rawInstanceofChecks, COPY_RAW_INSTANCEOF_CHECK,
+                syntheticLambdaAccessRecorder
+        ).forEach(doWithInstanceofCheck);
+    }
+
     private <ACCESS extends RawCodeUnitDependency<?>> Stream<ACCESS> fixSyntheticOrigins(
             Set<ACCESS> rawAccessRecordsIncludingSyntheticAccesses,
             Function<ACCESS, ? extends RawCodeUnitDependencyBuilder<ACCESS, ?>> createAccessWithNewOrigin,
@@ -323,6 +335,9 @@ class ClassFileImportRecord {
 
     private static final Function<RawReferencedClassObject, RawReferencedClassObject.Builder> COPY_RAW_REFERENCED_CLASS_OBJECT =
             referencedClassObject -> copyInto(new RawReferencedClassObject.Builder(), referencedClassObject);
+
+    private static final Function<RawInstanceofCheck, RawInstanceofCheck.Builder> COPY_RAW_INSTANCEOF_CHECK =
+            instanceofCheck -> copyInto(new RawInstanceofCheck.Builder(), instanceofCheck);
 
     private static <TARGET, BUILDER extends RawCodeUnitDependencyBuilder<?, TARGET>> BUILDER copyInto(BUILDER builder, RawCodeUnitDependency<TARGET> referencedClassObject) {
         builder

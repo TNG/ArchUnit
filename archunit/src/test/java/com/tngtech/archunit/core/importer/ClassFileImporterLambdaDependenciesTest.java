@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget;
+import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -19,6 +20,7 @@ import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaMethodReference;
 import com.tngtech.archunit.core.domain.ReferencedClassObject;
+import com.tngtech.archunit.core.importer.testexamples.instanceofcheck.CheckingInstanceofFromLambda;
 import com.tngtech.archunit.core.importer.testexamples.referencedclassobjects.ReferencingClassObjectsFromLambda;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
@@ -36,8 +38,10 @@ import static com.tngtech.archunit.testutil.Assertions.assertThat;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccess;
 import static com.tngtech.archunit.testutil.Assertions.assertThatAccesses;
 import static com.tngtech.archunit.testutil.Assertions.assertThatCall;
+import static com.tngtech.archunit.testutil.Assertions.assertThatInstanceofChecks;
 import static com.tngtech.archunit.testutil.Assertions.assertThatReferencedClassObjects;
 import static com.tngtech.archunit.testutil.assertion.AccessesAssertion.access;
+import static com.tngtech.archunit.testutil.assertion.InstanceofChecksAssertion.instanceofCheck;
 import static com.tngtech.archunit.testutil.assertion.ReferencedClassObjectsAssertion.referencedClassObject;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$;
 import static com.tngtech.java.junit.dataprovider.DataProviders.$$;
@@ -524,6 +528,17 @@ public class ClassFileImporterLambdaDependenciesTest {
         assertThatReferencedClassObjects(referencedClassObjects).containReferencedClassObjects(
                 referencedClassObject(FilterInputStream.class, 10).declaredInLambda(),
                 referencedClassObject(File.class, 14).declaredInLambda()
+        );
+    }
+
+    @Test
+    public void imports_instanceof_checks_in_lambda() {
+        JavaClasses classes = new ClassFileImporter().importClasses(CheckingInstanceofFromLambda.class);
+        Set<InstanceofCheck> instanceofChecks = classes.get(CheckingInstanceofFromLambda.class).getInstanceofChecks();
+
+        assertThatInstanceofChecks(instanceofChecks).containInstanceofChecks(
+                instanceofCheck(FilterInputStream.class, 11).declaredInLambda(),
+                instanceofCheck(File.class, 15).declaredInLambda()
         );
     }
 

@@ -28,27 +28,29 @@ import static com.tngtech.archunit.PublicAPI.Usage.ACCESS;
 public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, HasSourceCodeLocation {
 
     private final JavaCodeUnit owner;
-    private final JavaClass target;
+    private final JavaClass type;
     private final int lineNumber;
+    private final boolean declaredInLambda;
     private final SourceCodeLocation sourceCodeLocation;
 
-    private InstanceofCheck(JavaCodeUnit owner, JavaClass target, int lineNumber) {
+    private InstanceofCheck(JavaCodeUnit owner, JavaClass type, int lineNumber, boolean declaredInLambda) {
         this.owner = checkNotNull(owner);
-        this.target = checkNotNull(target);
+        this.type = checkNotNull(type);
         this.lineNumber = lineNumber;
+        this.declaredInLambda = declaredInLambda;
         sourceCodeLocation = SourceCodeLocation.of(owner.getOwner(), lineNumber);
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaClass getRawType() {
-        return target;
+        return type;
     }
 
     @Override
     @PublicAPI(usage = ACCESS)
     public JavaType getType() {
-        return target;
+        return type;
     }
 
     @Override
@@ -62,6 +64,11 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, H
         return lineNumber;
     }
 
+    @PublicAPI(usage = ACCESS)
+    public boolean isDeclaredInLambda() {
+        return declaredInLambda;
+    }
+
     @Override
     public SourceCodeLocation getSourceCodeLocation() {
         return sourceCodeLocation;
@@ -71,12 +78,13 @@ public final class InstanceofCheck implements HasType, HasOwner<JavaCodeUnit>, H
     public String toString() {
         return toStringHelper(this)
                 .add("owner", owner)
-                .add("target", target)
+                .add("type", type)
                 .add("lineNumber", lineNumber)
+                .add("declaredInLambda", declaredInLambda)
                 .toString();
     }
 
-    static InstanceofCheck from(JavaCodeUnit owner, JavaClass target, int lineNumber) {
-        return new InstanceofCheck(owner, target, lineNumber);
+    static InstanceofCheck from(JavaCodeUnit owner, JavaClass type, int lineNumber, boolean declaredInLambda) {
+        return new InstanceofCheck(owner, type, lineNumber, declaredInLambda);
     }
 }

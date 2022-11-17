@@ -65,5 +65,7 @@ public interface ImportContext {
 
     Set<ReferencedClassObject> createReferencedClassObjectsFor(JavaCodeUnit codeUnit);
 
+    Set<InstanceofCheck> createInstanceofChecksFor(JavaCodeUnit codeUnit);
+
     JavaClass resolveClass(String fullyQualifiedClassName);
 }
