@@ -180,8 +180,8 @@ public class DomainObjectCreationContext {
         return ThrowsClause.from(codeUnit, types);
     }
 
-    public static InstanceofCheck createInstanceofCheck(JavaCodeUnit codeUnit, JavaClass target, int lineNumber) {
-        return InstanceofCheck.from(codeUnit, target, lineNumber);
+    public static InstanceofCheck createInstanceofCheck(JavaCodeUnit codeUnit, JavaClass type, int lineNumber, boolean declaredInLambda) {
+        return InstanceofCheck.from(codeUnit, type, lineNumber, declaredInLambda);
     }
 
     public static <OWNER extends HasDescription> JavaTypeVariable<OWNER> createTypeVariable(String name, OWNER owner, JavaClass erasure) {

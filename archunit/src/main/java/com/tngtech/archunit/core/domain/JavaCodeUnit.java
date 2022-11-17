@@ -63,7 +63,6 @@ public abstract class JavaCodeUnit
     private final Parameters parameters;
     private final String fullName;
     private final List<JavaTypeVariable<JavaCodeUnit>> typeParameters;
-    private final Set<InstanceofCheck> instanceofChecks;
 
     private Set<JavaFieldAccess> fieldAccesses = Collections.emptySet();
     private Set<JavaMethodCall> methodCalls = Collections.emptySet();
@@ -72,6 +71,7 @@ public abstract class JavaCodeUnit
     private Set<JavaConstructorReference> constructorReferences = Collections.emptySet();
     private Set<TryCatchBlock> tryCatchBlocks = Collections.emptySet();
     private Set<ReferencedClassObject> referencedClassObjects;
+    private Set<InstanceofCheck> instanceofChecks;
 
     JavaCodeUnit(JavaCodeUnitBuilder<?, ?> builder) {
         super(builder);
@@ -79,7 +79,6 @@ public abstract class JavaCodeUnit
         returnType = new ReturnType(this, builder);
         parameters = new Parameters(this, builder);
         fullName = formatMethod(getOwner().getName(), getName(), namesOf(getRawParameterTypes()));
-        instanceofChecks = ImmutableSet.copyOf(builder.getInstanceofChecks(this));
     }
 
     /**
@@ -281,6 +280,7 @@ public abstract class JavaCodeUnit
                 .map(builder -> builder.build(this, context))
                 .collect(toImmutableSet());
         referencedClassObjects = context.createReferencedClassObjectsFor(this);
+        instanceofChecks = context.createInstanceofChecksFor(this);
     }
 
     @ResolvesTypesViaReflection

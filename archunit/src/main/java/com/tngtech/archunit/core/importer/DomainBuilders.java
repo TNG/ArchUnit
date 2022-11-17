@@ -44,7 +44,6 @@ import com.tngtech.archunit.core.domain.AccessTarget.MethodReferenceTarget;
 import com.tngtech.archunit.core.domain.DomainObjectCreationContext;
 import com.tngtech.archunit.core.domain.Formatters;
 import com.tngtech.archunit.core.domain.ImportContext;
-import com.tngtech.archunit.core.domain.InstanceofCheck;
 import com.tngtech.archunit.core.domain.JavaAccess;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -80,7 +79,6 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.union;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.completeTypeVariable;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createGenericArrayType;
-import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createInstanceofCheck;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createSource;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createThrowsClause;
 import static com.tngtech.archunit.core.domain.DomainObjectCreationContext.createTryCatchBlock;
@@ -248,7 +246,6 @@ public final class DomainBuilders {
         private SetMultimap<Integer, JavaAnnotationBuilder> parameterAnnotationsByIndex;
         private JavaCodeUnitTypeParametersBuilder typeParametersBuilder;
         private List<JavaClassDescriptor> throwsDeclarations;
-        private final List<RawInstanceofCheck> instanceOfChecks = new ArrayList<>();
 
         private JavaCodeUnitBuilder() {
         }
@@ -277,11 +274,6 @@ public final class DomainBuilders {
 
         SELF withThrowsClause(List<JavaClassDescriptor> throwsDeclarations) {
             this.throwsDeclarations = throwsDeclarations;
-            return self();
-        }
-
-        SELF addInstanceOfCheck(RawInstanceofCheck rawInstanceOfChecks) {
-            this.instanceOfChecks.add(rawInstanceOfChecks);
             return self();
         }
 
@@ -329,14 +321,6 @@ public final class DomainBuilders {
 
         public <CODE_UNIT extends JavaCodeUnit> ThrowsClause<CODE_UNIT> getThrowsClause(CODE_UNIT codeUnit) {
             return createThrowsClause(codeUnit, asJavaClasses(this.throwsDeclarations));
-        }
-
-        public Set<InstanceofCheck> getInstanceofChecks(JavaCodeUnit codeUnit) {
-            ImmutableSet.Builder<InstanceofCheck> result = ImmutableSet.builder();
-            for (RawInstanceofCheck instanceOfCheck : this.instanceOfChecks) {
-                result.add(createInstanceofCheck(codeUnit, get(instanceOfCheck.getTarget().getFullyQualifiedClassName()), instanceOfCheck.getLineNumber()));
-            }
-            return result.build();
         }
 
         private List<JavaClass> asJavaClasses(List<JavaClassDescriptor> descriptors) {

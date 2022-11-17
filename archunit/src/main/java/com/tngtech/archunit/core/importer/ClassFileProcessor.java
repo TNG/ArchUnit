@@ -288,6 +288,16 @@ class ClassFileProcessor {
         }
 
         @Override
+        public void handleInstanceofCheck(JavaClassDescriptor instanceOfCheckType, int lineNumber) {
+            importRecord.registerInstanceofCheck(new RawInstanceofCheck.Builder()
+                    .withOrigin(codeUnit)
+                    .withTarget(instanceOfCheckType)
+                    .withLineNumber(lineNumber)
+                    .withDeclaredInLambda(false)
+                    .build());
+        }
+
+        @Override
         public void handleTryCatchBlock(Label start, Label end, Label handler, JavaClassDescriptor throwableType) {
             LOG.trace("Found try/catch block between {} and {} for throwable {}", start, end, throwableType);
             tryCatchRecorder.registerTryCatchBlock(start, end, handler, throwableType);
