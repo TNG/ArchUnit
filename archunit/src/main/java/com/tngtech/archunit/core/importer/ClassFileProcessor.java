@@ -301,7 +301,7 @@ class ClassFileProcessor {
 
         private <BUILDER extends RawAccessRecord.BaseBuilder<?, BUILDER>> BUILDER filled(BUILDER builder, TargetInfo target) {
             return builder
-                    .withCaller(codeUnit)
+                    .withOrigin(codeUnit)
                     .withTarget(target)
                     .withLineNumber(lineNumber);
         }
