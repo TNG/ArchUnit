@@ -25,17 +25,37 @@ import com.tngtech.archunit.core.domain.JavaFieldAccess.AccessType;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class RawAccessRecord {
-    final CodeUnit caller;
-    final TargetInfo target;
-    final int lineNumber;
-    final boolean declaredInLambda;
+class RawAccessRecord implements RawCodeUnitDependency<RawAccessRecord.TargetInfo> {
+    private final CodeUnit origin;
+    private final TargetInfo target;
+    private final int lineNumber;
+    private final boolean declaredInLambda;
 
-    RawAccessRecord(CodeUnit caller, TargetInfo target, int lineNumber, boolean declaredInLambda) {
-        this.caller = checkNotNull(caller);
+    RawAccessRecord(CodeUnit origin, TargetInfo target, int lineNumber, boolean declaredInLambda) {
+        this.origin = checkNotNull(origin);
         this.target = checkNotNull(target);
         this.lineNumber = lineNumber;
         this.declaredInLambda = declaredInLambda;
+    }
+
+    @Override
+    public CodeUnit getOrigin() {
+        return origin;
+    }
+
+    @Override
+    public TargetInfo getTarget() {
+        return target;
+    }
+
+    @Override
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    @Override
+    public boolean isDeclaredInLambda() {
+        return declaredInLambda;
     }
 
     @Override
@@ -44,7 +64,7 @@ class RawAccessRecord {
     }
 
     private String fieldsAsString() {
-        return "caller=" + caller + ", target=" + target + ", lineNumber=" + lineNumber;
+        return "origin=" + origin + ", target=" + target + ", lineNumber=" + lineNumber + ", declaredInLambda=" + declaredInLambda;
     }
 
     interface MemberSignature {
@@ -195,33 +215,37 @@ class RawAccessRecord {
 
     static class Builder extends BaseBuilder<RawAccessRecord, Builder> {
         @Override
-        RawAccessRecord build() {
-            return new RawAccessRecord(caller, target, lineNumber, declaredInLambda);
+        public RawAccessRecord build() {
+            return new RawAccessRecord(origin, target, lineNumber, declaredInLambda);
         }
     }
 
-    abstract static class BaseBuilder<ACCESS extends RawAccessRecord, SELF extends BaseBuilder<ACCESS, SELF>> {
-        CodeUnit caller;
+    abstract static class BaseBuilder<ACCESS extends RawAccessRecord, SELF extends BaseBuilder<ACCESS, SELF>> implements RawCodeUnitDependencyBuilder<ACCESS, TargetInfo> {
+        CodeUnit origin;
         TargetInfo target;
         int lineNumber = -1;
         boolean declaredInLambda = false;
 
-        SELF withCaller(CodeUnit caller) {
-            this.caller = caller;
+        @Override
+        public SELF withOrigin(CodeUnit origin) {
+            this.origin = origin;
             return self();
         }
 
-        SELF withTarget(TargetInfo target) {
+        @Override
+        public SELF withTarget(TargetInfo target) {
             this.target = target;
             return self();
         }
 
-        SELF withLineNumber(int lineNumber) {
+        @Override
+        public SELF withLineNumber(int lineNumber) {
             this.lineNumber = lineNumber;
             return self();
         }
 
-        SELF withDeclaredInLambda(boolean declaredInLambda) {
+        @Override
+        public SELF withDeclaredInLambda(boolean declaredInLambda) {
             this.declaredInLambda = declaredInLambda;
             return self();
         }
@@ -230,15 +254,13 @@ class RawAccessRecord {
         SELF self() {
             return (SELF) this;
         }
-
-        abstract ACCESS build();
     }
 
     static class ForField extends RawAccessRecord {
         final AccessType accessType;
 
-        private ForField(CodeUnit caller, TargetInfo target, int lineNumber, AccessType accessType, boolean declaredInLambda) {
-            super(caller, target, lineNumber, declaredInLambda);
+        private ForField(CodeUnit origin, TargetInfo target, int lineNumber, AccessType accessType, boolean declaredInLambda) {
+            super(origin, target, lineNumber, declaredInLambda);
             this.accessType = accessType;
         }
 
@@ -251,8 +273,8 @@ class RawAccessRecord {
             }
 
             @Override
-            ForField build() {
-                return new ForField(super.caller, super.target, super.lineNumber, accessType, declaredInLambda);
+            public ForField build() {
+                return new ForField(super.origin, super.target, super.lineNumber, accessType, declaredInLambda);
             }
         }
     }

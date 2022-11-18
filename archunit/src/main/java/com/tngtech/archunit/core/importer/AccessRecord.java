@@ -245,9 +245,9 @@ interface AccessRecord<TARGET extends AccessTarget> {
             RawAccessRecordProcessed(RawAccessRecord record, ImportedClasses classes, AccessTargetFactory<TARGET> accessTargetFactory) {
                 this.record = record;
                 this.classes = classes;
-                targetOwner = this.classes.getOrResolve(record.target.owner.getFullyQualifiedClassName());
+                targetOwner = this.classes.getOrResolve(record.getTarget().owner.getFullyQualifiedClassName());
                 this.accessTargetFactory = accessTargetFactory;
-                originSupplier = createOriginSupplier(record.caller, classes);
+                originSupplier = createOriginSupplier(record.getOrigin(), classes);
             }
 
             @Override
@@ -257,17 +257,17 @@ interface AccessRecord<TARGET extends AccessTarget> {
 
             @Override
             public TARGET getTarget() {
-                return accessTargetFactory.create(targetOwner, record.target, classes);
+                return accessTargetFactory.create(targetOwner, record.getTarget(), classes);
             }
 
             @Override
             public int getLineNumber() {
-                return record.lineNumber;
+                return record.getLineNumber();
             }
 
             @Override
             public boolean isDeclaredInLambda() {
-                return record.declaredInLambda;
+                return record.isDeclaredInLambda();
             }
 
             @Override
